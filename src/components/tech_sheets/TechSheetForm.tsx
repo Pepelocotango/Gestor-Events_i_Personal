@@ -1,8 +1,7 @@
-import React, { useState, FormEvent, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
-import { EventFrame, TechSheetData, TechSheetPersonnel, TechSheetScheduleItem, TechSheetNeed } from '../../types';
+import { EventFrame, TechSheetData } from '../../types';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -355,7 +354,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           <button
             type="button"
             onClick={() => {
-              // Llegeix assignacions confirmades i afegeix-les a la llista (sense duplicats)
               const confirmedPersonnel = eventFrame.assignments
                 .filter(a => a.status === 'Sí' || (a.status === 'Mixt' && a.dailyStatuses && Object.values(a.dailyStatuses).some(st => st === 'Sí')))
                 .map(a => {
@@ -367,20 +365,36 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                     notes: a.notes || '',
                   };
                 });
-              setFormData(prev => {
-                // Evita duplicats per id
-                const existingIds = new Set(prev.technicalPersonnel.map(p => p.id));
-                const merged = [
-                  ...prev.technicalPersonnel,
-                  ...confirmedPersonnel.filter(p => !existingIds.has(p.id))
-                ];
-                return { ...prev, technicalPersonnel: merged };
-              });
-              setIsDirty(true);
-              showToast('Personal tècnic actualitzat des de les assignacions.', 'success');
+              
+              if (confirmedPersonnel.length === 0) {
+                showToast('No hi ha personal confirmat a les assignacions per afegir.', 'info');
+                return;
+              }
+
+              const currentPersonnelIds = new Set(formData.technicalPersonnel.map(p => p.id));
+              const newPersonnel = confirmedPersonnel.filter(p => !currentPersonnelIds.has(p.id));
+
+              if (newPersonnel.length === 0) {
+                showToast('Tot el personal confirmat ja és a la fitxa.', 'info');
+                return;
+              }
+
+              // 1. Preparem les noves dades completes
+              const newTechSheetData = {
+                ...formData,
+                technicalPersonnel: [...formData.technicalPersonnel, ...newPersonnel]
+              };
+              
+              // 2. Actualitzem l'estat local per reflectir-ho a la UI
+              setFormData(newTechSheetData);
+              
+              // 3. Desem explícitament a l'estat global
+              addOrUpdateTechSheet(eventFrame.id, newTechSheetData);
+              
+              showToast('Personal afegit i desat correctament.', 'success');
             }}
             className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-medium shadow no-print"
-            title="Actualitza des d'assignacions"
+            title="Afegeix personal confirmat de les assignacions a aquesta llista"
           >
             <span className="font-bold">⟳</span> <span className="hidden sm:inline">Actualitza des d'assignacions</span>
           </button>

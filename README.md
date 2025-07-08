@@ -355,13 +355,13 @@ Aquest projecte està sota la llicència MIT.
 
 ---
 
-## ⚠️ Nota sobre la configuració de TypeScript
+## ⚠️ Nota sobre la configuració de TypeScript ACTUALMENT ESTÀ CANVIAT A "true" !!!
 
 Per garantir que la compilació (`npm run build`) funcioni correctament encara que hi hagi imports de tipus o variables no utilitzades directament (per exemple, tipus utilitzats només en estructures o per claredat), s'ha modificat el fitxer `tsconfig.json`:
 
 ```jsonc
-"noUnusedLocals": false,
-"noUnusedParameters": false,
+"noUnusedLocals": false, <-ACTUALITZAT A true
+"noUnusedParameters": false, <-ACTUALITZAT A true
 ```
 
 Això permet que el projecte es compili sense errors per imports/tipus no utilitzats directament, mantenint la seguretat de tipus i la claredat del codi. Si vols tornar a activar la comprovació estricta, només cal posar aquests valors a `true`.

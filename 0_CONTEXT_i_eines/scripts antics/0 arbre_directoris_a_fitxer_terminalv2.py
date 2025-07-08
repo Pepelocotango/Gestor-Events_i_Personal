@@ -14,14 +14,13 @@ def arbre_simple_a_fitxer(directori_a_escanejar, fitxer_sortida_obj):
 
     directori_base_norm = os.path.normpath(directori_a_escanejar)
     
-    # <<< CANVI 1: Defineix aquí els noms de les carpetes a excloure >>>
-    directorios_a_excluir = ['node_modules', '0_CONTEXT_i_eines', '.git', 'dist']
+    # No excloem cap carpeta per obtenir l'arbre complet
+    directorios_a_excluir = []
 
     for arrel, dirs, fitxers in os.walk(directori_a_escanejar, topdown=True):
-        
-        # <<< CANVI 2: Aquesta línia exclou els directoris de la llista >>>
-        # Modifiquem la llista 'dirs' in-place per evitar que os.walk hi entri.
-        dirs[:] = [d for d in dirs if d not in directorios_a_excluir]
+        # No excloem cap directori
+        if directorios_a_excluir:
+            dirs[:] = [d for d in dirs if d not in directorios_a_excluir]
         
         dirs.sort()
         arrel_norm = os.path.normpath(arrel)
