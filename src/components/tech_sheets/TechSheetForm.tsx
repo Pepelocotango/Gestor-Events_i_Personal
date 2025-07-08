@@ -119,10 +119,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   };
 
   const handleRoleChange = (providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => {
+    // Si estem canviant el rol, netegem el prefix de la categoria
+    const finalValue = (field === 'role' && typeof value === 'string' && value.includes(': '))
+      ? value.split(': ')[1]
+      : value;
+
     setFormData(prev => {
       const newProviders = [...prev.technicalProviders];
       const newRoles = [...newProviders[providerIndex].roles];
-      newRoles[roleIndex] = { ...newRoles[roleIndex], [field]: value };
+      newRoles[roleIndex] = { ...newRoles[roleIndex], [field]: finalValue }; // Utilitzem el valor netejat
       newProviders[providerIndex].roles = newRoles;
       return { ...prev, technicalProviders: newProviders };
     });
@@ -343,7 +348,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         </div>
       </TechSheetSection>
 
-      <TechSheetSection title="Personal Tècnic"
+       <TechSheetSection title="Personal Tècnic"
         layout="single-column"
         headerActions={
           <button
@@ -372,22 +377,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                 if (!person) return;
 
                 let providerIndex = updatedProviders.findIndex(p => p.personGroupId === personGroupId);
-
+                
                 if (providerIndex === -1) {
-                  const newProvider: TechSheetProvider = {
-                    id: generateLocalId(),
-                    personGroupId,
-                    roles: [],
-                  };
+                  const newProvider: TechSheetProvider = { id: generateLocalId(), personGroupId, roles: [] };
                   updatedProviders.push(newProvider);
                   providerIndex = updatedProviders.length - 1;
                   newProvidersCount++;
                 }
                 
                 const existingRoles = new Set(updatedProviders[providerIndex].roles.map(r => r.role.trim().toLowerCase()));
+                
                 assignments.forEach(assignment => {
-                  const roleName = person.role || 'Rol General';
-                  if (!existingRoles.has(roleName.trim().toLowerCase())) {
+                  const roleName = person.role || ''; // Si no hi ha rol, el camp queda buit
+                  if (roleName && !existingRoles.has(roleName.trim().toLowerCase())) {
                     updatedProviders[providerIndex].roles.push({
                       id: generateLocalId(),
                       role: roleName,
@@ -415,47 +417,61 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
             <span className="font-bold">⟳</span> <span className="hidden sm:inline">Actualitza des d'assignacions</span>
           </button>
         }
-        >
+      >
         <div className="col-span-full space-y-6">
-          {formData.technicalProviders.map((provider, providerIndex) => (
-            <div key={provider.id} className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Proveïdor de Personal {providerIndex + 1}</label>
-                  <select
-                    value={provider.personGroupId}
-                    onChange={(e) => handleProviderChange(providerIndex, e.target.value)}
-                    onBlur={handleBlur}
-                    className="mt-1 block w-full md:w-1/2 px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm"
-                  >
-                    <option value="" disabled>-- Selecciona un proveïdor --</option>
-                    {peopleGroups.map(pg => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
-                  </select>
-                </div>
-                <button type="button" onClick={() => handleRemoveProvider(providerIndex)} className="text-red-500 hover:text-red-700 font-bold" title="Eliminar aquest proveïdor i tots els seus rols">Eliminar Proveïdor</button>
-              </div>
-
-              <div className="space-y-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-700">
-                {provider.roles.map((roleItem, roleIndex) => (
-                  <div key={roleItem.id} className="flex items-start gap-4 w-full">
-                    <div className="w-2/5">
-                      <TechSheetField id={`role-${providerIndex}-${roleIndex}`} label={`Rol ${roleIndex + 1}`} value={roleItem.role} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'role', e.target.value)} onBlur={handleBlur} suggestions={TECH_SHEET_ROLE_SUGGESTIONS} />
+          {formData.technicalProviders.map((provider, providerIndex) => {
+            const selectedPerson = getPersonGroupById(provider.personGroupId);
+            return (
+              <div key={provider.id} className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1 flex items-start gap-4">
+                    <div className="w-2/3">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Proveïdor de Personal {providerIndex + 1}</label>
+                      <select
+                        value={provider.personGroupId}
+                        onChange={(e) => handleProviderChange(providerIndex, e.target.value)}
+                        onBlur={handleBlur}
+                        className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm"
+                      >
+                        <option value="" disabled>-- Selecciona un proveïdor --</option>
+                        {peopleGroups.map(pg => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
+                      </select>
                     </div>
-                    <div className="w-1/5">
-                      <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="Quant." type="number" value={roleItem.quantity} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} onBlur={handleBlur} />
-                    </div>
-                    <div className="w-2/5">
-                      <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="Notes Rol" value={roleItem.notes || ''} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} onBlur={handleBlur} as="textarea" rows={1} />
-                    </div>
-                    <div className="w-auto flex-shrink-0 pt-7">
-                      <button type="button" onClick={() => handleRemoveRole(providerIndex, roleIndex)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar aquest rol">×</button>
+                    <div className="w-1/3">
+                      <TechSheetField
+                        id={`provider-role-${providerIndex}`}
+                        label="Rol Base (Agenda)"
+                        value={selectedPerson?.role || '--'}
+                        onChange={() => {}} // No fa res
+                        disabled // Camp de només lectura
+                      />
                     </div>
                   </div>
-                ))}
-                <button type="button" onClick={() => handleAddRole(providerIndex)} className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">+ Afegir Rol</button>
+                  <button type="button" onClick={() => handleRemoveProvider(providerIndex)} className="ml-4 text-red-500 hover:text-red-700 font-bold" title="Eliminar aquest proveïdor i tots els seus rols">Eliminar Proveïdor</button>
+                </div>
+
+                <div className="space-y-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-700">
+                  {provider.roles.map((roleItem, roleIndex) => (
+                    <div key={roleItem.id} className="flex items-start gap-4 w-full">
+                      <div className="w-2/5">
+                        <TechSheetField id={`role-${providerIndex}-${roleIndex}`} label={`Rol ${roleIndex + 1}`} value={roleItem.role} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'role', e.target.value)} onBlur={handleBlur} suggestions={TECH_SHEET_ROLE_SUGGESTIONS} />
+                      </div>
+                      <div className="w-1/5">
+                        <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="Quant." type="number" value={roleItem.quantity} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} onBlur={handleBlur} />
+                      </div>
+                      <div className="w-2/5">
+                        <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="Notes Rol" value={roleItem.notes || ''} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} onBlur={handleBlur} as="textarea" rows={1} />
+                      </div>
+                      <div className="w-auto flex-shrink-0 pt-7">
+                        <button type="button" onClick={() => handleRemoveRole(providerIndex, roleIndex)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar aquest rol">×</button>
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => handleAddRole(providerIndex)} className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">+ Afegir Rol</button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="col-span-full mt-4 no-print">
           <button type="button" onClick={handleAddProvider} className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold">+ Afegir Proveïdor de Personal</button>

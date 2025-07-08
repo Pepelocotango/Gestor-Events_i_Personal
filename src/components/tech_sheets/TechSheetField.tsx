@@ -11,7 +11,8 @@ interface TechSheetFieldProps {
   as?: 'input' | 'textarea';
   rows?: number;
   required?: boolean;
-  suggestions?: string[]; // <<< PROPIETAT AFEGIDA
+  suggestions?: string[];
+  disabled?: boolean; // <<< PROPIETAT AFEGIDA
 }
 
 const TechSheetField: React.FC<TechSheetFieldProps> = ({
@@ -25,9 +26,12 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   as = 'input',
   rows = 3,
   required = false,
-  suggestions, // <<< VALOR EXTREIT
+  suggestions,
+  disabled = false, // <<< VALOR EXTREIT
 }) => {
   const commonClasses = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
+  const disabledClasses = "disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"; // Classes per a l'estat disabled
+
   const datalistId = suggestions ? `${id}-suggestions` : undefined;
 
   return (
@@ -45,8 +49,9 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
           onBlur={onBlur}
           placeholder={placeholder}
           rows={rows}
-          className={commonClasses}
+          className={`${commonClasses} ${disabledClasses}`} // Apliquem les classes
           required={required}
+          disabled={disabled} // Apliquem la propietat
         />
       ) : (
         <>
@@ -58,11 +63,12 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
             onChange={onChange}
             onBlur={onBlur}
             placeholder={placeholder}
-            className={commonClasses}
+            className={`${commonClasses} ${disabledClasses}`} // Apliquem les classes
             required={required}
-            list={datalistId} // <<< LÍNIA AFEGIDA
+            list={datalistId}
+            disabled={disabled} // Apliquem la propietat
           />
-          {suggestions && ( // <<< BLOC AFEGIT
+          {suggestions && (
             <datalist id={datalistId}>
               {suggestions.map((suggestion, index) => (
                 <option key={index} value={suggestion} />
