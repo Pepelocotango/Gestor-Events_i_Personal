@@ -146,3 +146,35 @@ export const GoogleIcon = ({ className = "w-5 h-5" }) => (
     <path fill="#EA4335" d="M43.611 20.083L37.954 14.426C34.046 10.498 29.268 8 24 8c-3.059 0-5.842 1.154-7.961 3.039l5.657 5.657C23.286 16.08 24.516 16 26 16c5.223 0 9.651 3.343 11.303 8H24v-8h19.611z" />
   </svg>
 );
+
+export const TECH_SHEET_ROLE_SUGGESTIONS = [
+  // Direcció i Coordinació
+  "Direcció: Cap Tècnic/a",
+  "Direcció: Cap de Sala",
+  "Direcció: Regidoria",
+  "Direcció: Assistent/a de Regidoria",
+  "Producció: Producció",
+  "Producció: Auxiliar de Producció",
+  // Equip Tècnic (Operació)
+  "Tècnic: Tècnic/a de So",
+  "Tècnic: Tècnic/a de Llums",
+  "Tècnic: Tècnic/a de Vídeo",
+  "Tècnic: Operador/a de Càmera",
+  "Tècnic: Tècnic/a de So (PA)",
+  "Tècnic: Tècnic/a de Monitors",
+  "Tècnic: Tècnic/a de Maquinària",
+  "Tècnic: Microfonísta",
+  // Equip Tècnic (Muntatge)
+  "Muntatge: Maqui",
+  "Muntatge: Maquinista / Rigger",
+  "Muntatge: Auxiliar de Càrrega i Descàrrega",
+  "Muntatge: Personal de Muntatge (Crew)",
+  "Muntatge: Conductor/a",
+  // Atenció al Públic
+  "Públic: Personal de Sala / Acomodació",
+  "Públic: Personal de Taquilles",
+  "Públic: Personal de Seguretat",
+  // Artístic i Suport
+  "Suport: Rider / Road Manager",
+  "Suport: Assistent/a Personal",
+];

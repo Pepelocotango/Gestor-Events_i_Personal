@@ -11,7 +11,7 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
   showTime: '',
   showDuration: '',
   parkingInfo: '',
-  technicalPersonnel: [],
+  technicalProviders: [], // Abans 'technicalPersonnel'
   preAssemblySchedule: '',
   assemblySchedule: [],
   dressingRooms: '',
@@ -20,7 +20,7 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
   lightingNeeds: [],
   soundNeeds: [],
   videoNeeds: [],
-  videoDetails: '', // Valor per defecte per al nou camp
+  videoDetails: '',
   machineryNeeds: [],
   controlLocation: '',
   otherEquipment: '',

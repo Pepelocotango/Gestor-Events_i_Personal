@@ -31,12 +31,17 @@ export interface Assignment {
 
 // <<< NOVES INTERFÍCIES PER A LA FITXA TÈCNICA (Tech Sheet) >>>
 
-export interface TechSheetPersonnel {
-  id: string;
+export interface TechSheetRoleItem {
+  id: string; // ID únic per a la clau de React
   role: string;
-  name: string;
-  /** Notes d'assignació (comentaris específics per a la fitxa tècnica) */
+  quantity: number | string; // Permetem string per a l'entrada de text
   notes?: string;
+}
+
+export interface TechSheetProvider {
+  id: string; // ID únic per a la clau de React
+  personGroupId: string; // Enllaç al PersonGroup (empresa o autònom)
+  roles: TechSheetRoleItem[]; // Llista de rols que proporciona
 }
 
 export interface TechSheetScheduleItem {
@@ -62,7 +67,7 @@ export interface TechSheetData {
   parkingInfo: string;
   
   // Secció Personal
-  technicalPersonnel: TechSheetPersonnel[];
+  technicalProviders: TechSheetProvider[];
   
   // Secció Horaris
   preAssemblySchedule: string;
