@@ -437,22 +437,38 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                 </div>
 
                 <div className="space-y-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-700">
+                  
+                  {/* Capçaleres per a la nova disposició de taula */}
+                  {provider.roles.length > 0 && (
+                    <div className="flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
+                      <div className="w-1/6">Quant.</div>
+                      <div className="w-2/5">Rol</div>
+                      <div className="w-2/5">Notes assignació</div>
+                      <div className="w-auto flex-shrink-0"></div> {/* Espai per al botó d'eliminar */}
+                    </div>
+                  )}
+
                   {provider.roles.map((roleItem, roleIndex) => (
                     <div key={roleItem.id} className="flex items-start gap-4 w-full">
+                      {/* Quantitat */}
+                      <div className="w-1/6">
+                        <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="" type="number" value={roleItem.quantity} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} onBlur={handleBlur} />
+                      </div>
+                      {/* Rol */}
                       <div className="w-2/5">
-                        <TechSheetField id={`role-${providerIndex}-${roleIndex}`} label={`Rol ${roleIndex + 1}`} value={roleItem.role} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'role', e.target.value)} onBlur={handleBlur} suggestions={TECH_SHEET_ROLE_SUGGESTIONS} />
+                        <TechSheetField id={`role-${providerIndex}-${roleIndex}`} label="" value={roleItem.role} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'role', e.target.value)} onBlur={handleBlur} suggestions={TECH_SHEET_ROLE_SUGGESTIONS} />
                       </div>
-                      <div className="w-1/5">
-                      <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="Notes assignació" value={roleItem.notes || ''} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} onBlur={handleBlur} as="textarea" rows={1} />                      
-                      </div>
+                      {/* Notes */}
                       <div className="w-2/5">
-                        <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="Notes Rol" value={roleItem.notes || ''} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} onBlur={handleBlur} as="textarea" rows={1} />
+                        <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="" value={roleItem.notes || ''} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} onBlur={handleBlur} as="textarea" rows={1} />
                       </div>
-                      <div className="w-auto flex-shrink-0 pt-7">
+                      {/* Botó Eliminar */}
+                      <div className="w-auto flex-shrink-0 pt-2">
                         <button type="button" onClick={() => handleRemoveRole(providerIndex, roleIndex)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar aquest rol">×</button>
                       </div>
                     </div>
                   ))}
+
                   <button type="button" onClick={() => handleAddRole(providerIndex)} className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">+ Afegir Rol</button>
                 </div>
               </div>
