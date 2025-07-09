@@ -13,6 +13,8 @@ interface TechSheetFieldProps {
   required?: boolean;
   suggestions?: string[];
   disabled?: boolean; // <<< PROPIETAT AFEGIDA
+  infoText?: string;
+  className?: string; // Afegim la propietat per a classes addicionals
 }
 
 const TechSheetField: React.FC<TechSheetFieldProps> = ({
@@ -28,9 +30,13 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   required = false,
   suggestions,
   disabled = false, // <<< VALOR EXTREIT
+  infoText,
+  className = '',
 }) => {
-  const commonClasses = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
-  const disabledClasses = "disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"; // Classes per a l'estat disabled
+  const baseClasses = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
+  const disabledClasses = "disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed";
+
+  const finalClassName = `${baseClasses} ${disabledClasses} ${className}`.trim();
 
   const datalistId = suggestions ? `${id}-suggestions` : undefined;
 
@@ -40,21 +46,21 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
         {label}
         {required && <span className="text-red-500">*</span>}
       </label>
-      {as === 'textarea' ? (
-        <textarea
-          id={id}
-          name={id}
-          value={value}
-          onChange={onChange}
-          onBlur={onBlur}
-          placeholder={placeholder}
-          rows={rows}
-          className={`${commonClasses} ${disabledClasses}`} // Apliquem les classes
-          required={required}
-          disabled={disabled} // Apliquem la propietat
-        />
-      ) : (
-        <>
+      <div className="flex items-center gap-2">
+        {as === 'textarea' ? (
+          <textarea
+            id={id}
+            name={id}
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder={placeholder}
+            rows={rows}
+            className={`${finalClassName} flex-grow`}
+            required={required}
+            disabled={disabled}
+          />
+        ) : (
           <input
             type={type}
             id={id}
@@ -63,21 +69,24 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
             onChange={onChange}
             onBlur={onBlur}
             placeholder={placeholder}
-            className={`${commonClasses} ${disabledClasses}`} // Apliquem les classes
+            className={`${finalClassName} flex-grow`}
             required={required}
             list={datalistId}
-            disabled={disabled} // Apliquem la propietat
+            disabled={disabled}
           />
-          {suggestions && (
-            <datalist id={datalistId}>
-              {suggestions.map((suggestion, index) => (
-                <option key={index} value={suggestion} />
-              ))}
-            </datalist>
-          )}
-        </>
+        )}
+        {infoText && <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">{infoText}</span>}
+      </div>
+
+      
+      {suggestions && (
+        <datalist id={datalistId}>
+          {suggestions.map((suggestion, index) => (
+            <option key={index} value={suggestion} />
+          ))}
+        </datalist>
       )}
-    </div>
+      </div>
   );
 };
 

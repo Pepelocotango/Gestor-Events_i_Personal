@@ -79,7 +79,8 @@ export const migrateData = (
   return {
     peopleGroups,
     eventFrames,
-    assignments
+    assignments,
+    materialItems: [] // Es retorna un array buit, ja que les dades antigues no tenien material.
   };
 };
 

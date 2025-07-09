@@ -27,11 +27,12 @@ const Controls: React.FC<ControlsProps> = ({
     isSyncing,
     currentDataPath,
     setCurrentDataPath
-
 }) => {
-  const { loadData, exportData, setHasUnsavedChanges } = useEventData();
+
+  const { loadData, exportData, setHasUnsavedChanges, addMaterialItemsFromFile } = useEventData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const peopleFileInputRef = useRef<HTMLInputElement>(null);
+  const materialFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -118,9 +119,33 @@ const Controls: React.FC<ControlsProps> = ({
     reader.readAsText(file);
   };
 
+  const handleLoadMaterialData = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const jsonData = JSON.parse(content);
+        
+        if (Array.isArray(jsonData.materialItems)) {
+          addMaterialItemsFromFile(jsonData.materialItems);
+        } else {
+          showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
+        }
+      } catch (error) {
+        showToast(`Error en carregar el fitxer de material: ${(error as Error).message}`, 'error');
+      } finally {
+        if (event.target) event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const triggerLoadFile = () => fileInputRef.current?.click();
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
-
+  const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
   const handleSaveData = (type: 'all' | 'people') => {
     try {
       const dataToSave = type === 'all' ? exportData() : { peopleGroups: exportData().peopleGroups };
@@ -192,7 +217,12 @@ const Controls: React.FC<ControlsProps> = ({
             <button onClick={() => handleSaveData('all')} className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Guardar totes les dades a un fitxer JSON">
                 <SaveIcon /> Guardar Tot
             </button>
-             <button onClick={handleRequestHardReset} className="flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Començar de zero (esborra totes les dades actuals)">
+            <button onClick={triggerLoadMaterialFile} className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Afegir material des d'un fitxer JSON">
+                <LoadIcon /> Carregar Material
+            </button>
+            <input type="file" ref={materialFileInputRef} onChange={handleLoadMaterialData} accept=".json" className="hidden" />
+             
+            <button onClick={handleRequestHardReset} className="flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Començar de zero (esborra totes les dades actuals)">
                 <TrashIcon className="w-4 h-4" /> Començar de Zero
             </button>
         </div>

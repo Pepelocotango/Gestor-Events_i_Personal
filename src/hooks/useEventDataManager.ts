@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -37,16 +37,18 @@ export const useEventDataManager = (
 ): EventDataManagerReturn => {
   const [eventFrames, setEventFrames] = useState<EventFrame[]>([]);
   const [peopleGroups, setPeopleGroups] = useState<PersonGroup[]>([]);
+  const [materialItems, setMaterialItems] = useState<MaterialItem[]>([]);
   const [googleEvents, setGoogleEvents] = useState<any[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   
   const eventFramesRef = useRef(eventFrames);
   const peopleGroupsRef = useRef(peopleGroups);
+  const materialItemsRef = useRef(materialItems);
 
   useEffect(() => { eventFramesRef.current = eventFrames; }, [eventFrames]);
   useEffect(() => { peopleGroupsRef.current = peopleGroups; }, [peopleGroups]);
-
+  useEffect(() => { materialItemsRef.current = materialItems; }, [materialItems]);
 
   const markUnsaved = useCallback(() => {
     setHasUnsavedChanges(true);
@@ -140,6 +142,77 @@ markUnsaved();
     })));
     markUnsaved();
   }, [markUnsaved]);
+
+  const addMaterialItem = useCallback((newItemData: Omit<MaterialItem, 'id'>) => {
+    const newItem: MaterialItem = { ...newItemData, id: generateId() };
+    setMaterialItems(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+  }, [markUnsaved]);
+
+  const updateMaterialItem = useCallback((updatedItem: MaterialItem) => {
+    setMaterialItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+  }, [markUnsaved]);
+
+  const deleteMaterialItem = useCallback((itemId: string) => {
+    setMaterialItems(prev => prev.filter(item => item.id !== itemId));
+    markUnsaved();
+  }, [markUnsaved]);
+
+  const getMaterialAvailability = useCallback((materialId: string, startDate: string, endDate: string, currentEventFrameId: string): { available: number, total: number } => {
+    const materialItem = materialItemsRef.current.find(item => item.id === materialId);
+    if (!materialItem) return { available: 0, total: 0 };
+
+    let committedStock = 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    eventFramesRef.current.forEach(ef => {
+      // No comptem el material de l'esdeveniment que estem editant
+      if (ef.id === currentEventFrameId) return;
+
+      const efStart = new Date(ef.startDate);
+      const efEnd = new Date(ef.endDate);
+
+      // Comprovem si hi ha solapament de dates
+      if (start <= efEnd && end >= efStart) {
+        const needsLists: (keyof TechSheetData)[] = ['lightingNeeds', 'soundNeeds', 'videoNeeds', 'machineryNeeds'];
+        needsLists.forEach(listKey => {
+          const needs = ef.techSheet?.[listKey];
+          if (Array.isArray(needs)) {
+            needs.forEach(need => {
+              
+              if (typeof need === 'object' && need !== null && 'materialItemId' in need && 'quantity' in need) {
+                if (need.materialItemId === materialId) {
+                  committedStock += Number(need.quantity) || 0;
+                }
+              }
+            });
+          }
+        });
+      }
+    });
+
+    return {
+      total: materialItem.stock,
+      available: materialItem.stock - committedStock,
+    };
+  }, [eventFramesRef, materialItemsRef]);
+
+  const addMaterialItemsFromFile = useCallback((newItems: MaterialItem[]) => {
+    // Filtrem per evitar duplicats basats en el nom (podria ser un ID si el JSON en tingués)
+    const existingNames = new Set(materialItemsRef.current.map(item => item.name.toLowerCase()));
+    const itemsToAdd = newItems.filter(newItem => !existingNames.has(newItem.name.toLowerCase()));
+    
+    if (itemsToAdd.length === 0) {
+      showToast("Tots els articles del fitxer ja existeixen a l'inventari.", 'info');
+      return;
+    }
+    
+    setMaterialItems(prev => [...prev, ...itemsToAdd].sort((a,b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast(`${itemsToAdd.length} nous articles de material afegits a l'inventari.`, 'success');
+  }, [markUnsaved, showToast]);
 
   const getPersonGroupById = useCallback((personGroupId: string): PersonGroup | undefined => {
     return peopleGroups.find(pg => pg.id === personGroupId);
@@ -274,6 +347,7 @@ markUnsaved();
     if (!data) {
       setEventFrames([]);
       setPeopleGroups([]);
+      setMaterialItems([]);
       return;
     }
 
@@ -322,6 +396,7 @@ markUnsaved();
 
     setEventFrames(loadedEventFrames.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)));
     setPeopleGroups((data.peopleGroups || []).sort((a,b) => a.name.localeCompare(b.name)));
+    setMaterialItems((data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)));
   }, []);
 
   const exportData = useCallback((): AppData => {
@@ -331,6 +406,7 @@ markUnsaved();
     return {
       peopleGroups: peopleGroupsRef.current,
       eventFrames: eventFramesForExport,
+      materialItems: materialItemsRef.current,
       assignments: allAssignmentsList,
     };
    }, []);
@@ -397,5 +473,12 @@ markUnsaved();
     syncWithGoogle,
     isSyncing,
     addOrUpdateTechSheet,
+    materialItems,
+    addMaterialItem,
+    updateMaterialItem,
+    deleteMaterialItem,
+    addMaterialItemsFromFile,
+    getMaterialAvailability,
+    
   };
 };

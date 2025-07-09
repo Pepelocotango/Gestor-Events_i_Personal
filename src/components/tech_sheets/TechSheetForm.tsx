@@ -12,8 +12,8 @@ interface TechSheetFormProps {
 }
 
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
-  const { peopleGroups, addOrUpdateTechSheet, showToast, getPersonGroupById } = useEventData();
-  
+const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability } = useEventData();
+
   const getInitialFormData = (): TechSheetData => {
     const data = eventFrame.techSheet!;
     if (!data.technicalProviders) {
@@ -27,6 +27,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
   const [isDirty, setIsDirty] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
+  const materialSuggestions = React.useMemo(() => materialItems.map(item => item.name), [materialItems]);
 
   useEffect(() => {
     const newEventName = eventFrame.name;
@@ -59,7 +60,16 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   const handleListChange = (listName: TechSheetListKey, index: number, field: string, value: any) => {
     setFormData(prev => {
       const newList = [...(prev[listName] as any[])];
-      newList[index] = { ...newList[index], [field]: value };
+      const currentItem = { ...newList[index] };
+      currentItem[field] = value;
+      
+      // Si estem canviant la descripció, busquem si correspon a un ítem de material
+      if (field === 'description') {
+        const matchedItem = materialItems.find(item => item.name === value);
+        currentItem.materialItemId = matchedItem ? matchedItem.id : null;
+      }
+
+      newList[index] = currentItem;
       return { ...prev, [listName]: newList };
     });
     setIsDirty(true);
@@ -626,7 +636,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       </TechSheetSection>
 
       <TechSheetSection title="Necessitats Tècniques">
-      {/* === IL·LUMINACIÓ === */}
+        {/* === IL·LUMINACIÓ === */}
         <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 -mb-2">IL·LUMINACIÓ:</h4>
         {formData.lightingNeeds.length > 0 && (
           <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
@@ -636,27 +646,48 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
             <div className="w-auto flex-shrink-0"></div>
           </div>
         )}
-        {formData.lightingNeeds.map((need, index) => (
-          <div key={need.id || `light-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
-            <div className="w-1/6">
-              <TechSheetField id={`light-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('lightingNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
+        {formData.lightingNeeds.map((need, index) => {
+          const selectedMaterial = materialItems.find(item => item.name === need.description);
+          let availabilityInfo = '';
+          let quantityError = false;
+          if (selectedMaterial) {
+            const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+            availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
+            if (Number(need.quantity) > availability.available) {
+              quantityError = true;
+            }
+          }
+          return (
+            <div key={need.id || `light-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
+              <div className="w-1/6">
+                <TechSheetField 
+                  id={`light-qty-${index}`} 
+                  label="" 
+                  type="number" 
+                  value={need.quantity} 
+                  onChange={e => handleListChange('lightingNeeds', index, 'quantity', e.target.value)} 
+                  onBlur={handleBlur} 
+                  placeholder="XX"
+                  className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}
+                />
+              </div>
+              <div className="w-2/5">
+                <TechSheetField id={`light-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('lightingNeeds', index, 'description', e.target.value)} onBlur={handleBlur} suggestions={materialSuggestions} infoText={availabilityInfo} />
+              </div>
+              <div className="w-2/5">
+                <TechSheetField id={`light-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('lightingNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
+              </div>
+              <div className="w-auto flex-shrink-0 pt-2">
+                <button type="button" onClick={() => handleRemoveListItem('lightingNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
+              </div>
             </div>
-            <div className="w-2/5">
-              <TechSheetField id={`light-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('lightingNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
-            </div>
-            <div className="w-2/5">
-              <TechSheetField id={`light-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('lightingNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-            </div>
-            <div className="w-auto flex-shrink-0 pt-2">
-              <button type="button" onClick={() => handleRemoveListItem('lightingNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
         <div className="col-span-full mt-2 no-print">
           <button type="button" onClick={() => handleAddListItem('lightingNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Il·luminació</button>
         </div>
 
-      {/* === SO === */}
+        {/* === SO === */}
         <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">SO:</h4>
         {formData.soundNeeds.length > 0 && (
           <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
@@ -666,27 +697,39 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
             <div className="w-auto flex-shrink-0"></div>
           </div>
         )}
-        {formData.soundNeeds.map((need, index) => (
-          <div key={need.id || `sound-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
-            <div className="w-1/6">
-              <TechSheetField id={`sound-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('soundNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
+        {formData.soundNeeds.map((need, index) => {
+          const selectedMaterial = materialItems.find(item => item.name === need.description);
+          let availabilityInfo = '';
+          let quantityError = false;
+          if (selectedMaterial) {
+            const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+            availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
+            if (Number(need.quantity) > availability.available) {
+              quantityError = true;
+            }
+          }
+          return (
+            <div key={need.id || `sound-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
+              <div className="w-1/6">
+                <TechSheetField id={`sound-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('soundNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX" className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}/>
+              </div>
+              <div className="w-2/5">
+                <TechSheetField id={`sound-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('soundNeeds', index, 'description', e.target.value)} onBlur={handleBlur} suggestions={materialSuggestions} infoText={availabilityInfo} />
+              </div>
+              <div className="w-2/5">
+                <TechSheetField id={`sound-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('soundNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
+              </div>
+              <div className="w-auto flex-shrink-0 pt-2">
+                <button type="button" onClick={() => handleRemoveListItem('soundNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
+              </div>
             </div>
-            <div className="w-2/5">
-              <TechSheetField id={`sound-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('soundNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
-            </div>
-            <div className="w-2/5">
-              <TechSheetField id={`sound-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('soundNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-            </div>
-            <div className="w-auto flex-shrink-0 pt-2">
-              <button type="button" onClick={() => handleRemoveListItem('soundNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
         <div className="col-span-full mt-2 no-print">
           <button type="button" onClick={() => handleAddListItem('soundNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat So</button>
         </div>
 
-      {/* === VÍDEO === */}
+        {/* === VÍDEO === */}
         <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">VÍDEO:</h4>
         <div className="col-span-full mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">VÍDEO:</label>
@@ -720,29 +763,41 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                 <div className="w-auto flex-shrink-0"></div>
               </div>
             )}
-            {formData.videoNeeds.map((need, index) => (
-              <div key={need.id || `video-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
-                <div className="w-1/6">
-                  <TechSheetField id={`video-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('videoNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
+            {formData.videoNeeds.map((need, index) => {
+              const selectedMaterial = materialItems.find(item => item.name === need.description);
+              let availabilityInfo = '';
+              let quantityError = false;
+              if (selectedMaterial) {
+                const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+                availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
+                if (Number(need.quantity) > availability.available) {
+                  quantityError = true;
+                }
+              }
+              return (
+                <div key={need.id || `video-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
+                  <div className="w-1/6">
+                    <TechSheetField id={`video-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('videoNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX" className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}/>
+                  </div>
+                  <div className="w-2/5">
+                    <TechSheetField id={`video-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('videoNeeds', index, 'description', e.target.value)} onBlur={handleBlur} suggestions={materialSuggestions} infoText={availabilityInfo} />
+                  </div>
+                  <div className="w-2/5">
+                    <TechSheetField id={`video-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('videoNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
+                  </div>
+                  <div className="w-auto flex-shrink-0 pt-2">
+                    <button type="button" onClick={() => handleRemoveListItem('videoNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
+                  </div>
                 </div>
-                <div className="w-2/5">
-                  <TechSheetField id={`video-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('videoNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
-                </div>
-                <div className="w-2/5">
-                  <TechSheetField id={`video-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('videoNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-                </div>
-                <div className="w-auto flex-shrink-0 pt-2">
-                  <button type="button" onClick={() => handleRemoveListItem('videoNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
             <div className="col-span-full mt-2 no-print">
               <button type="button" onClick={() => handleAddListItem('videoNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Vídeo</button>
             </div>
           </>
         )}
 
-      {/* === MAQUINÀRIA === */}
+        {/* === MAQUINÀRIA === */}
         <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">MAQUINÀRIA:</h4>
         {formData.machineryNeeds.length > 0 && (
           <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
@@ -752,26 +807,37 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
             <div className="w-auto flex-shrink-0"></div>
           </div>
         )}
-        {formData.machineryNeeds.map((need, index) => (
-          <div key={need.id || `machinery-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
-            <div className="w-1/6">
-              <TechSheetField id={`machinery-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('machineryNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
+        {formData.machineryNeeds.map((need, index) => {
+          const selectedMaterial = materialItems.find(item => item.name === need.description);
+          let availabilityInfo = '';
+          let quantityError = false;
+          if (selectedMaterial) {
+            const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+            availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
+            if (Number(need.quantity) > availability.available) {
+              quantityError = true;
+            }
+          }
+          return (
+            <div key={need.id || `machinery-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
+              <div className="w-1/6">
+                <TechSheetField id={`machinery-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('machineryNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX" className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}/>
+              </div>
+              <div className="w-2/5">
+                <TechSheetField id={`machinery-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('machineryNeeds', index, 'description', e.target.value)} onBlur={handleBlur} suggestions={materialSuggestions} infoText={availabilityInfo}/>
+              </div>
+              <div className="w-2/5">
+                <TechSheetField id={`machinery-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('machineryNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
+              </div>
+              <div className="w-auto flex-shrink-0 pt-2">
+                <button type="button" onClick={() => handleRemoveListItem('machineryNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
+              </div>
             </div>
-            <div className="w-2/5">
-              <TechSheetField id={`machinery-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('machineryNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
-            </div>
-            <div className="w-2/5">
-              <TechSheetField id={`machinery-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('machineryNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-            </div>
-            <div className="w-auto flex-shrink-0 pt-2">
-              <button type="button" onClick={() => handleRemoveListItem('machineryNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
         <div className="col-span-full mt-2 no-print">
           <button type="button" onClick={() => handleAddListItem('machineryNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Maquinària</button>
         </div>
-
       </TechSheetSection>
       
       <TechSheetSection title="Altres Detalls">

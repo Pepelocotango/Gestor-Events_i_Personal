@@ -21,7 +21,7 @@ La principal millora és un sistema de gestió de personal tècnic que distingei
     *   **Combobox de Rols:** El camp "Rol" ara és un camp combinat que suggereix una llista de rols predefinits i inclusius, però també permet l'entrada de text lliure. El prefix de la categoria (ex: "Tècnic:") s'elimina automàticament en seleccionar una opció.
     *   **Context Visual:** Al costat de cada proveïdor seleccionat, apareix el seu "Rol Base" (el que té definit a l'agenda), proporcionant context immediat.
 *   **Automatització Intel·ligent:**
-    *   **Actualització des d'Assignacions:** Un botó `⟳` permet popular automàticament la llista de proveïdors i rols basant-se en el personal confirmat a les assignacions de l'esdeveniment.
+    *   **Actualització des d'Assignacions:** Un botó `⟳` permet popular la llista de personal tècnic. Per cada assignació confirmada, crea una nova línia de **rol buit** sota el proveïdor corresponent i hi copia les notes de l'assignació original.
     *   **Neteja i Coherència:** El sistema gestiona automàticament la creació de fitxes per a esdeveniments antics i sincronitza dades clau (nom, lloc, data) amb la fitxa quan s'editen des de la vista principal.
 *   **Exportació a PDF Professional:** La funció d'exportació ha estat millorada per generar un document PDF net i ben format que reflecteix la nova estructura de proveïdors i rols.
 
@@ -52,6 +52,8 @@ Aquest component reutilitzable ha estat millorat per ser més versàtil.
 
 *   **Propietat `suggestions?: string[]`**: Ara pot rebre un array de cadenes de text per generar un `<datalist>` associat, convertint un simple `<input>` en un combobox funcional.
 *   **Propietat `disabled?: boolean`**: Permet desactivar el camp, donant-li un estil visual diferent i evitant l'edició, utilitzat per mostrar el "Rol Base" del proveïdor.
+**Propietat `infoText?: string`**: Mostra un text informatiu al costat del camp, utilitzat per indicar l'estoc disponible.
+*   **Propietat `className?: string`**: Permet injectar classes CSS addicionals per a estils condicionals, com ressaltar un camp amb un error.
 
 #### **`src/components/tech_sheets/TechSheetSection.tsx` (El Contenidor de Secció Flexible)**
 
@@ -66,9 +68,9 @@ Aquest fitxer concentra la major part de la lògica de la nova funcionalitat.
     *   `handleAddProvider`, `handleRemoveProvider`, `handleProviderChange`: Gestionen la llista principal de proveïdors.
     *   `handleAddRole`, `handleRemoveRole`, `handleRoleChange`: Gestionen la sub-llista de rols dins de cada proveïdor. La funció `handleRoleChange` inclou la lògica per eliminar els prefixos de categoria dels rols seleccionats.
 *   **Funció d'Actualització des d'Assignacions (`headerActions`):** La lògica del botó `⟳` ha estat reescrita per:
-    1.  Agrupar les assignacions confirmades per `personGroupId`.
-    2.  Crear o trobar el `TechSheetProvider` corresponent a la fitxa.
-    3.  Afegir els rols (obtinguts del `PersonGroup`) a la llista de rols del proveïdor, evitant duplicats.
+        1.  Filtra les assignacions per trobar les confirmades (`Sí` o `Mixt` amb algun `Sí`).
+        2.  Per a cada assignació, cerca o crea el proveïdor corresponent a la fitxa tècnica.
+        3.  Afegeix una **nova línia de rol buida** per a aquesta assignació, copiant-hi les notes originals.
 *   **Lògica d'Inicialització i Sincronització (`getInitialFormData`, `useEffect`):** Assegura que el formulari s'inicialitzi correctament, migrant dades antigues si cal (`technicalPersonnel` -> `technicalProviders`), i es mantingui sincronitzat amb canvis externs a l'`EventFrame`.
 *   **Exportació a PDF (`handleExportToPdf`):** La funció ha estat actualitzada per llegir de la nova estructura `technicalProviders` i generar una secció de personal clara i ben formatada al document PDF.
 
@@ -170,7 +172,7 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
 ### 🚀 Funcionalitats Clau
 
 -   **Gestió d'Esdeveniments i Assignacions:** Creació d'esdeveniments marc i assignació de personal amb estats detallats (`Sí`, `No`, `Pendent` i `Mixt` per dies).
--   **Base de Dades de Personal:** Gestor centralitzat de persones i grups.
+-   **Base de Dades de Personal:** Pàgina dedicada per a la gestió centralitzada de persones i grups.
 -   **Visualització Avançada:** Calendari multi-vista, llista filtrable i resums exportables.
 -   **Detecció de Conflictes:** El sistema avisa si una persona s'assigna a múltiples tasques en un mateix dia.
 -   **Importació i Exportació:** Càrrega/desat en JSON i exportació a CSV.
@@ -188,6 +190,11 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
     *   **Arquitectura Robusta:**
         *   Autenticació segura mitjançant el protocol **OAuth 2.0**.
         *   **Funcionament 100% offline** garantit. La integració és una capa addicional que no afecta la funcionalitat principal.
+    **✨ [NOU] Gestor d'Inventari de Material:**
+    *   Pàgina dedicada per gestionar un inventari de material (nom, categoria, estoc, etc.).
+    *   Permet carregar inventaris des de fitxers JSON externs.
+    *   **Integració amb Fitxes de Bolo:** Suggereix material de l'inventari a les necessitats tècniques.
+    *   **Control d'Estoc Dinàmic:** Mostra la disponibilitat real del material per a les dates de l'esdeveniment i alerta visualment de conflictes.
 
 -   **Interfície d'Usuari:**
     *   Suport per a tema clar i fosc.
@@ -218,11 +225,11 @@ El projecte segueix una arquitectura de tres capes per separar responsabilitats,
     *   **Gestió del Calendari Dedicat:** Conté la funció `findOrCreateAppCalendar`, que utilitza la constant `APP_CALENDAR_NAME` per crear (si no existeix) o localitzar el calendari propi de l'app a Google, garantint l'aïllament de les dades gestionades per l'aplicació.
     *   **Motor de Sincronització (`syncWithGoogle`):** Allotja la lògica principal per sincronitzar les dades locals amb Google Calendar. Aquest procés buida primer tots els esdeveniments del calendari dedicat de l'app a Google i després puja la versió actual dels esdeveniments locals. Això assegura que les dades locals siguin la font de veritat. Actualitza els esdeveniments locals amb els ID de Google després de la pujada.
     *   **Recuperació d'Esdeveniments de Google (`getGoogleEvents`):** Obté esdeveniments dels calendaris de Google que l'usuari ha seleccionat per a visualització (a través de `GoogleSettingsModal.tsx`), incloent el calendari dedicat de l'app.
-
+    *    **Exposició de Ruta de Dades:** Conté un nou gestor IPC (`get-default-data-path`) per informar el frontend de la ubicació del fitxer de dades.
 
 
 *   **`preload.cjs` (Pont de Comunicació Segur)**:
-    *   Utilitza `contextBridge` per exposar de manera segura una llista blanca de funcions del backend (`syncWithGoogle`, `startGoogleAuth`, etc.) al frontend mitjançant l'objecte `window.electronAPI`.
+    *   Utilitza `contextBridge` per exposar de manera segura funcions del backend (`syncWithGoogle`, `startGoogleAuth`, `getDefaultDataPath`, etc.) al frontend mitjançant l'objecte `window.electronAPI`.
 
 ### 2. El Pont de Comunicació Segur
 
@@ -231,19 +238,26 @@ El projecte segueix una arquitectura de tres capes per separar responsabilitats,
 ### 3. La Interfície d'Usuari (Frontend - React)
 
 *   **Gestor d'Estat Central (`hooks/useEventDataManager.ts`):** És el **cor lògic del frontend**.
-    *   Centralitza totes les dades de l'aplicació: `eventFrames` (esdeveniments locals gestionats per l'app), `peopleGroups` (persones/grups), i `googleEvents` (esdeveniments recuperats de Google Calendar per a visualització).
+    *   Centralitza totes les dades de l'aplicació: `eventFrames`, `peopleGroups`, `materialItems` i `googleEvents`.
     *   Proporciona funcions CRUD per a les dades locals.
     *   Orquestra les crides a les funcions del backend (exposades via `preload.cjs`) per a accions com l'autenticació (`startGoogleAuth`), la sincronització (`syncWithGoogle`), i la recuperació d'esdeveniments de Google (`refreshGoogleEvents` que internament crida `getGoogleEvents` del backend).
     *   Després d'una sincronització amb Google reeixida, carrega directament les dades actualitzades que el backend li retorna, les quals ja inclouen els nous ID de Google.
     *   Gestiona l'estat de la interfície relacionat amb la sincronització (p.ex., `isSyncing`).
+    *   **Gestió de Material:** Inclou funcions CRUD per a l'inventari de material (`addMaterialItem`, `updateMaterialItem`, `deleteMaterialItem`) i una funció per afegir material des d'un fitxer (`addMaterialItemsFromFile`).
+    *   **Càlcul de Disponibilitat:** Conté la funció `getMaterialAvailability` per calcular l'estoc disponible en un rang de dates.
+
 
 *   **Components Reutilitzables (`src/components`):**
-    *   **`Controls.tsx`:** La barra d'eines principal, que conté botons d'acció com "Guardar", "Carregar", "Gestionar Persones", i el botó "Sincronitzar" (que mostra un estat de càrrega durant l'operació).
+    *   **`Controls.tsx`:** La barra d'eines principal. Conté botons per a la gestió de dades (`Carregar Tot`, `Guardar Tot`, `Carregar Material`), la sincronització amb Google i la configuració. Mostra la ruta del fitxer de dades actual.
     *   **`MainDisplay.tsx`:** Orquestra la vista principal de l'aplicació. És responsable de combinar les dades dels `eventFrames` locals (editables) i els `googleEvents` (visualitzats des de Google, típicament de només lectura) per a la seva presentació al component `FullCalendar`. També gestiona la llista filtrable d'esdeveniments.
     *   **`EventFrameCard.tsx`:** Representa visualment cada esdeveniment (`EventFrame`) a la llista, mostrant les seves assignacions i permetent accions com editar o eliminar. Inclou un indicador visual si l'esdeveniment està vinculat a Google Calendar.
 
 *   **Modals Interactius (`src/components/modals`):**
     *   **`GoogleSettingsModal.tsx`:** Permet a l'usuari configurar la connexió i seleccionar quins calendaris de només lectura vol visualitzar.
+    *   **`src/components/modals`:** S'ha eliminat `PeopleGroupManagerModal.tsx` després de migrar la seva funcionalitat.
+       **Noves Pàgines Dedicades:**
+    *   **`PeopleDisplay.tsx`**: Nova pàgina que allotja el gestor de persones, abans en un modal.
+    *   **`MaterialDisplay.tsx`**: Nova pàgina que conté la interfície per gestionar l'inventari de material.
 ---
 
 ### 📁 Estructura i Responsabilitat dels Fitxers
