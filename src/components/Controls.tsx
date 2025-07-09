@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
-import { SaveIcon, LoadIcon, SunIcon, MoonIcon, UsersIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
+import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 
 interface ControlsProps {
@@ -218,9 +218,7 @@ const Controls: React.FC<ControlsProps> = ({
             <button onClick={() => handleSaveData('people')} className="flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Guardar només les dades de persones">
                 <SaveIcon /> Guardar Persones
             </button>
-            <button onClick={() => onOpenModal('managePeople')} className="flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Gestionar la llista de persones i grups">
-                <UsersIcon /> Gestionar Persones
-            </button>
+            
         </div>
         
         <div className="flex items-center gap-2">

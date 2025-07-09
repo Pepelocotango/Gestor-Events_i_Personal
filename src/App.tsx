@@ -14,9 +14,10 @@ const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
+const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
 const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFormModal'));
-const PeopleGroupManagerModal = lazy(() => import('./components/modals/PeopleGroupManagerModal'));
+
 const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteModal'));
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
@@ -473,8 +474,7 @@ const App: React.FC = () => {
                 assignmentToEdit={modalState.data!.assignmentToEdit}
                 showToast={showToast}
                 setExpandedEventFrameId={setFilterToShowEventFrameId} />;
-      case 'managePeople':
-        return <PeopleGroupManagerModal onClose={closeModal} showToast={showToast} />;
+      
       case 'eventFrameDetails':
         return <EventFrameDetailsModal onClose={closeModal} eventFrame={modalState.data!.eventFrame!} showToast={showToast} onShowOnList={handleShowOnList}/>;
       case 'confirmHardReset':
@@ -528,7 +528,7 @@ const App: React.FC = () => {
       case 'editEventFrame': return "Editar Marc d'Esdeveniment";
       case 'addAssignment': return `Nova Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
       case 'editAssignment': return `Editar Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
-      case 'managePeople': return "Gestionar Persones / Grups";
+      
       case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
@@ -541,7 +541,7 @@ const App: React.FC = () => {
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
     if (!modalState.type) return 'md';
     switch (modalState.type) {
-      case 'managePeople': return '5xl';
+      
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':
@@ -602,6 +602,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route path="/tech-sheets" element={<TechSheetsDisplay />} />
+                <Route path="/people" element={<PeopleDisplay />} />
                 <Route path="/material" element={<MaterialDisplay />} />
               </Routes>
             </Suspense>
