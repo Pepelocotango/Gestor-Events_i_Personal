@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const { google } = require('googleapis');
 const url = require('url');
 const http = require('http');
@@ -62,6 +63,15 @@ let googleCredentials;
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
+// Funció auxiliar per obtenir la ruta relativa a la carpeta de l'usuari
+function getRelativePath(absolutePath) {
+  if (!absolutePath) return '';
+  const homeDir = os.homedir();
+  if (absolutePath.startsWith(homeDir)) {
+    return absolutePath.replace(homeDir, '~');
+  }
+  return absolutePath;
+}
 
 const addDaysISO = (dateStr, days) => {
   const date = new Date(dateStr);
@@ -706,11 +716,7 @@ ipcMain.handle('clear-google-app-calendar', async () => {
 });
 
   
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
+
 
 process.on('uncaughtException', (error) => {
   console.error('Excepció no capturada:', error);
@@ -741,7 +747,7 @@ process.on('uncaughtException', (error) => {
   }
 });
 
-app.whenReady().then(createWindow);
+
 
 // <<< FUNCIÓ MODIFICADA >>>
 ipcMain.handle('perform-hard-reset', async () => {
@@ -783,5 +789,20 @@ ipcMain.handle('perform-hard-reset', async () => {
   } else {
     console.error("El reset de fàbrica ha fallat en alguns passos.");
     return { success: false, message: `El reset de fàbrica ha fallat:\n${messages.join('\n')}` };
+  }
+});
+
+ipcMain.handle('get-default-data-path', () => {
+  if (DATA_FILE) {
+    return getRelativePath(DATA_FILE);
+  }
+  return 'Ruta no definida';
+});
+
+app.whenReady().then(createWindow);
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
   }
 });

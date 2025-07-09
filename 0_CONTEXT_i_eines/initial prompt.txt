@@ -31,6 +31,14 @@ FORMAT I ESTRUCTURA DEL CODI
    - Mostra sempre el codi dins blocs de codi triple (```), sense explicacions barrejades.
    - No donis codi com a text pla, ni comentat dins d’un paràgraf.
    - El codi ha de ser clar, separat i preparat per copiar i enganxar directament.
+   - Si el canvi afecta només a unes poques linies de codi.
+     ```
+     dos linies anteriors [codi]
+     ### INICI canvis ###
+     [codi]
+     ### FINAL canvis ###
+     dos linies posteriors [codi]
+     ```
    - Si el canvi afecta un fitxer sencer:
      ```
      ### INICI FITXER: nom.ext ###
@@ -38,6 +46,15 @@ FORMAT I ESTRUCTURA DEL CODI
      ### FINAL FITXER: nom.ext ###
      ```
    - Si només canvien línies, mostra’n l’abans i el després amb context.
+   - si s'han d'eliminar linies de codi posa el prefix "-" davant
+    ```
+     dos linies anteriors [codi]
+     ### INICI canvis ###
+     -[codi] //->eliminem codi
+     +[codi] //->afegim codi
+     ### FINAL canvis ###
+     dos linies posteriors [codi]
+     ```
    - Abans de crear codi nou, comprova si ja hi ha funcions, components o mòduls reutilitzables.
 
 REVISIÓ, TEST I MILLORA

@@ -353,6 +353,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         headerActions={
           <button
             type="button"
+
             onClick={() => {
               const confirmedAssignments = eventFrame.assignments.filter(a => 
                 a.status === AssignmentStatus.Yes || (a.status === AssignmentStatus.Mixed && Object.values(a.dailyStatuses || {}).includes(AssignmentStatus.Yes))
@@ -364,51 +365,36 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               }
 
               let updatedProviders = [...formData.technicalProviders];
-              let newRolesCount = 0;
-              let newProvidersCount = 0;
+              let rolesAddedCount = 0;
 
-              const assignmentsByProvider = confirmedAssignments.reduce((acc, assignment) => {
-                (acc[assignment.personGroupId] = acc[assignment.personGroupId] || []).push(assignment);
-                return acc;
-              }, {} as Record<string, typeof confirmedAssignments>);
-
-              Object.entries(assignmentsByProvider).forEach(([personGroupId, assignments]) => {
-                const person = getPersonGroupById(personGroupId);
-                if (!person) return;
-
-                let providerIndex = updatedProviders.findIndex(p => p.personGroupId === personGroupId);
+              confirmedAssignments.forEach(assignment => {
+                const personGroupId = assignment.personGroupId;
                 
+                // Cerca o crea el proveïdor
+                let providerIndex = updatedProviders.findIndex(p => p.personGroupId === personGroupId);
                 if (providerIndex === -1) {
                   const newProvider: TechSheetProvider = { id: generateLocalId(), personGroupId, roles: [] };
                   updatedProviders.push(newProvider);
                   providerIndex = updatedProviders.length - 1;
-                  newProvidersCount++;
                 }
                 
-                const existingRoles = new Set(updatedProviders[providerIndex].roles.map(r => r.role.trim().toLowerCase()));
-                
-                assignments.forEach(assignment => {
-                  const roleName = person.role || ''; // Si no hi ha rol, el camp queda buit
-                  if (roleName && !existingRoles.has(roleName.trim().toLowerCase())) {
-                    updatedProviders[providerIndex].roles.push({
-                      id: generateLocalId(),
-                      role: roleName,
-                      quantity: 1,
-                      notes: assignment.notes || '',
-                    });
-                    existingRoles.add(roleName.trim().toLowerCase());
-                    newRolesCount++;
-                  }
+                // Afegeix un nou rol buit per a aquesta assignació
+                updatedProviders[providerIndex].roles.push({
+                  id: generateLocalId(),
+                  role: '', // Rol buit
+                  quantity: 1,
+                  notes: assignment.notes || '', // Notes de l'assignació
                 });
+                rolesAddedCount++;
               });
 
-              if (newRolesCount > 0 || newProvidersCount > 0) {
+              if (rolesAddedCount > 0) {
                 const updatedFormData = { ...formData, technicalProviders: updatedProviders };
                 setFormData(updatedFormData);
                 addOrUpdateTechSheet(eventFrame.id, updatedFormData);
-                showToast('Personal actualitzat des de les assignacions i desat.', 'success');
+                showToast(`${rolesAddedCount} rol(s) afegit(s) des de les assignacions. Canvis desats.`, 'success');
               } else {
-                showToast('Tot el personal confirmat ja és a la fitxa.', 'info');
+                showToast('No s\'ha pogut afegir cap rol nou.', 'info');
               }
             }}
             className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-medium shadow no-print"
@@ -457,7 +443,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                         <TechSheetField id={`role-${providerIndex}-${roleIndex}`} label={`Rol ${roleIndex + 1}`} value={roleItem.role} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'role', e.target.value)} onBlur={handleBlur} suggestions={TECH_SHEET_ROLE_SUGGESTIONS} />
                       </div>
                       <div className="w-1/5">
-                        <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="Quant." type="number" value={roleItem.quantity} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} onBlur={handleBlur} />
+                      <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="Notes assignació" value={roleItem.notes || ''} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} onBlur={handleBlur} as="textarea" rows={1} />                      
                       </div>
                       <div className="w-2/5">
                         <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="Notes Rol" value={roleItem.notes || ''} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} onBlur={handleBlur} as="textarea" rows={1} />

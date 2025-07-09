@@ -37,6 +37,7 @@ interface ElectronAPI {
   resolveConflict: (resolutionData: { resolution: 'keep-local' | 'use-remote', localFrame: EventFrame, remoteEvent: any }) => Promise<{ success: boolean, message?: string, resolvedFrame?: EventFrame }>;
   resolveOrphans: (orphanData: { action: 'delete' | 'unlink', orphanIds: string[] }) => Promise<{ success: boolean, message?: string, updatedData?: AppData }>;
   clearGoogleAppCalendar: () => Promise<{ success: boolean, message?: string }>;
+  getDefaultDataPath: () => Promise<string>;
   performHardReset: () => Promise<{ success: boolean; message: string }>;
   addOrUpdateTechSheet: (eventFrameId: string, fitxaData: any) => void;
   onAppWillRelaunchAfterReset: (callback: (event: any, messages: string) => void) => (() => void) | undefined;
@@ -65,6 +66,7 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const [modalState, setModalState] = useState<ModalState>({ type: null, data: null });
   const [toastState, setToastState] = useState<ToastState | null>(null);
+  const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
   const [currentFilterHighlight, setCurrentFilterHighlight] = useState<string>('');
   const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
   const [filterToShowEventFrameId, setFilterToShowEventFrameId] = useState<string | null>(null);
@@ -247,6 +249,15 @@ const App: React.FC = () => {
           showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
           loadDataFromManager(null);
           setHasUnsavedChanges(false); // Fins i tot si hi ha error, comencem "nets"
+        }
+        // Després de carregar dades, obtenim la ruta per defecte
+        if (window.electronAPI?.getDefaultDataPath) {
+          try {
+            const path = await window.electronAPI.getDefaultDataPath();
+            setCurrentDataPath(path);
+          } catch (e) {
+            setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
+          }
         }
       } else {
         console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
@@ -560,6 +571,8 @@ const App: React.FC = () => {
                   hasUnsavedChanges={hasUnsavedChanges}
                   onSyncWithGoogle={syncWithGoogle}
                   isSyncing={isSyncing}
+                  currentDataPath={currentDataPath}
+                  setCurrentDataPath={setCurrentDataPath}
                 />
               </Suspense>
               <Suspense fallback={<div className="text-center p-2">Carregant navegació...</div>}>

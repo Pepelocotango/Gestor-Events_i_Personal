@@ -13,6 +13,8 @@ interface ControlsProps {
   hasUnsavedChanges: boolean;
   onSyncWithGoogle: () => void; 
   isSyncing: boolean;
+  currentDataPath: string;
+  setCurrentDataPath: (path: string) => void;
   }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -22,7 +24,9 @@ const Controls: React.FC<ControlsProps> = ({
     showToast,
     hasUnsavedChanges,
     onSyncWithGoogle,
-    isSyncing
+    isSyncing,
+    currentDataPath,
+    setCurrentDataPath
 
 }) => {
   const { loadData, exportData, setHasUnsavedChanges } = useEventData();
@@ -32,6 +36,7 @@ const Controls: React.FC<ControlsProps> = ({
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    const fileName = file.name;
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -45,6 +50,7 @@ const Controls: React.FC<ControlsProps> = ({
           loadData(jsonData);
           showToast("Totes les dades carregades correctament.", 'success');
           setHasUnsavedChanges(true);
+          setCurrentDataPath(fileName);
         } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
           const migratedData = migrateData(
             { people: jsonData.people || [] },
@@ -59,6 +65,7 @@ const Controls: React.FC<ControlsProps> = ({
           loadData(migratedData);
           showToast("Dades antigues migrades i carregades correctament.", 'success');
           setHasUnsavedChanges(true);
+          setCurrentDataPath(fileName);
         } else {
           showToast("Error: El format del fitxer JSON no és vàlid.", 'error');
         }
@@ -171,7 +178,10 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   return (
-    <div className="p-2 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg w-full flex flex-col gap-2">
+<div className="p-2 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg w-full flex flex-col gap-2">
+      <div className="text-center text-xs text-gray-500 dark:text-gray-400 mb-2 truncate" title={currentDataPath}>
+        Fitxer de dades: <strong>{currentDataPath}</strong>
+      </div>      
       {/* Fila Superior */}
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
