@@ -31,12 +31,12 @@ FORMAT I ESTRUCTURA DEL CODI
    - Mostra sempre el codi dins blocs de codi triple (```), sense explicacions barrejades.
    - No donis codi com a text pla, ni comentat dins d’un paràgraf.
    - El codi ha de ser clar, separat i preparat per copiar i enganxar directament.
-   - Si el canvi afecta només a unes poques linies de codi.
+   - Si el canvi afecta només a unes poques linies de codi, Proporciona els canvis amb línies circumdants per a una millor ubicació del codi.
      ```
      dos linies anteriors [codi]
-     ### INICI canvis ###
+     ### INICI canvis ###------------------------------------------------------------------------------------------------------###
      [codi]
-     ### FINAL canvis ###
+     ### FINAL canvis ###-----------------------------------------------------------------------------------------------------###
      dos linies posteriors [codi]
      ```
    - Si el canvi afecta un fitxer sencer:
