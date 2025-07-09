@@ -626,37 +626,71 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       </TechSheetSection>
 
       <TechSheetSection title="Necessitats Tècniques">
+      {/* === IL·LUMINACIÓ === */}
         <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 -mb-2">IL·LUMINACIÓ:</h4>
+        {formData.lightingNeeds.length > 0 && (
+          <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
+            <div className="w-1/6">Quant.</div>
+            <div className="w-2/5">Descripció</div>
+            <div className="w-2/5">Origen</div>
+            <div className="w-auto flex-shrink-0"></div>
+          </div>
+        )}
         {formData.lightingNeeds.map((need, index) => (
-          <React.Fragment key={need.id || `light-need-${index}`}>
-            <TechSheetField id={`light-qty-${index}`} label={`Qt. Il·lu. ${index + 1}`} value={need.quantity} onChange={e => handleListChange('lightingNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
-            <TechSheetField id={`light-desc-${index}`} label={`Desc. Il·lu. ${index + 1}`} value={need.description} onChange={e => handleListChange('lightingNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
-            <TechSheetField id={`light-origin-${index}`} label={`Origen Il·lu. ${index + 1}`} value={need.origin} onChange={e => handleListChange('lightingNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-            <div className="flex items-end"><button type="button" onClick={() => handleRemoveListItem('lightingNeeds', index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-7 h-7 flex items-center justify-center text-lg no-print" title="Eliminar">×</button></div>
-          </React.Fragment>
+          <div key={need.id || `light-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
+            <div className="w-1/6">
+              <TechSheetField id={`light-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('lightingNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
+            </div>
+            <div className="w-2/5">
+              <TechSheetField id={`light-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('lightingNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
+            </div>
+            <div className="w-2/5">
+              <TechSheetField id={`light-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('lightingNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
+            </div>
+            <div className="w-auto flex-shrink-0 pt-2">
+              <button type="button" onClick={() => handleRemoveListItem('lightingNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
+            </div>
+          </div>
         ))}
         <div className="col-span-full mt-2 no-print">
           <button type="button" onClick={() => handleAddListItem('lightingNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Il·luminació</button>
         </div>
 
+      {/* === SO === */}
         <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">SO:</h4>
+        {formData.soundNeeds.length > 0 && (
+          <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
+            <div className="w-1/6">Quant.</div>
+            <div className="w-2/5">Descripció</div>
+            <div className="w-2/5">Origen</div>
+            <div className="w-auto flex-shrink-0"></div>
+          </div>
+        )}
         {formData.soundNeeds.map((need, index) => (
-          <React.Fragment key={need.id || `sound-need-${index}`}>
-            <TechSheetField id={`sound-qty-${index}`} label={`Qt. So ${index + 1}`} value={need.quantity} onChange={e => handleListChange('soundNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
-            <TechSheetField id={`sound-desc-${index}`} label={`Desc. So ${index + 1}`} value={need.description} onChange={e => handleListChange('soundNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
-            <TechSheetField id={`sound-origin-${index}`} label={`Origen So ${index + 1}`} value={need.origin} onChange={e => handleListChange('soundNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-            <div className="flex items-end"><button type="button" onClick={() => handleRemoveListItem('soundNeeds', index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-7 h-7 flex items-center justify-center text-lg no-print" title="Eliminar">×</button></div>
-          </React.Fragment>
+          <div key={need.id || `sound-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
+            <div className="w-1/6">
+              <TechSheetField id={`sound-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('soundNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
+            </div>
+            <div className="w-2/5">
+              <TechSheetField id={`sound-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('soundNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
+            </div>
+            <div className="w-2/5">
+              <TechSheetField id={`sound-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('soundNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
+            </div>
+            <div className="w-auto flex-shrink-0 pt-2">
+              <button type="button" onClick={() => handleRemoveListItem('soundNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
+            </div>
+          </div>
         ))}
         <div className="col-span-full mt-2 no-print">
           <button type="button" onClick={() => handleAddListItem('soundNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat So</button>
         </div>
 
+      {/* === VÍDEO === */}
         <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">VÍDEO:</h4>
-        <div className="mb-2">
+        <div className="col-span-full mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">VÍDEO:</label>
-          <select
-            value={formData.videoDetails?.startsWith('SI') ? 'SI' : (formData.videoDetails?.startsWith('NO') ? 'NO' : '')}
+          <select value={formData.videoDetails?.startsWith('SI') ? 'SI' : (formData.videoDetails?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
               setFormData(prev => ({ ...prev, videoDetails: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
@@ -671,26 +705,36 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           {formData.videoDetails?.startsWith('SI') && (
             <textarea
               className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls generals de vídeo..."
-              value={formData.videoDetails.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, videoDetails: `SI: ${e.target.value}` }));
-                setIsDirty(true);
-              }}
-              onBlur={handleBlur}
+              rows={2} placeholder="Detalls generals de vídeo..." value={formData.videoDetails.replace(/^SI:?\s*/, '')}
+              onChange={e => { setFormData(prev => ({ ...prev, videoDetails: `SI: ${e.target.value}` })); setIsDirty(true); }} onBlur={handleBlur}
             />
           )}
         </div>
         {formData.videoDetails?.startsWith('SI') && (
           <>
+            {formData.videoNeeds.length > 0 && (
+              <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
+                <div className="w-1/6">Quant.</div>
+                <div className="w-2/5">Descripció</div>
+                <div className="w-2/5">Origen</div>
+                <div className="w-auto flex-shrink-0"></div>
+              </div>
+            )}
             {formData.videoNeeds.map((need, index) => (
-              <React.Fragment key={need.id || `video-need-${index}`}>
-                <TechSheetField id={`video-qty-${index}`} label={`Qt. Vídeo ${index + 1}`} value={need.quantity} onChange={e => handleListChange('videoNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
-                <TechSheetField id={`video-desc-${index}`} label={`Desc. Vídeo ${index + 1}`} value={need.description} onChange={e => handleListChange('videoNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
-                <TechSheetField id={`video-origin-${index}`} label={`Origen Vídeo ${index + 1}`} value={need.origin} onChange={e => handleListChange('videoNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-                <div className="flex items-end"><button type="button" onClick={() => handleRemoveListItem('videoNeeds', index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-7 h-7 flex items-center justify-center text-lg no-print" title="Eliminar">×</button></div>
-              </React.Fragment>
+              <div key={need.id || `video-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
+                <div className="w-1/6">
+                  <TechSheetField id={`video-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('videoNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
+                </div>
+                <div className="w-2/5">
+                  <TechSheetField id={`video-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('videoNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
+                </div>
+                <div className="w-2/5">
+                  <TechSheetField id={`video-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('videoNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
+                </div>
+                <div className="w-auto flex-shrink-0 pt-2">
+                  <button type="button" onClick={() => handleRemoveListItem('videoNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
+                </div>
+              </div>
             ))}
             <div className="col-span-full mt-2 no-print">
               <button type="button" onClick={() => handleAddListItem('videoNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Vídeo</button>
@@ -698,18 +742,36 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           </>
         )}
 
+      {/* === MAQUINÀRIA === */}
         <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">MAQUINÀRIA:</h4>
+        {formData.machineryNeeds.length > 0 && (
+          <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
+            <div className="w-1/6">Quant.</div>
+            <div className="w-2/5">Descripció</div>
+            <div className="w-2/5">Origen</div>
+            <div className="w-auto flex-shrink-0"></div>
+          </div>
+        )}
         {formData.machineryNeeds.map((need, index) => (
-          <React.Fragment key={need.id || `machinery-need-${index}`}>
-            <TechSheetField id={`machinery-qty-${index}`} label={`Qt. Maquin. ${index + 1}`} value={need.quantity} onChange={e => handleListChange('machineryNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
-            <TechSheetField id={`machinery-desc-${index}`} label={`Desc. Maquin. ${index + 1}`} value={need.description} onChange={e => handleListChange('machineryNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
-            <TechSheetField id={`machinery-origin-${index}`} label={`Origen Maquin. ${index + 1}`} value={need.origin} onChange={e => handleListChange('machineryNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-            <div className="flex items-end"><button type="button" onClick={() => handleRemoveListItem('machineryNeeds', index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-7 h-7 flex items-center justify-center text-lg no-print" title="Eliminar">×</button></div>
-          </React.Fragment>
+          <div key={need.id || `machinery-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
+            <div className="w-1/6">
+              <TechSheetField id={`machinery-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('machineryNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX"/>
+            </div>
+            <div className="w-2/5">
+              <TechSheetField id={`machinery-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('machineryNeeds', index, 'description', e.target.value)} onBlur={handleBlur} />
+            </div>
+            <div className="w-2/5">
+              <TechSheetField id={`machinery-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('machineryNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
+            </div>
+            <div className="w-auto flex-shrink-0 pt-2">
+              <button type="button" onClick={() => handleRemoveListItem('machineryNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
+            </div>
+          </div>
         ))}
         <div className="col-span-full mt-2 no-print">
           <button type="button" onClick={() => handleAddListItem('machineryNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Maquinària</button>
         </div>
+
       </TechSheetSection>
       
       <TechSheetSection title="Altres Detalls">

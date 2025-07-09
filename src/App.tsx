@@ -13,6 +13,7 @@ const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
+const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
 const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFormModal'));
 const PeopleGroupManagerModal = lazy(() => import('./components/modals/PeopleGroupManagerModal'));
@@ -601,6 +602,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route path="/tech-sheets" element={<TechSheetsDisplay />} />
+                <Route path="/material" element={<MaterialDisplay />} />
               </Routes>
             </Suspense>
           </main>
