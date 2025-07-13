@@ -1,0 +1,20 @@
+calendar:
+avisar "només lectura" a calendar del calendari app. bloquejar edicio?? des de google?
+poder posar-li nom al calendari de la app
+afegir assignacions al calendari google coma  notes a + notes generals ja implementat
+
+poder guardar material no només carregar
+
+poder fer merge de personal i material
+
+migrar botons a menu app
+
+millorar visualtització mode fosc dia actual " avui " a calendar fons tronja en tema clar també millorar
+
+bug al cerar event en visualitzar 1 més , desapareix un numero de dia del diumenge columna ultima.
+
+millorar tema visual fosc en Agenda view calendar dies en blanc.
+
+colors calendaris usuari de google a app mateix color , diferenciar per colors.
+
+
