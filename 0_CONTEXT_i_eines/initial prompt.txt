@@ -34,9 +34,9 @@ FORMAT I ESTRUCTURA DEL CODI
    - Si el canvi afecta només a unes poques linies de codi, Proporciona els canvis amb línies circumdants per a una millor ubicació del codi.
      ```
      dos linies anteriors [codi]
-     ### INICI canvis ###------------------------------------------------------------------------------------------------------###
+     ### INICI canvis ###--------------------------------------------------------------###
      [codi]
-     ### FINAL canvis ###-----------------------------------------------------------------------------------------------------###
+     ### FINAL canvis ###-----------------------------------------------------------###
      dos linies posteriors [codi]
      ```
    - Si el canvi afecta un fitxer sencer:
@@ -49,10 +49,10 @@ FORMAT I ESTRUCTURA DEL CODI
    - si s'han d'eliminar linies de codi posa el prefix "-" davant
     ```
      dos linies anteriors [codi]
-     ### INICI canvis ###
+     ### INICI canvis ###------------------------------------------------###
      -[codi] //->eliminem codi
      +[codi] //->afegim codi
-     ### FINAL canvis ###
+     ### FINAL canvis ###-------------------------------------------------###
      dos linies posteriors [codi]
      ```
    - Abans de crear codi nou, comprova si ja hi ha funcions, components o mòduls reutilitzables.

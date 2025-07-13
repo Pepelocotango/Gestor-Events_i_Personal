@@ -18,7 +18,7 @@ GITHUB_DEFAULT_BRANCH = "?"  # Branca per defecte si no es pot detectar
 ROOT_FILES_TO_INCLUDE = [
     "package.json", "package-lock.json", "vite.config.ts", "tailwind.config.cjs",
     "postcss.config.cjs", "tsconfig.json", "main.cjs", "preload.cjs", "index.html",
-    "README.md", "LICENSE", ".gitattributes", ".gitignore", "metadata.json"
+    "README.md", "DEVELOPING.md", "LICENSE", ".gitattributes", ".gitignore", "metadata.json"
 ]
 DIRECTORIES_TO_INCLUDE = ["src", ".github", "examples json"]
 DIRECTORIES_TO_EXCLUDE = ["0_CONTEXT_i_eines", "node_modules", "dist", ".git", "chekpoints"]
