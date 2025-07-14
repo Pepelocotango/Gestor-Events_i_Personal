@@ -38,7 +38,7 @@ Aquest fitxer és el nucli de la nova estructura.
 *   **`TechSheetRoleItem`**: Nova interfície que defineix un rol específic. Conté:
     *   `id`: Identificador únic.
     *   `role`: El nom del rol (ex: "Tècnic/a de So").
-    *   `quantity`: La quantitat de persones per a aquest rol.
+    *   `quantity`: La quantitat de persones per a aquest rol (el tipus és number | string per flexibilitat al formulari).
     *   `notes`: Notes específiques.
 *   **`TechSheetData`**: S'ha modificat per reemplaçar `technicalPersonnel: TechSheetPersonnel[]` per `technicalProviders: TechSheetProvider[]`. Aquest és el canvi més important del model de dades.
 
@@ -52,7 +52,7 @@ Aquest component reutilitzable ha estat millorat per ser més versàtil.
 
 *   **Propietat `suggestions?: string[]`**: Ara pot rebre un array de cadenes de text per generar un `<datalist>` associat, convertint un simple `<input>` en un combobox funcional.
 *   **Propietat `disabled?: boolean`**: Permet desactivar el camp, donant-li un estil visual diferent i evitant l'edició, utilitzat per mostrar el "Rol Base" del proveïdor.
-**Propietat `infoText?: string`**: Mostra un text informatiu al costat del camp, utilitzat per indicar l'estoc disponible.
+*   **Propietat `infoText?: string`**: Mostra un text informatiu al costat del camp, utilitzat per indicar l'estoc disponible.
 *   **Propietat `className?: string`**: Permet injectar classes CSS addicionals per a estils condicionals, com ressaltar un camp amb un error.
 
 #### **`src/components/tech_sheets/TechSheetSection.tsx` (El Contenidor de Secció Flexible)**
@@ -135,7 +135,9 @@ Aquest fitxer concentra la major part de la lògica de la nova funcionalitat.
 **Arxius clau modificats:**
 - `src/components/tech_sheets/TechSheetForm.tsx` (UI, lògica, PDF)
 - `src/components/tech_sheets/TechSheetSection.tsx` (accions de capçalera)
+- `src/components/tech_sheets/TechSheetField.tsx` (gestió intel·ligent de camps, amb suggeriments i estats)
 - `src/types.ts` (nous camps i lògica de fitxa)
+
 
 ### 🆕 Millores a les Fitxes de Bolo (v0.3.x): Gestió de Personal per Proveïdors
 
@@ -194,7 +196,11 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
     *   Pàgina dedicada per gestionar un inventari de material (nom, categoria, estoc, etc.).
     *   Permet carregar inventaris des de fitxers JSON externs.
     *   **Integració amb Fitxes de Bolo:** Suggereix material de l'inventari a les necessitats tècniques.
-    *   **Control d'Estoc Dinàmic:** Mostra la disponibilitat real del material per a les dates de l'esdeveniment i alerta visualment de conflictes.
+   *   **Control d'Estoc Dinàmic:**
+    *   **Càlcul de Disponibilitat en Temps Real:** Quan s'afegeix un ítem de l'inventari a una fitxa de bolo, el sistema calcula automàticament l'estoc disponible per a les dates d'aquell esdeveniment. Per fer-ho, resta l'estoc compromès en altres esdeveniments que se solapen en dates.
+    *   **Feedback Visual Immediat:**
+        *   Al costat del camp de descripció del material, apareix un text informatiu (ex: "Disp: 8 / 10").
+        *   Si la quantitat sol·licitada supera l'estoc disponible, el camp de quantitat es ressalta visualment amb una vora vermella per alertar d'un conflicte d'estoc.
 
 -   **Interfície d'Usuari:**
     *   Suport per a tema clar i fosc.
@@ -258,6 +264,21 @@ El projecte segueix una arquitectura de tres capes per separar responsabilitats,
        **Noves Pàgines Dedicades:**
     *   **`PeopleDisplay.tsx`**: Nova pàgina que allotja el gestor de persones, abans en un modal.
     *   **`MaterialDisplay.tsx`**: Nova pàgina que conté la interfície per gestionar l'inventari de material.
+
+    *   **Components d'Interacció (`src/components`):**
+    *   **`Navigation.tsx`**: Renderitza la barra de navegació principal de l'aplicació (`Calendari`, `Fitxes de Bolo`, `Persones`, `Material`), permetent canviar entre les vistes principals.
+    *   **`AssignmentCard.tsx`**: Mostra cada assignació individual dins d'un `EventFrameCard`, amb la seva vista detallada per dies.
+
+*   **Components Modals (`src/components/modals`):**
+    *   **`EventFrameFormModal.tsx`**: Formulari per crear i editar els **Marcs d'Esdeveniment**.
+    *   **`AssignmentFormModal.tsx`**: Formulari per crear i editar les **Assignacions** de personal dins d'un marc.
+    *   **`EventFrameDetailsModal.tsx`**: Vista de detall ràpida d'un esdeveniment i les seves assignacions.
+    *   **`ConfirmDeleteModal.tsx`**: Diàleg genèric de confirmació utilitzat abans de realitzar accions destructives.
+    *   **`GoogleSettingsModal.tsx`**: Permet a l'usuari configurar la connexió i seleccionar quins calendaris de només lectura vol visualitzar.
+
+*   **Components d'UI Genèrics (`src/components/ui`):**
+    *   **`Modal.tsx`**: Component **genèric i reutilitzable** que serveix de base per a tots els diàlegs, gestionant l'estat d'obertura, el títol i el contingut.
+
 ---
 
 ### 📁 Estructura i Responsabilitat dels Fitxers
@@ -274,7 +295,7 @@ Aquests fitxers defineixen el projecte, les seves dependències i com es constru
 *   **`tailwind.config.cjs`**: Configuració de TailwindCSS, incloent un **plugin personalitzat** per aplicar estils al calendari en mode fosc.
 *   **`postcss.config.cjs` i `tsconfig.json`**: Fitxers auxiliars per a PostCSS i TypeScript.
 *   **`index.html`**: El punt d'entrada HTML on es munta l'aplicació React.
-
+*   **`metadata.json`**: Fitxer de metadades utilitzat per eines auxiliars. Actualment conté el nom i la descripció del projecte.
 
 
 
@@ -305,6 +326,16 @@ Aquests fitxers defineixen el projecte, les seves dependències i com es constru
 
 
 ## 🚀 Començar (Getting Started) MODE DEVELOPER
+
+## 📦 Compilació i Desplegament (CI/CD)
+
+El projecte utilitza **GitHub Actions** per automatitzar la compilació per a diferents sistemes operatius. Aquests processos es defineixen en fitxers `.yml` dins del directori `.github/workflows/`.
+
+*   **`build-linuxv20-04.yml`**: Defineix el workflow per compilar l'aplicació en un entorn Ubuntu 22.04. Instal·la les dependències necessàries (com `libfuse2`) i genera un fitxer `.AppImage`.
+*   **`build-macos12.yml`**: Configura l'entorn a `macos-latest` per compilar l'aplicació i generar els artefactes de distribució per a macOS (`.dmg` i `.zip`).
+*   **`build-win10.yml`**: S'executa en un entorn `windows-latest` per crear l'instal·lador (`.exe`) i la versió portable per a Windows.
+
+Tots els workflows inclouen un pas per crear el fitxer `google-credentials.json` a partir d'un secret de GitHub, assegurant que les credencials no quedin exposades al codi font.
 
 ### Prerequisits
 

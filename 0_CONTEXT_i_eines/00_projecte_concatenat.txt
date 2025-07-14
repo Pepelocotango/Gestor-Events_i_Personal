@@ -1,7 +1,7 @@
 === PROJECTE CONCATENAT ===
 Projecte: Gestor-Events_i_Personal
 Branca: DEV
-Generat el: diumenge, 13 de juliol de 2025, 20:10:02 CEST
+Generat el: dilluns, 14 de juliol de 2025, 18:05:45 CEST
 ==================================================
 
 --- START OF FILE: ../Gestor-Events_i_Personal/package.json -- branca DEV ---
