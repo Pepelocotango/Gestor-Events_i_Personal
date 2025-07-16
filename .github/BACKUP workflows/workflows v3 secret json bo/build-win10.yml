@@ -29,8 +29,8 @@ jobs:
       shell: cmd
 
     - name: Comprova que google-credentials.json existeix i no està buit
-        shell: cmd
-        run: |
+      shell: cmd
+      run: |
           if not exist google-credentials.json (
             echo "El fitxer google-credentials.json NO existeix!" && exit 1
           )
