@@ -158,16 +158,19 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
 
 ---
 
-#### 📑 Responsabilitat dels fitxers clau de Fitxes de Bolo
+#### 📑 Responsabilitat dels fitxers clau de Fitxes de Bolo (Refactorització Completada)
 
-- **`src/components/tech_sheets/TechSheetForm.tsx`**: Formulari principal i lògica de tota la fitxa tècnica. Gestiona l'estat intern, la dinàmica dels camps (SI/NO, dropdowns, camps condicionals), la sincronització de notes, la validació i l'exportació professional a PDF. Tota la interacció de l'usuari amb la fitxa passa per aquest component.
-- **`src/components/tech_sheets/TechSheetSection.tsx`**: Component de presentació que encapsula cada secció de la fitxa (ex: Personal Tècnic, Horaris, Logística...). Permet injectar accions personalitzades a la capçalera de cada secció (com el botó "Actualitza des d'assignacions").
-- **`src/components/tech_sheets/TechSheetField.tsx`**: Component reutilitzable per a camps individuals de la fitxa (inputs, selects, textareas), amb suport per a validació, focus i accessibilitat.
-- **`src/types.ts`**: Defineix totes les interfícies i tipus TypeScript per a la fitxa tècnica, incloent la descripció de cada secció, llistes, camps opcionals i la seva estructura jeràrquica. Qualsevol canvi d'estructura de dades de la fitxa s'ha de reflectir aquí.
-- **`src/hooks/useEventDataManager.ts`**: Gestiona l'estat global de l'aplicació, incloent la persistència i sincronització de les fitxes tècniques amb la resta de dades de l'esdeveniment. S'encarrega de desar automàticament els canvis i d'actualitzar la fitxa quan canvien les assignacions.
+- **`src/utils/pdfGenerator.ts`**: **(NOU)** Mòdul d'utilitat dedicat exclusivament a generar el document PDF a partir de les dades de la fitxa tècnica.
+- **`src/components/tech_sheets/TechSheetForm.tsx`**: Orquestra la fitxa tècnica. Gestiona l'estat general del formulari i coordina els components fills. **Ja no conté la lògica de generació de PDF.**
+- **`src/components/tech_sheets/TechnicalPersonnelSection.tsx`**: **(NOU)** Component especialitzat que gestiona tota la secció de "Personal Tècnic", incloent la lògica per afegir i eliminar proveïdors i rols.
+- **`src/components/tech_sheets/NeedsList.tsx`**: **(NOU)** Component reutilitzable per a renderitzar i gestionar llistes de necessitats (il·luminació, so, etc.), connectat amb l'inventari de material.
+- **`src/components/tech_sheets/TechSheetSection.tsx`**: Component de presentació que encapsula cada secció de la fitxa, fent-les col·lapsables i permetent accions a la capçalera.
+- **`src/components/tech_sheets/TechSheetField.tsx`**: Component reutilitzable per a camps de formulari individuals, ara amb suport per a suggeriments (`datalist`).
 - **`src/components/TechSheetsDisplay.tsx`**: Component contenidor que mostra la fitxa de bolo seleccionada i permet navegar entre fitxes d'esdeveniments. Orquestra la visualització i la selecció de fitxes.
+- **`src/types.ts`**: Defineix totes les interfícies TypeScript per a la fitxa tècnica, incloent la descripció de cada secció, llistes, camps opcionals i la seva estructura jeràrquica.
+- **`src/hooks/useEventDataManager.ts`**: Gestiona l'estat global de l'aplicació, incloent la persistència i sincronització de les fitxes tècniques amb la resta de dades de l'esdeveniment.
 
-> Amb aquesta arquitectura modular, cada fitxer té una responsabilitat clara i delimitada, facilitant el manteniment, l'escalabilitat i la col·laboració entre desenvolupadors.
+> Amb aquesta arquitectura modular, cada fitxer té una responsabilitat clara i delimitada, facilitant el manteniment i l'escalabilitat.
 
 ---
 

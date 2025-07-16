@@ -6,7 +6,6 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
     DEVELOPING.md
     LICENSE
     README.md
-    google-credentials.json
     index.html
     main.cjs
     metadata.json
@@ -48,9 +47,11 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
                 EventFrameFormModal.tsx
                 GoogleSettingsModal.tsx
             tech_sheets/
+                NeedsList.tsx
                 TechSheetField.tsx
                 TechSheetForm.tsx
                 TechSheetSection.tsx
+                TechnicalPersonnelSection.tsx
             ui/
                 Modal.tsx
         contexts/
@@ -61,6 +62,7 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
             dataMigration.ts
             dateFormat.ts
             dateRangeFormatter.ts
+            pdfGenerator.ts
             statusUtils.ts
     .git/
         branches/
@@ -218,41 +220,41 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
             icon_512.png
             icon_64x64.png
         assets/
-            AssignmentFormModal-Cz2hJtn2.js
-            AssignmentFormModal-Cz2hJtn2.js.map
-            ConfirmDeleteModal-fMeJiGDm.js
-            ConfirmDeleteModal-fMeJiGDm.js.map
-            Controls-D8qLHARP.js
-            Controls-D8qLHARP.js.map
-            EventFrameDetailsModal-Rprmweno.js
-            EventFrameDetailsModal-Rprmweno.js.map
-            EventFrameFormModal-Pby66fCx.js
-            EventFrameFormModal-Pby66fCx.js.map
-            GoogleSettingsModal-B3wq5x7_.js
-            GoogleSettingsModal-B3wq5x7_.js.map
-            MainDisplay-CyxiYl-T.js
-            MainDisplay-CyxiYl-T.js.map
-            MaterialDisplay-CcZXg9Yp.js
-            MaterialDisplay-CcZXg9Yp.js.map
-            Navigation-Cr3XmJfG.js
-            Navigation-Cr3XmJfG.js.map
-            PeopleDisplay-D4toUklf.js
-            PeopleDisplay-D4toUklf.js.map
-            TechSheetForm-DGk1lD8J.js
-            TechSheetForm-DGk1lD8J.js.map
-            TechSheetsDisplay-7UFp2VLJ.js
-            TechSheetsDisplay-7UFp2VLJ.js.map
+            AssignmentFormModal-BDFxqdJQ.js
+            AssignmentFormModal-BDFxqdJQ.js.map
+            ConfirmDeleteModal-DyVMe80M.js
+            ConfirmDeleteModal-DyVMe80M.js.map
+            Controls-DUoTZJpF.js
+            Controls-DUoTZJpF.js.map
+            EventFrameDetailsModal-Dbw7xkus.js
+            EventFrameDetailsModal-Dbw7xkus.js.map
+            EventFrameFormModal-DhV0ppMi.js
+            EventFrameFormModal-DhV0ppMi.js.map
+            GoogleSettingsModal-Bb0wOvO6.js
+            GoogleSettingsModal-Bb0wOvO6.js.map
+            MainDisplay-DPnSBgpf.js
+            MainDisplay-DPnSBgpf.js.map
+            MaterialDisplay-HsAfZySl.js
+            MaterialDisplay-HsAfZySl.js.map
+            Navigation-CGD3dQRH.js
+            Navigation-CGD3dQRH.js.map
+            PeopleDisplay-Br7T0LIK.js
+            PeopleDisplay-Br7T0LIK.js.map
+            TechSheetForm-vnseNwiw.js
+            TechSheetForm-vnseNwiw.js.map
+            TechSheetsDisplay-CFpKZtxe.js
+            TechSheetsDisplay-CFpKZtxe.js.map
             html2canvas.esm-CBrSDip1.js
             html2canvas.esm-CBrSDip1.js.map
             index-Bp8y5zvd.css
-            index-C5Ocd1j7.js
-            index-C5Ocd1j7.js.map
-            index.es-ChYFMNrm.js
-            index.es-ChYFMNrm.js.map
+            index-DWDfi3cT.js
+            index-DWDfi3cT.js.map
+            index.es-5qLFWarE.js
+            index.es-5qLFWarE.js.map
             purify.es-CQJ0hv7W.js
             purify.es-CQJ0hv7W.js.map
-            statusUtils-CEJejLtq.js
-            statusUtils-CEJejLtq.js.map
+            statusUtils-B97JebU6.js
+            statusUtils-B97JebU6.js.map
     examples json/
         example_all .json
         example_material.json
