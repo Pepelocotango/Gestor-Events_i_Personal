@@ -32,7 +32,7 @@ jobs:
         run: npm install
 
       - name: 4.5 Create google-credentials.json from secret
-        run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google-credentials.json
+        run: echo '${{ secrets.GOOGLE_CREDENTIALS_JSON }}' > google-credentials.json
 
       - name: Comprova que google-credentials.json existeix i no està buit
         run: |
