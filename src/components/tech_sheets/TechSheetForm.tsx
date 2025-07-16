@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, AssignmentStatus } from '../../types';
-import jsPDF from 'jspdf';
+import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
-import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
+import { exportToPdf } from '../../utils/pdfGenerator';
+import TechnicalPersonnelSection from './TechnicalPersonnelSection';
+import NeedsList from './NeedsList';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
@@ -27,7 +28,6 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
   const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
   const [isDirty, setIsDirty] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
-  const materialSuggestions = React.useMemo(() => materialItems.map(item => item.name), [materialItems]);
 
   useEffect(() => {
     const newEventName = eventFrame.name;
@@ -57,9 +57,9 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
   type TechSheetScheduleListKey = 'assemblySchedule';
   type TechSheetListKey = TechSheetNeedListKey | TechSheetScheduleListKey;
 
-  const handleListChange = (listName: TechSheetListKey, index: number, field: string, value: any) => {
+  const handleListChange = (listName: string, index: number, field: string, value: any) => {
     setFormData(prev => {
-      const newList = [...(prev[listName] as any[])];
+      const newList = [...(prev[listName as TechSheetListKey] as any[])];
       const currentItem = { ...newList[index] };
       currentItem[field] = value;
       
@@ -75,15 +75,15 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
     setIsDirty(true);
   };
   
-  const handleRemoveListItem = (listName: TechSheetListKey, index: number) => {
-    const newList = (formData[listName] as any[]).filter((_, i) => i !== index);
+  const handleRemoveListItem = (listName: string, index: number) => {
+    const newList = (formData[listName as TechSheetListKey] as any[]).filter((_, i) => i !== index);
     const updatedFormData = { ...formData, [listName]: newList };
     setFormData(updatedFormData);
     addOrUpdateTechSheet(eventFrame.id, updatedFormData);
     showToast('Ítem eliminat.', 'info');
   };
   
-  const handleAddListItem = (listName: TechSheetListKey) => {
+  const handleAddListItem = (listName: string) => {
     let newItem: any;
     switch (listName) {
       case 'assemblySchedule':
@@ -100,7 +100,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
     }
     setFormData(prev => ({
       ...prev,
-      [listName]: [...(prev[listName] as any[]), newItem],
+      [listName]: [...(prev[listName as TechSheetListKey] as any[]), newItem],
     }));
     setIsDirty(true);
   };
@@ -192,120 +192,8 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
 
 
 
-   const handleExportToPdf = () => {
-    try {
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      let y = 15;
-      const left = 12;
-      const right = pdf.internal.pageSize.getWidth() - left;
-      const lineSpacing = 6;
-      const sectionSpacing = 8;
-      const subSectionSpacing = 4;
-      
-      const addLine = (txt: string, size = 10, style = 'normal', indent = 0) => {
-        if (y > 280) { // Marge inferior per canvi de pàgina
-          pdf.addPage();
-          y = 15;
-        }
-        pdf.setFontSize(size);
-        pdf.setFont('helvetica', style);
-        pdf.text(txt, left + indent, y, { maxWidth: right - left - indent });
-        y += lineSpacing;
-      };
-
-      const addSectionTitle = (title: string) => {
-        y += sectionSpacing / 2;
-        addLine(title, 13, 'bold');
-        y += subSectionSpacing / 2;
-      };
-
-      // --- CAPÇALERA ---
-      pdf.setFontSize(18); pdf.setFont('helvetica', 'bold');
-      pdf.text(`Fitxa Tècnica - ${formData.eventName}`, left, y); y += 10;
-      
-      // --- INFORMACIÓ GENERAL ---
-      pdf.setFontSize(11); pdf.setFont('helvetica', 'normal');
-      pdf.text(`Lloc: ${formData.location || '-'}`, left, y);
-      pdf.text(`Data: ${formData.date || '-'}`, right - 60, y); y += lineSpacing;
-      pdf.text(`Hora: ${formData.showTime || '-'}`, left, y);
-      pdf.text(`Durada: ${formData.showDuration || '-'}`, right - 60, y); y += lineSpacing;
-      if (formData.parkingInfo) {
-        pdf.text(`Pàrquing: ${formData.parkingInfo}`, left, y); y+= lineSpacing;
-      }
-      
-      // --- PERSONAL TÈCNIC ---
-      addSectionTitle('Personal Tècnic');
-      if (formData.technicalProviders.length > 0) {
-        formData.technicalProviders.forEach(provider => {
-          const person = getPersonGroupById(provider.personGroupId);
-          addLine(`Proveïdor: ${person?.name || 'No seleccionat'}`, 11, 'bold');
-          if (provider.roles.length > 0) {
-            provider.roles.forEach(roleItem => {
-              const notes = roleItem.notes ? `(${roleItem.notes})` : '';
-              addLine(`${roleItem.quantity} x ${roleItem.role} ${notes}`, 10, 'normal', 5);
-            });
-          }
-          y += subSectionSpacing;
-        });
-      } else {
-        addLine('Cap proveïdor de personal definit.', 10, 'italic');
-      }
-
-      // --- HORARIS ---
-      addSectionTitle('Premuntatge i Horaris');
-      if (formData.preAssemblySchedule) {
-        addLine(`Premuntatge: ${formData.preAssemblySchedule}`, 10);
-      }
-      if (formData.assemblySchedule.length > 0) {
-        formData.assemblySchedule.forEach(item => {
-          addLine(`${item.time}: ${item.description}`, 10, 'normal', 5);
-        });
-      }
-
-      // --- LOGÍSTICA ---
-      addSectionTitle('Logística');
-      addLine(`Camerinos: ${formData.dressingRooms || '-'}`, 10);
-      addLine(`Actors: ${formData.actorsNumber || ''} ${formData.actors || ''}`, 10);
-      addLine(`Tècnics/Producció Cia: ${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`, 10);
-
-      // --- NECESSITATS TÈCNIQUES ---
-      addSectionTitle('Necessitats Tècniques');
-      const printNeeds = (title: string, needs: any[]) => {
-        if (needs.length > 0) {
-          addLine(title, 11, 'bold');
-          needs.forEach(n => {
-            addLine(`${n.quantity} x ${n.description} (Origen: ${n.origin || 'N/D'})`, 10, 'normal', 5);
-          });
-        }
-      };
-      printNeeds('Il·luminació:', formData.lightingNeeds);
-      if (formData.videoDetails) {
-        addLine('Vídeo:', 11, 'bold');
-        addLine(formData.videoDetails, 10, 'normal', 5);
-      }
-      printNeeds('', formData.videoNeeds);
-      printNeeds('So:', formData.soundNeeds);
-      printNeeds('Maquinària:', formData.machineryNeeds);
-
-      // --- ALTRES DETALLS ---
-      addSectionTitle('Altres Detalls');
-      addLine(`Control a: ${formData.controlLocation || '-'}`, 10);
-      if (formData.otherEquipment) addLine(`Material d'altres equipaments: ${formData.otherEquipment}`, 10);
-      if (formData.rentals) addLine(`Lloguers: ${formData.rentals}`, 10);
-      if (formData.blueprints) addLine(`Plànols: ${formData.blueprints}`, 10);
-
-      // --- CONTACTE I OBSERVACIONS ---
-      addSectionTitle('Contacte i Observacions');
-      addLine(`Contacte Companyia: ${formData.companyContact || '-'}`, 10);
-      if (formData.observations) addLine(`Observacions: ${formData.observations}`, 10);
-
-      // --- DESA EL PDF ---
-      const fileName = `Fitxa_Bolo_${eventFrame.name.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-      pdf.save(fileName);
-      showToast('PDF generat amb èxit!', 'success');
-    } catch (error) {
-      showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
-    }
+  const handleExportToPdf = () => {
+    exportToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
   };
 
   return (
@@ -358,140 +246,25 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
         </div>
       </TechSheetSection>
 
-       <TechSheetSection title="Personal Tècnic"
-        layout="single-column"
-        headerActions={
-          <button
-            type="button"
-
-            onClick={() => {
-              const confirmedAssignments = eventFrame.assignments.filter(a => 
-                a.status === AssignmentStatus.Yes || (a.status === AssignmentStatus.Mixed && Object.values(a.dailyStatuses || {}).includes(AssignmentStatus.Yes))
-              );
-
-              if (confirmedAssignments.length === 0) {
-                showToast('No hi ha personal confirmat a les assignacions per afegir.', 'info');
-                return;
-              }
-
-              let updatedProviders = [...formData.technicalProviders];
-              let rolesAddedCount = 0;
-
-              confirmedAssignments.forEach(assignment => {
-                const personGroupId = assignment.personGroupId;
-                
-                // Cerca o crea el proveïdor
-                let providerIndex = updatedProviders.findIndex(p => p.personGroupId === personGroupId);
-                if (providerIndex === -1) {
-                  const newProvider: TechSheetProvider = { id: generateLocalId(), personGroupId, roles: [] };
-                  updatedProviders.push(newProvider);
-                  providerIndex = updatedProviders.length - 1;
-                }
-                
-                // Afegeix un nou rol buit per a aquesta assignació
-                updatedProviders[providerIndex].roles.push({
-                  id: generateLocalId(),
-                  role: '', // Rol buit
-                  quantity: 1,
-                  notes: assignment.notes || '', // Notes de l'assignació
-                });
-                rolesAddedCount++;
-              });
-
-              if (rolesAddedCount > 0) {
-                const updatedFormData = { ...formData, technicalProviders: updatedProviders };
-                setFormData(updatedFormData);
-                addOrUpdateTechSheet(eventFrame.id, updatedFormData);
-                showToast(`${rolesAddedCount} rol(s) afegit(s) des de les assignacions. Canvis desats.`, 'success');
-              } else {
-                showToast('No s\'ha pogut afegir cap rol nou.', 'info');
-              }
-            }}
-            className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-medium shadow no-print"
-            title="Afegeix personal confirmat de les assignacions a aquesta llista"
-          >
-            <span className="font-bold">⟳</span> <span className="hidden sm:inline">Actualitza des d'assignacions</span>
-          </button>
-        }
-      >
-        <div className="col-span-full space-y-6">
-          {formData.technicalProviders.map((provider, providerIndex) => {
-            const selectedPerson = getPersonGroupById(provider.personGroupId);
-            return (
-              <div key={provider.id} className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1 flex items-start gap-4">
-                    <div className="w-2/3">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Proveïdor de Personal {providerIndex + 1}</label>
-                      <select
-                        value={provider.personGroupId}
-                        onChange={(e) => handleProviderChange(providerIndex, e.target.value)}
-                        onBlur={handleBlur}
-                        className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm"
-                      >
-                        <option value="" disabled>-- Selecciona un proveïdor --</option>
-                        {peopleGroups.map(pg => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
-                      </select>
-                    </div>
-                    <div className="w-1/3">
-                      <TechSheetField
-                        id={`provider-role-${providerIndex}`}
-                        label="Rol Base (Agenda)"
-                        value={selectedPerson?.role || '--'}
-                        onChange={() => {}} // No fa res
-                        disabled // Camp de només lectura
-                      />
-                    </div>
-                  </div>
-                  <button type="button" onClick={() => handleRemoveProvider(providerIndex)} className="ml-4 text-red-500 hover:text-red-700 font-bold" title="Eliminar aquest proveïdor i tots els seus rols">Eliminar Proveïdor</button>
-                </div>
-
-                <div className="space-y-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-700">
-                  
-                  {/* Capçaleres per a la nova disposició de taula */}
-                  {provider.roles.length > 0 && (
-                    <div className="flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
-                      <div className="w-1/6">Quant.</div>
-                      <div className="w-2/5">Rol</div>
-                      <div className="w-2/5">Notes assignació</div>
-                      <div className="w-auto flex-shrink-0"></div> {/* Espai per al botó d'eliminar */}
-                    </div>
-                  )}
-
-                  {provider.roles.map((roleItem, roleIndex) => (
-                    <div key={roleItem.id} className="flex items-start gap-4 w-full">
-                      {/* Quantitat */}
-                      <div className="w-1/6">
-                        <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="" type="number" value={roleItem.quantity} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} onBlur={handleBlur} />
-                      </div>
-                      {/* Rol */}
-                      <div className="w-2/5">
-                        <TechSheetField id={`role-${providerIndex}-${roleIndex}`} label="" value={roleItem.role} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'role', e.target.value)} onBlur={handleBlur} suggestions={TECH_SHEET_ROLE_SUGGESTIONS} />
-                      </div>
-                      {/* Notes */}
-                      <div className="w-2/5">
-                        <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="" value={roleItem.notes || ''} onChange={(e) => handleRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} onBlur={handleBlur} as="textarea" rows={1} />
-                      </div>
-                      {/* Botó Eliminar */}
-                      <div className="w-auto flex-shrink-0 pt-2">
-                        <button type="button" onClick={() => handleRemoveRole(providerIndex, roleIndex)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar aquest rol">×</button>
-                      </div>
-                    </div>
-                  ))}
-
-                  <button type="button" onClick={() => handleAddRole(providerIndex)} className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">+ Afegir Rol</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="col-span-full mt-4 no-print">
-          <button type="button" onClick={handleAddProvider} className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold">+ Afegir Proveïdor de Personal</button>
-        </div>
-      </TechSheetSection>
+      <TechnicalPersonnelSection
+        technicalProviders={formData.technicalProviders}
+        peopleGroups={peopleGroups}
+        eventFrame={eventFrame}
+        onProviderChange={handleProviderChange}
+        onRoleChange={handleRoleChange}
+        onAddProvider={handleAddProvider}
+        onRemoveProvider={handleRemoveProvider}
+        onAddRole={handleAddRole}
+        onRemoveRole={handleRemoveRole}
+        getPersonGroupById={getPersonGroupById}
+        showToast={showToast}
+        addOrUpdateTechSheet={addOrUpdateTechSheet}
+        setFormData={setFormData}
+        formData={formData}
+      />
 
       <TechSheetSection title="Premuntatge i Horaris">
-        <div className="mb-2 col-span-full"> {/* Usar col-span-full per ocupar tot l'ample */}
+        <div className="mb-2 col-span-full">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">PREMUNTATGE:</label>
           <select
             value={formData.preAssemblySchedule?.startsWith('SI') ? 'SI' : (formData.preAssemblySchedule?.startsWith('NO') ? 'NO' : '')}
@@ -522,7 +295,6 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
           )}
         </div>
         
-        {/* Llista dinàmica d'horaris */}
         {formData.preAssemblySchedule?.startsWith('SI') && (
           <div className="col-span-full space-y-4">
             <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 -mb-2">HORARIS DETALLATS:</h4>
@@ -575,7 +347,6 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
 
       <TechSheetSection title="Logística">
         <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms} onChange={handleChange} onBlur={handleBlur} placeholder="Ex: SI X"/>
-        {/* Actors: selector numèric i caixa de text si >0 */}
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ACTORS:</label>
           <select
@@ -604,7 +375,6 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             />
           )}
         </div>
-        {/* Tècnics companyia: selector numèric i caixa de text si >0 */}
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">TÈCNICS/PRODUCCIÓ CIA:</label>
           <select
@@ -636,101 +406,28 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       </TechSheetSection>
 
       <TechSheetSection title="Necessitats Tècniques">
-        {/* === IL·LUMINACIÓ === */}
-        <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 -mb-2">IL·LUMINACIÓ:</h4>
-        {formData.lightingNeeds.length > 0 && (
-          <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
-            <div className="w-1/6">Quant.</div>
-            <div className="w-2/5">Descripció</div>
-            <div className="w-2/5">Origen</div>
-            <div className="w-auto flex-shrink-0"></div>
-          </div>
-        )}
-        {formData.lightingNeeds.map((need, index) => {
-          const selectedMaterial = materialItems.find(item => item.name === need.description);
-          let availabilityInfo = '';
-          let quantityError = false;
-          if (selectedMaterial) {
-            const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-            availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
-            if (Number(need.quantity) > availability.available) {
-              quantityError = true;
-            }
-          }
-          return (
-            <div key={need.id || `light-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
-              <div className="w-1/6">
-                <TechSheetField 
-                  id={`light-qty-${index}`} 
-                  label="" 
-                  type="number" 
-                  value={need.quantity} 
-                  onChange={e => handleListChange('lightingNeeds', index, 'quantity', e.target.value)} 
-                  onBlur={handleBlur} 
-                  placeholder="XX"
-                  className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}
-                />
-              </div>
-              <div className="w-2/5">
-                <TechSheetField id={`light-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('lightingNeeds', index, 'description', e.target.value)} onBlur={handleBlur} suggestions={materialSuggestions} infoText={availabilityInfo} />
-              </div>
-              <div className="w-2/5">
-                <TechSheetField id={`light-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('lightingNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-              </div>
-              <div className="w-auto flex-shrink-0 pt-2">
-                <button type="button" onClick={() => handleRemoveListItem('lightingNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
-              </div>
-            </div>
-          )
-        })}
-        <div className="col-span-full mt-2 no-print">
-          <button type="button" onClick={() => handleAddListItem('lightingNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Il·luminació</button>
-        </div>
-
-        {/* === SO === */}
-        <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">SO:</h4>
-        {formData.soundNeeds.length > 0 && (
-          <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
-            <div className="w-1/6">Quant.</div>
-            <div className="w-2/5">Descripció</div>
-            <div className="w-2/5">Origen</div>
-            <div className="w-auto flex-shrink-0"></div>
-          </div>
-        )}
-        {formData.soundNeeds.map((need, index) => {
-          const selectedMaterial = materialItems.find(item => item.name === need.description);
-          let availabilityInfo = '';
-          let quantityError = false;
-          if (selectedMaterial) {
-            const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-            availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
-            if (Number(need.quantity) > availability.available) {
-              quantityError = true;
-            }
-          }
-          return (
-            <div key={need.id || `sound-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
-              <div className="w-1/6">
-                <TechSheetField id={`sound-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('soundNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX" className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}/>
-              </div>
-              <div className="w-2/5">
-                <TechSheetField id={`sound-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('soundNeeds', index, 'description', e.target.value)} onBlur={handleBlur} suggestions={materialSuggestions} infoText={availabilityInfo} />
-              </div>
-              <div className="w-2/5">
-                <TechSheetField id={`sound-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('soundNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-              </div>
-              <div className="w-auto flex-shrink-0 pt-2">
-                <button type="button" onClick={() => handleRemoveListItem('soundNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
-              </div>
-            </div>
-          )
-        })}
-        <div className="col-span-full mt-2 no-print">
-          <button type="button" onClick={() => handleAddListItem('soundNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat So</button>
-        </div>
-
-        {/* === VÍDEO === */}
-        <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">VÍDEO:</h4>
+        <NeedsList
+          needs={formData.lightingNeeds}
+          title="Il·luminació"
+          listName="lightingNeeds"
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          onListChange={handleListChange}
+          onRemoveListItem={handleRemoveListItem}
+          onAddListItem={handleAddListItem}
+          getMaterialAvailability={getMaterialAvailability}
+        />
+        <NeedsList
+          needs={formData.soundNeeds}
+          title="So"
+          listName="soundNeeds"
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          onListChange={handleListChange}
+          onRemoveListItem={handleRemoveListItem}
+          onAddListItem={handleAddListItem}
+          getMaterialAvailability={getMaterialAvailability}
+        />
         <div className="col-span-full mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">VÍDEO:</label>
           <select value={formData.videoDetails?.startsWith('SI') ? 'SI' : (formData.videoDetails?.startsWith('NO') ? 'NO' : '')}
@@ -754,90 +451,29 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
           )}
         </div>
         {formData.videoDetails?.startsWith('SI') && (
-          <>
-            {formData.videoNeeds.length > 0 && (
-              <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
-                <div className="w-1/6">Quant.</div>
-                <div className="w-2/5">Descripció</div>
-                <div className="w-2/5">Origen</div>
-                <div className="w-auto flex-shrink-0"></div>
-              </div>
-            )}
-            {formData.videoNeeds.map((need, index) => {
-              const selectedMaterial = materialItems.find(item => item.name === need.description);
-              let availabilityInfo = '';
-              let quantityError = false;
-              if (selectedMaterial) {
-                const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-                availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
-                if (Number(need.quantity) > availability.available) {
-                  quantityError = true;
-                }
-              }
-              return (
-                <div key={need.id || `video-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
-                  <div className="w-1/6">
-                    <TechSheetField id={`video-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('videoNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX" className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}/>
-                  </div>
-                  <div className="w-2/5">
-                    <TechSheetField id={`video-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('videoNeeds', index, 'description', e.target.value)} onBlur={handleBlur} suggestions={materialSuggestions} infoText={availabilityInfo} />
-                  </div>
-                  <div className="w-2/5">
-                    <TechSheetField id={`video-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('videoNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-                  </div>
-                  <div className="w-auto flex-shrink-0 pt-2">
-                    <button type="button" onClick={() => handleRemoveListItem('videoNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
-                  </div>
-                </div>
-              )
-            })}
-            <div className="col-span-full mt-2 no-print">
-              <button type="button" onClick={() => handleAddListItem('videoNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Vídeo</button>
-            </div>
-          </>
+          <NeedsList
+            needs={formData.videoNeeds}
+            title="Vídeo"
+            listName="videoNeeds"
+            materialItems={materialItems}
+            eventFrame={eventFrame}
+            onListChange={handleListChange}
+            onRemoveListItem={handleRemoveListItem}
+            onAddListItem={handleAddListItem}
+            getMaterialAvailability={getMaterialAvailability}
+          />
         )}
-
-        {/* === MAQUINÀRIA === */}
-        <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">MAQUINÀRIA:</h4>
-        {formData.machineryNeeds.length > 0 && (
-          <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
-            <div className="w-1/6">Quant.</div>
-            <div className="w-2/5">Descripció</div>
-            <div className="w-2/5">Origen</div>
-            <div className="w-auto flex-shrink-0"></div>
-          </div>
-        )}
-        {formData.machineryNeeds.map((need, index) => {
-          const selectedMaterial = materialItems.find(item => item.name === need.description);
-          let availabilityInfo = '';
-          let quantityError = false;
-          if (selectedMaterial) {
-            const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-            availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
-            if (Number(need.quantity) > availability.available) {
-              quantityError = true;
-            }
-          }
-          return (
-            <div key={need.id || `machinery-need-${index}`} className="col-span-full flex items-start gap-4 w-full">
-              <div className="w-1/6">
-                <TechSheetField id={`machinery-qty-${index}`} label="" type="number" value={need.quantity} onChange={e => handleListChange('machineryNeeds', index, 'quantity', e.target.value)} onBlur={handleBlur} placeholder="XX" className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}/>
-              </div>
-              <div className="w-2/5">
-                <TechSheetField id={`machinery-desc-${index}`} label="" value={need.description} onChange={e => handleListChange('machineryNeeds', index, 'description', e.target.value)} onBlur={handleBlur} suggestions={materialSuggestions} infoText={availabilityInfo}/>
-              </div>
-              <div className="w-2/5">
-                <TechSheetField id={`machinery-origin-${index}`} label="" value={need.origin} onChange={e => handleListChange('machineryNeeds', index, 'origin', e.target.value)} onBlur={handleBlur} placeholder="CIA / TÀG"/>
-              </div>
-              <div className="w-auto flex-shrink-0 pt-2">
-                <button type="button" onClick={() => handleRemoveListItem('machineryNeeds', index)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print" title="Eliminar">×</button>
-              </div>
-            </div>
-          )
-        })}
-        <div className="col-span-full mt-2 no-print">
-          <button type="button" onClick={() => handleAddListItem('machineryNeeds')} className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Necessitat Maquinària</button>
-        </div>
+        <NeedsList
+          needs={formData.machineryNeeds}
+          title="Maquinària"
+          listName="machineryNeeds"
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          onListChange={handleListChange}
+          onRemoveListItem={handleRemoveListItem}
+          onAddListItem={handleAddListItem}
+          getMaterialAvailability={getMaterialAvailability}
+        />
       </TechSheetSection>
       
       <TechSheetSection title="Altres Detalls">
