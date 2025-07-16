@@ -1,5 +1,4 @@
-### NOVA BRANCA DESENVOLUPAMENT -->DEV
-
+### NOVA BRANCA DESENVOLUPAMENT -->main
 ### `README.md`**
 
 # Gestor d'Esdeveniments i Personal v0.4.0-dev
