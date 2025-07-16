@@ -7,10 +7,15 @@ interface TechSheetSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   headerActions?: React.ReactNode;
+  layout?: 'single-column' | 'multi-column';
 }
 
-const TechSheetSection: React.FC<TechSheetSectionProps> = ({ title, children, defaultOpen = true, headerActions }) => {
+const TechSheetSection: React.FC<TechSheetSectionProps> = ({ title, children, defaultOpen = true, headerActions, layout = 'multi-column' }) => {  
   const [isOpen, setIsOpen] = useState(defaultOpen);
+
+const gridClasses = layout === 'single-column'
+    ? 'p-4 grid grid-cols-1 gap-4'
+    : 'p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
 
   return (
     <div className="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -27,7 +32,7 @@ const TechSheetSection: React.FC<TechSheetSectionProps> = ({ title, children, de
         {headerActions && <div className="pr-3">{headerActions}</div>}
       </div>
       {isOpen && (
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={gridClasses}>
           {children}
         </div>
       )}

@@ -31,12 +31,17 @@ export interface Assignment {
 
 // <<< NOVES INTERFÍCIES PER A LA FITXA TÈCNICA (Tech Sheet) >>>
 
-export interface TechSheetPersonnel {
-  id: string;
+export interface TechSheetRoleItem {
+  id: string; // ID únic per a la clau de React
   role: string;
-  name: string;
-  /** Notes d'assignació (comentaris específics per a la fitxa tècnica) */
+  quantity: number | string; // Permetem string per a l'entrada de text
   notes?: string;
+}
+
+export interface TechSheetProvider {
+  id: string; // ID únic per a la clau de React
+  personGroupId: string; // Enllaç al PersonGroup (empresa o autònom)
+  roles: TechSheetRoleItem[]; // Llista de rols que proporciona
 }
 
 export interface TechSheetScheduleItem {
@@ -47,6 +52,7 @@ export interface TechSheetScheduleItem {
 
 export interface TechSheetNeed {
   id: string;
+  materialItemId?: string | null; // ID de l'ítem de material de l'inventari
   quantity: number | string;
   description: string;
   origin: string; // <<< CANVIAT: Ara és un string lliure
@@ -62,7 +68,7 @@ export interface TechSheetData {
   parkingInfo: string;
   
   // Secció Personal
-  technicalPersonnel: TechSheetPersonnel[];
+  technicalProviders: TechSheetProvider[];
   
   // Secció Horaris
   preAssemblySchedule: string;
@@ -113,9 +119,19 @@ export interface EventFrame {
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;
 
+export interface MaterialItem {
+  id: string;
+  name: string;
+  category: string;
+  stock: number;
+  location: string;
+  notes?: string;
+}
+
 export interface AppData {
   eventFrames: EventFrameForExport[];
   peopleGroups: PersonGroup[];
+  materialItems: MaterialItem[];
   assignments: Assignment[];
 }
 
@@ -194,6 +210,14 @@ export interface EventDataConteImplicits {
   syncWithGoogle: () => Promise<void>;
   isSyncing: boolean;
   addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
+
+  
+  materialItems: MaterialItem[];
+  addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => void;
+  updateMaterialItem: (updatedItem: MaterialItem) => void;
+  deleteMaterialItem: (itemId: string) => void;
+  addMaterialItemsFromFile: (newItems: MaterialItem[]) => void;
+  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
 }
 
 export type EventDataManagerReturn = Omit<EventDataConteImplicits, 'openModal' | 'showToast'>;

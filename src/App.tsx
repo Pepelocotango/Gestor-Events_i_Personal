@@ -13,9 +13,13 @@ const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
+
+const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
+const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
+
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
 const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFormModal'));
-const PeopleGroupManagerModal = lazy(() => import('./components/modals/PeopleGroupManagerModal'));
+
 const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteModal'));
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
@@ -37,6 +41,7 @@ interface ElectronAPI {
   resolveConflict: (resolutionData: { resolution: 'keep-local' | 'use-remote', localFrame: EventFrame, remoteEvent: any }) => Promise<{ success: boolean, message?: string, resolvedFrame?: EventFrame }>;
   resolveOrphans: (orphanData: { action: 'delete' | 'unlink', orphanIds: string[] }) => Promise<{ success: boolean, message?: string, updatedData?: AppData }>;
   clearGoogleAppCalendar: () => Promise<{ success: boolean, message?: string }>;
+  getDefaultDataPath: () => Promise<string>;
   performHardReset: () => Promise<{ success: boolean; message: string }>;
   addOrUpdateTechSheet: (eventFrameId: string, fitxaData: any) => void;
   onAppWillRelaunchAfterReset: (callback: (event: any, messages: string) => void) => (() => void) | undefined;
@@ -65,6 +70,7 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const [modalState, setModalState] = useState<ModalState>({ type: null, data: null });
   const [toastState, setToastState] = useState<ToastState | null>(null);
+  const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
   const [currentFilterHighlight, setCurrentFilterHighlight] = useState<string>('');
   const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
   const [filterToShowEventFrameId, setFilterToShowEventFrameId] = useState<string | null>(null);
@@ -247,6 +253,15 @@ const App: React.FC = () => {
           showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
           loadDataFromManager(null);
           setHasUnsavedChanges(false); // Fins i tot si hi ha error, comencem "nets"
+        }
+        // Després de carregar dades, obtenim la ruta per defecte
+        if (window.electronAPI?.getDefaultDataPath) {
+          try {
+            const path = await window.electronAPI.getDefaultDataPath();
+            setCurrentDataPath(path);
+          } catch (e) {
+            setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
+          }
         }
       } else {
         console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
@@ -461,8 +476,7 @@ const App: React.FC = () => {
                 assignmentToEdit={modalState.data!.assignmentToEdit}
                 showToast={showToast}
                 setExpandedEventFrameId={setFilterToShowEventFrameId} />;
-      case 'managePeople':
-        return <PeopleGroupManagerModal onClose={closeModal} showToast={showToast} />;
+      
       case 'eventFrameDetails':
         return <EventFrameDetailsModal onClose={closeModal} eventFrame={modalState.data!.eventFrame!} showToast={showToast} onShowOnList={handleShowOnList}/>;
       case 'confirmHardReset':
@@ -516,7 +530,7 @@ const App: React.FC = () => {
       case 'editEventFrame': return "Editar Marc d'Esdeveniment";
       case 'addAssignment': return `Nova Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
       case 'editAssignment': return `Editar Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
-      case 'managePeople': return "Gestionar Persones / Grups";
+      
       case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
@@ -529,7 +543,7 @@ const App: React.FC = () => {
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
     if (!modalState.type) return 'md';
     switch (modalState.type) {
-      case 'managePeople': return '5xl';
+      
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':
@@ -560,6 +574,8 @@ const App: React.FC = () => {
                   hasUnsavedChanges={hasUnsavedChanges}
                   onSyncWithGoogle={syncWithGoogle}
                   isSyncing={isSyncing}
+                  currentDataPath={currentDataPath}
+                  setCurrentDataPath={setCurrentDataPath}
                 />
               </Suspense>
               <Suspense fallback={<div className="text-center p-2">Carregant navegació...</div>}>
@@ -588,6 +604,8 @@ const App: React.FC = () => {
                   }
                 />
                 <Route path="/tech-sheets" element={<TechSheetsDisplay />} />
+                <Route path="/people" element={<PeopleDisplay />} />
+                <Route path="/material" element={<MaterialDisplay />} />
               </Routes>
             </Suspense>
           </main>

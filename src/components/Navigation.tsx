@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { CalendarIcon } from '../constants';
+import { CalendarIcon, BoxIcon, UsersIcon } from '../constants';
 
 const DocumentTextIcon = ({ className = "w-5 h-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -19,14 +19,27 @@ const Navigation: React.FC = () => {
   return (
     <nav className="flex justify-center my-3">
       <div className="flex space-x-4 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+        
         <NavLink to="/" className={getLinkClassName}>
           <CalendarIcon className="h-5 w-5" />
           <span>Calendari i Llista</span>
         </NavLink>
+        
         <NavLink to="/tech-sheets" className={getLinkClassName}>
           <DocumentTextIcon className="h-5 w-5" />
           <span>Fitxes de Bolo</span>
         </NavLink>
+
+        <NavLink to="/people" className={getLinkClassName}>
+          <UsersIcon className="h-5 w-5" />
+          <span>Persones</span>
+        </NavLink>
+
+        <NavLink to="/material" className={getLinkClassName}>
+          <BoxIcon className="h-5 w-5" />
+          <span>Material</span>
+        </NavLink>
+      
       </div>
     </nav>
   );

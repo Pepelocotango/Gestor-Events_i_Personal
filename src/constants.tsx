@@ -138,6 +138,12 @@ export const SyncIcon = ({ className = "w-5 h-5" } : {className?: string}) => (
   </svg>
 );
 
+export const BoxIcon = ({ className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9.75l-9-5.25m9 5.25l9-5.25" />
+  </svg>
+);
+
 export const GoogleIcon = ({ className = "w-5 h-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className={className}>
     <path fill="#4285F4" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
@@ -146,3 +152,35 @@ export const GoogleIcon = ({ className = "w-5 h-5" }) => (
     <path fill="#EA4335" d="M43.611 20.083L37.954 14.426C34.046 10.498 29.268 8 24 8c-3.059 0-5.842 1.154-7.961 3.039l5.657 5.657C23.286 16.08 24.516 16 26 16c5.223 0 9.651 3.343 11.303 8H24v-8h19.611z" />
   </svg>
 );
+
+export const TECH_SHEET_ROLE_SUGGESTIONS = [
+  // Direcció i Coordinació
+  "Direcció: Cap Tècnic/a",
+  "Direcció: Cap de Sala",
+  "Direcció: Regidoria",
+  "Direcció: Assistent/a de Regidoria",
+  "Producció: Producció",
+  "Producció: Auxiliar de Producció",
+  // Equip Tècnic (Operació)
+  "Tècnic: Tècnic/a de So",
+  "Tècnic: Tècnic/a de Llums",
+  "Tècnic: Tècnic/a de Vídeo",
+  "Tècnic: Operador/a de Càmera",
+  "Tècnic: Tècnic/a de So (PA)",
+  "Tècnic: Tècnic/a de Monitors",
+  "Tècnic: Tècnic/a de Maquinària",
+  "Tècnic: Microfonísta",
+  // Equip Tècnic (Muntatge)
+  "Muntatge: Maqui",
+  "Muntatge: Maquinista / Rigger",
+  "Muntatge: Auxiliar de Càrrega i Descàrrega",
+  "Muntatge: Personal de Muntatge (Crew)",
+  "Muntatge: Conductor/a",
+  // Atenció al Públic
+  "Públic: Personal de Sala / Acomodació",
+  "Públic: Personal de Taquilles",
+  "Públic: Personal de Seguretat",
+  // Artístic i Suport
+  "Suport: Rider / Road Manager",
+  "Suport: Assistent/a Personal",
+];

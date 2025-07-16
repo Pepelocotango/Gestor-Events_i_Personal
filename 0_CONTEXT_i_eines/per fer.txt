@@ -1,0 +1,53 @@
+calendar:
+avisar "només lectura" a calendar del calendari app. bloquejar edicio?? des de google?
+poder posar-li nom al calendari de la app
+afegir assignacions al calendari google coma  notes a + notes generals ja implementat
+
+poder guardar material no només carregar
+
+poder fer merge de personal i material
+
+migrar botons a menu app
+
+millorar visualtització mode fosc dia actual " avui " a calendar fons tronja en tema clar també millorar
+
+bug al cerar event en visualitzar 1 més , desapareix un numero de dia del diumenge columna ultima.
+
+millorar tema visual fosc en Agenda view calendar dies en blanc.
+
+colors calendaris usuari de google a app mateix color , diferenciar per colors.
+
+Propostes de Millora
+He identificat alguns punts on podríem optimitzar o refactoritzar per assegurar que el projecte continuï sent mantenible i eficient a mesura que creixi.
+1. Refactorització de TechSheetForm.tsx (Alta Prioritat)
+Aquest component és actualment el més complex de l'aplicació.
+Observació: Gestiona un estat molt gran i complex (formData) i conté la lògica de múltiples sub-components, a més de la generació del PDF.
+Proposta:
+Componentitzar: Descompondre TechSheetForm en components més petits i especialitzats. Per exemple, crear TechnicalPersonnelSection.tsx, NeedsList.tsx, ScheduleSection.tsx. Cadascun gestionaria la seva part del formulari, fent el codi més llegible i fàcil de mantenir.
+Extreure la lògica del PDF: La funció handleExportToPdf és gran i podria viure en un fitxer d'utilitat (src/utils/pdfGenerator.ts). El component TechSheetForm només hauria de cridar una funció com generateTechSheetPdf(formData).
+Recomanació: Aquesta refactorització és la més important a llarg termini per a la salut del projecte.
+2. Optimització de la Sincronització amb Google (main.cjs)
+La sincronització actual és funcional, però podria ser més eficient.
+Observació: El mètode actual buida completament el calendari a Google i torna a pujar tots els esdeveniments locals. Això és simple i robust per a poques dades, però ineficient i potencialment lent si el nombre d'esdeveniments creix (podria arribar a excedir els límits de l'API de Google).
+Proposta: Implementar una sincronització intel·ligent (delta sync). El flux seria:
+Obtenir els esdeveniments de Google juntament amb la seva darrera data de modificació (updated).
+Comparar cada esdeveniment local (lastModified) amb la seva contrapart a Google.
+Només enviar operacions update, insert o delete per als esdeveniments que han canviat, són nous o s'han eliminat, en lloc de processar-ho tot sempre.
+Recomanació: Podem plantejar-ho com una millora de rendiment per a una futura versió.
+3. Optimització del Hook useEventDataManager.ts
+És el cor del frontend i podem afinar-lo.
+Observació: La detecció de conflictes (addAssignment, updateAssignment) itera sobre totes les altres assignacions cada vegada. Amb centenars d'assignacions, això podria alentir l'aplicació.
+Proposta: Optimitzar la cerca de conflictes. En lloc de filtrar tot l'array cada cop, podríem utilitzar estructures de dades més eficients (com un mapa de dates) que es podrien generar amb useMemo i actualitzar-se només quan les assignacions canvien.
+Recomanació: Per ara funciona bé, però ho tindria en compte si notem lentitud en afegir o editar assignacions.
+4. Neteja de Codi Mort o Experimental
+Petits detalls que mantenen el codi net.
+Observació: Al fitxer vite.config.ts es defineix una variable d'entorn GEMINI_API_KEY, però no sembla que s'utilitzi enlloc al codi proporcionat.
+Proposta: Si és un vestigi d'un experiment anterior, el millor seria eliminar-la per evitar confusió. Si és per a una funcionalitat futura, ho podem deixar documentat.
+Recomanació: Netejar-la.
+Conclusió i Propers Passos
+La base del projecte és excel·lent. Les meves propostes se centren a millorar la mantenibilitat i l'eficiència a llarg termini.
+Et proposo el següent pla d'acció, ordenat per prioritat:
+Començar per la refactorització del TechSheetForm.tsx: Podem començar per extreure la lògica del PDF, que és un canvi ràpid i net, i després planificar com dividir el component principal.
+Optimitzar useEventDataManager.ts: Podem revisar la funció de conflictes per veure si hi ha alguna millora senzilla que puguem aplicar.
+Tractar la sincronització de Google com una tasca de millora a futur.
+Eliminar la variable GEMINI_API_KEY de la configuració de Vite.

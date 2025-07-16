@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
-import { SaveIcon, LoadIcon, SunIcon, MoonIcon, UsersIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
+import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 
 interface ControlsProps {
@@ -13,6 +13,8 @@ interface ControlsProps {
   hasUnsavedChanges: boolean;
   onSyncWithGoogle: () => void; 
   isSyncing: boolean;
+  currentDataPath: string;
+  setCurrentDataPath: (path: string) => void;
   }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -22,16 +24,20 @@ const Controls: React.FC<ControlsProps> = ({
     showToast,
     hasUnsavedChanges,
     onSyncWithGoogle,
-    isSyncing
-
+    isSyncing,
+    currentDataPath,
+    setCurrentDataPath
 }) => {
-  const { loadData, exportData, setHasUnsavedChanges } = useEventData();
+
+  const { loadData, exportData, setHasUnsavedChanges, addMaterialItemsFromFile } = useEventData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const peopleFileInputRef = useRef<HTMLInputElement>(null);
+  const materialFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    const fileName = file.name;
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -45,6 +51,7 @@ const Controls: React.FC<ControlsProps> = ({
           loadData(jsonData);
           showToast("Totes les dades carregades correctament.", 'success');
           setHasUnsavedChanges(true);
+          setCurrentDataPath(fileName);
         } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
           const migratedData = migrateData(
             { people: jsonData.people || [] },
@@ -59,6 +66,7 @@ const Controls: React.FC<ControlsProps> = ({
           loadData(migratedData);
           showToast("Dades antigues migrades i carregades correctament.", 'success');
           setHasUnsavedChanges(true);
+          setCurrentDataPath(fileName);
         } else {
           showToast("Error: El format del fitxer JSON no és vàlid.", 'error');
         }
@@ -111,9 +119,33 @@ const Controls: React.FC<ControlsProps> = ({
     reader.readAsText(file);
   };
 
+  const handleLoadMaterialData = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const jsonData = JSON.parse(content);
+        
+        if (Array.isArray(jsonData.materialItems)) {
+          addMaterialItemsFromFile(jsonData.materialItems);
+        } else {
+          showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
+        }
+      } catch (error) {
+        showToast(`Error en carregar el fitxer de material: ${(error as Error).message}`, 'error');
+      } finally {
+        if (event.target) event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const triggerLoadFile = () => fileInputRef.current?.click();
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
-
+  const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
   const handleSaveData = (type: 'all' | 'people') => {
     try {
       const dataToSave = type === 'all' ? exportData() : { peopleGroups: exportData().peopleGroups };
@@ -171,7 +203,10 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   return (
-    <div className="p-2 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg w-full flex flex-col gap-2">
+<div className="p-2 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg w-full flex flex-col gap-2">
+      <div className="text-center text-xs text-gray-500 dark:text-gray-400 mb-2 truncate" title={currentDataPath}>
+        Fitxer de dades: <strong>{currentDataPath}</strong>
+      </div>      
       {/* Fila Superior */}
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
@@ -182,7 +217,12 @@ const Controls: React.FC<ControlsProps> = ({
             <button onClick={() => handleSaveData('all')} className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Guardar totes les dades a un fitxer JSON">
                 <SaveIcon /> Guardar Tot
             </button>
-             <button onClick={handleRequestHardReset} className="flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Començar de zero (esborra totes les dades actuals)">
+            <button onClick={triggerLoadMaterialFile} className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Afegir material des d'un fitxer JSON">
+                <LoadIcon /> Carregar Material
+            </button>
+            <input type="file" ref={materialFileInputRef} onChange={handleLoadMaterialData} accept=".json" className="hidden" />
+             
+            <button onClick={handleRequestHardReset} className="flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Començar de zero (esborra totes les dades actuals)">
                 <TrashIcon className="w-4 h-4" /> Començar de Zero
             </button>
         </div>
@@ -208,9 +248,7 @@ const Controls: React.FC<ControlsProps> = ({
             <button onClick={() => handleSaveData('people')} className="flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Guardar només les dades de persones">
                 <SaveIcon /> Guardar Persones
             </button>
-            <button onClick={() => onOpenModal('managePeople')} className="flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Gestionar la llista de persones i grups">
-                <UsersIcon /> Gestionar Persones
-            </button>
+            
         </div>
         
         <div className="flex items-center gap-2">
