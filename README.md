@@ -2,7 +2,7 @@
 
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal v0.4.0_DEV
+# Gestor d'Esdeveniments i Personal v0.4.0-dev
 
 
 
