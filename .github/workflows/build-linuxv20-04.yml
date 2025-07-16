@@ -31,9 +31,11 @@ jobs:
       - name: 4. Instal·lació de dependències del projecte (npm)
         run: npm install
 
-      - name: 4.5 Create google-credentials.json from secret
-        run: echo '${{ secrets.GOOGLE_CREDENTIALS_JSON }}' > google-credentials.json
-
+      -- name: 4.5 Create google-credentials.json from secret
+        env:
+          CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+        run: echo "$CREDENTIALS_JSON" > google-credentials.json
+        
       - name: Comprova que google-credentials.json existeix i no està buit
         run: |
           if [ ! -s google-credentials.json ]; then
