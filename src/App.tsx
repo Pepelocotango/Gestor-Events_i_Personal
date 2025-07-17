@@ -23,6 +23,7 @@ const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFor
 const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteModal'));
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
+const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
 
 // Millor posar-ho en un fitxer global.d.ts, però per compatibilitat ràpida:
 interface ElectronAPI {
@@ -559,6 +560,30 @@ const App: React.FC = () => {
       
       case 'googleSettings':
         return <GoogleSettingsModal onClose={closeModal} showToast={showToast} />;
+      case 'mergeOrReplace':
+        return (
+          <MergeOrReplaceModal
+            isOpen={true}
+            onClose={closeModal}
+            itemType={modalState.data!.itemType!}
+            onMerge={() => {
+              if (modalState.data?.itemType === 'persones') {
+                contextValue.mergePeopleGroups(modalState.data.newData);
+              } else if (modalState.data?.itemType === 'material') {
+                contextValue.addMaterialItemsFromFile(modalState.data.newData);
+              }
+              closeModal();
+            }}
+            onReplace={() => {
+              if (modalState.data?.itemType === 'persones') {
+                contextValue.replacePeopleGroups(modalState.data.newData);
+              } else if (modalState.data?.itemType === 'material') {
+                contextValue.replaceMaterialItems(modalState.data.newData);
+              }
+              closeModal();
+            }}
+          />
+        );
       default:
         return null;
     }

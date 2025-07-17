@@ -214,6 +214,32 @@ markUnsaved();
     showToast(`${itemsToAdd.length} nous articles de material afegits a l'inventari.`, 'success');
   }, [markUnsaved, showToast]);
 
+  const mergePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    const existingNames = new Set(peopleGroupsRef.current.map(p => p.name.toLowerCase()));
+    const peopleToAdd = newPeople.filter(p => !existingNames.has(p.name.toLowerCase()));
+
+    if (peopleToAdd.length === 0) {
+      showToast("Totes les persones del fitxer ja existeixen.", 'info');
+      return;
+    }
+
+    setPeopleGroups(prev => [...prev, ...peopleToAdd].sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast(`${peopleToAdd.length} noves persones afegides.`, 'success');
+  }, [markUnsaved, showToast]);
+
+  const replacePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    setPeopleGroups(newPeople.sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast("La llista de persones ha estat reemplaçada.", 'success');
+  }, [markUnsaved, showToast]);
+
+  const replaceMaterialItems = useCallback((newItems: MaterialItem[]) => {
+    setMaterialItems(newItems.sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast("L'inventari de material ha estat reemplaçat.", 'success');
+  }, [markUnsaved, showToast]);
+
   const getPersonGroupById = useCallback((personGroupId: string): PersonGroup | undefined => {
     return peopleGroups.find(pg => pg.id === personGroupId);
   }, [peopleGroups]);
@@ -479,6 +505,8 @@ markUnsaved();
     deleteMaterialItem,
     addMaterialItemsFromFile,
     getMaterialAvailability,
-    
+    mergePeopleGroups,
+    replacePeopleGroups,
+    replaceMaterialItems,
   };
 };

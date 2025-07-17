@@ -74,10 +74,10 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
     *   ⚠️ **Atenció:** Aquesta acció **esborra totes les dades actuals** i les reemplaça amb el contingut del fitxer.
 
 *   **`example_person.json`**: Conté una llista de contactes. Es carrega amb el botó **`Carregar Persones`**.
-    *   ⚠️ **Atenció:** Aquesta acció **reemplaça completament** la teva llista de persones actual.
+    *   🆕 **Novetat:** En carregar, l'aplicació et preguntarà si vols **fusionar** la nova llista amb l'existent (afegint només les persones que no existeixin) o **reemplaçar** completament la llista actual.
 
 *   **`example_material.json`**: Un inventari de material d'exemple. Es carrega amb el botó **`Carregar Material`**.
-    *   ✅ Aquesta acció és segura: **afegeix els nous articles** del fitxer al teu inventari existent sense esborrar res.
+    *   🆕 **Novetat:** Igual que amb les persones, podràs triar entre **fusionar** l'inventari (afegint només els articles nous) o **reemplaçar-lo** per complet.
 
 ## ✒️ Autoria
 

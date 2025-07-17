@@ -1,6 +1,6 @@
 import { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
-import { PersonGroup, ModalType, ShowToastFunction } from '../types';
+import { PersonGroup, ModalType, ShowToastFunction, MaterialItem } from '../types';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 
@@ -93,11 +93,9 @@ const Controls = forwardRef<any, ControlsProps>(({
           return;
         }
         const jsonData = JSON.parse(fileContent);
+        let newPeople: PersonGroup[] = [];
         if (Array.isArray(jsonData.peopleGroups)) {
-          const currentData = exportData();
-          loadData({ ...currentData, peopleGroups: jsonData.peopleGroups });
-          showToast("Dades de persones carregades correctament.", 'success');
-          setHasUnsavedChanges(true);
+          newPeople = jsonData.peopleGroups;
         } else if (Array.isArray(jsonData.people)) {
           const migratedData = migrateData({ people: jsonData.people });
           const validation = validateMigratedData(migratedData);
@@ -105,13 +103,17 @@ const Controls = forwardRef<any, ControlsProps>(({
             showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
             return;
           }
-          const currentData = exportData();
-          loadData({ ...currentData, peopleGroups: migratedData.peopleGroups });
-          showToast("Dades de persones antigues migrades i carregades correctament.", 'success');
-          setHasUnsavedChanges(true); 
+          newPeople = migratedData.peopleGroups;
         } else {
           showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
+          return;
         }
+
+        onOpenModal('mergeOrReplace', {
+          itemType: 'persones',
+          newData: newPeople,
+        });
+
       } catch (error) {
         showToast(`Error en carregar les dades de persones: ${(error as Error).message}`, 'error');
       } finally {
@@ -132,7 +134,10 @@ const Controls = forwardRef<any, ControlsProps>(({
         const jsonData = JSON.parse(content);
         
         if (Array.isArray(jsonData.materialItems)) {
-          addMaterialItemsFromFile(jsonData.materialItems);
+          onOpenModal('mergeOrReplace', {
+            itemType: 'material',
+            newData: jsonData.materialItems,
+          });
         } else {
           showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
         }
