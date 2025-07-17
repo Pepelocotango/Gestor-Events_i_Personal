@@ -361,7 +361,7 @@ const App: React.FC = () => {
             controlsRef.current?.handleSaveData('all');
             break;
           case 'load-material':
-            controls.current?.triggerLoadMaterialFile();
+            controlsRef.current?.triggerLoadMaterialFile();
             break;
           case 'hard-reset':
             controlsRef.current?.handleRequestHardReset();
