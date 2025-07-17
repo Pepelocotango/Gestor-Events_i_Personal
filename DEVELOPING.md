@@ -209,6 +209,16 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
     *   Suport per a tema clar i fosc.
     *   Notificacions (toasts) per a les accions de l'usuari.
     *   Visualització detallada d'estats mixts.
+
+-   **✨ [NOU] Càrrega de Dades Flexible (Fusió o Reemplaçament):**
+    *   **Modal de Decisió:** En carregar un fitxer de **persones** o de **material**, ara es mostra un diàleg que pregunta a l'usuari si desitja **fusionar** les dades noves amb les existents o **reemplaçar** completament les dades actuals.
+    *   **Lògica de Fusió Intel·ligent:**
+        *   **Persones:** La fusió afegeix només les persones del fitxer que no existeixen a la llista actual (la comprovació es fa per nom, ignorant majúscules/minúscules).
+        *   **Material:** La fusió afegeix només els articles del fitxer que no existeixen a l'inventari actual (la comprovació es fa per nom, ignorant majúscules/minúscules).
+    *   **Arquitectura:**
+        *   **`MergeOrReplaceModal.tsx`**: Nou component de modal reutilitzable per a aquesta funcionalitat.
+        *   **`useEventDataManager.ts`**: S'han afegit les funcions `mergePeopleGroups`, `replacePeopleGroups`, i `replaceMaterialItems` per gestionar la lògica de dades. La funció `addMaterialItemsFromFile` es reutilitza per a la fusió de material.
+        *   **`Controls.tsx`**: Modificat per llegir el fitxer i obrir el modal amb les dades, en lloc d'executar l'acció directament.
 ---
 ## 🛠️ Pila Tecnològica (Tech Stack)
 
