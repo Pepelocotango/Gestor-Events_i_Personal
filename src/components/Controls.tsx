@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef } from 'react';
+import { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
@@ -313,6 +313,6 @@ const Controls = forwardRef<any, ControlsProps>(({
       </div>
     </div>
   );
-};
+});
 
 export default Controls;
