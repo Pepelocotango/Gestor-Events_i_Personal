@@ -154,10 +154,26 @@ const Controls = forwardRef<any, ControlsProps>(({
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
   const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
 
-  const handleSaveData = (type: 'all' | 'people') => {
+  const handleSaveData = (type: 'all' | 'people' | 'material') => {
     try {
-      const dataToSave = type === 'all' ? exportData() : { peopleGroups: exportData().peopleGroups };
-      const filename = type === 'all' ? 'gestio_esdeveniments_dades.json' : 'persones_grups_dades.json';
+      let dataToSave: any;
+      let filename: string;
+
+      switch (type) {
+        case 'people':
+          dataToSave = { peopleGroups: exportData().peopleGroups };
+          filename = 'persones_grups_dades.json';
+          break;
+        case 'material':
+          dataToSave = { materialItems: exportData().materialItems };
+          filename = 'material_dades.json';
+          break;
+        case 'all':
+        default:
+          dataToSave = exportData();
+          filename = 'gestio_esdeveniments_dades.json';
+          break;
+      }
       const jsonString = JSON.stringify(dataToSave, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -172,13 +188,12 @@ const Controls = forwardRef<any, ControlsProps>(({
       if (type === 'all') {
         setHasUnsavedChanges(false);
       }
-      showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : 'persones'} desades correctament.`, 'success');
+      showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : type} desades correctament.`, 'success');
     } catch (error) {
       console.error(`Error saving ${type} data:`, error);
       showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');
     }
   };
-
   // <<< NOU FLUX PER AL RESET >>>
   const handleConnectGoogle = async () => {
     if (window.electronAPI) {
@@ -279,6 +294,9 @@ const Controls = forwardRef<any, ControlsProps>(({
                 <SaveIcon /> Guardar Persones
             </button>
             
+            <button onClick={() => handleSaveData('material')} className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Guardar només les dades de material">
+                <SaveIcon /> Guardar Material
+            </button>
         </div>
         
         <div className="flex items-center gap-2">

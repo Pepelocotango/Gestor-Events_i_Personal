@@ -6,6 +6,7 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
     DEVELOPING.md
     LICENSE
     README.md
+    google-credentials.json
     index.html
     main.cjs
     metadata.json
@@ -46,6 +47,7 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
                 EventFrameDetailsModal.tsx
                 EventFrameFormModal.tsx
                 GoogleSettingsModal.tsx
+                MergeOrReplaceModal.tsx
             tech_sheets/
                 NeedsList.tsx
                 TechSheetField.tsx
@@ -76,15 +78,6 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
             build-linuxv20-04.yml
             build-macos12.yml
             build-win10.yml
-        BACKUP workflows/
-            workflows v0.1.2/
-                build-linux v20_04.yml
-                build-macos12.yml
-                build-win10.yml
-            workflows v0.2.0/
-                build-linux v20_04.yml
-                build-macos12.yml
-                build-win10.yml
     build/
         icons/
             icon.png
@@ -110,7 +103,7 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
         builder-debug.yml
         builder-effective-config.yaml
         favicon.ico
-        gestor-esdeveniments-0.3.0.AppImage
+        gestor-esdeveniments-0.4.0-dev.AppImage
         icon-128.png
         icon-16.png
         icon-24.png
@@ -220,41 +213,43 @@ Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
             icon_512.png
             icon_64x64.png
         assets/
-            AssignmentFormModal-BDFxqdJQ.js
-            AssignmentFormModal-BDFxqdJQ.js.map
-            ConfirmDeleteModal-DyVMe80M.js
-            ConfirmDeleteModal-DyVMe80M.js.map
-            Controls-DUoTZJpF.js
-            Controls-DUoTZJpF.js.map
-            EventFrameDetailsModal-Dbw7xkus.js
-            EventFrameDetailsModal-Dbw7xkus.js.map
-            EventFrameFormModal-DhV0ppMi.js
-            EventFrameFormModal-DhV0ppMi.js.map
-            GoogleSettingsModal-Bb0wOvO6.js
-            GoogleSettingsModal-Bb0wOvO6.js.map
-            MainDisplay-DPnSBgpf.js
-            MainDisplay-DPnSBgpf.js.map
-            MaterialDisplay-HsAfZySl.js
-            MaterialDisplay-HsAfZySl.js.map
-            Navigation-CGD3dQRH.js
-            Navigation-CGD3dQRH.js.map
-            PeopleDisplay-Br7T0LIK.js
-            PeopleDisplay-Br7T0LIK.js.map
-            TechSheetForm-vnseNwiw.js
-            TechSheetForm-vnseNwiw.js.map
-            TechSheetsDisplay-CFpKZtxe.js
-            TechSheetsDisplay-CFpKZtxe.js.map
+            AssignmentFormModal-456d6S1p.js
+            AssignmentFormModal-456d6S1p.js.map
+            ConfirmDeleteModal-CvzYPgUU.js
+            ConfirmDeleteModal-CvzYPgUU.js.map
+            Controls-k04EmKi9.js
+            Controls-k04EmKi9.js.map
+            EventFrameDetailsModal-CoPJwwUL.js
+            EventFrameDetailsModal-CoPJwwUL.js.map
+            EventFrameFormModal-OOj5etEg.js
+            EventFrameFormModal-OOj5etEg.js.map
+            GoogleSettingsModal-oB93EDyN.js
+            GoogleSettingsModal-oB93EDyN.js.map
+            MainDisplay-6nt7VZ3N.js
+            MainDisplay-6nt7VZ3N.js.map
+            MaterialDisplay-frHofMPL.js
+            MaterialDisplay-frHofMPL.js.map
+            MergeOrReplaceModal-CXkIsg7r.js
+            MergeOrReplaceModal-CXkIsg7r.js.map
+            Navigation-4CDbW9ak.js
+            Navigation-4CDbW9ak.js.map
+            PeopleDisplay-DG2Nz9Nh.js
+            PeopleDisplay-DG2Nz9Nh.js.map
+            TechSheetForm-CNyGdw6f.js
+            TechSheetForm-CNyGdw6f.js.map
+            TechSheetsDisplay-Bi-qMRhY.js
+            TechSheetsDisplay-Bi-qMRhY.js.map
             html2canvas.esm-CBrSDip1.js
             html2canvas.esm-CBrSDip1.js.map
-            index-Bp8y5zvd.css
-            index-DWDfi3cT.js
-            index-DWDfi3cT.js.map
-            index.es-5qLFWarE.js
-            index.es-5qLFWarE.js.map
+            index-Dcr7AOnu.js
+            index-Dcr7AOnu.js.map
+            index-Xj5UC5yd.css
+            index.es-DDnyBgkW.js
+            index.es-DDnyBgkW.js.map
             purify.es-CQJ0hv7W.js
             purify.es-CQJ0hv7W.js.map
-            statusUtils-B97JebU6.js
-            statusUtils-B97JebU6.js.map
+            statusUtils-CZ21VuqX.js
+            statusUtils-CZ21VuqX.js.map
     examples json/
         example_all .json
         example_material.json

@@ -40,5 +40,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Menu actions
-  onMenuAction: (callback) => ipcRenderer.on('menu-action', (event, action) => callback(action)),
+  onMenuAction: (callback) => {
+    const handler = (event, action) => callback(action);
+    ipcRenderer.on('menu-action', handler);
+    return () => {
+      ipcRenderer.removeListener('menu-action', handler);
+    };
+  }
 });

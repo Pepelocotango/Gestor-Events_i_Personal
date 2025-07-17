@@ -1,14 +1,14 @@
 === PROJECTE CONCATENAT ===
 Projecte: Gestor-Events_i_Personal
-Branca: refactor/tech-sheet-form
-Generat el: dimecres, 16 de juliol de 2025, 18:34:04 CEST
+Branca: Jules-dev
+Generat el: dijous, 17 de juliol de 2025, 14:20:50 CEST
 ==================================================
 
---- START OF FILE: ../Gestor-Events_i_Personal/package.json -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/package.json -- branca Jules-dev ---
 {
   "name": "gestor-esdeveniments-personal",
-  "productName": "Gestor de Esdeveniments i Personal v0.3.0",
-  "version": "0.3.0",
+  "productName": "Gestor de Esdeveniments i Personal v0.4.0-dev",
+  "version": "0.4.0-dev",
   "description": "Una aplicació per gestionar esdeveniments i personal",
   "author": "Pep",
   "main": "main.cjs",
@@ -97,18 +97,18 @@ Generat el: dimecres, 16 de juliol de 2025, 18:34:04 CEST
   }
 }
 
---- END OF FILE: ../Gestor-Events_i_Personal/package.json -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/package.json -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/package-lock.json -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/package-lock.json -- branca Jules-dev ---
 {
   "name": "gestor-esdeveniments-personal",
-  "version": "0.3.0",
+  "version": "0.4.0-dev",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
       "name": "gestor-esdeveniments-personal",
-      "version": "0.3.0",
+      "version": "0.4.0-dev",
       "dependencies": {
         "@fullcalendar/core": "^6.1.17",
         "@fullcalendar/daygrid": "^6.1.17",
@@ -7847,9 +7847,9 @@ Generat el: dimecres, 16 de juliol de 2025, 18:34:04 CEST
   }
 }
 
---- END OF FILE: ../Gestor-Events_i_Personal/package-lock.json -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/package-lock.json -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/vite.config.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/vite.config.ts -- branca Jules-dev ---
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import { builtinModules } from 'module';
@@ -7888,9 +7888,9 @@ export default defineConfig(({ mode }) => {
       },
     };
 });
---- END OF FILE: ../Gestor-Events_i_Personal/vite.config.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/vite.config.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/tailwind.config.cjs -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/tailwind.config.cjs -- branca Jules-dev ---
 const plugin = require('tailwindcss/plugin');
 
 /** @type {import('tailwindcss').Config} */
@@ -7986,18 +7986,18 @@ module.exports = {
   ],
 }
 
---- END OF FILE: ../Gestor-Events_i_Personal/tailwind.config.cjs -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/tailwind.config.cjs -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/postcss.config.cjs -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/postcss.config.cjs -- branca Jules-dev ---
 module.exports = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},
   },
 }
---- END OF FILE: ../Gestor-Events_i_Personal/postcss.config.cjs -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/postcss.config.cjs -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/tsconfig.json -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/tsconfig.json -- branca Jules-dev ---
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -8041,9 +8041,9 @@ module.exports = {
     "chekpoints" // La clau: ignorem explícitament les còpies de seguretat
   ]
 }
---- END OF FILE: ../Gestor-Events_i_Personal/tsconfig.json -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/tsconfig.json -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/main.cjs -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/main.cjs -- branca Jules-dev ---
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -8344,7 +8344,28 @@ function createWindow() {
   const template = [
     {
       label: 'Arxiu',
-      submenu: [{ label: 'Sortir', accelerator: 'CmdOrCtrl+Q', click: () => { app.quit(); } }]
+      submenu: [
+        { label: 'Carregar Tot', click: () => mainWindow.webContents.send('menu-action', 'load-all') },
+        { label: 'Guardar Tot', click: () => mainWindow.webContents.send('menu-action', 'save-all') },
+        { label: 'Carregar Material', click: () => mainWindow.webContents.send('menu-action', 'load-material') },
+        { label: 'Començar de Zero', click: () => mainWindow.webContents.send('menu-action', 'hard-reset') },
+        { type: 'separator' },
+        { label: 'Carregar Persones', click: () => mainWindow.webContents.send('menu-action', 'load-people') },
+        { label: 'Guardar Persones', click: () => mainWindow.webContents.send('menu-action', 'save-people') },
+        { type: 'separator' },
+        {
+          label: 'Configuració Google Calendar',
+          submenu: [
+            { label: 'Sincronitzar', click: () => mainWindow.webContents.send('menu-action', 'sync-google') },
+            { label: 'Configurar', click: () => mainWindow.webContents.send('menu-action', 'config-google') },
+            { label: 'Connectar amb Google', click: () => mainWindow.webContents.send('menu-action', 'connect-google') },
+          ]
+        },
+        { type: 'separator' },
+        { label: 'Tema Clar/Fosc', click: () => mainWindow.webContents.send('menu-action', 'toggle-theme') },
+        { type: 'separator' },
+        { label: 'Sortir', accelerator: 'CmdOrCtrl+Q', click: () => { app.quit(); } }
+      ]
     },
     {
       label: 'Veure',
@@ -8852,9 +8873,9 @@ app.on('activate', () => {
     createWindow();
   }
 });
---- END OF FILE: ../Gestor-Events_i_Personal/main.cjs -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/main.cjs -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/preload.cjs -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/preload.cjs -- branca Jules-dev ---
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -8895,17 +8916,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('hide-loading-overlay', handler);
     return () => ipcRenderer.removeListener('hide-loading-overlay', handler);
   },
+
+  // Menu actions
+  onMenuAction: (callback) => ipcRenderer.on('menu-action', (event, action) => callback(action)),
 });
 
---- END OF FILE: ../Gestor-Events_i_Personal/preload.cjs -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/preload.cjs -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/index.html -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/index.html -- branca Jules-dev ---
 <!DOCTYPE html>
 <html lang="ca">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestor de Esdeveniments i Personal v0.3.0</title>    
+  <title>Gestor de Esdeveniments i Personal v0.4.0-dev</title>
     <link rel="stylesheet" href="/src/index.css"> 
   </head>
 
@@ -8917,14 +8941,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     <script type="module" src="/src/index.tsx"></script> 
   </body>
 </html>
---- END OF FILE: ../Gestor-Events_i_Personal/index.html -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/index.html -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/README.md -- branca refactor/tech-sheet-form ---
-### NOVA BRANCA DESENVOLUPAMENT -->DEV
+--- START OF FILE: ../Gestor-Events_i_Personal/README.md -- branca Jules-dev ---
+### NOVA BRANCA DESENVOLUPAMENT --> Jules-dev
 
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal v0.3.0
+# Gestor d'Esdeveniments i Personal v0.4.0-dev
 
 
 
@@ -8996,10 +9020,10 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
     *   ⚠️ **Atenció:** Aquesta acció **esborra totes les dades actuals** i les reemplaça amb el contingut del fitxer.
 
 *   **`example_person.json`**: Conté una llista de contactes. Es carrega amb el botó **`Carregar Persones`**.
-    *   ⚠️ **Atenció:** Aquesta acció **reemplaça completament** la teva llista de persones actual.
+    *   🆕 **Novetat:** En carregar, l'aplicació et preguntarà si vols **fusionar** la nova llista amb l'existent (afegint només les persones que no existeixin) o **reemplaçar** completament la llista actual.
 
 *   **`example_material.json`**: Un inventari de material d'exemple. Es carrega amb el botó **`Carregar Material`**.
-    *   ✅ Aquesta acció és segura: **afegeix els nous articles** del fitxer al teu inventari existent sense esborrar res.
+    *   🆕 **Novetat:** Igual que amb les persones, podràs triar entre **fusionar** l'inventari (afegint només els articles nous) o **reemplaçar-lo** per complet.
 
 ## ✒️ Autoria
 
@@ -9036,17 +9060,39 @@ Aquest projecte està sota la llicència MIT.
 
 ---
 
---- END OF FILE: ../Gestor-Events_i_Personal/README.md -- branca refactor/tech-sheet-form ---
+## Desenvolupament
 
---- START OF FILE: ../Gestor-Events_i_Personal/DEVELOPING.md -- branca refactor/tech-sheet-form ---
+Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](developing.md) per obtenir informació sobre com configurar l'entorn i entendre els canvis recents.
+
+--- END OF FILE: ../Gestor-Events_i_Personal/README.md -- branca Jules-dev ---
+
+--- START OF FILE: ../Gestor-Events_i_Personal/DEVELOPING.md -- branca Jules-dev ---
 ### NOVA BRANCA DESENVOLUPAMENT -->DEV
 
 ### `DEVELOPING.md`**
 
-# Gestor d'Esdeveniments i Personal v0.3.0
+# Gestor d'Esdeveniments i Personal v0.4.0-dev
 ---
 
  # NOTES DE DESENVOLUPAMENT #
+---
+
+## Canvis Recents
+
+### Arreglar Errors de Compilació de TypeScript
+
+S'han solucionat una sèrie d'errors de compilació de TypeScript que impedien que el projecte es construís correctament. Els canvis inclouen:
+
+*   **`src/types.ts`**:
+    *   S'ha afegit la propietat opcional `newData` a la interfície `ModalData`. Aquesta propietat és un array de `PersonGroup` o `MaterialItem` i s'utilitza per passar dades al modal `mergeOrReplace`.
+
+*   **`src/App.tsx`**:
+    *   S'han afegit comprovacions de nul·litat i conversions de tipus per garantir que `modalState.data.newData` s'utilitzi de manera segura.
+    *   S'han afegit les importacions que faltaven per a `PersonGroup` i `MaterialItem`.
+
+*   **`src/components/Controls.tsx`**:
+    *   S'han eliminat les importacions i desestructuracions no utilitzades.
+
 ---
 
 ## 🚀 **Millores a les Fitxes de Bolo i Documentació Tècnica (v0.3.x)** en desenvolupament!
@@ -9199,16 +9245,19 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
 
 ---
 
-#### 📑 Responsabilitat dels fitxers clau de Fitxes de Bolo
+#### 📑 Responsabilitat dels fitxers clau de Fitxes de Bolo (Refactorització Completada)
 
-- **`src/components/tech_sheets/TechSheetForm.tsx`**: Formulari principal i lògica de tota la fitxa tècnica. Gestiona l'estat intern, la dinàmica dels camps (SI/NO, dropdowns, camps condicionals), la sincronització de notes, la validació i l'exportació professional a PDF. Tota la interacció de l'usuari amb la fitxa passa per aquest component.
-- **`src/components/tech_sheets/TechSheetSection.tsx`**: Component de presentació que encapsula cada secció de la fitxa (ex: Personal Tècnic, Horaris, Logística...). Permet injectar accions personalitzades a la capçalera de cada secció (com el botó "Actualitza des d'assignacions").
-- **`src/components/tech_sheets/TechSheetField.tsx`**: Component reutilitzable per a camps individuals de la fitxa (inputs, selects, textareas), amb suport per a validació, focus i accessibilitat.
-- **`src/types.ts`**: Defineix totes les interfícies i tipus TypeScript per a la fitxa tècnica, incloent la descripció de cada secció, llistes, camps opcionals i la seva estructura jeràrquica. Qualsevol canvi d'estructura de dades de la fitxa s'ha de reflectir aquí.
-- **`src/hooks/useEventDataManager.ts`**: Gestiona l'estat global de l'aplicació, incloent la persistència i sincronització de les fitxes tècniques amb la resta de dades de l'esdeveniment. S'encarrega de desar automàticament els canvis i d'actualitzar la fitxa quan canvien les assignacions.
+- **`src/utils/pdfGenerator.ts`**: **(NOU)** Mòdul d'utilitat dedicat exclusivament a generar el document PDF a partir de les dades de la fitxa tècnica.
+- **`src/components/tech_sheets/TechSheetForm.tsx`**: Orquestra la fitxa tècnica. Gestiona l'estat general del formulari i coordina els components fills. **Ja no conté la lògica de generació de PDF.**
+- **`src/components/tech_sheets/TechnicalPersonnelSection.tsx`**: **(NOU)** Component especialitzat que gestiona tota la secció de "Personal Tècnic", incloent la lògica per afegir i eliminar proveïdors i rols.
+- **`src/components/tech_sheets/NeedsList.tsx`**: **(NOU)** Component reutilitzable per a renderitzar i gestionar llistes de necessitats (il·luminació, so, etc.), connectat amb l'inventari de material.
+- **`src/components/tech_sheets/TechSheetSection.tsx`**: Component de presentació que encapsula cada secció de la fitxa, fent-les col·lapsables i permetent accions a la capçalera.
+- **`src/components/tech_sheets/TechSheetField.tsx`**: Component reutilitzable per a camps de formulari individuals, ara amb suport per a suggeriments (`datalist`).
 - **`src/components/TechSheetsDisplay.tsx`**: Component contenidor que mostra la fitxa de bolo seleccionada i permet navegar entre fitxes d'esdeveniments. Orquestra la visualització i la selecció de fitxes.
+- **`src/types.ts`**: Defineix totes les interfícies TypeScript per a la fitxa tècnica, incloent la descripció de cada secció, llistes, camps opcionals i la seva estructura jeràrquica.
+- **`src/hooks/useEventDataManager.ts`**: Gestiona l'estat global de l'aplicació, incloent la persistència i sincronització de les fitxes tècniques amb la resta de dades de l'esdeveniment.
 
-> Amb aquesta arquitectura modular, cada fitxer té una responsabilitat clara i delimitada, facilitant el manteniment, l'escalabilitat i la col·laboració entre desenvolupadors.
+> Amb aquesta arquitectura modular, cada fitxer té una responsabilitat clara i delimitada, facilitant el manteniment i l'escalabilitat.
 
 ---
 
@@ -9247,6 +9296,16 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
     *   Suport per a tema clar i fosc.
     *   Notificacions (toasts) per a les accions de l'usuari.
     *   Visualització detallada d'estats mixts.
+
+-   **✨ [NOU] Càrrega de Dades Flexible (Fusió o Reemplaçament):**
+    *   **Modal de Decisió:** En carregar un fitxer de **persones** o de **material**, ara es mostra un diàleg que pregunta a l'usuari si desitja **fusionar** les dades noves amb les existents o **reemplaçar** completament les dades actuals.
+    *   **Lògica de Fusió Intel·ligent:**
+        *   **Persones:** La fusió afegeix només les persones del fitxer que no existeixen a la llista actual (la comprovació es fa per nom, ignorant majúscules/minúscules).
+        *   **Material:** La fusió afegeix només els articles del fitxer que no existeixen a l'inventari actual (la comprovació es fa per nom, ignorant majúscules/minúscules).
+    *   **Arquitectura:**
+        *   **`MergeOrReplaceModal.tsx`**: Nou component de modal reutilitzable per a aquesta funcionalitat.
+        *   **`useEventDataManager.ts`**: S'han afegit les funcions `mergePeopleGroups`, `replacePeopleGroups`, i `replaceMaterialItems` per gestionar la lògica de dades. La funció `addMaterialItemsFromFile` es reutilitza per a la fusió de material.
+        *   **`Controls.tsx`**: Modificat per llegir el fitxer i obrir el modal amb les dades, en lloc d'executar l'acció directament.
 ---
 ## 🛠️ Pila Tecnològica (Tech Stack)
 
@@ -9439,9 +9498,9 @@ Això permet seleccionar el mode en que el projecte es compili sense errors per 
 
 ---
 
---- END OF FILE: ../Gestor-Events_i_Personal/DEVELOPING.md -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/DEVELOPING.md -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/LICENSE -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/LICENSE -- branca Jules-dev ---
 Aquest projecte està sota la llicència MIT.
 
 > Copyright (c) 2025 Pëp
@@ -9464,20 +9523,21 @@ Aquest projecte està sota la llicència MIT.
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
 
---- END OF FILE: ../Gestor-Events_i_Personal/LICENSE -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/LICENSE -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/.gitattributes -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/.gitattributes -- branca Jules-dev ---
 # Auto detect text files and perform LF normalization
 * text=auto
 
---- END OF FILE: ../Gestor-Events_i_Personal/.gitattributes -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/.gitattributes -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/.gitignore -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/.gitignore -- branca Jules-dev ---
 ### INICI FITXER: .gitignore ###
 #carpetes i fitxers personals
 gestor-d'esdeveniments_react_vite_gemini BUILD.code-workspace
 chekpoints/
 RELASES/
+/0_CONTEXT_i_eines
 
 # Dependències de Node.js
 # Aquesta carpeta es regenera amb 'npm install'
@@ -9518,18 +9578,19 @@ __pycache__/
 # Credencials de Google
 google-credentials.json
 
---- END OF FILE: ../Gestor-Events_i_Personal/.gitignore -- branca refactor/tech-sheet-form ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/metadata.json -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/.gitignore -- branca Jules-dev ---
+
+--- START OF FILE: ../Gestor-Events_i_Personal/metadata.json -- branca Jules-dev ---
 {
   "name": "Gestor d'Esdeveniments React",
   "description": "Una aplicació React per gestionar esdeveniments, assignacions i persones, amb funcionalitats de calendari, filtratge, i exportació de dades.",
   "requestFramePermissions": [],
   "prompt": ""
 }
---- END OF FILE: ../Gestor-Events_i_Personal/metadata.json -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/metadata.json -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/App.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/App.tsx -- branca Jules-dev ---
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
@@ -9538,7 +9599,7 @@ import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction } from './types';
+import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { formatDateDMY } from './utils/dateFormat';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
@@ -9555,6 +9616,7 @@ const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFor
 const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteModal'));
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
+const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
 
 // Millor posar-ho en un fitxer global.d.ts, però per compatibilitat ràpida:
 interface ElectronAPI {
@@ -9580,6 +9642,7 @@ interface ElectronAPI {
   onDevModeQuitAfterReset: (callback: () => void) => (() => void) | undefined;
   showLoadingOverlay: (callback: (event: any, message: string) => void) => (() => void) | undefined;
   hideLoadingOverlay: (callback: () => void) => (() => void) | undefined;
+  onMenuAction: (callback: (action: string) => void) => void;
 }
 
 declare global {
@@ -9608,6 +9671,8 @@ const App: React.FC = () => {
   const [filterToShowEventFrameId, setFilterToShowEventFrameId] = useState<string | null>(null);
   const [currentlyDisplayedFrames, setCurrentlyDisplayedFrames] = useState<EventFrame[]>([]);
   const [filterUIPerson, setFilterUIPerson] = useState<string>('');
+
+  const controlsRef = useRef<any>(null);
 
   // --- 2. FUNCIONS D'AJUDA (useCallback) ---
   const clearToastMessage = (toastId: string) => {
@@ -9879,6 +9944,47 @@ const App: React.FC = () => {
     return `llista_${eventName}-${personName}-${status}-${textFilter}-${formattedDate}-${location}.csv`;
   };
 
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.onMenuAction((action) => {
+        switch (action) {
+          case 'load-all':
+            controlsRef.current?.triggerLoadFile();
+            break;
+          case 'save-all':
+            controlsRef.current?.handleSaveData('all');
+            break;
+          case 'load-material':
+            controlsRef.current?.triggerLoadMaterialFile();
+            break;
+          case 'hard-reset':
+            controlsRef.current?.handleRequestHardReset();
+            break;
+          case 'load-people':
+            controlsRef.current?.triggerLoadPeopleFile();
+            break;
+          case 'save-people':
+            controlsRef.current?.handleSaveData('people');
+            break;
+          case 'sync-google':
+            syncWithGoogle();
+            break;
+          case 'config-google':
+            openModal('googleSettings');
+            break;
+          case 'connect-google':
+            controlsRef.current?.handleConnectGoogle();
+            break;
+          case 'toggle-theme':
+            toggleTheme();
+            break;
+          default:
+            break;
+        }
+      });
+    }
+  }, [syncWithGoogle, openModal, toggleTheme]);
+
   const handleExportCurrentViewToCsv = () => {
     const dataToExport: SummaryRow[] = [];
 
@@ -10047,6 +10153,30 @@ const App: React.FC = () => {
       
       case 'googleSettings':
         return <GoogleSettingsModal onClose={closeModal} showToast={showToast} />;
+      case 'mergeOrReplace':
+        return (
+          <MergeOrReplaceModal
+            isOpen={true}
+            onClose={closeModal}
+            itemType={modalState.data!.itemType!}
+            onMerge={() => {
+              if (modalState.data?.itemType === 'persones' && modalState.data.newData) {
+                contextValue.mergePeopleGroups(modalState.data.newData as PersonGroup[]);
+              } else if (modalState.data?.itemType === 'material' && modalState.data.newData) {
+                contextValue.addMaterialItemsFromFile(modalState.data.newData as MaterialItem[]);
+              }
+              closeModal();
+            }}
+            onReplace={() => {
+              if (modalState.data?.itemType === 'persones' && modalState.data.newData) {
+                contextValue.replacePeopleGroups(modalState.data.newData as PersonGroup[]);
+              } else if (modalState.data?.itemType === 'material' && modalState.data.newData) {
+                contextValue.replaceMaterialItems(modalState.data.newData as MaterialItem[]);
+              }
+              closeModal();
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -10098,6 +10228,7 @@ const App: React.FC = () => {
             <div className="container mx-auto px-4">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
+                  ref={controlsRef}
                   theme={theme}
                   toggleTheme={toggleTheme}
                   onOpenModal={openModal}
@@ -10143,7 +10274,7 @@ const App: React.FC = () => {
           </main>
 
           <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
-            © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.3.0 DEV. Evolució Gestió Integral d'Esdeveniments v10.1.
+            © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.4.0-dev. Evolució Gestió Integral d'Esdeveniments v10.1.
           </footer>
 
           <Modal
@@ -10175,13 +10306,13 @@ const App: React.FC = () => {
 };
 
 export default App;
---- END OF FILE: ../Gestor-Events_i_Personal/src/App.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/App.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/calendar-styles.d.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/calendar-styles.d.ts -- branca Jules-dev ---
 declare module '*.css';
---- END OF FILE: ../Gestor-Events_i_Personal/src/calendar-styles.d.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/calendar-styles.d.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/constants.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/constants.tsx -- branca Jules-dev ---
 // @ts-ignore - React is used in JSX
 import React, { FC } from 'react';
 import { AssignmentStatus } from './types';
@@ -10368,9 +10499,9 @@ export const TECH_SHEET_ROLE_SUGGESTIONS = [
   "Suport: Rider / Road Manager",
   "Suport: Assistent/a Personal",
 ];
---- END OF FILE: ../Gestor-Events_i_Personal/src/constants.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/constants.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/index.css -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/index.css -- branca Jules-dev ---
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10509,9 +10640,9 @@ export const TECH_SHEET_ROLE_SUGGESTIONS = [
     @apply bg-gray-300/70 text-gray-800 hover:bg-gray-300/100 dark:bg-gray-600/70 dark:text-gray-100 dark:hover:bg-gray-600;
   }
 }
---- END OF FILE: ../Gestor-Events_i_Personal/src/index.css -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/index.css -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/index.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/index.tsx -- branca Jules-dev ---
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -10528,9 +10659,9 @@ root.render(
     <App />
   </React.StrictMode>
 );
---- END OF FILE: ../Gestor-Events_i_Personal/src/index.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/index.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/types.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/types.ts -- branca Jules-dev ---
 export enum AssignmentStatus {
   Pending = 'Pendent',
   Yes = 'Sí',
@@ -10691,6 +10822,7 @@ export type ModalType =
   | 'confirmDeleteAssignment'
   | 'googleSettings'
   | 'confirmHardReset'
+  | 'mergeOrReplace'
   | null;
 
 export interface ModalData {
@@ -10709,6 +10841,7 @@ export interface ModalData {
     cancelButtonText?: string;
     onCloseModal?: () => void;
     titleOverride?: string;
+    newData?: PersonGroup[] | MaterialItem[];
 }
 
 export interface ModalState {
@@ -10751,6 +10884,9 @@ export interface EventDataConteImplicits {
   deleteMaterialItem: (itemId: string) => void;
   addMaterialItemsFromFile: (newItems: MaterialItem[]) => void;
   getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
+  mergePeopleGroups: (newPeople: PersonGroup[]) => void;
+  replacePeopleGroups: (newPeople: PersonGroup[]) => void;
+  replaceMaterialItems: (newItems: MaterialItem[]) => void;
 }
 
 export type EventDataManagerReturn = Omit<EventDataConteImplicits, 'openModal' | 'showToast'>;
@@ -10818,9 +10954,9 @@ export interface GoogleCalendar {
   backgroundColor: string;
   primary?: boolean;
 }
---- END OF FILE: ../Gestor-Events_i_Personal/src/types.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/types.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/utils/dataMigration.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/utils/dataMigration.ts -- branca Jules-dev ---
 import { AppData, PersonGroup, EventFrameForExport, Assignment, AssignmentStatus } from '../types';
 
 interface OldPeopleData {
@@ -10972,9 +11108,9 @@ const isValidDate = (dateString: string): boolean => {
   return date instanceof Date && !isNaN(date.getTime());
 };
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/utils/dataMigration.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/utils/dataMigration.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/utils/dateFormat.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/utils/dateFormat.ts -- branca Jules-dev ---
 export function formatDateDMY(dateStr?: string | null): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);
@@ -11002,9 +11138,9 @@ export function addDaysISO(dateStr: string, days: number): string {
   return date.toISOString().split('T')[0];
 }
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/utils/dateFormat.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/utils/dateFormat.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/utils/dateRangeFormatter.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/utils/dateRangeFormatter.ts -- branca Jules-dev ---
 const formatSimpleDM = (dateStr: string): string => {
   const parts = dateStr.split('-');
   return `${parts[2]}/${parts[1]}`;
@@ -11056,9 +11192,9 @@ export const formatDateRanges = (dates: string[]): string => {
   return ranges.join(', ');
 };
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/utils/dateRangeFormatter.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/utils/dateRangeFormatter.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/utils/pdfGenerator.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/utils/pdfGenerator.ts -- branca Jules-dev ---
 import jsPDF from 'jspdf';
 import { TechSheetData } from '../types';
 import { PersonGroup } from '../types';
@@ -11184,9 +11320,9 @@ export const exportToPdf = (
   }
 };
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/utils/pdfGenerator.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/utils/pdfGenerator.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/utils/statusUtils.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/utils/statusUtils.ts -- branca Jules-dev ---
 import { Assignment, AssignmentStatus } from '../types';
 import { formatDateRanges } from './dateRangeFormatter';
 
@@ -11228,9 +11364,9 @@ export const getStatusSummaryText = (assignment: Assignment): string => {
   return `(Mixt: ${parts.join(' ')})`;
 };
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/utils/statusUtils.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/utils/statusUtils.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/contexts/EventDataContext.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/contexts/EventDataContext.tsx -- branca Jules-dev ---
 
 import React, { createContext, useContext } from 'react';
 import { EventDataConteImplicits } from '../types';
@@ -11260,9 +11396,9 @@ export const EventDataProvider: React.FC<EventDataProviderProps> = ({ children, 
   );
 };
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/contexts/EventDataContext.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/contexts/EventDataContext.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/AssignmentCard.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/AssignmentCard.tsx -- branca Jules-dev ---
 import React from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
@@ -11409,10 +11545,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 };
 
 export default AssignmentCard;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/AssignmentCard.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/AssignmentCard.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/Controls.tsx -- branca refactor/tech-sheet-form ---
-import React, { ChangeEvent, useRef } from 'react';
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/Controls.tsx -- branca Jules-dev ---
+import { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
@@ -11431,7 +11567,9 @@ interface ControlsProps {
   setCurrentDataPath: (path: string) => void;
   }
 
-const Controls: React.FC<ControlsProps> = ({
+import { forwardRef, useImperativeHandle } from 'react';
+
+const Controls = forwardRef<any, ControlsProps>(({
     theme,
     toggleTheme,
     onOpenModal,
@@ -11441,9 +11579,9 @@ const Controls: React.FC<ControlsProps> = ({
     isSyncing,
     currentDataPath,
     setCurrentDataPath
-}) => {
+}, ref) => {
 
-  const { loadData, exportData, setHasUnsavedChanges, addMaterialItemsFromFile } = useEventData();
+  const { loadData, exportData, setHasUnsavedChanges } = useEventData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const peopleFileInputRef = useRef<HTMLInputElement>(null);
   const materialFileInputRef = useRef<HTMLInputElement>(null);
@@ -11505,11 +11643,9 @@ const Controls: React.FC<ControlsProps> = ({
           return;
         }
         const jsonData = JSON.parse(fileContent);
+        let newPeople: PersonGroup[] = [];
         if (Array.isArray(jsonData.peopleGroups)) {
-          const currentData = exportData();
-          loadData({ ...currentData, peopleGroups: jsonData.peopleGroups });
-          showToast("Dades de persones carregades correctament.", 'success');
-          setHasUnsavedChanges(true);
+          newPeople = jsonData.peopleGroups;
         } else if (Array.isArray(jsonData.people)) {
           const migratedData = migrateData({ people: jsonData.people });
           const validation = validateMigratedData(migratedData);
@@ -11517,13 +11653,17 @@ const Controls: React.FC<ControlsProps> = ({
             showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
             return;
           }
-          const currentData = exportData();
-          loadData({ ...currentData, peopleGroups: migratedData.peopleGroups });
-          showToast("Dades de persones antigues migrades i carregades correctament.", 'success');
-          setHasUnsavedChanges(true); 
+          newPeople = migratedData.peopleGroups;
         } else {
           showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
+          return;
         }
+
+        onOpenModal('mergeOrReplace', {
+          itemType: 'persones',
+          newData: newPeople,
+        });
+
       } catch (error) {
         showToast(`Error en carregar les dades de persones: ${(error as Error).message}`, 'error');
       } finally {
@@ -11544,7 +11684,10 @@ const Controls: React.FC<ControlsProps> = ({
         const jsonData = JSON.parse(content);
         
         if (Array.isArray(jsonData.materialItems)) {
-          addMaterialItemsFromFile(jsonData.materialItems);
+          onOpenModal('mergeOrReplace', {
+            itemType: 'material',
+            newData: jsonData.materialItems,
+          });
         } else {
           showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
         }
@@ -11560,6 +11703,7 @@ const Controls: React.FC<ControlsProps> = ({
   const triggerLoadFile = () => fileInputRef.current?.click();
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
   const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
+
   const handleSaveData = (type: 'all' | 'people') => {
     try {
       const dataToSave = type === 'all' ? exportData() : { peopleGroups: exportData().peopleGroups };
@@ -11586,6 +11730,28 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   // <<< NOU FLUX PER AL RESET >>>
+  const handleConnectGoogle = async () => {
+    if (window.electronAPI) {
+      const result = await window.electronAPI.startGoogleAuth();
+      if (result.success) {
+        showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
+      } else {
+        showToast(result.message || 'No s\'ha pogut iniciar l\'autenticació.', 'error');
+      }
+    } else {
+      showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    triggerLoadFile,
+    handleSaveData,
+    triggerLoadMaterialFile,
+    handleRequestHardReset,
+    triggerLoadPeopleFile,
+    handleConnectGoogle,
+  }));
+
   const handleRequestHardReset = () => {
     onOpenModal('confirmHardReset', {
       titleOverride: "Confirmar Reset de Fàbrica",
@@ -11691,18 +11857,7 @@ const Controls: React.FC<ControlsProps> = ({
                 <GoogleIcon /> Configurar
             </button>
             <button
-                onClick={async () => {
-                  if (window.electronAPI) {
-                    const result = await window.electronAPI.startGoogleAuth();
-                    if (result.success) {
-                      showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
-                    } else {
-                      showToast(result.message || 'No s\'ha pogut iniciar l\'autenticació.', 'error');
-                    }
-                  } else {
-                    showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
-                  }
-                }}
+                onClick={handleConnectGoogle}
                 className="flex items-center justify-center gap-2 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-3 rounded-md transition-colors text-sm border border-gray-300"
                 title="Connectar amb Google Calendar"
             >
@@ -11713,13 +11868,13 @@ const Controls: React.FC<ControlsProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default Controls;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/Controls.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/Controls.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/EventFrameCard.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/EventFrameCard.tsx -- branca Jules-dev ---
 import { useRef, forwardRef } from 'react';
 import { useEventData } from '@/contexts/EventDataContext';
 import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData } from '@/types';
@@ -11852,9 +12007,9 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
 
 export default EventFrameCard;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/EventFrameCard.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/EventFrameCard.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/MainDisplay.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/MainDisplay.tsx -- branca Jules-dev ---
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData, ShowToastFunction } from '../types';
 import { useEventData } from '../contexts/EventDataContext';
@@ -12250,9 +12405,9 @@ useEffect(() => {
 
 export default MainDisplay;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/MainDisplay.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/MainDisplay.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/MaterialDisplay.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/MaterialDisplay.tsx -- branca Jules-dev ---
 import React, { useState, FormEvent, useMemo } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { MaterialItem } from '../types';
@@ -12418,9 +12573,9 @@ const MaterialDisplay: React.FC = () => {
 };
 
 export default MaterialDisplay;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/MaterialDisplay.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/MaterialDisplay.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/Navigation.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/Navigation.tsx -- branca Jules-dev ---
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { CalendarIcon, BoxIcon, UsersIcon } from '../constants';
@@ -12469,9 +12624,9 @@ const Navigation: React.FC = () => {
 };
 
 export default Navigation;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/Navigation.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/Navigation.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/PeopleDisplay.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/PeopleDisplay.tsx -- branca Jules-dev ---
 import React, { useState, FormEvent } from 'react';
 import { saveAs } from 'file-saver';
 import { useEventData } from '../contexts/EventDataContext';
@@ -12747,9 +12902,9 @@ const PeopleDisplay: React.FC = () => {
 
 export default PeopleDisplay;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/PeopleDisplay.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/PeopleDisplay.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/SummaryReports.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/SummaryReports.tsx -- branca Jules-dev ---
 import React, { useMemo } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { AssignmentStatus, SummaryRow, ShowToastFunction } from '../types';
@@ -13006,9 +13161,9 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
 
 export default SummaryReports;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/SummaryReports.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/SummaryReports.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/TechSheetsDisplay.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/TechSheetsDisplay.tsx -- branca Jules-dev ---
 import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { EventFrame } from '../types';
@@ -13072,9 +13227,9 @@ const TechSheetsDisplay: React.FC = () => {
 
 export default TechSheetsDisplay;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/TechSheetsDisplay.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/TechSheetsDisplay.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/NeedsList.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/NeedsList.tsx -- branca Jules-dev ---
 import React from 'react';
 import TechSheetField from './TechSheetField';
 import { MaterialItem } from '../../types';
@@ -13184,9 +13339,9 @@ const NeedsList: React.FC<NeedsListProps> = ({
 
 export default NeedsList;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/NeedsList.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/NeedsList.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetField.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetField.tsx -- branca Jules-dev ---
 import React from 'react';
 
 interface TechSheetFieldProps {
@@ -13280,9 +13435,9 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
 };
 
 export default TechSheetField;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetField.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetField.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetForm.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetForm.tsx -- branca Jules-dev ---
 import React, { useState, useEffect, useRef } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem } from '../../types';
@@ -13837,9 +13992,9 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
 
 export default TechSheetForm;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetForm.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetForm.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetSection.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetSection.tsx -- branca Jules-dev ---
 import React, { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '../../constants';
 
@@ -13883,9 +14038,9 @@ const gridClasses = layout === 'single-column'
 };
 
 export default TechSheetSection;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetSection.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetSection.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechnicalPersonnelSection.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechnicalPersonnelSection.tsx -- branca Jules-dev ---
 import React from 'react';
 import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus } from '../../types';
 import TechSheetSection from './TechSheetSection';
@@ -14054,9 +14209,9 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
 
 export default TechnicalPersonnelSection;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechnicalPersonnelSection.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/tech_sheets/TechnicalPersonnelSection.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/AssignmentFormModal.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/AssignmentFormModal.tsx -- branca Jules-dev ---
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
@@ -14215,9 +14370,9 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
 };
 
 export default AssignmentFormModal;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/AssignmentFormModal.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/AssignmentFormModal.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/ConfirmDeleteModal.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/ConfirmDeleteModal.tsx -- branca Jules-dev ---
 import React from 'react';
 import { ShowToastFunction } from '../../types';
 
@@ -14291,9 +14446,9 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
 };
 
 export default ConfirmDeleteModal;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/ConfirmDeleteModal.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/ConfirmDeleteModal.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/EventFrameDetailsModal.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/EventFrameDetailsModal.tsx -- branca Jules-dev ---
 import React from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, AssignmentStatus, ShowToastFunction } from '../../types';
@@ -14395,9 +14550,9 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
 };
 
 export default EventFrameDetailsModal;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/EventFrameDetailsModal.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/EventFrameDetailsModal.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/EventFrameFormModal.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/EventFrameFormModal.tsx -- branca Jules-dev ---
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, InitialEventFrameData, ShowToastFunction } from '../../types';
@@ -14547,9 +14702,9 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
 };
 
 export default EventFrameFormModal;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/EventFrameFormModal.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/EventFrameFormModal.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/GoogleSettingsModal.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/GoogleSettingsModal.tsx -- branca Jules-dev ---
 import React, { useState, useEffect } from 'react';
 import { GoogleCalendar, ShowToastFunction } from '@/types';
 import { useEventData } from '@/contexts/EventDataContext';
@@ -14674,9 +14829,56 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
 };
 
 export default GoogleSettingsModal;
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/GoogleSettingsModal.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/GoogleSettingsModal.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/components/ui/Modal.tsx -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/modals/MergeOrReplaceModal.tsx -- branca Jules-dev ---
+import Modal from '../ui/Modal';
+
+interface MergeOrReplaceModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onMerge: () => void;
+  onReplace: () => void;
+  itemType: string; // "persones" o "material"
+}
+
+const MergeOrReplaceModal: React.FC<MergeOrReplaceModalProps> = ({ isOpen, onClose, onMerge, onReplace, itemType }) => {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={`Carregar dades de ${itemType}`}>
+      <div className="p-4">
+        <p className="text-gray-700 dark:text-gray-300 mb-6">
+          Vols fusionar les noves dades de {itemType} amb les existents o vols reemplaçar totes les dades actuals?
+        </p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={onMerge}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+          >
+            Fusionar
+          </button>
+          <button
+            onClick={onReplace}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+          >
+            Reemplaçar
+          </button>
+          <button
+            onClick={onClose}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-md transition-colors"
+          >
+            Cancel·lar
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+export default MergeOrReplaceModal;
+
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/modals/MergeOrReplaceModal.tsx -- branca Jules-dev ---
+
+--- START OF FILE: ../Gestor-Events_i_Personal/src/components/ui/Modal.tsx -- branca Jules-dev ---
 import React from 'react';
 import { XMarkIcon } from '../../constants';
 
@@ -14744,9 +14946,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
 
 export default Modal;
 
---- END OF FILE: ../Gestor-Events_i_Personal/src/components/ui/Modal.tsx -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/components/ui/Modal.tsx -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/src/hooks/useEventDataManager.ts -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/src/hooks/useEventDataManager.ts -- branca Jules-dev ---
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
@@ -14961,6 +15163,32 @@ markUnsaved();
     setMaterialItems(prev => [...prev, ...itemsToAdd].sort((a,b) => a.name.localeCompare(b.name)));
     markUnsaved();
     showToast(`${itemsToAdd.length} nous articles de material afegits a l'inventari.`, 'success');
+  }, [markUnsaved, showToast]);
+
+  const mergePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    const existingNames = new Set(peopleGroupsRef.current.map(p => p.name.toLowerCase()));
+    const peopleToAdd = newPeople.filter(p => !existingNames.has(p.name.toLowerCase()));
+
+    if (peopleToAdd.length === 0) {
+      showToast("Totes les persones del fitxer ja existeixen.", 'info');
+      return;
+    }
+
+    setPeopleGroups(prev => [...prev, ...peopleToAdd].sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast(`${peopleToAdd.length} noves persones afegides.`, 'success');
+  }, [markUnsaved, showToast]);
+
+  const replacePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    setPeopleGroups(newPeople.sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast("La llista de persones ha estat reemplaçada.", 'success');
+  }, [markUnsaved, showToast]);
+
+  const replaceMaterialItems = useCallback((newItems: MaterialItem[]) => {
+    setMaterialItems(newItems.sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast("L'inventari de material ha estat reemplaçat.", 'success');
   }, [markUnsaved, showToast]);
 
   const getPersonGroupById = useCallback((personGroupId: string): PersonGroup | undefined => {
@@ -15228,12 +15456,14 @@ markUnsaved();
     deleteMaterialItem,
     addMaterialItemsFromFile,
     getMaterialAvailability,
-    
+    mergePeopleGroups,
+    replacePeopleGroups,
+    replaceMaterialItems,
   };
 };
---- END OF FILE: ../Gestor-Events_i_Personal/src/hooks/useEventDataManager.ts -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/src/hooks/useEventDataManager.ts -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-linuxv20-04.yml -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-linuxv20-04.yml -- branca Jules-dev ---
 name: Compilar per a Linux (AppImage)
 
 on:
@@ -15268,8 +15498,10 @@ jobs:
         run: npm install
 
       - name: 4.5 Create google-credentials.json from secret
-        run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google-credentials.json
-
+        env:
+          CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+        run: echo "$CREDENTIALS_JSON" > google-credentials.json
+        
       - name: Comprova que google-credentials.json existeix i no està buit
         run: |
           if [ ! -s google-credentials.json ]; then
@@ -15305,12 +15537,12 @@ jobs:
       - name: 6. Pujada de l'AppImage com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdeveniments-Linux-AppImage
+          name: GestorEsdeveniments-Linux-AppImage-v0.4.0-dev
           path: dist/*.AppImage
 
---- END OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-linuxv20-04.yml -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-linuxv20-04.yml -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-macos12.yml -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-macos12.yml -- branca Jules-dev ---
 name: Compilar per a macOS (DMG + ZIP)
 
 on:
@@ -15336,8 +15568,10 @@ jobs:
       - name: 4. Compilació de l'aplicació per a macOS
         run: npm run build:mac
 
-      - name: 4.5 Create google-credentials.json from secret - crearà el fitxer google-credentials.json dinàmicament durant l'execució del workflow utilitzant el secret 
-        run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google-credentials.json
+      - name: 4.5 Create google-credentials.json from secret
+        env:
+          CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+        run: echo "$CREDENTIALS_JSON" > google-credentials.json
 
       - name: Comprova que google-credentials.json existeix i no està buit
         run: |
@@ -15349,11 +15583,11 @@ jobs:
       - name: 5. Pujada dels artefactes de macOS
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdeveniments-macOS-x64
+          name: GestorEsdeveniments-macOS-x64-v0.4.0-dev
           path: dist/
---- END OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-macos12.yml -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-macos12.yml -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-win10.yml -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-win10.yml -- branca Jules-dev ---
 name: Compilar EXE per a Windows (Projecte Electron)
 
 on:
@@ -15378,17 +15612,21 @@ jobs:
     - name: Instal·lació de dependències del projecte
       run: npm install
       
-    - name: 4.5 Create google-credentials.json from secret - crearà el fitxer google-credentials.json dinàmicament durant l'execució del workflow utilitzant el secret 
-      run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google-credentials.json
+    - name: 4.5 Create google-credentials.json from secret
+      env:
+        CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+      run: echo "%CREDENTIALS_JSON%" > google-credentials.json
+      shell: cmd
 
     - name: Comprova que google-credentials.json existeix i no està buit
+      shell: cmd
       run: |
-        if not exist google-credentials.json (
-          echo "El fitxer google-credentials.json NO existeix!" && exit 1
-        )
-        for %%A in (google-credentials.json) do if %%~zA lss 10 (
-          echo "El fitxer google-credentials.json està buit o massa petit!" && exit 1
-        )
+          if not exist google-credentials.json (
+            echo "El fitxer google-credentials.json NO existeix!" && exit 1
+          )
+          for %%A in (google-credentials.json) do if %%~zA lss 10 (
+            echo "El fitxer google-credentials.json està buit o massa petit!" && exit 1
+          )
 
     # 4. PAS CLAU: Executa el teu script "build:electron"
     # Aquesta única comanda s'encarrega de compilar el teu codi React i empaquetar-lo amb Electron.
@@ -15400,267 +15638,13 @@ jobs:
     - name: Pujada de l'executable com a artefacte
       uses: actions/upload-artifact@v4
       with:
-        name: GestorEsdeveniments-Windows-Installer
+        name: GestorEsdeveniments-Windows-Installer-v0.4.0-dev
         # El teu package.json confirma que la sortida és a la carpeta 'dist'.
         # L'asterisc (*) ajuda a trobar l'arxiu encara que el nom complet variï.
         path: dist/*.exe
---- END OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-win10.yml -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/.github/workflows/build-win10.yml -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.2.0/build-linux v20_04.yml -- branca refactor/tech-sheet-form ---
-name: Compilar per a Linux (AppImage)
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-  
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: 1. Checkout del codi
-        uses: actions/checkout@v4
-
-      - name: 2. Configuració de Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: 3. Instal·lació de dependències del sistema per a Ubuntu 22.04
-        run: |
-          sudo apt-get update
-          # AQUESTA ÉS LA LLISTA CORRECTA I VERIFICADA PER A UBUNTU 22.04
-          sudo apt-get install -y --no-install-recommends \
-            libfuse2 \
-            libgtk-3-dev \
-            libnss3 \
-            libasound2 \
-            libxtst-dev \
-            libxss1 \
-            libappindicator3-1
-
-      - name: 4. Instal·lació de dependències del projecte (npm)
-        run: npm install
-
-      - name: 4.5 Create google-credentials.json from secret - crearà el fitxer google-credentials.json dinàmicament durant l'execució del workflow utilitzant el secret 
-        run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google-credentials.json
-      
-      - name: 5. Compilació de l'aplicació per a Linux
-        run: npm run build:electron -- --linux --x64 --publish never
-
-      - name: 6. Pujada de l'AppImage com a artefacte
-        uses: actions/upload-artifact@v4
-        with:
-          name: GestorEsdeveniments-Linux-AppImage
-          path: dist/*.AppImage
-
---- END OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.2.0/build-linux v20_04.yml -- branca refactor/tech-sheet-form ---
-
---- START OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.2.0/build-macos12.yml -- branca refactor/tech-sheet-form ---
-name: Compilar per a macOS (DMG + ZIP)
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: macos-latest
-
-    steps:
-      - name: 1. Checkout del codi
-        uses: actions/checkout@v4
-
-      - name: 2. Configuració de Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: 3. Instal·lació de dependències del projecte (npm)
-        run: npm install
-
-      - name: 4. Compilació de l'aplicació per a macOS
-        run: npm run build:mac
-
-      - name: 4.5 Create google-credentials.json from secret - crearà el fitxer google-credentials.json dinàmicament durant l'execució del workflow utilitzant el secret 
-        run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google-credentials.json
-
-
-      - name: 5. Pujada dels artefactes de macOS
-        uses: actions/upload-artifact@v4
-        with:
-          name: GestorEsdeveniments-macOS-x64
-          path: dist/
---- END OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.2.0/build-macos12.yml -- branca refactor/tech-sheet-form ---
-
---- START OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.2.0/build-win10.yml -- branca refactor/tech-sheet-form ---
-name: Compilar EXE per a Windows (Projecte Electron)
-
-on:
-  workflow_dispatch:
-    
-jobs:
-  build:
-    runs-on: windows-latest
-
-    steps:
-    # 1. Descarrega el codi del teu repositori
-    - name: Checkout del codi
-      uses: actions/checkout@v4
-
-    # 2. Configura l'entorn de Node.js per poder utilitzar npm
-    - name: Configuració de Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20' # Utilitzem una versió recent de Node.js
-
-    # 3. Instal·la totes les dependències del package.json
-    - name: Instal·lació de dependències del projecte
-      run: npm install
-      
-    - name: 4.5 Create google-credentials.json from secret - crearà el fitxer google-credentials.json dinàmicament durant l'execució del workflow utilitzant el secret 
-      run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > google-credentials.json
-
-    # 4. PAS CLAU: Executa el teu script "build:electron"
-    # Aquesta única comanda s'encarrega de compilar el teu codi React i empaquetar-lo amb Electron.
-    # Els paràmetres --win --x64 asseguren que es construeixi per a Windows 64-bit.
-    - name: Compilació i empaquetat de l'aplicació
-      run: npm run build:electron -- --win --x64 --publish never
-
-    # 5. Puja l'arxiu .exe que es genera a la carpeta 'dist' com a resultat
-    - name: Pujada de l'executable com a artefacte
-      uses: actions/upload-artifact@v4
-      with:
-        name: GestorEsdeveniments-Windows-Installer
-        # El teu package.json confirma que la sortida és a la carpeta 'dist'.
-        # L'asterisc (*) ajuda a trobar l'arxiu encara que el nom complet variï.
-        path: dist/*.exe
---- END OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.2.0/build-win10.yml -- branca refactor/tech-sheet-form ---
-
---- START OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.1.2/build-linux v20_04.yml -- branca refactor/tech-sheet-form ---
-name: Compilar per a Linux (AppImage)
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-  
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: 1. Checkout del codi
-        uses: actions/checkout@v4
-
-      - name: 2. Configuració de Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: 3. Instal·lació de dependències del sistema per a Ubuntu 22.04
-        run: |
-          sudo apt-get update
-          # AQUESTA ÉS LA LLISTA CORRECTA I VERIFICADA PER A UBUNTU 22.04
-          sudo apt-get install -y --no-install-recommends \
-            libfuse2 \
-            libgtk-3-dev \
-            libnss3 \
-            libasound2 \
-            libxtst-dev \
-            libxss1 \
-            libappindicator3-1
-
-      - name: 4. Instal·lació de dependències del projecte (npm)
-        run: npm install
-
-      - name: 5. Compilació de l'aplicació per a Linux
-        run: npm run build:electron -- --linux --x64 --publish never
-
-      - name: 6. Pujada de l'AppImage com a artefacte
-        uses: actions/upload-artifact@v4
-        with:
-          name: GestorEsdeveniments-Linux-AppImage
-          path: dist/*.AppImage
-
---- END OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.1.2/build-linux v20_04.yml -- branca refactor/tech-sheet-form ---
-
---- START OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.1.2/build-macos12.yml -- branca refactor/tech-sheet-form ---
-name: Compilar per a macOS (DMG + ZIP)
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: macos-latest
-
-    steps:
-      - name: 1. Checkout del codi
-        uses: actions/checkout@v4
-
-      - name: 2. Configuració de Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: 3. Instal·lació de dependències del projecte (npm)
-        run: npm install
-
-      - name: 4. Compilació de l'aplicació per a macOS
-        run: npm run build:mac
-
-      - name: 5. Pujada dels artefactes de macOS
-        uses: actions/upload-artifact@v4
-        with:
-          name: GestorEsdeveniments-macOS-x64
-          path: dist/
---- END OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.1.2/build-macos12.yml -- branca refactor/tech-sheet-form ---
-
---- START OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.1.2/build-win10.yml -- branca refactor/tech-sheet-form ---
-name: Compilar EXE per a Windows (Projecte Electron)
-
-on:
-  workflow_dispatch:
-    
-jobs:
-  build:
-    runs-on: windows-latest
-
-    steps:
-    # 1. Descarrega el codi del teu repositori
-    - name: Checkout del codi
-      uses: actions/checkout@v4
-
-    # 2. Configura l'entorn de Node.js per poder utilitzar npm
-    - name: Configuració de Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20' # Utilitzem una versió recent de Node.js
-
-    # 3. Instal·la totes les dependències del package.json
-    - name: Instal·lació de dependències del projecte
-      run: npm install
-
-    # 4. PAS CLAU: Executa el teu script "build:electron"
-    # Aquesta única comanda s'encarrega de compilar el teu codi React i empaquetar-lo amb Electron.
-    # Els paràmetres --win --x64 asseguren que es construeixi per a Windows 64-bit.
-    - name: Compilació i empaquetat de l'aplicació
-      run: npm run build:electron -- --win --x64 --publish never
-
-    # 5. Puja l'arxiu .exe que es genera a la carpeta 'dist' com a resultat
-    - name: Pujada de l'executable com a artefacte
-      uses: actions/upload-artifact@v4
-      with:
-        name: GestorEsdeveniments-Windows-Installer
-        # El teu package.json confirma que la sortida és a la carpeta 'dist'.
-        # L'asterisc (*) ajuda a trobar l'arxiu encara que el nom complet variï.
-        path: dist/*.exe
---- END OF FILE: ../Gestor-Events_i_Personal/.github/BACKUP workflows/workflows v0.1.2/build-win10.yml -- branca refactor/tech-sheet-form ---
-
---- START OF FILE: ../Gestor-Events_i_Personal/examples json/example_all .json -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/examples json/example_all .json -- branca Jules-dev ---
 {
   "peopleGroups": [
     {
@@ -15806,9 +15790,9 @@ jobs:
     }
   ]
 }
---- END OF FILE: ../Gestor-Events_i_Personal/examples json/example_all .json -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/examples json/example_all .json -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/examples json/example_material.json -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/examples json/example_material.json -- branca Jules-dev ---
 {
   "materialItems": [
     {
@@ -15886,9 +15870,9 @@ jobs:
   ]
 }
 
---- END OF FILE: ../Gestor-Events_i_Personal/examples json/example_material.json -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/examples json/example_material.json -- branca Jules-dev ---
 
---- START OF FILE: ../Gestor-Events_i_Personal/examples json/example_person.json -- branca refactor/tech-sheet-form ---
+--- START OF FILE: ../Gestor-Events_i_Personal/examples json/example_person.json -- branca Jules-dev ---
 {
   "peopleGroups": [
     {
@@ -15943,5 +15927,5 @@ jobs:
     }
   ]
 }
---- END OF FILE: ../Gestor-Events_i_Personal/examples json/example_person.json -- branca refactor/tech-sheet-form ---
+--- END OF FILE: ../Gestor-Events_i_Personal/examples json/example_person.json -- branca Jules-dev ---
 

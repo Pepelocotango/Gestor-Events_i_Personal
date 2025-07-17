@@ -306,6 +306,7 @@ function createWindow() {
         { type: 'separator' },
         { label: 'Carregar Persones', click: () => mainWindow.webContents.send('menu-action', 'load-people') },
         { label: 'Guardar Persones', click: () => mainWindow.webContents.send('menu-action', 'save-people') },
+        { label: 'Guardar Material', click: () => mainWindow.webContents.send('menu-action', 'save-material') },
         { type: 'separator' },
         {
           label: 'Configuració Google Calendar',

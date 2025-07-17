@@ -353,7 +353,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (window.electronAPI) {
-      window.electronAPI.onMenuAction((action) => {
+      const cleanup = window.electronAPI.onMenuAction((action) => {
         switch (action) {
           case 'load-all':
             controlsRef.current?.triggerLoadFile();
@@ -373,6 +373,9 @@ const App: React.FC = () => {
           case 'save-people':
             controlsRef.current?.handleSaveData('people');
             break;
+          case 'save-material':
+            controlsRef.current?.handleSaveData('material');
+            break;
           case 'sync-google':
             syncWithGoogle();
             break;
@@ -389,6 +392,8 @@ const App: React.FC = () => {
             break;
         }
       });
+
+      return cleanup;
     }
   }, [syncWithGoogle, openModal, toggleTheme]);
 
