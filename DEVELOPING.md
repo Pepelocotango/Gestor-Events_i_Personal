@@ -8,6 +8,24 @@
  # NOTES DE DESENVOLUPAMENT #
 ---
 
+## Canvis Recents
+
+### Arreglar Errors de Compilació de TypeScript
+
+S'han solucionat una sèrie d'errors de compilació de TypeScript que impedien que el projecte es construís correctament. Els canvis inclouen:
+
+*   **`src/types.ts`**:
+    *   S'ha afegit la propietat opcional `newData` a la interfície `ModalData`. Aquesta propietat és un array de `PersonGroup` o `MaterialItem` i s'utilitza per passar dades al modal `mergeOrReplace`.
+
+*   **`src/App.tsx`**:
+    *   S'han afegit comprovacions de nul·litat i conversions de tipus per garantir que `modalState.data.newData` s'utilitzi de manera segura.
+    *   S'han afegit les importacions que faltaven per a `PersonGroup` i `MaterialItem`.
+
+*   **`src/components/Controls.tsx`**:
+    *   S'han eliminat les importacions i desestructuracions no utilitzades.
+
+---
+
 ## 🚀 **Millores a les Fitxes de Bolo i Documentació Tècnica (v0.3.x)** en desenvolupament!
 
 Aquesta versió introdueix una refactorització completa de la secció **"Fitxes de Bolo"**, passant d'un formulari simple a un sistema de gestió de personal tècnic flexible i una interfície d'usuari dinàmica.

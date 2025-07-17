@@ -6,7 +6,7 @@ import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction } from './types';
+import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { formatDateDMY } from './utils/dateFormat';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
@@ -567,18 +567,18 @@ const App: React.FC = () => {
             onClose={closeModal}
             itemType={modalState.data!.itemType!}
             onMerge={() => {
-              if (modalState.data?.itemType === 'persones') {
-                contextValue.mergePeopleGroups(modalState.data.newData);
-              } else if (modalState.data?.itemType === 'material') {
-                contextValue.addMaterialItemsFromFile(modalState.data.newData);
+              if (modalState.data?.itemType === 'persones' && modalState.data.newData) {
+                contextValue.mergePeopleGroups(modalState.data.newData as PersonGroup[]);
+              } else if (modalState.data?.itemType === 'material' && modalState.data.newData) {
+                contextValue.addMaterialItemsFromFile(modalState.data.newData as MaterialItem[]);
               }
               closeModal();
             }}
             onReplace={() => {
-              if (modalState.data?.itemType === 'persones') {
-                contextValue.replacePeopleGroups(modalState.data.newData);
-              } else if (modalState.data?.itemType === 'material') {
-                contextValue.replaceMaterialItems(modalState.data.newData);
+              if (modalState.data?.itemType === 'persones' && modalState.data.newData) {
+                contextValue.replacePeopleGroups(modalState.data.newData as PersonGroup[]);
+              } else if (modalState.data?.itemType === 'material' && modalState.data.newData) {
+                contextValue.replaceMaterialItems(modalState.data.newData as MaterialItem[]);
               }
               closeModal();
             }}
