@@ -48,6 +48,7 @@ interface ElectronAPI {
   onDevModeQuitAfterReset: (callback: () => void) => (() => void) | undefined;
   showLoadingOverlay: (callback: (event: any, message: string) => void) => (() => void) | undefined;
   hideLoadingOverlay: (callback: () => void) => (() => void) | undefined;
+  onMenuAction: (callback: (action: string) => void) => void;
 }
 
 declare global {
@@ -76,6 +77,8 @@ const App: React.FC = () => {
   const [filterToShowEventFrameId, setFilterToShowEventFrameId] = useState<string | null>(null);
   const [currentlyDisplayedFrames, setCurrentlyDisplayedFrames] = useState<EventFrame[]>([]);
   const [filterUIPerson, setFilterUIPerson] = useState<string>('');
+
+  const controlsRef = useRef<any>(null);
 
   // --- 2. FUNCIONS D'AJUDA (useCallback) ---
   const clearToastMessage = (toastId: string) => {
@@ -347,6 +350,47 @@ const App: React.FC = () => {
     return `llista_${eventName}-${personName}-${status}-${textFilter}-${formattedDate}-${location}.csv`;
   };
 
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.onMenuAction((action) => {
+        switch (action) {
+          case 'load-all':
+            controlsRef.current?.triggerLoadFile();
+            break;
+          case 'save-all':
+            controlsRef.current?.handleSaveData('all');
+            break;
+          case 'load-material':
+            controls.current?.triggerLoadMaterialFile();
+            break;
+          case 'hard-reset':
+            controlsRef.current?.handleRequestHardReset();
+            break;
+          case 'load-people':
+            controlsRef.current?.triggerLoadPeopleFile();
+            break;
+          case 'save-people':
+            controlsRef.current?.handleSaveData('people');
+            break;
+          case 'sync-google':
+            syncWithGoogle();
+            break;
+          case 'config-google':
+            openModal('googleSettings');
+            break;
+          case 'connect-google':
+            controlsRef.current?.handleConnectGoogle();
+            break;
+          case 'toggle-theme':
+            toggleTheme();
+            break;
+          default:
+            break;
+        }
+      });
+    }
+  }, [syncWithGoogle, openModal, toggleTheme]);
+
   const handleExportCurrentViewToCsv = () => {
     const dataToExport: SummaryRow[] = [];
 
@@ -566,6 +610,7 @@ const App: React.FC = () => {
             <div className="container mx-auto px-4">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
+                  ref={controlsRef}
                   theme={theme}
                   toggleTheme={toggleTheme}
                   onOpenModal={openModal}

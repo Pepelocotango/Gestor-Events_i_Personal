@@ -298,7 +298,28 @@ function createWindow() {
   const template = [
     {
       label: 'Arxiu',
-      submenu: [{ label: 'Sortir', accelerator: 'CmdOrCtrl+Q', click: () => { app.quit(); } }]
+      submenu: [
+        { label: 'Carregar Tot', click: () => mainWindow.webContents.send('menu-action', 'load-all') },
+        { label: 'Guardar Tot', click: () => mainWindow.webContents.send('menu-action', 'save-all') },
+        { label: 'Carregar Material', click: () => mainWindow.webContents.send('menu-action', 'load-material') },
+        { label: 'Començar de Zero', click: () => mainWindow.webContents.send('menu-action', 'hard-reset') },
+        { type: 'separator' },
+        { label: 'Carregar Persones', click: () => mainWindow.webContents.send('menu-action', 'load-people') },
+        { label: 'Guardar Persones', click: () => mainWindow.webContents.send('menu-action', 'save-people') },
+        { type: 'separator' },
+        {
+          label: 'Configuració Google Calendar',
+          submenu: [
+            { label: 'Sincronitzar', click: () => mainWindow.webContents.send('menu-action', 'sync-google') },
+            { label: 'Configurar', click: () => mainWindow.webContents.send('menu-action', 'config-google') },
+            { label: 'Connectar amb Google', click: () => mainWindow.webContents.send('menu-action', 'connect-google') },
+          ]
+        },
+        { type: 'separator' },
+        { label: 'Tema Clar/Fosc', click: () => mainWindow.webContents.send('menu-action', 'toggle-theme') },
+        { type: 'separator' },
+        { label: 'Sortir', accelerator: 'CmdOrCtrl+Q', click: () => { app.quit(); } }
+      ]
     },
     {
       label: 'Veure',
