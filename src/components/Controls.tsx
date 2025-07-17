@@ -37,6 +37,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   const materialFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
+    console.log('[UI] Iniciant càrrega de fitxer:', { tipus: 'tot' });
     const file = event.target.files?.[0];
     if (!file) return;
     const fileName = file.name;
@@ -82,6 +83,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   };
 
   const handleLoadPeopleData = (event: ChangeEvent<HTMLInputElement>) => {
+    console.log('[UI] Iniciant càrrega de fitxer:', { tipus: 'persones' });
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -124,6 +126,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   };
 
   const handleLoadMaterialData = (event: ChangeEvent<HTMLInputElement>) => {
+    console.log('[UI] Iniciant càrrega de fitxer:', { tipus: 'material' });
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -196,6 +199,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   };
   // <<< NOU FLUX PER AL RESET >>>
   const handleConnectGoogle = async () => {
+    console.log('[UI] Iniciant flux d\'autenticació amb Google.');
     if (window.electronAPI) {
       const result = await window.electronAPI.startGoogleAuth();
       if (result.success) {

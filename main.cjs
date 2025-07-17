@@ -394,7 +394,7 @@ ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
 });
 
 ipcMain.handle('load-app-data', async () => {
-  console.log("IPC: Rebut 'load-app-data'.");
+  console.log("[IPC_IN] Rebut 'load-app-data'.");
   if (!DATA_FILE) {
     console.error("LOGIC ERROR: DATA_FILE no està definit.");
     return null;
@@ -415,7 +415,7 @@ ipcMain.handle('load-app-data', async () => {
 });
 
 ipcMain.handle('save-app-data', (event, data) => {
-  console.log("IPC: Rebut 'save-app-data'.");
+  console.log("[IPC_IN] Rebut 'save-app-data'.");
   const success = saveDataWithErrorHandling(DATA_FILE, data);
   console.log(`Resultat de 'save-app-data': ${success ? 'ÈXIT' : 'FALLADA'}`);
   return success;
@@ -423,7 +423,7 @@ ipcMain.handle('save-app-data', (event, data) => {
 
 
 ipcMain.handle('sync-with-google', async (event, localData) => {
-  console.log("IPC: Iniciant 'sync-with-google'.");
+  console.log("[IPC_IN] Iniciant 'sync-with-google'.");
   if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
     console.error("SYNC ERROR: No autenticat amb Google.");
     return { success: false, message: 'No autenticat amb Google.' };
@@ -502,7 +502,7 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
 });
 
 ipcMain.handle('google-auth-start', async () => {
-  console.log("IPC: Iniciant 'google-auth-start'.");
+  console.log("[IPC_IN] Iniciant 'google-auth-start'.");
   if (!googleAuthClient) {
     console.error("AUTH ERROR: googleAuthClient no inicialitzat.");
     return { success: false, message: "El client d'autenticació de Google no s'ha iniciat correctament." };
@@ -584,10 +584,12 @@ ipcMain.handle('google-auth-start', async () => {
 });
 
 ipcMain.handle('load-google-config', async () => {
+  console.log("[IPC_IN] Rebut 'load-google-config'.");
   return loadGoogleConfigFromFile();
 });
 
 ipcMain.handle('save-google-config', (event, config) => {
+  console.log("[IPC_IN] Rebut 'save-google-config'.");
   try {
     fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
     return { success: true };
@@ -598,6 +600,7 @@ ipcMain.handle('save-google-config', (event, config) => {
 });
 
 ipcMain.handle('google-get-calendar-list', async () => {
+  console.log("[IPC_IN] Rebut 'google-get-calendar-list'.");
   try {
     if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
         throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
@@ -620,7 +623,7 @@ ipcMain.handle('google-get-calendar-list', async () => {
 });
 
 ipcMain.handle('get-google-events', async () => {
-  console.log("IPC: Rebut 'get-google-events'.");
+  console.log("[IPC_IN] Rebut 'get-google-events'.");
   try {
     const config = loadGoogleConfigFromFile();
     if (!config?.selectedCalendarIds?.length) {
@@ -682,6 +685,7 @@ ipcMain.handle('get-google-events', async () => {
 
 
 ipcMain.handle('clear-google-app-calendar', async () => {
+  console.log("[IPC_IN] Rebut 'clear-google-app-calendar'.");
   if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
     return { success: false, message: 'No autenticat amb Google.' };
   }
@@ -773,6 +777,7 @@ process.on('uncaughtException', (error) => {
 
 // <<< FUNCIÓ MODIFICADA >>>
 ipcMain.handle('perform-hard-reset', async () => {
+  console.log("[IPC_IN] Rebut 'perform-hard-reset'.");
   console.log("Iniciant Reset de Fàbrica...");
   
   let success = true;
@@ -815,6 +820,7 @@ ipcMain.handle('perform-hard-reset', async () => {
 });
 
 ipcMain.handle('get-default-data-path', () => {
+  console.log("[IPC_IN] Rebut 'get-default-data-path'.");
   if (DATA_FILE) {
     return getRelativePath(DATA_FILE);
   }
