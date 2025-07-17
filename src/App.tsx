@@ -95,10 +95,12 @@ const App: React.FC = () => {
   }, []);
 
   const openModal = useCallback((type: ModalType, data?: ModalData | InitialEventFrameData) => {
+    console.log('[UI] Obrint modal:', { type, data });
     setModalState({ type, data: data as ModalData | null });
   }, []);
 
   const closeModal = () => {
+    console.log('[UI] Tancant modal.');
     setModalState({ type: null, data: null });
   };
 
