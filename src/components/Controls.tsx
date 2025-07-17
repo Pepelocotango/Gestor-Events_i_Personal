@@ -17,7 +17,9 @@ interface ControlsProps {
   setCurrentDataPath: (path: string) => void;
   }
 
-const Controls: React.FC<ControlsProps> = ({
+import { forwardRef, useImperativeHandle } from 'react';
+
+const Controls = forwardRef<any, ControlsProps>(({
     theme,
     toggleTheme,
     onOpenModal,
@@ -27,7 +29,7 @@ const Controls: React.FC<ControlsProps> = ({
     isSyncing,
     currentDataPath,
     setCurrentDataPath
-}) => {
+}, ref) => {
 
   const { loadData, exportData, setHasUnsavedChanges, addMaterialItemsFromFile } = useEventData();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,6 +148,7 @@ const Controls: React.FC<ControlsProps> = ({
   const triggerLoadFile = () => fileInputRef.current?.click();
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
   const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
+
   const handleSaveData = (type: 'all' | 'people') => {
     try {
       const dataToSave = type === 'all' ? exportData() : { peopleGroups: exportData().peopleGroups };
@@ -172,6 +175,28 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   // <<< NOU FLUX PER AL RESET >>>
+  const handleConnectGoogle = async () => {
+    if (window.electronAPI) {
+      const result = await window.electronAPI.startGoogleAuth();
+      if (result.success) {
+        showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
+      } else {
+        showToast(result.message || 'No s\'ha pogut iniciar l\'autenticació.', 'error');
+      }
+    } else {
+      showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    triggerLoadFile,
+    handleSaveData,
+    triggerLoadMaterialFile,
+    handleRequestHardReset,
+    triggerLoadPeopleFile,
+    handleConnectGoogle,
+  }));
+
   const handleRequestHardReset = () => {
     onOpenModal('confirmHardReset', {
       titleOverride: "Confirmar Reset de Fàbrica",
@@ -277,18 +302,7 @@ const Controls: React.FC<ControlsProps> = ({
                 <GoogleIcon /> Configurar
             </button>
             <button
-                onClick={async () => {
-                  if (window.electronAPI) {
-                    const result = await window.electronAPI.startGoogleAuth();
-                    if (result.success) {
-                      showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
-                    } else {
-                      showToast(result.message || 'No s\'ha pogut iniciar l\'autenticació.', 'error');
-                    }
-                  } else {
-                    showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
-                  }
-                }}
+                onClick={handleConnectGoogle}
                 className="flex items-center justify-center gap-2 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-3 rounded-md transition-colors text-sm border border-gray-300"
                 title="Connectar amb Google Calendar"
             >

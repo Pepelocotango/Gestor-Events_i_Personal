@@ -38,4 +38,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('hide-loading-overlay', handler);
     return () => ipcRenderer.removeListener('hide-loading-overlay', handler);
   },
+
+  // Menu actions
+  onMenuAction: (callback) => ipcRenderer.on('menu-action', (event, action) => callback(action)),
 });
