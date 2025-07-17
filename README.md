@@ -113,3 +113,7 @@ Aquest projecte està sota la llicència MIT.
 > SOFTWARE.
 
 ---
+
+## Desenvolupament
+
+Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](developing.md) per obtenir informació sobre com configurar l'entorn i entendre els canvis recents.

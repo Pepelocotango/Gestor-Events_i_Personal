@@ -1,6 +1,6 @@
 import { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
-import { PersonGroup, ModalType, ShowToastFunction, MaterialItem } from '../types';
+import { PersonGroup, ModalType, ShowToastFunction } from '../types';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 
@@ -31,7 +31,7 @@ const Controls = forwardRef<any, ControlsProps>(({
     setCurrentDataPath
 }, ref) => {
 
-  const { loadData, exportData, setHasUnsavedChanges, addMaterialItemsFromFile } = useEventData();
+  const { loadData, exportData, setHasUnsavedChanges } = useEventData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const peopleFileInputRef = useRef<HTMLInputElement>(null);
   const materialFileInputRef = useRef<HTMLInputElement>(null);

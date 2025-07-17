@@ -177,6 +177,7 @@ export interface ModalData {
     cancelButtonText?: string;
     onCloseModal?: () => void;
     titleOverride?: string;
+    newData?: PersonGroup[] | MaterialItem[];
 }
 
 export interface ModalState {
