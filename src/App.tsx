@@ -50,6 +50,7 @@ interface ElectronAPI {
   showLoadingOverlay: (callback: (event: any, message: string) => void) => (() => void) | undefined;
   hideLoadingOverlay: (callback: () => void) => (() => void) | undefined;
   onMenuAction: (callback: (action: string) => void) => void;
+  log: (message: string, data?: any) => void;
 }
 
 declare global {
