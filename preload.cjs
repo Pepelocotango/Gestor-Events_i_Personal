@@ -46,5 +46,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => {
       ipcRenderer.removeListener('menu-action', handler);
     };
-  }
+  },
+  log: (message, data) => ipcRenderer.send('log-message', message, data)
 });

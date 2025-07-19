@@ -393,6 +393,10 @@ ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
   }, 500); // Un petit temps de marge per si de cas
 });
 
+ipcMain.on('log-message', (event, message, data) => {
+  logToFile(`[FRONTEND] ${message}`, data);
+});
+
 ipcMain.handle('load-app-data', async () => {
   console.log("[IPC_IN] Rebut 'load-app-data'.");
   if (!DATA_FILE) {

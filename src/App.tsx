@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
-
+import logger from './utils/logger';
 import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
 import { THEME_STORAGE_KEY } from './constants';
@@ -95,12 +95,12 @@ const App: React.FC = () => {
   }, []);
 
   const openModal = useCallback((type: ModalType, data?: ModalData | InitialEventFrameData) => {
-    console.log('[UI] Obrint modal:', { type, data });
+    logger.info('[UI] Obrint modal', { type, data });
     setModalState({ type, data: data as ModalData | null });
   }, []);
 
   const closeModal = () => {
-    console.log('[UI] Tancant modal.');
+    logger.info('[UI] Tancant modal.');
     setModalState({ type: null, data: null });
   };
 
@@ -123,7 +123,7 @@ const App: React.FC = () => {
   }, [hasUnsavedChanges]);
   
   // --- INICI DELS ALTRES EFECTES I FUNCIONS ---
-  console.log('App.tsx - RE-RENDER. modalState:', modalState.type, modalState.data);
+  logger.info('App.tsx - RE-RENDER', { modalType: modalState.type, modalData: modalState.data });
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
@@ -242,10 +242,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const attemptInitialLoad = async () => {
-      console.log('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
+      logger.info('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
       if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
         try {
-          console.log("Intentant carregar dades de l'aplicació via Electron...");
+          logger.info("Intentant carregar dades de l'aplicació via Electron...");
           const data = await window.electronAPI.loadAppData();
           loadDataFromManager(data);
           setHasUnsavedChanges(false); // Important: la càrrega inicial no són "canvis no desats"
@@ -286,17 +286,17 @@ const App: React.FC = () => {
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
       const handleQuit = async () => {
-        console.log("Renderer va rebre el senyal 'confirm-quit-signal'");
+        logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
         try {
           if (hasUnsavedChangesRef.current) { // Utilitza la referència
             const dataToSave = exportDataFromManager();
-            console.log("Renderer: Desant dades abans de sortir...");
+            logger.info("Renderer: Desant dades abans de sortir...");
             await window.electronAPI?.saveAppData?.(dataToSave);
           } else {
-            console.log("Renderer: No hi ha canvis per desar.");
+            logger.info("Renderer: No hi ha canvis per desar.");
           }
         } catch (error) {
-          console.error("Renderer: Excepció durant el desat en sortir:", error);
+          logger.error("Renderer: Excepció durant el desat en sortir:", error);
         } finally {
           window.electronAPI?.sendQuitConfirmedByRenderer?.();
         }
