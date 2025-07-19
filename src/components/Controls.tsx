@@ -1,6 +1,7 @@
 import { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
+import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 
@@ -37,7 +38,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   const materialFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
-    console.log('[UI] Iniciant càrrega de fitxer:', { tipus: 'tot' });
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'tot' });
     const file = event.target.files?.[0];
     if (!file) return;
     const fileName = file.name;
@@ -83,7 +84,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   };
 
   const handleLoadPeopleData = (event: ChangeEvent<HTMLInputElement>) => {
-    console.log('[UI] Iniciant càrrega de fitxer:', { tipus: 'persones' });
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'persones' });
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -126,7 +127,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   };
 
   const handleLoadMaterialData = (event: ChangeEvent<HTMLInputElement>) => {
-    console.log('[UI] Iniciant càrrega de fitxer:', { tipus: 'material' });
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'material' });
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -199,7 +200,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   };
   // <<< NOU FLUX PER AL RESET >>>
   const handleConnectGoogle = async () => {
-    console.log('[UI] Iniciant flux d\'autenticació amb Google.');
+    logger.info('[UI] Iniciant flux d\'autenticació amb Google.');
     if (window.electronAPI) {
       const result = await window.electronAPI.startGoogleAuth();
       if (result.success) {

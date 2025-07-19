@@ -107,6 +107,19 @@ Aquest fitxer concentra la major part de la lògica de la nova funcionalitat.
   - Tots els missatges de log es mostren també per consola.
 - **Codi relacionat:** Bloc de codi al principi de `main.cjs` (comentari: `// --- LOGS DE SESSIÓ PER DESENVOLUPAMENT ---`).
 
+### Unificació de Logs del Frontend i Backend
+
+- **Objectiu:** Centralitzar tots els logs de l'aplicació (tant del procés principal d'Electron com del frontend de React) en un únic fitxer de log per sessió.
+- **Funcionament:**
+  1.  **`preload.cjs`**: Exposa una funció `log` a través de `contextBridge`.
+  2.  **`src/utils/logger.ts`**: Un nou servei de logging al frontend que envia missatges al backend a través de l'API exposada i, alhora, els mostra a la consola del navegador per a la depuració en temps real.
+  3.  **`main.cjs`**: Escolta els missatges de log del frontend a través del canal IPC `log-message` i els escriu al mateix fitxer de log de la sessió, prefixant-los amb `[FRONTEND]`.
+- **Codi relacionat:**
+  - `preload.cjs`: `contextBridge.exposeInMainWorld('electronAPI', { log: ... })`
+  - `main.cjs`: `ipcMain.on('log-message', ...)`
+  - `src/utils/logger.ts`: Nou fitxer de servei de logging.
+  - Components de React refactoritzats per utilitzar `logger.info()` en lloc de `console.log()`.
+
 ### Backups automàtics
 
 - **Arxiu:** `main.cjs`
