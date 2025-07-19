@@ -20,12 +20,13 @@ function rotateLogs() {
 const sessionLogFile = path.join(LOGS_DIR, `app-${Date.now()}.log`);
 rotateLogs();
 function logToFile(...args) {
-  const formattedArgs = args.map(arg => {
+  const filteredArgs = args.filter(arg => arg !== undefined); // Línia clau: filtrem els undefined
+
+  const formattedArgs = filteredArgs.map(arg => {
     if (typeof arg === 'object' && arg !== null) {
-      // Clona l'objecte per evitar referències circulars en objectes d'Electron
       try {
         return JSON.stringify(arg, (key, value) => {
-          if (key.startsWith('_')) return undefined; // Omet propietats privades
+          if (key.startsWith('_')) return undefined;
           return value;
         }, 2);
       } catch {
@@ -34,6 +35,7 @@ function logToFile(...args) {
     }
     return String(arg);
   });
+
   const msg = `[${new Date().toISOString()}] ${formattedArgs.join(' ')}\n`;
   fs.appendFileSync(sessionLogFile, msg);
   process.stdout.write(msg);
