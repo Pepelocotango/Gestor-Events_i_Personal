@@ -1,7 +1,7 @@
 === PROJECTE CONCATENAT ===
 Projecte: Gestor-Events_i_Personal
 Branca: Jules-dev
-Generat el: dijous, 17 de juliol de 2025, 14:20:50 CEST
+Generat el: diumenge, 20 de juliol de 2025, 22:34:30 CEST
 ==================================================
 
 --- START OF FILE: ../Gestor-Events_i_Personal/package.json -- branca Jules-dev ---
@@ -8066,12 +8066,13 @@ function rotateLogs() {
 const sessionLogFile = path.join(LOGS_DIR, `app-${Date.now()}.log`);
 rotateLogs();
 function logToFile(...args) {
-  const formattedArgs = args.map(arg => {
+  const filteredArgs = args.filter(arg => arg !== undefined); // Línia clau: filtrem els undefined
+
+  const formattedArgs = filteredArgs.map(arg => {
     if (typeof arg === 'object' && arg !== null) {
-      // Clona l'objecte per evitar referències circulars en objectes d'Electron
       try {
         return JSON.stringify(arg, (key, value) => {
-          if (key.startsWith('_')) return undefined; // Omet propietats privades
+          if (key.startsWith('_')) return undefined;
           return value;
         }, 2);
       } catch {
@@ -8080,6 +8081,7 @@ function logToFile(...args) {
     }
     return String(arg);
   });
+
   const msg = `[${new Date().toISOString()}] ${formattedArgs.join(' ')}\n`;
   fs.appendFileSync(sessionLogFile, msg);
   process.stdout.write(msg);
@@ -8352,6 +8354,7 @@ function createWindow() {
         { type: 'separator' },
         { label: 'Carregar Persones', click: () => mainWindow.webContents.send('menu-action', 'load-people') },
         { label: 'Guardar Persones', click: () => mainWindow.webContents.send('menu-action', 'save-people') },
+        { label: 'Guardar Material', click: () => mainWindow.webContents.send('menu-action', 'save-material') },
         { type: 'separator' },
         {
           label: 'Configuració Google Calendar',
@@ -8438,8 +8441,12 @@ ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
   }, 500); // Un petit temps de marge per si de cas
 });
 
+ipcMain.on('log-message', (event, message, data) => {
+  logToFile(`[FRONTEND] ${message}`, data);
+});
+
 ipcMain.handle('load-app-data', async () => {
-  console.log("IPC: Rebut 'load-app-data'.");
+  console.log("[IPC_IN] Rebut 'load-app-data'.");
   if (!DATA_FILE) {
     console.error("LOGIC ERROR: DATA_FILE no està definit.");
     return null;
@@ -8460,7 +8467,7 @@ ipcMain.handle('load-app-data', async () => {
 });
 
 ipcMain.handle('save-app-data', (event, data) => {
-  console.log("IPC: Rebut 'save-app-data'.");
+  console.log("[IPC_IN] Rebut 'save-app-data'.");
   const success = saveDataWithErrorHandling(DATA_FILE, data);
   console.log(`Resultat de 'save-app-data': ${success ? 'ÈXIT' : 'FALLADA'}`);
   return success;
@@ -8468,7 +8475,7 @@ ipcMain.handle('save-app-data', (event, data) => {
 
 
 ipcMain.handle('sync-with-google', async (event, localData) => {
-  console.log("IPC: Iniciant 'sync-with-google'.");
+  console.log("[IPC_IN] Iniciant 'sync-with-google'.");
   if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
     console.error("SYNC ERROR: No autenticat amb Google.");
     return { success: false, message: 'No autenticat amb Google.' };
@@ -8547,7 +8554,7 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
 });
 
 ipcMain.handle('google-auth-start', async () => {
-  console.log("IPC: Iniciant 'google-auth-start'.");
+  console.log("[IPC_IN] Iniciant 'google-auth-start'.");
   if (!googleAuthClient) {
     console.error("AUTH ERROR: googleAuthClient no inicialitzat.");
     return { success: false, message: "El client d'autenticació de Google no s'ha iniciat correctament." };
@@ -8629,10 +8636,12 @@ ipcMain.handle('google-auth-start', async () => {
 });
 
 ipcMain.handle('load-google-config', async () => {
+  console.log("[IPC_IN] Rebut 'load-google-config'.");
   return loadGoogleConfigFromFile();
 });
 
 ipcMain.handle('save-google-config', (event, config) => {
+  console.log("[IPC_IN] Rebut 'save-google-config'.");
   try {
     fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
     return { success: true };
@@ -8643,6 +8652,7 @@ ipcMain.handle('save-google-config', (event, config) => {
 });
 
 ipcMain.handle('google-get-calendar-list', async () => {
+  console.log("[IPC_IN] Rebut 'google-get-calendar-list'.");
   try {
     if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
         throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
@@ -8665,7 +8675,7 @@ ipcMain.handle('google-get-calendar-list', async () => {
 });
 
 ipcMain.handle('get-google-events', async () => {
-  console.log("IPC: Rebut 'get-google-events'.");
+  console.log("[IPC_IN] Rebut 'get-google-events'.");
   try {
     const config = loadGoogleConfigFromFile();
     if (!config?.selectedCalendarIds?.length) {
@@ -8727,6 +8737,7 @@ ipcMain.handle('get-google-events', async () => {
 
 
 ipcMain.handle('clear-google-app-calendar', async () => {
+  console.log("[IPC_IN] Rebut 'clear-google-app-calendar'.");
   if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
     return { success: false, message: 'No autenticat amb Google.' };
   }
@@ -8818,6 +8829,7 @@ process.on('uncaughtException', (error) => {
 
 // <<< FUNCIÓ MODIFICADA >>>
 ipcMain.handle('perform-hard-reset', async () => {
+  console.log("[IPC_IN] Rebut 'perform-hard-reset'.");
   console.log("Iniciant Reset de Fàbrica...");
   
   let success = true;
@@ -8860,6 +8872,7 @@ ipcMain.handle('perform-hard-reset', async () => {
 });
 
 ipcMain.handle('get-default-data-path', () => {
+  console.log("[IPC_IN] Rebut 'get-default-data-path'.");
   if (DATA_FILE) {
     return getRelativePath(DATA_FILE);
   }
@@ -8918,9 +8931,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Menu actions
-  onMenuAction: (callback) => ipcRenderer.on('menu-action', (event, action) => callback(action)),
+  onMenuAction: (callback) => {
+    const handler = (event, action) => callback(action);
+    ipcRenderer.on('menu-action', handler);
+    return () => {
+      ipcRenderer.removeListener('menu-action', handler);
+    };
+  },
+  log: (message, data) => ipcRenderer.send('log-message', message, data)
 });
-
 --- END OF FILE: ../Gestor-Events_i_Personal/preload.cjs -- branca Jules-dev ---
 
 --- START OF FILE: ../Gestor-Events_i_Personal/index.html -- branca Jules-dev ---
@@ -9067,7 +9086,7 @@ Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](dev
 --- END OF FILE: ../Gestor-Events_i_Personal/README.md -- branca Jules-dev ---
 
 --- START OF FILE: ../Gestor-Events_i_Personal/DEVELOPING.md -- branca Jules-dev ---
-### NOVA BRANCA DESENVOLUPAMENT -->DEV
+### NOVA BRANCA DESENVOLUPAMENT --> Jules-dev
 
 ### `DEVELOPING.md`**
 
@@ -9175,6 +9194,19 @@ Aquest fitxer concentra la major part de la lògica de la nova funcionalitat.
   - Si hi ha més de 20 fitxers de log, s'esborren els més antics automàticament.
   - Tots els missatges de log es mostren també per consola.
 - **Codi relacionat:** Bloc de codi al principi de `main.cjs` (comentari: `// --- LOGS DE SESSIÓ PER DESENVOLUPAMENT ---`).
+
+### Unificació de Logs del Frontend i Backend
+
+- **Objectiu:** Centralitzar tots els logs de l'aplicació (tant del procés principal d'Electron com del frontend de React) en un únic fitxer de log per sessió.
+- **Funcionament:**
+  1.  **`preload.cjs`**: Exposa una funció `log` a través de `contextBridge`.
+  2.  **`src/utils/logger.ts`**: Un nou servei de logging al frontend que envia missatges al backend a través de l'API exposada i, alhora, els mostra a la consola del navegador per a la depuració en temps real.
+  3.  **`main.cjs`**: Escolta els missatges de log del frontend a través del canal IPC `log-message` i els escriu al mateix fitxer de log de la sessió, prefixant-los amb `[FRONTEND]`.
+- **Codi relacionat:**
+  - `preload.cjs`: `contextBridge.exposeInMainWorld('electronAPI', { log: ... })`
+  - `main.cjs`: `ipcMain.on('log-message', ...)`
+  - `src/utils/logger.ts`: Nou fitxer de servei de logging.
+  - Components de React refactoritzats per utilitzar `logger.info()` en lloc de `console.log()`.
 
 ### Backups automàtics
 
@@ -9594,7 +9626,7 @@ google-credentials.json
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
-
+import logger from './utils/logger';
 import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
 import { THEME_STORAGE_KEY } from './constants';
@@ -9643,6 +9675,7 @@ interface ElectronAPI {
   showLoadingOverlay: (callback: (event: any, message: string) => void) => (() => void) | undefined;
   hideLoadingOverlay: (callback: () => void) => (() => void) | undefined;
   onMenuAction: (callback: (action: string) => void) => void;
+  log: (message: string, data?: any) => void;
 }
 
 declare global {
@@ -9688,10 +9721,12 @@ const App: React.FC = () => {
   }, []);
 
   const openModal = useCallback((type: ModalType, data?: ModalData | InitialEventFrameData) => {
+    logger.info('[UI] Obrint modal', { type, data });
     setModalState({ type, data: data as ModalData | null });
   }, []);
 
   const closeModal = () => {
+    logger.info('[UI] Tancant modal.');
     setModalState({ type: null, data: null });
   };
 
@@ -9714,7 +9749,7 @@ const App: React.FC = () => {
   }, [hasUnsavedChanges]);
   
   // --- INICI DELS ALTRES EFECTES I FUNCIONS ---
-  console.log('App.tsx - RE-RENDER. modalState:', modalState.type, modalState.data);
+  logger.info('App.tsx - RE-RENDER', { modalType: modalState.type, modalData: modalState.data });
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
@@ -9833,10 +9868,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const attemptInitialLoad = async () => {
-      console.log('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
+      logger.info('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
       if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
         try {
-          console.log("Intentant carregar dades de l'aplicació via Electron...");
+          logger.info("Intentant carregar dades de l'aplicació via Electron...");
           const data = await window.electronAPI.loadAppData();
           loadDataFromManager(data);
           setHasUnsavedChanges(false); // Important: la càrrega inicial no són "canvis no desats"
@@ -9877,17 +9912,17 @@ const App: React.FC = () => {
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
       const handleQuit = async () => {
-        console.log("Renderer va rebre el senyal 'confirm-quit-signal'");
+        logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
         try {
           if (hasUnsavedChangesRef.current) { // Utilitza la referència
             const dataToSave = exportDataFromManager();
-            console.log("Renderer: Desant dades abans de sortir...");
+            logger.info("Renderer: Desant dades abans de sortir...");
             await window.electronAPI?.saveAppData?.(dataToSave);
           } else {
-            console.log("Renderer: No hi ha canvis per desar.");
+            logger.info("Renderer: No hi ha canvis per desar.");
           }
         } catch (error) {
-          console.error("Renderer: Excepció durant el desat en sortir:", error);
+          logger.error("Renderer: Excepció durant el desat en sortir:", error);
         } finally {
           window.electronAPI?.sendQuitConfirmedByRenderer?.();
         }
@@ -9946,7 +9981,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (window.electronAPI) {
-      window.electronAPI.onMenuAction((action) => {
+      const cleanup = window.electronAPI.onMenuAction((action) => {
         switch (action) {
           case 'load-all':
             controlsRef.current?.triggerLoadFile();
@@ -9966,6 +10001,9 @@ const App: React.FC = () => {
           case 'save-people':
             controlsRef.current?.handleSaveData('people');
             break;
+          case 'save-material':
+            controlsRef.current?.handleSaveData('material');
+            break;
           case 'sync-google':
             syncWithGoogle();
             break;
@@ -9982,6 +10020,8 @@ const App: React.FC = () => {
             break;
         }
       });
+
+      return cleanup;
     }
   }, [syncWithGoogle, openModal, toggleTheme]);
 
@@ -11194,6 +11234,32 @@ export const formatDateRanges = (dates: string[]): string => {
 
 --- END OF FILE: ../Gestor-Events_i_Personal/src/utils/dateRangeFormatter.ts -- branca Jules-dev ---
 
+--- START OF FILE: ../Gestor-Events_i_Personal/src/utils/logger.ts -- branca Jules-dev ---
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(message, data);
+    if (window.electronAPI && typeof window.electronAPI.log === 'function') {
+      window.electronAPI.log(message, data);
+    }
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(message, data);
+    if (window.electronAPI && typeof window.electronAPI.log === 'function') {
+      window.electronAPI.log(`[WARN] ${message}`, data);
+    }
+  },
+  error: (message: string, data?: any) => {
+    console.error(message, data);
+    if (window.electronAPI && typeof window.electronAPI.log === 'function') {
+      window.electronAPI.log(`[ERROR] ${message}`, data);
+    }
+  },
+};
+
+export default logger;
+
+--- END OF FILE: ../Gestor-Events_i_Personal/src/utils/logger.ts -- branca Jules-dev ---
+
 --- START OF FILE: ../Gestor-Events_i_Personal/src/utils/pdfGenerator.ts -- branca Jules-dev ---
 import jsPDF from 'jspdf';
 import { TechSheetData } from '../types';
@@ -11551,6 +11617,7 @@ export default AssignmentCard;
 import { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
+import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 
@@ -11587,6 +11654,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   const materialFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'tot' });
     const file = event.target.files?.[0];
     if (!file) return;
     const fileName = file.name;
@@ -11632,6 +11700,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   };
 
   const handleLoadPeopleData = (event: ChangeEvent<HTMLInputElement>) => {
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'persones' });
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -11674,6 +11743,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   };
 
   const handleLoadMaterialData = (event: ChangeEvent<HTMLInputElement>) => {
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'material' });
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -11704,10 +11774,26 @@ const Controls = forwardRef<any, ControlsProps>(({
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
   const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
 
-  const handleSaveData = (type: 'all' | 'people') => {
+  const handleSaveData = (type: 'all' | 'people' | 'material') => {
     try {
-      const dataToSave = type === 'all' ? exportData() : { peopleGroups: exportData().peopleGroups };
-      const filename = type === 'all' ? 'gestio_esdeveniments_dades.json' : 'persones_grups_dades.json';
+      let dataToSave: any;
+      let filename: string;
+
+      switch (type) {
+        case 'people':
+          dataToSave = { peopleGroups: exportData().peopleGroups };
+          filename = 'persones_grups_dades.json';
+          break;
+        case 'material':
+          dataToSave = { materialItems: exportData().materialItems };
+          filename = 'material_dades.json';
+          break;
+        case 'all':
+        default:
+          dataToSave = exportData();
+          filename = 'gestio_esdeveniments_dades.json';
+          break;
+      }
       const jsonString = JSON.stringify(dataToSave, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -11722,15 +11808,15 @@ const Controls = forwardRef<any, ControlsProps>(({
       if (type === 'all') {
         setHasUnsavedChanges(false);
       }
-      showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : 'persones'} desades correctament.`, 'success');
+      showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : type} desades correctament.`, 'success');
     } catch (error) {
       console.error(`Error saving ${type} data:`, error);
       showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');
     }
   };
-
   // <<< NOU FLUX PER AL RESET >>>
   const handleConnectGoogle = async () => {
+    logger.info('[UI] Iniciant flux d\'autenticació amb Google.');
     if (window.electronAPI) {
       const result = await window.electronAPI.startGoogleAuth();
       if (result.success) {
@@ -11829,6 +11915,9 @@ const Controls = forwardRef<any, ControlsProps>(({
                 <SaveIcon /> Guardar Persones
             </button>
             
+            <button onClick={() => handleSaveData('material')} className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Guardar només les dades de material">
+                <SaveIcon /> Guardar Material
+            </button>
         </div>
         
         <div className="flex items-center gap-2">
@@ -12013,6 +12102,7 @@ export default EventFrameCard;
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData, ShowToastFunction } from '../types';
 import { useEventData } from '../contexts/EventDataContext';
+import logger from '../utils/logger';
 import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, CsvIcon, ChevronUpIcon, ChevronDownIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -12355,7 +12445,7 @@ useEffect(() => {
                 {filterDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
             </div>
             <div className="flex-grow min-w-[150px]"><label htmlFor="filterPlace" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lloc</label><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></div>            <div className="flex items-center gap-2">
-                <button onClick={onExportCurrentViewToCsv} className="px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-sm">
+                <button onClick={() => { logger.info('[UI] Iniciant exportació de vista actual a CSV.'); onExportCurrentViewToCsv(); }} className="px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-sm">
                     <CsvIcon /> Exportar
                 </button>
                 <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame(''); setFilterToShowEventFrameId(null);}} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
@@ -14952,6 +15042,7 @@ export default Modal;
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
+import logger from '../utils/logger';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -15017,6 +15108,7 @@ export const useEventDataManager = (
   }, []);
 
   const addEventFrame = useCallback((newEventFrameData: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): EventFrame => {
+    logger.info('[ACTION] addEventFrame', { name: newEventFrameData.name });
     const newEventFrame: EventFrame = {
       ...newEventFrameData,
       id: generateId(),
@@ -15030,8 +15122,9 @@ export const useEventDataManager = (
   }, [markUnsaved]);
   
   const updateEventFrame = useCallback((updatedEventFrame: EventFrame) => {
+    logger.info('[ACTION] updateEventFrame', { id: updatedEventFrame.id, name: updatedEventFrame.name });
     if (!updatedEventFrame.techSheet) {
-      console.log(`Generant fitxa tècnica per a l'esdeveniment antic: ${updatedEventFrame.name}`);
+      logger.info(`Generant fitxa tècnica per a l'esdeveniment antic: ${updatedEventFrame.name}`);
       updatedEventFrame.techSheet = createDefaultTechSheet(updatedEventFrame);
     }
 
@@ -15055,6 +15148,7 @@ export const useEventDataManager = (
 
 
  const deleteEventFrame = useCallback((eventFrameId: string) => {
+    logger.info('[ACTION] deleteEventFrame', { id: eventFrameId });
     setEventFrames(prev => prev.filter(ef => ef.id !== eventFrameId));
 markUnsaved();
 }, [markUnsaved]);
@@ -15064,6 +15158,7 @@ markUnsaved();
   }, [eventFrames]);
 
   const addPersonGroup = useCallback((newPersonGroupData: Omit<PersonGroup, 'id'>) => {
+    logger.info('[ACTION] addPersonGroup', { name: newPersonGroupData.name });
     const newPersonGroup: PersonGroup = {
         id: generateId(),
         name: newPersonGroupData.name,
@@ -15079,6 +15174,7 @@ markUnsaved();
   }, [markUnsaved]);
 
   const updatePersonGroup = useCallback((updatedPersonGroup: PersonGroup) => {
+    logger.info('[ACTION] updatePersonGroup', { id: updatedPersonGroup.id, name: updatedPersonGroup.name });
     setPeopleGroups(prev => prev.map(pg => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg)
       .sort((a,b) => a.name.localeCompare(b.name))
     );
@@ -15086,6 +15182,7 @@ markUnsaved();
   }, [markUnsaved]);
 
   const deletePersonGroup = useCallback((personGroupId: string) => {
+    logger.info('[ACTION] deletePersonGroup', { id: personGroupId });
     setPeopleGroups(prev => prev.filter(pg => pg.id !== personGroupId));
     setEventFrames(prevFrames => prevFrames.map(ef => ({
       ...ef,
@@ -15095,17 +15192,20 @@ markUnsaved();
   }, [markUnsaved]);
 
   const addMaterialItem = useCallback((newItemData: Omit<MaterialItem, 'id'>) => {
+    logger.info('[ACTION] addMaterialItem', { name: newItemData.name });
     const newItem: MaterialItem = { ...newItemData, id: generateId() };
     setMaterialItems(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
   }, [markUnsaved]);
 
   const updateMaterialItem = useCallback((updatedItem: MaterialItem) => {
+    logger.info('[ACTION] updateMaterialItem', { id: updatedItem.id, name: updatedItem.name });
     setMaterialItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
   }, [markUnsaved]);
 
   const deleteMaterialItem = useCallback((itemId: string) => {
+    logger.info('[ACTION] deleteMaterialItem', { id: itemId });
     setMaterialItems(prev => prev.filter(item => item.id !== itemId));
     markUnsaved();
   }, [markUnsaved]);
@@ -15166,6 +15266,7 @@ markUnsaved();
   }, [markUnsaved, showToast]);
 
   const mergePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    logger.info('[ACTION] mergePeopleGroups', { count: newPeople.length });
     const existingNames = new Set(peopleGroupsRef.current.map(p => p.name.toLowerCase()));
     const peopleToAdd = newPeople.filter(p => !existingNames.has(p.name.toLowerCase()));
 
@@ -15180,12 +15281,14 @@ markUnsaved();
   }, [markUnsaved, showToast]);
 
   const replacePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    logger.info('[ACTION] replacePeopleGroups', { count: newPeople.length });
     setPeopleGroups(newPeople.sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
     showToast("La llista de persones ha estat reemplaçada.", 'success');
   }, [markUnsaved, showToast]);
 
   const replaceMaterialItems = useCallback((newItems: MaterialItem[]) => {
+    logger.info('[ACTION] replaceMaterialItems', { count: newItems.length });
     setMaterialItems(newItems.sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
     showToast("L'inventari de material ha estat reemplaçat.", 'success');
@@ -15196,6 +15299,7 @@ markUnsaved();
   }, [peopleGroups]);
 
   const addAssignment = useCallback((eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>): AssignmentOperationResult => {
+    logger.info('[ACTION] addAssignment', { eventFrameId: eventFrameId, personGroupId: newAssignmentData.personGroupId });
     const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
     if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
 
@@ -15244,6 +15348,7 @@ markUnsaved();
   }, [eventFrames, markUnsaved]);
 
   const updateAssignment = useCallback((updatedAssignment: Assignment, context?: { changedDate?: string }): AssignmentOperationResult => {
+    logger.info('[ACTION] updateAssignment', { id: updatedAssignment.id, eventFrameId: updatedAssignment.eventFrameId });
     let finalAssignment = { ...updatedAssignment };
     if (finalAssignment.status === AssignmentStatus.Mixed) {
       if (!finalAssignment.dailyStatuses) finalAssignment.dailyStatuses = {};
@@ -15307,6 +15412,7 @@ markUnsaved();
   }, [eventFrames, markUnsaved]);
 
   const deleteAssignment = useCallback((eventFrameId: string, assignmentId: string) => {
+    logger.info('[ACTION] deleteAssignment', { id: assignmentId, eventFrameId: eventFrameId });
     setEventFrames(prev => prev.map(ef =>
       ef.id === eventFrameId
         ? { ...ef, assignments: ef.assignments.filter(a => a.id !== assignmentId) }
@@ -15389,11 +15495,13 @@ markUnsaved();
    }, []);
 
   const setPersonnelComplete = useCallback((eventFrameId: string, complete: boolean) => {
+    logger.info('[ACTION] setPersonnelComplete', { eventFrameId, complete });
     setEventFrames(prev => prev.map(ef => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef));
     markUnsaved();
   }, [markUnsaved]);
 
   const syncWithGoogle = useCallback(async () => {
+    logger.info('[ACTION] Iniciant sincronització amb Google...');
     setIsSyncing(true);
     if (!window.electronAPI) {
         showToast('La sincronització només està disponible a l\'aplicació d\'escriptori.', 'warning');
