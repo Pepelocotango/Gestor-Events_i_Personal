@@ -31,19 +31,31 @@ module.exports = {
 
         // Estils per al tema clar
         '.fc': {
-          '--fc-today-bg-color': 'rgba(251, 191, 36, 0.2)',
           '.fc-daygrid-day': {
-            overflow: 'visible', // << CORRECCIÓ BUG VISUAL
+            overflow: 'visible',
           },
+        },
+        
+        // --- NOVES REGLES PER AL DIA D'AVUI (TEMA CLAR) ---
+        // Eliminem el fons de la cel·la: .fc-day-today { ... }
+        
+        '.fc-day-today .fc-daygrid-day-number': {
+          backgroundColor: theme('colors.gray.700'), // Cercle gris fosc
+          color: theme('colors.white'),
+          borderRadius: '50%',
+          width: '24px',
+          height: '24px',
+          display: 'flex', // <<< CENTRAT AMB FLEXBOX
+          alignItems: 'center', // <<< CENTRAT AMB FLEXBOX
+          justifyContent: 'center', // <<< CENTRAT AMB FLEXBOX
+          padding: '0', // <<< RESET DE PADDING
+          margin: '2px', // <<< AJUST DE MARGE
         },
 
         // Estils específics per al TEMA FOSC
         '.dark .fc': {
-          // Variables generals per a vistes que les respecten (com Agenda)
           '--fc-border-color': theme('colors.gray.600'),
-          '--fc-today-bg-color': 'rgba(234, 179, 8, 0.3)', // << CANVI DE COLOR
           
-          // Botons de la capçalera (prev, next, today, etc.)
           '.fc-button': {
             backgroundColor: theme('colors.gray.700'),
             color: theme('colors.gray.200'),
@@ -56,25 +68,17 @@ module.exports = {
             backgroundColor: theme('colors.blue.600'),
             borderColor: theme('colors.blue.600'),
           },
-
-          // Capçaleres dels dies (dl, dt, etc.)
           '.fc-col-header-cell-cushion': {
             color: theme('colors.gray.300'),
             textDecoration: 'none',
           },
-          
-          // <<< NOVA REGLA PER AL FONS DE LA CAPÇALERA >>>
           '.fc-col-header': {
             backgroundColor: theme('colors.gray.700'),
           },
-
-          // Números dels dies
           '.fc-daygrid-day-number': {
             color: theme('colors.gray.300'),
             textDecoration: 'none',
           },
-          
-          // Vista de llista
           '.fc-list-day-cushion': {
             backgroundColor: theme('colors.gray.700'),
           },
@@ -84,21 +88,24 @@ module.exports = {
           '.fc-list-table': {
             color: theme('colors.gray.300'),
           },
-
-          // === CORRECCIÓ ESPECÍFICA PER A MULTIMONTH ===
-          // Fons de cada sub-calendari
           '.fc-multimonth-month': {
              backgroundColor: theme('colors.gray.800'),
           },
-          // Fons de les cel·les dels dies
           '.fc-daygrid-day': {
              backgroundColor: theme('colors.gray.700'),
-             overflow: 'visible', // << CORRECCIÓ BUG VISUAL
+             overflow: 'visible',
           },
-          // Títol del mes (juny, juliol...)
           '.fc-multimonth-title': {
             color: theme('colors.gray.100'),
           },
+        },
+        
+        // --- NOVES REGLES PER AL DIA D'AVUI (TEMA FOSC) ---
+        // Eliminem el fons de la cel·la: .dark .fc-day-today { ... }
+
+        '.dark .fc-day-today .fc-daygrid-day-number': {
+           backgroundColor: theme('colors.gray.300'), // Cercle gris clar
+           color: theme('colors.gray.900'), // Text negre/fosc
         },
       });
     })
