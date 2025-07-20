@@ -4,7 +4,6 @@ import { useEventData } from '../contexts/EventDataContext';
 import logger from '../utils/logger';
 import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, CsvIcon, ChevronUpIcon, ChevronDownIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
-import { CalendarApi } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
