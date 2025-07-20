@@ -81,6 +81,7 @@ const App: React.FC = () => {
   const [filterUIPerson, setFilterUIPerson] = useState<string>('');
 
   const controlsRef = useRef<any>(null);
+  const mainDisplayRef = useRef<{ handleResize: () => void }>(null);
 
   // --- 2. FUNCIONS D'AJUDA (useCallback) ---
   const clearToastMessage = (toastId: string) => {
@@ -353,6 +354,12 @@ const App: React.FC = () => {
 
     return `llista_${eventName}-${personName}-${status}-${textFilter}-${formattedDate}-${location}.csv`;
   };
+
+  useEffect(() => {
+    if (toastState) {
+      mainDisplayRef.current?.handleResize();
+    }
+  }, [toastState]);
 
   useEffect(() => {
     if (window.electronAPI) {
@@ -669,6 +676,7 @@ const App: React.FC = () => {
                   path="/"
                   element={
                     <MainDisplay
+                      ref={mainDisplayRef}
                       openModal={openModal}
                       setToastMessage={showToast}
                       currentFilterHighlight={currentFilterHighlight}

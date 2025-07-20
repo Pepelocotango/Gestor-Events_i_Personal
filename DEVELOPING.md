@@ -357,7 +357,7 @@ Aquests fitxers defineixen el projecte, les seves dependències i com es constru
     *   **Altres utilitats**: `dateFormat.ts`, `statusUtils.ts` i `dateRangeFormatter.ts`.
 
 *   **Components de la Interfície (`src/components/`):**
-    *   **`MainDisplay.tsx`**: Orquestra la vista principal. Implementa la **lògica d'expansió automàtica** de la llista en aplicar filtres.
+- **`MainDisplay.tsx`**: Orquestra la vista principal. Implementa la **lògica d'expansió automàtica** de la llista en aplicar filtres. S'ha implementat una funció de redibuixat forçat per solucionar un bug visual amb les notificacions.
     *   **`Controls.tsx`**: Barra d'eines amb el botó "Sincronitzar", que mostra un estat de càrrega.
     *   **`EventFrameCard.tsx`**: Mostra la targeta de cada esdeveniment, incloent l'indicador de Google.
     *   **`AssignmentCard.tsx`**: Mostra la targeta de cada assignació amb la seva vista detallada per dies.
@@ -441,3 +441,12 @@ Per garantir que la compilació (`npm run build`) funcioni correctament encara q
 Això permet seleccionar el mode en que el projecte es compili sense errors per imports/tipus no utilitzats directament, mantenint la seguretat de tipus i la claredat del codi. *Si vols tornar a activar la comprovació estricta, només cal posar aquests valors a `true`.*
 
 ---
+
+### Solució de Bug de Renderitzat del Calendari
+
+S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
+
+La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
+
+- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar.
+- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.
