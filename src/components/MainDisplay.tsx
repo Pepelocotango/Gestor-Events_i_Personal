@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData, ShowToastFunction } from '../types';
 import { useEventData } from '../contexts/EventDataContext';
 import logger from '../utils/logger';
@@ -56,7 +56,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
   );
 };
 
-const MainDisplay: React.FC<MainDisplayProps> = ({
+const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps>(({
     openModal,
     setToastMessage,
     currentFilterHighlight,
@@ -66,9 +66,21 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
     setCurrentlyDisplayedFrames,
     onExportCurrentViewToCsv,
     setFilterUIPerson
-}) => {
-const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventData();
+}, ref) => {
+  const calendarRef = useRef<FullCalendar>(null);
+  const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventData();
   const [conflictDialog, setConflictDialog] = useState<{ message: string; personName: string | null } | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    handleResize: () => {
+      if (calendarRef.current) {
+        const calendarApi = calendarRef.current.getApi();
+        setTimeout(() => {
+          calendarApi.updateSize();
+        }, 50);
+      }
+    }
+  }));
 
   const [expandedEventFrameIds, setExpandedEventFrameIds] = useState<Set<string>>(new Set());
   const [expandedDailyViewAssignmentIds, setExpandedDailyViewAssignmentIds] = useState<Set<string>>(new Set());
@@ -91,8 +103,9 @@ const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFra
       .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
       .map(gEvent => ({
         ...gEvent,
-        backgroundColor: '#D32F2F',
-        borderColor: '#D32F2F',
+        // Utilitzem el color que ve de l'API de Google
+        backgroundColor: gEvent.backgroundColor,
+        borderColor: gEvent.borderColor,
         extendedProps: { ...gEvent.extendedProps, type: 'google' }
       }));
 
@@ -288,6 +301,7 @@ useEffect(() => {
       <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
         <div className="calendar-wrapper" style={{ padding: '0.5rem' }}>
           <FullCalendar
+                ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
                 initialView="multiMonth2"
                 views={{
@@ -390,6 +404,6 @@ useEffect(() => {
       {conflictDialog && <Modal isOpen={true} onClose={() => setConflictDialog(null)} title="Conflicte detectat"><p>{conflictDialog.message}</p><p><strong>Persona:</strong> {conflictDialog.personName}</p><button onClick={() => setConflictDialog(null)} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Tanca</button></Modal>}
     </div>
   );
-};
+});
 
 export default MainDisplay;
