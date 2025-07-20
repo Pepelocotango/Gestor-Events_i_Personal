@@ -448,7 +448,7 @@ S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (co
 
 La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
 
-- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar.
+- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar. S'ha eliminat la importació de `CalendarApi` que no s'utilitzava.
 - **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.
 
 ### Solució de Bug de Renderitzat del Calendari
