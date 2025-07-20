@@ -91,8 +91,9 @@ const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFra
       .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
       .map(gEvent => ({
         ...gEvent,
-        backgroundColor: '#D32F2F',
-        borderColor: '#D32F2F',
+        // Utilitzem el color que ve de l'API de Google
+        backgroundColor: gEvent.backgroundColor,
+        borderColor: gEvent.borderColor,
         extendedProps: { ...gEvent.extendedProps, type: 'google' }
       }));
 
