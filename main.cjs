@@ -472,9 +472,21 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
     console.log(`Pujant ${localFramesToUpload.length} esdeveniments locals al calendari de l'app...`);
     
     for (const localFrame of localFramesToUpload) {
+      // Funció auxiliar per obtenir noms de persones
+      const getPersonGroupById = (id) => localData.peopleGroups.find(p => p.id === id);
+
+      let assignmentsText = '';
+      if (localFrame.assignments && localFrame.assignments.length > 0) {
+        const assignmentsList = localFrame.assignments.map(a => {
+          const person = getPersonGroupById(a.personGroupId);
+          return `- ${person ? person.name : 'Desconegut'}: ${a.status}`;
+        }).join('\n');
+        assignmentsText = `\n\n--- ASSIGNACIONS ---\n${assignmentsList}`;
+      }
+
       const eventResource = {
         summary: localFrame.name,
-        description: localFrame.generalNotes || '',
+        description: `${localFrame.generalNotes || ''}${assignmentsText}`,
         location: localFrame.place || '',
         start: { date: localFrame.startDate },
         end: { date: addDaysISO(localFrame.endDate, 1) }, // La data de fi és exclusiva a l'API de Google

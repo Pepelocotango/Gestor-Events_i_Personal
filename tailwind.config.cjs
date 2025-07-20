@@ -29,11 +29,19 @@ module.exports = {
           color: theme('colors.white'),
         },
 
+        // Estils per al tema clar
+        '.fc': {
+          '--fc-today-bg-color': 'rgba(251, 191, 36, 0.2)',
+          '.fc-daygrid-day': {
+            overflow: 'visible', // << CORRECCIÓ BUG VISUAL
+          },
+        },
+
         // Estils específics per al TEMA FOSC
         '.dark .fc': {
           // Variables generals per a vistes que les respecten (com Agenda)
           '--fc-border-color': theme('colors.gray.600'),
-          '--fc-today-bg-color': 'rgba(74, 222, 128, 0.15)', // Verd subtil
+          '--fc-today-bg-color': 'rgba(234, 179, 8, 0.3)', // << CANVI DE COLOR
           
           // Botons de la capçalera (prev, next, today, etc.)
           '.fc-button': {
@@ -67,6 +75,9 @@ module.exports = {
           },
           
           // Vista de llista
+          '.fc-list-day-cushion': {
+            backgroundColor: theme('colors.gray.700'),
+          },
           '.fc-list-event-title a': {
             color: theme('colors.gray.200'),
           },
@@ -82,6 +93,7 @@ module.exports = {
           // Fons de les cel·les dels dies
           '.fc-daygrid-day': {
              backgroundColor: theme('colors.gray.700'),
+             overflow: 'visible', // << CORRECCIÓ BUG VISUAL
           },
           // Títol del mes (juny, juliol...)
           '.fc-multimonth-title': {
