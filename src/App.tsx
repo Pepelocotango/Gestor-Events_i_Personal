@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
 import logger from './utils/logger';
 import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
-import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction, PersonGroup, MaterialItem } from './types';
+import { SessionData, ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { formatDateDMY } from './utils/dateFormat';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
@@ -70,7 +69,7 @@ interface ToastState {
 const App: React.FC = () => {
   
     // --- 1. DECLARACIONS D'ESTAT (useState) ---
-  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
+  const [theme, setTheme] = useState('light');
   const [modalState, setModalState] = useState<ModalState>({ type: null, data: null });
   const [toastState, setToastState] = useState<ToastState | null>(null);
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
@@ -79,6 +78,7 @@ const App: React.FC = () => {
   const [filterToShowEventFrameId, setFilterToShowEventFrameId] = useState<string | null>(null);
   const [currentlyDisplayedFrames, setCurrentlyDisplayedFrames] = useState<EventFrame[]>([]);
   const [filterUIPerson, setFilterUIPerson] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const controlsRef = useRef<any>(null);
   const mainDisplayRef = useRef<{ handleResize: () => void }>(null);
@@ -191,7 +191,6 @@ const App: React.FC = () => {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
   const Toast: React.FC<{ toast: ToastState }> = ({ toast }) => {
@@ -242,39 +241,56 @@ const App: React.FC = () => {
     showToast, // <<< LÍNIA AFEGIDA
   }), [eventDataManagerHookResult, openModal, showToast]);
 
+  const [lastRoute, setLastRoute] = useState('/');
+
   useEffect(() => {
     const attemptInitialLoad = async () => {
-      logger.info('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
-      if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
+      logger.info('App.tsx - useEffect [initialLoadAttempted] executant-se.');
+      if (window.electronAPI) {
+        // 1. Carregar dades de sessió PRIMER
+        try {
+          const sessionData: SessionData | null = await window.electronAPI.loadSessionData?.();
+          if (sessionData) {
+            logger.info("Dades de sessió carregades:", sessionData);
+            if (sessionData.theme) setTheme(sessionData.theme);
+            if (sessionData.sortOrder) setSortOrder(sessionData.sortOrder);
+            if (sessionData.lastRoute) setLastRoute(sessionData.lastRoute);
+            logger.info(`Sessió restaurada: Tema=${sessionData.theme}, Ordre=${sessionData.sortOrder}, Ruta=${sessionData.lastRoute}`);
+          }
+        } catch (error) {
+          console.error("Error carregant les dades de la sessió:", error);
+          showToast("No s'han pogut carregar les preferències de la sessió anterior.", 'warning');
+        }
+
+        // 2. Carregar dades de l'aplicació
         try {
           logger.info("Intentant carregar dades de l'aplicació via Electron...");
-          const data = await window.electronAPI.loadAppData();
+          const data = await window.electronAPI.loadAppData?.();
           loadDataFromManager(data);
-          setHasUnsavedChanges(false); // Important: la càrrega inicial no són "canvis no desats"
+          setHasUnsavedChanges(false);
           if (data) {
             showToast('Dades de l\'aplicació carregades automàticament.', 'info');
           } else {
-            showToast('No s\'han trobat dades anteriors de l\'aplicació per carregar (Electron). Començant buit.', 'info');
+            showToast('No s\'han trobat dades anteriors per carregar. Començant buit.', 'info');
           }
         } catch (error) {
           console.error('Error carregant dades de l\'aplicació via Electron:', error);
-          showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
+          showToast(`Error carregant dades: ${(error as Error).message}`, 'error');
           loadDataFromManager(null);
-          setHasUnsavedChanges(false); // Fins i tot si hi ha error, comencem "nets"
+          setHasUnsavedChanges(false);
         }
-        // Després de carregar dades, obtenim la ruta per defecte
-        if (window.electronAPI?.getDefaultDataPath) {
-          try {
-            const path = await window.electronAPI.getDefaultDataPath();
-            setCurrentDataPath(path);
-          } catch (e) {
-            setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
-          }
+
+        // 3. Obtenir la ruta del fitxer per defecte
+        try {
+          const path = await window.electronAPI.getDefaultDataPath?.();
+          setCurrentDataPath(path || 'Ruta no disponible.');
+        } catch (e) {
+          setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
         }
       } else {
-        console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
+        console.log("Mode navegador o API d'Electron no disponible. Començant buit.");
         loadDataFromManager(null);
-        setHasUnsavedChanges(false); // Comencem "nets"
+        setHasUnsavedChanges(false);
       }
       setInitialLoadAttempted(true);
     };
@@ -642,9 +658,36 @@ const App: React.FC = () => {
     }
   }
 
+  const SessionHandler: React.FC = () => {
+    const location = useLocation();
+    useEffect(() => {
+      const handleSaveRequest = () => {
+        logger.info("FRONTEND: El backend demana les dades de la sessió. Preparant i enviant...");
+        const sessionData: Omit<SessionData, 'window'> = {
+          theme,
+          sortOrder,
+          lastRoute: location.pathname,
+        };
+        logger.info("FRONTEND: Dades de sessió a enviar:", sessionData);
+        window.electronAPI.sendSessionData?.(sessionData);
+      };
+
+      const cleanup = window.electronAPI.onSaveSessionRequest?.(handleSaveRequest);
+
+      return () => {
+        if (cleanup) {
+          cleanup();
+        }
+      };
+    }, [location, theme, sortOrder]);
+
+    return null;
+  };
+
   return (
     <EventDataProvider value={contextValue}>
-      <HashRouter>
+      <HashRouter initialEntries={[lastRoute]}>
+        <SessionHandler />
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
           <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm py-2">
             <div className="container mx-auto px-4">
@@ -686,6 +729,8 @@ const App: React.FC = () => {
                       setCurrentlyDisplayedFrames={setCurrentlyDisplayedFrames}
                       onExportCurrentViewToCsv={handleExportCurrentViewToCsv}
                       setFilterUIPerson={setFilterUIPerson}
+                      sortOrder={sortOrder}
+                      setSortOrder={setSortOrder}
                     />
                   }
                 />

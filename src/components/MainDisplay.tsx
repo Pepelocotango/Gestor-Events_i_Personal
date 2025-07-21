@@ -25,6 +25,8 @@ interface MainDisplayProps {
   setCurrentlyDisplayedFrames: (frames: EventFrame[]) => void;
   onExportCurrentViewToCsv: () => void;
   setFilterUIPerson: (personId: string) => void;
+  sortOrder: 'asc' | 'desc';
+  setSortOrder: (order: 'asc' | 'desc') => void;
 }
 
 interface CollapsibleSectionProps {
@@ -65,7 +67,9 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
     setFilterToShowEventFrameId,
     setCurrentlyDisplayedFrames,
     onExportCurrentViewToCsv,
-    setFilterUIPerson
+    setFilterUIPerson,
+    sortOrder,
+    setSortOrder
 }, ref) => {
   const calendarRef = useRef<FullCalendar>(null);
   const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventData();
@@ -103,9 +107,9 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
       .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
       .map(gEvent => ({
         ...gEvent,
-        // Utilitzem el color que ve de l'API de Google
-        backgroundColor: gEvent.backgroundColor,
-        borderColor: gEvent.borderColor,
+        // Apliquem una opacitat del 50% al color que rebem
+        backgroundColor: `${gEvent.backgroundColor}80`, // Afegeix '80' per a ~50% d'opacitat
+        borderColor: gEvent.borderColor, // Mantenim la vora sòlida per a una millor definició
         extendedProps: { ...gEvent.extendedProps, type: 'google' }
       }));
 
@@ -216,8 +220,6 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
     }
   }, [currentFilterHighlight, setCurrentFilterHighlight, expandedEventFrameIds]);
 
-  // Estat per l'ordre de la llista
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const filteredAndSortedEventFrames = useMemo(() => {
     let frames = [...eventFrames];
     if (filterUIEventFrame) frames = frames.filter(ef => ef.id === filterUIEventFrame);
