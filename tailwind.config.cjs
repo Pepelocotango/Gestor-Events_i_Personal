@@ -14,60 +14,39 @@ module.exports = {
       // Pots afegir colors personalitzats aquí si vols
     },
   },
-plugins: [
+  plugins: [
     plugin(function({ addBase, addComponents, theme }) {
       addBase({
-        // Estils per als esdeveniments que s'apliquen sempre
+        // --------------------------------------------------------------------
+        // --- Estils per als esdeveniments de l'App (sempre s'apliquen) ---
+        // --------------------------------------------------------------------
         '.event-complete': {
-<<<<<<< HEAD
-          backgroundColor: theme('colors.gray.900'),  // Fons gris fosc
-          borderColor: theme('colors.green.500'),    // Contorn verd
+          backgroundColor: theme('colors.gray.900'),
+          borderColor: theme('colors.green.500'),
           borderWidth: '3px',
-          color: theme('colors.white'),              // Text blanc
+          color: theme('colors.white'),
         },
         '.event-incomplete': {
-          backgroundColor: theme('colors.gray.900'),  // Fons gris fosc
-          borderColor: theme('colors.yellow.500'),   // Contorn groc
+          backgroundColor: theme('colors.gray.900'),
+          borderColor: theme('colors.yellow.500'),
           borderWidth: '3px',
-          color: theme('colors.white'),              // Text blanc
+          color: theme('colors.white'),
         },
 
         // --------------------------------------------------------------------
         // --- TEMA CLAR ---
         // --------------------------------------------------------------------
-=======
-          backgroundColor: theme('colors.green.500'),
-          borderColor: theme('colors.green.600'),
-          color: theme('colors.white'),
-        },
-        '.event-incomplete': {
-          backgroundColor: theme('colors.blue.500'),
-          borderColor: theme('colors.blue.600'),
-          color: theme('colors.white'),
-        },
-
-        // Estils per al tema clar
->>>>>>> parent of 96ac295 (millores visuals i neteja)
         '.fc': {
           '.fc-daygrid-day': {
             overflow: 'visible',
           },
         },
-        
-        // --- NOVES REGLES PER AL DIA D'AVUI (TEMA CLAR) ---
-        // Eliminem el fons de la cel·la: .fc-day-today { ... }
-        
         '.fc-day-today .fc-daygrid-day-number': {
-<<<<<<< HEAD
           backgroundColor: theme('colors.gray.700'),
-=======
-          backgroundColor: theme('colors.gray.700'), // Cercle gris fosc
->>>>>>> parent of 96ac295 (millores visuals i neteja)
           color: theme('colors.white'),
           borderRadius: '50%',
           width: '24px',
           height: '24px',
-<<<<<<< HEAD
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -82,19 +61,6 @@ plugins: [
           '--fc-border-color': theme('colors.gray.600'),
           
           // Botons de la capçalera
-=======
-          display: 'flex', // <<< CENTRAT AMB FLEXBOX
-          alignItems: 'center', // <<< CENTRAT AMB FLEXBOX
-          justifyContent: 'center', // <<< CENTRAT AMB FLEXBOX
-          padding: '0', // <<< RESET DE PADDING
-          margin: '2px', // <<< AJUST DE MARGE
-        },
-
-        // Estils específics per al TEMA FOSC
-        '.dark .fc': {
-          '--fc-border-color': theme('colors.gray.600'),
-          
->>>>>>> parent of 96ac295 (millores visuals i neteja)
           '.fc-button': {
             backgroundColor: theme('colors.gray.700'),
             color: theme('colors.gray.200'),
@@ -107,11 +73,8 @@ plugins: [
             backgroundColor: theme('colors.blue.600'),
             borderColor: theme('colors.blue.600'),
           },
-<<<<<<< HEAD
           
           // Capçaleres dels dies
-=======
->>>>>>> parent of 96ac295 (millores visuals i neteja)
           '.fc-col-header-cell-cushion': {
             color: theme('colors.gray.300'),
             textDecoration: 'none',
@@ -119,29 +82,20 @@ plugins: [
           '.fc-col-header': {
             backgroundColor: theme('colors.gray.700'),
           },
-<<<<<<< HEAD
           
           // Números dels dies (general)
-=======
->>>>>>> parent of 96ac295 (millores visuals i neteja)
           '.fc-daygrid-day-number': {
             color: theme('colors.gray.300'),
             textDecoration: 'none',
           },
-<<<<<<< HEAD
           
           // Vista de llista (Agenda)
           '.fc-list-day-cushion': {
             backgroundColor: theme('colors.gray.800'),
-=======
-          '.fc-list-day-cushion': {
-            backgroundColor: theme('colors.gray.700'),
->>>>>>> parent of 96ac295 (millores visuals i neteja)
           },
           '.fc-list-event-title a': {
             color: theme('colors.gray.200'),
           },
-<<<<<<< HEAD
           '.fc-list-table, .fc-list-event td': {
             color: theme('colors.gray.300'),
           },
@@ -150,11 +104,6 @@ plugins: [
           },
           
           // Vistes Multi-Mes
-=======
-          '.fc-list-table': {
-            color: theme('colors.gray.300'),
-          },
->>>>>>> parent of 96ac295 (millores visuals i neteja)
           '.fc-multimonth-month': {
              backgroundColor: theme('colors.gray.800'),
           },
@@ -165,7 +114,6 @@ plugins: [
           '.fc-multimonth-title': {
             color: theme('colors.gray.100'),
           },
-<<<<<<< HEAD
           
           // Popover d'esdeveniments (+X més)
           '.fc-popover': {
@@ -182,16 +130,9 @@ plugins: [
         },
         
         // Regla específica per al número del dia d'avui en tema fosc
-=======
-        },
-        
-        // --- NOVES REGLES PER AL DIA D'AVUI (TEMA FOSC) ---
-        // Eliminem el fons de la cel·la: .dark .fc-day-today { ... }
-
->>>>>>> parent of 96ac295 (millores visuals i neteja)
         '.dark .fc-day-today .fc-daygrid-day-number': {
-           backgroundColor: theme('colors.gray.300'), // Cercle gris clar
-           color: theme('colors.gray.900'), // Text negre/fosc
+           backgroundColor: theme('colors.gray.300'),
+           color: theme('colors.gray.900'),
         },
       });
     })
