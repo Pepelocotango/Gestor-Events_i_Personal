@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction } from '../types';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 
@@ -311,6 +311,63 @@ export const exportTechSheetToPdf = (
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
     pdf.save(fileName);
     showToast('PDF generat amb èxit!', 'success');
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
+  }
+};
+// --- EXPORTACIÓ DE LLISTA D'ESDEVENIMENTS ---
+export const exportEventListToPdf = (
+  eventFrames: EventFrame[],
+  peopleGroups: PersonGroup[],
+  showToast: ShowToastFunction
+) => {
+  try {
+    const pdf = new jsPDF('l', 'mm', 'a4'); // 'l' per a format apaïsat (landscape)
+    let y = createPdfHeader(pdf, "Llista d'Esdeveniments");
+    let pageCount = 1;
+
+    const head = [['Nom Esdeveniment', 'Lloc', 'Dates', 'Personal Assignat', 'Estat']];
+    const body = eventFrames.map(ef => {
+      const personnelText = ef.assignments.length > 0
+         ? ef.assignments.map((a: Assignment) => {
+            const person = peopleGroups.find(p => p.id === a.personGroupId);
+            return `${person ? person.name : 'N/A'} ${getStatusSummaryText(a)}`;
+          }).join('\n')
+        : 'Sense assignacions';
+
+      const statusText = ef.personnelComplete ? 'Complet' : 'Incomplet';
+
+      return [
+        ef.name,
+        ef.place || '-',
+        formatDateRangeDMY(ef.startDate, ef.endDate),
+        personnelText,
+        statusText
+      ];
+    });
+
+    autoTable(pdf, {
+      head,
+      body,
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: [75, 85, 99], textColor: 255, fontStyle: 'bold' },
+      columnStyles: {
+        3: { cellWidth: 80 }, // Amplada fixa per a la columna de personal
+      },
+      didDrawPage: (_data: any) => {
+        addFooter(pdf, pageCount);
+        if (_data.pageNumber > 1) {
+            createPdfHeader(pdf, "Llista d'Esdeveniments");
+        }
+      },
+      margin: { top: 30, bottom: 15 }
+    });
+
+    const fileName = `Llista_Esdeveniments_${new Date().toISOString().slice(0, 10)}.pdf`;
+    pdf.save(fileName);
+    showToast("Llista d'esdeveniments exportada a PDF!", 'success');
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
