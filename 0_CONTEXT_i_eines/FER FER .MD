@@ -17,7 +17,8 @@ millorar i implementar sortides existents csv a pdf també.
 
 ### modals ( finestres) més grans
 
-
+### afegir als builders de github actions .yml incloure en els comprimits el readme, developing, llicència i carpeta exemples json.
+  
 
 
 #### **✨ Millores de Funcionalitat i UX (Prioritat Mitjana)**
