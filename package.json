@@ -72,23 +72,14 @@
       "target": [
         "AppImage"
       ],
-      "category": "Office",
-      "artifactName": "gestor-esdeveniments-${version}.${ext}"
+      "category": "Office"
     },
     "win": {
-      "icon": "public/icon.ico",
       "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"],
-          "artifactName": "gestor-esdeveniments-Setup-Install-${version}.${ext}"
-        },
-        {
-          "target": "portable",
-          "arch": ["x64"],
-          "artifactName": "gestor-esdeveniments-Portable-${version}.${ext}"
-        }
-      ]
+        "nsis",
+        "portable"
+      ],
+      "icon": "public/icon.ico"
     },
     "mac": {
       "target": [
@@ -97,8 +88,7 @@
       ],
       "category": "public.app-category.productivity",
       "icon": "public/icon.icns",
-      "identity": null,
-      "artifactName": "gestor-esdeveniments-${version}.${ext}"
+      "identity": null
     }
   }
 }
