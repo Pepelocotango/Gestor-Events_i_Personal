@@ -255,6 +255,7 @@ const App: React.FC = () => {
             if (sessionData.theme) setTheme(sessionData.theme);
             if (sessionData.sortOrder) setSortOrder(sessionData.sortOrder);
             if (sessionData.lastRoute) setLastRoute(sessionData.lastRoute);
+            logger.info(`Sessió restaurada: Tema=${sessionData.theme}, Ordre=${sessionData.sortOrder}, Ruta=${sessionData.lastRoute}`);
           }
         } catch (error) {
           console.error("Error carregant les dades de la sessió:", error);
@@ -661,19 +662,22 @@ const App: React.FC = () => {
     const location = useLocation();
     useEffect(() => {
       const handleSaveRequest = () => {
-        logger.info("El backend demana les dades de la sessió. Preparant i enviant...");
+        logger.info("FRONTEND: El backend demana les dades de la sessió. Preparant i enviant...");
         const sessionData: Omit<SessionData, 'window'> = {
           theme,
           sortOrder,
           lastRoute: location.pathname,
         };
+        logger.info("FRONTEND: Dades de sessió a enviar:", sessionData);
         window.electronAPI.sendSessionData?.(sessionData);
       };
 
       const cleanup = window.electronAPI.onSaveSessionRequest?.(handleSaveRequest);
 
       return () => {
-        if (cleanup) (cleanup as any)();
+        if (cleanup) {
+          cleanup();
+        }
       };
     }, [location, theme, sortOrder]);
 

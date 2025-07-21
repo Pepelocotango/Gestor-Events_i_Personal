@@ -131,8 +131,10 @@ function loadSessionData() {
   if (!SESSION_FILE) return {};
   try {
     if (fs.existsSync(SESSION_FILE)) {
+      console.log(`Fitxer de sessió trobat a: ${SESSION_FILE}. Carregant...`);
       return JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
     }
+    console.log("No s'ha trobat cap fitxer de sessió. S'utilitzaran els valors per defecte.");
   } catch (error) {
     console.error('Error carregant les dades de la sessió:', error);
   }
@@ -372,7 +374,9 @@ app.on('before-quit', async (event) => {
       // 1. Desa la sessió i espera
       await new Promise(resolve => {
         ipcMain.once('response-session-data-for-quit', async (event, sessionData) => {
-          console.log("[IPC_IN] Rebut 'response-session-data-for-quit'.");
+          console.log("[IPC_IN] Rebut 'response-session-data-for-quit'. Desant dades de sessió...");
+          const { window, ...sessionToLog } = sessionData;
+          console.log("Dades de sessió a desar:", sessionToLog);
           const windowBounds = mainWindow.getBounds();
           sessionData.window = {
             width: windowBounds.width,
