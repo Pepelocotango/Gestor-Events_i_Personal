@@ -146,6 +146,35 @@ Aquest fitxer concentra la major part de la lògica de la nova funcionalitat.
 
 > Consulta el codi de `main.cjs` per veure la implementació exacta de cada funció.
 
+### ✨ [NOU] Persistència Integral de l'Estat de la UI
+
+S'ha refactoritzat completament el sistema de gestió de la sessió per oferir una experiència d'usuari més fluida i persistent entre execucions. Ara, l'aplicació recorda no només la mida i posició de la finestra, sinó també altres aspectes clau de la interfície.
+
+-   **Dades de Sessió Desades:** L'arxiu `session.json` ara emmagatzema un objecte complet que inclou:
+    -   L'estat de la finestra (mida i posició).
+    -   El tema seleccionat (clar/fosc).
+    -   L'última ruta visitada (ex: `/people`, `/tech-sheets`).
+    -   L'ordre de les llistes (ex: ascendent/descendent a la vista principal).
+
+-   **Arquitectura de Desat i Càrrega:**
+    1.  **`main.cjs`**:
+        -   En iniciar-se, llegeix `session.json` amb `loadSessionData()` i utilitza aquestes dades per configurar la finestra inicial (`new BrowserWindow`).
+        -   Quan l'usuari intenta tancar l'aplicació (`before-quit`), en lloc de desar les dades directament, envia un senyal `request-session-data` al frontend.
+        -   Escolta en el canal `save-session-data` per rebre l'objecte de sessió complet des del frontend, hi afegeix les dimensions actuals de la finestra i el desa a `session.json`.
+    2.  **`preload.cjs`**:
+        -   Exposa les noves funcions `loadSessionData`, `saveSessionData` i l'escoltador `onRequestSessionData` a través del `contextBridge` per a una comunicació segura.
+    3.  **`src/App.tsx`**:
+        -   A l'inici (`useEffect` d'inicialització), crida a `window.electronAPI.loadSessionData()` per carregar les preferències (tema, ordre de llista, última ruta) i les aplica als estats de React corresponents.
+        -   Utilitza un component intern (`SessionSaver`) que, mitjançant el hook `useLocation`, té accés a la ruta actual.
+        -   Aquest component escolta el senyal `request-session-data`. Quan el rep, construeix l'objecte de sessió amb l'estat actual i l'envia al backend mitjançant `window.electronAPI.saveSessionData()`.
+    4.  **`src/types.ts`**:
+        -   S'ha afegit la interfície `SessionData` per proporcionar un tipat estricte a l'objecte de sessió.
+
+-   **Avantatges del Nou Sistema:**
+    -   **Experiència d'Usuari Contínua:** L'aplicació es reinicia exactament on l'usuari la va deixar.
+    -   **Centralització de l'Estat:** L'estat de la UI que ha de ser persistent es gestiona de manera centralitzada a `App.tsx`.
+    -   **Codi més Net i Segur:** La comunicació entre el backend i el frontend és explícita i segura, i s'ha eliminat l'ús de `localStorage`.
+
 ### 🆕 NOVETATS: Fitxes de Bolo Dinàmiques i Exportació PDF Professional (v0.3.x) <--- en desenvolupament!
 
 

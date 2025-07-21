@@ -158,8 +158,8 @@ async function saveDataWithErrorHandling(filePath, data) {
   }
 }
 
-async function saveSessionWindowData(data) {
-  return saveDataWithErrorHandling(SESSION_FILE, data);
+async function saveSessionData(sessionData) {
+  return saveDataWithErrorHandling(SESSION_FILE, sessionData);
 }
 
 async function createBackup() {
@@ -259,16 +259,21 @@ async function findOrCreateAppCalendar(calendar) {
   }
 }
 
+ipcMain.handle('load-session-data', async () => {
+  console.log("[IPC_IN] Rebut 'load-session-data'.");
+  return loadSessionData();
+});
+
 function createWindow() {
   ensureDirectoriesExist();
   loadGoogleCredentials(); 
   const sessionData = loadSessionData();
 
   mainWindow = new BrowserWindow({
-    width: sessionData.width || 1200,
-    height: sessionData.height || 800,
-    x: sessionData.x,
-    y: sessionData.y,
+    width: sessionData.window?.width || 1200,
+    height: sessionData.window?.height || 800,
+    x: sessionData.window?.x,
+    y: sessionData.window?.y,
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -351,15 +356,7 @@ app.on('before-quit', async (event) => {
     return;
   }
   event.preventDefault();
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    const windowBounds = mainWindow.getBounds();
-    await saveSessionWindowData({
-      width: windowBounds.width,
-      height: windowBounds.height,
-      x: windowBounds.x,
-      y: windowBounds.y
-    });
-  }
+
   const choice = await dialog.showMessageBox(mainWindow, {
     type: 'question',
     buttons: ['Sí, sortir', 'No, cancel·lar'],
@@ -368,13 +365,34 @@ app.on('before-quit', async (event) => {
     message: 'Estàs segur que vols sortir?',
     cancelId: 1,
   });
+
   if (choice.response === 0) {
     isQuitting = true;
-    
     if (mainWindow && !mainWindow.isDestroyed()) {
+      // 1. Desa la sessió i espera
+      await new Promise(resolve => {
+        ipcMain.once('response-session-data-for-quit', async (event, sessionData) => {
+          console.log("[IPC_IN] Rebut 'response-session-data-for-quit'.");
+          const windowBounds = mainWindow.getBounds();
+          sessionData.window = {
+            width: windowBounds.width,
+            height: windowBounds.height,
+            x: windowBounds.x,
+            y: windowBounds.y,
+          };
+          await saveSessionData(sessionData);
+          resolve();
+        });
+        mainWindow.webContents.send('request-session-data-for-quit');
+      });
+
+      // 2. Continua amb el desat de les dades de l'aplicació
       mainWindow.webContents.send('confirm-quit-signal');
+    } else {
+      await createBackup();
+      await cleanupOldBackups();
+      app.exit();
     }
-    
   }
 });
 

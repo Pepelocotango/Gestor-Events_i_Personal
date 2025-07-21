@@ -25,6 +25,8 @@ interface MainDisplayProps {
   setCurrentlyDisplayedFrames: (frames: EventFrame[]) => void;
   onExportCurrentViewToCsv: () => void;
   setFilterUIPerson: (personId: string) => void;
+  sortOrder: 'asc' | 'desc';
+  setSortOrder: (order: 'asc' | 'desc') => void;
 }
 
 interface CollapsibleSectionProps {
@@ -65,7 +67,9 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
     setFilterToShowEventFrameId,
     setCurrentlyDisplayedFrames,
     onExportCurrentViewToCsv,
-    setFilterUIPerson
+    setFilterUIPerson,
+    sortOrder,
+    setSortOrder
 }, ref) => {
   const calendarRef = useRef<FullCalendar>(null);
   const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventData();
@@ -216,8 +220,6 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
     }
   }, [currentFilterHighlight, setCurrentFilterHighlight, expandedEventFrameIds]);
 
-  // Estat per l'ordre de la llista
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const filteredAndSortedEventFrames = useMemo(() => {
     let frames = [...eventFrames];
     if (filterUIEventFrame) frames = frames.filter(ef => ef.id === filterUIEventFrame);
