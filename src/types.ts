@@ -128,6 +128,18 @@ export interface MaterialItem {
   notes?: string;
 }
 
+export interface SessionData {
+  theme?: 'light' | 'dark';
+  lastRoute?: string;
+  sortOrder?: 'asc' | 'desc';
+  window?: {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+  }
+}
+
 export interface AppData {
   eventFrames: EventFrameForExport[];
   peopleGroups: PersonGroup[];

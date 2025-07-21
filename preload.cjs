@@ -1,6 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  loadSessionData: () => ipcRenderer.invoke('load-session-data'),
+  onSaveSessionRequest: (callback) => ipcRenderer.on('request-session-data-for-quit', (event, ...args) => callback(...args)),
+  sendSessionData: (data) => ipcRenderer.send('response-session-data-for-quit', data),
   loadAppData: () => ipcRenderer.invoke('load-app-data'),
   saveAppData: (data) => ipcRenderer.invoke('save-app-data', data),
    loadGoogleConfig: () => ipcRenderer.invoke('load-google-config'),
