@@ -64,7 +64,9 @@
       "main.cjs",
       "preload.cjs",
       "LICENSE",
-      "google-credentials.json"
+      "README.md",
+      "DEVELOPING.md",
+      "examples json/**/*"
     ],
     "linux": {
       "target": [
