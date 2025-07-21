@@ -1,21 +1,10 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, AssignmentStatus, Assignment } from '../types';
+import autoTable from 'jspdf-autotable';
+
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 
-// Interfície per a les opcions de la taula
-interface AutoTableOptions {
-  head: any[][];
-  body: any[][];
-  startY?: number;
-  theme?: 'striped' | 'grid' | 'plain';
-  styles?: any;
-  headStyles?: any;
-  bodyStyles?: any;
-  didDrawPage?: (data: any) => void;
-  margin?: any;
-}
 
 // Funció genèrica per crear una capçalera i títol
 const createPdfHeader = (pdf: jsPDF, title: string): number => {
@@ -80,7 +69,7 @@ export const exportSummariesToPdf = (
             }
 
             const statusDetail = a.isMixedStatusAssignment
-                ? `Mixt (${getStatusSummaryText(a.assignmentObject, true)})`
+                ? `Mixt (${getStatusSummaryText(a.assignmentObject)})` // <<< CORREGIT: Eliminat el segon paràmetre 'true'
                 : a.assignmentStatus;
 
             return [
@@ -91,20 +80,20 @@ export const exportSummariesToPdf = (
             ];
         });
 
-        (pdf as any).autoTable({
+        autoTable(pdf, {
           head,
           body,
           startY: y,
           theme: 'striped',
           styles: { fontSize: 9, cellPadding: 2 },
           headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
-          didDrawPage: (data: any) => {
+          didDrawPage: (_data: any) => {
             addFooter(pdf, pageCount);
           },
           margin: { top: 15, bottom: 15 }
         });
 
-        y = (pdf as any).autoTable.previous.finalY + 10;
+        y = (pdf as any).lastAutoTable.finalY + 10;
       });
     }
 
@@ -134,16 +123,16 @@ export const exportMaterialToPdf = (materialItems: MaterialItem[], showToast: Sh
       item.notes || '-'
     ]);
 
-    (pdf as any).autoTable({
+    autoTable(pdf, {
       head,
       body,
       startY: y,
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 2.5 },
       headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
-      didDrawPage: (data: any) => {
+      didDrawPage: (_data: any) => {
         addFooter(pdf, pageCount);
-        if (data.pageNumber > 1) { // Per evitar afegir header a la primera pàgina dues vegades
+        if (_data.pageNumber > 1) {
             createPdfHeader(pdf, 'Llista de Material');
         }
       },
@@ -177,7 +166,7 @@ export const exportPeopleToPdf = (peopleGroups: PersonGroup[], showToast: ShowTo
       return [p.name, p.role || '-', contactInfo || '-', p.notes || '-'];
     });
 
-    (pdf as any).autoTable({
+    autoTable(pdf, {
       head,
       body,
       startY: y,
@@ -185,12 +174,12 @@ export const exportPeopleToPdf = (peopleGroups: PersonGroup[], showToast: ShowTo
       styles: { fontSize: 9, cellPadding: 2, overflow: 'linebreak' },
       headStyles: { fillColor: [243, 156, 18], textColor: 255, fontStyle: 'bold' },
       columnStyles: {
-        2: { cellWidth: 60 }, // Columna de contacte més ample
+        2: { cellWidth: 60 },
         3: { cellWidth: 'auto' }
       },
-      didDrawPage: (data: any) => {
+      didDrawPage: (_data: any) => {
         addFooter(pdf, pageCount);
-        if (data.pageNumber > 1) {
+        if (_data.pageNumber > 1) {
             createPdfHeader(pdf, "Llibreta d'Adreces");
         }
       },
