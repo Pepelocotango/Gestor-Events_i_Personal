@@ -103,9 +103,9 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
       .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
       .map(gEvent => ({
         ...gEvent,
-        // Utilitzem el color que ve de l'API de Google
-        backgroundColor: gEvent.backgroundColor,
-        borderColor: gEvent.borderColor,
+        // Apliquem una opacitat del 50% al color que rebem
+        backgroundColor: `${gEvent.backgroundColor}80`, // Afegeix '80' per a ~50% d'opacitat
+        borderColor: gEvent.borderColor, // Mantenim la vora sòlida per a una millor definició
         extendedProps: { ...gEvent.extendedProps, type: 'google' }
       }));
 
