@@ -17,25 +17,50 @@ module.exports = {
   plugins: [
     plugin(function({ addBase, addComponents, theme }) {
       addBase({
-        // Estils per als esdeveniments que s'apliquen sempre
+        // --------------------------------------------------------------------
+        // --- Estils per als esdeveniments de l'App (sempre s'apliquen) ---
+        // --------------------------------------------------------------------
         '.event-complete': {
-          backgroundColor: theme('colors.green.500'),
-          borderColor: theme('colors.green.600'),
+          backgroundColor: theme('colors.gray.900'),
+          borderColor: theme('colors.green.500'),
+          borderWidth: '3px',
           color: theme('colors.white'),
         },
         '.event-incomplete': {
-          backgroundColor: theme('colors.blue.500'),
-          borderColor: theme('colors.blue.600'),
+          backgroundColor: theme('colors.gray.900'),
+          borderColor: theme('colors.yellow.500'),
+          borderWidth: '3px',
           color: theme('colors.white'),
         },
 
-        // Estils específics per al TEMA FOSC
+        // --------------------------------------------------------------------
+        // --- TEMA CLAR ---
+        // --------------------------------------------------------------------
+        '.fc': {
+          '.fc-daygrid-day': {
+            overflow: 'visible',
+          },
+        },
+        '.fc-day-today .fc-daygrid-day-number': {
+          backgroundColor: theme('colors.gray.700'),
+          color: theme('colors.white'),
+          borderRadius: '50%',
+          width: '24px',
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '0',
+          margin: '2px',
+        },
+
+        // --------------------------------------------------------------------
+        // --- TEMA FOSC ---
+        // --------------------------------------------------------------------
         '.dark .fc': {
-          // Variables generals per a vistes que les respecten (com Agenda)
           '--fc-border-color': theme('colors.gray.600'),
-          '--fc-today-bg-color': 'rgba(74, 222, 128, 0.15)', // Verd subtil
           
-          // Botons de la capçalera (prev, next, today, etc.)
+          // Botons de la capçalera
           '.fc-button': {
             backgroundColor: theme('colors.gray.700'),
             color: theme('colors.gray.200'),
@@ -48,45 +73,66 @@ module.exports = {
             backgroundColor: theme('colors.blue.600'),
             borderColor: theme('colors.blue.600'),
           },
-
-          // Capçaleres dels dies (dl, dt, etc.)
+          
+          // Capçaleres dels dies
           '.fc-col-header-cell-cushion': {
             color: theme('colors.gray.300'),
             textDecoration: 'none',
           },
-          
-          // <<< NOVA REGLA PER AL FONS DE LA CAPÇALERA >>>
           '.fc-col-header': {
             backgroundColor: theme('colors.gray.700'),
           },
-
-          // Números dels dies
+          
+          // Números dels dies (general)
           '.fc-daygrid-day-number': {
             color: theme('colors.gray.300'),
             textDecoration: 'none',
           },
           
-          // Vista de llista
+          // Vista de llista (Agenda)
+          '.fc-list-day-cushion': {
+            backgroundColor: theme('colors.gray.800'),
+          },
           '.fc-list-event-title a': {
             color: theme('colors.gray.200'),
           },
-          '.fc-list-table': {
+          '.fc-list-table, .fc-list-event td': {
             color: theme('colors.gray.300'),
           },
-
-          // === CORRECCIÓ ESPECÍFICA PER A MULTIMONTH ===
-          // Fons de cada sub-calendari
+          '.fc-list-event:hover td': {
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+          },
+          
+          // Vistes Multi-Mes
           '.fc-multimonth-month': {
              backgroundColor: theme('colors.gray.800'),
           },
-          // Fons de les cel·les dels dies
           '.fc-daygrid-day': {
              backgroundColor: theme('colors.gray.700'),
+             overflow: 'visible',
           },
-          // Títol del mes (juny, juliol...)
           '.fc-multimonth-title': {
             color: theme('colors.gray.100'),
           },
+          
+          // Popover d'esdeveniments (+X més)
+          '.fc-popover': {
+            backgroundColor: theme('colors.gray.800'),
+            borderColor: theme('colors.gray.600'),
+          },
+          '.fc-popover-header': {
+            backgroundColor: theme('colors.gray.700'),
+            color: theme('colors.gray.200'),
+          },
+          '.fc-popover-body': {
+             color: theme('colors.gray.300'),
+          },
+        },
+        
+        // Regla específica per al número del dia d'avui en tema fosc
+        '.dark .fc-day-today .fc-daygrid-day-number': {
+           backgroundColor: theme('colors.gray.300'),
+           color: theme('colors.gray.900'),
         },
       });
     })

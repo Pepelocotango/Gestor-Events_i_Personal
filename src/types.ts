@@ -158,6 +158,7 @@ export type ModalType =
   | 'confirmDeleteAssignment'
   | 'googleSettings'
   | 'confirmHardReset'
+  | 'mergeOrReplace'
   | null;
 
 export interface ModalData {
@@ -176,6 +177,7 @@ export interface ModalData {
     cancelButtonText?: string;
     onCloseModal?: () => void;
     titleOverride?: string;
+    newData?: PersonGroup[] | MaterialItem[];
 }
 
 export interface ModalState {
@@ -218,6 +220,9 @@ export interface EventDataConteImplicits {
   deleteMaterialItem: (itemId: string) => void;
   addMaterialItemsFromFile: (newItems: MaterialItem[]) => void;
   getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
+  mergePeopleGroups: (newPeople: PersonGroup[]) => void;
+  replacePeopleGroups: (newPeople: PersonGroup[]) => void;
+  replaceMaterialItems: (newItems: MaterialItem[]) => void;
 }
 
 export type EventDataManagerReturn = Omit<EventDataConteImplicits, 'openModal' | 'showToast'>;

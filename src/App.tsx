@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
-
+import logger from './utils/logger';
 import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction } from './types';
+import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { formatDateDMY } from './utils/dateFormat';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
@@ -23,6 +23,7 @@ const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFor
 const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteModal'));
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
+const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
 
 // Millor posar-ho en un fitxer global.d.ts, però per compatibilitat ràpida:
 interface ElectronAPI {
@@ -48,6 +49,8 @@ interface ElectronAPI {
   onDevModeQuitAfterReset: (callback: () => void) => (() => void) | undefined;
   showLoadingOverlay: (callback: (event: any, message: string) => void) => (() => void) | undefined;
   hideLoadingOverlay: (callback: () => void) => (() => void) | undefined;
+  onMenuAction: (callback: (action: string) => void) => void;
+  log: (message: string, data?: any) => void;
 }
 
 declare global {
@@ -77,6 +80,9 @@ const App: React.FC = () => {
   const [currentlyDisplayedFrames, setCurrentlyDisplayedFrames] = useState<EventFrame[]>([]);
   const [filterUIPerson, setFilterUIPerson] = useState<string>('');
 
+  const controlsRef = useRef<any>(null);
+  const mainDisplayRef = useRef<{ handleResize: () => void }>(null);
+
   // --- 2. FUNCIONS D'AJUDA (useCallback) ---
   const clearToastMessage = (toastId: string) => {
     setToastState(prevState => (prevState?.id === toastId ? null : prevState));
@@ -91,10 +97,12 @@ const App: React.FC = () => {
   }, []);
 
   const openModal = useCallback((type: ModalType, data?: ModalData | InitialEventFrameData) => {
+    logger.info('[UI] Obrint modal', { type, data });
     setModalState({ type, data: data as ModalData | null });
   }, []);
 
   const closeModal = () => {
+    logger.info('[UI] Tancant modal.');
     setModalState({ type: null, data: null });
   };
 
@@ -117,7 +125,7 @@ const App: React.FC = () => {
   }, [hasUnsavedChanges]);
   
   // --- INICI DELS ALTRES EFECTES I FUNCIONS ---
-  console.log('App.tsx - RE-RENDER. modalState:', modalState.type, modalState.data);
+  logger.info('App.tsx - RE-RENDER', { modalType: modalState.type, modalData: modalState.data });
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
@@ -236,10 +244,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const attemptInitialLoad = async () => {
-      console.log('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
+      logger.info('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
       if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
         try {
-          console.log("Intentant carregar dades de l'aplicació via Electron...");
+          logger.info("Intentant carregar dades de l'aplicació via Electron...");
           const data = await window.electronAPI.loadAppData();
           loadDataFromManager(data);
           setHasUnsavedChanges(false); // Important: la càrrega inicial no són "canvis no desats"
@@ -280,17 +288,17 @@ const App: React.FC = () => {
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
       const handleQuit = async () => {
-        console.log("Renderer va rebre el senyal 'confirm-quit-signal'");
+        logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
         try {
           if (hasUnsavedChangesRef.current) { // Utilitza la referència
             const dataToSave = exportDataFromManager();
-            console.log("Renderer: Desant dades abans de sortir...");
+            logger.info("Renderer: Desant dades abans de sortir...");
             await window.electronAPI?.saveAppData?.(dataToSave);
           } else {
-            console.log("Renderer: No hi ha canvis per desar.");
+            logger.info("Renderer: No hi ha canvis per desar.");
           }
         } catch (error) {
-          console.error("Renderer: Excepció durant el desat en sortir:", error);
+          logger.error("Renderer: Excepció durant el desat en sortir:", error);
         } finally {
           window.electronAPI?.sendQuitConfirmedByRenderer?.();
         }
@@ -346,6 +354,58 @@ const App: React.FC = () => {
 
     return `llista_${eventName}-${personName}-${status}-${textFilter}-${formattedDate}-${location}.csv`;
   };
+
+  useEffect(() => {
+    if (toastState) {
+      mainDisplayRef.current?.handleResize();
+    }
+  }, [toastState]);
+
+  useEffect(() => {
+    if (window.electronAPI) {
+      const cleanup = window.electronAPI.onMenuAction((action) => {
+        switch (action) {
+          case 'load-all':
+            controlsRef.current?.triggerLoadFile();
+            break;
+          case 'save-all':
+            controlsRef.current?.handleSaveData('all');
+            break;
+          case 'load-material':
+            controlsRef.current?.triggerLoadMaterialFile();
+            break;
+          case 'hard-reset':
+            controlsRef.current?.handleRequestHardReset();
+            break;
+          case 'load-people':
+            controlsRef.current?.triggerLoadPeopleFile();
+            break;
+          case 'save-people':
+            controlsRef.current?.handleSaveData('people');
+            break;
+          case 'save-material':
+            controlsRef.current?.handleSaveData('material');
+            break;
+          case 'sync-google':
+            syncWithGoogle();
+            break;
+          case 'config-google':
+            openModal('googleSettings');
+            break;
+          case 'connect-google':
+            controlsRef.current?.handleConnectGoogle();
+            break;
+          case 'toggle-theme':
+            toggleTheme();
+            break;
+          default:
+            break;
+        }
+      });
+
+      return cleanup;
+    }
+  }, [syncWithGoogle, openModal, toggleTheme]);
 
   const handleExportCurrentViewToCsv = () => {
     const dataToExport: SummaryRow[] = [];
@@ -515,6 +575,30 @@ const App: React.FC = () => {
       
       case 'googleSettings':
         return <GoogleSettingsModal onClose={closeModal} showToast={showToast} />;
+      case 'mergeOrReplace':
+        return (
+          <MergeOrReplaceModal
+            isOpen={true}
+            onClose={closeModal}
+            itemType={modalState.data!.itemType!}
+            onMerge={() => {
+              if (modalState.data?.itemType === 'persones' && modalState.data.newData) {
+                contextValue.mergePeopleGroups(modalState.data.newData as PersonGroup[]);
+              } else if (modalState.data?.itemType === 'material' && modalState.data.newData) {
+                contextValue.addMaterialItemsFromFile(modalState.data.newData as MaterialItem[]);
+              }
+              closeModal();
+            }}
+            onReplace={() => {
+              if (modalState.data?.itemType === 'persones' && modalState.data.newData) {
+                contextValue.replacePeopleGroups(modalState.data.newData as PersonGroup[]);
+              } else if (modalState.data?.itemType === 'material' && modalState.data.newData) {
+                contextValue.replaceMaterialItems(modalState.data.newData as MaterialItem[]);
+              }
+              closeModal();
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -566,6 +650,7 @@ const App: React.FC = () => {
             <div className="container mx-auto px-4">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
+                  ref={controlsRef}
                   theme={theme}
                   toggleTheme={toggleTheme}
                   onOpenModal={openModal}
@@ -591,6 +676,7 @@ const App: React.FC = () => {
                   path="/"
                   element={
                     <MainDisplay
+                      ref={mainDisplayRef}
                       openModal={openModal}
                       setToastMessage={showToast}
                       currentFilterHighlight={currentFilterHighlight}

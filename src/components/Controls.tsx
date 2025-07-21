@@ -1,6 +1,7 @@
-import React, { ChangeEvent, useRef } from 'react';
+import { ChangeEvent, useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
+import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 
@@ -17,7 +18,9 @@ interface ControlsProps {
   setCurrentDataPath: (path: string) => void;
   }
 
-const Controls: React.FC<ControlsProps> = ({
+import { forwardRef, useImperativeHandle } from 'react';
+
+const Controls = forwardRef<any, ControlsProps>(({
     theme,
     toggleTheme,
     onOpenModal,
@@ -27,14 +30,15 @@ const Controls: React.FC<ControlsProps> = ({
     isSyncing,
     currentDataPath,
     setCurrentDataPath
-}) => {
+}, ref) => {
 
-  const { loadData, exportData, setHasUnsavedChanges, addMaterialItemsFromFile } = useEventData();
+  const { loadData, exportData, setHasUnsavedChanges } = useEventData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const peopleFileInputRef = useRef<HTMLInputElement>(null);
   const materialFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'tot' });
     const file = event.target.files?.[0];
     if (!file) return;
     const fileName = file.name;
@@ -80,6 +84,7 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   const handleLoadPeopleData = (event: ChangeEvent<HTMLInputElement>) => {
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'persones' });
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -91,11 +96,9 @@ const Controls: React.FC<ControlsProps> = ({
           return;
         }
         const jsonData = JSON.parse(fileContent);
+        let newPeople: PersonGroup[] = [];
         if (Array.isArray(jsonData.peopleGroups)) {
-          const currentData = exportData();
-          loadData({ ...currentData, peopleGroups: jsonData.peopleGroups });
-          showToast("Dades de persones carregades correctament.", 'success');
-          setHasUnsavedChanges(true);
+          newPeople = jsonData.peopleGroups;
         } else if (Array.isArray(jsonData.people)) {
           const migratedData = migrateData({ people: jsonData.people });
           const validation = validateMigratedData(migratedData);
@@ -103,13 +106,17 @@ const Controls: React.FC<ControlsProps> = ({
             showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
             return;
           }
-          const currentData = exportData();
-          loadData({ ...currentData, peopleGroups: migratedData.peopleGroups });
-          showToast("Dades de persones antigues migrades i carregades correctament.", 'success');
-          setHasUnsavedChanges(true); 
+          newPeople = migratedData.peopleGroups;
         } else {
           showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
+          return;
         }
+
+        onOpenModal('mergeOrReplace', {
+          itemType: 'persones',
+          newData: newPeople,
+        });
+
       } catch (error) {
         showToast(`Error en carregar les dades de persones: ${(error as Error).message}`, 'error');
       } finally {
@@ -120,6 +127,7 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   const handleLoadMaterialData = (event: ChangeEvent<HTMLInputElement>) => {
+    logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'material' });
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -130,7 +138,10 @@ const Controls: React.FC<ControlsProps> = ({
         const jsonData = JSON.parse(content);
         
         if (Array.isArray(jsonData.materialItems)) {
-          addMaterialItemsFromFile(jsonData.materialItems);
+          onOpenModal('mergeOrReplace', {
+            itemType: 'material',
+            newData: jsonData.materialItems,
+          });
         } else {
           showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
         }
@@ -146,10 +157,27 @@ const Controls: React.FC<ControlsProps> = ({
   const triggerLoadFile = () => fileInputRef.current?.click();
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
   const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
-  const handleSaveData = (type: 'all' | 'people') => {
+
+  const handleSaveData = (type: 'all' | 'people' | 'material') => {
     try {
-      const dataToSave = type === 'all' ? exportData() : { peopleGroups: exportData().peopleGroups };
-      const filename = type === 'all' ? 'gestio_esdeveniments_dades.json' : 'persones_grups_dades.json';
+      let dataToSave: any;
+      let filename: string;
+
+      switch (type) {
+        case 'people':
+          dataToSave = { peopleGroups: exportData().peopleGroups };
+          filename = 'persones_grups_dades.json';
+          break;
+        case 'material':
+          dataToSave = { materialItems: exportData().materialItems };
+          filename = 'material_dades.json';
+          break;
+        case 'all':
+        default:
+          dataToSave = exportData();
+          filename = 'gestio_esdeveniments_dades.json';
+          break;
+      }
       const jsonString = JSON.stringify(dataToSave, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -164,14 +192,36 @@ const Controls: React.FC<ControlsProps> = ({
       if (type === 'all') {
         setHasUnsavedChanges(false);
       }
-      showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : 'persones'} desades correctament.`, 'success');
+      showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : type} desades correctament.`, 'success');
     } catch (error) {
       console.error(`Error saving ${type} data:`, error);
       showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');
     }
   };
-
   // <<< NOU FLUX PER AL RESET >>>
+  const handleConnectGoogle = async () => {
+    logger.info('[UI] Iniciant flux d\'autenticació amb Google.');
+    if (window.electronAPI) {
+      const result = await window.electronAPI.startGoogleAuth();
+      if (result.success) {
+        showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
+      } else {
+        showToast(result.message || 'No s\'ha pogut iniciar l\'autenticació.', 'error');
+      }
+    } else {
+      showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    triggerLoadFile,
+    handleSaveData,
+    triggerLoadMaterialFile,
+    handleRequestHardReset,
+    triggerLoadPeopleFile,
+    handleConnectGoogle,
+  }));
+
   const handleRequestHardReset = () => {
     onOpenModal('confirmHardReset', {
       titleOverride: "Confirmar Reset de Fàbrica",
@@ -249,6 +299,9 @@ const Controls: React.FC<ControlsProps> = ({
                 <SaveIcon /> Guardar Persones
             </button>
             
+            <button onClick={() => handleSaveData('material')} className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm" title="Guardar només les dades de material">
+                <SaveIcon /> Guardar Material
+            </button>
         </div>
         
         <div className="flex items-center gap-2">
@@ -277,18 +330,7 @@ const Controls: React.FC<ControlsProps> = ({
                 <GoogleIcon /> Configurar
             </button>
             <button
-                onClick={async () => {
-                  if (window.electronAPI) {
-                    const result = await window.electronAPI.startGoogleAuth();
-                    if (result.success) {
-                      showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
-                    } else {
-                      showToast(result.message || 'No s\'ha pogut iniciar l\'autenticació.', 'error');
-                    }
-                  } else {
-                    showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
-                  }
-                }}
+                onClick={handleConnectGoogle}
                 className="flex items-center justify-center gap-2 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-3 rounded-md transition-colors text-sm border border-gray-300"
                 title="Connectar amb Google Calendar"
             >
@@ -299,6 +341,6 @@ const Controls: React.FC<ControlsProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default Controls;

@@ -1,3 +1,4 @@
+
 ### NOVA BRANCA DESENVOLUPAMENT -->main
 
 ### `DEVELOPING.md`**
@@ -6,6 +7,24 @@
 ---
 
  # NOTES DE DESENVOLUPAMENT #
+---
+
+## Canvis Recents
+
+### Arreglar Errors de Compilació de TypeScript
+
+S'han solucionat una sèrie d'errors de compilació de TypeScript que impedien que el projecte es construís correctament. Els canvis inclouen:
+
+*   **`src/types.ts`**:
+    *   S'ha afegit la propietat opcional `newData` a la interfície `ModalData`. Aquesta propietat és un array de `PersonGroup` o `MaterialItem` i s'utilitza per passar dades al modal `mergeOrReplace`.
+
+*   **`src/App.tsx`**:
+    *   S'han afegit comprovacions de nul·litat i conversions de tipus per garantir que `modalState.data.newData` s'utilitzi de manera segura.
+    *   S'han afegit les importacions que faltaven per a `PersonGroup` i `MaterialItem`.
+
+*   **`src/components/Controls.tsx`**:
+    *   S'han eliminat les importacions i desestructuracions no utilitzades.
+
 ---
 
 ## 🚀 **Millores a les Fitxes de Bolo i Documentació Tècnica (v0.3.x)** en desenvolupament!
@@ -88,6 +107,19 @@ Aquest fitxer concentra la major part de la lògica de la nova funcionalitat.
   - Si hi ha més de 20 fitxers de log, s'esborren els més antics automàticament.
   - Tots els missatges de log es mostren també per consola.
 - **Codi relacionat:** Bloc de codi al principi de `main.cjs` (comentari: `// --- LOGS DE SESSIÓ PER DESENVOLUPAMENT ---`).
+
+### Unificació de Logs del Frontend i Backend
+
+- **Objectiu:** Centralitzar tots els logs de l'aplicació (tant del procés principal d'Electron com del frontend de React) en un únic fitxer de log per sessió.
+- **Funcionament:**
+  1.  **`preload.cjs`**: Exposa una funció `log` a través de `contextBridge`.
+  2.  **`src/utils/logger.ts`**: Un nou servei de logging al frontend que envia missatges al backend a través de l'API exposada i, alhora, els mostra a la consola del navegador per a la depuració en temps real.
+  3.  **`main.cjs`**: Escolta els missatges de log del frontend a través del canal IPC `log-message` i els escriu al mateix fitxer de log de la sessió, prefixant-los amb `[FRONTEND]`.
+- **Codi relacionat:**
+  - `preload.cjs`: `contextBridge.exposeInMainWorld('electronAPI', { log: ... })`
+  - `main.cjs`: `ipcMain.on('log-message', ...)`
+  - `src/utils/logger.ts`: Nou fitxer de servei de logging.
+  - Components de React refactoritzats per utilitzar `logger.info()` en lloc de `console.log()`.
 
 ### Backups automàtics
 
@@ -209,6 +241,16 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
     *   Suport per a tema clar i fosc.
     *   Notificacions (toasts) per a les accions de l'usuari.
     *   Visualització detallada d'estats mixts.
+
+-   **✨ [NOU] Càrrega de Dades Flexible (Fusió o Reemplaçament):**
+    *   **Modal de Decisió:** En carregar un fitxer de **persones** o de **material**, ara es mostra un diàleg que pregunta a l'usuari si desitja **fusionar** les dades noves amb les existents o **reemplaçar** completament les dades actuals.
+    *   **Lògica de Fusió Intel·ligent:**
+        *   **Persones:** La fusió afegeix només les persones del fitxer que no existeixen a la llista actual (la comprovació es fa per nom, ignorant majúscules/minúscules).
+        *   **Material:** La fusió afegeix només els articles del fitxer que no existeixen a l'inventari actual (la comprovació es fa per nom, ignorant majúscules/minúscules).
+    *   **Arquitectura:**
+        *   **`MergeOrReplaceModal.tsx`**: Nou component de modal reutilitzable per a aquesta funcionalitat.
+        *   **`useEventDataManager.ts`**: S'han afegit les funcions `mergePeopleGroups`, `replacePeopleGroups`, i `replaceMaterialItems` per gestionar la lògica de dades. La funció `addMaterialItemsFromFile` es reutilitza per a la fusió de material.
+        *   **`Controls.tsx`**: Modificat per llegir el fitxer i obrir el modal amb les dades, en lloc d'executar l'acció directament.
 ---
 ## 🛠️ Pila Tecnològica (Tech Stack)
 
@@ -316,7 +358,7 @@ Aquests fitxers defineixen el projecte, les seves dependències i com es constru
     *   **Altres utilitats**: `dateFormat.ts`, `statusUtils.ts` i `dateRangeFormatter.ts`.
 
 *   **Components de la Interfície (`src/components/`):**
-    *   **`MainDisplay.tsx`**: Orquestra la vista principal. Implementa la **lògica d'expansió automàtica** de la llista en aplicar filtres.
+- **`MainDisplay.tsx`**: Orquestra la vista principal. Implementa la **lògica d'expansió automàtica** de la llista en aplicar filtres. S'ha implementat una funció de redibuixat forçat per solucionar un bug visual amb les notificacions.
     *   **`Controls.tsx`**: Barra d'eines amb el botó "Sincronitzar", que mostra un estat de càrrega.
     *   **`EventFrameCard.tsx`**: Mostra la targeta de cada esdeveniment, incloent l'indicador de Google.
     *   **`AssignmentCard.tsx`**: Mostra la targeta de cada assignació amb la seva vista detallada per dies.
@@ -400,3 +442,21 @@ Per garantir que la compilació (`npm run build`) funcioni correctament encara q
 Això permet seleccionar el mode en que el projecte es compili sense errors per imports/tipus no utilitzats directament, mantenint la seguretat de tipus i la claredat del codi. *Si vols tornar a activar la comprovació estricta, només cal posar aquests valors a `true`.*
 
 ---
+
+### Solució de Bug de Renderitzat del Calendari
+
+S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
+
+La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
+
+- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar. S'ha eliminat la importació de `CalendarApi` que no s'utilitzava.
+- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.
+
+### Solució de Bug de Renderitzat del Calendari
+
+S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
+
+La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
+
+- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar.
+- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.

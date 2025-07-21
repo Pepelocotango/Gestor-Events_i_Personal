@@ -20,12 +20,13 @@ function rotateLogs() {
 const sessionLogFile = path.join(LOGS_DIR, `app-${Date.now()}.log`);
 rotateLogs();
 function logToFile(...args) {
-  const formattedArgs = args.map(arg => {
+  const filteredArgs = args.filter(arg => arg !== undefined); // Línia clau: filtrem els undefined
+
+  const formattedArgs = filteredArgs.map(arg => {
     if (typeof arg === 'object' && arg !== null) {
-      // Clona l'objecte per evitar referències circulars en objectes d'Electron
       try {
         return JSON.stringify(arg, (key, value) => {
-          if (key.startsWith('_')) return undefined; // Omet propietats privades
+          if (key.startsWith('_')) return undefined;
           return value;
         }, 2);
       } catch {
@@ -34,6 +35,7 @@ function logToFile(...args) {
     }
     return String(arg);
   });
+
   const msg = `[${new Date().toISOString()}] ${formattedArgs.join(' ')}\n`;
   fs.appendFileSync(sessionLogFile, msg);
   process.stdout.write(msg);
@@ -298,7 +300,29 @@ function createWindow() {
   const template = [
     {
       label: 'Arxiu',
-      submenu: [{ label: 'Sortir', accelerator: 'CmdOrCtrl+Q', click: () => { app.quit(); } }]
+      submenu: [
+        { label: 'Carregar Tot', click: () => mainWindow.webContents.send('menu-action', 'load-all') },
+        { label: 'Guardar Tot', click: () => mainWindow.webContents.send('menu-action', 'save-all') },
+        { label: 'Carregar Material', click: () => mainWindow.webContents.send('menu-action', 'load-material') },
+        { label: 'Començar de Zero', click: () => mainWindow.webContents.send('menu-action', 'hard-reset') },
+        { type: 'separator' },
+        { label: 'Carregar Persones', click: () => mainWindow.webContents.send('menu-action', 'load-people') },
+        { label: 'Guardar Persones', click: () => mainWindow.webContents.send('menu-action', 'save-people') },
+        { label: 'Guardar Material', click: () => mainWindow.webContents.send('menu-action', 'save-material') },
+        { type: 'separator' },
+        {
+          label: 'Configuració Google Calendar',
+          submenu: [
+            { label: 'Sincronitzar', click: () => mainWindow.webContents.send('menu-action', 'sync-google') },
+            { label: 'Configurar', click: () => mainWindow.webContents.send('menu-action', 'config-google') },
+            { label: 'Connectar amb Google', click: () => mainWindow.webContents.send('menu-action', 'connect-google') },
+          ]
+        },
+        { type: 'separator' },
+        { label: 'Tema Clar/Fosc', click: () => mainWindow.webContents.send('menu-action', 'toggle-theme') },
+        { type: 'separator' },
+        { label: 'Sortir', accelerator: 'CmdOrCtrl+Q', click: () => { app.quit(); } }
+      ]
     },
     {
       label: 'Veure',
@@ -371,8 +395,12 @@ ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
   }, 500); // Un petit temps de marge per si de cas
 });
 
+ipcMain.on('log-message', (event, message, data) => {
+  logToFile(`[FRONTEND] ${message}`, data);
+});
+
 ipcMain.handle('load-app-data', async () => {
-  console.log("IPC: Rebut 'load-app-data'.");
+  console.log("[IPC_IN] Rebut 'load-app-data'.");
   if (!DATA_FILE) {
     console.error("LOGIC ERROR: DATA_FILE no està definit.");
     return null;
@@ -393,7 +421,7 @@ ipcMain.handle('load-app-data', async () => {
 });
 
 ipcMain.handle('save-app-data', (event, data) => {
-  console.log("IPC: Rebut 'save-app-data'.");
+  console.log("[IPC_IN] Rebut 'save-app-data'.");
   const success = saveDataWithErrorHandling(DATA_FILE, data);
   console.log(`Resultat de 'save-app-data': ${success ? 'ÈXIT' : 'FALLADA'}`);
   return success;
@@ -401,7 +429,7 @@ ipcMain.handle('save-app-data', (event, data) => {
 
 
 ipcMain.handle('sync-with-google', async (event, localData) => {
-  console.log("IPC: Iniciant 'sync-with-google'.");
+  console.log("[IPC_IN] Iniciant 'sync-with-google'.");
   if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
     console.error("SYNC ERROR: No autenticat amb Google.");
     return { success: false, message: 'No autenticat amb Google.' };
@@ -444,9 +472,21 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
     console.log(`Pujant ${localFramesToUpload.length} esdeveniments locals al calendari de l'app...`);
     
     for (const localFrame of localFramesToUpload) {
+      // Funció auxiliar per obtenir noms de persones
+      const getPersonGroupById = (id) => localData.peopleGroups.find(p => p.id === id);
+
+      let assignmentsText = '';
+      if (localFrame.assignments && localFrame.assignments.length > 0) {
+        const assignmentsList = localFrame.assignments.map(a => {
+          const person = getPersonGroupById(a.personGroupId);
+          return `- ${person ? person.name : 'Desconegut'}: ${a.status}`;
+        }).join('\n');
+        assignmentsText = `\n\n--- ASSIGNACIONS ---\n${assignmentsList}`;
+      }
+
       const eventResource = {
         summary: localFrame.name,
-        description: localFrame.generalNotes || '',
+        description: `${localFrame.generalNotes || ''}${assignmentsText}`,
         location: localFrame.place || '',
         start: { date: localFrame.startDate },
         end: { date: addDaysISO(localFrame.endDate, 1) }, // La data de fi és exclusiva a l'API de Google
@@ -480,7 +520,7 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
 });
 
 ipcMain.handle('google-auth-start', async () => {
-  console.log("IPC: Iniciant 'google-auth-start'.");
+  console.log("[IPC_IN] Iniciant 'google-auth-start'.");
   if (!googleAuthClient) {
     console.error("AUTH ERROR: googleAuthClient no inicialitzat.");
     return { success: false, message: "El client d'autenticació de Google no s'ha iniciat correctament." };
@@ -562,10 +602,12 @@ ipcMain.handle('google-auth-start', async () => {
 });
 
 ipcMain.handle('load-google-config', async () => {
+  console.log("[IPC_IN] Rebut 'load-google-config'.");
   return loadGoogleConfigFromFile();
 });
 
 ipcMain.handle('save-google-config', (event, config) => {
+  console.log("[IPC_IN] Rebut 'save-google-config'.");
   try {
     fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
     return { success: true };
@@ -576,6 +618,7 @@ ipcMain.handle('save-google-config', (event, config) => {
 });
 
 ipcMain.handle('google-get-calendar-list', async () => {
+  console.log("[IPC_IN] Rebut 'google-get-calendar-list'.");
   try {
     if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
         throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
@@ -598,7 +641,7 @@ ipcMain.handle('google-get-calendar-list', async () => {
 });
 
 ipcMain.handle('get-google-events', async () => {
-  console.log("IPC: Rebut 'get-google-events'.");
+  console.log("[IPC_IN] Rebut 'get-google-events'.");
   try {
     const config = loadGoogleConfigFromFile();
     if (!config?.selectedCalendarIds?.length) {
@@ -660,6 +703,7 @@ ipcMain.handle('get-google-events', async () => {
 
 
 ipcMain.handle('clear-google-app-calendar', async () => {
+  console.log("[IPC_IN] Rebut 'clear-google-app-calendar'.");
   if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
     return { success: false, message: 'No autenticat amb Google.' };
   }
@@ -751,6 +795,7 @@ process.on('uncaughtException', (error) => {
 
 // <<< FUNCIÓ MODIFICADA >>>
 ipcMain.handle('perform-hard-reset', async () => {
+  console.log("[IPC_IN] Rebut 'perform-hard-reset'.");
   console.log("Iniciant Reset de Fàbrica...");
   
   let success = true;
@@ -793,6 +838,7 @@ ipcMain.handle('perform-hard-reset', async () => {
 });
 
 ipcMain.handle('get-default-data-path', () => {
+  console.log("[IPC_IN] Rebut 'get-default-data-path'.");
   if (DATA_FILE) {
     return getRelativePath(DATA_FILE);
   }

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
+import logger from '../utils/logger';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -66,6 +67,7 @@ export const useEventDataManager = (
   }, []);
 
   const addEventFrame = useCallback((newEventFrameData: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): EventFrame => {
+    logger.info('[ACTION] addEventFrame', { name: newEventFrameData.name });
     const newEventFrame: EventFrame = {
       ...newEventFrameData,
       id: generateId(),
@@ -79,8 +81,9 @@ export const useEventDataManager = (
   }, [markUnsaved]);
   
   const updateEventFrame = useCallback((updatedEventFrame: EventFrame) => {
+    logger.info('[ACTION] updateEventFrame', { id: updatedEventFrame.id, name: updatedEventFrame.name });
     if (!updatedEventFrame.techSheet) {
-      console.log(`Generant fitxa tècnica per a l'esdeveniment antic: ${updatedEventFrame.name}`);
+      logger.info(`Generant fitxa tècnica per a l'esdeveniment antic: ${updatedEventFrame.name}`);
       updatedEventFrame.techSheet = createDefaultTechSheet(updatedEventFrame);
     }
 
@@ -104,6 +107,7 @@ export const useEventDataManager = (
 
 
  const deleteEventFrame = useCallback((eventFrameId: string) => {
+    logger.info('[ACTION] deleteEventFrame', { id: eventFrameId });
     setEventFrames(prev => prev.filter(ef => ef.id !== eventFrameId));
 markUnsaved();
 }, [markUnsaved]);
@@ -113,6 +117,7 @@ markUnsaved();
   }, [eventFrames]);
 
   const addPersonGroup = useCallback((newPersonGroupData: Omit<PersonGroup, 'id'>) => {
+    logger.info('[ACTION] addPersonGroup', { name: newPersonGroupData.name });
     const newPersonGroup: PersonGroup = {
         id: generateId(),
         name: newPersonGroupData.name,
@@ -128,6 +133,7 @@ markUnsaved();
   }, [markUnsaved]);
 
   const updatePersonGroup = useCallback((updatedPersonGroup: PersonGroup) => {
+    logger.info('[ACTION] updatePersonGroup', { id: updatedPersonGroup.id, name: updatedPersonGroup.name });
     setPeopleGroups(prev => prev.map(pg => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg)
       .sort((a,b) => a.name.localeCompare(b.name))
     );
@@ -135,6 +141,7 @@ markUnsaved();
   }, [markUnsaved]);
 
   const deletePersonGroup = useCallback((personGroupId: string) => {
+    logger.info('[ACTION] deletePersonGroup', { id: personGroupId });
     setPeopleGroups(prev => prev.filter(pg => pg.id !== personGroupId));
     setEventFrames(prevFrames => prevFrames.map(ef => ({
       ...ef,
@@ -144,17 +151,20 @@ markUnsaved();
   }, [markUnsaved]);
 
   const addMaterialItem = useCallback((newItemData: Omit<MaterialItem, 'id'>) => {
+    logger.info('[ACTION] addMaterialItem', { name: newItemData.name });
     const newItem: MaterialItem = { ...newItemData, id: generateId() };
     setMaterialItems(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
   }, [markUnsaved]);
 
   const updateMaterialItem = useCallback((updatedItem: MaterialItem) => {
+    logger.info('[ACTION] updateMaterialItem', { id: updatedItem.id, name: updatedItem.name });
     setMaterialItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
   }, [markUnsaved]);
 
   const deleteMaterialItem = useCallback((itemId: string) => {
+    logger.info('[ACTION] deleteMaterialItem', { id: itemId });
     setMaterialItems(prev => prev.filter(item => item.id !== itemId));
     markUnsaved();
   }, [markUnsaved]);
@@ -214,11 +224,41 @@ markUnsaved();
     showToast(`${itemsToAdd.length} nous articles de material afegits a l'inventari.`, 'success');
   }, [markUnsaved, showToast]);
 
+  const mergePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    logger.info('[ACTION] mergePeopleGroups', { count: newPeople.length });
+    const existingNames = new Set(peopleGroupsRef.current.map(p => p.name.toLowerCase()));
+    const peopleToAdd = newPeople.filter(p => !existingNames.has(p.name.toLowerCase()));
+
+    if (peopleToAdd.length === 0) {
+      showToast("Totes les persones del fitxer ja existeixen.", 'info');
+      return;
+    }
+
+    setPeopleGroups(prev => [...prev, ...peopleToAdd].sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast(`${peopleToAdd.length} noves persones afegides.`, 'success');
+  }, [markUnsaved, showToast]);
+
+  const replacePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    logger.info('[ACTION] replacePeopleGroups', { count: newPeople.length });
+    setPeopleGroups(newPeople.sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast("La llista de persones ha estat reemplaçada.", 'success');
+  }, [markUnsaved, showToast]);
+
+  const replaceMaterialItems = useCallback((newItems: MaterialItem[]) => {
+    logger.info('[ACTION] replaceMaterialItems', { count: newItems.length });
+    setMaterialItems(newItems.sort((a, b) => a.name.localeCompare(b.name)));
+    markUnsaved();
+    showToast("L'inventari de material ha estat reemplaçat.", 'success');
+  }, [markUnsaved, showToast]);
+
   const getPersonGroupById = useCallback((personGroupId: string): PersonGroup | undefined => {
     return peopleGroups.find(pg => pg.id === personGroupId);
   }, [peopleGroups]);
 
   const addAssignment = useCallback((eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>): AssignmentOperationResult => {
+    logger.info('[ACTION] addAssignment', { eventFrameId: eventFrameId, personGroupId: newAssignmentData.personGroupId });
     const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
     if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
 
@@ -267,6 +307,7 @@ markUnsaved();
   }, [eventFrames, markUnsaved]);
 
   const updateAssignment = useCallback((updatedAssignment: Assignment, context?: { changedDate?: string }): AssignmentOperationResult => {
+    logger.info('[ACTION] updateAssignment', { id: updatedAssignment.id, eventFrameId: updatedAssignment.eventFrameId });
     let finalAssignment = { ...updatedAssignment };
     if (finalAssignment.status === AssignmentStatus.Mixed) {
       if (!finalAssignment.dailyStatuses) finalAssignment.dailyStatuses = {};
@@ -330,6 +371,7 @@ markUnsaved();
   }, [eventFrames, markUnsaved]);
 
   const deleteAssignment = useCallback((eventFrameId: string, assignmentId: string) => {
+    logger.info('[ACTION] deleteAssignment', { id: assignmentId, eventFrameId: eventFrameId });
     setEventFrames(prev => prev.map(ef =>
       ef.id === eventFrameId
         ? { ...ef, assignments: ef.assignments.filter(a => a.id !== assignmentId) }
@@ -412,11 +454,13 @@ markUnsaved();
    }, []);
 
   const setPersonnelComplete = useCallback((eventFrameId: string, complete: boolean) => {
+    logger.info('[ACTION] setPersonnelComplete', { eventFrameId, complete });
     setEventFrames(prev => prev.map(ef => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef));
     markUnsaved();
   }, [markUnsaved]);
 
   const syncWithGoogle = useCallback(async () => {
+    logger.info('[ACTION] Iniciant sincronització amb Google...');
     setIsSyncing(true);
     if (!window.electronAPI) {
         showToast('La sincronització només està disponible a l\'aplicació d\'escriptori.', 'warning');
@@ -479,6 +523,8 @@ markUnsaved();
     deleteMaterialItem,
     addMaterialItemsFromFile,
     getMaterialAvailability,
-    
+    mergePeopleGroups,
+    replacePeopleGroups,
+    replaceMaterialItems,
   };
 };

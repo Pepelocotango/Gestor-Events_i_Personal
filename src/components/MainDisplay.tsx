@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData, ShowToastFunction } from '../types';
 import { useEventData } from '../contexts/EventDataContext';
+import logger from '../utils/logger';
 import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, CsvIcon, ChevronUpIcon, ChevronDownIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -55,7 +56,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
   );
 };
 
-const MainDisplay: React.FC<MainDisplayProps> = ({
+const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps>(({
     openModal,
     setToastMessage,
     currentFilterHighlight,
@@ -65,9 +66,21 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
     setCurrentlyDisplayedFrames,
     onExportCurrentViewToCsv,
     setFilterUIPerson
-}) => {
-const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventData();
+}, ref) => {
+  const calendarRef = useRef<FullCalendar>(null);
+  const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventData();
   const [conflictDialog, setConflictDialog] = useState<{ message: string; personName: string | null } | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    handleResize: () => {
+      if (calendarRef.current) {
+        const calendarApi = calendarRef.current.getApi();
+        setTimeout(() => {
+          calendarApi.updateSize();
+        }, 50);
+      }
+    }
+  }));
 
   const [expandedEventFrameIds, setExpandedEventFrameIds] = useState<Set<string>>(new Set());
   const [expandedDailyViewAssignmentIds, setExpandedDailyViewAssignmentIds] = useState<Set<string>>(new Set());
@@ -90,8 +103,9 @@ const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFra
       .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
       .map(gEvent => ({
         ...gEvent,
-        backgroundColor: '#D32F2F',
-        borderColor: '#D32F2F',
+        // Utilitzem el color que ve de l'API de Google
+        backgroundColor: gEvent.backgroundColor,
+        borderColor: gEvent.borderColor,
         extendedProps: { ...gEvent.extendedProps, type: 'google' }
       }));
 
@@ -287,6 +301,7 @@ useEffect(() => {
       <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
         <div className="calendar-wrapper" style={{ padding: '0.5rem' }}>
           <FullCalendar
+                ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
                 initialView="multiMonth2"
                 views={{
@@ -343,7 +358,7 @@ useEffect(() => {
                 {filterDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
             </div>
             <div className="flex-grow min-w-[150px]"><label htmlFor="filterPlace" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lloc</label><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></div>            <div className="flex items-center gap-2">
-                <button onClick={onExportCurrentViewToCsv} className="px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-sm">
+                <button onClick={() => { logger.info('[UI] Iniciant exportació de vista actual a CSV.'); onExportCurrentViewToCsv(); }} className="px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-sm">
                     <CsvIcon /> Exportar
                 </button>
                 <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame(''); setFilterToShowEventFrameId(null);}} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
@@ -389,6 +404,6 @@ useEffect(() => {
       {conflictDialog && <Modal isOpen={true} onClose={() => setConflictDialog(null)} title="Conflicte detectat"><p>{conflictDialog.message}</p><p><strong>Persona:</strong> {conflictDialog.personName}</p><button onClick={() => setConflictDialog(null)} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Tanca</button></Modal>}
     </div>
   );
-};
+});
 
 export default MainDisplay;
