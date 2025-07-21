@@ -65,14 +65,23 @@
       "preload.cjs",
       "google-credentials.json"
     ],
-    "extraFiles": [
+    "extraResources": [
       {
         "from": "examples json",
-        "to": "examples json"
+        "to": "resources/examples json"
       },
-      "LICENSE",
-      "README.md",
-      "DEVELOPING.md"
+      {
+        "from": "LICENSE",
+        "to": "resources/LICENSE"
+      },
+      {
+        "from": "README.md",
+        "to": "resources/README.md"
+      },
+      {
+        "from": "DEVELOPING.md",
+        "to": "resources/DEVELOPING.md"
+      }
     ],
     "linux": {
       "target": [
