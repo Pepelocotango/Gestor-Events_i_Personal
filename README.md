@@ -4,14 +4,40 @@
 
 # Gestor d'Esdeveniments i Personal v0.4.0-dev
 
+Aplicació d'escriptori multiplataforma (construïda amb Electron, React i Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material amb control d'estoc.
+
+El projecte està actualment en fase de desenvolupament actiu.
+
+## 🚀 Funcionalitats Principals
+
+L'aplicació està dissenyada per cobrir tot el cicle de vida de la gestió d'un esdeveniment, oferint les següents eines:
+
+*   **Gestió d'Esdeveniments i Assignacions:**
+    *   Crea "esdeveniments marc" amb dates i notes generals.
+    *   Assigna personal per dies concrets i controla'n l'estat (Confirmat, Pendent, No disponible, Mixt).
+    *   El sistema detecta automàticament conflictes si una persona és assignada a múltiples llocs el mateix dia.
+
+*   **Planificació i Visualització:**
+    *   **Calendari Avançat:** Visualitza tots els esdeveniments en múltiples formats (2, 4 o 6 mesos, mes, setmana i agenda). 
+    *   **Llista Dinàmica:** Filtra i ordena els esdeveniments per nom, lloc, persona, estat o data per a una visió detallada.
+
+*   **Documentació Tècnica (Fitxes de Bolo):**
+    *   Genera fitxes tècniques completes per a cada esdeveniment.
+    *   Gestiona el personal per proveïdors i rols, i les necessitats de material (il·luminació, so, vídeo, etc.).
+    *   Pobla automàticament la llista de personal a partir de les assignacions confirmades.
+
+*   **Inventari de Material:**
+    *   Manté una base de dades centralitzada de material amb control d'estoc.
+    *   El sistema comprova la disponibilitat de l'estoc en temps real en assignar material a una fitxa de bolo.
+
+*   **Connectivitat i Gestió de Dades:**
+    *   **Integració amb Google Calendar:** Sincronitza els esdeveniments de l'aplicació a un calendari dedicat de Google i visualitza altres calendaris teus en mode de només lectura.
+    *   **Importació/Exportació:** Desa i carrega totes les dades de l'aplicació en format JSON. La càrrega de dades de personal i material permet fusionar o reemplaçar la informació existent.
+    *   **Exportació a PDF/CSV:** Exporta resums, llistes de personal, inventaris i fitxes de bolo a formats professionals com PDF i CSV.
+
+> Per a una anàlisi tècnica detallada de l'arquitectura i les funcionalitats, consulta la nostra [**guia de desenvolupament (DEVELOPING.md)**](DEVELOPING.md).
 
 
-
-
-Aplicació d'escriptori multiplataforma (construïda amb Electron, React i Vite) per a la gestió integral d'esdeveniments, personal i les seves assignacions, fitxes de bolo i material amb control de stock.
-
-
- El projecte està actualment en fase de desenvolupament actiu.
 
 ## 💾 Descàrrega i Instal·lació
 
@@ -68,7 +94,7 @@ Per a Linux, utilitzem el format `AppImage`, que no requereix instal·lació:
 
 ### 📂 Fitxers d'Exemple
 
-Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb fitxers de dades que pots carregar a l'aplicació. Utilitza els botons de la secció **Controls**:
+Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb fitxers de dades que pots carregar a l'aplicació. Utilitza els botons de la secció **Controls** per carregar i desar les teves dades.
 
 *   **`example_all .json`**: És un arxiu complet amb esdeveniments, personal i material. Es carrega amb el botó **`Carregar Tot`**.
     *   ⚠️ **Atenció:** Aquesta acció **esborra totes les dades actuals** i les reemplaça amb el contingut del fitxer.
@@ -82,7 +108,7 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 ## ✒️ Autoria
 
 -   **Autor Principal:** Pëp 
--   **Co-autoria i Suport Tècnic:** Isaac ;) / Gemini / Github Copilot / Perplexity / ChatGPT / Claude
+-   **Co-autoria i Suport Tècnic:** Isaac ;) / Google Gemini-Google Studio IA-Jules / Github Copilot / Perplexity / ChatGPT / Claude /
 
 ### Captures de pantalla:    
 ![Captura de pantalla del gestor d'events i personal](imatges%20i%20recursos/screenshot1mac.jpeg)

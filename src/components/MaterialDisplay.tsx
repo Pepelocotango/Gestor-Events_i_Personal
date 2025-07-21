@@ -1,7 +1,8 @@
 import React, { useState, FormEvent, useMemo } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { MaterialItem } from '../types';
-import { TrashIcon, EditIcon } from '../constants';
+import { TrashIcon, EditIcon, PdfIcon } from '../constants';
+import { exportMaterialToPdf } from '../utils/pdfGenerator';
 
 const MaterialDisplay: React.FC = () => {
   const { materialItems, addMaterialItem, updateMaterialItem, deleteMaterialItem, showToast } = useEventData();
@@ -72,6 +73,10 @@ const MaterialDisplay: React.FC = () => {
     }
   };
 
+  const handleExportPdf = () => {
+    exportMaterialToPdf(filteredItems, showToast);
+  };
+
   const filteredItems = materialItems.filter((item: MaterialItem) => {
     const searchTerm = search.toLowerCase();
     return (
@@ -136,7 +141,18 @@ const MaterialDisplay: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-medium">Inventari</h4>
-            <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-1/2`} />
+            <div className="flex items-center gap-2">
+                <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
+                <button
+                  onClick={handleExportPdf}
+                  className="p-2 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60"
+                  title="Exportar llista a PDF"
+                  aria-label="Exportar llista de material a PDF"
+                  disabled={filteredItems.length === 0}
+                >
+                  <PdfIcon className="w-5 h-5" />
+                </button>
+            </div>
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto space-y-2">

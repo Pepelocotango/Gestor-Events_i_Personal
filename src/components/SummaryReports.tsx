@@ -1,16 +1,17 @@
 import React, { useMemo } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { AssignmentStatus, SummaryRow, ShowToastFunction } from '../types';
-import { CsvIcon, ChevronUpIcon, ChevronDownIcon } from '../constants';
+import { CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import { formatDateDMY, formatDateRangeDMY } from '../utils/dateFormat';
 import { getStatusSummaryText } from '../utils/statusUtils';
+import { exportSummariesToPdf } from '../utils/pdfGenerator';
 
 interface SummaryReportsProps {
   setToastMessage: ShowToastFunction;
 }
 
 const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
-  const { eventFrames, getPersonGroupById } = useEventData();
+  const { eventFrames, getPersonGroupById, showToast } = useEventData();
 
   // --- LÒGICA DE DADES (sense canvis) ---
   const allAssignmentsSummary = useMemo((): SummaryRow[] => {
@@ -149,6 +150,10 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     return csvRows.map(row => row.map(escapeCsvCell).join(',')).join('\n');
   };
 
+  const handleExportPdf = (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person') => {
+    exportSummariesToPdf(title, data, dataType, showToast);
+  };
+
   const handleExportCsv = (dataType: 'event-name' | 'start-date' | 'person', groupKey: string | null = null) => {
     const csvContent = generateDetailedCsv(dataType, groupKey);
     const dateSuffix = new Date().toISOString().slice(0, 10);
@@ -163,7 +168,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     <div className="bg-white dark:bg-gray-700/80 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
       <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200 dark:border-gray-600">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{title}</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {showSortButton && (
             <button
               onClick={() => setSummarySortOrder(summarySortOrder === 'asc' ? 'desc' : 'asc')}
@@ -173,13 +178,22 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
               {summarySortOrder === 'asc' ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />} Ordena
             </button>
           )}
-          <button 
-              onClick={() => handleExportCsv(dataType)}
-              className="text-sm flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 hover:underline"
-              aria-label={`Exportar tot el resum ${title} a CSV`}
-          >
-              <CsvIcon className="w-4 h-4" /> Exportar Tot
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+                onClick={() => handleExportCsv(dataType)}
+                className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700/60"
+                aria-label={`Exportar tot el resum ${title} a CSV`}
+                title="Exportar a CSV"
+            > <CsvIcon className="w-4 h-4" />
+            </button>
+             <button
+                onClick={() => handleExportPdf(title, data, dataType)}
+                className="p-1.5 rounded-full bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60"
+                aria-label={`Exportar tot el resum ${title} a PDF`}
+                 title="Exportar a PDF"
+            > <PdfIcon className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
       {Array.from(data.entries()).length === 0 ? <p className="text-sm text-gray-500 dark:text-gray-400">No hi ha dades per aquest resum.</p> : null}
@@ -188,13 +202,25 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
           <div key={groupKey}>
             <div className="flex justify-between items-center mb-1 sticky top-0 bg-white dark:bg-gray-700/80 py-1 z-10">
               <h4 className="font-medium text-md text-indigo-700 dark:text-indigo-400 flex-grow">{groupKey}</h4>
-              <button
-                onClick={() => handleExportCsv(dataType, groupKey)}
-                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 flex-shrink-0 ml-2"
-                title={`Exportar només \"${groupKey}\"`}
-              >
-                <CsvIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </button>
+              <div className="flex items-center">
+                <button
+                  onClick={() => handleExportCsv(dataType, groupKey)}
+                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 flex-shrink-0 ml-2"
+                  title={`Exportar només \"${groupKey}\" a CSV`}
+                >
+                  <CsvIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </button>
+                <button
+                  onClick={() => {
+                    const singleGroupMap = new Map([[groupKey, assignments]]);
+                    handleExportPdf(groupKey, singleGroupMap, dataType);
+                  }}
+                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 flex-shrink-0 ml-1"
+                  title={`Exportar només \"${groupKey}\" a PDF`}
+                >
+                  <PdfIcon className="w-4 h-4 text-red-600 dark:text-red-400" />
+                </button>
+              </div>
             </div>
             <ul className="list-disc list-inside pl-4 space-y-1 text-sm">
               {assignments.map(a => {

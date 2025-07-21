@@ -2,7 +2,9 @@ import React, { useState, FormEvent } from 'react';
 import { saveAs } from 'file-saver';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup } from '../types';
-import { TrashIcon, EditIcon } from '../constants';
+import { TrashIcon, EditIcon, CsvIcon, PdfIcon } from '../constants';
+import { exportPeopleToPdf } from '../utils/pdfGenerator';
+
 
 const PeopleDisplay: React.FC = () => {
   const { peopleGroups, addPersonGroup, updatePersonGroup, deletePersonGroup: deletePersonGroupContext, showToast } = useEventData();
@@ -126,7 +128,7 @@ const PeopleDisplay: React.FC = () => {
 
   const exportPeopleToCSV = () => {
     const header = ['Nom', 'Rol', 'Telèfon 1', 'Telèfon 2', 'Email', 'Web', 'Notes'];
-    const rows = peopleGroups.map(p => [
+    const rows = filteredPeopleGroups.map(p => [
       p.name || '',
       p.role || '',
       p.tel1 || '',
@@ -141,6 +143,10 @@ const PeopleDisplay: React.FC = () => {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const today = new Date().toISOString().slice(0, 10);
     saveAs(blob, `llista_persones_${today}.csv`);
+  };
+
+  const exportToPdf = () => {
+    exportPeopleToPdf(filteredPeopleGroups, showToast);
   };
 
   return (
@@ -209,9 +215,14 @@ const PeopleDisplay: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                 <div className="flex items-center justify-between mb-2">
                     <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Llista de Persones/Grups</h4>
-                    <button type="button" onClick={exportPeopleToCSV} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow">
-                    Exportar a CSV
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button type="button" onClick={exportPeopleToCSV} className="p-2 rounded-md bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700/60" title="Exportar a CSV">
+                            <CsvIcon className="w-5 h-5" />
+                        </button>
+                        <button type="button" onClick={exportToPdf} className="p-2 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60" title="Exportar a PDF">
+                            <PdfIcon className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
                 <div className="mb-3 flex items-center gap-2">
                     <span className="text-gray-500 dark:text-gray-400">
