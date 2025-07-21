@@ -63,11 +63,16 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
+      "google-credentials.json"
+    ],
+    "extraFiles": [
+      {
+        "from": "examples json",
+        "to": "examples json"
+      },
       "LICENSE",
       "README.md",
-      "DEVELOPING.md",
-      "examples json/**/*",
-      "google-credentials.json"
+      "DEVELOPING.md"
     ],
     "linux": {
       "target": [
