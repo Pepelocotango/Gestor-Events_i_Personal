@@ -1,12 +1,216 @@
 import jsPDF from 'jspdf';
-import { TechSheetData } from '../types';
-import { PersonGroup } from '../types';
+import 'jspdf-autotable';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, AssignmentStatus, Assignment } from '../types';
+import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
+import { getStatusSummaryText } from './statusUtils';
 
-export const exportToPdf = (
+// Interfície per a les opcions de la taula
+interface AutoTableOptions {
+  head: any[][];
+  body: any[][];
+  startY?: number;
+  theme?: 'striped' | 'grid' | 'plain';
+  styles?: any;
+  headStyles?: any;
+  bodyStyles?: any;
+  didDrawPage?: (data: any) => void;
+  margin?: any;
+}
+
+// Funció genèrica per crear una capçalera i títol
+const createPdfHeader = (pdf: jsPDF, title: string): number => {
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(title, 14, 20);
+  const date = `Data d'exportació: ${formatDateDMY(new Date().toISOString())}`;
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(date, pdf.internal.pageSize.getWidth() - 14, 20, { align: 'right' });
+  return 30; // Retorna la posició Y inicial per al contingut
+};
+
+// Funció genèrica per gestionar el peu de pàgina
+const addFooter = (pdf: jsPDF, pageCount: number) => {
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(`Pàgina ${pageCount}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+};
+
+// --- EXPORTACIÓ DE RESUMS ---
+export const exportSummariesToPdf = (
+  title: string,
+  data: Map<string, SummaryRow[]>,
+  dataType: 'event-name' | 'start-date' | 'person',
+  showToast: ShowToastFunction
+) => {
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = createPdfHeader(pdf, `Resum: ${title}`);
+    let pageCount = 1;
+
+    const addPageIfNeeded = (currentY: number) => {
+      if (currentY > 270) {
+        addFooter(pdf, pageCount);
+        pdf.addPage();
+        pageCount++;
+        return 20; // Y inicial per a la nova pàgina
+      }
+      return currentY;
+    };
+
+    if (data.size === 0) {
+      pdf.setFontSize(12);
+      pdf.text("No hi ha dades per mostrar en aquest resum.", 14, y);
+    } else {
+      data.forEach((assignments, groupKey) => {
+        y = addPageIfNeeded(y);
+
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(groupKey, 14, y);
+        y += 8;
+
+        const head = [['Esdeveniment/Persona', 'Dates', 'Estat', 'Notes']];
+        const body = assignments.map(a => {
+            let label = '';
+            if (dataType === 'person') {
+                label = a.eventFrameName;
+            } else {
+                label = a.assignmentPersonName;
+            }
+
+            const statusDetail = a.isMixedStatusAssignment
+                ? `Mixt (${getStatusSummaryText(a.assignmentObject, true)})`
+                : a.assignmentStatus;
+
+            return [
+                label,
+                formatDateRangeDMY(a.assignmentStartDate, a.assignmentEndDate),
+                statusDetail,
+                a.assignmentNotes || '-'
+            ];
+        });
+
+        (pdf as any).autoTable({
+          head,
+          body,
+          startY: y,
+          theme: 'striped',
+          styles: { fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
+          didDrawPage: (data: any) => {
+            addFooter(pdf, pageCount);
+          },
+          margin: { top: 15, bottom: 15 }
+        });
+
+        y = (pdf as any).autoTable.previous.finalY + 10;
+      });
+    }
+
+    const fileName = `Resum_${title.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    pdf.save(fileName);
+    showToast('Resum exportat a PDF amb èxit!', 'success');
+
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
+  }
+};
+
+
+// --- EXPORTACIÓ DE LLISTA DE MATERIAL ---
+export const exportMaterialToPdf = (materialItems: MaterialItem[], showToast: ShowToastFunction) => {
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = createPdfHeader(pdf, 'Llista de Material');
+    let pageCount = 1;
+
+    const head = [['Nom', 'Categoria', 'Estoc', 'Ubicació', 'Notes']];
+    const body = materialItems.map(item => [
+      item.name,
+      item.category,
+      item.stock.toString(),
+      item.location || '-',
+      item.notes || '-'
+    ]);
+
+    (pdf as any).autoTable({
+      head,
+      body,
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2.5 },
+      headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
+      didDrawPage: (data: any) => {
+        addFooter(pdf, pageCount);
+        if (data.pageNumber > 1) { // Per evitar afegir header a la primera pàgina dues vegades
+            createPdfHeader(pdf, 'Llista de Material');
+        }
+      },
+      margin: { top: 30, bottom: 15 }
+    });
+
+    const fileName = `Llista_Material_${new Date().toISOString().slice(0, 10)}.pdf`;
+    pdf.save(fileName);
+    showToast('Llista de material exportada a PDF!', 'success');
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
+  }
+};
+
+
+// --- EXPORTACIÓ DE LLIBRETA D'ADRECES ---
+export const exportPeopleToPdf = (peopleGroups: PersonGroup[], showToast: ShowToastFunction) => {
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = createPdfHeader(pdf, "Llibreta d'Adreces");
+    let pageCount = 1;
+
+    const head = [['Nom', 'Rol', 'Contacte', 'Notes']];
+    const body = peopleGroups.map(p => {
+      const contactInfo = [
+        p.tel1,
+        p.tel2,
+        p.email,
+        p.web,
+      ].filter(Boolean).join('\n');
+      return [p.name, p.role || '-', contactInfo || '-', p.notes || '-'];
+    });
+
+    (pdf as any).autoTable({
+      head,
+      body,
+      startY: y,
+      theme: 'striped',
+      styles: { fontSize: 9, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: [243, 156, 18], textColor: 255, fontStyle: 'bold' },
+      columnStyles: {
+        2: { cellWidth: 60 }, // Columna de contacte més ample
+        3: { cellWidth: 'auto' }
+      },
+      didDrawPage: (data: any) => {
+        addFooter(pdf, pageCount);
+        if (data.pageNumber > 1) {
+            createPdfHeader(pdf, "Llibreta d'Adreces");
+        }
+      },
+      margin: { top: 30, bottom: 15 }
+    });
+
+    const fileName = `Llibreta_Adreces_${new Date().toISOString().slice(0, 10)}.pdf`;
+    pdf.save(fileName);
+    showToast("Llibreta d'adreces exportada a PDF!", 'success');
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
+  }
+};
+
+// --- FITXA TÈCNICA (Codi original adaptat) ---
+export const exportTechSheetToPdf = (
   formData: TechSheetData,
   eventName: string,
   getPersonGroupById: (id: string) => PersonGroup | undefined,
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void
+  showToast: ShowToastFunction
 ) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
