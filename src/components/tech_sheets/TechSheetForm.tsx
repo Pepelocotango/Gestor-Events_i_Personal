@@ -4,7 +4,8 @@ import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem } from 
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
-import { exportToPdf } from '../../utils/pdfGenerator';
+import { exportTechSheetToPdf } from '../../utils/pdfGenerator';
+
 import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 
@@ -193,7 +194,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
 
 
   const handleExportToPdf = () => {
-    exportToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
+    exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
   };
 
   return (

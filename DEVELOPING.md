@@ -146,28 +146,31 @@ Aquest fitxer concentra la major part de la lògica de la nova funcionalitat.
 
 > Consulta el codi de `main.cjs` per veure la implementació exacta de cada funció.
 
-### 🆕 NOVETATS: Fitxes de Bolo Dinàmiques i Exportació PDF Professional (v0.3.x) <--- en desenvolupament!
 
+### 🆕 **Funcionalitat Avançada de Fitxes de Bolo i Exportació a PDF**
 
-- **UI dinàmica i moderna:**
-  - Selectors SI/NO per a camps com Premuntatge, Zona reservada parking, Vídeo, Lloguers, Material d’altres equipaments, amb camps de detall que apareixen només quan cal.
-  - Dropdowns numèrics per a actors i tècnics de companyia, amb text condicionat per noms.
-  - Botons d'eliminació compactes (X) i accions col·locades de forma més intuïtiva (ex: "Actualitza des d'assignacions" al capçalera de secció).
-  - Sincronització automàtica de notes d'assignació i eliminació del camp "Origen Personal".
-- **Exportació a PDF professional:**
-  - El botó "Exportar a PDF" genera una fitxa tècnica compacta, clara i totalment basada en text (no captura de pantalla).
-  - El PDF inclou seccions, taules i formatació optimitzada per impressió professional.
-  - S'han solucionat tots els errors de TypeScript relacionats amb valors indefinits a l'exportació.
-- **Millores d'UX i robustesa:**
-  - Camps i seccions s'actualitzen i desen automàticament.
-  - Validació i persistència de seleccions SI/NO i camps dinàmics.
-  - Tots els canvis s'han documentat i provat amb usuaris reals.
+S'ha implementat una funcionalitat completa per a la gestió de fitxes tècniques ("fitxes de bolo"), amb una interfície dinàmica i una exportació professional a PDF.
 
-**Arxius clau modificats:**
-- `src/components/tech_sheets/TechSheetForm.tsx` (UI, lògica, PDF)
-- `src/components/tech_sheets/TechSheetSection.tsx` (accions de capçalera)
-- `src/components/tech_sheets/TechSheetField.tsx` (gestió intel·ligent de camps, amb suggeriments i estats)
-- `src/types.ts` (nous camps i lògica de fitxa)
+*   **UI Dinàmica i Moderna:**
+    *   **Camps Condicionals:** S'utilitzen selectors SI/NO per a camps com "Premuntatge", "Zona reservada pàrquing", "Vídeo", "Lloguers" i "Material d'altres equipaments", mostrant camps de text per a detalls addicionals només quan es selecciona "SI".
+    *   **Entrades Numèriques:** Camps per a "Actors" i "Tècnics de companyia" permeten seleccionar una quantitat numèrica, activant un camp de text per als noms.
+    *   **Accions Intuïtives:** La interfície inclou botons d'eliminació compactes (✖) i accions de context, com el botó "Actualitza des d'assignacions" a la capçalera de la secció de personal.
+
+*   **Exportació Professional a PDF:**
+    *   **Múltiples Formats:** La funcionalitat d'exportació a PDF està disponible per a **Fitxes de Bolo**, **Resums**, **Llista de Material** i **Llibreta d'Adreces**.
+    *   **Generació Neta:** Els documents es generen com a PDF de text, no com a captures de pantalla, utilitzant les llibreries `jspdf` i `jspdf-autotable` per a una qualitat professional amb taules i formatació optimitzada per a impressió.
+
+*   **Millores d'UX i Robustesa:**
+    *   **Desat Automàtic:** Els canvis realitzats a les fitxes de bolo es desen automàticament en canviar de camp (`onBlur`), proporcionant una experiència fluida.
+    *   **Validació i Persistència:** Es valida l'estoc de material en temps real i es mantenen les seleccions dels camps dinàmics.
+
+**Arquitectura i Fitxers Clau:**
+
+*   **`src/utils/pdfGenerator.ts`:** Mòdul centralitzat que conté tota la lògica per a la creació de tots els documents PDF.
+*   **`src/components/tech_sheets/TechSheetForm.tsx`:** Orquestra el formulari de la fitxa de bolo, gestiona l'estat i crida a `pdfGenerator.ts` per a l'exportació.
+*   **`src/components/tech_sheets/TechnicalPersonnelSection.tsx` i `NeedsList.tsx`:** Components especialitzats que gestionen les seccions de personal i necessitats de material, respectivament.
+*   **`src/types.ts`:** Defineix les estructures de dades per a la fitxa tècnica (`TechSheetData`, `TechSheetProvider`, etc.).
+*   **`package.json`:** S'han afegit les dependències `jspdf` i `jspdf-autotable`.
 
 
 ### 🆕 Millores a les Fitxes de Bolo (v0.3.x): Gestió de Personal per Proveïdors
