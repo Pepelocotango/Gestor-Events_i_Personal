@@ -17,22 +17,9 @@ millorar i implementar sortides existents csv a pdf també.
 
 ### modals ( finestres) més grans
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 ### afegir als builders de github actions .yml incloure en els comprimits el readme, developing, llicència i carpeta exemples json.
   
-###
-=======
-=======
-=======
 
->>>>>>> parent of 18af964 (Update FER FER .MD)
-
->>>>>>> parent of 18af964 (Update FER FER .MD)
-
-
->>>>>>> parent of 18af964 (Update FER FER .MD)
 
 #### **✨ Millores de Funcionalitat i UX (Prioritat Mitjana)**
 
@@ -52,7 +39,7 @@ millorar i implementar sortides existents csv a pdf també.
 
 
 
-#### implementar factures i presupostos
-noves "pagines"
+#### implementar factures
+nova "pagina"
 
 
