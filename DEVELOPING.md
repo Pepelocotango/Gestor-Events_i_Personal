@@ -157,9 +157,13 @@ S'ha implementat una funcionalitat completa per a la gestió de fitxes tècnique
     *   **Accions Intuïtives:** La interfície inclou botons d'eliminació compactes (✖) i accions de context, com el botó "Actualitza des d'assignacions" a la capçalera de la secció de personal.
 
 *   **Exportació Professional a PDF:**
-    *   **Múltiples Formats:** La funcionalitat d'exportació a PDF està disponible per a **Fitxes de Bolo**, **Resums**, **Llista de Material** i **Llibreta d'Adreces**.
-    *   **Generació Neta:** Els documents es generen com a PDF de text, no com a captures de pantalla, utilitzant les llibreries `jspdf` i `jspdf-autotable` per a una qualitat professional amb taules i formatació optimitzada per a impressió.
-
+     - **Cobertura Completa:** Totes les vistes de dades principals permeten l'exportació a un document PDF ben formatat:
+        - **Llista d'Esdeveniments:** Genera un PDF apaïsat amb un resum de cada esdeveniment, incloent el personal assignat, els seus estats, notes d'assignació i notes generals.
+        - **Fitxes de Bolo:** Exporta la fitxa tècnica completa.
+        - **Resums:** Exporta les vistes de resum agrupades.
+        - **Inventari de Material i Llibreta d'Adreces:** Genera llistes clares en format de taula.
+    - **Tecnologia:** S'utilitzen les llibreries `jspdf` i `jspdf-autotable` per generar PDF de text natius, garantint una alta qualitat d'impressió.
+    
 *   **Millores d'UX i Robustesa:**
     *   **Desat Automàtic:** Els canvis realitzats a les fitxes de bolo es desen automàticament en canviar de camp (`onBlur`), proporcionant una experiència fluida.
     *   **Validació i Persistència:** Es valida l'estoc de material en temps real i es mantenen les seleccions dels camps dinàmics.

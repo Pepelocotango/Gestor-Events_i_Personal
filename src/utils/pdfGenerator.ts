@@ -326,13 +326,16 @@ export const exportEventListToPdf = (
     let y = createPdfHeader(pdf, "Llista d'Esdeveniments");
     let pageCount = 1;
 
-    const head = [['Nom Esdeveniment', 'Lloc', 'Dates', 'Personal Assignat', 'Estat']];
+    const head = [['Nom Esdeveniment', 'Lloc', 'Dates', 'Personal Assignat i Notes', 'Estat', 'Notes Generals']];
     const body = eventFrames.map(ef => {
       const personnelText = ef.assignments.length > 0
-         ? ef.assignments.map((a: Assignment) => {
+        ? ef.assignments.map((a: Assignment) => {
             const person = peopleGroups.find(p => p.id === a.personGroupId);
-            return `${person ? person.name : 'N/A'} ${getStatusSummaryText(a)}`;
-          }).join('\n')
+            const personLine = `${person ? person.name : 'N/A'} ${getStatusSummaryText(a)}`;
+            // Afegeix les notes de l'assignació si existeixen
+            const notesLine = a.notes ? `  └ Nota: ${a.notes}` : '';
+            return [personLine, notesLine].filter(Boolean).join('\n');
+          }).join('\n\n') // Doble salt de línia entre persones
         : 'Sense assignacions';
 
       const statusText = ef.personnelComplete ? 'Complet' : 'Incomplet';
@@ -342,7 +345,8 @@ export const exportEventListToPdf = (
         ef.place || '-',
         formatDateRangeDMY(ef.startDate, ef.endDate),
         personnelText,
-        statusText
+        statusText,
+        ef.generalNotes || '-' // Afegim la nova columna
       ];
     });
 
@@ -354,8 +358,12 @@ export const exportEventListToPdf = (
       styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
       headStyles: { fillColor: [75, 85, 99], textColor: 255, fontStyle: 'bold' },
       columnStyles: {
-        3: { cellWidth: 80 }, // Amplada fixa per a la columna de personal
+        3: { cellWidth: 85 }, // Més amplada per a personal i notes
+        5: { cellWidth: 60 }  // Amplada per a les notes generals
       },
+
+
+      
       didDrawPage: (_data: any) => {
         addFooter(pdf, pageCount);
         if (_data.pageNumber > 1) {
