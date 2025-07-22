@@ -3,6 +3,7 @@ import { useEventData } from '../contexts/EventDataContext';
 import { MaterialItem } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
 import { exportMaterialToPdf } from '../utils/pdfGenerator';
+import CollapsibleSection from './ui/CollapsibleSection';
 
 const MaterialDisplay: React.FC = () => {
   const { materialItems, addMaterialItem, updateMaterialItem, deleteMaterialItem, showToast } = useEventData();
@@ -85,6 +86,18 @@ const MaterialDisplay: React.FC = () => {
       item.location.toLowerCase().includes(searchTerm)
     );
   });
+  
+  const itemsByCategory = useMemo(() => {
+    const grouped: { [category: string]: MaterialItem[] } = {};
+    filteredItems.forEach(item => {
+      const category = item.category || 'Sense Categoria';
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(item);
+    });
+    return Object.entries(grouped).sort(([catA], [catB]) => catA.localeCompare(catB));
+  }, [filteredItems]);
 
   return (
     <div className="space-y-6">
@@ -156,21 +169,33 @@ const MaterialDisplay: React.FC = () => {
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto space-y-2">
-            {filteredItems.length > 0 ? filteredItems.map((item: MaterialItem) => (
-              <div key={item.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-semibold">{item.name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{item.category} • Estoc: {item.stock} • Ubicació: {item.location}</p>
-                    {item.notes && <p className="text-xs italic mt-1">{item.notes}</p>}
-                  </div>
-                  <div className="space-x-2 flex-shrink-0">
-                    <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
-                    <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
-                  </div>
-                </div>
-              </div>
-            )) : <p className="text-center text-gray-500">No s'ha trobat material o l'inventari està buit.</p>}
+            {filteredItems.length > 0 ? (
+              itemsByCategory.map(([category, items]) => (
+                <CollapsibleSection 
+                  key={category} 
+                  title={`${category} (${items.length})`}
+                  defaultOpen={true}
+                  headerClassName="bg-gray-50 dark:bg-gray-700/50 text-md"
+                  contentClassName="space-y-2"
+                >
+                  {items.map((item: MaterialItem) => (
+                    <div key={item.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold">{item.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Estoc: {item.stock} • Ubicació: {item.location}</p>
+                          {item.notes && <p className="text-xs italic mt-1">{item.notes}</p>}
+                        </div>
+                        <div className="space-x-2 flex-shrink-0">
+                          <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
+                          <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CollapsibleSection>
+              ))
+            ) : <p className="text-center text-gray-500">No s'ha trobat material o l'inventari està buit.</p>}
           </div>
         </div>
       </div>

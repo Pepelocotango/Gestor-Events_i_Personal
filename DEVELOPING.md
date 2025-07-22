@@ -208,6 +208,8 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
 - **`src/types.ts`**: Defineix totes les interfícies TypeScript per a la fitxa tècnica, incloent la descripció de cada secció, llistes, camps opcionals i la seva estructura jeràrquica.
 - **`src/hooks/useEventDataManager.ts`**: Gestiona l'estat global de l'aplicació, incloent la persistència i sincronització de les fitxes tècniques amb la resta de dades de l'esdeveniment.
 
+- **`src/components/ui/CollapsibleSection.tsx`**: **(NOU)** Component d'UI genèric i reutilitzable que renderitza una secció amb un títol clicable per mostrar o ocultar el seu contingut. S'utilitza a `MaterialDisplay.tsx` per agrupar l'inventari i a altres parts de l'aplicació per organitzar la informació.
+
 > Amb aquesta arquitectura modular, cada fitxer té una responsabilitat clara i delimitada, facilitant el manteniment i l'escalabilitat.
 
 ---
@@ -235,6 +237,7 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
         *   **Funcionament 100% offline** garantit. La integració és una capa addicional que no afecta la funcionalitat principal.
     **✨ [NOU] Gestor d'Inventari de Material:**
     *   Pàgina dedicada per gestionar un inventari de material (nom, categoria, estoc, etc.).
+    *   **Vista Agrupada per Categories:** L'inventari ara s'organitza visualment en seccions col·lapsables per categoria, facilitant la navegació i consulta. Aquesta estructura agrupada es reflecteix també a l'exportació a PDF.
     *   Permet carregar inventaris des de fitxers JSON externs.
     *   **Integració amb Fitxes de Bolo:** Suggereix material de l'inventari a les necessitats tècniques.
    *   **Control d'Estoc Dinàmic:**

@@ -540,19 +540,17 @@ const App: React.FC = () => {
       case 'eventFrameDetails':
         return <EventFrameDetailsModal onClose={closeModal} eventFrame={modalState.data!.eventFrame!} showToast={showToast} onShowOnList={handleShowOnList}/>;
       case 'confirmHardReset':
-      case 'confirmDeleteEventFrame':
-        if (modalState.data?.onConfirmSpecial) {
-             return <ConfirmDeleteModal
+        return <ConfirmDeleteModal
                   onClose={closeModal}
-                  itemType={modalState.data.itemType!}
-                  itemName={modalState.data.itemName!}
-                  onConfirm={modalState.data.onConfirmSpecial}
+                  itemType={modalState.data!.itemType!}
+                  itemName={modalState.data!.itemName!}
+                  onConfirm={modalState.data!.onConfirmSpecial!}
                   showToast={showToast}
-                  titleOverride={modalState.data.titleOverride}
-                  confirmButtonText={modalState.data.confirmButtonText}
-                  cancelButtonText={modalState.data.cancelButtonText}
+                  titleOverride={modalState.data!.titleOverride}
+                  confirmButtonText={modalState.data!.confirmButtonText}
+                  cancelButtonText={modalState.data!.cancelButtonText}
                 />;
-        }
+      case 'confirmDeleteEventFrame':
         return <ConfirmDeleteModal
                   onClose={closeModal}
                   itemType="Marc d'Esdeveniment"
@@ -562,6 +560,7 @@ const App: React.FC = () => {
                   }}
                   showToast={showToast}
                 />;
+                
       case 'confirmDeleteAssignment':
         return <ConfirmDeleteModal
                   onClose={closeModal}

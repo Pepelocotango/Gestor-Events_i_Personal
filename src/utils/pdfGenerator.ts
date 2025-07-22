@@ -107,21 +107,36 @@ export const exportSummariesToPdf = (
 };
 
 
-// --- EXPORTACIÓ DE LLISTA DE MATERIAL ---
+// --- EXPORTACIó DE LLISTA DE MATERIAL ---
 export const exportMaterialToPdf = (materialItems: MaterialItem[], showToast: ShowToastFunction) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = createPdfHeader(pdf, 'Llista de Material');
     let pageCount = 1;
 
-    const head = [['Nom', 'Categoria', 'Estoc', 'Ubicació', 'Notes']];
-    const body = materialItems.map(item => [
-      item.name,
-      item.category,
-      item.stock.toString(),
-      item.location || '-',
-      item.notes || '-'
-    ]);
+    const head = [['Nom', 'Estoc', 'Ubicació', 'Notes']];
+    
+    const itemsByCategory: { [key: string]: MaterialItem[] } = {};
+    materialItems.forEach(item => {
+      const category = item.category || 'Sense Categoria';
+      if (!itemsByCategory[category]) {
+        itemsByCategory[category] = [];
+      }
+      itemsByCategory[category].push(item);
+    });
+
+    const body: any[][] = [];
+    Object.keys(itemsByCategory).sort().forEach(category => {
+      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: '#e0e0e0', textColor: '#000000' } }]);
+      itemsByCategory[category].forEach(item => {
+        body.push([
+          item.name,
+          item.stock.toString(),
+          item.location || '-',
+          item.notes || '-'
+        ]);
+      });
+    });
 
     autoTable(pdf, {
       head,
