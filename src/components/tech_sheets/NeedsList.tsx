@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import TechSheetField from './TechSheetField';
 import { MaterialItem } from '../../types';
 
@@ -105,4 +105,4 @@ const NeedsList: React.FC<NeedsListProps> = ({
   );
 };
 
-export default NeedsList;
+export default memo(NeedsList);
