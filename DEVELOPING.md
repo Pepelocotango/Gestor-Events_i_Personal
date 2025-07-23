@@ -24,6 +24,23 @@ S'han solucionat una sèrie d'errors de compilació de TypeScript que impedien q
 *   **`src/components/Controls.tsx`**:
     *   S'han eliminat les importacions i desestructuracions no utilitzades.
 
+### ✨ [NOU] Optimització de Rendiment a les Fitxes de Bolo
+
+S'ha realitzat una refactorització tècnica per millorar la fluïdesa i la resposta de la interfície al formulari de **Fitxes de Bolo**, que podia experimentar lentitud en editar camps a causa de la seva complexitat.
+
+-   **Problema:** Cada modificació en un camp del formulari (`TechSheetForm.tsx`) provocava un re-renderitzat de tots els seus components fills, incloent les llistes de personal i material, causant feina innecessària i una experiència d'usuari poc fluida.
+
+-   **Solució Implementada:**
+    1.  **Memorització de Components (`React.memo`):** Els components fills més pesats (`TechnicalPersonnelSection`, `NeedsList` i `TechSheetField`) s'han embolicat amb `React.memo`. Ara, aquests components només es tornaran a renderitzar si les seves propietats (`props`) canvien realment.
+    2.  **Memorització de Funcions (`useCallback`):** Totes les funcions (`handlers`) que es passen des de `TechSheetForm.tsx` als seus fills s'han embolicat amb el hook `useCallback`. Això garanteix que les referències a les funcions siguin estables entre renderitzats, permetent que `React.memo` funcioni de manera efectiva.
+
+-   **Impacte:** Aquests canvis redueixen dràsticament la càrrega de treball de React a cada interacció, resultant en una edició del formulari molt més ràpida i responsiva.
+
+**Arxius clau modificats:**
+-   `src/components/tech_sheets/TechSheetForm.tsx` (implementació de `useCallback`).
+-   `src/components/tech_sheets/TechnicalPersonnelSection.tsx`, `NeedsList.tsx`, `TechSheetField.tsx` (implementació de `React.memo`).
+
+
 ---
 
 ## 🚀 **Millores a les Fitxes de Bolo i Documentació Tècnica (v0.3.x)** en desenvolupament!
@@ -391,6 +408,28 @@ El projecte utilitza **GitHub Actions** per automatitzar la compilació per a di
 
 Tots els workflows inclouen un pas per crear el fitxer `google-credentials.json` a partir d'un secret de GitHub, assegurant que les credencials no quedin exposades al codi font.
 
+## ⚠️ Nota sobre la configuració de TypeScript ACTUALMENT ESTÀ CANVIAT A "true" !!!
+
+Per garantir que la compilació (`npm run build`) funcioni correctament encara que hi hagi imports de tipus o variables no utilitzades directament (per exemple, tipus utilitzats només en estructures o per claredat), s'ha modificat el fitxer `tsconfig.json`:
+
+```jsonc
+"noUnusedLocals": false, <-ACTUALITZAT A true
+"noUnusedParameters": false, <-ACTUALITZAT A true
+```
+
+Això permet seleccionar el mode en que el projecte es compili sense errors per imports/tipus no utilitzats directament, mantenint la seguretat de tipus i la claredat del codi. *Si vols tornar a activar la comprovació estricta, només cal posar aquests valors a `true`.*
+
+---
+
+### Solució de Bug de Renderitzat del Calendari
+
+S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
+
+La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
+
+- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar. S'ha eliminat la importació de `CalendarApi` que no s'utilitzava.
+- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.
+
 ### Prerequisits
 
 Assegura't de tenir instal·lat [Node.js](https://nodejs.org/) (versió 18 o superior) i `npm`.
@@ -437,35 +476,3 @@ npm run build:mac
 ```
 
 El resultat es desarà al directori `dist`.
-
-
-## ⚠️ Nota sobre la configuració de TypeScript ACTUALMENT ESTÀ CANVIAT A "true" !!!
-
-Per garantir que la compilació (`npm run build`) funcioni correctament encara que hi hagi imports de tipus o variables no utilitzades directament (per exemple, tipus utilitzats només en estructures o per claredat), s'ha modificat el fitxer `tsconfig.json`:
-
-```jsonc
-"noUnusedLocals": false, <-ACTUALITZAT A true
-"noUnusedParameters": false, <-ACTUALITZAT A true
-```
-
-Això permet seleccionar el mode en que el projecte es compili sense errors per imports/tipus no utilitzats directament, mantenint la seguretat de tipus i la claredat del codi. *Si vols tornar a activar la comprovació estricta, només cal posar aquests valors a `true`.*
-
----
-
-### Solució de Bug de Renderitzat del Calendari
-
-S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
-
-La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
-
-- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar. S'ha eliminat la importació de `CalendarApi` que no s'utilitzava.
-- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.
-
-### Solució de Bug de Renderitzat del Calendari
-
-S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
-
-La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
-
-- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar.
-- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.

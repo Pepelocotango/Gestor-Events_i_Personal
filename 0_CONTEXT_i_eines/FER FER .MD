@@ -1,17 +1,4 @@
 
----
-### important!!! 
-
-Pla Tècnic d'Optimització:
-Optimitzar TechnicalPersonnelSection:
-Modificarem el component TechnicalPersonnelSection.tsx per embolicar-lo amb React.memo.
-Revisarem el component pare (TechSheetForm.tsx) i ens assegurarem que totes les funcions que se li passen com a props estiguin memoritzades amb useCallback.
-Optimitzar NeedsList:
-Aplicarem el mateix procés al component NeedsList.tsx, embolcallant-lo amb React.memo.
-De nou, verificarem a TechSheetForm.tsx que les funcions passades a NeedsList estiguin dins d'un useCallback.
-Optimitzar TechSheetField:
-Aquest component es reutilitza molt. Embolcallar-lo amb React.memo també pot donar un petit guany de rendiment, especialment dins de les llistes llargues.
-Aquest enfocament de "baix a dalt" (optimitzant els components fills primer) és la manera més eficient de millorar el rendiment.
 
 ### 📝 **Pla d'Acció Recomanat (Tasques Pendents)**
 
