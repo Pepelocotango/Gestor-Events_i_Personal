@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import TechSheetField from './TechSheetField';
 import { MaterialItem } from '../../types';
 
@@ -14,7 +14,7 @@ interface NeedsListProps {
   getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string) => { available: number; total: number };
 }
 
-const NeedsList: React.FC<NeedsListProps> = ({
+const NeedsList: React.FC<NeedsListProps> = memo(({
   needs,
   title,
   listName,
@@ -105,4 +105,4 @@ const NeedsList: React.FC<NeedsListProps> = ({
   );
 };
 
-export default NeedsList;
+export default memo(NeedsList);

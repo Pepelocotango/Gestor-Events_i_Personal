@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface TechSheetFieldProps {
   id: string;
@@ -17,7 +17,7 @@ interface TechSheetFieldProps {
   className?: string; // Afegim la propietat per a classes addicionals
 }
 
-const TechSheetField: React.FC<TechSheetFieldProps> = ({
+const TechSheetField: React.FC<TechSheetFieldProps> = memo(({
   id,
   label,
   value,
@@ -90,4 +90,4 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   );
 };
 
-export default TechSheetField;
+export default memo(TechSheetField);
