@@ -17,7 +17,7 @@ interface TechSheetFieldProps {
   className?: string; // Afegim la propietat per a classes addicionals
 }
 
-const TechSheetField: React.FC<TechSheetFieldProps> = memo(({
+const TechSheetField: React.FC<TechSheetFieldProps> = ({
   id,
   label,
   value,

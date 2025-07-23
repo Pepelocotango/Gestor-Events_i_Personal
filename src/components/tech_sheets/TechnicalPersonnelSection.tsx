@@ -21,7 +21,7 @@ interface TechnicalPersonnelSectionProps {
   formData: any;
 }
 
-const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = memo(({
+const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   technicalProviders,
   peopleGroups,
   eventFrame,

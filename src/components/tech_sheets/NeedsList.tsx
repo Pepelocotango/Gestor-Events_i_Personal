@@ -14,7 +14,7 @@ interface NeedsListProps {
   getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string) => { available: number; total: number };
 }
 
-const NeedsList: React.FC<NeedsListProps> = memo(({
+const NeedsList: React.FC<NeedsListProps> = ({
   needs,
   title,
   listName,
