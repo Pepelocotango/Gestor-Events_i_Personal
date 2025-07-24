@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-
+import autoTable, { Styles } from 'jspdf-autotable';
 import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
@@ -209,7 +208,7 @@ export const exportPeopleToPdf = (peopleGroups: PersonGroup[], showToast: ShowTo
   }
 };
 
-// --- FITXA TÈCNICA (Codi original adaptat) ---
+// --- FITXA TÈCNICA ---
 export const exportTechSheetToPdf = (
   formData: TechSheetData,
   eventName: string,
@@ -218,111 +217,161 @@ export const exportTechSheetToPdf = (
 ) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    let y = 15;
-    const left = 12;
-    const right = pdf.internal.pageSize.getWidth() - left;
-    const lineSpacing = 6;
-    const sectionSpacing = 8;
-    const subSectionSpacing = 4;
+    let y = 15; // Posició Y inicial
 
-    const addLine = (txt: string, size = 10, style = 'normal', indent = 0) => {
-      if (y > 280) { // Marge inferior per canvi de pàgina
-        pdf.addPage();
-        y = 15;
-      }
-      pdf.setFontSize(size);
-      pdf.setFont('helvetica', style);
-      pdf.text(txt, left + indent, y, { maxWidth: right - left - indent });
-      y += lineSpacing;
+    // --- DEFINICIÓ D'ESTILS AMB TIPAT CORRECTE ---
+    const headStyles: Partial<Styles> = {
+      fillColor: [64, 64, 64], // Gris fosc
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+    };
+    const labelStyles: Partial<Styles> = {
+      fillColor: [230, 230, 230], // Gris clar
+      textColor: [0, 0, 0],
+      fontStyle: 'bold',
+    };
+    const subHeadStyles: Partial<Styles> = {
+        fillColor: [200, 200, 200],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
     };
 
-    const addSectionTitle = (title: string) => {
-      y += sectionSpacing / 2;
-      addLine(title, 13, 'bold');
-      y += subSectionSpacing / 2;
-    };
+    // --- Taula 1: Capçalera Principal ---
+    autoTable(pdf, {
+      body: [
+        [{ content: 'FITXA DE BOLO', colSpan: 2, styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }],
+        [{ content: 'NOM DEL BOLO:', styles: labelStyles }, formData.eventName],
+        [{ content: 'LLOC:', styles: labelStyles }, formData.location || '-'],
+        [{ content: 'DATA:', styles: labelStyles }, formData.date || '-'],
+        [{ content: 'HORA:', styles: labelStyles }, formData.showTime || '-'],
+        [{ content: 'DURADA:', styles: labelStyles }, formData.showDuration || '-'],
+        [{ content: 'PÀRQUING:', styles: labelStyles }, formData.parkingInfo || '-'],
+      ],
+      theme: 'grid',
+      startY: y,
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
-    // --- CAPÇALERA ---
-    pdf.setFontSize(18); pdf.setFont('helvetica', 'bold');
-    pdf.text(`Fitxa Tècnica - ${formData.eventName}`, left, y); y += 10;
-
-    // --- INFORMACIÓ GENERAL ---
-    pdf.setFontSize(11); pdf.setFont('helvetica', 'normal');
-    pdf.text(`Lloc: ${formData.location || '-'}`, left, y);
-    pdf.text(`Data: ${formData.date || '-'}`, right - 60, y); y += lineSpacing;
-    pdf.text(`Hora: ${formData.showTime || '-'}`, left, y);
-    pdf.text(`Durada: ${formData.showDuration || '-'}`, right - 60, y); y += lineSpacing;
-    if (formData.parkingInfo) {
-      pdf.text(`Pàrquing: ${formData.parkingInfo}`, left, y); y+= lineSpacing;
-    }
-
-    // --- PERSONAL TÈCNIC ---
-    addSectionTitle('Personal Tècnic');
+    // --- Taula 2: Personal Tècnic ---
+    const personnelBody: any[][] = [[{ content: 'PERSONAL TÈCNIC', colSpan: 3, styles: headStyles }]];
     if (formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
         const person = getPersonGroupById(provider.personGroupId);
-        addLine(`Proveïdor: ${person?.name || 'No seleccionat'}`, 11, 'bold');
-        if (provider.roles.length > 0) {
-          provider.roles.forEach(roleItem => {
-            const notes = roleItem.notes ? `(${roleItem.notes})` : '';
-            addLine(`${roleItem.quantity} x ${roleItem.role} ${notes}`, 10, 'normal', 5);
-          });
-        }
-        y += subSectionSpacing;
+        personnelBody.push([{ content: `Proveïdor: ${person?.name || 'N/D'}`, colSpan: 3, styles: subHeadStyles }]);
+        personnelBody.push([{ content: 'Quant.', styles: labelStyles }, { content: 'Rol', styles: labelStyles }, { content: 'Notes', styles: labelStyles }]);
+        provider.roles.forEach(role => {
+          personnelBody.push([role.quantity, role.role, role.notes || '-']);
+        });
       });
     } else {
-      addLine('Cap proveïdor de personal definit.', 10, 'italic');
+      personnelBody.push([{ content: 'Sense personal definit', colSpan: 3 }]);
     }
+    autoTable(pdf, {
+      body: personnelBody,
+      startY: y,
+      theme: 'grid',
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
-    // --- HORARIS ---
-    addSectionTitle('Premuntatge i Horaris');
+    // --- Taula 3: Horaris ---
+    const scheduleBody: any[][] = [[{ content: 'PREMUNTATGE I HORARIS', colSpan: 2, styles: headStyles }]];
     if (formData.preAssemblySchedule) {
-      addLine(`Premuntatge: ${formData.preAssemblySchedule}`, 10);
+        scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, formData.preAssemblySchedule]);
     }
-    if (formData.assemblySchedule.length > 0) {
-      formData.assemblySchedule.forEach(item => {
-        addLine(`${item.time}: ${item.description}`, 10, 'normal', 5);
-      });
-    }
-
-    // --- LOGÍSTICA ---
-    addSectionTitle('Logística');
-    addLine(`Camerinos: ${formData.dressingRooms || '-'}`, 10);
-    addLine(`Actors: ${formData.actorsNumber || ''} ${formData.actors || ''}`, 10);
-    addLine(`Tècnics/Producció Cia: ${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`, 10);
-
-    // --- NECESSITATS TÈCNIQUES ---
-    addSectionTitle('Necessitats Tècniques');
-    const printNeeds = (title: string, needs: any[]) => {
-      if (needs.length > 0) {
-        addLine(title, 11, 'bold');
-        needs.forEach(n => {
-          addLine(`${n.quantity} x ${n.description} (Origen: ${n.origin || 'N/D'})`, 10, 'normal', 5);
+    if (formData.assemblySchedule && formData.assemblySchedule.length > 0) {
+        scheduleBody.push([{ content: 'Horaris Detallats', colSpan: 2, styles: subHeadStyles }]);
+        formData.assemblySchedule.forEach(item => {
+            scheduleBody.push([item.time, item.description]);
         });
-      }
-    };
-    printNeeds('Il·luminació:', formData.lightingNeeds);
-    if (formData.videoDetails) {
-      addLine('Vídeo:', 11, 'bold');
-      addLine(formData.videoDetails, 10, 'normal', 5);
     }
-    printNeeds('', formData.videoNeeds);
-    printNeeds('So:', formData.soundNeeds);
-    printNeeds('Maquinària:', formData.machineryNeeds);
+    autoTable(pdf, {
+        body: scheduleBody,
+        startY: y,
+        theme: 'grid',
+        columnStyles: { 0: { cellWidth: 40 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
-    // --- ALTRES DETALLS ---
-    addSectionTitle('Altres Detalls');
-    addLine(`Control a: ${formData.controlLocation || '-'}`, 10);
-    if (formData.otherEquipment) addLine(`Material d'altres equipaments: ${formData.otherEquipment}`, 10);
-    if (formData.rentals) addLine(`Lloguers: ${formData.rentals}`, 10);
-    if (formData.blueprints) addLine(`Plànols: ${formData.blueprints}`, 10);
+    // --- Taula 4: Logística ---
+    autoTable(pdf, {
+        body: [
+            [{ content: 'LOGÍSTICA', colSpan: 2, styles: headStyles }],
+            [{ content: 'Camerinos:', styles: labelStyles }, formData.dressingRooms || '-'],
+            [{ content: 'Actors:', styles: labelStyles }, `${formData.actorsNumber || ''} ${formData.actors || ''}`.trim() || '-'],
+            [{ content: 'Tècnics/Producció Cia:', styles: labelStyles }, `${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`.trim() || '-'],
+        ],
+        startY: y,
+        theme: 'grid',
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
-    // --- CONTACTE I OBSERVACIONS ---
-    addSectionTitle('Contacte i Observacions');
-    addLine(`Contacte Companyia: ${formData.companyContact || '-'}`, 10);
-    if (formData.observations) addLine(`Observacions: ${formData.observations}`, 10);
+    // --- Taula 5: Necessitats Tècniques ---
+    const needsBody: any[][] = [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]];
+    const addNeedsToBody = (title: string, needs: any[]) => {
+        if (needs && needs.length > 0) {
+            needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
+            needs.forEach(n => {
+                needsBody.push([
+                    { content: n.quantity.toString(), styles: { halign: 'right' } },
+                    n.description,
+                    n.origin || 'N/D'
+                ]);
+            });
+        }
+    };
 
-    // --- DESA EL PDF ---
+    addNeedsToBody('Il·luminació', formData.lightingNeeds);
+    addNeedsToBody('So', formData.soundNeeds);
+
+    if (formData.videoDetails || (formData.videoNeeds && formData.videoNeeds.length > 0)) {
+        needsBody.push([{ content: 'Vídeo', colSpan: 3, styles: subHeadStyles }]);
+        if (formData.videoDetails) {
+            needsBody.push([{ content: formData.videoDetails, colSpan: 3 }]);
+        }
+        addNeedsToBody('', formData.videoNeeds);
+    }
+
+    addNeedsToBody('Maquinària', formData.machineryNeeds);
+
+    autoTable(pdf, {
+        head: [['Qt.', 'Descripció', 'Origen']],
+        body: needsBody,
+        startY: y,
+        theme: 'grid',
+        headStyles: { ...headStyles, fillColor: [100, 100, 100] },
+        columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+
+    // --- Taula 6: Altres Detalls ---
+    autoTable(pdf, {
+        body: [
+            [{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }],
+            [{ content: 'Control a:', styles: labelStyles }, formData.controlLocation || '-'],
+            [{ content: "Material d'altres equipaments:", styles: labelStyles }, formData.otherEquipment || '-'],
+            [{ content: 'Lloguers:', styles: labelStyles }, formData.rentals || '-'],
+            [{ content: 'Plànols:', styles: labelStyles }, formData.blueprints || '-'],
+        ],
+        startY: y,
+        theme: 'grid',
+        columnStyles: { 0: { cellWidth: 60 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+
+    // --- Taula 7: Contacte i Observacions ---
+    autoTable(pdf, {
+        body: [
+            [{ content: 'CONTACTE I OBSERVACIONS', colSpan: 2, styles: headStyles }],
+            [{ content: 'Contacte Companyia:', styles: labelStyles }, formData.companyContact || '-'],
+            [{ content: 'Observacions:', styles: labelStyles }, formData.observations || '-'],
+        ],
+        startY: y,
+        theme: 'grid',
+        styles: { overflow: 'linebreak' },
+        columnStyles: { 0: { cellWidth: 60 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
     pdf.save(fileName);
     showToast('PDF generat amb èxit!', 'success');
