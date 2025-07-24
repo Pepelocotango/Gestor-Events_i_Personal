@@ -273,10 +273,26 @@ export const exportTechSheetToPdf = (
     });
     y = (pdf as any).lastAutoTable.finalY + 5;
 
-    // ... (Aquí anirien la resta de taules: Horaris, Necessitats, etc. seguint el mateix patró)
-    // ... Per simplicitat, he omès la resta, però el patró es repeteix.
+    // --- Taula 3: Horaris ---
+    const scheduleBody: any[][] = [[{ content: 'PREMUNTATGE I HORARIS', colSpan: 2, styles: headStyles }]];
+    if (formData.preAssemblySchedule) {
+        scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, formData.preAssemblySchedule]);
+    }
+    if (formData.assemblySchedule && formData.assemblySchedule.length > 0) {
+        scheduleBody.push([{ content: 'Horaris Detallats', colSpan: 2, styles: subHeadStyles }]);
+        formData.assemblySchedule.forEach(item => {
+            scheduleBody.push([item.time, item.description]);
+        });
+    }
+    autoTable(pdf, {
+        body: scheduleBody,
+        startY: y,
+        theme: 'grid',
+        columnStyles: { 0: { cellWidth: 40 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
-    // --- Taula 3: Logística (exemple) ---
+    // --- Taula 4: Logística ---
     autoTable(pdf, {
         body: [
             [{ content: 'LOGÍSTICA', colSpan: 2, styles: headStyles }],
@@ -289,7 +305,72 @@ export const exportTechSheetToPdf = (
     });
     y = (pdf as any).lastAutoTable.finalY + 5;
 
-    // ... la resta de taules ...
+    // --- Taula 5: Necessitats Tècniques ---
+    const needsBody: any[][] = [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]];
+    const addNeedsToBody = (title: string, needs: any[]) => {
+        if (needs && needs.length > 0) {
+            needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
+            needs.forEach(n => {
+                needsBody.push([
+                    { content: n.quantity.toString(), styles: { halign: 'right' } },
+                    n.description,
+                    n.origin || 'N/D'
+                ]);
+            });
+        }
+    };
+
+    addNeedsToBody('Il·luminació', formData.lightingNeeds);
+    addNeedsToBody('So', formData.soundNeeds);
+
+    if (formData.videoDetails || (formData.videoNeeds && formData.videoNeeds.length > 0)) {
+        needsBody.push([{ content: 'Vídeo', colSpan: 3, styles: subHeadStyles }]);
+        if (formData.videoDetails) {
+            needsBody.push([{ content: formData.videoDetails, colSpan: 3 }]);
+        }
+        addNeedsToBody('', formData.videoNeeds);
+    }
+
+    addNeedsToBody('Maquinària', formData.machineryNeeds);
+
+    autoTable(pdf, {
+        head: [['Qt.', 'Descripció', 'Origen']],
+        body: needsBody,
+        startY: y,
+        theme: 'grid',
+        headStyles: { ...headStyles, fillColor: [100, 100, 100] },
+        columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+
+    // --- Taula 6: Altres Detalls ---
+    autoTable(pdf, {
+        body: [
+            [{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }],
+            [{ content: 'Control a:', styles: labelStyles }, formData.controlLocation || '-'],
+            [{ content: "Material d'altres equipaments:", styles: labelStyles }, formData.otherEquipment || '-'],
+            [{ content: 'Lloguers:', styles: labelStyles }, formData.rentals || '-'],
+            [{ content: 'Plànols:', styles: labelStyles }, formData.blueprints || '-'],
+        ],
+        startY: y,
+        theme: 'grid',
+        columnStyles: { 0: { cellWidth: 60 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+
+    // --- Taula 7: Contacte i Observacions ---
+    autoTable(pdf, {
+        body: [
+            [{ content: 'CONTACTE I OBSERVACIONS', colSpan: 2, styles: headStyles }],
+            [{ content: 'Contacte Companyia:', styles: labelStyles }, formData.companyContact || '-'],
+            [{ content: 'Observacions:', styles: labelStyles }, formData.observations || '-'],
+        ],
+        startY: y,
+        theme: 'grid',
+        styles: { overflow: 'linebreak' },
+        columnStyles: { 0: { cellWidth: 60 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
     pdf.save(fileName);
