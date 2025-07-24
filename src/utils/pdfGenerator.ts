@@ -209,7 +209,7 @@ export const exportPeopleToPdf = (peopleGroups: PersonGroup[], showToast: ShowTo
   }
 };
 
-// --- FITXA TÈCNICA (Codi original adaptat) ---
+// --- FITXA TÈCNICA (Refactoritzada amb jspdf-autotable) ---
 export const exportTechSheetToPdf = (
   formData: TechSheetData,
   eventName: string,
@@ -218,109 +218,168 @@ export const exportTechSheetToPdf = (
 ) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    let y = 15;
-    const left = 12;
-    const right = pdf.internal.pageSize.getWidth() - left;
-    const lineSpacing = 6;
-    const sectionSpacing = 8;
-    const subSectionSpacing = 4;
+    let pageCount = 1;
 
-    const addLine = (txt: string, size = 10, style = 'normal', indent = 0) => {
-      if (y > 280) { // Marge inferior per canvi de pàgina
-        pdf.addPage();
-        y = 15;
+    const headStyles = {
+      fillColor: [220, 220, 220],
+      textColor: [0, 0, 0],
+      fontStyle: 'bold',
+    };
+    const labelStyles = {
+        fillColor: [230, 230, 230],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
+    };
+
+    // --- TAULA D'INFORMACIÓ GENERAL ---
+    autoTable(pdf, {
+      body: [
+        [{ content: 'FITXA DE BOLO', styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }, { content: '', styles: { } }],
+        [{ content: 'NOM DEL BOLO:', styles: labelStyles }, formData.eventName],
+        [{ content: 'LLOC:', styles: labelStyles }, formData.location || '-'],
+        [{ content: 'DATA:', styles: labelStyles }, formData.date || '-'],
+        [{ content: 'HORA:', styles: labelStyles }, formData.showTime || '-'],
+        [{ content: 'DURADA:', styles: labelStyles }, formData.showDuration || '-'],
+        [{ content: 'PÀRQUING:', styles: labelStyles }, formData.parkingInfo || '-'],
+      ],
+      theme: 'plain',
+      styles: { fontSize: 10, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 'auto' },
+      },
+      didDrawPage: (data) => {
+        addFooter(pdf, pageCount);
       }
-      pdf.setFontSize(size);
-      pdf.setFont('helvetica', style);
-      pdf.text(txt, left + indent, y, { maxWidth: right - left - indent });
-      y += lineSpacing;
-    };
+    });
 
-    const addSectionTitle = (title: string) => {
-      y += sectionSpacing / 2;
-      addLine(title, 13, 'bold');
-      y += subSectionSpacing / 2;
-    };
-
-    // --- CAPÇALERA ---
-    pdf.setFontSize(18); pdf.setFont('helvetica', 'bold');
-    pdf.text(`Fitxa Tècnica - ${formData.eventName}`, left, y); y += 10;
-
-    // --- INFORMACIÓ GENERAL ---
-    pdf.setFontSize(11); pdf.setFont('helvetica', 'normal');
-    pdf.text(`Lloc: ${formData.location || '-'}`, left, y);
-    pdf.text(`Data: ${formData.date || '-'}`, right - 60, y); y += lineSpacing;
-    pdf.text(`Hora: ${formData.showTime || '-'}`, left, y);
-    pdf.text(`Durada: ${formData.showDuration || '-'}`, right - 60, y); y += lineSpacing;
-    if (formData.parkingInfo) {
-      pdf.text(`Pàrquing: ${formData.parkingInfo}`, left, y); y+= lineSpacing;
-    }
-
-    // --- PERSONAL TÈCNIC ---
-    addSectionTitle('Personal Tècnic');
+    // --- TAULA DE PERSONAL TÈCNIC ---
+    const technicalBody: any[] = [
+      [{ content: 'PERSONAL TÈCNIC', colSpan: 2, styles: headStyles }],
+    ];
     if (formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
         const person = getPersonGroupById(provider.personGroupId);
-        addLine(`Proveïdor: ${person?.name || 'No seleccionat'}`, 11, 'bold');
-        if (provider.roles.length > 0) {
-          provider.roles.forEach(roleItem => {
-            const notes = roleItem.notes ? `(${roleItem.notes})` : '';
-            addLine(`${roleItem.quantity} x ${roleItem.role} ${notes}`, 10, 'normal', 5);
-          });
-        }
-        y += subSectionSpacing;
+        technicalBody.push([{ content: `Proveïdor: ${person?.name || 'No seleccionat'}`, colSpan: 2, styles: { fontStyle: 'bold' } }]);
+        provider.roles.forEach(roleItem => {
+          const notes = roleItem.notes ? `(${roleItem.notes})` : '';
+          technicalBody.push([
+            { content: `${roleItem.quantity} x ${roleItem.role}`, styles: { cellPadding: {left: 8} } },
+            { content: notes, styles: { halign: 'left' } }
+          ]);
+        });
       });
     } else {
-      addLine('Cap proveïdor de personal definit.', 10, 'italic');
+      technicalBody.push([{ content: 'Cap proveïdor de personal definit.', colSpan: 2, styles: { fontStyle: 'italic' } }]);
     }
+    autoTable(pdf, {
+      body: technicalBody,
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2 },
+      columnStyles: { 0: { cellWidth: 80 } },
+      didDrawPage: (data) => {
+        if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+        addFooter(pdf, pageCount);
+      }
+    });
 
-    // --- HORARIS ---
-    addSectionTitle('Premuntatge i Horaris');
+    // --- TAULA D'HORARIS ---
+    const scheduleBody: any[] = [
+        [{ content: 'PREMUNTATGE I HORARIS', colSpan: 2, styles: headStyles }],
+    ];
     if (formData.preAssemblySchedule) {
-      addLine(`Premuntatge: ${formData.preAssemblySchedule}`, 10);
+        scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, formData.preAssemblySchedule]);
     }
-    if (formData.assemblySchedule.length > 0) {
-      formData.assemblySchedule.forEach(item => {
-        addLine(`${item.time}: ${item.description}`, 10, 'normal', 5);
-      });
-    }
+    formData.assemblySchedule.forEach(item => {
+        scheduleBody.push([{ content: item.time, styles: labelStyles }, item.description]);
+    });
+    autoTable(pdf, {
+        body: scheduleBody,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2 },
+        columnStyles: { 0: { cellWidth: 40 } },
+        didDrawPage: (data) => {
+          if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+          addFooter(pdf, pageCount);
+        }
+    });
 
-    // --- LOGÍSTICA ---
-    addSectionTitle('Logística');
-    addLine(`Camerinos: ${formData.dressingRooms || '-'}`, 10);
-    addLine(`Actors: ${formData.actorsNumber || ''} ${formData.actors || ''}`, 10);
-    addLine(`Tècnics/Producció Cia: ${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`, 10);
+    // --- TAULA DE LOGÍSTICA ---
+    autoTable(pdf, {
+      body: [
+        [{ content: 'LOGÍSTICA', colSpan: 2, styles: headStyles }],
+        [{ content: 'Camerinos:', styles: labelStyles }, formData.dressingRooms || '-'],
+        [{ content: 'Actors:', styles: labelStyles }, `${formData.actorsNumber || ''} ${formData.actors || ''}`.trim() || '-'],
+        [{ content: 'Tècnics/Producció Cia:', styles: labelStyles }, `${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`.trim() || '-'],
+      ],
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2 },
+      columnStyles: { 0: { cellWidth: 40 } },
+      didDrawPage: (data) => {
+        if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+        addFooter(pdf, pageCount);
+      }
+    });
 
-    // --- NECESSITATS TÈCNIQUES ---
-    addSectionTitle('Necessitats Tècniques');
-    const printNeeds = (title: string, needs: any[]) => {
+    // --- TAULA DE NECESSITATS TÈCNIQUES ---
+    const needsBody: any[] = [
+      [{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }],
+    ];
+    const addNeedsToBody = (title: string, needs: any[]) => {
       if (needs.length > 0) {
-        addLine(title, 11, 'bold');
+        needsBody.push([{ content: title, colSpan: 3, styles: { ...labelStyles, fontStyle: 'bold' } }]);
         needs.forEach(n => {
-          addLine(`${n.quantity} x ${n.description} (Origen: ${n.origin || 'N/D'})`, 10, 'normal', 5);
+          needsBody.push([
+            { content: n.quantity.toString(), styles: { halign: 'right' } },
+            n.description,
+            n.origin || 'N/D'
+          ]);
         });
       }
     };
-    printNeeds('Il·luminació:', formData.lightingNeeds);
-    if (formData.videoDetails) {
-      addLine('Vídeo:', 11, 'bold');
-      addLine(formData.videoDetails, 10, 'normal', 5);
+    addNeedsToBody('Il·luminació', formData.lightingNeeds);
+    if (formData.videoDetails || formData.videoNeeds.length > 0) {
+        needsBody.push([{ content: 'Vídeo', colSpan: 3, styles: { ...labelStyles, fontStyle: 'bold' } }]);
+        if (formData.videoDetails) {
+            needsBody.push([{ content: formData.videoDetails, colSpan: 3 }]);
+        }
+        addNeedsToBody('', formData.videoNeeds);
     }
-    printNeeds('', formData.videoNeeds);
-    printNeeds('So:', formData.soundNeeds);
-    printNeeds('Maquinària:', formData.machineryNeeds);
+    addNeedsToBody('So', formData.soundNeeds);
+    addNeedsToBody('Maquinària', formData.machineryNeeds);
 
-    // --- ALTRES DETALLS ---
-    addSectionTitle('Altres Detalls');
-    addLine(`Control a: ${formData.controlLocation || '-'}`, 10);
-    if (formData.otherEquipment) addLine(`Material d'altres equipaments: ${formData.otherEquipment}`, 10);
-    if (formData.rentals) addLine(`Lloguers: ${formData.rentals}`, 10);
-    if (formData.blueprints) addLine(`Plànols: ${formData.blueprints}`, 10);
+    autoTable(pdf, {
+      head: [['Qt.', 'Descripció', 'Origen']],
+      body: needsBody,
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: headStyles,
+      columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
+      didDrawPage: (data) => {
+        if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+        addFooter(pdf, pageCount);
+      }
+    });
 
-    // --- CONTACTE I OBSERVACIONS ---
-    addSectionTitle('Contacte i Observacions');
-    addLine(`Contacte Companyia: ${formData.companyContact || '-'}`, 10);
-    if (formData.observations) addLine(`Observacions: ${formData.observations}`, 10);
+    // --- TAULA D'ALTRES DETALLS I CONTACTE ---
+    autoTable(pdf, {
+        body: [
+            [{ content: 'ALTRES DETALLS I CONTACTE', colSpan: 2, styles: headStyles }],
+            [{ content: 'Control a:', styles: labelStyles }, formData.controlLocation || '-'],
+            [{ content: "Material d'altres equipaments:", styles: labelStyles }, formData.otherEquipment || '-'],
+            [{ content: 'Lloguers:', styles: labelStyles }, formData.rentals || '-'],
+            [{ content: 'Plànols:', styles: labelStyles }, formData.blueprints || '-'],
+            [{ content: 'Contacte Companyia:', styles: labelStyles }, formData.companyContact || '-'],
+            [{ content: 'Observacions:', styles: labelStyles }, formData.observations || '-'],
+        ],
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+        columnStyles: { 0: { cellWidth: 60 } },
+        didDrawPage: (data) => {
+            if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+            addFooter(pdf, pageCount);
+        }
+    });
 
     // --- DESA EL PDF ---
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
