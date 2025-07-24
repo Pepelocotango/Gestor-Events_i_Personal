@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+import { FontStyle } from 'jspdf-autotable';
 import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
@@ -223,18 +224,18 @@ export const exportTechSheetToPdf = (
     const headStyles = {
       fillColor: [220, 220, 220],
       textColor: [0, 0, 0],
-      fontStyle: 'bold',
+      fontStyle: 'bold' as FontStyle,
     };
     const labelStyles = {
         fillColor: [230, 230, 230],
         textColor: [0, 0, 0],
-        fontStyle: 'bold',
+        fontStyle: 'bold' as FontStyle,
     };
 
     // --- TAULA D'INFORMACIÓ GENERAL ---
     autoTable(pdf, {
       body: [
-        [{ content: 'FITXA DE BOLO', styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }, { content: '', styles: { } }],
+        [{ content: 'FITXA DE BOLO', styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' as FontStyle } }, { content: '', styles: { } }],
         [{ content: 'NOM DEL BOLO:', styles: labelStyles }, formData.eventName],
         [{ content: 'LLOC:', styles: labelStyles }, formData.location || '-'],
         [{ content: 'DATA:', styles: labelStyles }, formData.date || '-'],
@@ -248,7 +249,7 @@ export const exportTechSheetToPdf = (
         0: { cellWidth: 40 },
         1: { cellWidth: 'auto' },
       },
-      didDrawPage: (data) => {
+      didDrawPage: (_data) => {
         addFooter(pdf, pageCount);
       }
     });
@@ -260,7 +261,7 @@ export const exportTechSheetToPdf = (
     if (formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
         const person = getPersonGroupById(provider.personGroupId);
-        technicalBody.push([{ content: `Proveïdor: ${person?.name || 'No seleccionat'}`, colSpan: 2, styles: { fontStyle: 'bold' } }]);
+        technicalBody.push([{ content: `Proveïdor: ${person?.name || 'No seleccionat'}`, colSpan: 2, styles: { fontStyle: 'bold' as FontStyle } }]);
         provider.roles.forEach(roleItem => {
           const notes = roleItem.notes ? `(${roleItem.notes})` : '';
           technicalBody.push([
@@ -270,15 +271,15 @@ export const exportTechSheetToPdf = (
         });
       });
     } else {
-      technicalBody.push([{ content: 'Cap proveïdor de personal definit.', colSpan: 2, styles: { fontStyle: 'italic' } }]);
+      technicalBody.push([{ content: 'Cap proveïdor de personal definit.', colSpan: 2, styles: { fontStyle: 'italic' as FontStyle } }]);
     }
     autoTable(pdf, {
       body: technicalBody,
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 2 },
       columnStyles: { 0: { cellWidth: 80 } },
-      didDrawPage: (data) => {
-        if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+      didDrawPage: (_data) => {
+        if(_data.pageNumber > pageCount) pageCount = _data.pageNumber;
         addFooter(pdf, pageCount);
       }
     });
@@ -298,8 +299,8 @@ export const exportTechSheetToPdf = (
         theme: 'grid',
         styles: { fontSize: 10, cellPadding: 2 },
         columnStyles: { 0: { cellWidth: 40 } },
-        didDrawPage: (data) => {
-          if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+        didDrawPage: (_data) => {
+          if(_data.pageNumber > pageCount) pageCount = _data.pageNumber;
           addFooter(pdf, pageCount);
         }
     });
@@ -315,8 +316,8 @@ export const exportTechSheetToPdf = (
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 2 },
       columnStyles: { 0: { cellWidth: 40 } },
-      didDrawPage: (data) => {
-        if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+      didDrawPage: (_data) => {
+        if(_data.pageNumber > pageCount) pageCount = _data.pageNumber;
         addFooter(pdf, pageCount);
       }
     });
@@ -327,7 +328,7 @@ export const exportTechSheetToPdf = (
     ];
     const addNeedsToBody = (title: string, needs: any[]) => {
       if (needs.length > 0) {
-        needsBody.push([{ content: title, colSpan: 3, styles: { ...labelStyles, fontStyle: 'bold' } }]);
+        needsBody.push([{ content: title, colSpan: 3, styles: { ...labelStyles, fontStyle: 'bold' as FontStyle } }]);
         needs.forEach(n => {
           needsBody.push([
             { content: n.quantity.toString(), styles: { halign: 'right' } },
@@ -339,7 +340,7 @@ export const exportTechSheetToPdf = (
     };
     addNeedsToBody('Il·luminació', formData.lightingNeeds);
     if (formData.videoDetails || formData.videoNeeds.length > 0) {
-        needsBody.push([{ content: 'Vídeo', colSpan: 3, styles: { ...labelStyles, fontStyle: 'bold' } }]);
+        needsBody.push([{ content: 'Vídeo', colSpan: 3, styles: { ...labelStyles, fontStyle: 'bold' as FontStyle } }]);
         if (formData.videoDetails) {
             needsBody.push([{ content: formData.videoDetails, colSpan: 3 }]);
         }
@@ -355,8 +356,8 @@ export const exportTechSheetToPdf = (
       styles: { fontSize: 10, cellPadding: 2 },
       headStyles: headStyles,
       columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
-      didDrawPage: (data) => {
-        if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+      didDrawPage: (_data) => {
+        if(_data.pageNumber > pageCount) pageCount = _data.pageNumber;
         addFooter(pdf, pageCount);
       }
     });
@@ -375,8 +376,8 @@ export const exportTechSheetToPdf = (
         theme: 'grid',
         styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
         columnStyles: { 0: { cellWidth: 60 } },
-        didDrawPage: (data) => {
-            if(data.pageNumber > pageCount) pageCount = data.pageNumber;
+        didDrawPage: (_data) => {
+            if(_data.pageNumber > pageCount) pageCount = _data.pageNumber;
             addFooter(pdf, pageCount);
         }
     });
