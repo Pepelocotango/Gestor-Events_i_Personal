@@ -59,6 +59,18 @@ La principal millora és un sistema de gestió de personal tècnic que distingei
     *   **Actualització des d'Assignacions:** Un botó `⟳` permet popular la llista de personal tècnic. Per cada assignació confirmada, crea una nova línia de **rol buit** sota el proveïdor corresponent i hi copia les notes de l'assignació original.
     *   **Neteja i Coherència:** El sistema gestiona automàticament la creació de fitxes per a esdeveniments antics i sincronitza dades clau (nom, lloc, data) amb la fitxa quan s'editen des de la vista principal.
 *   **Exportació a PDF Professional:** La funció d'exportació ha estat millorada per generar un document PDF net i ben format que reflecteix la nova estructura de proveïdors i rols.
+#### ✨ [MILLORA] Generació de PDFs Compactes i Intel·ligents
+
+S'ha millorat la lògica d'exportació de les Fitxes de Bolo a PDF per generar documents més nets, professionals i fàcils de llegir. L'objectiu és que el PDF sigui un resum rellevant i no una simple impressió del formulari.
+
+-   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', 'Logística', etc.) només apareixen al PDF si contenen alguna dada introduïda. Si una llista de necessitats està buida, la secció sencera no s'inclourà.
+-   **Gestió de Camps Condicionals:** Els camps que funcionen amb selectors (com 'Vídeo', 'Lloguers', etc.) només s'inclouran al document si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO', '--' o buides s'ometen.
+-   **Camps de Text Nets:** Els camps de text generals (com 'Observacions') només s'afegeixen si contenen informació. Els camps buits no ocupen espai al document final.
+
+-   **Consistència de Dades Millorada:** Per garantir que l'exportació sigui sempre precisa, s'ha implementat una neteja automàtica de dades al formulari (`TechSheetForm.tsx`). Quan un camp condicional es desactiva (p. ex., canviant 'Vídeo' de 'SI' a 'NO'), les dades associades (com la llista de necessitats de vídeo) s'esborren de l'estat, no només s'oculten. Això assegura que el PDF reflecteixi fidelment la informació visible i evita que es mostrin dades residuals.
+
+Això resulta en un document final molt més compacte i centrat exclusivament en la informació important per a cada esdeveniment.
+
 
 ### **2. Arquitectura i Responsabilitat dels Fitxers Clau**
 
