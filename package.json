@@ -65,24 +65,24 @@
       "preload.cjs",
       "google-credentials.json"
     ],
-    "extraResources": [
-      {
-        "from": "examples json",
-        "to": "resources/examples json"
-      },
-      {
-        "from": "LICENSE",
-        "to": "resources/LICENSE"
-      },
-      {
-        "from": "README.md",
-        "to": "resources/README.md"
-      },
-      {
-        "from": "DEVELOPING.md",
-        "to": "resources/DEVELOPING.md"
-      }
-    ],
+"extraResources": [
+  {
+    "from": "examples json",
+    "to": "examples json"
+  },
+  {
+    "from": "LICENSE",
+    "to": "LICENSE"
+  },
+  {
+    "from": "README.md",
+    "to": "README.md"
+  },
+  {
+    "from": "DEVELOPING.md",
+    "to": "DEVELOPING.md"
+  }
+],
     "linux": {
       "target": [
         "AppImage"
