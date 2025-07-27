@@ -22,14 +22,19 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
         setLoading(true);
         try {
           const [configResult, calendarsResult] = await Promise.all([
-            window.electronAPI.loadGoogleConfig(),
+            window.electronAPI.loadGoogleConfig() as Promise<GoogleConfig | null>,
             window.electronAPI.getCalendarList()
           ]);
 
           if (configResult) {
-            setSelectedIds(new Set(configResult.selectedCalendarIds));
+            setSelectedIds(new Set(configResult.selectedCalendarIds || []));
             setAppCalendarId(configResult.appCalendarId || null);
             setCalendarSuffix(configResult.calendarSuffix || '');
+          } else {
+            // Si no hi ha configuració, inicialitzem els estats
+            setSelectedIds(new Set());
+            setAppCalendarId(null);
+            setCalendarSuffix('');
           }
 
           if (calendarsResult.success) {
