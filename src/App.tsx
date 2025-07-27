@@ -624,20 +624,23 @@ const App: React.FC = () => {
   };
 
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
-    if (!modalState.type) return 'md';
+    if (!modalState.type) return 'xl'; // Nou valor per defecte
     switch (modalState.type) {
-      
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':
       case 'editAssignment':
       case 'eventFrameDetails':
-        return '2xl';
+        return '4xl'; // Abans '2xl'
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmHardReset':
-        return 'lg';
-      default: return 'md';
+        return 'xl'; // Abans 'lg'
+      case 'googleSettings':
+        return '2xl'; // Mida adequada per a la configuració
+      case 'mergeOrReplace':
+        return 'lg'; // Mantenim una mida més petita per a aquest diàleg
+      default: return 'xl'; // Nou valor per defecte
     }
   }
 
