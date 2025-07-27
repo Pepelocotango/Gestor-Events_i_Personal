@@ -237,40 +237,33 @@ export const exportTechSheetToPdf = (
     };
 
     // --- Taula 1: Capçalera Principal ---
-    const mainHeaderBody: any[][] = [
+    autoTable(pdf, {
+      body: [
         [{ content: 'FITXA DE BOLO', colSpan: 2, styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }],
-        [{ content: 'NOM DEL BOLO:', styles: labelStyles }, formData.eventName || '-'],
+        [{ content: 'NOM DEL BOLO:', styles: labelStyles }, formData.eventName],
         [{ content: 'LLOC:', styles: labelStyles }, formData.location || '-'],
         [{ content: 'DATA:', styles: labelStyles }, formData.date || '-'],
         [{ content: 'HORA:', styles: labelStyles }, formData.showTime || '-'],
         [{ content: 'DURADA:', styles: labelStyles }, formData.showDuration || '-'],
-    ];
-
-    if (formData.parkingInfo && formData.parkingInfo.toLowerCase() === 'sí') {
-        mainHeaderBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, formData.parkingNotes || '-']);
-    }
-
-    autoTable(pdf, {
-        body: mainHeaderBody,
-        theme: 'grid',
-        startY: y,
+        [{ content: 'PÀRQUING:', styles: labelStyles }, formData.parkingInfo || '-'],
+      ],
+      theme: 'grid',
+      startY: y,
     });
     y = (pdf as any).lastAutoTable.finalY + 5;
 
     // --- Taula 2: Personal Tècnic ---
     const personnelBody: any[][] = [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]];
-    if (formData.technicalProviders && formData.technicalProviders.length > 0) {
+    if (formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
         const person = getPersonGroupById(provider.personGroupId);
-        if (provider.roles) {
-            provider.roles.forEach(role => {
-                const row: any[] = [role.quantity || '1', role.role || '-', person?.name || 'N/D'];
-                if (role.notes && role.notes.trim() !== '' && role.notes.trim() !== '--') {
-                    row.push(role.notes);
-                }
-                personnelBody.push(row);
-            });
-        }
+        provider.roles.forEach(role => {
+          const row: any[] = [role.quantity, role.role, person?.name || 'N/D'];
+          if (role.notes && role.notes.trim() !== '' && role.notes.trim() !== '--') {
+            row.push(role.notes);
+          }
+          personnelBody.push(row);
+        });
       });
     } else {
       personnelBody.push([{ content: 'Sense personal definit', colSpan: 4 }]);
@@ -284,24 +277,22 @@ export const exportTechSheetToPdf = (
 
     // --- Taula 3: Horaris ---
     const scheduleBody: any[][] = [[{ content: 'PREMUNTATGE I HORARIS', colSpan: 2, styles: headStyles }]];
-    if (formData.preAssemblySchedule && formData.preAssemblySchedule.toLowerCase() === 'sí') {
-        scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, formData.preAssemblyNotes || '-']);
+    if (formData.preAssemblySchedule) {
+        scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, formData.preAssemblySchedule]);
     }
     if (formData.assemblySchedule && formData.assemblySchedule.length > 0) {
         scheduleBody.push([{ content: 'Horaris Detallats', colSpan: 2, styles: subHeadStyles }]);
         formData.assemblySchedule.forEach(item => {
-            scheduleBody.push([item.time || '-', item.description || '-']);
+            scheduleBody.push([item.time, item.description]);
         });
     }
-    if (scheduleBody.length > 1) {
-        autoTable(pdf, {
-            body: scheduleBody,
-            startY: y,
-            theme: 'grid',
-            columnStyles: { 0: { cellWidth: 40 } },
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-    }
+    autoTable(pdf, {
+        body: scheduleBody,
+        startY: y,
+        theme: 'grid',
+        columnStyles: { 0: { cellWidth: 40 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
     // --- Taula 4: Logística ---
     autoTable(pdf, {
@@ -318,13 +309,13 @@ export const exportTechSheetToPdf = (
 
     // --- Taula 5: Necessitats Tècniques ---
     const needsBody: any[][] = [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]];
-    const addNeedsToBody = (title: string, needs: any[] | undefined) => {
+    const addNeedsToBody = (title: string, needs: any[]) => {
         if (needs && needs.length > 0) {
             needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
             needs.forEach(n => {
                 needsBody.push([
-                    { content: (n.quantity || '1').toString(), styles: { halign: 'right' } },
-                    n.description || '-',
+                    { content: n.quantity.toString(), styles: { halign: 'right' } },
+                    n.description,
                     n.origin || 'N/D'
                 ]);
             });
@@ -334,38 +325,35 @@ export const exportTechSheetToPdf = (
     addNeedsToBody('Il·luminació', formData.lightingNeeds);
     addNeedsToBody('So', formData.soundNeeds);
 
-    if (formData.videoDetails && formData.videoDetails.toLowerCase() === 'sí') {
+    if (formData.videoDetails || (formData.videoNeeds && formData.videoNeeds.length > 0)) {
         needsBody.push([{ content: 'Vídeo', colSpan: 3, styles: subHeadStyles }]);
-        needsBody.push([{ content: formData.videoNotes || '-', colSpan: 3 }]);
+        if (formData.videoDetails) {
+            needsBody.push([{ content: formData.videoDetails, colSpan: 3 }]);
+        }
+        addNeedsToBody('', formData.videoNeeds);
     }
 
     addNeedsToBody('Maquinària', formData.machineryNeeds);
 
-    if (needsBody.length > 1) {
-        autoTable(pdf, {
-            head: [['Qt.', 'Descripció', 'Origen']],
-            body: needsBody,
-            startY: y,
-            theme: 'grid',
-            headStyles: { ...headStyles, fillColor: [100, 100, 100] },
-            columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-    }
+    autoTable(pdf, {
+        head: [['Qt.', 'Descripció', 'Origen']],
+        body: needsBody,
+        startY: y,
+        theme: 'grid',
+        headStyles: { ...headStyles, fillColor: [100, 100, 100] },
+        columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
     // --- Taula 6: Altres Detalls ---
-    const otherDetailsBody: any[][] = [[{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }]];
-    otherDetailsBody.push([{ content: 'Control a:', styles: labelStyles }, formData.controlLocation || '-']);
-    if (formData.otherEquipment && formData.otherEquipment.toLowerCase() === 'sí') {
-        otherDetailsBody.push([{ content: "Material d'altres equipaments:", styles: labelStyles }, formData.otherEquipmentNotes || '-']);
-    }
-    if (formData.rentals && formData.rentals.toLowerCase() === 'sí') {
-        otherDetailsBody.push([{ content: 'Lloguers:', styles: labelStyles }, formData.rentalsNotes || '-']);
-    }
-    otherDetailsBody.push([{ content: 'Plànols:', styles: labelStyles }, formData.blueprints || '-']);
-
     autoTable(pdf, {
-        body: otherDetailsBody,
+        body: [
+            [{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }],
+            [{ content: 'Control a:', styles: labelStyles }, formData.controlLocation || '-'],
+            [{ content: "Material d'altres equipaments:", styles: labelStyles }, formData.otherEquipment || '-'],
+            [{ content: 'Lloguers:', styles: labelStyles }, formData.rentals || '-'],
+            [{ content: 'Plànols:', styles: labelStyles }, formData.blueprints || '-'],
+        ],
         startY: y,
         theme: 'grid',
         columnStyles: { 0: { cellWidth: 60 } },
