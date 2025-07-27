@@ -819,36 +819,37 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
 });
 
 
-process.on('uncaughtException', (error) => {
-  console.error('Excepció no capturada:', error);
-  dialog.showErrorBox('Error Inesperat', `S'ha produït un error no controlat: ${error.message}`);
-  app.exit(1);
-});
-let hasShownUncaughtExceptionDialog = false;
+
+
+
+// --- GESTOR D'EXCEPCIONS GLOBAL I SEGUR ---
+let isHandlingException = false;
 
 process.on('uncaughtException', (error) => {
-  const errorMsg = `Excepció no capturada: ${JSON.stringify(error, null, 2)}\n`;
-  
-  try {
-    if (fs.existsSync(sessionLogFile)) {
-      fs.appendFileSync(sessionLogFile, `[${new Date().toISOString()}] ${errorMsg}`);
-    }
-  } catch (fsError) {
-    process.stderr.write(`No s'ha pogut escriure l'error al fitxer de log: ${fsError}\n`);
-    process.stderr.write(errorMsg);
+  // Variable de guàrdia per evitar bucles infinits si l'error passa dins d'aquest mateix bloc
+  if (isHandlingException) {
+    console.error("Error recurrent durant la gestió d'excepcions. Forçant sortida.", error);
+    process.exit(1);
+    return;
   }
+  isHandlingException = true;
 
-  // Comprova si ja s'ha mostrat el diàleg per evitar bucles
-  if (!hasShownUncaughtExceptionDialog) {
-    hasShownUncaughtExceptionDialog = true;
-    dialog.showErrorBox('Error Inesperat', `S'ha produït un error no controlat: ${error.message}\n\nL'aplicació es tancarà.`);
-    
-    // Forcem la sortida DESPRÉS de mostrar el diàleg
+  const errorMsg = `Excepció no capturada: ${error.stack || error.message}`;
+  console.error(errorMsg); // Això ho escriurà al fitxer de log
+
+  try {
+    dialog.showErrorBox(
+      'Error Inesperat',
+      `S'ha produït un error no controlat: ${error.message}\n\nL'aplicació es tancarà. Si us plau, revisa el fitxer de log per a més detalls.`
+    );
+  } catch (dialogError) {
+    // Si fins i tot el diàleg falla, ho mostrem per stderr
+    console.error("No s'ha pogut mostrar el diàleg d'error:", dialogError);
+  } finally {
+    // Donem un petit marge perquè el diàleg es mostri abans de forçar la sortida
     setTimeout(() => app.exit(1), 500);
   }
 });
-
-
 
 // <<< FUNCIÓ MODIFICADA >>>
 ipcMain.handle('perform-hard-reset', async () => {
