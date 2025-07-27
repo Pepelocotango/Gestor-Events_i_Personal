@@ -271,6 +271,7 @@ function createWindow() {
   const sessionData = loadSessionData();
 
   mainWindow = new BrowserWindow({
+    title: 'Gestor d\'Esdeveniments i Personal', // <<< AFEGEIX AQUESTA LÍNIA
     width: sessionData.width || 1200,
     height: sessionData.height || 800,
     x: sessionData.x,
