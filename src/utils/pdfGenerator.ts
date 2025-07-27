@@ -219,33 +219,24 @@ export const exportTechSheetToPdf = (
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = 15; // Posició Y inicial
 
-    // --- DEFINICIÓ D'ESTILS AMB TIPAT CORRECTE ---
-    const headStyles: Partial<Styles> = {
-      fillColor: [64, 64, 64], // Gris fosc
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-    };
-    const labelStyles: Partial<Styles> = {
-      fillColor: [230, 230, 230], // Gris clar
-      textColor: [0, 0, 0],
-      fontStyle: 'bold',
-    };
-    const subHeadStyles: Partial<Styles> = {
-        fillColor: [200, 200, 200],
-        textColor: [0, 0, 0],
-        fontStyle: 'bold',
-    };
+    
+    // --- DEFINICIÓ D'ESTILS ---
+    // Funció d'ajuda per sanejar dades: converteix null/undefined/''/-- a un guió
+    const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+    const headStyles: Partial<Styles> = { fillColor: [64, 64, 64], textColor: [255, 255, 255], fontStyle: 'bold' };
+    const labelStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold' };
+    const subHeadStyles: Partial<Styles> = { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' };
 
     // --- Taula 1: Capçalera Principal ---
     autoTable(pdf, {
       body: [
         [{ content: 'FITXA DE BOLO', colSpan: 2, styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }],
-        [{ content: 'NOM DEL BOLO:', styles: labelStyles }, formData.eventName],
-        [{ content: 'LLOC:', styles: labelStyles }, formData.location || '-'],
-        [{ content: 'DATA:', styles: labelStyles }, formData.date || '-'],
-        [{ content: 'HORA:', styles: labelStyles }, formData.showTime || '-'],
-        [{ content: 'DURADA:', styles: labelStyles }, formData.showDuration || '-'],
-        [{ content: 'PÀRQUING:', styles: labelStyles }, formData.parkingInfo || '-'],
+        [{ content: 'NOM DEL BOLO:', styles: labelStyles }, sane(formData.eventName)],
+        [{ content: 'LLOC:', styles: labelStyles }, sane(formData.location)],
+        [{ content: 'DATA:', styles: labelStyles }, sane(formData.date)],
+        [{ content: 'HORA:', styles: labelStyles }, sane(formData.showTime)],
+        [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
+        [{ content: 'PÀRQUING:', styles: labelStyles }, sane(formData.parkingInfo)],
       ],
       theme: 'grid',
       startY: y,
@@ -253,126 +244,140 @@ export const exportTechSheetToPdf = (
     y = (pdf as any).lastAutoTable.finalY + 5;
 
     // --- Taula 2: Personal Tècnic ---
-    const personnelBody: any[][] = [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]];
-    if (formData.technicalProviders.length > 0) {
+    const personnelBody: any[][] = [];
+    if (formData.technicalProviders && formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
         const person = getPersonGroupById(provider.personGroupId);
-        provider.roles.forEach(role => {
-          const row: any[] = [role.quantity, role.role, person?.name || 'N/D'];
-          if (role.notes && role.notes.trim() !== '' && role.notes.trim() !== '--') {
-            row.push(role.notes);
-          }
-          personnelBody.push(row);
-        });
+        if (provider.roles && provider.roles.length > 0) {
+          provider.roles.forEach(role => {
+            if (sane(role.role) !== '-' || sane(role.quantity) !== '-') {
+                personnelBody.push([
+                  sane(role.quantity),
+                  sane(role.role),
+                  sane(person?.name),
+                  sane(role.notes)
+                ]);
+            }
+          });
+        }
       });
-    } else {
-      personnelBody.push([{ content: 'Sense personal definit', colSpan: 4 }]);
     }
-    autoTable(pdf, {
-      body: personnelBody,
-      startY: y,
-      theme: 'grid',
-    });
-    y = (pdf as any).lastAutoTable.finalY + 5;
+
+    if (personnelBody.length > 0) {
+        autoTable(pdf, {
+            head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
+            body: personnelBody,
+            startY: y, theme: 'grid',
+        });
+        y = (pdf as any).lastAutoTable.finalY + 5;
+    }
 
     // --- Taula 3: Horaris ---
-    const scheduleBody: any[][] = [[{ content: 'PREMUNTATGE I HORARIS', colSpan: 2, styles: headStyles }]];
-    if (formData.preAssemblySchedule) {
-        scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, formData.preAssemblySchedule]);
+    const scheduleBody: any[][] = [];
+    if (sane(formData.preAssemblySchedule) !== '-' && formData.preAssemblySchedule !== 'NO') {
+        scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, sane(formData.preAssemblySchedule)]);
     }
     if (formData.assemblySchedule && formData.assemblySchedule.length > 0) {
-        scheduleBody.push([{ content: 'Horaris Detallats', colSpan: 2, styles: subHeadStyles }]);
-        formData.assemblySchedule.forEach(item => {
-            scheduleBody.push([item.time, item.description]);
-        });
+        const validSchedules = formData.assemblySchedule.filter(item => item.time || item.description);
+        if (validSchedules.length > 0) {
+          scheduleBody.push([{ content: 'Horaris Detallats', colSpan: 2, styles: subHeadStyles }]);
+          validSchedules.forEach(item => scheduleBody.push([sane(item.time), sane(item.description)]));
+        }
     }
-    autoTable(pdf, {
-        body: scheduleBody,
-        startY: y,
-        theme: 'grid',
-        columnStyles: { 0: { cellWidth: 40 } },
-    });
-    y = (pdf as any).lastAutoTable.finalY + 5;
+    if (scheduleBody.length > 0) {
+        autoTable(pdf, {
+            head: [[{ content: 'PREMUNTATGE I HORARIS', colSpan: 2, styles: headStyles }]],
+            body: scheduleBody,
+            startY: y, theme: 'grid', columnStyles: { 0: { cellWidth: 40 } },
+        });
+        y = (pdf as any).lastAutoTable.finalY + 5;
+    }
 
     // --- Taula 4: Logística ---
-    autoTable(pdf, {
-        body: [
-            [{ content: 'LOGÍSTICA', colSpan: 2, styles: headStyles }],
-            [{ content: 'Camerinos:', styles: labelStyles }, formData.dressingRooms || '-'],
-            [{ content: 'Actors:', styles: labelStyles }, `${formData.actorsNumber || ''} ${formData.actors || ''}`.trim() || '-'],
-            [{ content: 'Tècnics/Producció Cia:', styles: labelStyles }, `${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`.trim() || '-'],
-        ],
-        startY: y,
-        theme: 'grid',
-    });
-    y = (pdf as any).lastAutoTable.finalY + 5;
+    const logisticsBody = [];
+    if(sane(formData.dressingRooms) !== '-') logisticsBody.push([{ content: 'Camerinos:', styles: labelStyles }, sane(formData.dressingRooms)]);
+    if(sane(`${formData.actorsNumber || ''} ${formData.actors || ''}`.trim()) !== '-') logisticsBody.push([{ content: 'Actors:', styles: labelStyles }, sane(`${formData.actorsNumber || ''} ${formData.actors || ''}`.trim())]);
+    if(sane(`${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`.trim()) !== '-') logisticsBody.push([{ content: 'Tècnics/Producció Cia:', styles: labelStyles }, sane(`${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`.trim())]);
+    
+    if (logisticsBody.length > 0) {
+      autoTable(pdf, {
+          head: [[{ content: 'LOGÍSTICA', colSpan: 2, styles: headStyles }]],
+          body: logisticsBody,
+          startY: y, theme: 'grid',
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
 
     // --- Taula 5: Necessitats Tècniques ---
-    const needsBody: any[][] = [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]];
+    const needsBody: any[][] = [];
     const addNeedsToBody = (title: string, needs: any[]) => {
-        if (needs && needs.length > 0) {
-            needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
-            needs.forEach(n => {
-                needsBody.push([
-                    { content: n.quantity.toString(), styles: { halign: 'right' } },
-                    n.description,
-                    n.origin || 'N/D'
-                ]);
-            });
-        }
+      if (needs && needs.length > 0) {
+          const validNeeds = needs.filter(n => sane(n.description) !== '-' || sane(n.quantity) !== '-');
+          if (validNeeds.length > 0) {
+              if (title) needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
+              validNeeds.forEach(n => {
+                  needsBody.push([
+                      { content: sane(n.quantity), styles: { halign: 'right' } },
+                      sane(n.description),
+                      sane(n.origin)
+                  ]);
+              });
+          }
+      }
     };
 
     addNeedsToBody('Il·luminació', formData.lightingNeeds);
     addNeedsToBody('So', formData.soundNeeds);
-
-    if (formData.videoDetails || (formData.videoNeeds && formData.videoNeeds.length > 0)) {
+    const hasVideoDetails = sane(formData.videoDetails) !== '-' && formData.videoDetails !== 'NO';
+    const hasVideoNeeds = formData.videoNeeds && formData.videoNeeds.filter(n => sane(n.description) !== '-' || sane(n.quantity) !== '-').length > 0;
+    if (hasVideoDetails || hasVideoNeeds) {
         needsBody.push([{ content: 'Vídeo', colSpan: 3, styles: subHeadStyles }]);
-        if (formData.videoDetails) {
-            needsBody.push([{ content: formData.videoDetails, colSpan: 3 }]);
+        if (hasVideoDetails) {
+            needsBody.push([{ content: sane(formData.videoDetails), colSpan: 3 }]);
         }
-        addNeedsToBody('', formData.videoNeeds);
+        if (hasVideoNeeds) addNeedsToBody('', formData.videoNeeds);
     }
-
     addNeedsToBody('Maquinària', formData.machineryNeeds);
 
-    autoTable(pdf, {
-        head: [['Qt.', 'Descripció', 'Origen']],
-        body: needsBody,
-        startY: y,
-        theme: 'grid',
-        headStyles: { ...headStyles, fillColor: [100, 100, 100] },
-        columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
-    });
-    y = (pdf as any).lastAutoTable.finalY + 5;
+    if (needsBody.length > 0) {
+      autoTable(pdf, {
+          head: [['Qt.', 'Descripció', 'Origen']],
+          body: needsBody,
+          startY: y, theme: 'grid',
+          headStyles: { ...headStyles, fillColor: [100, 100, 100] },
+          columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
 
     // --- Taula 6: Altres Detalls ---
-    autoTable(pdf, {
-        body: [
-            [{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }],
-            [{ content: 'Control a:', styles: labelStyles }, formData.controlLocation || '-'],
-            [{ content: "Material d'altres equipaments:", styles: labelStyles }, formData.otherEquipment || '-'],
-            [{ content: 'Lloguers:', styles: labelStyles }, formData.rentals || '-'],
-            [{ content: 'Plànols:', styles: labelStyles }, formData.blueprints || '-'],
-        ],
-        startY: y,
-        theme: 'grid',
-        columnStyles: { 0: { cellWidth: 60 } },
-    });
-    y = (pdf as any).lastAutoTable.finalY + 5;
+    const otherDetailsBody = [];
+    if (sane(formData.controlLocation) !== '-') otherDetailsBody.push([{ content: 'Control a:', styles: labelStyles }, sane(formData.controlLocation)]);
+    if (sane(formData.otherEquipment) !== '-' && formData.otherEquipment !== 'NO') otherDetailsBody.push([{ content: "Material d'altres equipaments:", styles: labelStyles }, sane(formData.otherEquipment)]);
+    if (sane(formData.rentals) !== '-' && formData.rentals !== 'NO') otherDetailsBody.push([{ content: 'Lloguers:', styles: labelStyles }, sane(formData.rentals)]);
+    if (sane(formData.blueprints) !== '-') otherDetailsBody.push([{ content: 'Plànols:', styles: labelStyles }, sane(formData.blueprints)]);
+    
+    if (otherDetailsBody.length > 0) {
+      autoTable(pdf, {
+          head: [[{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }]],
+          body: otherDetailsBody,
+          startY: y, theme: 'grid', columnStyles: { 0: { cellWidth: 60 } },
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
 
     // --- Taula 7: Contacte i Observacions ---
-    autoTable(pdf, {
-        body: [
-            [{ content: 'CONTACTE I OBSERVACIONS', colSpan: 2, styles: headStyles }],
-            [{ content: 'Contacte Companyia:', styles: labelStyles }, formData.companyContact || '-'],
-            [{ content: 'Observacions:', styles: labelStyles }, formData.observations || '-'],
-        ],
-        startY: y,
-        theme: 'grid',
-        styles: { overflow: 'linebreak' },
-        columnStyles: { 0: { cellWidth: 60 } },
-    });
-    y = (pdf as any).lastAutoTable.finalY + 5;
+    const contactBody = [];
+    if (sane(formData.companyContact) !== '-') contactBody.push([{ content: 'Contacte Companyia:', styles: labelStyles }, sane(formData.companyContact)]);
+    if (sane(formData.observations) !== '-') contactBody.push([{ content: 'Observacions:', styles: labelStyles }, sane(formData.observations)]);
+    
+    if (contactBody.length > 0) {
+      autoTable(pdf, {
+          head: [[{ content: 'CONTACTE I OBSERVACIONS', colSpan: 2, styles: headStyles }]],
+          body: contactBody,
+          startY: y, theme: 'grid', styles: { overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 60 } },
+      });
+    }
 
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
     pdf.save(fileName);
