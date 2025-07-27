@@ -320,7 +320,7 @@ export interface ElectronAPI {
   hideLoadingOverlay: (callback: () => void) => (() => void) | undefined;
   onMenuAction: (callback: (action: string) => void) => void;
   log: (message: string, data?: any) => void;
-  showSaveDialog: (options: { defaultPath: string; data: string; }) => Promise<{ success: boolean; filePath?: string; message?: string; }>;
+  showSaveDialog: (options: { defaultPath: string; data: string | Buffer; fileType?: 'json' | 'pdf' }) => Promise<{ success: boolean; filePath?: string; message?: string; }>;
 }
 
 declare global {
