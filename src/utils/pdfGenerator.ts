@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
 import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment } from '../types';
@@ -25,7 +26,7 @@ const addFooter = (pdf: jsPDF, pageCount: number) => {
 };
 
 // --- EXPORTACIÓ DE RESUMS ---
-export const exportSummariesToPdf = (
+export const exportSummariesToPdf = async (
   title: string,
   data: Map<string, SummaryRow[]>,
   dataType: 'event-name' | 'start-date' | 'person',
@@ -97,8 +98,23 @@ export const exportSummariesToPdf = (
     }
 
     const fileName = `Resum_${title.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(fileName);
-    showToast('Resum exportat a PDF amb èxit!', 'success');
+    const pdfData = pdf.output('arraybuffer');
+    const buffer = Buffer.from(pdfData);
+
+    if (window.electronAPI?.showSaveDialog) {
+      const result = await window.electronAPI.showSaveDialog({
+        defaultPath: fileName,
+        data: buffer,
+        fileType: 'pdf'
+      });
+      if (result.success) {
+        showToast('PDF generat amb èxit!', 'success');
+      }
+    } else {
+      // Fallback per web
+      pdf.save(fileName);
+      showToast('PDF generat amb èxit!', 'success');
+    }
 
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
@@ -209,7 +225,7 @@ export const exportPeopleToPdf = (peopleGroups: PersonGroup[], showToast: ShowTo
 };
 
 // --- FITXA TÈCNICA ---
-export const exportTechSheetToPdf = (
+export const exportTechSheetToPdf = async (
   formData: TechSheetData,
   eventName: string,
   getPersonGroupById: (id: string) => PersonGroup | undefined,
@@ -380,14 +396,29 @@ export const exportTechSheetToPdf = (
     }
 
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-    pdf.save(fileName);
-    showToast('PDF generat amb èxit!', 'success');
+    const pdfData = pdf.output('arraybuffer');
+    const buffer = Buffer.from(pdfData);
+
+    if (window.electronAPI?.showSaveDialog) {
+      const result = await window.electronAPI.showSaveDialog({
+        defaultPath: fileName,
+        data: buffer,
+        fileType: 'pdf'
+      });
+      if (result.success) {
+        showToast('PDF generat amb èxit!', 'success');
+      }
+    } else {
+      // Fallback per web
+      pdf.save(fileName);
+      showToast('PDF generat amb èxit!', 'success');
+    }
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
 };
 // --- EXPORTACIÓ DE LLISTA D'ESDEVENIMENTS ---
-export const exportEventListToPdf = (
+export const exportEventListToPdf = async (
   eventFrames: EventFrame[],
   peopleGroups: PersonGroup[],
   showToast: ShowToastFunction
@@ -445,8 +476,23 @@ export const exportEventListToPdf = (
     });
 
     const fileName = `Llista_Esdeveniments_${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(fileName);
-    showToast("Llista d'esdeveniments exportada a PDF!", 'success');
+    const pdfData = pdf.output('arraybuffer');
+    const buffer = Buffer.from(pdfData);
+
+    if (window.electronAPI?.showSaveDialog) {
+      const result = await window.electronAPI.showSaveDialog({
+        defaultPath: fileName,
+        data: buffer,
+        fileType: 'pdf'
+      });
+      if (result.success) {
+        showToast('PDF generat amb èxit!', 'success');
+      }
+    } else {
+      // Fallback per web
+      pdf.save(fileName);
+      showToast('PDF generat amb èxit!', 'success');
+    }
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
