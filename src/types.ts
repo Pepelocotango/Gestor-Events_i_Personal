@@ -297,3 +297,34 @@ export interface GoogleCalendar {
   backgroundColor: string;
   primary?: boolean;
 }
+
+export interface ElectronAPI {
+  loadAppData: () => Promise<AppData | null>;
+  saveAppData: (data: AppData) => Promise<boolean>;
+  onConfirmQuit: (callback: () => Promise<void>) => void;
+  sendQuitConfirmedByRenderer: () => void;
+  startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
+  onGoogleAuthSuccess: (callback: () => void) => void;
+  onGoogleAuthError: (callback: (event: any, message: string) => void) => void;
+  getCalendarList: () => Promise<{ success: boolean; calendars?: GoogleCalendar[]; message?: string }>;
+  saveGoogleConfig: (config: GoogleConfig) => Promise<{ success: boolean }>;
+  loadGoogleConfig: () => Promise<GoogleConfig | null>;
+  getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
+  syncWithGoogle: (localData: AppData) => Promise<{ success: boolean, message?: string, data?: AppData }>;
+  clearGoogleAppCalendar: () => Promise<{ success: boolean, message?: string }>;
+  getDefaultDataPath: () => Promise<string>;
+  performHardReset: () => Promise<{ success: boolean; message: string }>;
+  onAppWillRelaunchAfterReset: (callback: (event: any, messages: string) => void) => (() => void) | undefined;
+  onDevModeQuitAfterReset: (callback: () => void) => (() => void) | undefined;
+  showLoadingOverlay: (callback: (event: any, message: string) => void) => (() => void) | undefined;
+  hideLoadingOverlay: (callback: () => void) => (() => void) | undefined;
+  onMenuAction: (callback: (action: string) => void) => void;
+  log: (message: string, data?: any) => void;
+  showSaveDialog: (options: { defaultPath: string; data: string; }) => Promise<{ success: boolean; filePath?: string; message?: string; }>;
+}
+
+declare global {
+  interface Window {
+    electronAPI?: ElectronAPI;
+  }
+}
