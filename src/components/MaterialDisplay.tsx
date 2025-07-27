@@ -1,9 +1,14 @@
-import React, { useState, FormEvent, useMemo } from 'react';
+import React, { useState, FormEvent, useMemo, useCallback } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { MaterialItem } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
 import { exportMaterialToPdf } from '../utils/pdfGenerator';
 import CollapsibleSection from './ui/CollapsibleSection';
+
+const SortArrow = ({ direction }: { direction: 'ascending' | 'descending' | null }) => {
+  if (!direction) return null;
+  return <span>{direction === 'ascending' ? ' ↑' : ' ↓'}</span>;
+};
 
 const MaterialDisplay: React.FC = () => {
   const { materialItems, addMaterialItem, updateMaterialItem, deleteMaterialItem, showToast } = useEventData();
@@ -16,6 +21,7 @@ const MaterialDisplay: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [search, setSearch] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof MaterialItem | null; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
   
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 
@@ -78,6 +84,14 @@ const MaterialDisplay: React.FC = () => {
     exportMaterialToPdf(filteredItems, showToast);
   };
 
+  const requestSort = useCallback((key: keyof MaterialItem) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  }, [sortConfig]);
+
   const filteredItems = materialItems.filter((item: MaterialItem) => {
     const searchTerm = search.toLowerCase();
     return (
@@ -87,7 +101,7 @@ const MaterialDisplay: React.FC = () => {
     );
   });
   
-  const itemsByCategory = useMemo(() => {
+  const sortedItemsByCategory = useMemo(() => {
     const grouped: { [category: string]: MaterialItem[] } = {};
     filteredItems.forEach(item => {
       const category = item.category || 'Sense Categoria';
@@ -96,8 +110,33 @@ const MaterialDisplay: React.FC = () => {
       }
       grouped[category].push(item);
     });
+
+    // Ara, ordena els ítems dins de cada categoria
+    if (sortConfig.key) {
+      const key = sortConfig.key;
+      Object.values(grouped).forEach(items => {
+        items.sort((a, b) => {
+          const valA = a[key];
+          const valB = b[key];
+
+          let comparison = 0;
+          if (typeof valA === 'number' && typeof valB === 'number') {
+            comparison = valA - valB;
+          } else if (valA !== undefined && valB !== undefined) {
+            comparison = String(valA).localeCompare(String(valB), 'ca', { sensitivity: 'base' });
+          } else if (valA !== undefined) {
+            comparison = 1;
+          } else if (valB !== undefined) {
+            comparison = -1;
+          }
+
+          return sortConfig.direction === 'ascending' ? comparison : -comparison;
+        });
+      });
+    }
+
     return Object.entries(grouped).sort(([catA], [catB]) => catA.localeCompare(catB));
-  }, [filteredItems]);
+  }, [filteredItems, sortConfig]);
 
   return (
     <div className="space-y-6">
@@ -169,8 +208,23 @@ const MaterialDisplay: React.FC = () => {
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto space-y-2">
+            <div className="hidden md:flex items-center gap-2 p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b dark:border-gray-600 mb-2">
+              <button onClick={() => requestSort('name')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                Nom
+                {sortConfig.key === 'name' && <SortArrow direction={sortConfig.direction} />}
+              </button>
+              <button onClick={() => requestSort('stock')} className="w-1/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                Estoc
+                {sortConfig.key === 'stock' && <SortArrow direction={sortConfig.direction} />}
+              </button>
+              <button onClick={() => requestSort('location')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                Ubicació
+                {sortConfig.key === 'location' && <SortArrow direction={sortConfig.direction} />}
+              </button>
+              <div className="w-16 flex-shrink-0 text-right">Accions</div>
+            </div>
             {filteredItems.length > 0 ? (
-              itemsByCategory.map(([category, items]) => (
+              sortedItemsByCategory.map(([category, items]) => (
                 <CollapsibleSection 
                   key={category} 
                   title={`${category} (${items.length})`}
@@ -180,13 +234,18 @@ const MaterialDisplay: React.FC = () => {
                 >
                   {items.map((item: MaterialItem) => (
                     <div key={item.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60">
-                      <div className="flex justify-between items-start">
-                        <div>
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="w-2/5">
                           <p className="font-semibold">{item.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Estoc: {item.stock} • Ubicació: {item.location}</p>
-                          {item.notes && <p className="text-xs italic mt-1">{item.notes}</p>}
+                          {item.notes && <p className="text-xs italic mt-1 text-gray-500 dark:text-gray-400">{item.notes}</p>}
                         </div>
-                        <div className="space-x-2 flex-shrink-0">
+                        <div className="w-1/5">
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{item.stock}</p>
+                        </div>
+                        <div className="w-2/5">
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{item.location}</p>
+                        </div>
+                        <div className="w-16 flex-shrink-0 flex items-center justify-end space-x-2">
                           <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
                           <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
                         </div>
