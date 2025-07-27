@@ -253,18 +253,20 @@ export const exportTechSheetToPdf = (
     y = (pdf as any).lastAutoTable.finalY + 5;
 
     // --- Taula 2: Personal Tècnic ---
-    const personnelBody: any[][] = [[{ content: 'PERSONAL TÈCNIC', colSpan: 3, styles: headStyles }]];
+    const personnelBody: any[][] = [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]];
     if (formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
         const person = getPersonGroupById(provider.personGroupId);
-        personnelBody.push([{ content: `Proveïdor: ${person?.name || 'N/D'}`, colSpan: 3, styles: subHeadStyles }]);
-        personnelBody.push([{ content: 'Quant.', styles: labelStyles }, { content: 'Rol', styles: labelStyles }, { content: 'Notes', styles: labelStyles }]);
         provider.roles.forEach(role => {
-          personnelBody.push([role.quantity, role.role, role.notes || '-']);
+          const row: any[] = [role.quantity, role.role, person?.name || 'N/D'];
+          if (role.notes && role.notes.trim() !== '' && role.notes.trim() !== '--') {
+            row.push(role.notes);
+          }
+          personnelBody.push(row);
         });
       });
     } else {
-      personnelBody.push([{ content: 'Sense personal definit', colSpan: 3 }]);
+      personnelBody.push([{ content: 'Sense personal definit', colSpan: 4 }]);
     }
     autoTable(pdf, {
       body: personnelBody,
