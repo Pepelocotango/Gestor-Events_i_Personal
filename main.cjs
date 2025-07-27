@@ -798,7 +798,25 @@ ipcMain.handle('clear-google-app-calendar', async () => {
   }
 });
 
-  
+ipcMain.handle('show-save-dialog', async (event, options) => {
+  const { defaultPath, data } = options;
+  const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+    defaultPath: defaultPath,
+    filters: [{ name: 'JSON Files', extensions: ['json'] }]
+  });
+
+  if (canceled || !filePath) {
+    return { success: false, message: 'Desat cancel·lat per l\'usuari.' };
+  }
+
+  try {
+    fs.writeFileSync(filePath, data);
+    return { success: true, filePath: filePath };
+  } catch (error) {
+    console.error('Error desant el fitxer:', error);
+    return { success: false, message: `No s'ha pogut desar el fitxer: ${error.message}` };
+  }
+});
 
 
 process.on('uncaughtException', (error) => {
