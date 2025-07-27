@@ -63,9 +63,26 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
-      "LICENSE",
       "google-credentials.json"
     ],
+"extraResources": [
+  {
+    "from": "examples json",
+    "to": "examples json"
+  },
+  {
+    "from": "LICENSE",
+    "to": "LICENSE"
+  },
+  {
+    "from": "README.md",
+    "to": "README.md"
+  },
+  {
+    "from": "DEVELOPING.md",
+    "to": "DEVELOPING.md"
+  }
+],
     "linux": {
       "target": [
         "AppImage"

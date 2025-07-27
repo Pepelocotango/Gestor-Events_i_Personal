@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem } from '../../types';
 import TechSheetSection from './TechSheetSection';
@@ -58,7 +58,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
   type TechSheetScheduleListKey = 'assemblySchedule';
   type TechSheetListKey = TechSheetNeedListKey | TechSheetScheduleListKey;
 
-  const handleListChange = (listName: string, index: number, field: string, value: any) => {
+  const handleListChange = useCallback((listName: string, index: number, field: string, value: any) => {
     setFormData(prev => {
       const newList = [...(prev[listName as TechSheetListKey] as any[])];
       const currentItem = { ...newList[index] };
@@ -74,17 +74,17 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       return { ...prev, [listName]: newList };
     });
     setIsDirty(true);
-  };
+  }, [materialItems]);
   
-  const handleRemoveListItem = (listName: string, index: number) => {
+  const handleRemoveListItem = useCallback((listName: string, index: number) => {
     const newList = (formData[listName as TechSheetListKey] as any[]).filter((_, i) => i !== index);
     const updatedFormData = { ...formData, [listName]: newList };
     setFormData(updatedFormData);
     addOrUpdateTechSheet(eventFrame.id, updatedFormData);
     showToast('Ítem eliminat.', 'info');
-  };
+  }, [formData, addOrUpdateTechSheet, eventFrame.id, showToast]);
   
-  const handleAddListItem = (listName: string) => {
+  const handleAddListItem = useCallback((listName: string) => {
     let newItem: any;
     switch (listName) {
       case 'assemblySchedule':
@@ -104,7 +104,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       [listName]: [...(prev[listName as TechSheetListKey] as any[]), newItem],
     }));
     setIsDirty(true);
-  };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -120,16 +120,16 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
     }
   };
 
-  const handleProviderChange = (providerIndex: number, personGroupId: string) => {
+  const handleProviderChange = useCallback((providerIndex: number, personGroupId: string) => {
     setFormData(prev => {
       const newProviders = [...prev.technicalProviders];
       newProviders[providerIndex].personGroupId = personGroupId;
       return { ...prev, technicalProviders: newProviders };
     });
     setIsDirty(true);
-  };
+  }, []);
 
-  const handleRoleChange = (providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => {
+  const handleRoleChange = useCallback((providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => {
     // Si estem canviant el rol, netegem el prefix de la categoria
     const finalValue = (field === 'role' && typeof value === 'string' && value.includes(': '))
       ? value.split(': ')[1]
@@ -143,9 +143,9 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       return { ...prev, technicalProviders: newProviders };
     });
     setIsDirty(true);
-  };
+  }, []);
 
-  const handleAddProvider = () => {
+  const handleAddProvider = useCallback(() => {
     const newProvider: TechSheetProvider = {
       id: generateLocalId(),
       personGroupId: '',
@@ -153,16 +153,16 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
     };
     setFormData(prev => ({ ...prev, technicalProviders: [...prev.technicalProviders, newProvider] }));
     setIsDirty(true);
-  };
+  }, []);
 
-  const handleRemoveProvider = (providerIndex: number) => {
+  const handleRemoveProvider = useCallback((providerIndex: number) => {
     const updatedProviders = formData.technicalProviders.filter((_, i) => i !== providerIndex);
     setFormData(prev => ({ ...prev, technicalProviders: updatedProviders }));
     addOrUpdateTechSheet(eventFrame.id, { ...formData, technicalProviders: updatedProviders });
     showToast('Proveïdor eliminat i canvis desats.', 'info');
-  };
+  }, [formData, addOrUpdateTechSheet, eventFrame.id, showToast]);
   
-  const handleAddRole = (providerIndex: number) => {
+  const handleAddRole = useCallback((providerIndex: number) => {
     const newRole: TechSheetRoleItem = {
       id: generateLocalId(),
       role: '',
@@ -175,15 +175,15 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       return { ...prev, technicalProviders: newProviders };
     });
     setIsDirty(true);
-  };
+  }, []);
 
-  const handleRemoveRole = (providerIndex: number, roleIndex: number) => {
+  const handleRemoveRole = useCallback((providerIndex: number, roleIndex: number) => {
     const updatedProviders = [...formData.technicalProviders];
     updatedProviders[providerIndex].roles = updatedProviders[providerIndex].roles.filter((_, i) => i !== roleIndex);
     setFormData({ ...formData, technicalProviders: updatedProviders });
     addOrUpdateTechSheet(eventFrame.id, { ...formData, technicalProviders: updatedProviders });
     showToast('Rol eliminat i canvis desats.', 'info');
-  };
+  }, [formData, addOrUpdateTechSheet, eventFrame.id, showToast]);
 
 
 
@@ -222,7 +222,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             value={formData.parkingInfo?.startsWith('SI') ? 'SI' : (formData.parkingInfo?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, parkingInfo: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
+              setFormData(prev => ({ ...prev, parkingInfo: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
               setIsDirty(true);
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
@@ -271,7 +271,13 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             value={formData.preAssemblySchedule?.startsWith('SI') ? 'SI' : (formData.preAssemblySchedule?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, preAssemblySchedule: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
+              setFormData(prev => {
+                if (val === 'NO' || val === '') {
+                  // Si no hi ha premuntatge, netegem també els horaris detallats
+                  return { ...prev, preAssemblySchedule: val, assemblySchedule: [] };
+                }
+                return { ...prev, preAssemblySchedule: 'SI: ' };
+              });
               setIsDirty(true);
             }}
             onBlur={handleBlur}
@@ -434,7 +440,14 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
           <select value={formData.videoDetails?.startsWith('SI') ? 'SI' : (formData.videoDetails?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, videoDetails: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
+              setFormData(prev => {
+                if (val === 'NO' || val === '') {
+                  // Neteja tant els detalls com la llista de necessitats
+                  return { ...prev, videoDetails: val, videoNeeds: [] };
+                }
+                // En canviar a SI, reiniciem el text per evitar dades antigues
+                return { ...prev, videoDetails: 'SI: ' };
+              });
               setIsDirty(true);
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
@@ -486,7 +499,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             value={formData.otherEquipment?.startsWith('SI') ? 'SI' : (formData.otherEquipment?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, otherEquipment: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
+              setFormData(prev => ({ ...prev, otherEquipment: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
               setIsDirty(true);
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
@@ -516,7 +529,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             value={formData.rentals?.startsWith('SI') ? 'SI' : (formData.rentals?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, rentals: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
+              setFormData(prev => ({ ...prev, rentals: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
               setIsDirty(true);
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"

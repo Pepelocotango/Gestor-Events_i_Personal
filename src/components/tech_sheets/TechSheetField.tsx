@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface TechSheetFieldProps {
   id: string;
@@ -90,4 +90,4 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   );
 };
 
-export default TechSheetField;
+export default memo(TechSheetField);

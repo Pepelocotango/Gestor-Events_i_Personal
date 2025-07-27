@@ -540,19 +540,17 @@ const App: React.FC = () => {
       case 'eventFrameDetails':
         return <EventFrameDetailsModal onClose={closeModal} eventFrame={modalState.data!.eventFrame!} showToast={showToast} onShowOnList={handleShowOnList}/>;
       case 'confirmHardReset':
-      case 'confirmDeleteEventFrame':
-        if (modalState.data?.onConfirmSpecial) {
-             return <ConfirmDeleteModal
+        return <ConfirmDeleteModal
                   onClose={closeModal}
-                  itemType={modalState.data.itemType!}
-                  itemName={modalState.data.itemName!}
-                  onConfirm={modalState.data.onConfirmSpecial}
+                  itemType={modalState.data!.itemType!}
+                  itemName={modalState.data!.itemName!}
+                  onConfirm={modalState.data!.onConfirmSpecial!}
                   showToast={showToast}
-                  titleOverride={modalState.data.titleOverride}
-                  confirmButtonText={modalState.data.confirmButtonText}
-                  cancelButtonText={modalState.data.cancelButtonText}
+                  titleOverride={modalState.data!.titleOverride}
+                  confirmButtonText={modalState.data!.confirmButtonText}
+                  cancelButtonText={modalState.data!.cancelButtonText}
                 />;
-        }
+      case 'confirmDeleteEventFrame':
         return <ConfirmDeleteModal
                   onClose={closeModal}
                   itemType="Marc d'Esdeveniment"
@@ -562,6 +560,7 @@ const App: React.FC = () => {
                   }}
                   showToast={showToast}
                 />;
+                
       case 'confirmDeleteAssignment':
         return <ConfirmDeleteModal
                   onClose={closeModal}
@@ -625,20 +624,23 @@ const App: React.FC = () => {
   };
 
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
-    if (!modalState.type) return 'md';
+    if (!modalState.type) return 'xl'; // Nou valor per defecte
     switch (modalState.type) {
-      
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':
       case 'editAssignment':
       case 'eventFrameDetails':
-        return '2xl';
+        return '4xl'; // Abans '2xl'
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmHardReset':
-        return 'lg';
-      default: return 'md';
+        return 'xl'; // Abans 'lg'
+      case 'googleSettings':
+        return '2xl'; // Mida adequada per a la configuració
+      case 'mergeOrReplace':
+        return 'lg'; // Mantenim una mida més petita per a aquest diàleg
+      default: return 'xl'; // Nou valor per defecte
     }
   }
 

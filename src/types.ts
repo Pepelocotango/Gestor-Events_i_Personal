@@ -133,6 +133,7 @@ export interface AppData {
   peopleGroups: PersonGroup[];
   materialItems: MaterialItem[];
   assignments: Assignment[];
+  googleConfig?: GoogleConfig;
 }
 
 export interface InitialEventFrameData {
@@ -284,6 +285,12 @@ export interface CalendarEventFrameEvent extends BaseCalendarEvent {
 }
 
 export type CalendarEventType = CalendarAssignmentEvent | CalendarEventFrameEvent;
+export interface GoogleConfig {
+  selectedCalendarIds: string[];
+  appCalendarId?: string;
+  calendarSuffix?: string;
+}
+
 export interface GoogleCalendar {
   id: string;
   summary: string;

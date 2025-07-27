@@ -1,12 +1,11 @@
 
----
 
 ### 📝 **Pla d'Acció Recomanat (Tasques Pendents)**
 
 Aquest és el pla actualitzat amb les tasques pendents, organitzades per prioritat.
 
 ### millorar formulari fitxes bolo
-analitzar i fer brainstorm
+analitzar i fer brainstorm , te motls logs
 
 ### millorar sortides pdf
 
@@ -17,7 +16,13 @@ millorar i implementar sortides existents csv a pdf també.
 
 ### modals ( finestres) més grans
 
-### afegir als builders de github actions .yml incloure en els comprimits el readme, developing, llicència i carpeta exemples json.
+### afegir als builders de github actions .yml incloure en els comprimits el readme, developing, llicència i carpeta exemples json. s'ha provat no funciona.
+
+### millorar exemples json de tot
+
+### llista material ordenar per nom, categoria etc...
+
+
   
 
 
@@ -39,7 +44,7 @@ millorar i implementar sortides existents csv a pdf també.
 
 
 
-#### implementar factures
+#### implementar factures i presupostos
 nova "pagina"
 
 
