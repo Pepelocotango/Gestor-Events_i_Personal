@@ -799,56 +799,6 @@ ipcMain.handle('clear-google-app-calendar', async () => {
   }
 });
 
-ipcMain.handle('show-save-dialog', async (event, options) => {
-  const { defaultPath, data, fileType } = options;
-  const filters = fileType === 'pdf'
-    ? [{ name: 'PDF Documents', extensions: ['pdf'] }]
-    : [{ name: 'JSON Files', extensions: ['json'] }];
-
-  const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
-    defaultPath: defaultPath,
-    filters: filters,
-  });
-
-  if (canceled || !filePath) {
-    return { success: false, message: 'Desat cancel·lat per l\'usuari.' };
-  }
-
-  // COMPROVACIÓ EXPLÍCITA DE SOBREESCRIPTURA
-  if (fs.existsSync(filePath)) {
-    const choice = await dialog.showMessageBox(mainWindow, {
-      type: 'question',
-      buttons: ['Sobreescriu', 'Cancel·la'],
-      defaultId: 1,
-      cancelId: 1,
-      title: 'Confirmar Sobreescriptura',
-      message: `El fitxer "${path.basename(filePath)}" ja existeix.`,
-      detail: 'Estàs segur que vols sobreescriure\'l?',
-    });
-
-    if (choice.response !== 0) { // Si l'usuari NO ha fet clic a "Sobreescriu"
-      return { success: false, message: 'Sobreescriptura cancel·lada per l\'usuari.' };
-    }
-  }
-
-  try {
-    // Per a PDF, les dades ja vénen com a Buffer. Per a JSON, són un string.
-    if (fileType === 'pdf') {
-      fs.writeFileSync(filePath, data, 'binary');
-    } else {
-      fs.writeFileSync(filePath, data);
-    }
-    return { success: true, filePath: filePath };
-  } catch (error) {
-    console.error('Error desant el fitxer:', error);
-    return { success: false, message: `No s'ha pogut desar el fitxer: ${error.message}` };
-  }
-});
-
-
-
-
-
 // --- GESTOR D'EXCEPCIONS GLOBAL I SEGUR ---
 let isHandlingException = false;
 
