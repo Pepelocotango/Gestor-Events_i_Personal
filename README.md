@@ -47,9 +47,19 @@ Cada versió inclou binaris compilats per a Windows, macOS i Linux. Assegura't d
 
 ### Requisits Mínims del Sistema
 
-*   **Windows:** Windows 10 (64-bit) o superior.
+L'aplicació es construeix amb Electron 29, la qual cosa defineix els següents requisits mínims:
+
+*   **Windows:** Windows 10 (només 64-bit) o superior.
 *   **macOS:** macOS 10.15 (Catalina) o superior.
-*   **Linux:** Ubuntu 18.04, Debian 10, Fedora 28 o qualsevol distribució equivalent o més recent.
+*   **Linux:** Es recomana una distribució moderna com Ubuntu 20.04, Debian 11, Fedora 34 o equivalents més recents (requereix glibc 2.31 o superior).
+
+    > **Nota important per a Linux:** L'aplicació es distribueix com a AppImage, que requereix la llibreria `libfuse2`. En sistemes com **Ubuntu 22.04 o posteriors**, aquesta llibreria no ve instal·lada per defecte. Si l'aplicació no s'obre, necessitaràs instal·lar-la manualment amb la comanda:
+    > ```sh
+    > sudo apt-get install libfuse2
+    > ```
+
+---
+
 
 ### Instruccions per Plataforma
 
@@ -108,7 +118,7 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 ## ✒️ Autoria
 
 -   **Autor Principal:** Pëp 
--   **Co-autoria i Suport Tècnic:** Isaac ;) / Google Gemini-Google Studio IA-Jules / Github Copilot / Perplexity / ChatGPT / Claude /
+-   **Co-autoria i Suport Tècnic:** Isaac ;) / Google Gemini - Google Studio IA - Jules / Github Copilot / Perplexity / ChatGPT / Claude /
 
 ### Captures de pantalla:    
 ![Captura de pantalla del gestor d'events i personal](imatges%20i%20recursos/screenshot1mac.jpeg)

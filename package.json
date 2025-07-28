@@ -63,7 +63,11 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
-      "google-credentials.json"
+      "google-credentials.json",
+      "examples json/",  
+      "LICENSE",       
+      "README.md",
+      "DEVELOPING.md"
     ],
 "extraResources": [
   {

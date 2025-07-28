@@ -39,4 +39,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: GestorEsdeveniments-macOS-x64-v0.5.0-dev
-          path: dist/
+          path: dist/*.dmg
+
+      - name: 6. (Opcional) Pujada de la versió ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: GestorEsdeveniments-macOS-x64-v0.5.0-dev-ZIP
+          path: dist/*-mac.zip
