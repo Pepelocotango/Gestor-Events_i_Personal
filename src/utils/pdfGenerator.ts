@@ -97,8 +97,11 @@ export const exportSummariesToPdf = (
     }
 
     const fileName = `Resum_${title.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(fileName);
-    showToast('Resum exportat a PDF amb èxit!', 'success');
+
+
+
+    showToast('PDF generat amb èxit!', 'success');
+
 
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
@@ -380,8 +383,10 @@ export const exportTechSheetToPdf = (
     }
 
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+
     pdf.save(fileName);
     showToast('PDF generat amb èxit!', 'success');
+
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
@@ -445,8 +450,10 @@ export const exportEventListToPdf = (
     });
 
     const fileName = `Llista_Esdeveniments_${new Date().toISOString().slice(0, 10)}.pdf`;
+
     pdf.save(fileName);
     showToast("Llista d'esdeveniments exportada a PDF!", 'success');
+
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }

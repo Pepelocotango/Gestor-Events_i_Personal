@@ -158,7 +158,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
   const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
 
-  const handleSaveData = async (type: 'all' | 'people' | 'material') => {
+const handleSaveData = (type: 'all' | 'people' | 'material') => {
     try {
       let dataToSave: any;
       let filename: string;
@@ -179,35 +179,20 @@ const Controls = forwardRef<any, ControlsProps>(({
           break;
       }
       const jsonString = JSON.stringify(dataToSave, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-      // Prioritzem el mètode natiu d'Electron
-      if (window.electronAPI?.showSaveDialog) {
-        const result = await window.electronAPI.showSaveDialog({
-          defaultPath: filename,
-          data: jsonString
-        });
-
-        if (result.success) {
-          if (type === 'all') setHasUnsavedChanges(false);
-          showToast(`Dades desades correctament a ${result.filePath}.`, 'success');
-        } else if (result.message && result.message !== 'Desat cancel·lat per l\'usuari.') {
-          showToast(result.message, 'error');
-        }
-      } else {
-        // Fallback per a entorns web
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        if (type === 'all') setHasUnsavedChanges(false);
-        showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : type} desades correctament.`, 'success');
+      if (type === 'all') {
+        setHasUnsavedChanges(false);
       }
+      showToast(`Dades de ${type === 'all' ? "l'aplicació" : type} desades correctament.`, 'success');
     } catch (error) {
       console.error(`Error saving ${type} data:`, error);
       showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');
