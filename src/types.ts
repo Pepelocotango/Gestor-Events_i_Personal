@@ -312,32 +312,33 @@ export interface ShowSaveDialogResult {
   message?: string;
 }
 
+export interface ElectronAPI {
+  showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
+  loadAppData: () => Promise<any>;
+  saveAppData: (data: any) => Promise<boolean>;
+  loadGoogleConfig: () => Promise<any>;
+  onConfirmQuit: (callback: () => void) => void;
+  sendQuitConfirmedByRenderer: () => void;
+  startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
+  onGoogleAuthSuccess: (callback: () => void) => void;
+  onGoogleAuthError: (callback: (errorMessage: string) => void) => void;
+  getCalendarList: () => Promise<any>;
+  saveGoogleConfig: (config: any) => Promise<any>;
+  getGoogleEvents: () => Promise<any>;
+  syncWithGoogle: (localData: any) => Promise<any>;
+  clearGoogleAppCalendar: () => Promise<any>;
+  getDefaultDataPath: () => Promise<string>;
+  performHardReset: () => Promise<{ success: boolean; message?: string }>;
+  onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
+  onDevModeQuitAfterReset: (callback: () => void) => () => void;
+  showLoadingOverlay: (callback: (message: string) => void) => () => void;
+  hideLoadingOverlay: (callback: () => void) => () => void;
+  onMenuAction: (callback: (action: string) => void) => () => void;
+  log: (message: string, data?: any) => void;
+}
+
 declare global {
   interface Window {
-    electronAPI?: {
-      showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
-      // All other existing properties of electronAPI
-      loadAppData: () => Promise<any>;
-      saveAppData: (data: any) => Promise<boolean>;
-      loadGoogleConfig: () => Promise<any>;
-      onConfirmQuit: (callback: () => void) => void;
-      sendQuitConfirmedByRenderer: () => void;
-      startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
-      onGoogleAuthSuccess: (callback: () => void) => void;
-      onGoogleAuthError: (callback: (errorMessage: string) => void) => void;
-      getCalendarList: () => Promise<any>;
-      saveGoogleConfig: (config: any) => Promise<any>;
-      getGoogleEvents: () => Promise<any>;
-      syncWithGoogle: (localData: any) => Promise<any>;
-      clearGoogleAppCalendar: () => Promise<any>;
-      getDefaultDataPath: () => Promise<string>;
-      performHardReset: () => Promise<{ success: boolean; message?: string }>;
-      onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
-      onDevModeQuitAfterReset: (callback: () => void) => () => void;
-      showLoadingOverlay: (callback: (message: string) => void) => () => void;
-      hideLoadingOverlay: (callback: () => void) => () => void;
-      onMenuAction: (callback: (action: string) => void) => () => void;
-      log: (message: string, data?: any) => void;
-    };
+    electronAPI?: ElectronAPI;
   }
 }
