@@ -133,6 +133,7 @@ export interface AppData {
   peopleGroups: PersonGroup[];
   materialItems: MaterialItem[];
   assignments: Assignment[];
+  googleConfig?: GoogleConfig;
 }
 
 export interface InitialEventFrameData {
@@ -284,9 +285,60 @@ export interface CalendarEventFrameEvent extends BaseCalendarEvent {
 }
 
 export type CalendarEventType = CalendarAssignmentEvent | CalendarEventFrameEvent;
+export interface GoogleConfig {
+  selectedCalendarIds: string[];
+  appCalendarId?: string;
+  calendarSuffix?: string;
+}
+
 export interface GoogleCalendar {
   id: string;
   summary: string;
   backgroundColor: string;
   primary?: boolean;
+}
+
+export interface ShowSaveDialogOptions {
+  title: string;
+  defaultPath: string;
+  filters: { name: string; extensions: string[] }[];
+  data: Buffer | string;
+}
+
+export interface ShowSaveDialogResult {
+  success: boolean;
+  canceled?: boolean;
+  filePath?: string;
+  message?: string;
+}
+
+export interface ElectronAPI {
+  showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
+  loadAppData: () => Promise<any>;
+  saveAppData: (data: any) => Promise<boolean>;
+  loadGoogleConfig: () => Promise<any>;
+  onConfirmQuit: (callback: () => void) => void;
+  sendQuitConfirmedByRenderer: () => void;
+  startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
+  onGoogleAuthSuccess: (callback: () => void) => void;
+  onGoogleAuthError: (callback: (errorMessage: string) => void) => void;
+  getCalendarList: () => Promise<any>;
+  saveGoogleConfig: (config: any) => Promise<any>;
+  getGoogleEvents: () => Promise<any>;
+  syncWithGoogle: (localData: any) => Promise<any>;
+  clearGoogleAppCalendar: () => Promise<any>;
+  getDefaultDataPath: () => Promise<string>;
+  performHardReset: () => Promise<{ success: boolean; message?: string }>;
+  onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
+  onDevModeQuitAfterReset: (callback: () => void) => () => void;
+  showLoadingOverlay: (callback: (message: string) => void) => () => void;
+  hideLoadingOverlay: (callback: () => void) => () => void;
+  onMenuAction: (callback: (action: string) => void) => () => void;
+  log: (message: string, data?: any) => void;
+}
+
+declare global {
+  interface Window {
+    electronAPI?: ElectronAPI;
+  }
 }

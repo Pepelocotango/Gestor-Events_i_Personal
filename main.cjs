@@ -56,7 +56,7 @@ const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const GOOGLE_TOKENS_PATH = path.join(CONFIG_DIR, 'google-tokens.json');
 const GOOGLE_CONFIG_PATH = path.join(CONFIG_DIR, 'google-config.json');
 
-const APP_CALENDAR_NAME = "Gestor d'Esdeveniments (App)";
+const APP_CALENDAR_BASE_NAME = "Gestor d'Esdeveniments (App)";
 
 let mainWindow;
 let isQuitting = false;
@@ -234,9 +234,15 @@ function loadGoogleConfigFromFile() {
 
 async function findOrCreateAppCalendar(calendar) {
   try {
+    const config = loadGoogleConfigFromFile() || {};
+    const suffix = config.calendarSuffix ? ` - ${config.calendarSuffix}` : '';
+    const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${suffix}`;
+
+    console.log(`Buscant calendari amb el nom: "${finalCalendarName}"`);
+
     const res = await calendar.calendarList.list();
     const calendars = res.data.items;
-    let appCalendar = calendars.find(cal => cal.summary === APP_CALENDAR_NAME);
+    let appCalendar = calendars.find(cal => cal.summary === finalCalendarName);
 
     if (appCalendar) {
       console.log(`Calendari de l'aplicació trobat: ${appCalendar.id}`);
@@ -445,15 +451,29 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
   }
 
   const appCalendarId = config.appCalendarId;
+  const suffix = config.calendarSuffix ? ` - ${config.calendarSuffix}` : '';
+  const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${suffix}`;
+
+  // DIÀLEG DE CONFIRMACIÓ
+  const choice = await dialog.showMessageBox(mainWindow, {
+    type: 'question',
+    buttons: ['Sí, sincronitzar', 'Cancel·lar'],
+    defaultId: 1,
+    cancelId: 1,
+    title: 'Confirmar Sincronització',
+    message: `Estàs a punt de sobreescriure el calendari "${finalCalendarName}" a Google Calendar.`,
+    detail: 'Totes les dades d\'aquest calendari a Google s\'esborraran i se substituiran per les dades actuals de l\'aplicació. Qualsevol canvi que hagis fet directament a Google es perdrà. Aquesta acció és irreversible. Vols continuar?',
+  });
+
+  if (choice.response !== 0) {
+    console.log("Sincronització cancel·lada per l'usuari.");
+    return { success: false, message: 'Sincronització cancel·lada.' };
+  }
 
   try {
-    // --- FASE 1: BUIDAR COMPLETAMENT EL CALENDARI DE L'APP A GOOGLE ---
+    // FASE 1: BUIDAR COMPLETAMENT EL CALENDARI
     console.log(`Buidant el calendari de l'app a Google: ${appCalendarId}`);
-    const res = await calendar.events.list({
-      calendarId: appCalendarId,
-      maxResults: 2500,
-    });
-    
+    const res = await calendar.events.list({ calendarId: appCalendarId, maxResults: 2500 });
     const eventsToDelete = res.data.items;
     if (eventsToDelete && eventsToDelete.length > 0) {
       console.log(`Trobats ${eventsToDelete.length} esdeveniments per eliminar...`);
@@ -467,29 +487,49 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
       }
     }
 
-    // --- FASE 2: PUJAR TOTS ELS ESDEVENIMENTS DES DE L'APP LOCAL ---
+    // FASE 2: PUJAR TOTS ELS ESDEVENIMENTS DES DE L'APP LOCAL
     const localFramesToUpload = localData.eventFrames;
     console.log(`Pujant ${localFramesToUpload.length} esdeveniments locals al calendari de l'app...`);
     
     for (const localFrame of localFramesToUpload) {
-      // Funció auxiliar per obtenir noms de persones
       const getPersonGroupById = (id) => localData.peopleGroups.find(p => p.id === id);
 
-      let assignmentsText = '';
-      if (localFrame.assignments && localFrame.assignments.length > 0) {
-        const assignmentsList = localFrame.assignments.map(a => {
-          const person = getPersonGroupById(a.personGroupId);
-          return `- ${person ? person.name : 'Desconegut'}: ${a.status}`;
+      // --- CONSTRUCCIÓ DE LA DESCRIPCIÓ ENRIQUIDA ---
+      let descriptionParts = [];
+      if (localFrame.generalNotes) {
+        descriptionParts.push(localFrame.generalNotes);
+      }
+
+      // Secció de Personal
+      if (localFrame.techSheet?.technicalProviders?.length > 0) {
+        const personnelList = localFrame.techSheet.technicalProviders.map(provider => {
+          const person = getPersonGroupById(provider.personGroupId);
+          const roles = provider.roles.map(r => `  - ${r.quantity}x ${r.role}${r.notes ? ` (${r.notes})` : ''}`).join('\n');
+          return `${person ? person.name : 'Proveïdor desconegut'}:\n${roles}`;
         }).join('\n');
-        assignmentsText = `\n\n--- ASSIGNACIONS ---\n${assignmentsList}`;
+        descriptionParts.push(`--- PERSONAL TÈCNIC ---\n${personnelList}`);
+      }
+
+      // Secció d'Horaris
+      if (localFrame.techSheet?.assemblySchedule?.length > 0) {
+        const scheduleList = localFrame.techSheet.assemblySchedule.map(item => `- ${item.time}: ${item.description}`).join('\n');
+        descriptionParts.push(`--- HORARIS ---\n${scheduleList}`);
+      }
+
+      // Altres detalls
+      let otherDetails = [];
+      if (localFrame.techSheet?.companyContact) otherDetails.push(`Contacte Cia: ${localFrame.techSheet.companyContact}`);
+      if (localFrame.techSheet?.observations) otherDetails.push(`Observacions: ${localFrame.techSheet.observations}`);
+      if (otherDetails.length > 0) {
+        descriptionParts.push(`--- DETALLS ---\n${otherDetails.join('\n')}`);
       }
 
       const eventResource = {
         summary: localFrame.name,
-        description: `${localFrame.generalNotes || ''}${assignmentsText}`,
+        description: descriptionParts.join('\n\n'),
         location: localFrame.place || '',
         start: { date: localFrame.startDate },
-        end: { date: addDaysISO(localFrame.endDate, 1) }, // La data de fi és exclusiva a l'API de Google
+        end: { date: addDaysISO(localFrame.endDate, 1) },
       };
 
       try {
@@ -497,7 +537,6 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
           calendarId: appCalendarId,
           requestBody: eventResource,
         });
-        // Actualitzem les dades locals amb el nou ID de Google per a futures referències
         localFrame.googleEventId = newGoogleEvent.data.id;
         localFrame.googleCalendarId = appCalendarId;
         localFrame.lastModified = newGoogleEvent.data.updated;
@@ -506,10 +545,10 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
       } catch (err) {
         console.error(`Error creant "${localFrame.name}" a Google:`, err.message, err.response?.data);
       }
-      await delay(250); // Mantenim una pausa per no excedir els límits de l'API
+      await delay(250);
     }
 
-    // --- FASE 3: RETORNAR LES DADES LOCALS ACTUALITZADES ---
+    // FASE 3: RETORNAR LES DADES LOCALS ACTUALITZADES
     console.log("SYNC: Sincronització completada amb èxit.");
     return { success: true, message: 'Sincronització completada amb èxit.', data: localData };
 
@@ -843,6 +882,34 @@ ipcMain.handle('get-default-data-path', () => {
     return getRelativePath(DATA_FILE);
   }
   return 'Ruta no definida';
+});
+
+ipcMain.handle('show-save-dialog', async (event, options) => {
+  const { title, defaultPath, filters, data } = options;
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+  if (!focusedWindow) {
+    return { success: false, message: 'No hi ha cap finestra activa.' };
+  }
+
+  const result = await dialog.showSaveDialog(focusedWindow, {
+    title,
+    defaultPath,
+    filters,
+    properties: ['showOverwriteConfirmation']
+  });
+
+  if (result.canceled || !result.filePath) {
+    return { success: false, canceled: true };
+  }
+
+  try {
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(result.filePath, buffer);
+    return { success: true, filePath: result.filePath };
+  } catch (error) {
+    console.error('Error desant el fitxer:', error);
+    return { success: false, message: `Error en desar el fitxer: ${error.message}` };
+  }
 });
 
 app.whenReady().then(createWindow);

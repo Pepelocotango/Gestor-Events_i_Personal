@@ -61,7 +61,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               }}
               className="focus:outline-none"
             >
-              <CheckCircleIcon className={`w-6 h-6 transition-colors ${eventFrame.personnelComplete ? 'text-green-500' : 'text-gray-400 dark:text-gray-600'}`} />
+            <CheckCircleIcon className={`w-6 h-6 transition-colors ${eventFrame.personnelComplete ? 'text-green-500' : 'text-yellow-500'}`} />
             </button>
             <h4
               id={`event-frame-title-${eventFrame.id}`}

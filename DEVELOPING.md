@@ -25,6 +25,23 @@ S'han solucionat una sèrie d'errors de compilació de TypeScript que impedien q
 *   **`src/components/Controls.tsx`**:
     *   S'han eliminat les importacions i desestructuracions no utilitzades.
 
+### ✨ [NOU] Optimització de Rendiment a les Fitxes de Bolo
+
+S'ha realitzat una refactorització tècnica per millorar la fluïdesa i la resposta de la interfície al formulari de **Fitxes de Bolo**, que podia experimentar lentitud en editar camps a causa de la seva complexitat.
+
+-   **Problema:** Cada modificació en un camp del formulari (`TechSheetForm.tsx`) provocava un re-renderitzat de tots els seus components fills, incloent les llistes de personal i material, causant feina innecessària i una experiència d'usuari poc fluida.
+
+-   **Solució Implementada:**
+    1.  **Memorització de Components (`React.memo`):** Els components fills més pesats (`TechnicalPersonnelSection`, `NeedsList` i `TechSheetField`) s'han embolicat amb `React.memo`. Ara, aquests components només es tornaran a renderitzar si les seves propietats (`props`) canvien realment.
+    2.  **Memorització de Funcions (`useCallback`):** Totes les funcions (`handlers`) que es passen des de `TechSheetForm.tsx` als seus fills s'han embolicat amb el hook `useCallback`. Això garanteix que les referències a les funcions siguin estables entre renderitzats, permetent que `React.memo` funcioni de manera efectiva.
+
+-   **Impacte:** Aquests canvis redueixen dràsticament la càrrega de treball de React a cada interacció, resultant en una edició del formulari molt més ràpida i responsiva.
+
+**Arxius clau modificats:**
+-   `src/components/tech_sheets/TechSheetForm.tsx` (implementació de `useCallback`).
+-   `src/components/tech_sheets/TechnicalPersonnelSection.tsx`, `NeedsList.tsx`, `TechSheetField.tsx` (implementació de `React.memo`).
+
+
 ---
 
 ## 🚀 **Millores a les Fitxes de Bolo i Documentació Tècnica (v0.3.x)** en desenvolupament!
@@ -43,6 +60,18 @@ La principal millora és un sistema de gestió de personal tècnic que distingei
     *   **Actualització des d'Assignacions:** Un botó `⟳` permet popular la llista de personal tècnic. Per cada assignació confirmada, crea una nova línia de **rol buit** sota el proveïdor corresponent i hi copia les notes de l'assignació original.
     *   **Neteja i Coherència:** El sistema gestiona automàticament la creació de fitxes per a esdeveniments antics i sincronitza dades clau (nom, lloc, data) amb la fitxa quan s'editen des de la vista principal.
 *   **Exportació a PDF Professional:** La funció d'exportació ha estat millorada per generar un document PDF net i ben format que reflecteix la nova estructura de proveïdors i rols.
+#### ✨ [MILLORA] Generació de PDFs Compactes i Intel·ligents
+
+S'ha millorat la lògica d'exportació de les Fitxes de Bolo a PDF per generar documents més nets, professionals i fàcils de llegir. L'objectiu és que el PDF sigui un resum rellevant i no una simple impressió del formulari.
+
+-   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', 'Logística', etc.) només apareixen al PDF si contenen alguna dada introduïda. Si una llista de necessitats està buida, la secció sencera no s'inclourà.
+-   **Gestió de Camps Condicionals:** Els camps que funcionen amb selectors (com 'Vídeo', 'Lloguers', etc.) només s'inclouran al document si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO', '--' o buides s'ometen.
+-   **Camps de Text Nets:** Els camps de text generals (com 'Observacions') només s'afegeixen si contenen informació. Els camps buits no ocupen espai al document final.
+
+-   **Consistència de Dades Millorada:** Per garantir que l'exportació sigui sempre precisa, s'ha implementat una neteja automàtica de dades al formulari (`TechSheetForm.tsx`). Quan un camp condicional es desactiva (p. ex., canviant 'Vídeo' de 'SI' a 'NO'), les dades associades (com la llista de necessitats de vídeo) s'esborren de l'estat, no només s'oculten. Això assegura que el PDF reflecteixi fidelment la informació visible i evita que es mostrin dades residuals.
+
+Això resulta en un document final molt més compacte i centrat exclusivament en la informació important per a cada esdeveniment.
+
 
 ### **2. Arquitectura i Responsabilitat dels Fitxers Clau**
 
@@ -147,28 +176,35 @@ Aquest fitxer concentra la major part de la lògica de la nova funcionalitat.
 
 > Consulta el codi de `main.cjs` per veure la implementació exacta de cada funció.
 
-### 🆕 NOVETATS: Fitxes de Bolo Dinàmiques i Exportació PDF Professional (v0.3.x) <--- en desenvolupament!
 
+### 🆕 **Funcionalitat Avançada de Fitxes de Bolo i Exportació a PDF**
 
-- **UI dinàmica i moderna:**
-  - Selectors SI/NO per a camps com Premuntatge, Zona reservada parking, Vídeo, Lloguers, Material d’altres equipaments, amb camps de detall que apareixen només quan cal.
-  - Dropdowns numèrics per a actors i tècnics de companyia, amb text condicionat per noms.
-  - Botons d'eliminació compactes (X) i accions col·locades de forma més intuïtiva (ex: "Actualitza des d'assignacions" al capçalera de secció).
-  - Sincronització automàtica de notes d'assignació i eliminació del camp "Origen Personal".
-- **Exportació a PDF professional:**
-  - El botó "Exportar a PDF" genera una fitxa tècnica compacta, clara i totalment basada en text (no captura de pantalla).
-  - El PDF inclou seccions, taules i formatació optimitzada per impressió professional.
-  - S'han solucionat tots els errors de TypeScript relacionats amb valors indefinits a l'exportació.
-- **Millores d'UX i robustesa:**
-  - Camps i seccions s'actualitzen i desen automàticament.
-  - Validació i persistència de seleccions SI/NO i camps dinàmics.
-  - Tots els canvis s'han documentat i provat amb usuaris reals.
+S'ha implementat una funcionalitat completa per a la gestió de fitxes tècniques ("fitxes de bolo"), amb una interfície dinàmica i una exportació professional a PDF.
 
-**Arxius clau modificats:**
-- `src/components/tech_sheets/TechSheetForm.tsx` (UI, lògica, PDF)
-- `src/components/tech_sheets/TechSheetSection.tsx` (accions de capçalera)
-- `src/components/tech_sheets/TechSheetField.tsx` (gestió intel·ligent de camps, amb suggeriments i estats)
-- `src/types.ts` (nous camps i lògica de fitxa)
+*   **UI Dinàmica i Moderna:**
+    *   **Camps Condicionals:** S'utilitzen selectors SI/NO per a camps com "Premuntatge", "Zona reservada pàrquing", "Vídeo", "Lloguers" i "Material d'altres equipaments", mostrant camps de text per a detalls addicionals només quan es selecciona "SI".
+    *   **Entrades Numèriques:** Camps per a "Actors" i "Tècnics de companyia" permeten seleccionar una quantitat numèrica, activant un camp de text per als noms.
+    *   **Accions Intuïtives:** La interfície inclou botons d'eliminació compactes (✖) i accions de context, com el botó "Actualitza des d'assignacions" a la capçalera de la secció de personal.
+
+*   **Exportació Professional a PDF:**
+     - **Cobertura Completa:** Totes les vistes de dades principals permeten l'exportació a un document PDF ben formatat:
+        - **Llista d'Esdeveniments:** Genera un PDF apaïsat amb un resum de cada esdeveniment, incloent el personal assignat, els seus estats, notes d'assignació i notes generals.
+        - **Fitxes de Bolo:** Exporta la fitxa tècnica completa.
+        - **Resums:** Exporta les vistes de resum agrupades.
+        - **Inventari de Material i Llibreta d'Adreces:** Genera llistes clares en format de taula.
+    - **Tecnologia:** S'utilitzen les llibreries `jspdf` i `jspdf-autotable` per generar PDF de text natius, garantint una alta qualitat d'impressió.
+    
+*   **Millores d'UX i Robustesa:**
+    *   **Desat Automàtic:** Els canvis realitzats a les fitxes de bolo es desen automàticament en canviar de camp (`onBlur`), proporcionant una experiència fluida.
+    *   **Validació i Persistència:** Es valida l'estoc de material en temps real i es mantenen les seleccions dels camps dinàmics.
+
+**Arquitectura i Fitxers Clau:**
+
+*   **`src/utils/pdfGenerator.ts`:** Mòdul centralitzat que conté tota la lògica per a la creació de tots els documents PDF.
+*   **`src/components/tech_sheets/TechSheetForm.tsx`:** Orquestra el formulari de la fitxa de bolo, gestiona l'estat i crida a `pdfGenerator.ts` per a l'exportació.
+*   **`src/components/tech_sheets/TechnicalPersonnelSection.tsx` i `NeedsList.tsx`:** Components especialitzats que gestionen les seccions de personal i necessitats de material, respectivament.
+*   **`src/types.ts`:** Defineix les estructures de dades per a la fitxa tècnica (`TechSheetData`, `TechSheetProvider`, etc.).
+*   **`package.json`:** S'han afegit les dependències `jspdf` i `jspdf-autotable`.
 
 
 ### 🆕 Millores a les Fitxes de Bolo (v0.3.x): Gestió de Personal per Proveïdors
@@ -202,6 +238,8 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
 - **`src/types.ts`**: Defineix totes les interfícies TypeScript per a la fitxa tècnica, incloent la descripció de cada secció, llistes, camps opcionals i la seva estructura jeràrquica.
 - **`src/hooks/useEventDataManager.ts`**: Gestiona l'estat global de l'aplicació, incloent la persistència i sincronització de les fitxes tècniques amb la resta de dades de l'esdeveniment.
 
+- **`src/components/ui/CollapsibleSection.tsx`**: **(NOU)** Component d'UI genèric i reutilitzable que renderitza una secció amb un títol clicable per mostrar o ocultar el seu contingut. S'utilitza a `MaterialDisplay.tsx` per agrupar l'inventari i a altres parts de l'aplicació per organitzar la informació.
+
 > Amb aquesta arquitectura modular, cada fitxer té una responsabilitat clara i delimitada, facilitant el manteniment i l'escalabilitat.
 
 ---
@@ -229,6 +267,7 @@ Aquesta versió introdueix una refactorització completa de la secció **"Fitxes
         *   **Funcionament 100% offline** garantit. La integració és una capa addicional que no afecta la funcionalitat principal.
     **✨ [NOU] Gestor d'Inventari de Material:**
     *   Pàgina dedicada per gestionar un inventari de material (nom, categoria, estoc, etc.).
+    *   **Vista Agrupada per Categories:** L'inventari ara s'organitza visualment en seccions col·lapsables per categoria, facilitant la navegació i consulta. Aquesta estructura agrupada es reflecteix també a l'exportació a PDF.
     *   Permet carregar inventaris des de fitxers JSON externs.
     *   **Integració amb Fitxes de Bolo:** Suggereix material de l'inventari a les necessitats tècniques.
    *   **Control d'Estoc Dinàmic:**
@@ -382,6 +421,28 @@ El projecte utilitza **GitHub Actions** per automatitzar la compilació per a di
 
 Tots els workflows inclouen un pas per crear el fitxer `google-credentials.json` a partir d'un secret de GitHub, assegurant que les credencials no quedin exposades al codi font.
 
+## ⚠️ Nota sobre la configuració de TypeScript ACTUALMENT ESTÀ CANVIAT A "true" !!!
+
+Per garantir que la compilació (`npm run build`) funcioni correctament encara que hi hagi imports de tipus o variables no utilitzades directament (per exemple, tipus utilitzats només en estructures o per claredat), s'ha modificat el fitxer `tsconfig.json`:
+
+```jsonc
+"noUnusedLocals": false, <-ACTUALITZAT A true
+"noUnusedParameters": false, <-ACTUALITZAT A true
+```
+
+Això permet seleccionar el mode en que el projecte es compili sense errors per imports/tipus no utilitzats directament, mantenint la seguretat de tipus i la claredat del codi. *Si vols tornar a activar la comprovació estricta, només cal posar aquests valors a `true`.*
+
+---
+
+### Solució de Bug de Renderitzat del Calendari
+
+S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
+
+La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
+
+- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar. S'ha eliminat la importació de `CalendarApi` que no s'utilitzava.
+- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.
+
 ### Prerequisits
 
 Assegura't de tenir instal·lat [Node.js](https://nodejs.org/) (versió 18 o superior) i `npm`.
@@ -428,35 +489,3 @@ npm run build:mac
 ```
 
 El resultat es desarà al directori `dist`.
-
-
-## ⚠️ Nota sobre la configuració de TypeScript ACTUALMENT ESTÀ CANVIAT A "true" !!!
-
-Per garantir que la compilació (`npm run build`) funcioni correctament encara que hi hagi imports de tipus o variables no utilitzades directament (per exemple, tipus utilitzats només en estructures o per claredat), s'ha modificat el fitxer `tsconfig.json`:
-
-```jsonc
-"noUnusedLocals": false, <-ACTUALITZAT A true
-"noUnusedParameters": false, <-ACTUALITZAT A true
-```
-
-Això permet seleccionar el mode en que el projecte es compili sense errors per imports/tipus no utilitzats directament, mantenint la seguretat de tipus i la claredat del codi. *Si vols tornar a activar la comprovació estricta, només cal posar aquests valors a `true`.*
-
----
-
-### Solució de Bug de Renderitzat del Calendari
-
-S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
-
-La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
-
-- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar. S'ha eliminat la importació de `CalendarApi` que no s'utilitzava.
-- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.
-
-### Solució de Bug de Renderitzat del Calendari
-
-S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de repaint/reflow del navegador que FullCalendar no gestiona automàticament.
-
-La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació toast canviï. Això s'ha aconseguit creant un canal de comunicació entre el component `App` (que gestiona els toasts) i el component `MainDisplay` (que conté el calendari).
-
-- **`src/components/MainDisplay.tsx`**: S'ha utilitzat `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que crida a `calendarApi.updateSize()` del FullCalendar.
-- **`src/App.tsx`**: S'ha creat una referència a `MainDisplay` i s'ha afegit un `useEffect` que depèn de `toastState` per cridar a `handleResize` cada cop que es mostra una notificació.

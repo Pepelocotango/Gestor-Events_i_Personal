@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
@@ -164,4 +164,4 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   );
 };
 
-export default TechnicalPersonnelSection;
+export default memo(TechnicalPersonnelSection);

@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useMemo, forwardRef, useImperativeH
 import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData, ShowToastFunction } from '../types';
 import { useEventData } from '../contexts/EventDataContext';
 import logger from '../utils/logger';
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, CsvIcon, ChevronUpIcon, ChevronDownIcon } from '../constants';
+
+import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -13,6 +14,7 @@ import caLocale from '@fullcalendar/core/locales/ca';
 import SummaryReports from './SummaryReports';
 import Modal from './ui/Modal';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
+import { exportEventListToPdf } from '../utils/pdfGenerator';
 import EventFrameCard from './EventFrameCard';
 
 interface MainDisplayProps {
@@ -70,6 +72,14 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
   const calendarRef = useRef<FullCalendar>(null);
   const { eventFrames, googleEvents, peopleGroups, getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventData();
   const [conflictDialog, setConflictDialog] = useState<{ message: string; personName: string | null } | null>(null);
+
+  const handleExportListToPdf = () => {
+    if (filteredAndSortedEventFrames.length === 0) {
+      setToastMessage("No hi ha dades a la vista actual per exportar.", 'info');
+      return;
+    }
+    exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, setToastMessage);
+  };
 
   useImperativeHandle(ref, () => ({
     handleResize: () => {
@@ -361,6 +371,11 @@ useEffect(() => {
                 <button onClick={() => { logger.info('[UI] Iniciant exportació de vista actual a CSV.'); onExportCurrentViewToCsv(); }} className="px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-sm">
                     <CsvIcon /> Exportar
                 </button>
+
+                <button onClick={handleExportListToPdf} className="px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white shadow-sm">
+                    <PdfIcon /> Exportar
+                </button>
+                
                 <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame(''); setFilterToShowEventFrameId(null);}} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
             </div>
         </div>

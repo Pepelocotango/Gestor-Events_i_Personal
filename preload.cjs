@@ -47,5 +47,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('menu-action', handler);
     };
   },
+  showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
   log: (message, data) => ipcRenderer.send('log-message', message, data)
 });

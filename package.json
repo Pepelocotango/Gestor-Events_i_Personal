@@ -32,6 +32,7 @@
     "googleapis": "^150.0.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.6.3"
@@ -62,9 +63,26 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
-      "LICENSE",
       "google-credentials.json"
     ],
+"extraResources": [
+  {
+    "from": "examples json",
+    "to": "examples json"
+  },
+  {
+    "from": "LICENSE",
+    "to": "LICENSE"
+  },
+  {
+    "from": "README.md",
+    "to": "README.md"
+  },
+  {
+    "from": "DEVELOPING.md",
+    "to": "DEVELOPING.md"
+  }
+],
     "linux": {
       "target": [
         "AppImage"
