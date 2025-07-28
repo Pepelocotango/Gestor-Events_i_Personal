@@ -4,15 +4,12 @@
 
 Aquest és el pla actualitzat amb les tasques pendents, organitzades per prioritat.
 
+### carpeta configuració usuari no ha de tenir espais en blanc per compatibilitat
+
 ### millorar formulari fitxes bolo
-analitzar i fer brainstorm , te motls logs
 
-### millorar sortides pdf
 
-millorar visualment molt més atractiu les fitxes de bolo sortida pdf
-fer un brainstorm d'aixó
 
-millorar i implementar sortides existents csv a pdf també.
 
 ### modals ( finestres) més grans
 
@@ -28,8 +25,7 @@ millorar i implementar sortides existents csv a pdf també.
 
 #### **✨ Millores de Funcionalitat i UX (Prioritat Mitjana)**
 
-1.  **Epic: Millores d'Integració amb Google Calendar:**
-    *   **Sincronitzar Detalls d'Assignacions:** Actualment només se sincronitza la informació general del marc. Podem afegir un resum de les assignacions (persona i estat) a la descripció de l'esdeveniment de Google.
+e.
 
 
 2.  **Reorganitzar la Interfície (`Controls.tsx`):**
@@ -48,3 +44,9 @@ millorar i implementar sortides existents csv a pdf també.
 nova "pagina"
 
 
+### millorar sortides pdf
+
+millorar visualment molt més atractiu les fitxes de bolo sortida pdf
+fer un brainstorm d'aixó
+
+millorar i implementar sortides existents csv a pdf també.
