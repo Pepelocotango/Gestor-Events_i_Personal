@@ -24,8 +24,33 @@ const addFooter = (pdf: jsPDF, pageCount: number) => {
   pdf.text(`Pàgina ${pageCount}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
 };
 
+// Funció d'ajuda per al desat dual
+async function savePdfWithDialog(
+  pdf: jsPDF,
+  defaultFileName: string,
+  showToast: ShowToastFunction
+) {
+  if (window.electronAPI?.showSaveDialog) {
+    const pdfData = pdf.output('arraybuffer');
+    const result = await window.electronAPI.showSaveDialog({
+      title: 'Desar PDF',
+      defaultPath: defaultFileName,
+      filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
+      data: Buffer.from(pdfData),
+    });
+    if (result.success) {
+      showToast('PDF desat amb èxit!', 'success');
+    } else if (!result.canceled) {
+      showToast(`Error en desar el PDF: ${result.message}`, 'error');
+    }
+  } else {
+    pdf.save(defaultFileName);
+    showToast('Resum exportat a PDF amb èxit!', 'success');
+  }
+}
+
 // --- EXPORTACIÓ DE RESUMS ---
-export const exportSummariesToPdf = (
+export const exportSummariesToPdf = async (
   title: string,
   data: Map<string, SummaryRow[]>,
   dataType: 'event-name' | 'start-date' | 'person',
@@ -97,8 +122,7 @@ export const exportSummariesToPdf = (
     }
 
     const fileName = `Resum_${title.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(fileName);
-    showToast('Resum exportat a PDF amb èxit!', 'success');
+    await savePdfWithDialog(pdf, fileName, showToast);
 
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
@@ -107,7 +131,7 @@ export const exportSummariesToPdf = (
 
 
 // --- EXPORTACIó DE LLISTA DE MATERIAL ---
-export const exportMaterialToPdf = (materialItems: MaterialItem[], showToast: ShowToastFunction) => {
+export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToast: ShowToastFunction) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = createPdfHeader(pdf, 'Llista de Material');
@@ -154,8 +178,7 @@ export const exportMaterialToPdf = (materialItems: MaterialItem[], showToast: Sh
     });
 
     const fileName = `Llista_Material_${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(fileName);
-    showToast('Llista de material exportada a PDF!', 'success');
+    await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
@@ -163,7 +186,7 @@ export const exportMaterialToPdf = (materialItems: MaterialItem[], showToast: Sh
 
 
 // --- EXPORTACIÓ DE LLIBRETA D'ADRECES ---
-export const exportPeopleToPdf = (peopleGroups: PersonGroup[], showToast: ShowToastFunction) => {
+export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: ShowToastFunction) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = createPdfHeader(pdf, "Llibreta d'Adreces");
@@ -201,15 +224,14 @@ export const exportPeopleToPdf = (peopleGroups: PersonGroup[], showToast: ShowTo
     });
 
     const fileName = `Llibreta_Adreces_${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(fileName);
-    showToast("Llibreta d'adreces exportada a PDF!", 'success');
+    await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
 };
 
 // --- FITXA TÈCNICA ---
-export const exportTechSheetToPdf = (
+export const exportTechSheetToPdf = async (
   formData: TechSheetData,
   eventName: string,
   getPersonGroupById: (id: string) => PersonGroup | undefined,
@@ -380,14 +402,13 @@ export const exportTechSheetToPdf = (
     }
 
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-    pdf.save(fileName);
-    showToast('PDF generat amb èxit!', 'success');
+    await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
 };
 // --- EXPORTACIÓ DE LLISTA D'ESDEVENIMENTS ---
-export const exportEventListToPdf = (
+export const exportEventListToPdf = async (
   eventFrames: EventFrame[],
   peopleGroups: PersonGroup[],
   showToast: ShowToastFunction
@@ -445,8 +466,7 @@ export const exportEventListToPdf = (
     });
 
     const fileName = `Llista_Esdeveniments_${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(fileName);
-    showToast("Llista d'esdeveniments exportada a PDF!", 'success');
+    await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }

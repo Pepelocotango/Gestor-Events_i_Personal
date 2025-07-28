@@ -884,6 +884,33 @@ ipcMain.handle('get-default-data-path', () => {
   return 'Ruta no definida';
 });
 
+ipcMain.handle('show-save-dialog', async (event, options) => {
+  const { title, defaultPath, filters, data } = options;
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+  if (!focusedWindow) {
+    return { success: false, message: 'No hi ha cap finestra activa.' };
+  }
+
+  const result = await dialog.showSaveDialog(focusedWindow, {
+    title,
+    defaultPath,
+    filters,
+    properties: ['showOverwriteConfirmation']
+  });
+
+  if (result.canceled || !result.filePath) {
+    return { success: false, canceled: true };
+  }
+
+  try {
+    fs.writeFileSync(result.filePath, data);
+    return { success: true, filePath: result.filePath };
+  } catch (error) {
+    console.error('Error desant el fitxer:', error);
+    return { success: false, message: `Error en desar el fitxer: ${error.message}` };
+  }
+});
+
 app.whenReady().then(createWindow);
 
 app.on('activate', () => {

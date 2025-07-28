@@ -96,21 +96,36 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     return stringData;
   };
 
-  const downloadCsv = (csvContent: string, filename: string) => {
+  const downloadCsv = async (csvContent: string, filename: string) => {
     if (!csvContent.trim() || csvContent.split('\n').length <= 1) {
         setToastMessage("No hi ha dades per exportar en aquest resum.", 'info');
         return;
     }
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    setToastMessage(`Resum "${filename}" exportat a CSV.`, 'success');
+
+    if (window.electronAPI?.showSaveDialog) {
+        const result = await window.electronAPI.showSaveDialog({
+            title: 'Desar CSV',
+            defaultPath: filename,
+            filters: [{ name: 'CSV', extensions: ['csv'] }],
+            data: "\uFEFF" + csvContent,
+        });
+        if (result.success) {
+            setToastMessage(`Resum "${filename}" exportat a CSV.`, 'success');
+        } else if (!result.canceled) {
+            setToastMessage(`Error en desar el CSV: ${result.message}`, 'error');
+        }
+    } else {
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setToastMessage(`Resum "${filename}" exportat a CSV.`, 'success');
+    }
   };
 
   const generateDetailedCsv = (dataType: 'event-name' | 'start-date' | 'person', groupKey: string | null = null): string => {
@@ -150,16 +165,16 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     return csvRows.map(row => row.map(escapeCsvCell).join(',')).join('\n');
   };
 
-  const handleExportPdf = (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person') => {
-    exportSummariesToPdf(title, data, dataType, showToast);
+  const handleExportPdf = async (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person') => {
+    await exportSummariesToPdf(title, data, dataType, showToast);
   };
 
-  const handleExportCsv = (dataType: 'event-name' | 'start-date' | 'person', groupKey: string | null = null) => {
+  const handleExportCsv = async (dataType: 'event-name' | 'start-date' | 'person', groupKey: string | null = null) => {
     const csvContent = generateDetailedCsv(dataType, groupKey);
     const dateSuffix = new Date().toISOString().slice(0, 10);
     const keySuffix = groupKey ? `_${groupKey.replace(/[^a-zA-Z0-9]/g, '-')}` : '';
     const filename = `resum_${dataType}${keySuffix}_${dateSuffix}.csv`;
-    downloadCsv(csvContent, filename);
+    await downloadCsv(csvContent, filename);
   };
   
   // --- RENDERITZAT (amb la correcció) ---
