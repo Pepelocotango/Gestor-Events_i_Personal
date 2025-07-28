@@ -192,7 +192,7 @@ const handleSaveData = (type: 'all' | 'people' | 'material') => {
       if (type === 'all') {
         setHasUnsavedChanges(false);
       }
-      showToast(`Dades de ${type === 'all' ? 'l\\'aplicació' : type} desades correctament.`, 'success');
+      showToast(`Dades de ${type === 'all' ? "l'aplicació" : type} desades correctament.`, 'success');
     } catch (error) {
       console.error(`Error saving ${type} data:`, error);
       showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');
