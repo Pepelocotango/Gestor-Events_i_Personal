@@ -433,7 +433,6 @@ ipcMain.handle('save-app-data', (event, data) => {
   return success;
 });
 
-
 ipcMain.handle('sync-with-google', async (event, localData) => {
   console.log("[IPC_IN] Iniciant 'sync-with-google'.");
   if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
@@ -443,11 +442,31 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
   
   const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-  const config = loadGoogleConfigFromFile();
+  let config = loadGoogleConfigFromFile(); // Declarem config com a 'let'
 
-   if (!config?.appCalendarId) {
-    console.error("SYNC ERROR: No s'ha trobat appCalendarId a la configuració.");
-    return { success: false, message: "No s'ha trobat el calendari de l'aplicació. Si us plau, reconnecta el teu compte." };
+  // NOU BLOC: Comprova si el calendari de l'app ja està configurat. Si no, el crea ara.
+  try {
+    if (!config || !config.appCalendarId) {
+      console.log("El calendari de l'app no està configurat. Buscant o creant-lo ara...");
+      const appCalendarId = await findOrCreateAppCalendar(calendar);
+      config = config || { selectedCalendarIds: [] };
+      config.appCalendarId = appCalendarId;
+      // Assegurem que el calendari de l'app estigui a la llista de seleccionats per visualitzar
+      if (!config.selectedCalendarIds.includes(appCalendarId)) {
+        config.selectedCalendarIds.push(appCalendarId);
+      }
+      fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+      console.log("Configuració de Google actualitzada amb el nou ID del calendari de l'app.");
+    }
+  } catch (error) {
+    console.error("Error crític durant la creació del calendari a la sincronització:", error);
+    return { success: false, message: `No s'ha pogut crear el calendari a Google: ${error.message}` };
+  }
+  
+  // A partir d'aquí, el codi continua igual, però ara 'config' té la certesa de tenir 'appCalendarId'
+   if (!config?.appCalendarId) { // Aquesta comprovació ara és per seguretat extra
+    console.error("SYNC ERROR: No s'ha trobat appCalendarId a la configuració després d'intentar crear-lo.");
+    return { success: false, message: "No s'ha pogut determinar el calendari de l'aplicació." };
   }
 
   const appCalendarId = config.appCalendarId;
@@ -605,23 +624,12 @@ ipcMain.handle('google-auth-start', async () => {
         const { tokens } = await googleAuthClient.getToken(code);
         googleAuthClient.setCredentials(tokens);
         fs.writeFileSync(GOOGLE_TOKENS_PATH, JSON.stringify(tokens));
-        console.log("Tokens obtinguts i desats. Buscant o creant calendari de l'app...");
-        
-        const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
-        const appCalendarId = await findOrCreateAppCalendar(calendar);
-        
-        // Desem l'ID del calendari a la configuració
-        const config = loadGoogleConfigFromFile() || { selectedCalendarIds: [] };
-        config.appCalendarId = appCalendarId;
-        if (!config.selectedCalendarIds.includes(appCalendarId)) {
-          config.selectedCalendarIds.push(appCalendarId);
-        }
-        fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-        console.log("Configuració de Google desada. Enviant senyal d'èxit al renderer.");
+        console.log("Tokens de Google obtinguts i desats correctament."); // Línia clau: Ara només deses els tokens
         
         mainWindow.webContents.send('google-auth-success');
         res.end('<h1>Autenticació completada!</h1><p>Pots tancar aquesta pestanya.</p>');
         closeServerAndResolve({ success: true });
+
 
       } catch (e) {
         console.error("Error en el callback d'autenticació:", e.message);
