@@ -2,7 +2,7 @@
 
 ### `DEVELOPING.md`**
 
-# Gestor d'Esdeveniments i Personal v0.4.0-dev
+# Gestor d'Esdeveniments i Personal v0.5.0-dev
 ---
 
  # NOTES DE DESENVOLUPAMENT #
