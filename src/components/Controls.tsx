@@ -158,7 +158,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
   const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
 
-  const handleSaveData = (type: 'all' | 'people' | 'material') => {
+const handleSaveData = (type: 'all' | 'people' | 'material') => {
     try {
       let dataToSave: any;
       let filename: string;
@@ -188,11 +188,11 @@ const Controls = forwardRef<any, ControlsProps>(({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       if (type === 'all') {
         setHasUnsavedChanges(false);
       }
-      showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : type} desades correctament.`, 'success');
+      showToast(`Dades de ${type === 'all' ? "l'aplicació" : type} desades correctament.`, 'success');
     } catch (error) {
       console.error(`Error saving ${type} data:`, error);
       showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');

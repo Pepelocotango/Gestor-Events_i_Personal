@@ -271,6 +271,7 @@ function createWindow() {
   const sessionData = loadSessionData();
 
   mainWindow = new BrowserWindow({
+    title: 'Gestor d\'Esdeveniments i Personal', // <<< AFEGEIX AQUESTA LÍNIA
     width: sessionData.width || 1200,
     height: sessionData.height || 800,
     x: sessionData.x,
@@ -798,41 +799,76 @@ ipcMain.handle('clear-google-app-calendar', async () => {
   }
 });
 
-  
+// --- GESTOR DE DIÀLEG DE DESAT ---
+ipcMain.handle('show-save-dialog', async (event, options) => {
+  const { defaultPath, data, fileType } = options;
 
+  const filters = fileType === 'pdf'
+    ? [{ name: 'Documents PDF', extensions: ['pdf'] }]
+    : [{ name: 'Fitxers JSON', extensions: ['json'] }];
 
-process.on('uncaughtException', (error) => {
-  console.error('Excepció no capturada:', error);
-  dialog.showErrorBox('Error Inesperat', `S'ha produït un error no controlat: ${error.message}`);
-  app.exit(1);
-});
-let hasShownUncaughtExceptionDialog = false;
+  const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+    defaultPath: defaultPath,
+    filters: filters,
+  });
 
-process.on('uncaughtException', (error) => {
-  const errorMsg = `Excepció no capturada: ${JSON.stringify(error, null, 2)}\n`;
-  
-  try {
-    if (fs.existsSync(sessionLogFile)) {
-      fs.appendFileSync(sessionLogFile, `[${new Date().toISOString()}] ${errorMsg}`);
-    }
-  } catch (fsError) {
-    process.stderr.write(`No s'ha pogut escriure l'error al fitxer de log: ${fsError}\n`);
-    process.stderr.write(errorMsg);
+  if (canceled || !filePath) {
+    return { success: false, message: 'Desat cancel·lat.' };
   }
 
-  // Comprova si ja s'ha mostrat el diàleg per evitar bucles
-  if (!hasShownUncaughtExceptionDialog) {
-    hasShownUncaughtExceptionDialog = true;
-    dialog.showErrorBox('Error Inesperat', `S'ha produït un error no controlat: ${error.message}\n\nL'aplicació es tancarà.`);
-    
-    // Forcem la sortida DESPRÉS de mostrar el diàleg
+  // <<<< LÒGICA DE CONFIRMACIÓ DE SOBREESCRIPTURA >>>>
+  if (fs.existsSync(filePath)) {
+    const choice = await dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      buttons: ['Sobreescriu', 'Cancel·la'],
+      defaultId: 1,
+      cancelId: 1,
+      title: 'Confirmar Sobreescriptura',
+      message: `El fitxer "${path.basename(filePath)}" ja existeix.`,
+      detail: 'Estàs segur que vols sobreescriure\'l?',
+    });
+
+    if (choice.response !== 0) { // Si l'usuari NO ha fet clic a "Sobreescriu"
+      return { success: false, message: 'Sobreescriptura cancel·lada.' };
+    }
+  }
+  // <<<< FI DE LA LÒGICA DE CONFIRMACIÓ >>>>
+
+  try {
+    const buffer = Buffer.from(data); // Converteix el Uint8Array rebut a un Buffer de Node.js
+    fs.writeFileSync(filePath, buffer);
+    return { success: true, filePath: filePath };
+  } catch (error) {
+    console.error('Error desant el fitxer:', error);
+    return { success: false, message: `No s'ha pogut desar el fitxer: ${error.message}` };
+  }
+});
+
+// --- GESTOR D'EXCEPCIONS GLOBAL I SEGUR ---
+let isHandlingException = false;
+
+process.on('uncaughtException', (error) => {
+  if (isHandlingException) {
+    console.error("Error recurrent durant la gestió d'excepcions. Forçant sortida.", error);
+    process.exit(1);
+    return;
+  }
+  isHandlingException = true;
+
+  const errorMsg = `Excepció no capturada: ${error.stack || error.message}`;
+  console.error(errorMsg);
+
+  try {
+    dialog.showErrorBox(
+      'Error Inesperat',
+      `S'ha produït un error no controlat: ${error.message}\n\nL'aplicació es tancarà. Si us plau, revisa el fitxer de log per a més detalls.`
+    );
+  } catch (dialogError) {
+    console.error("No s'ha pogut mostrar el diàleg d'error:", dialogError);
+  } finally {
     setTimeout(() => app.exit(1), 500);
   }
 });
-
-
-
-// <<< FUNCIÓ MODIFICADA >>>
 ipcMain.handle('perform-hard-reset', async () => {
   console.log("[IPC_IN] Rebut 'perform-hard-reset'.");
   console.log("Iniciant Reset de Fàbrica...");
