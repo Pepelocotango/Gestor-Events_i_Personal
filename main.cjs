@@ -903,7 +903,8 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
   }
 
   try {
-    fs.writeFileSync(result.filePath, data);
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(result.filePath, buffer);
     return { success: true, filePath: result.filePath };
   } catch (error) {
     console.error('Error desant el fitxer:', error);

@@ -36,7 +36,7 @@ async function savePdfWithDialog(
       title: 'Desar PDF',
       defaultPath: defaultFileName,
       filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
-      data: Buffer.from(pdfData),
+      data: pdfData as any, // Pass ArrayBuffer directly
     });
     if (result.success) {
       showToast('PDF desat amb èxit!', 'success');
