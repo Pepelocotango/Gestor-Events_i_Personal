@@ -158,7 +158,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   const triggerLoadPeopleFile = () => peopleFileInputRef.current?.click();
   const triggerLoadMaterialFile = () => materialFileInputRef.current?.click();
 
-  const handleSaveData = (type: 'all' | 'people' | 'material') => {
+  const handleSaveData = async (type: 'all' | 'people' | 'material') => {
     try {
       let dataToSave: any;
       let filename: string;
@@ -179,20 +179,36 @@ const Controls = forwardRef<any, ControlsProps>(({
           break;
       }
       const jsonString = JSON.stringify(dataToSave, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      if (type === 'all') {
-        setHasUnsavedChanges(false);
+
+      if (window.electronAPI?.showSaveDialog) {
+        const result = await window.electronAPI.showSaveDialog({
+          title: `Desar ${type} a JSON`,
+          defaultPath: filename,
+          filters: [{ name: 'JSON', extensions: ['json'] }],
+          data: jsonString,
+        });
+        if (result.success) {
+          if (type === 'all') setHasUnsavedChanges(false);
+          showToast(`Dades de ${type} desades correctament.`, 'success');
+        } else if (!result.canceled) {
+          showToast(`Error en desar les dades: ${result.message}`, 'error');
+        }
+      } else {
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        if (type === 'all') {
+          setHasUnsavedChanges(false);
+        }
+        showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : type} desades correctament.`, 'success');
       }
-      showToast(`Dades de ${type === 'all' ? 'l\'aplicació' : type} desades correctament.`, 'success');
     } catch (error) {
       console.error(`Error saving ${type} data:`, error);
       showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');

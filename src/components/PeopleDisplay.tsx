@@ -126,7 +126,7 @@ const PeopleDisplay: React.FC = () => {
     }
   };
 
-  const exportPeopleToCSV = () => {
+  const exportPeopleToCSV = async () => {
     const header = ['Nom', 'Rol', 'Telèfon 1', 'Telèfon 2', 'Email', 'Web', 'Notes'];
     const rows = filteredPeopleGroups.map(p => [
       p.name || '',
@@ -140,13 +140,30 @@ const PeopleDisplay: React.FC = () => {
     const csv = [header, ...rows]
       .map(row => row.map(field => '"' + String(field).replace(/"/g, '""') + '"').join(','))
       .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+
     const today = new Date().toISOString().slice(0, 10);
-    saveAs(blob, `llista_persones_${today}.csv`);
+    const filename = `llista_persones_${today}.csv`;
+
+    if (window.electronAPI?.showSaveDialog) {
+      const result = await window.electronAPI.showSaveDialog({
+        title: 'Desar CSV',
+        defaultPath: filename,
+        filters: [{ name: 'CSV', extensions: ['csv'] }],
+        data: csv,
+      });
+      if (result.success) {
+        showToast('CSV desat amb èxit!', 'success');
+      } else if (!result.canceled) {
+        showToast(`Error en desar el CSV: ${result.message}`, 'error');
+      }
+    } else {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      saveAs(blob, filename);
+    }
   };
 
-  const exportToPdf = () => {
-    exportPeopleToPdf(filteredPeopleGroups, showToast);
+  const exportToPdf = async () => {
+    await exportPeopleToPdf(filteredPeopleGroups, showToast);
   };
 
   return (

@@ -6,7 +6,7 @@ import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, AppData, Assignment, AssignmentStatus, GoogleCalendar, ShowToastFunction, PersonGroup, MaterialItem } from './types';
+import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, Assignment, AssignmentStatus, ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { formatDateDMY } from './utils/dateFormat';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
@@ -24,41 +24,6 @@ const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteM
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
 const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
-
-// Millor posar-ho en un fitxer global.d.ts, però per compatibilitat ràpida:
-interface ElectronAPI {
-  loadAppData?: () => Promise<AppData | null>;
-  saveAppData?: (data: AppData) => Promise<boolean>;
-  onConfirmQuit?: (callback: () => Promise<void>) => void;
-  sendQuitConfirmedByRenderer?: () => void;
-  startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
-  onGoogleAuthSuccess: (callback: () => void) => void;
-  onGoogleAuthError: (callback: (event: any, message: string) => void) => void;
-  getCalendarList: () => Promise<{ success: boolean; calendars?: GoogleCalendar[]; message?: string }>;
-  saveGoogleConfig: (config: { selectedCalendarIds: string[], appCalendarId?: string }) => Promise<{ success: boolean }>;
-  loadGoogleConfig: () => Promise<{ selectedCalendarIds: string[], appCalendarId?: string } | null>;
-  getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
-  syncWithGoogle: (localData: AppData) => Promise<{ success: boolean, message?: string, data?: AppData }>;
-  resolveConflict: (resolutionData: { resolution: 'keep-local' | 'use-remote', localFrame: EventFrame, remoteEvent: any }) => Promise<{ success: boolean, message?: string, resolvedFrame?: EventFrame }>;
-  resolveOrphans: (orphanData: { action: 'delete' | 'unlink', orphanIds: string[] }) => Promise<{ success: boolean, message?: string, updatedData?: AppData }>;
-  clearGoogleAppCalendar: () => Promise<{ success: boolean, message?: string }>;
-  getDefaultDataPath: () => Promise<string>;
-  performHardReset: () => Promise<{ success: boolean; message: string }>;
-  addOrUpdateTechSheet: (eventFrameId: string, fitxaData: any) => void;
-  onAppWillRelaunchAfterReset: (callback: (event: any, messages: string) => void) => (() => void) | undefined;
-  onDevModeQuitAfterReset: (callback: () => void) => (() => void) | undefined;
-  showLoadingOverlay: (callback: (event: any, message: string) => void) => (() => void) | undefined;
-  hideLoadingOverlay: (callback: () => void) => (() => void) | undefined;
-  onMenuAction: (callback: (action: string) => void) => void;
-  log: (message: string, data?: any) => void;
-}
-
-declare global {
-  interface Window {
-    electronAPI?: ElectronAPI;
-    require?: (module: 'electron') => { ipcRenderer: any }; // Afegit per a window.require
-  }
-}
 
 interface ToastState {
   id: string;
@@ -138,7 +103,7 @@ const App: React.FC = () => {
 
     if (window.electronAPI) {
       if (window.electronAPI.showLoadingOverlay) {
-        cleanupShowLoading = window.electronAPI.showLoadingOverlay((_event: any, message: string) => {
+        cleanupShowLoading = window.electronAPI.showLoadingOverlay((message: string) => {
           setLoadingOverlayMessage(message);
           setIsLoadingOverlayVisible(true);
         });
@@ -150,8 +115,8 @@ const App: React.FC = () => {
         });
       }
       if (window.electronAPI.onAppWillRelaunchAfterReset) {
-        cleanupAppWillRelaunch = window.electronAPI.onAppWillRelaunchAfterReset((_event: any, messages: string) => {
-          showToast(`Reset completat:\n${messages}\nL'aplicació es reiniciarà.`, 'info', true);
+        cleanupAppWillRelaunch = window.electronAPI.onAppWillRelaunchAfterReset(() => {
+          showToast(`Reset completat:\nL'aplicació es reiniciarà.`, 'info', true);
         });
       }
       if (window.electronAPI.onDevModeQuitAfterReset) {
@@ -312,7 +277,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (window.electronAPI) {
       const onSuccess = () => showToast('Connectat a Google Calendar amb èxit!', 'success');
-      const onError = (_event: any, message: string) => showToast(`Error d'autenticació: ${message}`, 'error');
+      const onError = (message: string) => showToast(`Error d'autenticació: ${message}`, 'error');
       window.electronAPI.onGoogleAuthSuccess(onSuccess);
       window.electronAPI.onGoogleAuthError(onError);
       return () => {
@@ -624,20 +589,23 @@ const App: React.FC = () => {
   };
 
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
-    if (!modalState.type) return 'md';
+    if (!modalState.type) return 'xl'; // Nou valor per defecte
     switch (modalState.type) {
-      
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':
       case 'editAssignment':
       case 'eventFrameDetails':
-        return '2xl';
+        return '4xl'; // Abans '2xl'
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmHardReset':
-        return 'lg';
-      default: return 'md';
+        return 'xl'; // Abans 'lg'
+      case 'googleSettings':
+        return '2xl'; // Mida adequada per a la configuració
+      case 'mergeOrReplace':
+        return 'lg'; // Mantenim una mida més petita per a aquest diàleg
+      default: return 'xl'; // Nou valor per defecte
     }
   }
 

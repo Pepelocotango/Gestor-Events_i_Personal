@@ -222,7 +222,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             value={formData.parkingInfo?.startsWith('SI') ? 'SI' : (formData.parkingInfo?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, parkingInfo: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
+              setFormData(prev => ({ ...prev, parkingInfo: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
               setIsDirty(true);
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
@@ -271,7 +271,13 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             value={formData.preAssemblySchedule?.startsWith('SI') ? 'SI' : (formData.preAssemblySchedule?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, preAssemblySchedule: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
+              setFormData(prev => {
+                if (val === 'NO' || val === '') {
+                  // Si no hi ha premuntatge, netegem també els horaris detallats
+                  return { ...prev, preAssemblySchedule: val, assemblySchedule: [] };
+                }
+                return { ...prev, preAssemblySchedule: 'SI: ' };
+              });
               setIsDirty(true);
             }}
             onBlur={handleBlur}
@@ -434,7 +440,14 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
           <select value={formData.videoDetails?.startsWith('SI') ? 'SI' : (formData.videoDetails?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, videoDetails: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
+              setFormData(prev => {
+                if (val === 'NO' || val === '') {
+                  // Neteja tant els detalls com la llista de necessitats
+                  return { ...prev, videoDetails: val, videoNeeds: [] };
+                }
+                // En canviar a SI, reiniciem el text per evitar dades antigues
+                return { ...prev, videoDetails: 'SI: ' };
+              });
               setIsDirty(true);
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
@@ -486,7 +499,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             value={formData.otherEquipment?.startsWith('SI') ? 'SI' : (formData.otherEquipment?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, otherEquipment: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
+              setFormData(prev => ({ ...prev, otherEquipment: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
               setIsDirty(true);
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
@@ -516,7 +529,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             value={formData.rentals?.startsWith('SI') ? 'SI' : (formData.rentals?.startsWith('NO') ? 'NO' : '')}
             onChange={e => {
               const val = e.target.value;
-              setFormData(prev => ({ ...prev, rentals: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI' : '') }));
+              setFormData(prev => ({ ...prev, rentals: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
               setIsDirty(true);
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
