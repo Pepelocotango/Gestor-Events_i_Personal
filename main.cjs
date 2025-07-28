@@ -251,7 +251,7 @@ async function findOrCreateAppCalendar(calendar) {
       console.log(`El calendari de l'aplicació no existeix. Creant-lo...`);
       const newCalendar = await calendar.calendars.insert({
         requestBody: {
-          summary: APP_CALENDAR_NAME,
+          summary: finalCalendarName,
           description: "Calendari gestionat per l'aplicació Gestor d'Esdeveniments.",
           timeZone: 'Europe/Madrid' // O obtenir-ho del calendari principal de l'usuari
         }
