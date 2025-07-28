@@ -826,6 +826,7 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
 let isHandlingException = false;
 
 process.on('uncaughtException', (error) => {
+  // Variable de guàrdia per evitar bucles infinits si l'error passa dins d'aquest mateix bloc
   if (isHandlingException) {
     console.error("Error recurrent durant la gestió d'excepcions. Forçant sortida.", error);
     process.exit(1);
@@ -834,7 +835,7 @@ process.on('uncaughtException', (error) => {
   isHandlingException = true;
 
   const errorMsg = `Excepció no capturada: ${error.stack || error.message}`;
-  console.error(errorMsg);
+  console.error(errorMsg); // Això ho escriurà al fitxer de log
 
   try {
     dialog.showErrorBox(
@@ -842,11 +843,15 @@ process.on('uncaughtException', (error) => {
       `S'ha produït un error no controlat: ${error.message}\n\nL'aplicació es tancarà. Si us plau, revisa el fitxer de log per a més detalls.`
     );
   } catch (dialogError) {
+    // Si fins i tot el diàleg falla, ho mostrem per stderr
     console.error("No s'ha pogut mostrar el diàleg d'error:", dialogError);
   } finally {
+    // Donem un petit marge perquè el diàleg es mostri abans de forçar la sortida
     setTimeout(() => app.exit(1), 500);
   }
 });
+
+// <<< FUNCIÓ MODIFICADA >>>
 ipcMain.handle('perform-hard-reset', async () => {
   console.log("[IPC_IN] Rebut 'perform-hard-reset'.");
   console.log("Iniciant Reset de Fàbrica...");
