@@ -33,6 +33,7 @@ export interface Assignment {
 
 export interface TechSheetRoleItem {
   id: string; // ID únic per a la clau de React
+  assignmentId?: string; // ID de l'assignació original
   role: string;
   quantity: number | string; // Permetem string per a l'entrada de text
   notes?: string;
@@ -42,6 +43,7 @@ export interface TechSheetProvider {
   id: string; // ID únic per a la clau de React
   personGroupId: string; // Enllaç al PersonGroup (empresa o autònom)
   roles: TechSheetRoleItem[]; // Llista de rols que proporciona
+  isManual?: boolean; // Per identificar proveïdors afegits manualment
 }
 
 export interface TechSheetScheduleItem {
