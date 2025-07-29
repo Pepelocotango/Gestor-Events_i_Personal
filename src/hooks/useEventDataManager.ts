@@ -173,39 +173,44 @@ markUnsaved();
     const materialItem = materialItemsRef.current.find(item => item.id === materialId);
     if (!materialItem) return { available: 0, total: 0 };
 
-    let committedStock = 0;
     const start = new Date(startDate);
     const end = new Date(endDate);
+    let minAvailable = materialItem.stock;
 
-    eventFramesRef.current.forEach(ef => {
-      // No comptem el material de l'esdeveniment que estem editant
-      if (ef.id === currentEventFrameId) return;
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const currentDate = new Date(d);
+      let dailyCommittedStock = 0;
 
-      const efStart = new Date(ef.startDate);
-      const efEnd = new Date(ef.endDate);
+      eventFramesRef.current.forEach(ef => {
+        if (ef.id === currentEventFrameId) return;
 
-      // Comprovem si hi ha solapament de dates
-      if (start <= efEnd && end >= efStart) {
-        const needsLists: (keyof TechSheetData)[] = ['lightingNeeds', 'soundNeeds', 'videoNeeds', 'machineryNeeds'];
-        needsLists.forEach(listKey => {
-          const needs = ef.techSheet?.[listKey];
-          if (Array.isArray(needs)) {
-            needs.forEach(need => {
-              
-              if (typeof need === 'object' && need !== null && 'materialItemId' in need && 'quantity' in need) {
-                if (need.materialItemId === materialId) {
-                  committedStock += Number(need.quantity) || 0;
+        const efStart = new Date(ef.startDate);
+        const efEnd = new Date(ef.endDate);
+
+        if (currentDate >= efStart && currentDate <= efEnd) {
+          const needsLists: (keyof TechSheetData)[] = ['lightingNeeds', 'soundNeeds', 'videoNeeds', 'machineryNeeds'];
+          needsLists.forEach(listKey => {
+            const needs = ef.techSheet?.[listKey];
+            if (Array.isArray(needs)) {
+              needs.forEach(need => {
+                if (typeof need === 'object' && need !== null && 'materialItemId' in need && 'quantity' in need && need.materialItemId === materialId) {
+                  dailyCommittedStock += Number(need.quantity) || 0;
                 }
-              }
-            });
-          }
-        });
+              });
+            }
+          });
+        }
+      });
+
+      const availableOnDay = materialItem.stock - dailyCommittedStock;
+      if (availableOnDay < minAvailable) {
+        minAvailable = availableOnDay;
       }
-    });
+    }
 
     return {
       total: materialItem.stock,
-      available: materialItem.stock - committedStock,
+      available: minAvailable,
     };
   }, [eventFramesRef, materialItemsRef]);
 
