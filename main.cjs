@@ -58,6 +58,26 @@ const GOOGLE_CONFIG_PATH = path.join(CONFIG_DIR, 'google-config.json');
 
 const APP_CALENDAR_BASE_NAME = "Gestor d'Esdeveniments (App)";
 
+// ---  SINGLE INSTANCE LOCK ---
+// Aquest codi assegura que només una instància de l'aplicació s'executi alhora.
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  // Si no aconseguim el candau, significa que una altra instància ja s'està executant.
+  // En aquest cas, tanquem aquesta nova instància immediatament.
+  app.quit();
+} else {
+  // Si aconseguim el candau, som la primera instància.
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Aquest esdeveniment es dispara quan un usuari intenta obrir una segona instància.
+    // El que fem és posar la finestra de la nostra instància (la primera) en primer pla.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 let mainWindow;
 let isQuitting = false;
 let googleAuthClient;

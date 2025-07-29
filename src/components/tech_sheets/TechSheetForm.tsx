@@ -5,7 +5,6 @@ import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
 import { exportTechSheetToPdf } from '../../utils/pdfGenerator';
-
 import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 
@@ -14,22 +13,19 @@ interface TechSheetFormProps {
 }
 
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
-const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability } = useEventData();
+  const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability } = useEventData();
 
   const getInitialFormData = (): TechSheetData => {
     const data = eventFrame.techSheet!;
-    if (!data.technicalProviders) {
-      // Si les dades són antigues, les migrem al nou format.
-      // És important inicialitzar-ho com un array buit.
-      return { ...data, technicalProviders: [] };
-    }
-    return data;
+    return data.technicalProviders ? data : { ...data, technicalProviders: [] };
   };
 
   const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
-  const [isDirty, setIsDirty] = useState(false);
-  const formRef = useRef<HTMLDivElement>(null);
 
+  const isDirtyRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Efecte per actualitzar dades del formulari si l'esdeveniment canvia
   useEffect(() => {
     const newEventName = eventFrame.name;
     const newLocation = eventFrame.place || '';
@@ -41,16 +37,68 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
         currentData.location !== newLocation ||
         currentData.date !== newDate
       ) {
-        setIsDirty(true);
+        isDirtyRef.current = true;
+
         return { ...currentData, eventName: newEventName, location: newLocation, date: newDate };
       }
       return currentData;
     });
   }, [eventFrame.name, eventFrame.place, eventFrame.startDate, eventFrame.endDate]);
 
+  // Funció de desat centralitzada
+  const saveData = useCallback((isManualSave = false) => {
+    if (isDirtyRef.current) {
+      addOrUpdateTechSheet(eventFrame.id, formData);
+      if (isManualSave) {
+        showToast('Canvis desats manualment.', 'success');
+      } else {
+        showToast('Canvis desats automàticament.', 'success');
+      }
+      isDirtyRef.current = false;
+
+    }
+  }, [addOrUpdateTechSheet, eventFrame.id, formData, showToast]);
+
+
+  // Efecte per al desat automàtic amb temporitzador (debounce)
+  useEffect(() => {
+    if (isDirtyRef.current) {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      saveTimeoutRef.current = setTimeout(() => {
+        saveData();
+      }, 2000); // Desat automàtic després de 2 segons d'inactivitat
+    }
+
+    // Funció de neteja per al temporitzador
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [formData, saveData]);
+
+  // Efecte per al desat de seguretat en desmuntar el component
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (isDirtyRef.current) {
+        saveData();
+      }
+    };
+  }, [saveData]);
+
   if (!formData) {
     return <div>Carregant dades de la fitxa tècnica...</div>;
   }
+
+  const markAsDirty = () => {
+    isDirtyRef.current = true;
+
+  };
 
   const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
 
@@ -64,7 +112,6 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       const currentItem = { ...newList[index] };
       currentItem[field] = value;
       
-      // Si estem canviant la descripció, busquem si correspon a un ítem de material
       if (field === 'description') {
         const matchedItem = materialItems.find(item => item.name === value);
         currentItem.materialItemId = matchedItem ? matchedItem.id : null;
@@ -73,16 +120,15 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       newList[index] = currentItem;
       return { ...prev, [listName]: newList };
     });
-    setIsDirty(true);
+    markAsDirty();
   }, [materialItems]);
   
   const handleRemoveListItem = useCallback((listName: string, index: number) => {
     const newList = (formData[listName as TechSheetListKey] as any[]).filter((_, i) => i !== index);
     const updatedFormData = { ...formData, [listName]: newList };
     setFormData(updatedFormData);
-    addOrUpdateTechSheet(eventFrame.id, updatedFormData);
-    showToast('Ítem eliminat.', 'info');
-  }, [formData, addOrUpdateTechSheet, eventFrame.id, showToast]);
+    markAsDirty();
+  }, [formData]);
   
   const handleAddListItem = useCallback((listName: string) => {
     let newItem: any;
@@ -103,21 +149,13 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       ...prev,
       [listName]: [...(prev[listName as TechSheetListKey] as any[]), newItem],
     }));
-    setIsDirty(true);
+    markAsDirty();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setIsDirty(true);
-  };
-  
-  const handleBlur = () => {
-    if (isDirty) {
-      addOrUpdateTechSheet(eventFrame.id, formData);
-      showToast('Canvis desats automàticament.', 'success');
-      setIsDirty(false);
-    }
+    markAsDirty();
   };
 
   const handleProviderChange = useCallback((providerIndex: number, personGroupId: string) => {
@@ -126,11 +164,10 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       newProviders[providerIndex].personGroupId = personGroupId;
       return { ...prev, technicalProviders: newProviders };
     });
-    setIsDirty(true);
+    markAsDirty();
   }, []);
 
   const handleRoleChange = useCallback((providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => {
-    // Si estem canviant el rol, netegem el prefix de la categoria
     const finalValue = (field === 'role' && typeof value === 'string' && value.includes(': '))
       ? value.split(': ')[1]
       : value;
@@ -138,11 +175,11 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
     setFormData(prev => {
       const newProviders = [...prev.technicalProviders];
       const newRoles = [...newProviders[providerIndex].roles];
-      newRoles[roleIndex] = { ...newRoles[roleIndex], [field]: finalValue }; // Utilitzem el valor netejat
+      newRoles[roleIndex] = { ...newRoles[roleIndex], [field]: finalValue };
       newProviders[providerIndex].roles = newRoles;
       return { ...prev, technicalProviders: newProviders };
     });
-    setIsDirty(true);
+    markAsDirty();
   }, []);
 
   const handleAddProvider = useCallback(() => {
@@ -152,15 +189,14 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       roles: [],
     };
     setFormData(prev => ({ ...prev, technicalProviders: [...prev.technicalProviders, newProvider] }));
-    setIsDirty(true);
+    markAsDirty();
   }, []);
 
   const handleRemoveProvider = useCallback((providerIndex: number) => {
     const updatedProviders = formData.technicalProviders.filter((_, i) => i !== providerIndex);
     setFormData(prev => ({ ...prev, technicalProviders: updatedProviders }));
-    addOrUpdateTechSheet(eventFrame.id, { ...formData, technicalProviders: updatedProviders });
-    showToast('Proveïdor eliminat i canvis desats.', 'info');
-  }, [formData, addOrUpdateTechSheet, eventFrame.id, showToast]);
+    markAsDirty();
+  }, [formData]);
   
   const handleAddRole = useCallback((providerIndex: number) => {
     const newRole: TechSheetRoleItem = {
@@ -174,48 +210,61 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       newProviders[providerIndex].roles.push(newRole);
       return { ...prev, technicalProviders: newProviders };
     });
-    setIsDirty(true);
+    markAsDirty();
   }, []);
 
   const handleRemoveRole = useCallback((providerIndex: number, roleIndex: number) => {
     const updatedProviders = [...formData.technicalProviders];
     updatedProviders[providerIndex].roles = updatedProviders[providerIndex].roles.filter((_, i) => i !== roleIndex);
     setFormData({ ...formData, technicalProviders: updatedProviders });
-    addOrUpdateTechSheet(eventFrame.id, { ...formData, technicalProviders: updatedProviders });
-    showToast('Rol eliminat i canvis desats.', 'info');
-  }, [formData, addOrUpdateTechSheet, eventFrame.id, showToast]);
+    markAsDirty();
+  }, [formData]);
 
-
-
- 
-
-
-
-
+  const handleManualSave = () => {
+    if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+    }
+    saveData(true);
+  };
 
   const handleExportToPdf = () => {
+    if (isDirtyRef.current) {
+        showToast('Desant canvis pendents abans d\'exportar...', 'info');
+        saveData(true); // Desa immediatament abans d'exportar
+    }
     exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
   };
 
   return (
-    <div ref={formRef} className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6 tech-sheet-form-container">
+    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6 tech-sheet-form-container">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Fitxa de Bolo: <span className="text-blue-600 dark:text-blue-400">{eventFrame.name}</span>
         </h2>
-        <button onClick={handleExportToPdf} className="export-pdf-button px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">Exportar a PDF</button>
+        <div className="flex items-center gap-2">
+            <button
+                onClick={handleManualSave}
+
+                className="save-changes-button px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print"
+
+            >
+                Desar Canvis
+            </button>
+            <button onClick={handleExportToPdf} className="export-pdf-button px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">
+                Exportar a PDF
+            </button>
+        </div>
       </div>
       <div className="mt-2">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Edita els detalls tècnics de l'esdeveniment. Els canvis es desen automàticament quan canvies de camp.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Edita els detalls tècnics de l'esdeveniment. Els canvis es desen automàticament.</p>
       </div>
 
       <TechSheetSection title="Informació General" layout="single-column">
-        <TechSheetField id="eventName" label="NOM DEL ESDEVENIMENT:" value={formData.eventName} onChange={handleChange} onBlur={handleBlur} required />
-        <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} onBlur={handleBlur} />
-        <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} onBlur={handleBlur} />
-        <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} onBlur={handleBlur} type="time" />
-        <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} onBlur={handleBlur} placeholder="XX min" />
-        {/* ZONA RESERVADA PARKING: selector SI/NO i detalls */}
+        <TechSheetField id="eventName" label="NOM DEL ESDEVENIMENT:" value={formData.eventName} onChange={handleChange} required />
+        <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} />
+        <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} />
+        <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} type="time" />
+        <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} placeholder="XX min" />
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ZONA RESERVADA PARKING:</label>
           <select
@@ -223,7 +272,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             onChange={e => {
               const val = e.target.value;
               setFormData(prev => ({ ...prev, parkingInfo: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              setIsDirty(true);
+              markAsDirty();
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -239,9 +288,8 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
               value={formData.parkingInfo.replace(/^SI:?\s*/, '')}
               onChange={e => {
                 setFormData(prev => ({ ...prev, parkingInfo: `SI: ${e.target.value}` }));
-                setIsDirty(true);
+                markAsDirty();
               }}
-              onBlur={handleBlur}
             />
           )}
         </div>
@@ -273,14 +321,12 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
               const val = e.target.value;
               setFormData(prev => {
                 if (val === 'NO' || val === '') {
-                  // Si no hi ha premuntatge, netegem també els horaris detallats
                   return { ...prev, preAssemblySchedule: val, assemblySchedule: [] };
                 }
                 return { ...prev, preAssemblySchedule: 'SI: ' };
               });
-              setIsDirty(true);
+              markAsDirty();
             }}
-            onBlur={handleBlur}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">--</option>
@@ -295,9 +341,8 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
               value={formData.preAssemblySchedule.replace(/^SI:?\s*/, '')}
               onChange={e => {
                 setFormData(prev => ({ ...prev, preAssemblySchedule: `SI: ${e.target.value}` }));
-                setIsDirty(true);
+                markAsDirty();
               }}
-              onBlur={handleBlur}
             />
           )}
         </div>
@@ -313,7 +358,6 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
                     label={`Hora ${index + 1}`}
                     value={item.time}
                     onChange={(e) => handleListChange('assemblySchedule', index, 'time', e.target.value)}
-                    onBlur={handleBlur}
                     type="time"
                   />
                 </div>
@@ -323,7 +367,6 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
                     label={`Descripció ${index + 1}`}
                     value={item.description}
                     onChange={(e) => handleListChange('assemblySchedule', index, 'description', e.target.value)}
-                    onBlur={handleBlur}
                   />
                 </div>
                 <div className="w-auto flex-shrink-0 pt-7">
@@ -353,7 +396,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       </TechSheetSection>
 
       <TechSheetSection title="Logística">
-        <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms} onChange={handleChange} onBlur={handleBlur} placeholder="Ex: SI X"/>
+        <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms} onChange={handleChange} placeholder="Ex: SI X"/>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ACTORS:</label>
           <select
@@ -361,7 +404,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             onChange={e => {
               const val = parseInt(e.target.value, 10);
               setFormData(prev => ({ ...prev, actorsNumber: val, actors: val > 0 ? prev.actors : '' }));
-              setIsDirty(true);
+              markAsDirty();
             }}
             className="mt-1 block w-24 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -376,9 +419,8 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
               value={formData.actors || ''}
               onChange={e => {
                 setFormData(prev => ({ ...prev, actors: e.target.value }));
-                setIsDirty(true);
+                markAsDirty();
               }}
-              onBlur={handleBlur}
             />
           )}
         </div>
@@ -389,7 +431,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             onChange={e => {
               const val = parseInt(e.target.value, 10);
               setFormData(prev => ({ ...prev, companyTechniciansNumber: val, companyTechnicians: val > 0 ? prev.companyTechnicians : '' }));
-              setIsDirty(true);
+              markAsDirty();
             }}
             className="mt-1 block w-24 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -404,9 +446,8 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
               value={formData.companyTechnicians || ''}
               onChange={e => {
                 setFormData(prev => ({ ...prev, companyTechnicians: e.target.value }));
-                setIsDirty(true);
+                markAsDirty();
               }}
-              onBlur={handleBlur}
             />
           )}
         </div>
@@ -442,13 +483,11 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
               const val = e.target.value;
               setFormData(prev => {
                 if (val === 'NO' || val === '') {
-                  // Neteja tant els detalls com la llista de necessitats
                   return { ...prev, videoDetails: val, videoNeeds: [] };
                 }
-                // En canviar a SI, reiniciem el text per evitar dades antigues
                 return { ...prev, videoDetails: 'SI: ' };
               });
-              setIsDirty(true);
+              markAsDirty();
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -460,7 +499,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             <textarea
               className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               rows={2} placeholder="Detalls generals de vídeo..." value={formData.videoDetails.replace(/^SI:?\s*/, '')}
-              onChange={e => { setFormData(prev => ({ ...prev, videoDetails: `SI: ${e.target.value}` })); setIsDirty(true); }} onBlur={handleBlur}
+              onChange={e => { setFormData(prev => ({ ...prev, videoDetails: `SI: ${e.target.value}` })); markAsDirty(); }}
             />
           )}
         </div>
@@ -491,8 +530,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
       </TechSheetSection>
       
       <TechSheetSection title="Altres Detalls">
-        <TechSheetField id="controlLocation" label="CONTROL A:" value={formData.controlLocation} onChange={handleChange} onBlur={handleBlur} placeholder="Ex: X PLATEA"/>
-        {/* MATERIAL D’ALTRES EQUIPAMENTS: SI/NO i detalls */}
+        <TechSheetField id="controlLocation" label="CONTROL A:" value={formData.controlLocation} onChange={handleChange} placeholder="Ex: X PLATEA"/>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MATERIAL D’ALTRES EQUIPAMENTS:</label>
           <select
@@ -500,7 +538,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             onChange={e => {
               const val = e.target.value;
               setFormData(prev => ({ ...prev, otherEquipment: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              setIsDirty(true);
+              markAsDirty();
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -516,13 +554,11 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
               value={formData.otherEquipment.replace(/^SI:?\s*/, '')}
               onChange={e => {
                 setFormData(prev => ({ ...prev, otherEquipment: `SI: ${e.target.value}` }));
-                setIsDirty(true);
+                markAsDirty();
               }}
-              onBlur={handleBlur}
             />
           )}
         </div>
-        {/* LLOGUERS: SI/NO i detalls */}
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">LLOGUERS:</label>
           <select
@@ -530,7 +566,7 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
             onChange={e => {
               const val = e.target.value;
               setFormData(prev => ({ ...prev, rentals: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              setIsDirty(true);
+              markAsDirty();
             }}
             className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -546,18 +582,17 @@ const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonG
               value={formData.rentals.replace(/^SI:?\s*/, '')}
               onChange={e => {
                 setFormData(prev => ({ ...prev, rentals: `SI: ${e.target.value}` }));
-                setIsDirty(true);
+                markAsDirty();
               }}
-              onBlur={handleBlur}
             />
           )}
         </div>
-        <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints} onChange={handleChange} onBlur={handleBlur} as="textarea" rows={3} placeholder="Ex: XX x/x/x HORARIS x/x/x"/>
+        <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints} onChange={handleChange} as="textarea" rows={3} placeholder="Ex: XX x/x/x HORARIS x/x/x"/>
       </TechSheetSection>
 
       <TechSheetSection title="Contacte i Observacions">
-        <TechSheetField id="companyContact" label="PERSONA DE CONTACTE COMPANYIA:" value={formData.companyContact} onChange={handleChange} onBlur={handleBlur} />
-        <TechSheetField id="observations" label="ALTRES / OBSERVACIONS:" value={formData.observations} onChange={handleChange} onBlur={handleBlur} as="textarea" rows={4}/>
+        <TechSheetField id="companyContact" label="PERSONA DE CONTACTE COMPANYIA:" value={formData.companyContact} onChange={handleChange} />
+        <TechSheetField id="observations" label="ALTRES / OBSERVACIONS:" value={formData.observations} onChange={handleChange} as="textarea" rows={4}/>
       </TechSheetSection>
 
     </div>
