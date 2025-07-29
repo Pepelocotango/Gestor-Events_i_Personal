@@ -203,6 +203,8 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
 -   **Interacció amb UI Nativa:**
     -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu, rebent les dades i la configuració del diàleg des de React.
 
+    ---
+
 ### 3.4. Integració amb Serveis Externs: Google Calendar API
 
 Una de les funcionalitats clau del backend és gestionar la comunicació amb l'API de Google Calendar.
@@ -219,8 +221,12 @@ Una de les funcionalitats clau del backend és gestionar la comunicació amb l'A
     4.  Després que l'usuari accepti els permisos, Google el redirigeix a `http://localhost:<port>` amb un codi d'autorització.
     5.  El servidor temporal captura aquest codi, l'intercanvia per tokens d'accés i de refresc (`googleAuthClient.getToken(code)`), i els desa a `google-tokens.json`.
     6.  Finalment, el servidor es tanca. Aquest és el mètode estàndard i segur per a aplicacions d'escriptori.
+    7. Protecció CSRF amb state: El flux implementa una mesura de seguretat robusta per prevenir atacs de falsificació de sol·licitud entre llocs (CSRF).
+    - Generació: Abans d'obrir l'URL d'autenticació, es genera un valor aleatori únic (state). Aquesta variable es declara en un àmbit accessible durant tota la vida del procés d'autenticació.
+    - Enviament: Aquest valor state s'afegeix com a paràmetre a l'URL de Google.
+    - Validació: Quan Google redirigeix a l'usuari de tornada al servidor local, el codi del callback extreu el paràmetre state de la URL de retorn i el compara amb el valor original que es va generar. Si no coincideixen, el procés d'autenticació es cancel·la immediatament.
 
----
+----
 
 ## 4. Frontend: Gestió d'Estat i Lògica de la UI (React)
 
