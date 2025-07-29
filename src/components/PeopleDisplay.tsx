@@ -4,6 +4,7 @@ import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup } from '../types';
 import { TrashIcon, EditIcon, CsvIcon, PdfIcon } from '../constants';
 import { exportPeopleToPdf } from '../utils/pdfGenerator';
+import { escapeCsvCell } from '../utils/csvUtils';
 
 
 const PeopleDisplay: React.FC = () => {
@@ -129,16 +130,17 @@ const PeopleDisplay: React.FC = () => {
   const exportPeopleToCSV = async () => {
     const header = ['Nom', 'Rol', 'Telèfon 1', 'Telèfon 2', 'Email', 'Web', 'Notes'];
     const rows = filteredPeopleGroups.map(p => [
-      p.name || '',
-      p.role || '',
-      p.tel1 || '',
-      p.tel2 || '',
-      p.email || '',
-      p.web || '',
-      p.notes || ''
+      p.name,
+      p.role,
+      p.tel1,
+      p.tel2,
+      p.email,
+      p.web,
+      p.notes
     ]);
-    const csv = [header, ...rows]
-      .map(row => row.map(field => '"' + String(field).replace(/"/g, '""') + '"').join(','))
+
+    const csvContent = [header, ...rows]
+      .map(row => row.map(escapeCsvCell).join(','))
       .join('\n');
 
     const today = new Date().toISOString().slice(0, 10);
@@ -149,7 +151,7 @@ const PeopleDisplay: React.FC = () => {
         title: 'Desar CSV',
         defaultPath: filename,
         filters: [{ name: 'CSV', extensions: ['csv'] }],
-        data: csv,
+        data: "\uFEFF" + csvContent,
       });
       if (result.success) {
         showToast('CSV desat amb èxit!', 'success');
@@ -157,7 +159,7 @@ const PeopleDisplay: React.FC = () => {
         showToast(`Error en desar el CSV: ${result.message}`, 'error');
       }
     } else {
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8' });
       saveAs(blob, filename);
     }
   };

@@ -301,7 +301,7 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
     },
   });
 
@@ -619,9 +619,11 @@ ipcMain.handle('google-auth-start', async () => {
       const redirectUri = `http://localhost:${port}`;
       googleAuthClient.redirectUri = redirectUri;
 
+      const state = generateId();
       const authUrl = googleAuthClient.generateAuthUrl({
         access_type: 'offline', prompt: 'consent',
         scope: ['https://www.googleapis.com/auth/calendar'],
+        state: state,
       });
       
       console.log(`Servidor d'autenticació escoltant al port ${port}. Obrint URL d'autenticació.`);
@@ -631,6 +633,15 @@ ipcMain.handle('google-auth-start', async () => {
     server.on('request', async (req, res) => {
       const qs = new url.URL(req.url, 'http://localhost').searchParams;
       const code = qs.get('code');
+      const receivedState = qs.get('state');
+
+      if (receivedState !== state) {
+        console.error("Error d'estat CSRF: l'estat rebut no coincideix.");
+        res.writeHead(400);
+        res.end('<h1>Error: Petició invàlida (CSRF detectat)</h1>');
+        closeServerAndResolve({ success: false, message: 'Error de validació de l\'estat (CSRF).' });
+        return;
+      }
       
       if (!code) {
         console.warn("Callback d'autenticació rebut sense codi.");
@@ -829,13 +840,7 @@ ipcMain.handle('clear-google-app-calendar', async () => {
   
 
 
-process.on('uncaughtException', (error) => {
-  console.error('Excepció no capturada:', error);
-  dialog.showErrorBox('Error Inesperat', `S'ha produït un error no controlat: ${error.message}`);
-  app.exit(1);
-});
 let hasShownUncaughtExceptionDialog = false;
-
 process.on('uncaughtException', (error) => {
   const errorMsg = `Excepció no capturada: ${JSON.stringify(error, null, 2)}\n`;
   
