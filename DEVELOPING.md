@@ -68,6 +68,7 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
         -   Utilitzar el mòdul `contextBridge` per exposar de manera selectiva i segura funcions del backend al món del frontend.
         -   Garantir que el frontend no tingui accés directe a les API de Node.js, una pràctica de seguretat fonamental en Electron.
         -   Definir l'API `window.electronAPI`, que és l'únic punt de contacte entre les dues capes.
+        -   Habilitació de la Sandbox: L'aplicació s'executa amb la sandbox d'Electron activada (sandbox: true). Això aïlla completament el procés de renderitzat (frontend), prevenint que pugui executar codi natiu directament. Tota operació que requereixi accés al sistema ha de passar obligatòriament a través dels canals IPC definits aquí.
 
 3.  **Capa 3: Frontend (Interfície d'Usuari en React - `src/`)**
     -   **Descripció:** És una Single Page Application (SPA) que s'executa dins d'una finestra de Chromium. És responsable de tot el que l'usuari veu i amb què interactua.
@@ -622,6 +623,13 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
 -   **Procés Principal (Backend):** Els logs es mostren a la terminal on has executat `npm run electron-dev` i es guarden als fitxers de log a la carpeta de dades de l'usuari.
 -   **Procés de Renderitzat (Frontend):** Pots obrir les "Developer Tools" de Chromium des del menú `Veure -> Forçar Recàrrega` i `Veure -> Obrir Eines de Desenvolupament` (o amb el corresponent drecera de teclat). Això et dona accés a la consola, inspector d'elements, etc., com en un navegador web normal.
 
+## Pràctiques de Qualitat i Seguretat del Codi
+El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, robust i mantenible:
+
+-   **Immutabilitat de l'Estat: Tota la gestió de l'estat de React segueix el principi d'immutabilitat. En lloc de modificar directament objectes o arrays de l'estat, sempre es creen noves instàncies ([...array], {...objecte}), la qual cosa evita efectes secundaris i bugs de renderitzat.
+-   **Separació de Responsabilitats: Les funcions d'utilitat (com la generació de CSV o la migració de dades) s'abstrauen en mòduls dedicats a src/utils/ per promoure la reutilització de codi i seguir el principi DRY (Don't Repeat Yourself).
+-   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
+-   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 ---
 
 ### 9. Solució de Bug de Renderitzat del Calendari
