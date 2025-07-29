@@ -375,33 +375,37 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
 
--   **Actualització des d'Assignacions:**
-    1.  Filtra les assignacions de l'`eventFrame` per trobar les que tenen un estat `Sí` o `Mixt` amb almenys un dia `Sí`.
-    2.  Per a cada assignació confirmada, busca si ja existeix un proveïdor (`TechSheetProvider`) per a la persona/grup assignada (`personGroupId`).
-    3.  Si no existeix, el crea.
-    4.  Afegeix un nou `TechSheetRoleItem` buit a la llista de rols d'aquest proveïdor, copiant les notes de l'assignació original al camp de notes del rol.
-    5.  Finalment, crida a `addOrUpdateTechSheet` per desar la nova estructura.
+-  **Actualització Intel·ligent des d'Assignacions:** El botó **`⟳ Actualitza des d'assignacions`** executa una sincronització intel·ligent per evitar duplicats i respectar les entrades manuals.
+     1.  **Identifica Assignacions Confirmades:** Obté una llista de tot el personal amb assignacions en estat `Sí` o `Mixt` (amb algun dia `Sí`). Aquesta és la "font de la veritat".
+     2.  **Preserva Entrades Manuals:** Analitza els proveïdors existents a la fitxa i separa aquells que han estat afegits manualment (marcats amb la propietat `isManual: true`) i que no corresponen a una assignació confirmada. Aquests es mantenen intactes.
+     3.  **Neteja i Reconstrueix:** Elimina totes les entrades anteriors que provenien d'assignacions i les reconstrueix de zero a partir de la llista actual de personal confirmat.
+     4.  **Unifica:** Combina les entrades manuals preservades amb les noves entrades generades a partir de les assignacions i desa el resultat final.
+
+
 
 ### 5.3. Control d'Estoc de Material en Temps Real
 
 Aquesta funcionalitat evita la sobre-assignació de material. La lògica principal resideix a `useEventDataManager.ts`.
 
-#### Flux de Càlcul (`getMaterialAvailability`)
 
-La funció utilitza `useRef` per accedir a l'estat actual de `eventFrames` i `materialItems` sense provocar re-renderitzats, garantint un càlcul eficient.
 
-1.  **Entrades:** La funció rep l'ID del material (`materialId`), les dates de l'esdeveniment actual (`startDate`, `endDate`) i l'ID de l'esdeveniment actual (`currentEventFrameId`).
-2.  **Obtenció de l'Ítem:** Busca l'ítem de material a `materialItemsRef.current` per obtenir el seu estoc total (`materialItem.stock`). Si no el troba, retorna 0.
-3.  **Iteració per Dia i Càlcul de Disponibilitat Mínima:**
-    -   La funció no comprova un simple solapament de rangs, sinó que itera sobre **cada dia individual** dins del rang de dates de l'esdeveniment que s'està consultant (`for (let d = new Date(start); d <= end; ...)`).
-    -   Per a cada dia (`currentDate`), calcula l'estoc total compromès (`dailyCommittedStock`) per a aquest dia específic:
-        -   Recorre tots els altres `eventFrames` (excloent l'actual per permetre l'edició).
-        -   Comprova si l'altre esdeveniment està actiu en `currentDate`.
-        -   Si és així, itera sobre les seves necessitats de material (`lightingNeeds`, `soundNeeds`, etc.) a la fitxa tècnica.
-        -   Si una necessitat correspon al `materialId` consultat, suma la seva `quantity` a `dailyCommittedStock`.
-    -   Calcula l'estoc disponible per a aquell dia (`availableOnDay = materialItem.stock - dailyCommittedStock`).
-    -   Actualitza una variable `minAvailable` amb el valor més baix trobat fins ara. Aquest enfocament conservador assegura que el material estigui disponible durant **tot** el període.
-4.  **Resultat:** La funció retorna un objecte `{ total: materialItem.stock, available: minAvailable }`. El valor `available` representa la quantitat d'estoc que es pot garantir com a disponible durant tot el rang de dates de l'esdeveniment.
+ #### Flux de Càlcul (`getMaterialAvailability`)
+
+La funció implementa una lògica granular per garantir un càlcul d'estoc precís, especialment quan hi ha esdeveniments solapats en el temps. Utilitza `useRef` per accedir a l'estat actual de `eventFrames` i `materialItems` sense provocar re-renderitzats, garantint un càlcul eficient.
+
+ 1.  **Entrades:** La funció rep l'ID del material (`materialId`), les dates de l'esdeveniment actual (`startDate`, `endDate`) i l'ID de l'esdeveniment actual (`currentEventFrameId`).
+ 2.  **Obtenció de l'Ítem:** Busca l'ítem de material a `materialItemsRef.current` per obtenir el seu estoc total (`materialItem.stock`). Si no el troba, retorna 0.
+ 3.  **Iteració per Dia i Càlcul de Disponibilitat Mínima:**
+     -   La funció no comprova un simple solapament de rangs, sinó que itera sobre **cada dia individual** dins del rang de dates de l'esdeveniment que s'està consultant (`for (let d = new Date(start); d <= end; ...)`).
+     -   Per a cada dia (`currentDate`), calcula l'estoc total compromès (`dailyCommittedStock`) per a aquest dia específic:
+         -   Recorre tots els altres `eventFrames` (excloent l'actual per permetre l'edició).
+         -   Comprova si l'altre esdeveniment està actiu en `currentDate`.
+         -   Si és així, itera sobre les seves necessitats de material (`lightingNeeds`, `soundNeeds`, etc.) a la fitxa tècnica.
+         -   Si una necessitat correspon al `materialId` consultat, suma la seva `quantity` a `dailyCommittedStock`.
+     -   Calcula l'estoc disponible per a aquell dia (`availableOnDay = materialItem.stock - dailyCommittedStock`).
+     -   Actualitza una variable `minAvailable` amb el valor més baix trobat fins ara. Aquest enfocament conservador assegura que el material estigui disponible durant **tot** el període.
+ 4.  **Resultat:** La funció retorna un objecte `{ total: materialItem.stock, available: minAvailable }`. El valor `available` representa la quantitat d'estoc que es pot garantir com a disponible durant tot el rang de dates de l'esdeveniment.
+
 
 #### Integració a la UI (`NeedsList.tsx`)
 
