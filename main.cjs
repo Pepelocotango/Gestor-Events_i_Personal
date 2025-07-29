@@ -606,6 +606,7 @@ ipcMain.handle('google-auth-start', async () => {
 
   return new Promise((resolve) => {
     const server = http.createServer();
+    let state; // Declarar 'state' en un àmbit superior
 
     const closeServerAndResolve = (result) => {
       if (server.listening) {
@@ -619,7 +620,7 @@ ipcMain.handle('google-auth-start', async () => {
       const redirectUri = `http://localhost:${port}`;
       googleAuthClient.redirectUri = redirectUri;
 
-      const state = generateId();
+      state = generateId(); // Assignar valor a 'state'
       const authUrl = googleAuthClient.generateAuthUrl({
         access_type: 'offline', prompt: 'consent',
         scope: ['https://www.googleapis.com/auth/calendar'],
