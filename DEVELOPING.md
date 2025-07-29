@@ -139,6 +139,18 @@ Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de segu
 
 El backend controla tots els aspectes del cicle de vida de l'aplicació, des de la creació de la finestra fins al tancament segur.
 
+
+#### Bloqueig d'Instància Única (Single Instance Lock)
+
+Per prevenir errors crítics de tipus `write EIO` (Error d'Entrada/Sortida) i condicions de cursa (`race conditions`), l'aplicació implementa un bloqueig que assegura que només una instància pugui estar en execució al mateix temps.
+
+Aquest error es produïa quan dues instàncies de l'aplicació intentaven escriure simultàniament al mateix fitxer de configuració (p. ex., `session.json`) durant el procés de tancament, causant una fallada del sistema de fitxers.
+
+La solució s'implementa a l'inici de `main.cjs` utilitzant `app.requestSingleInstanceLock()`. La primera instància que s'obre obté el "candau" i s'executa amb normalitat. Si un usuari intenta obrir una segona instància, aquesta detectarà que el candau ja està agafat, posarà la finestra de la primera instància en primer pla (`mainWindow.focus()`) i es tancarà automàticament.
+
+Això no només soluciona el bug d'escriptura, sinó que també millora l'experiència d'usuari evitant finestres duplicades.
+
+
 #### Creació de la Finestra (`createWindow`)
 
 Aquesta funció s'encarrega de:
@@ -352,7 +364,13 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
 #### Lògica del Formulari (`TechSheetForm.tsx`)
 
 -   **Inicialització:** Quan se selecciona un esdeveniment, el component `TechSheetForm` s'inicialitza amb les dades de `eventFrame.techSheet`. Si la propietat no existeix (dades antigues), la funció `createDefaultTechSheet` genera una estructura buida per evitar errors.
--   **Desat Automàtic:** El formulari no té un botó de "Guardar". En canvi, utilitza l'esdeveniment `onBlur` a cada camp. Quan un camp perd el focus, es crida a la funció `handleBlur`, que comprova la variable d'estat `isDirty`. Si `isDirty` és `true` (indica que hi ha hagut canvis), s'invoca `addOrUpdateTechSheet` del hook `useEventDataManager` per persistir les dades a l'estat global i es mostra un toast. El flag `isDirty` es reinicia a `false`.
+
+-   **Gestió de Desat Intel·ligent (UI Optimista + Debouncing):** Per solucionar la manca de fiabilitat del desat amb `onBlur` (propens a errors de *stale state*) i garantir la integritat de dades en temps real (especialment per al control d'estoc), s'ha implementat un sistema de desat híbrid i robust.
+    -   **UI Optimista:** La interfície respon a l'instant als canvis de l'usuari. Quan es modifica una quantitat de material, per exemple, el càlcul de disponibilitat es refresca immediatament basant-se en l'estat intern del formulari, sense esperar el desat a l'estat central.
+    -   **Desat Automàtic amb Temporitzador (Debouncing):** Quan l'usuari edita un camp, s'inicia un temporitzador. Si l'usuari fa una pausa, el sistema desa automàticament els canvis a l'estat central de l'aplicació. Això es gestiona amb un `useEffect` que observa canvis a `formData` i una referència (`useRef`) per al flag `isDirty` per evitar l'estat caduc.
+    -   **Botó de Desat Manual:** S'ha afegit un botó "Desar Canvis" que s'activa només quan hi ha canvis pendents. Això dona a l'usuari control explícit per forçar un desat immediat si ho desitja.
+    -   **Desat de Seguretat:** Com a mesura final de seguretat, una funció de neteja en un `useEffect` garanteix que qualsevol canvi pendent es desi automàticament si l'usuari canvia d'esdeveniment o navega fora de la pàgina, evitant qualsevol pèrdua de dades.
+
 -   **Gestió de Llistes Dinàmiques:**
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.

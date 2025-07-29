@@ -21,6 +21,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   };
 
   const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
+
   const isDirtyRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -37,6 +38,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         currentData.date !== newDate
       ) {
         isDirtyRef.current = true;
+
         return { ...currentData, eventName: newEventName, location: newLocation, date: newDate };
       }
       return currentData;
@@ -53,6 +55,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         showToast('Canvis desats automàticament.', 'success');
       }
       isDirtyRef.current = false;
+
     }
   }, [addOrUpdateTechSheet, eventFrame.id, formData, showToast]);
 
@@ -94,6 +97,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
   const markAsDirty = () => {
     isDirtyRef.current = true;
+
   };
 
   const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
@@ -240,7 +244,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         <div className="flex items-center gap-2">
             <button
                 onClick={handleManualSave}
+
                 className="save-changes-button px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print"
+
             >
                 Desar Canvis
             </button>
