@@ -193,6 +193,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       id: generateLocalId(),
       personGroupId: '',
       roles: [],
+      isManual: true, // Marcar com a manual
     };
     setFormData(prev => ({ ...prev, technicalProviders: [...prev.technicalProviders, newProvider] }));
     markAsDirty();
