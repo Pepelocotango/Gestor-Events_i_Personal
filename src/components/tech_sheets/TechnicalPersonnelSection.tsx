@@ -55,35 +55,49 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
               return;
             }
 
-            let updatedProviders = [...technicalProviders];
-            let rolesAddedCount = 0;
+            // Preserva proveïdors manuals i elimina els provinents d'assignacions
+            const manualProviders = technicalProviders.filter(p => p.isManual);
+
+            let newRolesCount = 0;
+            const providersFromAssignments: TechSheetProvider[] = [];
 
             confirmedAssignments.forEach((assignment: any) => {
               const personGroupId = assignment.personGroupId;
+              let provider = providersFromAssignments.find(p => p.personGroupId === personGroupId);
 
-              let providerIndex = updatedProviders.findIndex(p => p.personGroupId === personGroupId);
-              if (providerIndex === -1) {
-                const newProvider: TechSheetProvider = { id: generateLocalId(), personGroupId, roles: [] };
-                updatedProviders.push(newProvider);
-                providerIndex = updatedProviders.length - 1;
+              if (!provider) {
+                provider = {
+                  id: generateLocalId(),
+                  personGroupId,
+                  roles: [],
+                  isManual: false,
+                };
+                providersFromAssignments.push(provider);
               }
 
-              updatedProviders[providerIndex].roles.push({
+              provider.roles.push({
                 id: generateLocalId(),
+                assignmentId: assignment.id,
                 role: '',
                 quantity: 1,
                 notes: assignment.notes || '',
               });
-              rolesAddedCount++;
+              newRolesCount++;
             });
 
-            if (rolesAddedCount > 0) {
-              const updatedFormData = { ...formData, technicalProviders: updatedProviders };
+            const finalProviders = [...manualProviders, ...providersFromAssignments];
+
+            if (newRolesCount > 0) {
+              const updatedFormData = { ...formData, technicalProviders: finalProviders };
               setFormData(updatedFormData);
               addOrUpdateTechSheet(eventFrame.id, updatedFormData);
-              showToast(`${rolesAddedCount} rol(s) afegit(s) des de les assignacions. Canvis desats.`, 'success');
+              showToast(`S'ha actualitzat la llista amb ${newRolesCount} rol(s) des de les assignacions.`, 'success');
             } else {
-              showToast('No s\'ha pogut afegir cap rol nou.', 'info');
+              // Si no hi ha rols nous, potser només cal netejar els antics
+              const updatedFormData = { ...formData, technicalProviders: manualProviders };
+              setFormData(updatedFormData);
+              addOrUpdateTechSheet(eventFrame.id, updatedFormData);
+              showToast('No hi ha personal confirmat a les assignacions. S\'han eliminat les entrades anteriors.', 'info');
             }
           }}
           className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-medium shadow no-print"
