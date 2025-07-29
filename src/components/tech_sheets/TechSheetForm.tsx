@@ -21,9 +21,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   };
 
   const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
+  const formDataRef = useRef(formData);
 
   const isDirtyRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Mantenir la referència sempre actualitzada
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
 
   // Efecte per actualitzar dades del formulari si l'esdeveniment canvia
   useEffect(() => {
@@ -48,16 +54,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   // Funció de desat centralitzada
   const saveData = useCallback((isManualSave = false) => {
     if (isDirtyRef.current) {
-      addOrUpdateTechSheet(eventFrame.id, formData);
+      addOrUpdateTechSheet(eventFrame.id, formDataRef.current); // Llegeix de la ref
       if (isManualSave) {
         showToast('Canvis desats manualment.', 'success');
       } else {
         showToast('Canvis desats automàticament.', 'success');
       }
       isDirtyRef.current = false;
-
     }
-  }, [addOrUpdateTechSheet, eventFrame.id, formData, showToast]);
+  }, [addOrUpdateTechSheet, eventFrame.id, showToast]);
 
 
   // Efecte per al desat automàtic amb temporitzador (debounce)
@@ -82,6 +87,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   // Efecte per al desat de seguretat en desmuntar el component
   useEffect(() => {
     return () => {
+      // Aquest efecte s'activa en canviar d'esdeveniment o desmuntar
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
@@ -89,7 +95,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         saveData();
       }
     };
-  }, [saveData]);
+  }, [saveData]); // Es manté saveData per coherència
 
   if (!formData) {
     return <div>Carregant dades de la fitxa tècnica...</div>;
@@ -222,9 +228,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
   const handleManualSave = () => {
     if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null; // Important: netejar la referència
     }
-    saveData(true);
+    // Només desar si hi ha canvis pendents
+    if (isDirtyRef.current) {
+      saveData(true);
+    } else {
+      showToast('No hi ha canvis per desar.', 'info');
+    }
   };
 
   const handleExportToPdf = () => {
