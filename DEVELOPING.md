@@ -388,15 +388,20 @@ Aquesta funcionalitat evita la sobre-assignació de material. La lògica princip
 
 #### Flux de Càlcul (`getMaterialAvailability`)
 
+La funció utilitza `useRef` per accedir a l'estat actual de `eventFrames` i `materialItems` sense provocar re-renderitzats, garantint un càlcul eficient.
+
 1.  **Entrades:** La funció rep l'ID del material (`materialId`), les dates de l'esdeveniment actual (`startDate`, `endDate`) i l'ID de l'esdeveniment actual (`currentEventFrameId`).
-2.  **Obtenció de l'Ítem:** Busca l'ítem de material a l'estat `materialItems` per obtenir el seu estoc total.
-3.  **Iteració i Comprovació de Solapament:**
-    -   Recorre **tots** els altres `eventFrames`. Exclou l'esdeveniment actual (`currentEventFrameId`) per permetre l'edició sense que el seu propi ús compti com a conflicte.
-    -   Per a cada `eventFrame`, comprova si el seu rang de dates se solapa amb el rang de dates de l'esdeveniment actual.
-    -   Si hi ha solapament, itera sobre totes les llistes de necessitats (`lightingNeeds`, `soundNeeds`, etc.) de la seva fitxa tècnica.
-    -   Busca si algun `TechSheetNeed` utilitza el `materialItemId` que s'està consultant.
-    -   Si el troba, suma la `quantity` d'aquesta necessitat a una variable `committedStock`.
-4.  **Resultat:** La funció retorna un objecte `{ total: materialItem.stock, available: materialItem.stock - committedStock }`.
+2.  **Obtenció de l'Ítem:** Busca l'ítem de material a `materialItemsRef.current` per obtenir el seu estoc total (`materialItem.stock`). Si no el troba, retorna 0.
+3.  **Iteració per Dia i Càlcul de Disponibilitat Mínima:**
+    -   La funció no comprova un simple solapament de rangs, sinó que itera sobre **cada dia individual** dins del rang de dates de l'esdeveniment que s'està consultant (`for (let d = new Date(start); d <= end; ...)`).
+    -   Per a cada dia (`currentDate`), calcula l'estoc total compromès (`dailyCommittedStock`) per a aquest dia específic:
+        -   Recorre tots els altres `eventFrames` (excloent l'actual per permetre l'edició).
+        -   Comprova si l'altre esdeveniment està actiu en `currentDate`.
+        -   Si és així, itera sobre les seves necessitats de material (`lightingNeeds`, `soundNeeds`, etc.) a la fitxa tècnica.
+        -   Si una necessitat correspon al `materialId` consultat, suma la seva `quantity` a `dailyCommittedStock`.
+    -   Calcula l'estoc disponible per a aquell dia (`availableOnDay = materialItem.stock - dailyCommittedStock`).
+    -   Actualitza una variable `minAvailable` amb el valor més baix trobat fins ara. Aquest enfocament conservador assegura que el material estigui disponible durant **tot** el període.
+4.  **Resultat:** La funció retorna un objecte `{ total: materialItem.stock, available: minAvailable }`. El valor `available` representa la quantitat d'estoc que es pot garantir com a disponible durant tot el rang de dates de l'esdeveniment.
 
 #### Integració a la UI (`NeedsList.tsx`)
 
