@@ -18,26 +18,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearGoogleAppCalendar: () => ipcRenderer.invoke('clear-google-app-calendar'),
   getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),
   performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
-  onAppWillRelaunchAfterReset: (callback) => {
-    const handler = (event, ...args) => callback(...args);
-    ipcRenderer.on('app-will-relaunch-after-reset', handler);
-    return () => ipcRenderer.removeListener('app-will-relaunch-after-reset', handler);
-  },
-  onDevModeQuitAfterReset: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('dev-mode-quit-after-reset', handler);
-    return () => ipcRenderer.removeListener('dev-mode-quit-after-reset', handler);
-  },
-  showLoadingOverlay: (callback) => {
-    const handler = (event, message) => callback(message);
-    ipcRenderer.on('show-loading-overlay', handler);
-    return () => ipcRenderer.removeListener('show-loading-overlay', handler);
-  },
-  hideLoadingOverlay: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('hide-loading-overlay', handler);
-    return () => ipcRenderer.removeListener('hide-loading-overlay', handler);
-  },
 
   // Menu actions
   onMenuAction: (callback) => {

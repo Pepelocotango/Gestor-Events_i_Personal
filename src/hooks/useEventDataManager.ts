@@ -57,14 +57,17 @@ export const useEventDataManager = (
 
   const refreshGoogleEvents = useCallback(async () => {
     if (window.electronAPI?.getGoogleEvents) {
-        const result = await window.electronAPI.getGoogleEvents();
-        if (result.success && result.events) {
-            setGoogleEvents(result.events);
-        } else if (result.message) {
-            console.error("Error refrescant esdeveniments de Google:", result.message);
-        }
+      const result = await window.electronAPI.getGoogleEvents();
+      if (result.success && result.events) {
+        setGoogleEvents(result.events);
+      } else if (result.message) {
+        console.error("Error refrescant esdeveniments de Google:", result.message);
+        showToast(result.message, 'error');
+      }
+    } else {
+      console.warn("La funció 'getGoogleEvents' no està disponible fora d'Electron.");
     }
-  }, []);
+  }, [showToast]);
 
   const addEventFrame = useCallback((newEventFrameData: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): EventFrame => {
     logger.info('[ACTION] addEventFrame', { name: newEventFrameData.name });
@@ -82,12 +85,14 @@ export const useEventDataManager = (
   
   const updateEventFrame = useCallback((updatedEventFrame: EventFrame) => {
     logger.info('[ACTION] updateEventFrame', { id: updatedEventFrame.id, name: updatedEventFrame.name });
-    if (!updatedEventFrame.techSheet) {
-      logger.info(`Generant fitxa tècnica per a l'esdeveniment antic: ${updatedEventFrame.name}`);
-      updatedEventFrame.techSheet = createDefaultTechSheet(updatedEventFrame);
+
+    let finalUpdatedEventFrame = { ...updatedEventFrame };
+    if (!finalUpdatedEventFrame.techSheet) {
+      logger.info(`Generant fitxa tècnica per a l'esdeveniment antic: ${finalUpdatedEventFrame.name}`);
+      finalUpdatedEventFrame.techSheet = createDefaultTechSheet(finalUpdatedEventFrame);
     }
 
-    setEventFrames(prev => prev.map(ef => ef.id === updatedEventFrame.id ? updatedEventFrame : ef)
+    setEventFrames(prev => prev.map(ef => ef.id === finalUpdatedEventFrame.id ? finalUpdatedEventFrame : ef)
       .sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name))
     );
     markUnsaved();
@@ -390,11 +395,51 @@ markUnsaved();
     return eventFrame?.assignments.find(a => a.id === assignmentId);
   }, [eventFrames]);
 
+  const validateMigratedData = useCallback((data: AppData): boolean => {
+    const errors: string[] = [];
+    const isValidDate = (dateString: string): boolean => {
+      const date = new Date(dateString);
+      return date instanceof Date && !isNaN(date.getTime());
+    };
+
+    if (data.peopleGroups.some(p => typeof p.id !== 'string')) errors.push('Alguns IDs de grups de persones no són strings.');
+    if (data.eventFrames.some(e => typeof e.id !== 'string')) errors.push('Alguns IDs de marcs d\'esdeveniments no són strings.');
+    if (data.assignments.some(a => typeof a.id !== 'string')) errors.push('Alguns IDs d\'assignacions no són strings.');
+
+    data.assignments.forEach(a => {
+      if (!data.eventFrames.some(e => e.id === a.eventFrameId)) errors.push(`L'assignació ${a.id} fa referència a un esdeveniment que no existeix: ${a.eventFrameId}`);
+      if (!data.peopleGroups.some(p => p.id === a.personGroupId)) errors.push(`L'assignació ${a.id} fa referència a una persona que no existeix: ${a.personGroupId}`);
+    });
+
+    data.eventFrames.forEach(e => {
+      if (!isValidDate(e.startDate)) errors.push(`L'esdeveniment ${e.id} té una data d'inici invàlida: ${e.startDate}`);
+      if (!isValidDate(e.endDate)) errors.push(`L'esdeveniment ${e.id} té una data de finalització invàlida: ${e.endDate}`);
+    });
+
+    data.assignments.forEach(a => {
+      if (!isValidDate(a.startDate)) errors.push(`L'assignació ${a.id} té una data d'inici invàlida: ${a.startDate}`);
+      if (!isValidDate(a.endDate)) errors.push(`L'assignació ${a.id} té una data de finalització invàlida: ${a.endDate}`);
+    });
+
+    if (errors.length > 0) {
+      logger.error("Errors de validació de dades:", errors);
+      showToast(`Errors de validació de dades: ${errors.join(', ')}`, 'error');
+      return false;
+    }
+
+    return true;
+  }, [showToast]);
+
   const loadData = useCallback((data: AppData | null) => {
     if (!data) {
       setEventFrames([]);
       setPeopleGroups([]);
       setMaterialItems([]);
+      return;
+    }
+
+    if (!validateMigratedData(data)) {
+      showToast("Les dades carregades no són vàlides i no es poden carregar.", "error");
       return;
     }
 

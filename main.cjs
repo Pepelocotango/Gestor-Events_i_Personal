@@ -301,7 +301,7 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
     },
   });
 
@@ -489,9 +489,44 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
     return { success: false, message: "No s'ha pogut determinar el calendari de l'aplicació." };
   }
 
-  const appCalendarId = config.appCalendarId;
+  let appCalendarId = config.appCalendarId;
   const suffix = config.calendarSuffix ? ` - ${config.calendarSuffix}` : '';
   const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${suffix}`;
+
+  // NOU BLOC DE VERIFICACIÓ I AUTOREPARACIÓ
+  try {
+    console.log(`Verificant existència del calendari a Google: ${appCalendarId}`);
+    const res = await calendar.calendarList.list();
+    const calendars = res.data.items;
+    const calendarExists = calendars.some(cal => cal.id === appCalendarId);
+
+    if (calendarExists) {
+      console.log('El calendari existeix.');
+    } else {
+      console.warn(`El calendari amb ID ${appCalendarId} no s'ha trobat. Probablement eliminat per l'usuari.`);
+      console.log("Iniciant lògica d'autoreparació: creant un calendari nou...");
+
+      try {
+        const newAppCalendarId = await findOrCreateAppCalendar(calendar);
+        config.appCalendarId = newAppCalendarId;
+        if (!config.selectedCalendarIds.includes(newAppCalendarId)) {
+          config.selectedCalendarIds.push(newAppCalendarId);
+        }
+        fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+
+        appCalendarId = newAppCalendarId; // Actualitzem l'ID per a la resta de la funció
+        console.log(`Autoreparació completada. Nou ID de calendari: ${appCalendarId}`);
+
+      } catch (creationError) {
+        console.error("Error crític durant l'autoreparació (creació de calendari):", creationError);
+        return { success: false, message: `El calendari original no existia i no se n'ha pogut crear un de nou: ${creationError.message}` };
+      }
+    }
+  } catch (err) {
+    // Un altre tipus d'error, probablement de xarxa
+    console.error('Error de xarxa o desconegut verificant el calendari:', err);
+    return { success: false, message: `No s'ha pogut connectar a Google. Comprova la teva connexió a Internet. (${err.message})` };
+  }
 
   // DIÀLEG DE CONFIRMACIÓ
   const choice = await dialog.showMessageBox(mainWindow, {
@@ -606,6 +641,7 @@ ipcMain.handle('google-auth-start', async () => {
 
   return new Promise((resolve) => {
     const server = http.createServer();
+    let state; // Declarar 'state' en un àmbit superior
 
     const closeServerAndResolve = (result) => {
       if (server.listening) {
@@ -619,9 +655,11 @@ ipcMain.handle('google-auth-start', async () => {
       const redirectUri = `http://localhost:${port}`;
       googleAuthClient.redirectUri = redirectUri;
 
+      state = generateId(); // Assignar valor a 'state'
       const authUrl = googleAuthClient.generateAuthUrl({
         access_type: 'offline', prompt: 'consent',
         scope: ['https://www.googleapis.com/auth/calendar'],
+        state: state,
       });
       
       console.log(`Servidor d'autenticació escoltant al port ${port}. Obrint URL d'autenticació.`);
@@ -631,6 +669,15 @@ ipcMain.handle('google-auth-start', async () => {
     server.on('request', async (req, res) => {
       const qs = new url.URL(req.url, 'http://localhost').searchParams;
       const code = qs.get('code');
+      const receivedState = qs.get('state');
+
+      if (receivedState !== state) {
+        console.error("Error d'estat CSRF: l'estat rebut no coincideix.");
+        res.writeHead(400);
+        res.end('<h1>Error: Petició invàlida (CSRF detectat)</h1>');
+        closeServerAndResolve({ success: false, message: 'Error de validació de l\'estat (CSRF).' });
+        return;
+      }
       
       if (!code) {
         console.warn("Callback d'autenticació rebut sense codi.");
@@ -829,13 +876,7 @@ ipcMain.handle('clear-google-app-calendar', async () => {
   
 
 
-process.on('uncaughtException', (error) => {
-  console.error('Excepció no capturada:', error);
-  dialog.showErrorBox('Error Inesperat', `S'ha produït un error no controlat: ${error.message}`);
-  app.exit(1);
-});
 let hasShownUncaughtExceptionDialog = false;
-
 process.on('uncaughtException', (error) => {
   const errorMsg = `Excepció no capturada: ${JSON.stringify(error, null, 2)}\n`;
   

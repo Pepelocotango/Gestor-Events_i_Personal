@@ -68,6 +68,7 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
         -   Utilitzar el mòdul `contextBridge` per exposar de manera selectiva i segura funcions del backend al món del frontend.
         -   Garantir que el frontend no tingui accés directe a les API de Node.js, una pràctica de seguretat fonamental en Electron.
         -   Definir l'API `window.electronAPI`, que és l'únic punt de contacte entre les dues capes.
+        -   Habilitació de la Sandbox: L'aplicació s'executa amb la sandbox d'Electron activada (sandbox: true). Això aïlla completament el procés de renderitzat (frontend), prevenint que pugui executar codi natiu directament. Tota operació que requereixi accés al sistema ha de passar obligatòriament a través dels canals IPC definits aquí.
 
 3.  **Capa 3: Frontend (Interfície d'Usuari en React - `src/`)**
     -   **Descripció:** És una Single Page Application (SPA) que s'executa dins d'una finestra de Chromium. És responsable de tot el que l'usuari veu i amb què interactua.
@@ -202,6 +203,8 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
 -   **Interacció amb UI Nativa:**
     -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu, rebent les dades i la configuració del diàleg des de React.
 
+    ---
+
 ### 3.4. Integració amb Serveis Externs: Google Calendar API
 
 Una de les funcionalitats clau del backend és gestionar la comunicació amb l'API de Google Calendar.
@@ -218,8 +221,12 @@ Una de les funcionalitats clau del backend és gestionar la comunicació amb l'A
     4.  Després que l'usuari accepti els permisos, Google el redirigeix a `http://localhost:<port>` amb un codi d'autorització.
     5.  El servidor temporal captura aquest codi, l'intercanvia per tokens d'accés i de refresc (`googleAuthClient.getToken(code)`), i els desa a `google-tokens.json`.
     6.  Finalment, el servidor es tanca. Aquest és el mètode estàndard i segur per a aplicacions d'escriptori.
+    7. Protecció CSRF amb state: El flux implementa una mesura de seguretat robusta per prevenir atacs de falsificació de sol·licitud entre llocs (CSRF).
+    - Generació: Abans d'obrir l'URL d'autenticació, es genera un valor aleatori únic (state). Aquesta variable es declara en un àmbit accessible durant tota la vida del procés d'autenticació.
+    - Enviament: Aquest valor state s'afegeix com a paràmetre a l'URL de Google.
+    - Validació: Quan Google redirigeix a l'usuari de tornada al servidor local, el codi del callback extreu el paràmetre state de la URL de retorn i el compara amb el valor original que es va generar. Si no coincideixen, el procés d'autenticació es cancel·la immediatament.
 
----
+----
 
 ## 4. Frontend: Gestió d'Estat i Lògica de la UI (React)
 
@@ -463,7 +470,19 @@ La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha esta
 -   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
 -   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
 -   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (p. ex., canviant de 'SI' a 'NO'), les dades associades s'esborren de l'estat, assegurant que el PDF reflecteixi sempre la informació visible.
+---------
 
+
+ #### Utilitat Centralitzada per a CSV (`csvUtils.ts`)
+
+ Per garantir la consistència, evitar la duplicació de codi (principi DRY) i millorar la compatibilitat dels fitxers generats, tota la lògica d'exportació a CSV ha estat refactoritzada:
+
+ 1.  **Mòdul Dedicat:** S'ha creat el fitxer **`src/utils/csvUtils.ts`** que centralitza la lògica de formatació de CSV.
+ 2.  **Funció d'Escapament (`escapeCsvCell`):** Aquest mòdul exporta una funció reutilitzable, `escapeCsvCell`, que s'encarrega de gestionar correctament els caràcters especials (comes, cometes dobles, salts de línia) dins d'una cel·la, embolcallant el contingut amb cometes dobles i escapant les cometes internes segons l'estàndard CSV.
+ 3.  **Compatibilitat amb Excel (BOM):** Totes les funcions que generen un CSV ara afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut. Aquest caràcter invisible assegura que programes com Microsoft Excel interpretin correctament la codificació (UTF-8) i mostrin sense problemes els accents i caràcters especials.
+ 4.  **Implementació:** Components com `PeopleDisplay.tsx` i `SummaryReports.tsx` ara importen i utilitzen `escapeCsvCell` per formatar cada cel·la abans de construir el fitxer CSV final.
+
+--------------
 ### 5.6. Migració de Dades Antigues
 
 Per garantir la retrocompatibilitat amb versions anteriors de l'estructura de dades, s'ha implementat un sistema de migració transparent.
@@ -622,6 +641,13 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
 -   **Procés Principal (Backend):** Els logs es mostren a la terminal on has executat `npm run electron-dev` i es guarden als fitxers de log a la carpeta de dades de l'usuari.
 -   **Procés de Renderitzat (Frontend):** Pots obrir les "Developer Tools" de Chromium des del menú `Veure -> Forçar Recàrrega` i `Veure -> Obrir Eines de Desenvolupament` (o amb el corresponent drecera de teclat). Això et dona accés a la consola, inspector d'elements, etc., com en un navegador web normal.
 
+## Pràctiques de Qualitat i Seguretat del Codi
+El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, robust i mantenible:
+
+-   **Immutabilitat de l'Estat: Tota la gestió de l'estat de React segueix el principi d'immutabilitat. En lloc de modificar directament objectes o arrays de l'estat, sempre es creen noves instàncies ([...array], {...objecte}), la qual cosa evita efectes secundaris i bugs de renderitzat.
+-   **Separació de Responsabilitats: Les funcions d'utilitat (com la generació de CSV o la migració de dades) s'abstrauen en mòduls dedicats a src/utils/ per promoure la reutilització de codi i seguir el principi DRY (Don't Repeat Yourself).
+-   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
+-   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 ---
 
 ### 9. Solució de Bug de Renderitzat del Calendari
