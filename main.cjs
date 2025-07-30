@@ -496,11 +496,14 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
   // NOU BLOC DE VERIFICACIÓ I AUTOREPARACIÓ
   try {
     console.log(`Verificant existència del calendari a Google: ${appCalendarId}`);
-    await calendar.calendars.get({ calendarId: appCalendarId });
-    console.log('El calendari existeix.');
-  } catch (err) {
-    if (err.code === 404) {
-      console.warn(`El calendari amb ID ${appCalendarId} no s'ha trobat (404). Probablement eliminat per l'usuari.`);
+    const res = await calendar.calendarList.list();
+    const calendars = res.data.items;
+    const calendarExists = calendars.some(cal => cal.id === appCalendarId);
+
+    if (calendarExists) {
+      console.log('El calendari existeix.');
+    } else {
+      console.warn(`El calendari amb ID ${appCalendarId} no s'ha trobat. Probablement eliminat per l'usuari.`);
       console.log("Iniciant lògica d'autoreparació: creant un calendari nou...");
 
       try {
@@ -518,11 +521,11 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
         console.error("Error crític durant l'autoreparació (creació de calendari):", creationError);
         return { success: false, message: `El calendari original no existia i no se n'ha pogut crear un de nou: ${creationError.message}` };
       }
-    } else {
-      // Un altre tipus d'error, probablement de xarxa
-      console.error('Error de xarxa o desconegut verificant el calendari:', err);
-      return { success: false, message: `No s'ha pogut connectar a Google. Comprova la teva connexió a Internet. (${err.message})` };
     }
+  } catch (err) {
+    // Un altre tipus d'error, probablement de xarxa
+    console.error('Error de xarxa o desconegut verificant el calendari:', err);
+    return { success: false, message: `No s'ha pogut connectar a Google. Comprova la teva connexió a Internet. (${err.message})` };
   }
 
   // DIÀLEG DE CONFIRMACIÓ

@@ -1,14 +1,5 @@
 
 
-revisar branques ultima feature/google-sync-robustness
-
-verificar sync amb google eliminar calendaris app i tornar a crear
-
-afegir aquesta modificació al developing
-
-si tot funciona fer pull request a la branca dev
-
-
 ### 📝 **Pla d'Acció Recomanat (Tasques Pendents)**
 
 Aquest és el pla actualitzat amb les tasques pendents, organitzades per prioritat.
