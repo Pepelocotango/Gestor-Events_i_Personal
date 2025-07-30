@@ -489,9 +489,41 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
     return { success: false, message: "No s'ha pogut determinar el calendari de l'aplicació." };
   }
 
-  const appCalendarId = config.appCalendarId;
+  let appCalendarId = config.appCalendarId;
   const suffix = config.calendarSuffix ? ` - ${config.calendarSuffix}` : '';
   const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${suffix}`;
+
+  // NOU BLOC DE VERIFICACIÓ I AUTOREPARACIÓ
+  try {
+    console.log(`Verificant existència del calendari a Google: ${appCalendarId}`);
+    await calendar.calendars.get({ calendarId: appCalendarId });
+    console.log('El calendari existeix.');
+  } catch (err) {
+    if (err.code === 404) {
+      console.warn(`El calendari amb ID ${appCalendarId} no s'ha trobat (404). Probablement eliminat per l'usuari.`);
+      console.log("Iniciant lògica d'autoreparació: creant un calendari nou...");
+
+      try {
+        const newAppCalendarId = await findOrCreateAppCalendar(calendar);
+        config.appCalendarId = newAppCalendarId;
+        if (!config.selectedCalendarIds.includes(newAppCalendarId)) {
+          config.selectedCalendarIds.push(newAppCalendarId);
+        }
+        fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+
+        appCalendarId = newAppCalendarId; // Actualitzem l'ID per a la resta de la funció
+        console.log(`Autoreparació completada. Nou ID de calendari: ${appCalendarId}`);
+
+      } catch (creationError) {
+        console.error("Error crític durant l'autoreparació (creació de calendari):", creationError);
+        return { success: false, message: `El calendari original no existia i no se n'ha pogut crear un de nou: ${creationError.message}` };
+      }
+    } else {
+      // Un altre tipus d'error, probablement de xarxa
+      console.error('Error de xarxa o desconegut verificant el calendari:', err);
+      return { success: false, message: `No s'ha pogut connectar a Google. Comprova la teva connexió a Internet. (${err.message})` };
+    }
+  }
 
   // DIÀLEG DE CONFIRMACIÓ
   const choice = await dialog.showMessageBox(mainWindow, {
