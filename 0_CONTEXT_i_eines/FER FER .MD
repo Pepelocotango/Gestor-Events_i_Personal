@@ -1,4 +1,8 @@
 
+
+# PLÀ MIGRACIÓ GOOGLE CALENDAR
+tenim un arxiu md que es defineix el plà--> pla migrar arquitectura google calendar.md
+
 MODIFICAR PERMISOS GOOGLE CALENDAR . només lectura i crear calendari propi de la app i modificar només aquest.
 
 o opcionalment, enviar el calendari de la app com invitació

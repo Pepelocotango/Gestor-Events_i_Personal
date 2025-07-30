@@ -339,11 +339,21 @@ La integració amb Google Calendar és una funcionalitat opcional però potent q
 4.  **[Frontend -> Backend] Crida IPC:** S'executa `window.electronAPI.syncWithGoogle(localData)`, enviant totes les dades al procés principal.
 5.  **[Backend] Gestor `sync-with-google`:** La lògica a `main.cjs` pren el control:
     a. **Verificació d'Autenticació:** Comprova si existeixen tokens d'accés vàlids.
-    b. **Cerca/Creació del Calendari:** Crida a `findOrCreateAppCalendar`. Aquesta funció:
-        i. Construeix el nom final del calendari (p. ex., "Gestor d'Esdeveniments (App) - Teatre Principal") basant-se en el nom base i el sufix guardat a `google-config.json`.
-        ii. Fa una crida a l'API de Google per llistar tots els calendaris de l'usuari.
-        iii. Si troba un calendari amb el nom exacte, en retorna l'ID.
-        iv. Si no el troba, en crea un de nou amb aquest nom i en desa el nou ID a `google-config.json`.
+
+    b. **Verificació i Autoreparació del Calendari: Abans de sincronitzar, el sistema executa una lògica robusta per assegurar que el calendari de l'aplicació existeix i és accessible.
+i. Carrega l'ID: Llegeix el appCalendarId desat a google-config.json.
+ii. Verificació Activa: Realitza una crida a l'API (calendar.calendars.get) per comprovar si el calendari amb aquest ID encara existeix a Google.
+iii. Gestió d'Errors Específica:
+- Si la crida té èxit: El calendari és vàlid i el procés de sincronització continua.
+- Si la crida falla amb un error 404 Not Found: El sistema interpreta que l'usuari ha eliminat el calendari manualment. Activa un procés d'autoreparació:
+- Neteja l'ID invàlid del fitxer google-config.json.
+- Torna a cridar a la funció findOrCreateAppCalendar, que ara crearà un calendari completament nou.
+- Desa el nou ID i continua la sincronització amb aquest.
+- Si la crida falla amb qualsevol altre error (p. ex., un error de xarxa): El sistema cancel·la la sincronització i informa a l'usuari d'un possible problema de connexió a Internet, evitant accions incorrectes com la creació d'un calendari duplicat.
+iv. Primera Sincronització: Si no hi havia cap appCalendarId desat, el sistema executa directament findOrCreateAppCalendar per configurar el calendari per primera vegada.
+    
+
+
     c. **Confirmació de l'Usuari:** Mostra un diàleg natiu advertint que l'operació sobreescriurà les dades a Google.
     d. **Buidatge del Calendari:** Si l'usuari confirma, s'obté la llista de tots els esdeveniments existents al calendari de l'app a Google i s'eliminen un per un. Aquesta estratègia (buidar i reescriure) és més senzilla i robusta que intentar fer un "diff" entre l'estat local i el remot.
     e. **Pujada d'Esdeveniments:** Itera sobre els `eventFrames` rebuts del frontend. Per a cada un:
