@@ -44,15 +44,30 @@ jobs:
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
-    # 5. Pujada dels artefactes de Windows
-    - name: Pujada de l'instal·lador de Windows
-      uses: actions/upload-artifact@v4
-      with:
-        name: GestorEsdevenimentsPersonal_v0.5.0-dev-Installer.exe
-        path: dist/GestorEsdevenimentsPersonal_v0.5.0-dev-Installer.exe
+    # 5. Creació dels paquets ZIP per a Windows
+    - name: Crear paquet ZIP per a l'Instal·lador
+      shell: pwsh
+      run: |
+        $installerName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Installer.exe"
+        $zipName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Installer.zip"
+        Compress-Archive -Path "dist/$installerName", "LICENSE", "README.md", "DEVELOPING.md", "examples json" -DestinationPath $zipName
 
-    - name: Pujada del portable de Windows
+    - name: Crear paquet ZIP per al Portable
+      shell: pwsh
+      run: |
+        $portableName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Portable.exe"
+        $zipName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Portable.zip"
+        Compress-Archive -Path "dist/$portableName", "LICENSE", "README.md", "DEVELOPING.md", "examples json" -DestinationPath $zipName
+
+    # 6. Pujada dels artefactes ZIP de Windows
+    - name: Pujada del ZIP de l'Instal·lador
       uses: actions/upload-artifact@v4
       with:
-        name: GestorEsdevenimentsPersonal_v0.5.0-dev-Portable.exe
-        path: dist/GestorEsdevenimentsPersonal_v0.5.0-dev-Portable.exe
+        name: GestorEsdevenimentsPersonal_v0.5.0-dev-Installer.zip
+        path: GestorEsdevenimentsPersonal_v0.5.0-dev-Installer.zip
+
+    - name: Pujada del ZIP del Portable
+      uses: actions/upload-artifact@v4
+      with:
+        name: GestorEsdevenimentsPersonal_v0.5.0-dev-Portable.zip
+        path: GestorEsdevenimentsPersonal_v0.5.0-dev-Portable.zip

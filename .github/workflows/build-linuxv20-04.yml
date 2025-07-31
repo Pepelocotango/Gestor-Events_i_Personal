@@ -68,8 +68,15 @@ jobs:
       - name: 5. Compilació de l'aplicació per a Linux
         run: npm run build:electron -- --linux --x64 --publish never
 
-      - name: 6. Pujada de l'AppImage com a artefacte
+      - name: 6. Creació del paquet ZIP per a Linux
+        run: |
+          APPIMAGE_NAME="GestorEsdevenimentsPersonal_v0.5.0-dev-Linux-Ubuntu18.04+.AppImage"
+          ZIP_NAME="GestorEsdevenimentsPersonal_v0.5.0-dev-Linux.zip"
+          mv "dist/${APPIMAGE_NAME}" .
+          zip -r "${ZIP_NAME}" "${APPIMAGE_NAME}" LICENSE README.md DEVELOPING.md "examples json"
+
+      - name: 7. Pujada del ZIP de Linux com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdevenimentsPersonal_v0.5.0-dev-Linux-Ubuntu18.04+.AppImage
-          path: dist/GestorEsdevenimentsPersonal_v0.5.0-dev-Linux-Ubuntu18.04+.AppImage
+          name: GestorEsdevenimentsPersonal_v0.5.0-dev-Linux.zip
+          path: GestorEsdevenimentsPersonal_v0.5.0-dev-Linux.zip
