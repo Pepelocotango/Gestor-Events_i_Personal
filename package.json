@@ -93,13 +93,7 @@
         "nsis",
         "portable"
       ],
-      "icon": "public/icon.ico",
-      "nsis": {
-        "artifactName": "${productName}_v${version}-Installer.${ext}"
-      },
-      "portable": {
-        "artifactName": "${productName}_v${version}-Portable.${ext}"
-      }
+      "icon": "public/icon.ico"
     },
     "mac": {
       "target": [
@@ -110,6 +104,12 @@
       "icon": "public/icon.icns",
       "identity": null,
       "artifactName": "${productName}_v${version}-macOS-10.15+.${ext}"
+    },
+    "nsis": {
+      "artifactName": "${productName}_v${version}-Installer.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}_v${version}-Portable.${ext}"
     }
   }
 }
