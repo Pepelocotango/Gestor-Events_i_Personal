@@ -89,10 +89,7 @@
       "artifactName": "${productName}_v${version}-Linux-Ubuntu18.04+.${ext}"
     },
     "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
+      "target": "nsis",
       "icon": "public/icon.ico"
     },
     "mac": {
@@ -104,12 +101,6 @@
       "icon": "public/icon.icns",
       "identity": null,
       "artifactName": "${productName}_v${version}-macOS-10.15+.${ext}"
-    },
-    "nsis": {
-      "artifactName": "${productName}_v${version}-Installer.${ext}"
-    },
-    "portable": {
-      "artifactName": "${productName}_v${version}-Portable.${ext}"
     }
   }
 }
