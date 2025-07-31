@@ -48,11 +48,11 @@ jobs:
     - name: Pujada de l'instal·lador de Windows
       uses: actions/upload-artifact@v4
       with:
-        name: GestorEsdevenimentsPersonal_v0.5.0_dev-Installer.exe
-        path: dist/GestorEsdevenimentsPersonal_v0.5.0_dev-Installer.exe
+        name: GestorEsdevenimentsPersonal_v0.5.0-dev-Installer.exe
+        path: dist/GestorEsdevenimentsPersonal_v0.5.0-dev-Installer.exe
 
     - name: Pujada del portable de Windows
       uses: actions/upload-artifact@v4
       with:
-        name: GestorEsdevenimentsPersonal_v0.5.0_dev-Portable.exe
-        path: dist/GestorEsdevenimentsPersonal_v0.5.0_dev-Portable.exe
+        name: GestorEsdevenimentsPersonal_v0.5.0-dev-Portable.exe
+        path: dist/GestorEsdevenimentsPersonal_v0.5.0-dev-Portable.exe

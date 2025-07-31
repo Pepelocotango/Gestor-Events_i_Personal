@@ -38,5 +38,5 @@ jobs:
       - name: 5. Pujada del DMG de macOS
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdevenimentsPersonal_v0.5.0_dev-macOS-10.15+.dmg
-          path: dist/GestorEsdevenimentsPersonal_v0.5.0_dev-macOS-10.15+.dmg
+          name: GestorEsdevenimentsPersonal_v0.5.0-dev-macOS-10.15+.dmg
+          path: dist/GestorEsdevenimentsPersonal_v0.5.0-dev-macOS-10.15+.dmg
