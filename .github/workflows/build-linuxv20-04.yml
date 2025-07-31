@@ -69,14 +69,21 @@ jobs:
         run: npm run build:electron -- --linux --x64 --publish never
 
       - name: 6. Creació del paquet ZIP per a Linux
+        id: zip_creation
         run: |
-          APPIMAGE_NAME="GestorEsdevenimentsPersonal_v0.5.0-dev-Linux-Ubuntu18.04+.AppImage"
+          APPIMAGE_FILE=$(find dist -name "*.AppImage" -type f -printf "%f\n")
+          echo "Found AppImage: ${APPIMAGE_FILE}"
+
           ZIP_NAME="GestorEsdevenimentsPersonal_v0.5.0-dev-Linux.zip"
-          mv "dist/${APPIMAGE_NAME}" .
-          zip -r "${ZIP_NAME}" "${APPIMAGE_NAME}" LICENSE README.md DEVELOPING.md "examples json"
+          echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
+
+          cd dist
+          zip -r "../${ZIP_NAME}" "${APPIMAGE_FILE}"
+          cd ..
+          zip -r "${ZIP_NAME}" LICENSE README.md DEVELOPING.md "examples json"
 
       - name: 7. Pujada del ZIP de Linux com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdevenimentsPersonal_v0.5.0-dev-Linux.zip
-          path: GestorEsdevenimentsPersonal_v0.5.0-dev-Linux.zip
+          name: ${{ steps.zip_creation.outputs.zip_name }}
+          path: ${{ steps.zip_creation.outputs.zip_name }}

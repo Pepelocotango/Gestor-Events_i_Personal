@@ -44,9 +44,36 @@ jobs:
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
-    # 5. Pujada de l'instal·lador de Windows
-    - name: Pujada de l'executable com a artefacte
+    # 5. Creació dels paquets ZIP per a Windows
+    - name: Crear paquet ZIP per a l'Instal·lador
+      id: zip_installer
+      shell: pwsh
+      run: |
+        $installerFile = (Get-ChildItem -Path "dist" -Filter "*Setup*.exe").FullName
+        echo "Found installer: $installerFile"
+        $zipName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Windows-Installer.zip"
+        echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
+        Compress-Archive -Path $installerFile, "LICENSE", "README.md", "DEVELOPING.md", "examples json" -DestinationPath $zipName
+
+    - name: Crear paquet ZIP per al Portable
+      id: zip_portable
+      shell: pwsh
+      run: |
+        $portableFile = (Get-ChildItem -Path "dist" -Filter "*Portable*.exe").FullName
+        echo "Found portable: $portableFile"
+        $zipName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Windows-Portable.zip"
+        echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
+        Compress-Archive -Path $portableFile, "LICENSE", "README.md", "DEVELOPING.md", "examples json" -DestinationPath $zipName
+
+    # 6. Pujada dels artefactes ZIP de Windows
+    - name: Pujada del ZIP de l'Instal·lador
       uses: actions/upload-artifact@v4
       with:
-        name: GestorEsdeveniments-Windows-Installer-DEBUG
-        path: dist/*.exe
+        name: ${{ steps.zip_installer.outputs.zip_name }}
+        path: ${{ steps.zip_installer.outputs.zip_name }}
+
+    - name: Pujada del ZIP del Portable
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.zip_portable.outputs.zip_name }}
+        path: ${{ steps.zip_portable.outputs.zip_name }}

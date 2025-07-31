@@ -89,7 +89,10 @@
       "artifactName": "${productName}_v${version}-Linux-Ubuntu18.04+.${ext}"
     },
     "win": {
-      "target": "nsis",
+      "target": [
+        "nsis",
+        "portable"
+      ],
       "icon": "public/icon.ico"
     },
     "mac": {
