@@ -63,11 +63,7 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
-      "google-credentials.json",
-      "examples json/",
-      "LICENSE",
-      "README.md",
-      "DEVELOPING.md"
+      "google-credentials.json"
     ],
     "extraResources": [
       {
@@ -88,10 +84,9 @@
       }
     ],
     "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Office"
+      "target": "AppImage",
+      "category": "Office",
+      "artifactName": "${productName}_v${version}-Linux-Ubuntu18.04+.${ext}"
     },
     "win": {
       "target": [
@@ -107,7 +102,8 @@
       ],
       "category": "public.app-category.productivity",
       "icon": "public/icon.icns",
-      "identity": null
+      "identity": null,
+      "artifactName": "${productName}_v${version}-macOS-10.15+.${ext}"
     }
   }
 }
