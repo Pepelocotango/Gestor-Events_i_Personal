@@ -44,11 +44,15 @@ jobs:
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
-    # 5. Puja l'arxiu .exe que es genera a la carpeta 'dist' com a resultat
-    - name: Pujada de l'executable com a artefacte
+    # 5. Pujada dels artefactes de Windows
+    - name: Pujada de l'instal·lador de Windows
       uses: actions/upload-artifact@v4
       with:
-        name: GestorEsdeveniments-Windows-Installer-v0.5.0-dev
-        # El teu package.json confirma que la sortida és a la carpeta 'dist'.
-        # L'asterisc (*) ajuda a trobar l'arxiu encara que el nom complet variï.
-        path: dist/*.exe
+        name: GestorEsdevenimentsPersonal_v0.5.0_dev-Installer.exe
+        path: dist/GestorEsdevenimentsPersonal_v0.5.0_dev-Installer.exe
+
+    - name: Pujada del portable de Windows
+      uses: actions/upload-artifact@v4
+      with:
+        name: GestorEsdevenimentsPersonal_v0.5.0_dev-Portable.exe
+        path: dist/GestorEsdevenimentsPersonal_v0.5.0_dev-Portable.exe

@@ -35,14 +35,8 @@ jobs:
             exit 1
           fi
 
-      - name: 5. Pujada dels artefactes de macOS
+      - name: 5. Pujada del DMG de macOS
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdeveniments-macOS-x64-v0.5.0-dev
-          path: dist/*.dmg
-
-      - name: 6. (Opcional) Pujada de la versió ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: GestorEsdeveniments-macOS-x64-v0.5.0-dev-ZIP
-          path: dist/*-mac.zip
+          name: GestorEsdevenimentsPersonal_v0.5.0_dev-macOS-10.15+.dmg
+          path: dist/GestorEsdevenimentsPersonal_v0.5.0_dev-macOS-10.15+.dmg
