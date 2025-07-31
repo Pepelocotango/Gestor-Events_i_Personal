@@ -44,6 +44,9 @@ jobs:
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
+    - name: Llistar fitxers de sortida (Debug)
+      run: ls -R dist
+
     # 5. Creació dels paquets ZIP per a Windows
     - name: Crear paquet ZIP per a l'Instal·lador
       id: zip_installer
