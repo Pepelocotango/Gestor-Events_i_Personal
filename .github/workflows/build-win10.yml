@@ -44,39 +44,23 @@ jobs:
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
-    - name: Llistar fitxers de sortida (Debug)
-      run: ls -R dist
-
-    # 5. Creació dels paquets ZIP per a Windows
-    - name: Crear paquet ZIP per a l'Instal·lador
-      id: zip_installer
+    # 5. Creació del paquet ZIP per a Windows
+    - name: Crear paquet ZIP de Windows
+      id: zip_windows
       shell: pwsh
       run: |
-        $installerFile = (Get-ChildItem -Path "dist" -Filter "*Setup*.exe").FullName
-        echo "Found installer: $installerFile"
-        $zipName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Windows-Installer.zip"
-        echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
-        Compress-Archive -Path $installerFile, "LICENSE", "README.md", "DEVELOPING.md", "examples json" -DestinationPath $zipName
+        $filesToZip = Get-ChildItem -Path "dist" -Filter "*.exe" | ForEach-Object { $_.FullName }
+        $filesToZip += @("LICENSE", "README.md", "DEVELOPING.md")
+        $filesToZip += Get-ChildItem -Path "examples json" -Recurse | ForEach-Object { $_.FullName }
 
-    - name: Crear paquet ZIP per al Portable
-      id: zip_portable
-      shell: pwsh
-      run: |
-        $portableFile = (Get-ChildItem -Path "dist" -Filter "*Portable*.exe").FullName
-        echo "Found portable: $portableFile"
-        $zipName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Windows-Portable.zip"
+        $zipName = "GestorEsdevenimentsPersonal_v0.5.0-dev-Windows.zip"
         echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
-        Compress-Archive -Path $portableFile, "LICENSE", "README.md", "DEVELOPING.md", "examples json" -DestinationPath $zipName
 
-    # 6. Pujada dels artefactes ZIP de Windows
-    - name: Pujada del ZIP de l'Instal·lador
+        Compress-Archive -Path $filesToZip -DestinationPath $zipName
+
+    # 6. Pujada de l'artefacte ZIP de Windows
+    - name: Pujada del ZIP de Windows
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ steps.zip_installer.outputs.zip_name }}
-        path: ${{ steps.zip_installer.outputs.zip_name }}
-
-    - name: Pujada del ZIP del Portable
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ steps.zip_portable.outputs.zip_name }}
-        path: ${{ steps.zip_portable.outputs.zip_name }}
+        name: ${{ steps.zip_windows.outputs.zip_name }}
+        path: ${{ steps.zip_windows.outputs.zip_name }}
