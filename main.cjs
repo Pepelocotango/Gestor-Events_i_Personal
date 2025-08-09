@@ -82,6 +82,7 @@ let mainWindow;
 let isQuitting = false;
 let googleAuthClient;
 let googleCredentials;
+let googleServiceAccountClient;
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -127,6 +128,33 @@ function loadGoogleCredentials() {
     return false;
   }
   return true;
+}
+
+async function loadServiceAccountCredentials() {
+  try {
+    const serviceAccountPath = path.join(__dirname, 'service-account.json');
+    if (!fs.existsSync(serviceAccountPath)) {
+      console.warn('ADVERTÈNCIA: El fitxer service-account.json no es troba. Les funcionalitats avançades de Google Calendar estaran desactivades.');
+      return false;
+    }
+
+    const keys = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+
+    googleServiceAccountClient = new google.auth.JWT(
+      keys.client_email,
+      null,
+      keys.private_key,
+      ['https://www.googleapis.com/auth/calendar']
+    );
+
+    console.log("Client del Compte de Servei de Google inicialitzat correctament.");
+    return true;
+
+  } catch (err) {
+    console.error('Error carregant les credencials del Compte de Servei de Google:', err);
+    googleServiceAccountClient = null;
+    return false;
+  }
 }
 
 function checkWritePermissions(dir) {
@@ -285,9 +313,10 @@ async function findOrCreateAppCalendar(calendar) {
   }
 }
 
-function createWindow() {
+async function createWindow() {
   ensureDirectoriesExist();
   loadGoogleCredentials(); 
+  await loadServiceAccountCredentials();
   const sessionData = loadSessionData();
 
   mainWindow = new BrowserWindow({
@@ -455,23 +484,65 @@ ipcMain.handle('save-app-data', (event, data) => {
 
 ipcMain.handle('sync-with-google', async (event, localData) => {
   console.log("[IPC_IN] Iniciant 'sync-with-google'.");
-  if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
-    console.error("SYNC ERROR: No autenticat amb Google.");
-    return { success: false, message: 'No autenticat amb Google.' };
+  if (!googleServiceAccountClient) {
+    console.error("SYNC ERROR: El client del compte de servei de Google no està inicialitzat.");
+    return { success: false, message: 'El client del compte de servei de Google no està inicialitzat. Assegura\'t que el fitxer "service-account.json" existeix i és correcte.' };
+  }
+  let config = loadGoogleConfigFromFile();
+  if (!config?.userEmail) {
+    console.error("SYNC ERROR: No s'ha trobat l'email de l'usuari a la configuració.");
+    return { success: false, message: 'No s\'ha trobat l\'email de l\'usuari. Si us plau, connecta\'t a Google primer.' };
   }
   
-  const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
+  const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-  let config = loadGoogleConfigFromFile(); // Declarem config com a 'let'
 
-  // NOU BLOC: Comprova si el calendari de l'app ja està configurat. Si no, el crea ara.
+  // Funció interna refactoritzada per utilitzar el Service Account i compartir
+  async function findOrCreateAppCalendarForServiceAccount() {
+    try {
+      const suffix = config.calendarSuffix ? ` - ${config.calendarSuffix}` : '';
+      const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${suffix}`;
+      console.log(`SA: Buscant calendari amb el nom: "${finalCalendarName}"`);
+
+      // NOTA: Amb un compte de servei, no podem llistar calendaris d'un usuari.
+      // La lògica ha de canviar: si tenim un ID, el provem. Si no, en creem un.
+      // La comprovació d'existència es farà més avall.
+
+      console.log(`SA: Creant un nou calendari...`);
+      const newCalendar = await calendar.calendars.insert({
+        requestBody: {
+          summary: finalCalendarName,
+          description: "Calendari gestionat per l'aplicació Gestor d'Esdeveniments.",
+          timeZone: 'Europe/Madrid'
+        }
+      });
+      const newCalendarId = newCalendar.data.id;
+      console.log(`SA: Calendari creat amb ID: ${newCalendarId}`);
+
+      console.log(`SA: Compartint el calendari amb ${config.userEmail}...`);
+      await calendar.acl.insert({
+        calendarId: newCalendarId,
+        sendNotifications: false,
+        requestBody: {
+          role: 'reader',
+          scope: { type: 'user', value: config.userEmail },
+        },
+      });
+      console.log('SA: Calendari compartit amb èxit.');
+      return newCalendarId;
+
+    } catch (error) {
+      console.error("SA: Error buscant o creant el calendari de l'aplicació:", error);
+      throw error;
+    }
+  }
+
   try {
     if (!config || !config.appCalendarId) {
-      console.log("El calendari de l'app no està configurat. Buscant o creant-lo ara...");
-      const appCalendarId = await findOrCreateAppCalendar(calendar);
-      config = config || { selectedCalendarIds: [] };
+      console.log("El calendari de l'app no està configurat. Creant-lo ara amb el compte de servei...");
+      const appCalendarId = await findOrCreateAppCalendarForServiceAccount();
+      config = config || { selectedCalendarIds: [], userEmail: config.userEmail };
       config.appCalendarId = appCalendarId;
-      // Assegurem que el calendari de l'app estigui a la llista de seleccionats per visualitzar
       if (!config.selectedCalendarIds.includes(appCalendarId)) {
         config.selectedCalendarIds.push(appCalendarId);
       }
@@ -483,8 +554,7 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
     return { success: false, message: `No s'ha pogut crear el calendari a Google: ${error.message}` };
   }
   
-  // A partir d'aquí, el codi continua igual, però ara 'config' té la certesa de tenir 'appCalendarId'
-   if (!config?.appCalendarId) { // Aquesta comprovació ara és per seguretat extra
+  if (!config?.appCalendarId) {
     console.error("SYNC ERROR: No s'ha trobat appCalendarId a la configuració després d'intentar crear-lo.");
     return { success: false, message: "No s'ha pogut determinar el calendari de l'aplicació." };
   }
@@ -493,39 +563,30 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
   const suffix = config.calendarSuffix ? ` - ${config.calendarSuffix}` : '';
   const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${suffix}`;
 
-  // NOU BLOC DE VERIFICACIÓ I AUTOREPARACIÓ
+  // BLOC DE VERIFICACIÓ I AUTOREPARACIÓ (amb Service Account)
   try {
-    console.log(`Verificant existència del calendari a Google: ${appCalendarId}`);
-    const res = await calendar.calendarList.list();
-    const calendars = res.data.items;
-    const calendarExists = calendars.some(cal => cal.id === appCalendarId);
-
-    if (calendarExists) {
-      console.log('El calendari existeix.');
-    } else {
-      console.warn(`El calendari amb ID ${appCalendarId} no s'ha trobat. Probablement eliminat per l'usuari.`);
+    console.log(`SA: Verificant existència del calendari a Google: ${appCalendarId}`);
+    await calendar.calendars.get({ calendarId: appCalendarId });
+    console.log('SA: El calendari existeix.');
+  } catch (err) {
+    if (err.code === 404) {
+      console.warn(`SA: El calendari amb ID ${appCalendarId} no s'ha trobat. Probablement eliminat.`);
       console.log("Iniciant lògica d'autoreparació: creant un calendari nou...");
-
       try {
-        const newAppCalendarId = await findOrCreateAppCalendar(calendar);
+        const newAppCalendarId = await findOrCreateAppCalendarForServiceAccount();
         config.appCalendarId = newAppCalendarId;
-        if (!config.selectedCalendarIds.includes(newAppCalendarId)) {
-          config.selectedCalendarIds.push(newAppCalendarId);
-        }
+        // No afegim a selectedCalendarIds aquí perquè l'usuari ho ha de fer explícitament
         fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-
-        appCalendarId = newAppCalendarId; // Actualitzem l'ID per a la resta de la funció
+        appCalendarId = newAppCalendarId;
         console.log(`Autoreparació completada. Nou ID de calendari: ${appCalendarId}`);
-
       } catch (creationError) {
         console.error("Error crític durant l'autoreparació (creació de calendari):", creationError);
         return { success: false, message: `El calendari original no existia i no se n'ha pogut crear un de nou: ${creationError.message}` };
       }
+    } else {
+      console.error('Error de xarxa o desconegut verificant el calendari:', err);
+      return { success: false, message: `No s'ha pogut connectar a Google. Comprova la teva connexió. (${err.message})` };
     }
-  } catch (err) {
-    // Un altre tipus d'error, probablement de xarxa
-    console.error('Error de xarxa o desconegut verificant el calendari:', err);
-    return { success: false, message: `No s'ha pogut connectar a Google. Comprova la teva connexió a Internet. (${err.message})` };
   }
 
   // DIÀLEG DE CONFIRMACIÓ
@@ -658,7 +719,7 @@ ipcMain.handle('google-auth-start', async () => {
       state = generateId(); // Assignar valor a 'state'
       const authUrl = googleAuthClient.generateAuthUrl({
         access_type: 'offline', prompt: 'consent',
-        scope: ['https://www.googleapis.com/auth/calendar'],
+        scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/calendar.readonly'],
         state: state,
       });
       
@@ -691,15 +752,33 @@ ipcMain.handle('google-auth-start', async () => {
         const { tokens } = await googleAuthClient.getToken(code);
         googleAuthClient.setCredentials(tokens);
         fs.writeFileSync(GOOGLE_TOKENS_PATH, JSON.stringify(tokens));
-        console.log("Tokens de Google obtinguts i desats correctament."); // Línia clau: Ara només deses els tokens
-        
+        console.log("Tokens de Google obtinguts i desats correctament.");
+
+        // NOU PAS: Obtenir l'email de l'usuari
+        const people = google.people({ version: 'v1', auth: googleAuthClient });
+        const profile = await people.people.get({
+            resourceName: 'people/me',
+            personFields: 'emailAddresses',
+        });
+
+        const primaryEmail = profile.data.emailAddresses?.find(e => e.metadata?.primary)?.value;
+        if (!primaryEmail) {
+            throw new Error("No s'ha pogut obtenir l'adreça de correu principal de l'usuari.");
+        }
+        console.log(`Correu de l'usuari obtingut: ${primaryEmail}`);
+
+        // NOU PAS: Desar l'email a la configuració
+        const config = loadGoogleConfigFromFile() || {};
+        config.userEmail = primaryEmail;
+        fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+        console.log("Correu de l'usuari desat a la configuració de Google.");
+
         mainWindow.webContents.send('google-auth-success');
         res.end('<h1>Autenticació completada!</h1><p>Pots tancar aquesta pestanya.</p>');
         closeServerAndResolve({ success: true });
 
-
       } catch (e) {
-        console.error("Error en el callback d'autenticació:", e.message);
+        console.error("Error en el callback d'autenticació:", e.message, e.response?.data);
         mainWindow.webContents.send('google-auth-error', e.message);
         res.writeHead(500);
         res.end('<h1>Error d\'autenticació</h1>');
@@ -979,6 +1058,64 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
     console.error('Error desant el fitxer:', error);
     return { success: false, message: `Error en desar el fitxer: ${error.message}` };
   }
+});
+
+ipcMain.handle('google-disconnect', async () => {
+  console.log("[IPC_IN] Rebut 'google-disconnect'.");
+
+  const config = loadGoogleConfigFromFile();
+  const appCalendarId = config?.appCalendarId;
+
+  // 1. Eliminar el calendari de Google amb el compte de servei
+  if (appCalendarId && googleServiceAccountClient) {
+    try {
+      const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
+      console.log(`Eliminant el calendari de l'app de Google: ${appCalendarId}`);
+      await calendar.calendars.delete({ calendarId: appCalendarId });
+      console.log('Calendari de l\'app eliminat correctament de Google.');
+    } catch (err) {
+      if (err.code === 404 || err.code === 410) {
+        console.warn(`El calendari ${appCalendarId} no s'ha trobat a Google (potser ja estava eliminat).`);
+      } else {
+        console.error("Error eliminant el calendari de l'app de Google:", err.message);
+        // No retornem aquí, intentem continuar amb la neteja local
+      }
+    }
+  } else {
+    console.log("No hi ha ID de calendari o client de servei, saltant l'eliminació del calendari de Google.");
+  }
+
+  // 2. Revocar els tokens de l'usuari
+  if (googleAuthClient && googleAuthClient.credentials.access_token) {
+    try {
+      await googleAuthClient.revokeCredentials();
+      console.log("Tokens de l'usuari revocats correctament.");
+    } catch (err) {
+      console.error("Error revocant els tokens de l'usuari:", err.message);
+    }
+  }
+
+  // 3. Eliminar els fitxers de configuració i tokens locals
+  const eliminarFitxer = (filePath, fileName) => {
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+        console.log(`Fitxer local eliminat: ${fileName}`);
+      } catch (err) {
+        console.error(`Error eliminant el fitxer ${fileName}:`, err.message);
+      }
+    }
+  };
+
+  eliminarFitxer(GOOGLE_TOKENS_PATH, 'google-tokens.json');
+  eliminarFitxer(GOOGLE_CONFIG_PATH, 'google-config.json');
+
+  // 4. Netejar les credencials en memòria
+  if (googleAuthClient) {
+    googleAuthClient.setCredentials(null);
+  }
+
+  return { success: true, message: 'Desconnexió de Google completada.' };
 });
 
 app.whenReady().then(createWindow);
