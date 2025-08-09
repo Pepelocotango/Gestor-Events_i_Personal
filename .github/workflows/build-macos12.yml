@@ -27,6 +27,11 @@ jobs:
         env:
           CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
         run: echo "$CREDENTIALS_JSON" > google-credentials.json
+      
+      - name: 4.6 Create service-account.json from secret
+        env:
+          SERVICE_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+        run: echo "$SERVICE_JSON" > service-account.json
 
       - name: Comprova que google-credentials.json existeix i no està buit
         run: |
