@@ -24,6 +24,8 @@ const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteM
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
 const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
+const SelectSyncCalendarModal = lazy(() => import('./components/modals/SelectSyncCalendarModal'));
+const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalendarModal'));
 
 interface ToastState {
   id: string;
@@ -72,7 +74,7 @@ const App: React.FC = () => {
   };
 
   // --- 3. INICIALITZACIÓ DEL HOOK DE DADES ---
-  const eventDataManagerHookResult = useEventDataManager(showToast);
+  const eventDataManagerHookResult = useEventDataManager(showToast, openModal, closeModal);
   
   const { 
     loadData: loadDataFromManager, 
@@ -527,6 +529,7 @@ const App: React.FC = () => {
                   titleOverride={modalState.data!.titleOverride}
                   confirmButtonText={modalState.data!.confirmButtonText}
                   cancelButtonText={modalState.data!.cancelButtonText}
+                  requiresInput={modalState.data!.requiresInput}
                 />;
       case 'confirmDeleteEventFrame':
         return <ConfirmDeleteModal
@@ -552,6 +555,15 @@ const App: React.FC = () => {
       
       case 'googleSettings':
         return <GoogleSettingsModal onClose={closeModal} showToast={showToast} />;
+      case 'createAppCalendar':
+        return <CreateCalendarModal onClose={closeModal} showToast={showToast} />;
+      case 'selectSyncCalendar':
+        return <SelectSyncCalendarModal
+                  onClose={closeModal}
+                  onConfirm={modalState.data!.onConfirmSync!}
+                  managedCalendars={modalState.data!.managedCalendars!}
+                  activeCalendarId={modalState.data!.activeCalendarId!}
+                />;
       case 'mergeOrReplace':
         return (
           <MergeOrReplaceModal
@@ -591,6 +603,8 @@ const App: React.FC = () => {
       case 'editEventFrame': return "Editar Marc d'Esdeveniment";
       case 'addAssignment': return `Nova Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
       case 'editAssignment': return `Editar Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
+      case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
+      case 'createAppCalendar': return "Crear Nou Calendari de l'App";
       
       case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
@@ -602,23 +616,26 @@ const App: React.FC = () => {
   };
 
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
-    if (!modalState.type) return 'xl'; // Nou valor per defecte
+    if (!modalState.type) return 'xl';
     switch (modalState.type) {
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':
       case 'editAssignment':
       case 'eventFrameDetails':
-        return '4xl'; // Abans '2xl'
+        return '4xl';
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmHardReset':
-        return 'xl'; // Abans 'lg'
+        return 'xl';
       case 'googleSettings':
-        return '2xl'; // Mida adequada per a la configuració
+        return '2xl';
+      case 'selectSyncCalendar':
+      case 'createAppCalendar':
+          return 'xl';
       case 'mergeOrReplace':
-        return 'lg'; // Mantenim una mida més petita per a aquest diàleg
-      default: return 'xl'; // Nou valor per defecte
+        return 'lg';
+      default: return 'xl';
     }
   }
 
