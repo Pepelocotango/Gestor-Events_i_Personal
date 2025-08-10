@@ -155,85 +155,96 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
         </div>
       </div>
 
-      <div>
-        <label htmlFor="calendarSuffix" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Sufix personalitzat per al calendari (opcional)
-        </label>
-        <input
-          type="text"
-          id="calendarSuffix"
-          value={calendarSuffix}
-          onChange={(e) => setCalendarSuffix(e.target.value)}
-          placeholder="Ex: Teatre Principal"
-          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md"
-        />
-        <p className="mt-1 text-xs text-gray-500">El nom final serà: Gestor d'Esdeveniments (App) - {calendarSuffix || "..."}</p>
+      {/* Secció per al calendari de l'aplicació */}
+      <div className="p-4 border dark:border-gray-600 rounded-md space-y-4">
+        <h4 className="font-semibold text-gray-800 dark:text-gray-200">Calendari de l'Aplicació</h4>
+
+        <div>
+          <label htmlFor="calendarSuffix" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Sufix personalitzat (opcional)
+          </label>
+          <input
+            type="text"
+            id="calendarSuffix"
+            value={calendarSuffix}
+            onChange={(e) => setCalendarSuffix(e.target.value)}
+            placeholder="Ex: Teatre Principal"
+            className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md"
+          />
+          <p className="mt-1 text-xs text-gray-500">El nom final serà: Gestor d'Esdeveniments (App) - {calendarSuffix || "..."}</p>
+        </div>
+
+        {appCalendarId ? (
+          <div>
+            <label htmlFor="appCalendarId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              ID del Calendari de l'App
+            </label>
+            <div className="mt-1 flex rounded-md shadow-sm">
+              <input
+                type="text"
+                id="appCalendarId"
+                readOnly
+                value={appCalendarId}
+                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(appCalendarId);
+                  showToast('ID del calendari copiat al porta-retalls!', 'success');
+                }}
+                className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md bg-gray-50 dark:bg-gray-700 text-sm"
+              >
+                Copiar
+              </button>
+              <button
+                onClick={handleDeleteCalendar}
+                className="inline-flex items-center px-3 py-2 border border-l-0 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-r-md bg-gray-50 dark:bg-gray-700 text-sm"
+                title="Eliminar aquest calendari de Google"
+              >
+                Eliminar
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Aquest calendari es gestiona des de l'aplicació. Si no apareix a Google, pots subscriure't amb aquest ID.
+            </p>
+          </div>
+        ) : (
+          <div className="text-sm text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+            <p>No hi ha cap calendari de l'aplicació creat.</p>
+            <p>Desa la configuració per crear-ne un automàticament amb el sufix que hagis especificat.</p>
+          </div>
+        )}
       </div>
 
-      {appCalendarId && (
-        <div>
-          <label htmlFor="appCalendarId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            ID del Calendari de l'App
-          </label>
-          <div className="mt-1 flex rounded-md shadow-sm">
-            <input
-              type="text"
-              id="appCalendarId"
-              readOnly
-              value={appCalendarId}
-              className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-            />
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(appCalendarId);
-                showToast('ID del calendari copiat al porta-retalls!', 'success');
-              }}
-              className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md bg-gray-50 dark:bg-gray-700 text-sm"
-            >
-              Copiar
-            </button>
-            <button
-              onClick={handleDeleteCalendar}
-              className="inline-flex items-center px-3 py-2 border border-l-0 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-r-md bg-gray-50 dark:bg-gray-700 text-sm"
-              title="Eliminar aquest calendari de Google"
-            >
-              Eliminar
-            </button>
-          </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Si el calendari no apareix automàticament, pots afegir-lo manualment a Google Calendar anant a "Afegeix altres calendaris" {'>'} "Subscriu-te al calendari" i enganxant aquest ID.
-          </p>
-        </div>
-      )}
-
+      {/* Secció per a calendaris addicionals de només lectura */}
       <div className="p-4 border dark:border-gray-600 rounded-md min-h-[200px]">
-        <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Calendaris addicionals (només lectura)</h4>
+        <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Calendaris de Google (només lectura)</h4>
         {loading && <p className="text-center text-gray-500">Carregant calendaris...</p>}
         {error && <p className="text-center text-red-500">{error}</p>}
-        {!loading && !error && calendars.length > 0 && (
+        {!loading && !error && calendars.filter(c => c.id !== appCalendarId).length > 0 && (
           <ul className="space-y-2 max-h-48 overflow-y-auto">
-            {calendars.map(cal => (
+            {calendars
+              .filter(cal => cal.id !== appCalendarId)
+              .map(cal => (
               <li key={cal.id} className="flex items-center">
                 <input
                   type="checkbox"
                   id={cal.id}
                   checked={selectedIds.has(cal.id)}
                   onChange={() => handleToggle(cal.id)}
-                  disabled={cal.id === appCalendarId}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                   style={{ accentColor: cal.backgroundColor }}
                 />
                 <label htmlFor={cal.id} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {cal.summary}
-                  {cal.id === appCalendarId && <span className="ml-2 text-xs font-bold text-indigo-600">(Calendari de l'App)</span>}
-                  {cal.primary && cal.id !== appCalendarId && ' (Principal)'}
+                  {cal.primary && ' (Principal)'}
                 </label>
               </li>
             ))}
           </ul>
         )}
-         {!loading && !error && calendars.length === 0 && (
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400">No s'han trobat calendaris o no estàs connectat a Google.</p>
+        {!loading && !error && calendars.filter(c => c.id !== appCalendarId).length === 0 && (
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">No hi ha altres calendaris de Google per seleccionar.</p>
         )}
       </div>
       
