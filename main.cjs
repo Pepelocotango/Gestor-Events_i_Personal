@@ -142,14 +142,13 @@ async function loadServiceAccountCredentials() {
 
     const keys = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
 
-    googleServiceAccountClient = new google.auth.JWT(
-      keys.client_email,
-      null,
-      keys.private_key,
-      ['https://www.googleapis.com/auth/calendar']
-    );
-
-    await googleServiceAccountClient.authorize();
+    googleServiceAccountClient = await new google.auth.GoogleAuth({
+  credentials: {
+    client_email: keys.client_email,
+    private_key: keys.private_key,
+  },
+  scopes: ['https://www.googleapis.com/auth/calendar'],
+  }).getClient();
 
     console.log("Client del Compte de Servei de Google inicialitzat i autoritzat correctament.");
     return true;
