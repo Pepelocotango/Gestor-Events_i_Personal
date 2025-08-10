@@ -14,10 +14,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCalendarList: () => ipcRenderer.invoke('google-get-calendar-list'),
   saveGoogleConfig: (config) => ipcRenderer.invoke('save-google-config', config),
   getGoogleEvents: () => ipcRenderer.invoke('get-google-events'),
-  syncWithGoogle: (localData) => ipcRenderer.invoke('sync-with-google', localData),
+  syncWithGoogle: (payload) => ipcRenderer.invoke('sync-with-google', payload),
   googleDisconnect: () => ipcRenderer.invoke('google-disconnect'),
-  clearGoogleAppCalendar: () => ipcRenderer.invoke('clear-google-app-calendar'),
-  deleteAppCalendar: () => ipcRenderer.invoke('delete-app-calendar'),
+  deleteAppCalendar: (calendarId) => ipcRenderer.invoke('delete-app-calendar', calendarId),
+  createNewAppCalendar: (suffix) => ipcRenderer.invoke('create-new-app-calendar', suffix),
   getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),
   performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
 
