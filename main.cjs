@@ -6,6 +6,8 @@ const { google } = require('googleapis');
 const url = require('url');
 const http = require('http');
 
+app.disableHardwareAcceleration();
+
 // --- LOGS DE SESSIÓ PER DESENVOLUPAMENT ---
 const LOGS_DIR = path.join(app.getPath('userData'), 'logs');
 if (!fs.existsSync(LOGS_DIR)) fs.mkdirSync(LOGS_DIR, { recursive: true });
