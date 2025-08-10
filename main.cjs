@@ -156,6 +156,10 @@ async function loadServiceAccountCredentials() {
 
   } catch (err) {
     console.error('Error carregant les credencials del Compte de Servei de Google:', err);
+    dialog.showErrorBox(
+        'Error d\'Autenticació del Compte de Servei',
+        `No s'ha pogut autenticar amb el compte de servei de Google. Comprova la validesa del teu fitxer "service-account.json" i la configuració a Google Cloud Console.\n\nError: ${err.message}`
+    );
     googleServiceAccountClient = null;
     return false;
   }
