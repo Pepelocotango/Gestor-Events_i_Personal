@@ -135,6 +135,35 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
         <p className="mt-1 text-xs text-gray-500">El nom final serà: Gestor d'Esdeveniments (App) - {calendarSuffix || "..."}</p>
       </div>
 
+      {appCalendarId && (
+        <div>
+          <label htmlFor="appCalendarId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            ID del Calendari de l'App
+          </label>
+          <div className="mt-1 flex rounded-md shadow-sm">
+            <input
+              type="text"
+              id="appCalendarId"
+              readOnly
+              value={appCalendarId}
+              className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+            />
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(appCalendarId);
+                showToast('ID del calendari copiat al porta-retalls!', 'success');
+              }}
+              className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md bg-gray-50 dark:bg-gray-700 text-sm"
+            >
+              Copiar
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Si el calendari no apareix automàticament, pots afegir-lo manualment a Google Calendar anant a "Afegeix altres calendaris" {'>'} "Subscriu-te al calendari" i enganxant aquest ID.
+          </p>
+        </div>
+      )}
+
       <div className="p-4 border dark:border-gray-600 rounded-md min-h-[200px]">
         <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Calendaris addicionals (només lectura)</h4>
         {loading && <p className="text-center text-gray-500">Carregant calendaris...</p>}

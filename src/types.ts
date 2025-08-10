@@ -130,12 +130,19 @@ export interface MaterialItem {
   notes?: string;
 }
 
+// Afegeix aquesta nova interfície
+export interface GoogleConfigForExport {
+  appCalendarId?: string;
+  calendarSuffix?: string;
+  createdWithSuffix?: string; // Per detectar canvis de sufix
+}
+
 export interface AppData {
   eventFrames: EventFrameForExport[];
   peopleGroups: PersonGroup[];
   materialItems: MaterialItem[];
   assignments: Assignment[];
-  googleConfig?: GoogleConfig;
+  googleConfig?: GoogleConfigForExport;
 }
 
 export interface InitialEventFrameData {
@@ -205,8 +212,8 @@ export interface EventDataConteImplicits {
   addAssignment: (eventFrameId: string, assignment: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>) => { success: boolean; message?: string; warningMessage?: string };
   updateAssignment: (assignment: Assignment, context?: { changedDate?: string }) => { success: boolean; message?: string; warningMessage?: string };
   deleteAssignment: (eventFrameId: string, assignmentId: string) => void;  getAssignmentById: (eventFrameId: string, assignmentId: string) => Assignment | undefined;
-  loadData: (data: AppData | null) => void;
-  exportData: () => AppData;
+  loadData: (data: AppData | null) => Promise<void>;
+  exportData: () => Promise<AppData>;
   setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: (value: boolean) => void;

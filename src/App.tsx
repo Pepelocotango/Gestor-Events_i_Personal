@@ -256,7 +256,7 @@ const App: React.FC = () => {
         logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
         try {
           if (hasUnsavedChangesRef.current) { // Utilitza la referència
-            const dataToSave = exportDataFromManager();
+            const dataToSave = await exportDataFromManager();
             logger.info("Renderer: Desant dades abans de sortir...");
             await window.electronAPI?.saveAppData?.(dataToSave);
           } else {
