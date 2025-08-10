@@ -719,7 +719,11 @@ ipcMain.handle('google-auth-start', async () => {
       state = generateId(); // Assignar valor a 'state'
       const authUrl = googleAuthClient.generateAuthUrl({
         access_type: 'offline', prompt: 'consent',
-        scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/calendar.readonly'],
+        scope: [
+          'https://www.googleapis.com/auth/userinfo.email',
+          'https://www.googleapis.com/auth/userinfo.profile',
+          'https://www.googleapis.com/auth/calendar.readonly'
+        ],        
         state: state,
       });
       
