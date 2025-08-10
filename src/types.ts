@@ -186,6 +186,7 @@ export type ModalType =
   | 'confirmHardReset'
   | 'mergeOrReplace'
   | 'selectSyncCalendar'
+  | 'createAppCalendar'
   | null;
 
 export interface ModalData {

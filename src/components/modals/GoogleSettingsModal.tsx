@@ -74,33 +74,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   };
 
   const handleCreateNewCalendar = () => {
-    openModal('confirmHardReset', {
-      titleOverride: "Crear Nou Calendari de l'App",
-      itemName: "Introdueix un sufix únic per al nou calendari (ex: Teatre Principal). Aquest sufix s'afegirà al nom base \"Gestor d'Esdeveniments (App)\".",
-      confirmButtonText: "Crear Calendari",
-      requiresInput: true,
-      onConfirmSpecial: async (inputValue) => {
-        if (!inputValue || inputValue.trim() === '') {
-          showToast('El sufix no pot estar buit.', 'warning');
-          return;
-        }
-        if (window.electronAPI?.createNewAppCalendar) {
-          try {
-            const result = await window.electronAPI.createNewAppCalendar(inputValue.trim());
-            if (result.success && result.data) {
-              setManagedCalendars(result.data.managedAppCalendars);
-              setActiveCalendarId(result.data.activeAppCalendarId);
-              showToast('Nou calendari creat i seleccionat com a actiu.', 'success');
-              await refreshGoogleEvents();
-            } else {
-              showToast(result.message || 'No s\'ha pogut crear el calendari.', 'error');
-            }
-          } catch (err) {
-            showToast((err as Error).message, 'error');
-          }
-        }
-      },
-    });
+    openModal('createAppCalendar');
   };
 
   const handleDeleteCalendar = (calendar: ManagedAppCalendar) => {
