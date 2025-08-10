@@ -293,6 +293,7 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
     const suffix = calendarSuffix ? ` - ${calendarSuffix}` : '';
     const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${suffix}`;
     let calendarId;
+    let wasNewlyCreated = false; // Per saber si cal notificar
 
     // Pas 1: Comprovar si ja existeix un calendari amb aquest nom
     console.log("SA: Buscant calendaris existents per evitar duplicats...");
@@ -312,6 +313,7 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
         }
       });
       calendarId = newCalendar.data.id;
+      wasNewlyCreated = true; // Marquem que s'ha creat ara
       console.log(`SA: Calendari creat amb ID: ${calendarId}`);
     }
 
@@ -321,11 +323,9 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
     }
 
     console.log(`SA: Assegurant que el calendari ${calendarId} està compartit amb ${userEmail}...`);
-    // Aquesta crida és idempotent en la pràctica. Si ja existeix la regla, no la duplica.
-    // Si existís i tingués un rol inferior, l'actualitzaria (tot i que aquí sempre posem 'reader').
     await calendarService.acl.insert({
       calendarId: calendarId,
-      sendNotifications: true, // Notifiquem sempre per si l'usuari va esborrar la invitació
+      sendNotifications: wasNewlyCreated, // Només notifiquem si el calendari és nou
       requestBody: {
         role: 'reader',
         scope: { type: 'user', value: userEmail },
@@ -525,54 +525,9 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
   const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-
-  try {
-    // Requisit 2c: Detectar canvi de sufix i demanar confirmació
-    if (config.calendarSuffix !== config.createdWithSuffix && config.appCalendarId) {
-      const choice = await dialog.showMessageBox(mainWindow, {
-        type: 'question',
-        buttons: ['Crear Calendari Nou', 'Cancel·lar'],
-        defaultId: 0,
-        cancelId: 1,
-        title: 'Canvi de Sufix Detectat',
-        message: 'Has canviat el sufix del calendari.',
-        detail: `Vols crear un nou calendari de Google amb el sufix "${config.calendarSuffix}"? Si cancel·les, es mantindrà la configuració del calendari actual.`
-      });
-
-      if (choice.response === 0) { // Crear Calendari Nou
-        console.log(`L'usuari ha confirmat la creació d'un nou calendari per al sufix: "${config.calendarSuffix}".`);
-        config.appCalendarId = null; // Forcem la creació
-      } else { // Cancel·lar
-        console.log("L'usuari ha cancel·lat la creació del nou calendari. Restaurant el sufix anterior.");
-        config.calendarSuffix = config.createdWithSuffix; // Restaurem el sufix
-        fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-        return { success: false, message: 'Creació de calendari cancel·lada. No s\'ha fet cap canvi.' };
-      }
-    }
-
-    if (!config || !config.appCalendarId) {
-      console.log("El calendari de l'app no està configurat. Creant-lo ara amb el compte de servei...");
-      const appCalendarId = await findOrCreateAppCalendar(calendar, config.userEmail, config.calendarSuffix);
-      config = config || { selectedCalendarIds: [], userEmail: config.userEmail };
-      config.appCalendarId = appCalendarId;
-      config.createdWithSuffix = config.calendarSuffix; // Desem el sufix amb el que s'ha creat
-      if (!config.selectedCalendarIds.includes(appCalendarId)) {
-        config.selectedCalendarIds.push(appCalendarId);
-      }
-      fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-      console.log("Configuració de Google actualitzada amb el nou ID del calendari de l'app i el sufix de creació.");
-    }
-  } catch (error) {
-    console.error("Error crític durant la creació del calendari a la sincronització:", error.message, error.response?.data);
-    const customMessage = error.code === 403
-      ? "Permís denegat. Assegura't que el Compte de Servei té permisos d'Editor sobre els calendaris."
-      : `No s'ha pogut crear el calendari a Google: ${error.message}`;
-    return { success: false, message: customMessage };
-  }
-  
   if (!config?.appCalendarId) {
-    console.error("SYNC ERROR: No s'ha trobat appCalendarId a la configuració després d'intentar crear-lo.");
-    return { success: false, message: "No s'ha pogut determinar el calendari de l'aplicació." };
+    console.error("SYNC ERROR: No s'ha trobat appCalendarId a la configuració. Si us plau, desa la configuració primer per crear el calendari.");
+    return { success: false, message: "El calendari de l'aplicació no està configurat. Obre la configuració de Google, tria un sufix (opcional) i desa per crear-lo." };
   }
 
   let appCalendarId = config.appCalendarId;
@@ -837,17 +792,55 @@ ipcMain.handle('load-google-config', async () => {
   return loadGoogleConfigFromFile();
 });
 
-ipcMain.handle('save-google-config', (event, config) => {
+ipcMain.handle('save-google-config', async (event, config) => {
   console.log("[IPC_IN] Rebut 'save-google-config'.");
   try {
-    // Llegim la configuració existent
     const existingConfig = loadGoogleConfigFromFile() || {};
+    let mergedConfig = { ...existingConfig, ...config };
 
-    // Fusionem la nova configuració sobre l'existent
-    const mergedConfig = { ...existingConfig, ...config };
+    let shouldCreateOrUpdate = false;
+    if (!mergedConfig.appCalendarId) {
+      console.log("Motiu per crear/actualitzar: No hi ha appCalendarId.");
+      shouldCreateOrUpdate = true;
+    } else if (mergedConfig.calendarSuffix !== mergedConfig.createdWithSuffix) {
+      console.log("Motiu per crear/actualitzar: El sufix ha canviat.");
+      const choice = await dialog.showMessageBox(mainWindow, {
+        type: 'question',
+        buttons: ['Crear/Reutilitzar Calendari Nou', 'Cancel·lar Canvi'],
+        defaultId: 0,
+        cancelId: 1,
+        title: 'Canvi de Sufix Detectat',
+        message: `Has canviat el sufix del calendari a "${mergedConfig.calendarSuffix}".`,
+        detail: 'Vols crear un nou calendari de Google amb aquest sufix (o reutilitzar-ne un si ja existeix)? Si cancel·les, es mantindrà el sufix anterior.'
+      });
+      if (choice.response === 0) {
+        shouldCreateOrUpdate = true;
+      } else {
+        mergedConfig.calendarSuffix = mergedConfig.createdWithSuffix; // Revertim el canvi de sufix
+      }
+    }
+
+    if (shouldCreateOrUpdate && googleServiceAccountClient && mergedConfig.userEmail) {
+      console.log("Iniciant la creació/actualització del calendari de l'app des de la configuració.");
+      try {
+        const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
+        const appCalendarId = await findOrCreateAppCalendar(calendar, mergedConfig.userEmail, mergedConfig.calendarSuffix);
+
+        mergedConfig.appCalendarId = appCalendarId;
+        mergedConfig.createdWithSuffix = mergedConfig.calendarSuffix;
+        if (!mergedConfig.selectedCalendarIds.includes(appCalendarId)) {
+          mergedConfig.selectedCalendarIds.push(appCalendarId);
+        }
+        console.log("Configuració de Google actualitzada amb el nou ID i sufix del calendari.");
+      } catch (error) {
+         console.error("Error crític durant la creació del calendari des de la configuració:", error.message);
+         dialog.showErrorBox('Error de Creació', `No s'ha pogut crear el calendari a Google: ${error.message}`);
+         // No retornem aquí per permetre que la resta de la configuració (com el sufix revertit) es desi
+      }
+    }
 
     fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(mergedConfig, null, 2));
-    console.log("Configuració de Google fusionada i desada correctament.");
+    console.log("Configuració de Google desada correctament.");
     return { success: true };
   } catch (err) {
     console.error('Error desant configuració de Google:', err);
