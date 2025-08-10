@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   syncWithGoogle: (localData) => ipcRenderer.invoke('sync-with-google', localData),
   googleDisconnect: () => ipcRenderer.invoke('google-disconnect'),
   clearGoogleAppCalendar: () => ipcRenderer.invoke('clear-google-app-calendar'),
+  deleteAppCalendar: () => ipcRenderer.invoke('delete-app-calendar'),
   getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),
   performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
 

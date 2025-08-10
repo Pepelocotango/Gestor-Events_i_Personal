@@ -61,6 +61,38 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
     });
   };
 
+  const handleDeleteCalendar = () => {
+    if (!appCalendarId) return;
+
+    openModal('confirmHardReset', {
+      titleOverride: "Confirmar Eliminació de Calendari",
+      itemName: "Estàs segur que vols eliminar permanentment aquest calendari del teu compte de Google? Aquesta acció no es pot desfer.",
+      confirmButtonText: "Sí, Eliminar Calendari",
+      onConfirmSpecial: async () => {
+        if (window.electronAPI?.deleteAppCalendar) {
+          try {
+            const result = await window.electronAPI.deleteAppCalendar();
+            if (result.success) {
+              showToast(result.message || 'Calendari eliminat correctament.', 'success');
+              // Refresquem l'estat per reflectir la eliminació
+              setAppCalendarId(null);
+              setSelectedIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(appCalendarId);
+                return newSet;
+              });
+              await refreshGoogleEvents();
+            } else {
+              showToast(result.message || 'Hi ha hagut un error durant l\'eliminació.', 'error');
+            }
+          } catch (err) {
+            showToast((err as Error).message, 'error');
+          }
+        }
+      },
+    });
+  };
+
   const handleSave = async () => {
     if (window.electronAPI?.saveGoogleConfig) {
       const configToSave: GoogleConfig = {
@@ -159,6 +191,13 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
               className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md bg-gray-50 dark:bg-gray-700 text-sm"
             >
               Copiar
+            </button>
+            <button
+              onClick={handleDeleteCalendar}
+              className="inline-flex items-center px-3 py-2 border border-l-0 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-r-md bg-gray-50 dark:bg-gray-700 text-sm"
+              title="Eliminar aquest calendari de Google"
+            >
+              Eliminar
             </button>
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">

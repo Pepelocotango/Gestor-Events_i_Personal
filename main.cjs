@@ -292,36 +292,51 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
   try {
     const suffix = calendarSuffix ? ` - ${calendarSuffix}` : '';
     const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${suffix}`;
+    let calendarId;
 
-    console.log(`SA: Creant un nou calendari amb el nom: "${finalCalendarName}"`);
-    const newCalendar = await calendarService.calendars.insert({
-      requestBody: {
-        summary: finalCalendarName,
-        description: "Calendari gestionat per l'aplicació Gestor d'Esdeveniments.",
-        timeZone: 'Europe/Madrid'
-      }
-    });
-    const newCalendarId = newCalendar.data.id;
-    console.log(`SA: Calendari creat amb ID: ${newCalendarId}`);
+    // Pas 1: Comprovar si ja existeix un calendari amb aquest nom
+    console.log("SA: Buscant calendaris existents per evitar duplicats...");
+    const calendarList = await calendarService.calendarList.list();
+    const existingCalendar = calendarList.data.items.find(cal => cal.summary === finalCalendarName);
 
+    if (existingCalendar) {
+      console.log(`SA: Trobat calendari existent amb nom "${finalCalendarName}". ID: ${existingCalendar.id}.`);
+      calendarId = existingCalendar.id;
+    } else {
+      console.log(`SA: No s'ha trobat cap calendari existent. Creant un de nou amb el nom: "${finalCalendarName}"`);
+      const newCalendar = await calendarService.calendars.insert({
+        requestBody: {
+          summary: finalCalendarName,
+          description: "Calendari gestionat per l'aplicació Gestor d'Esdeveniments.",
+          timeZone: 'Europe/Madrid'
+        }
+      });
+      calendarId = newCalendar.data.id;
+      console.log(`SA: Calendari creat amb ID: ${calendarId}`);
+    }
+
+    // Pas 2: Compartir el calendari (nou o existent) amb l'usuari
     if (!userEmail) {
       throw new Error("L'email de l'usuari és necessari per compartir el calendari.");
     }
 
-    console.log(`SA: Compartint el calendari amb ${userEmail}...`);
+    console.log(`SA: Assegurant que el calendari ${calendarId} està compartit amb ${userEmail}...`);
+    // Aquesta crida és idempotent en la pràctica. Si ja existeix la regla, no la duplica.
+    // Si existís i tingués un rol inferior, l'actualitzaria (tot i que aquí sempre posem 'reader').
     await calendarService.acl.insert({
-      calendarId: newCalendarId,
-      sendNotifications: true,
+      calendarId: calendarId,
+      sendNotifications: true, // Notifiquem sempre per si l'usuari va esborrar la invitació
       requestBody: {
         role: 'reader',
         scope: { type: 'user', value: userEmail },
       },
     });
-    console.log('SA: Calendari compartit amb èxit.');
-    return newCalendarId;
+
+    console.log('SA: Permisos del calendari verificats/actualitzats amb èxit.');
+    return calendarId;
 
   } catch (error) {
-    console.error("SA: Error creant i compartint el calendari de l'aplicació:", error);
+    console.error("SA: Error en findOrCreateAppCalendar:", error.message, error.response?.data);
     throw error;
   }
 }
@@ -1154,6 +1169,50 @@ ipcMain.handle('google-disconnect', async () => {
   }
 
   return { success: true, message: 'Desconnexió de Google completada.' };
+});
+
+ipcMain.handle('delete-app-calendar', async () => {
+  console.log("[IPC_IN] Rebut 'delete-app-calendar'.");
+
+  if (!googleServiceAccountClient) {
+    return { success: false, message: 'El client del compte de servei de Google no està inicialitzat.' };
+  }
+
+  const config = loadGoogleConfigFromFile();
+  const appCalendarId = config?.appCalendarId;
+
+  if (!appCalendarId) {
+    return { success: false, message: "No hi ha cap calendari de l'aplicació per eliminar." };
+  }
+
+  try {
+    const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
+    console.log(`Eliminant el calendari de l'app de Google: ${appCalendarId}`);
+    await calendar.calendars.delete({ calendarId: appCalendarId });
+    console.log('Calendari de l\'app eliminat correctament de Google.');
+
+    // Netejar la configuració local
+    delete config.appCalendarId;
+    delete config.createdWithSuffix;
+    fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+    console.log('ID del calendari eliminat de la configuració local.');
+
+    return { success: true, message: 'El calendari de l\'aplicació ha estat eliminat correctament.' };
+  } catch (err) {
+    if (err.code === 404 || err.code === 410) {
+      console.warn(`El calendari ${appCalendarId} no s'ha trobat a Google (potser ja estava eliminat).`);
+      // Si no existeix a Google, igualment netegem la configuració local
+      delete config.appCalendarId;
+      delete config.createdWithSuffix;
+      fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+      return { success: true, message: 'El calendari ja no existia a Google, però la configuració local s\'ha netejat.' };
+    }
+    console.error("Error eliminant el calendari de l'app:", err.message, err.response?.data);
+    const message = err.code === 403
+      ? "No s'ha pogut eliminar el calendari de Google per falta de permisos."
+      : "No s'ha pogut eliminar el calendari de Google.";
+    return { success: false, message: message };
+  }
 });
 
 app.whenReady().then(createWindow);
