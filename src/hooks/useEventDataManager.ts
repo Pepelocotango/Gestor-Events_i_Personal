@@ -548,7 +548,7 @@ markUnsaved();
         return;
     }
 
-    const localData = exportData();
+    const localData = await exportData();
     const result = await window.electronAPI.syncWithGoogle(localData);
 
     if (result.success && result.data) {
