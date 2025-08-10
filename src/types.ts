@@ -328,6 +328,7 @@ export interface ElectronAPI {
   saveGoogleConfig: (config: any) => Promise<any>;
   getGoogleEvents: () => Promise<any>;
   syncWithGoogle: (localData: any) => Promise<any>;
+  googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
   clearGoogleAppCalendar: () => Promise<any>;
   getDefaultDataPath: () => Promise<string>;
   performHardReset: () => Promise<{ success: boolean; message?: string }>;
