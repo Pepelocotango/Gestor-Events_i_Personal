@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem, ModalType, ModalData } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import logger from '../utils/logger';
 
@@ -12,7 +12,7 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
   showTime: '',
   showDuration: '',
   parkingInfo: '',
-  technicalProviders: [], // Abans 'technicalPersonnel'
+  technicalProviders: [],
   preAssemblySchedule: '',
   assemblySchedule: [],
   dressingRooms: '',
@@ -35,6 +35,8 @@ type AssignmentOperationResult = { success: boolean; message?: string; warningMe
 
 export const useEventDataManager = (
   showToast: ShowToastFunction,
+  openModal: (type: ModalType, data?: ModalData) => void,
+  closeModal: () => void,
 ): EventDataManagerReturn => {
   const [eventFrames, setEventFrames] = useState<EventFrame[]>([]);
   const [peopleGroups, setPeopleGroups] = useState<PersonGroup[]>([]);
@@ -220,7 +222,6 @@ markUnsaved();
   }, [eventFramesRef, materialItemsRef]);
 
   const addMaterialItemsFromFile = useCallback((newItems: MaterialItem[]) => {
-    // Filtrem per evitar duplicats basats en el nom (podria ser un ID si el JSON en tingués)
     const existingNames = new Set(materialItemsRef.current.map(item => item.name.toLowerCase()));
     const itemsToAdd = newItems.filter(newItem => !existingNames.has(newItem.name.toLowerCase()));
     
@@ -431,9 +432,10 @@ markUnsaved();
   }, [showToast]);
 
   const loadData = useCallback(async (data: AppData | null) => {
-    if (data?.googleConfig && window.electronAPI?.saveGoogleConfig) {
+    const electronAPI = window.electronAPI;
+    if (data?.googleConfig && electronAPI) {
       try {
-        await window.electronAPI.saveGoogleConfig(data.googleConfig);
+        await electronAPI.saveGoogleConfig(data.googleConfig);
         showToast("Configuració de Google carregada des del fitxer.", 'info');
         await refreshGoogleEvents();
       } catch (error) {
@@ -456,10 +458,6 @@ markUnsaved();
 
     const loadedEventFrames: EventFrame[] = (data.eventFrames || []).map((efExport: EventFrameForExport) => {
       const defaultTechSheet = createDefaultTechSheet(efExport);
-      // <<< LÒGICA DE CURACIÓ AUTOMÀTICA >>>
-      // Fusiona la fitxa existent (si n'hi ha) amb la per defecte.
-      // Això assegura que els esdeveniments antics rebin la fitxa
-      // i que els que ja en tenien rebin els camps nous que s'hagin afegit.
       const finalTechSheet = { ...defaultTechSheet, ...efExport.techSheet };
 
       return {
@@ -500,21 +498,22 @@ markUnsaved();
     setEventFrames(loadedEventFrames.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)));
     setPeopleGroups((data.peopleGroups || []).sort((a,b) => a.name.localeCompare(b.name)));
     setMaterialItems((data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)));
-  }, []);
+  }, [refreshGoogleEvents, showToast]);
 
   const exportData = useCallback(async (): Promise<AppData> => {
     const allAssignmentsList: Assignment[] = eventFramesRef.current.flatMap(ef => ef.assignments);
     const eventFramesForExport: EventFrameForExport[] = eventFramesRef.current.map(({ assignments, ...restOfFrame }) => restOfFrame);
 
     let googleConfigForExport: AppData['googleConfig'] = undefined;
-    if (window.electronAPI?.loadGoogleConfig) {
+    const electronAPI = window.electronAPI;
+    if (electronAPI) {
       try {
-        const fullConfig = await window.electronAPI.loadGoogleConfig();
+        const fullConfig = await electronAPI.loadGoogleConfig();
         if (fullConfig) {
           googleConfigForExport = {
-            appCalendarId: fullConfig.appCalendarId,
-            calendarSuffix: fullConfig.calendarSuffix,
-            createdWithSuffix: fullConfig.createdWithSuffix
+            userEmail: fullConfig.userEmail,
+            activeAppCalendarId: fullConfig.activeAppCalendarId,
+            managedAppCalendars: fullConfig.managedAppCalendars
           };
         }
       } catch (error) {
@@ -538,27 +537,60 @@ markUnsaved();
     markUnsaved();
   }, [markUnsaved]);
 
-  const syncWithGoogle = useCallback(async () => {
-    logger.info('[ACTION] Iniciant sincronització amb Google...');
+  const syncWithGoogleRef = useRef<() => Promise<void>>();
+
+  const executeSync = useCallback(async (targetCalendarId: string) => {
+    logger.info(`[ACTION] Executant sincronització amb Google per a ${targetCalendarId}`);
+    closeModal();
     setIsSyncing(true);
-    if (!window.electronAPI) {
+
+    const electronAPI = window.electronAPI;
+    if (electronAPI) {
+      const localData = await exportData();
+      const result = await electronAPI.syncWithGoogle({ localData, targetCalendarId });
+
+      if (result.success && result.data) {
+          loadData(result.data);
+          await refreshGoogleEvents();
+          showToast(result.message || 'Sincronització completada.', 'success');
+      } else if (result.code === 'CALENDAR_NOT_FOUND') {
+          showToast(result.message || 'El calendari seleccionat no existeix.', 'error', true);
+          await refreshGoogleEvents();
+          syncWithGoogleRef.current?.();
+      } else {
+          showToast(result.message || 'Hi ha hagut un error durant la sincronització.', 'error');
+      }
+    } else {
+      showToast("L'API d'Electron no està disponible.", 'error');
+    }
+    setIsSyncing(false);
+  }, [exportData, loadData, refreshGoogleEvents, showToast, closeModal]);
+
+  const syncWithGoogle = useCallback(async () => {
+    logger.info('[ACTION] Iniciant flux de sincronització amb Google...');
+    if (!window.electronAPI?.loadGoogleConfig) {
         showToast('La sincronització només està disponible a l\'aplicació d\'escriptori.', 'warning');
-        setIsSyncing(false);
         return;
     }
 
-    const localData = await exportData();
-    const result = await window.electronAPI.syncWithGoogle(localData);
+    const config = await window.electronAPI.loadGoogleConfig();
 
-    if (result.success && result.data) {
-        loadData(result.data);
-        await refreshGoogleEvents();
-        showToast(result.message || 'Sincronització completada.', 'success');
-    } else {
-        showToast(result.message || 'Hi ha hagut un error durant la sincronització.', 'error');
+    if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
+      showToast("No hi ha calendaris de l'app per sincronitzar. Si us plau, crea'n un a la configuració.", 'warning');
+      openModal('googleSettings');
+      return;
     }
-    setIsSyncing(false);
-  }, [showToast, exportData, loadData, refreshGoogleEvents]);
+
+    openModal('selectSyncCalendar', {
+      managedCalendars: config.managedAppCalendars,
+      activeCalendarId: config.activeAppCalendarId,
+      onConfirmSync: (targetCalendarId: string) => {
+        executeSync(targetCalendarId);
+      }
+    });
+  }, [showToast, openModal, executeSync]);
+
+  syncWithGoogleRef.current = syncWithGoogle;
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
