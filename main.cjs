@@ -149,7 +149,9 @@ async function loadServiceAccountCredentials() {
       ['https://www.googleapis.com/auth/calendar']
     );
 
-    console.log("Client del Compte de Servei de Google inicialitzat correctament.");
+    await googleServiceAccountClient.authorize();
+
+    console.log("Client del Compte de Servei de Google inicialitzat i autoritzat correctament.");
     return true;
 
   } catch (err) {
