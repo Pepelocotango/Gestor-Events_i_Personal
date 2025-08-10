@@ -336,26 +336,27 @@ La integració amb Google Calendar és una funcionalitat opcional però potent q
 
 1.  **[UI] Inici de l'Acció:** L'usuari fa clic a "Sincronitzar".
 2.  **[Frontend] Crida al Backend:** S'invoca `window.electronAPI.syncWithGoogle(localData)`, enviant les dades actuals de l'aplicació al procés principal.
-3.  **[Backend] Gestor `sync-with-google`:** La lògica a `main.cjs` pren el control:
-    a. **Selecció del Client Correcte:** Totes les operacions d'escriptura (comprovar, buidar, crear esdeveniments) s'executen utilitzant el client del **Compte de Servei (`googleServiceAccountClient`)**, que és el propietari del calendari.
-    b. **Verificació i Autoreparació del Calendari:** Es comprova si el calendari de l'app encara existeix a Google fent una crida `calendar.calendars.get`.
-        -   **Si falla amb un error `404 Not Found`**: El sistema activa el seu procés d'**autoreparació**: neteja l'ID antic de la configuració, crea un nou calendari i el comparteix de nou amb l'usuari.
-        -   **Si falla amb un altre error (xarxa)**: La sincronització es cancel·la i s'informa a l'usuari.
-    c. **Confirmació de l'Usuari:** Es mostra un diàleg advertint que l'operació sobreescriurà les dades al calendari de l'app a Google.
-    d. **Buidatge i Pujada:** Si l'usuari confirma, el sistema buida tots els esdeveniments del calendari de l'app i puja la versió actualitzada des de les dades locals.
-4.  **[Frontend] Finalització:** L'aplicació actualitza l'estat i mostra un missatge d'èxit.
+3.  **[Backend] Gestor `sync-with-google`:** La lògica a `main.cjs` pren el control en una seqüència robusta:
+    a. **Gestió del Sufix del Calendari:** El sistema comprova si l'usuari ha canviat el sufix personalitzat del nom del calendari. Si és així, li demana confirmació per crear un nou calendari amb el nou nom, forçant la creació d'un calendari separat i evitant sobreescriure l'antic per error.
+    b. **Creació/Verificació del Calendari:** Si no hi ha cap calendari de l'app configurat, o si s'ha decidit crear-ne un de nou, s'invoca la lògica `findOrCreateAppCalendar` per crear-lo amb el Compte de Servei i compartir-lo amb l'usuari.
+    c. **Verificació i Autoreparació:** Abans de continuar, es comprova si el calendari de l'app encara existeix a Google. Si falla amb un error `404 Not Found` (perquè l'usuari l'ha eliminat manualment), el sistema activa el seu procés d'**autoreparació**: crea un nou calendari i el comparteix de nou, garantint la continuïtat.
+    d. **Confirmació de l'Usuari:** Es mostra un diàleg natiu advertint que l'operació sobreescriurà totes les dades del calendari de l'app a Google.
+    e. **Buidatge Complet:** Si l'usuari confirma, el sistema primer elimina **tots** els esdeveniments existents al calendari de Google de l'app. Aquesta operació es fa amb una petita pausa entre cada eliminació per evitar excedir els límits de l'API de Google.
+    f. **Pujada d'Esdeveniments amb Descripció Enriquida:** Finalment, el sistema itera sobre tots els esdeveniments locals i els crea de nou a Google. La descripció de cada esdeveniment de Google s'omple amb informació detallada de la fitxa de bolo, incloent seccions formatades per a **Personal Tècnic**, **Horaris** i altres detalls.
+4.  **[Frontend] Finalització:** El backend retorna les dades actualitzades (amb els nous ID d'esdeveniment de Google) al frontend, que actualitza el seu estat i mostra un missatge d'èxit.
 
-#### Flux de Desconnexió
+#### Flux de Desconnexió i Neteja
 
-Per garantir que els usuaris tinguin control total sobre les seves dades i puguin fer una neteja completa, l'aplicació inclou una funcionalitat de desconnexió robusta, accessible des del modal de configuració de Google.
+L'aplicació ofereix dues maneres de gestionar la neteja de la integració amb Google, donant control a l'usuari.
 
-1.  **[UI] Inici de l'Acció:** L'usuari fa clic al botó "Desconnectar Compte" i confirma la seva decisió en un diàleg d'advertència.
-2.  **[Frontend -> Backend] Crida IPC:** S'invoca `window.electronAPI.googleDisconnect()`.
-3.  **[Backend] Gestor `google-disconnect`:** La lògica a `main.cjs` executa una neteja en tres passos:
-    a. **Eliminació del Calendari Remot:** Utilitzant el **Compte de Servei**, es fa una crida a l'API per **eliminar permanentment** el calendari de l'aplicació que s'havia creat. Això evita que quedin calendaris "orfes" al compte de Google de l'usuari.
-    b. **Revocació de Permisos:** Utilitzant el client **OAuth 2.0** de l'usuari, es revoquen els tokens d'accés, tallant formalment la connexió des del punt de vista de Google.
-    c. **Neteja Local:** S'eliminen els fitxers `google-tokens.json` i `google-config.json` de l'ordinador de l'usuari.
-4.  **[Frontend] Finalització:** El frontend actualitza la seva interfície per reflectir que la connexió s'ha eliminat.
+-   **Desconnexió Completa (`google-disconnect`):** Aquesta és l'opció principal, accessible des del modal de configuració. Executa una neteja total en tres passos:
+    1.  **Eliminació del Calendari Remot:** Utilitzant el **Compte de Servei**, es fa una crida a l'API per **eliminar permanentment** el calendari de l'aplicació que s'havia creat.
+    2.  **Revocació de Permisos:** Utilitzant el client **OAuth 2.0** de l'usuari, es revoquen els tokens d'accés, tallant formalment la connexió des del punt de vista de Google.
+    3.  **Neteja Local:** S'eliminen els fitxers `google-tokens.json` i `google-config.json` de l'ordinador de l'usuari.
+
+-   **Eliminació Només del Calendari (`delete-app-calendar`):** Aquesta és una acció més específica, pensada per a casos on l'usuari vol "començar de zero" amb el calendari sense desconnectar el seu compte.
+    1.  Utilitza el **Compte de Servei** per eliminar el calendari de l'app de Google.
+    2.  Neteja l'ID del calendari i el sufix de creació del fitxer `google-config.json` local, però **conserva** la resta de la configuració i els tokens de l'usuari. La propera sincronització crearà un calendari nou.
 
 
 ### 5.2. Gestor de Fitxes de Bolo (`Tech Sheets`)
