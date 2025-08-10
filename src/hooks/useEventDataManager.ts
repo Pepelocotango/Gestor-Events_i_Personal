@@ -437,6 +437,7 @@ markUnsaved();
       try {
         await electronAPI.saveGoogleConfig(data.googleConfig);
         showToast("Configuració de Google carregada des del fitxer.", 'info');
+        window.dispatchEvent(new CustomEvent('googleConfigChanged'));
         await refreshGoogleEvents();
       } catch (error) {
         console.error("Error desant la configuració de Google del fitxer:", error);

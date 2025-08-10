@@ -1070,7 +1070,10 @@ ipcMain.handle('create-new-app-calendar', async (event, suffix) => {
     }
 
     const config = loadGoogleConfigFromFile();
-    if (!config?.userEmail) {
+    if (!config) {
+        return { success: false, message: 'El fitxer de configuració de Google no existeix. Si us plau, connecta\'t a Google primer.' };
+    }
+    if (!config.userEmail) {
         return { success: false, message: 'No s\'ha trobat l\'email de l\'usuari. Si us plau, connecta\'t a Google primer.' };
     }
 

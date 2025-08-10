@@ -3,7 +3,7 @@
 # PLÀ MIGRACIÓ GOOGLE CALENDAR
 
 revisar errors bugs
-actualitzar developing afegint tots els canvis
+
 
 ### 📝 **Pla d'Acció Recomanat (Tasques Pendents)**
 

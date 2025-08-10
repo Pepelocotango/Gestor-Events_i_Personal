@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GoogleCalendar, GoogleConfig, ManagedAppCalendar, ShowToastFunction } from '@/types';
 import { useEventData } from '@/contexts/EventDataContext';
 
@@ -21,37 +21,48 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAndLoadConfig = async () => {
-      if (window.electronAPI?.loadGoogleConfig && window.electronAPI?.getCalendarList) {
-        setLoading(true);
-        try {
-          const [configResult, calendarsResult] = await Promise.all([
-            window.electronAPI.loadGoogleConfig() as Promise<GoogleConfig | null>,
-            window.electronAPI.getCalendarList()
-          ]);
+  const fetchAndLoadConfig = useCallback(async () => {
+    if (window.electronAPI?.loadGoogleConfig && window.electronAPI?.getCalendarList) {
+      setLoading(true);
+      try {
+        const [configResult, calendarsResult] = await Promise.all([
+          window.electronAPI.loadGoogleConfig() as Promise<GoogleConfig | null>,
+          window.electronAPI.getCalendarList()
+        ]);
 
-          if (configResult) {
-            setSelectedIds(new Set(configResult.selectedCalendarIds || []));
-            setManagedCalendars(configResult.managedAppCalendars || []);
-            setActiveCalendarId(configResult.activeAppCalendarId || null);
-          }
-
-          if (calendarsResult.success) {
-            const managedIdsSet = new Set(configResult?.managedAppCalendars?.map(c => c.id) || []);
-            setExternalCalendars(calendarsResult.calendars?.filter(c => !managedIdsSet.has(c.id)) || []);
-          } else {
-            setError(calendarsResult.message || 'Error desconegut obtenint calendaris.');
-          }
-        } catch (err) {
-          setError((err as Error).message);
-        } finally {
-          setLoading(false);
+        if (configResult) {
+          setSelectedIds(new Set(configResult.selectedCalendarIds || []));
+          setManagedCalendars(configResult.managedAppCalendars || []);
+          setActiveCalendarId(configResult.activeAppCalendarId || null);
         }
+
+        if (calendarsResult.success) {
+          const managedIdsSet = new Set(configResult?.managedAppCalendars?.map(c => c.id) || []);
+          setExternalCalendars(calendarsResult.calendars?.filter(c => !managedIdsSet.has(c.id)) || []);
+        } else {
+          setError(calendarsResult.message || 'Error desconegut obtenint calendaris.');
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
       }
-    };
-    fetchAndLoadConfig();
+    }
   }, []);
+
+  useEffect(() => {
+    fetchAndLoadConfig();
+
+    const handleConfigChange = () => {
+        showToast('La configuració de Google ha canviat, actualitzant...', 'info');
+        fetchAndLoadConfig();
+    };
+
+    window.addEventListener('googleConfigChanged', handleConfigChange);
+    return () => {
+        window.removeEventListener('googleConfigChanged', handleConfigChange);
+    };
+  }, [fetchAndLoadConfig, showToast]);
 
   const handleToggleExternal = (calendarId: string) => {
     setSelectedIds(prev => {
@@ -189,29 +200,56 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
 
         {loading && <p className="text-center text-gray-500">Carregant...</p>}
         {!loading && managedCalendars.length > 0 && (
-          <ul className="space-y-2 max-h-48 overflow-y-auto">
+          <ul className="space-y-3 max-h-48 overflow-y-auto pr-2">
             {managedCalendars.map(cal => (
-              <li key={cal.id} className="flex items-center justify-between p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
-                <div className="flex items-center">
-                  <input
-                    type="radio"
-                    id={`cal-${cal.id}`}
-                    name="activeCalendar"
-                    checked={cal.id === activeCalendarId}
-                    onChange={() => setActiveCalendarId(cal.id)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                  />
-                  <label htmlFor={`cal-${cal.id}`} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {cal.name}
-                    {cal.id === activeCalendarId && <span className="ml-2 text-xs font-bold text-indigo-600 dark:text-indigo-400">(ACTIU)</span>}
-                  </label>
+              <li key={cal.id} className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center flex-grow">
+                    <input
+                      type="radio"
+                      id={`cal-${cal.id}`}
+                      name="activeCalendar"
+                      checked={cal.id === activeCalendarId}
+                      onChange={() => setActiveCalendarId(cal.id)}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-500"
+                    />
+                    <div className="ml-3">
+                      <label htmlFor={`cal-${cal.id}`} className="block text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer">
+                        {cal.name}
+                        {cal.id === activeCalendarId && <span className="ml-2 text-xs font-bold text-indigo-600 dark:text-indigo-400">(ACTIU)</span>}
+                      </label>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Sufix: {cal.suffix || '(cap)'}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteCalendar(cal)}
+                    className="ml-4 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                  >
+                    Eliminar
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleDeleteCalendar(cal)}
-                  className="px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
-                >
-                  Eliminar
-                </button>
+                <div className="mt-2 pl-7">
+                    <div className="flex rounded-md shadow-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 text-xs">
+                        ID
+                      </span>
+                      <input
+                        type="text"
+                        readOnly
+                        value={cal.id}
+                        className="flex-1 min-w-0 block w-full px-2 py-1 rounded-none bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-xs"
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(cal.id);
+                          showToast('ID del calendari copiat!', 'success');
+                        }}
+                        className="inline-flex items-center px-3 py-1 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md bg-gray-200 dark:bg-gray-700 text-xs hover:bg-gray-300 dark:hover:bg-gray-600"
+                      >
+                        Copiar
+                      </button>
+                    </div>
+                </div>
               </li>
             ))}
           </ul>

@@ -206,7 +206,6 @@ export interface ModalData {
     titleOverride?: string;
     newData?: PersonGroup[] | MaterialItem[];
     requiresInput?: boolean;
-    // For SelectSyncCalendarModal
     managedCalendars?: ManagedAppCalendar[];
     activeCalendarId?: string | null;
     onConfirmSync?: (targetCalendarId: string) => void;
@@ -244,8 +243,6 @@ export interface EventDataConteImplicits {
   syncWithGoogle: () => Promise<void>;
   isSyncing: boolean;
   addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
-
-
   materialItems: MaterialItem[];
   addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => void;
   updateMaterialItem: (updatedItem: MaterialItem) => void;
