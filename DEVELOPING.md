@@ -473,14 +473,29 @@ La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha esta
 ---------
 
 
+#### Exportació a PDF i CSV
+
+-   **Lògica Centralitzada:** Tota la lògica de generació de documents es troba a **`src/utils/pdfGenerator.ts`** per als PDF i a **`src/utils/csvUtils.ts`** per a les utilitats de CSV. Aquesta centralització fa que el manteniment dels formats d'exportació sigui més senzill.
+-   **Exportació de Vistes Filtrades:**
+    -   `MainDisplay.tsx` manté un estat (`currentlyDisplayedFrames`) que reflecteix la llista d'esdeveniments actualment visibles segons els filtres aplicats.
+    -   Quan l'usuari clica "Exportar a CSV/PDF", aquesta llista filtrada és la que es passa a les funcions d'exportació, assegurant que l'arxiu generat sigui un reflex fidel del que l'usuari veu a la pantalla.
+-   **Compatibilitat amb Excel (BOM):** Per garantir la correcta visualització d'accents i caràcters especials en programes com Microsoft Excel, els components que generen fitxers CSV (com `PeopleDisplay.tsx`) afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut del fitxer.
+
+La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha estat optimitzada per crear documents nets i rellevants:
+
+-   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
+-   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
+-   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (p. ex., canviant de 'SI' a 'NO'), les dades associades s'esborren de l'estat, assegurant que el PDF reflecteixi sempre la informació visible.
+---------
+
+
  #### Utilitat Centralitzada per a CSV (`csvUtils.ts`)
 
- Per garantir la consistència, evitar la duplicació de codi (principi DRY) i millorar la compatibilitat dels fitxers generats, tota la lògica d'exportació a CSV ha estat refactoritzada:
+ Per garantir la consistència i evitar la duplicació de codi (principi DRY), la lògica de formatació de cel·les CSV ha estat refactoritzada:
 
- 1.  **Mòdul Dedicat:** S'ha creat el fitxer **`src/utils/csvUtils.ts`** que centralitza la lògica de formatació de CSV.
- 2.  **Funció d'Escapament (`escapeCsvCell`):** Aquest mòdul exporta una funció reutilitzable, `escapeCsvCell`, que s'encarrega de gestionar correctament els caràcters especials (comes, cometes dobles, salts de línia) dins d'una cel·la, embolcallant el contingut amb cometes dobles i escapant les cometes internes segons l'estàndard CSV.
- 3.  **Compatibilitat amb Excel (BOM):** Totes les funcions que generen un CSV ara afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut. Aquest caràcter invisible assegura que programes com Microsoft Excel interpretin correctament la codificació (UTF-8) i mostrin sense problemes els accents i caràcters especials.
- 4.  **Implementació:** Components com `PeopleDisplay.tsx` i `SummaryReports.tsx` ara importen i utilitzen `escapeCsvCell` per formatar cada cel·la abans de construir el fitxer CSV final.
+ 1.  **Mòdul Dedicat:** S'ha creat el fitxer **`src/utils/csvUtils.ts`**.
+ 2.  **Funció d'Escapament (`escapeCsvCell`):** Aquest mòdul exporta una funció reutilitzable, `escapeCsvCell`, que s'encarrega de gestionar correctament els caràcters especials (comes, cometes dobles, salts de línia) dins d'una cel·la. La funció embolcalla el contingut amb cometes dobles si és necessari i escapa les cometes internes segons l'estàndard CSV.
+ 3.  **Implementació:** Components com `PeopleDisplay.tsx` i `SummaryReports.tsx` importen i utilitzen `escapeCsvCell` per formatar cada cel·la abans de construir el fitxer CSV final.
 
 --------------
 ### 5.6. Migració de Dades Antigues
