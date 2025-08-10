@@ -548,8 +548,11 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
       console.log("Configuració de Google actualitzada amb el nou ID del calendari de l'app i el sufix de creació.");
     }
   } catch (error) {
-    console.error("Error crític durant la creació del calendari a la sincronització:", error);
-    return { success: false, message: `No s'ha pogut crear el calendari a Google: ${error.message}` };
+    console.error("Error crític durant la creació del calendari a la sincronització:", error.message, error.response?.data);
+    const customMessage = error.code === 403
+      ? "Permís denegat. Assegura't que el Compte de Servei té permisos d'Editor sobre els calendaris."
+      : `No s'ha pogut crear el calendari a Google: ${error.message}`;
+    return { success: false, message: customMessage };
   }
   
   if (!config?.appCalendarId) {
@@ -582,8 +585,11 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
         return { success: false, message: `El calendari original no existia i no se n'ha pogut crear un de nou: ${creationError.message}` };
       }
     } else {
-      console.error('Error de xarxa o desconegut verificant el calendari:', err);
-      return { success: false, message: `No s'ha pogut connectar a Google. Comprova la teva connexió. (${err.message})` };
+      console.error('Error de xarxa o desconegut verificant el calendari:', err.message, err.response?.data);
+      const customMessage = err.code === 403
+        ? "Permís denegat per accedir al calendari. Revisa els permisos del Compte de Servei."
+        : `No s'ha pogut connectar a Google. Comprova la teva connexió. (${err.message})`;
+      return { success: false, message: customMessage };
     }
   }
 
@@ -686,8 +692,11 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
     return { success: true, message: 'Sincronització completada amb èxit.', data: localData };
 
   } catch (error) {
-    console.error('Error crític durant la sincronització unidireccional:', error);
-    return { success: false, message: `Error de sincronització: ${error.message}` };
+    console.error('Error crític durant la sincronització unidireccional:', error.message, error.response?.data);
+    const customMessage = error.code === 403
+      ? "Permís denegat durant la sincronització. Assegura't que el Compte de Servei té permisos d'Editor sobre el calendari de l'aplicació."
+      : `Error de sincronització: ${error.message}`;
+    return { success: false, message: customMessage };
   }
 });
 
@@ -1098,8 +1107,16 @@ ipcMain.handle('google-disconnect', async () => {
       if (err.code === 404 || err.code === 410) {
         console.warn(`El calendari ${appCalendarId} no s'ha trobat a Google (potser ja estava eliminat).`);
       } else {
-        console.error("Error eliminant el calendari de l'app de Google:", err.message);
-        // No retornem aquí, intentem continuar amb la neteja local
+        console.error("Error eliminant el calendari de l'app de Google:", err.message, err.response?.data);
+        // No aturem el procés, però informem l'usuari
+        const message = err.code === 403
+          ? "No s'ha pogut eliminar el calendari de Google per falta de permisos. Potser hauràs d'esborrar-lo manualment."
+          : "No s'ha pogut eliminar el calendari de Google. Potser hauràs d'esborrar-lo manualment.";
+        dialog.showMessageBox(mainWindow, {
+          type: 'warning',
+          title: 'Avís de Desconnexió',
+          message: message,
+        });
       }
     }
   } else {

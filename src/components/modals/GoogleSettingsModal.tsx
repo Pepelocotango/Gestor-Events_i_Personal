@@ -8,7 +8,7 @@ interface GoogleSettingsModalProps {
 }
 
 const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, showToast }) => {
-  const { refreshGoogleEvents } = useEventData();
+  const { refreshGoogleEvents, openModal } = useEventData();
   const [calendars, setCalendars] = useState<GoogleCalendar[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [appCalendarId, setAppCalendarId] = useState<string | null>(null);
@@ -79,35 +79,38 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
     }
   };
 
-  const handleDisconnect = async () => {
-    const confirmed = window.confirm(
-      "Estàs segur que vols desconnectar el teu compte de Google?\n\n" +
-      "Aquesta acció:\n" +
-      "- Eliminarà permanentment el calendari de l'aplicació del teu compte de Google.\n" +
-      "- Revocarà l'accés de l'aplicació al teu compte.\n" +
-      "- Esborrarà tota la configuració de Google d'aquesta aplicació.\n\n" +
-      "Aquesta acció és irreversible."
-    );
-
-    if (confirmed && window.electronAPI?.googleDisconnect) {
-      try {
-        const result = await window.electronAPI.googleDisconnect();
-        if (result.success) {
-          showToast('Compte de Google desconnectat correctament.', 'success');
-          setSelectedIds(new Set());
-          setAppCalendarId(null);
-          setCalendarSuffix('');
-          setCalendars([]);
-          setError(null);
-          await refreshGoogleEvents();
-          onClose();
-        } else {
-          showToast(result.message || 'Hi ha hagut un error durant la desconnexió.', 'error');
+  const handleDisconnect = () => {
+    openModal('confirmHardReset', { // Reutilitzem el tipus de modal per a confirmacions genèriques
+      titleOverride: "Confirmar Desconnexió de Google",
+      itemName: "Estàs segur que vols desconnectar el teu compte de Google? Aquesta acció és irreversible i farà el següent:<br><br>" +
+                "<ul class='list-disc list-inside text-left'>" +
+                "<li><b>Eliminarà</b> el calendari de l'aplicació del teu compte de Google.</li>" +
+                "<li><b>Revocarà</b> l'accés de l'aplicació al teu compte.</li>" +
+                "<li><b>Esborrarà</b> tota la configuració local de Google.</li>" +
+                "</ul>",
+      confirmButtonText: "Sí, Desconnectar",
+      onConfirmSpecial: async () => {
+        if (window.electronAPI?.googleDisconnect) {
+          try {
+            const result = await window.electronAPI.googleDisconnect();
+            if (result.success) {
+              showToast('Compte de Google desconnectat correctament.', 'success');
+              setSelectedIds(new Set());
+              setAppCalendarId(null);
+              setCalendarSuffix('');
+              setCalendars([]);
+              setError(null);
+              await refreshGoogleEvents();
+              onClose(); // Tanquem el modal de configuració després de desconnectar
+            } else {
+              showToast(result.message || 'Hi ha hagut un error durant la desconnexió.', 'error');
+            }
+          } catch (err) {
+            showToast((err as Error).message, 'error');
+          }
         }
-      } catch (err) {
-        showToast((err as Error).message, 'error');
-      }
-    }
+      },
+    });
   };
 
   return (
