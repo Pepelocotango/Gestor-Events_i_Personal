@@ -214,17 +214,18 @@ Una de les funcionalitats clau del backend és gestionar la comunicació amb l'A
     -   La funció `loadGoogleCredentials` llegeix aquest fitxer a l'inici i inicialitza el client `google.auth.OAuth2`.
     -   Els tokens d'usuari (`access_token`, `refresh_token`) es guarden de forma segura a `google-tokens.json` a la carpeta de dades de l'usuari.
 
--   **Flux d'Autenticació (OAuth 2.0):**
-    1.  Quan l'usuari vol connectar-se, el gestor `google-auth-start` crea un **servidor HTTP local temporal** en un port aleatori.
-    2.  L'URL de redirecció (`redirectUri`) per al flux OAuth es configura dinàmicament per apuntar a aquest servidor local (`http://localhost:<port>`).
-    3.  S'obre el navegador per defecte de l'usuari amb l'URL d'autorització de Google.
-    4.  Després que l'usuari accepti els permisos, Google el redirigeix a `http://localhost:<port>` amb un codi d'autorització.
-    5.  El servidor temporal captura aquest codi, l'intercanvia per tokens d'accés i de refresc (`googleAuthClient.getToken(code)`), i els desa a `google-tokens.json`.
-    6.  Finalment, el servidor es tanca. Aquest és el mètode estàndard i segur per a aplicacions d'escriptori.
-    7. Protecció CSRF amb state: El flux implementa una mesura de seguretat robusta per prevenir atacs de falsificació de sol·licitud entre llocs (CSRF).
-    - Generació: Abans d'obrir l'URL d'autenticació, es genera un valor aleatori únic (state). Aquesta variable es declara en un àmbit accessible durant tota la vida del procés d'autenticació.
-    - Enviament: Aquest valor state s'afegeix com a paràmetre a l'URL de Google.
-    - Validació: Quan Google redirigeix a l'usuari de tornada al servidor local, el codi del callback extreu el paràmetre state de la URL de retorn i el compara amb el valor original que es va generar. Si no coincideixen, el procés d'autenticació es cancel·la immediatament.
+-   **Arquitectura Híbrida d'Autenticació:** Per millorar la seguretat, la integritat de les dades i seguir les millors pràctiques de Google, l'aplicació utilitza un model híbrid que combina un **Compte de Servei** i el flux **OAuth 2.0**, seguint el **Principi de Mínim Privilegi**.
+    -   **Compte de Servei (`service-account.json`):** És l'autenticació principal de l'aplicació. Actua com una entitat pròpia i és la **propietària** del calendari de l'app. S'encarrega de totes les operacions d'escriptura (crear/eliminar el calendari, afegir/esborrar esdeveniments). Això garanteix que l'aplicació sigui l'única font de veritat i que l'usuari no pugui modificar els esdeveniments directament a Google Calendar.
+    -   **OAuth 2.0 per a l'Usuari (`google-credentials.json`):** El flux d'autenticació de l'usuari ara té un propòsit molt limitat i de baix risc:
+        1.  Obtenir l'**adreça de correu electrònic** de l'usuari per poder compartir amb ell el calendari de l'app.
+        2.  Obtenir permís de **només lectura** (`calendar.readonly`) per poder visualitzar els altres calendaris de l'usuari a l'aplicació.
+
+-   **Flux de Connexió per a l'Usuari:**
+    1.  L'usuari inicia la connexió i se l'envia al flux de consentiment de Google. Ara només ha d'acceptar permisos de baix risc (veure el seu email i els seus calendaris).
+    2.  L'aplicació rep els tokens OAuth 2.0 i immediatament fa una crida a l'API de Google People per obtenir i desar l'email de l'usuari a `google-config.json`.
+    3.  A la primera sincronització, l'aplicació utilitza el seu **Compte de Servei** per crear un nou calendari.
+    4.  Immediatament després, comparteix aquest calendari amb l'email de l'usuari, atorgant-li només el rol de **"lector" (`reader`)** i sense enviar notificacions per correu.
+    5.  A partir d'aquest moment, el calendari de l'app apareix al Google Calendar de l'usuari en mode de només lectura.
 
 ----
 
@@ -333,40 +334,29 @@ La integració amb Google Calendar és una funcionalitat opcional però potent q
 
 #### Flux d'Execució
 
-1.  **[UI] Inici de l'Acció:** L'usuari fa clic al botó "Sincronitzar" a `Controls.tsx`. L'estat `isSyncing` es posa a `true`, mostrant un indicador de càrrega.
-2.  **[Frontend] Crida al Hook:** S'invoca la funció `syncWithGoogle` a `useEventDataManager.ts`.
-3.  **[Frontend] Preparació de Dades:** Aquesta funció crida a `exportData()` per obtenir un objecte `AppData` actualitzat amb totes les dades locals.
-4.  **[Frontend -> Backend] Crida IPC:** S'executa `window.electronAPI.syncWithGoogle(localData)`, enviant totes les dades al procés principal.
-5.  **[Backend] Gestor `sync-with-google`:** La lògica a `main.cjs` pren el control:
-    a. **Verificació d'Autenticació:** Comprova si existeixen tokens d'accés vàlids.
+1.  **[UI] Inici de l'Acció:** L'usuari fa clic a "Sincronitzar".
+2.  **[Frontend] Crida al Backend:** S'invoca `window.electronAPI.syncWithGoogle(localData)`, enviant les dades actuals de l'aplicació al procés principal.
+3.  **[Backend] Gestor `sync-with-google`:** La lògica a `main.cjs` pren el control:
+    a. **Selecció del Client Correcte:** Totes les operacions d'escriptura (comprovar, buidar, crear esdeveniments) s'executen utilitzant el client del **Compte de Servei (`googleServiceAccountClient`)**, que és el propietari del calendari.
+    b. **Verificació i Autoreparació del Calendari:** Es comprova si el calendari de l'app encara existeix a Google fent una crida `calendar.calendars.get`.
+        -   **Si falla amb un error `404 Not Found`**: El sistema activa el seu procés d'**autoreparació**: neteja l'ID antic de la configuració, crea un nou calendari i el comparteix de nou amb l'usuari.
+        -   **Si falla amb un altre error (xarxa)**: La sincronització es cancel·la i s'informa a l'usuari.
+    c. **Confirmació de l'Usuari:** Es mostra un diàleg advertint que l'operació sobreescriurà les dades al calendari de l'app a Google.
+    d. **Buidatge i Pujada:** Si l'usuari confirma, el sistema buida tots els esdeveniments del calendari de l'app i puja la versió actualitzada des de les dades locals.
+4.  **[Frontend] Finalització:** L'aplicació actualitza l'estat i mostra un missatge d'èxit.
 
-    b. **Verificació i Autoreparació del Calendari: Abans de sincronitzar, el sistema executa una lògica robusta per assegurar que el calendari de l'aplicació existeix i és accessible.
-i. Carrega l'ID: Llegeix el appCalendarId desat a google-config.json.
-ii. Verificació Activa: Realitza una crida a l'API (calendar.calendars.get) per comprovar si el calendari amb aquest ID encara existeix a Google.
-iii. Gestió d'Errors Específica:
-- Si la crida té èxit: El calendari és vàlid i el procés de sincronització continua.
-- Si la crida falla amb un error 404 Not Found: El sistema interpreta que l'usuari ha eliminat el calendari manualment. Activa un procés d'autoreparació:
-- Neteja l'ID invàlid del fitxer google-config.json.
-- Torna a cridar a la funció findOrCreateAppCalendar, que ara crearà un calendari completament nou.
-- Desa el nou ID i continua la sincronització amb aquest.
-- Si la crida falla amb qualsevol altre error (p. ex., un error de xarxa): El sistema cancel·la la sincronització i informa a l'usuari d'un possible problema de connexió a Internet, evitant accions incorrectes com la creació d'un calendari duplicat.
-iv. Primera Sincronització: Si no hi havia cap appCalendarId desat, el sistema executa directament findOrCreateAppCalendar per configurar el calendari per primera vegada.
-    
+#### Flux de Desconnexió
 
+Per garantir que els usuaris tinguin control total sobre les seves dades i puguin fer una neteja completa, l'aplicació inclou una funcionalitat de desconnexió robusta, accessible des del modal de configuració de Google.
 
-    c. **Confirmació de l'Usuari:** Mostra un diàleg natiu advertint que l'operació sobreescriurà les dades a Google.
-    d. **Buidatge del Calendari:** Si l'usuari confirma, s'obté la llista de tots els esdeveniments existents al calendari de l'app a Google i s'eliminen un per un. Aquesta estratègia (buidar i reescriure) és més senzilla i robusta que intentar fer un "diff" entre l'estat local i el remot.
-    e. **Pujada d'Esdeveniments:** Itera sobre els `eventFrames` rebuts del frontend. Per a cada un:
-        i. Construeix un recurs d'esdeveniment de Google Calendar, incloent un `summary` (títol), `location` (lloc) i una `description` enriquida amb les notes i els detalls de la fitxa de bolo.
-        ii. Les dates han de ser ajustades: per a esdeveniments de dia complet, la data de fi a l'API de Google ha de ser un dia *després* de la data de fi real. La funció `addDaysISO` s'encarrega d'això.
-        iii. Fa una crida `calendar.events.insert` per crear l'esdeveniment a Google.
-        iv. **Actualització Local:** Un cop creat, l'API de Google retorna el nou esdeveniment, que inclou un `id` únic de Google. El backend actualitza l'objecte `eventFrame` local amb aquest `googleEventId`.
-    f. **Retorn de Dades:** Un cop finalitzat el bucle, el gestor retorna un objecte `{ success: true, data: localDataActualitzada }` al frontend.
-6.  **[Frontend] Finalització:**
-    a. El hook `useEventDataManager` rep les dades actualitzades (amb els `googleEventId`) i les carrega amb la funció `loadData`.
-    b. Crida a `refreshGoogleEvents` per assegurar que la vista del calendari es refresqui.
-    c. L'estat `isSyncing` es posa a `false`.
-    d. Es mostra un toast de "Sincronització completada".
+1.  **[UI] Inici de l'Acció:** L'usuari fa clic al botó "Desconnectar Compte" i confirma la seva decisió en un diàleg d'advertència.
+2.  **[Frontend -> Backend] Crida IPC:** S'invoca `window.electronAPI.googleDisconnect()`.
+3.  **[Backend] Gestor `google-disconnect`:** La lògica a `main.cjs` executa una neteja en tres passos:
+    a. **Eliminació del Calendari Remot:** Utilitzant el **Compte de Servei**, es fa una crida a l'API per **eliminar permanentment** el calendari de l'aplicació que s'havia creat. Això evita que quedin calendaris "orfes" al compte de Google de l'usuari.
+    b. **Revocació de Permisos:** Utilitzant el client **OAuth 2.0** de l'usuari, es revoquen els tokens d'accés, tallant formalment la connexió des del punt de vista de Google.
+    c. **Neteja Local:** S'eliminen els fitxers `google-tokens.json` i `google-config.json` de l'ordinador de l'usuari.
+4.  **[Frontend] Finalització:** El frontend actualitza la seva interfície per reflectir que la connexió s'ha eliminat.
+
 
 ### 5.2. Gestor de Fitxes de Bolo (`Tech Sheets`)
 
@@ -483,14 +473,29 @@ La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha esta
 ---------
 
 
+#### Exportació a PDF i CSV
+
+-   **Lògica Centralitzada:** Tota la lògica de generació de documents es troba a **`src/utils/pdfGenerator.ts`** per als PDF i a **`src/utils/csvUtils.ts`** per a les utilitats de CSV. Aquesta centralització fa que el manteniment dels formats d'exportació sigui més senzill.
+-   **Exportació de Vistes Filtrades:**
+    -   `MainDisplay.tsx` manté un estat (`currentlyDisplayedFrames`) que reflecteix la llista d'esdeveniments actualment visibles segons els filtres aplicats.
+    -   Quan l'usuari clica "Exportar a CSV/PDF", aquesta llista filtrada és la que es passa a les funcions d'exportació, assegurant que l'arxiu generat sigui un reflex fidel del que l'usuari veu a la pantalla.
+-   **Compatibilitat amb Excel (BOM):** Per garantir la correcta visualització d'accents i caràcters especials en programes com Microsoft Excel, els components que generen fitxers CSV (com `PeopleDisplay.tsx`) afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut del fitxer.
+
+La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha estat optimitzada per crear documents nets i rellevants:
+
+-   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
+-   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
+-   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (p. ex., canviant de 'SI' a 'NO'), les dades associades s'esborren de l'estat, assegurant que el PDF reflecteixi sempre la informació visible.
+---------
+
+
  #### Utilitat Centralitzada per a CSV (`csvUtils.ts`)
 
- Per garantir la consistència, evitar la duplicació de codi (principi DRY) i millorar la compatibilitat dels fitxers generats, tota la lògica d'exportació a CSV ha estat refactoritzada:
+ Per garantir la consistència i evitar la duplicació de codi (principi DRY), la lògica de formatació de cel·les CSV ha estat refactoritzada:
 
- 1.  **Mòdul Dedicat:** S'ha creat el fitxer **`src/utils/csvUtils.ts`** que centralitza la lògica de formatació de CSV.
- 2.  **Funció d'Escapament (`escapeCsvCell`):** Aquest mòdul exporta una funció reutilitzable, `escapeCsvCell`, que s'encarrega de gestionar correctament els caràcters especials (comes, cometes dobles, salts de línia) dins d'una cel·la, embolcallant el contingut amb cometes dobles i escapant les cometes internes segons l'estàndard CSV.
- 3.  **Compatibilitat amb Excel (BOM):** Totes les funcions que generen un CSV ara afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut. Aquest caràcter invisible assegura que programes com Microsoft Excel interpretin correctament la codificació (UTF-8) i mostrin sense problemes els accents i caràcters especials.
- 4.  **Implementació:** Components com `PeopleDisplay.tsx` i `SummaryReports.tsx` ara importen i utilitzen `escapeCsvCell` per formatar cada cel·la abans de construir el fitxer CSV final.
+ 1.  **Mòdul Dedicat:** S'ha creat el fitxer **`src/utils/csvUtils.ts`**.
+ 2.  **Funció d'Escapament (`escapeCsvCell`):** Aquest mòdul exporta una funció reutilitzable, `escapeCsvCell`, que s'encarrega de gestionar correctament els caràcters especials (comes, cometes dobles, salts de línia) dins d'una cel·la. La funció embolcalla el contingut amb cometes dobles si és necessari i escapa les cometes internes segons l'estàndard CSV.
+ 3.  **Implementació:** Components com `PeopleDisplay.tsx` i `SummaryReports.tsx` importen i utilitzen `escapeCsvCell` per formatar cada cel·la abans de construir el fitxer CSV final.
 
 --------------
 ### 5.6. Migració de Dades Antigues

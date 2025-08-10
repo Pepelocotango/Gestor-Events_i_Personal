@@ -430,7 +430,19 @@ markUnsaved();
     return true;
   }, [showToast]);
 
-  const loadData = useCallback((data: AppData | null) => {
+  const loadData = useCallback(async (data: AppData | null) => {
+    if (data?.googleConfig && window.electronAPI?.saveGoogleConfig) {
+      try {
+        await window.electronAPI.saveGoogleConfig(data.googleConfig);
+        showToast("Configuració de Google carregada des del fitxer.", 'info');
+        // Esperem un petit instant abans de refrescar per donar temps al backend a processar
+        setTimeout(refreshGoogleEvents, 100);
+      } catch (error) {
+        console.error("Error desant la configuració de Google del fitxer:", error);
+        showToast("No s'ha pogut actualitzar la configuració de Google del fitxer.", 'error');
+      }
+    }
+
     if (!data) {
       setEventFrames([]);
       setPeopleGroups([]);
@@ -491,17 +503,35 @@ markUnsaved();
     setMaterialItems((data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)));
   }, []);
 
-  const exportData = useCallback((): AppData => {
+  const exportData = useCallback(async (): Promise<AppData> => {
     const allAssignmentsList: Assignment[] = eventFramesRef.current.flatMap(ef => ef.assignments);
     const eventFramesForExport: EventFrameForExport[] = eventFramesRef.current.map(({ assignments, ...restOfFrame }) => restOfFrame);
+
+    let googleConfigForExport: AppData['googleConfig'] = undefined;
+    if (window.electronAPI?.loadGoogleConfig) {
+      try {
+        const fullConfig = await window.electronAPI.loadGoogleConfig();
+        if (fullConfig) {
+          googleConfigForExport = {
+            appCalendarId: fullConfig.appCalendarId,
+            calendarSuffix: fullConfig.calendarSuffix,
+            createdWithSuffix: fullConfig.createdWithSuffix
+          };
+        }
+      } catch (error) {
+        console.error("Error carregant la configuració de Google durant l'exportació:", error);
+        showToast("No s'ha pogut carregar la configuració de Google per desar-la.", 'error');
+      }
+    }
 
     return {
       peopleGroups: peopleGroupsRef.current,
       eventFrames: eventFramesForExport,
       materialItems: materialItemsRef.current,
       assignments: allAssignmentsList,
+      googleConfig: googleConfigForExport
     };
-   }, []);
+   }, [showToast]);
 
   const setPersonnelComplete = useCallback((eventFrameId: string, complete: boolean) => {
     logger.info('[ACTION] setPersonnelComplete', { eventFrameId, complete });
@@ -518,7 +548,7 @@ markUnsaved();
         return;
     }
 
-    const localData = exportData();
+    const localData = await exportData();
     const result = await window.electronAPI.syncWithGoogle(localData);
 
     if (result.success && result.data) {

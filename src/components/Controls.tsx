@@ -162,19 +162,20 @@ const Controls = forwardRef<any, ControlsProps>(({
     try {
       let dataToSave: any;
       let filename: string;
+      const fullData = await exportData();
 
       switch (type) {
         case 'people':
-          dataToSave = { peopleGroups: exportData().peopleGroups };
+          dataToSave = { peopleGroups: fullData.peopleGroups };
           filename = 'persones_grups_dades.json';
           break;
         case 'material':
-          dataToSave = { materialItems: exportData().materialItems };
+          dataToSave = { materialItems: fullData.materialItems };
           filename = 'material_dades.json';
           break;
         case 'all':
         default:
-          dataToSave = exportData();
+          dataToSave = fullData;
           filename = 'gestio_esdeveniments_dades.json';
           break;
       }
