@@ -775,7 +775,14 @@ ipcMain.handle('load-google-config', async () => {
 ipcMain.handle('save-google-config', (event, config) => {
   console.log("[IPC_IN] Rebut 'save-google-config'.");
   try {
-    fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+    // Llegim la configuració existent
+    const existingConfig = loadGoogleConfigFromFile() || {};
+
+    // Fusionem la nova configuració sobre l'existent
+    const mergedConfig = { ...existingConfig, ...config };
+
+    fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(mergedConfig, null, 2));
+    console.log("Configuració de Google fusionada i desada correctament.");
     return { success: true };
   } catch (err) {
     console.error('Error desant configuració de Google:', err);
