@@ -435,8 +435,7 @@ markUnsaved();
       try {
         await window.electronAPI.saveGoogleConfig(data.googleConfig);
         showToast("Configuració de Google carregada des del fitxer.", 'info');
-        // Esperem un petit instant abans de refrescar per donar temps al backend a processar
-        setTimeout(refreshGoogleEvents, 100);
+        await refreshGoogleEvents();
       } catch (error) {
         console.error("Error desant la configuració de Google del fitxer:", error);
         showToast("No s'ha pogut actualitzar la configuració de Google del fitxer.", 'error');

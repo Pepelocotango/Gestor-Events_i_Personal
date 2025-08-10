@@ -96,6 +96,19 @@ const App: React.FC = () => {
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
 
   useEffect(() => {
+    if (isSyncing) {
+      setLoadingOverlayMessage('Sincronitzant amb Google Calendar...');
+      setIsLoadingOverlayVisible(true);
+    } else {
+      // Només amaguem l'overlay si no hi ha un altre missatge de càrrega actiu
+      if (loadingOverlayMessage === 'Sincronitzant amb Google Calendar...') {
+        setIsLoadingOverlayVisible(false);
+        setLoadingOverlayMessage('');
+      }
+    }
+  }, [isSyncing]);
+
+  useEffect(() => {
     let cleanupShowLoading: (() => void) | undefined;
     let cleanupHideLoading: (() => void) | undefined;
     let cleanupAppWillRelaunch: (() => void) | undefined;

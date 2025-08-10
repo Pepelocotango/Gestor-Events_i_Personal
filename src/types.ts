@@ -337,6 +337,7 @@ export interface ElectronAPI {
   syncWithGoogle: (localData: any) => Promise<any>;
   googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
   clearGoogleAppCalendar: () => Promise<any>;
+  deleteAppCalendar: () => Promise<{ success: boolean; message?: string }>;
   getDefaultDataPath: () => Promise<string>;
   performHardReset: () => Promise<{ success: boolean; message?: string }>;
   onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
