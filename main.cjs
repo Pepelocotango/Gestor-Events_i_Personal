@@ -82,6 +82,7 @@ if (!gotTheLock) {
 
 let mainWindow;
 let isQuitting = false;
+let isAuthenticating = false;
 let googleAuthClient;
 let googleCredentials;
 let googleServiceAccountClient;
@@ -692,10 +693,18 @@ ipcMain.handle('sync-with-google', async (event, localData) => {
 
 ipcMain.handle('google-auth-start', async () => {
   console.log("[IPC_IN] Iniciant 'google-auth-start'.");
+
+  if (isAuthenticating) {
+    console.warn("AUTH WARN: Ja hi ha un procés d'autenticació en curs.");
+    return { success: false, message: "Ja hi ha un procés d'autenticació en curs. Si us plau, espera que acabi." };
+  }
+
   if (!googleAuthClient) {
     console.error("AUTH ERROR: googleAuthClient no inicialitzat.");
     return { success: false, message: "El client d'autenticació de Google no s'ha iniciat correctament." };
   }
+
+  isAuthenticating = true;
 
   return new Promise((resolve) => {
     const server = http.createServer();
@@ -705,6 +714,7 @@ ipcMain.handle('google-auth-start', async () => {
       if (server.listening) {
         server.close();
       }
+      isAuthenticating = false; // Alliberem el bloqueig
       resolve(result);
     };
 
