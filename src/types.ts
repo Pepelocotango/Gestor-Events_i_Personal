@@ -252,6 +252,7 @@ export interface EventDataConteImplicits {
   mergePeopleGroups: (newPeople: PersonGroup[]) => void;
   replacePeopleGroups: (newPeople: PersonGroup[]) => void;
   replaceMaterialItems: (newItems: MaterialItem[]) => void;
+  executeSync: (targetCalendarId: string) => Promise<void>;
 }
 
 export type EventDataManagerReturn = Omit<EventDataConteImplicits, 'openModal' | 'showToast'>;

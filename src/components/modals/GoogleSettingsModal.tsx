@@ -8,7 +8,7 @@ interface GoogleSettingsModalProps {
 }
 
 const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, showToast }) => {
-  const { refreshGoogleEvents, openModal } = useEventData();
+  const { refreshGoogleEvents, openModal, executeSync, isSyncing } = useEventData();
 
   // State for external, read-only calendars
   const [externalCalendars, setExternalCalendars] = useState<GoogleCalendar[]>([]);
@@ -296,14 +296,30 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
         <button
           onClick={handleDisconnect}
           className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
-          disabled={managedCalendars.length === 0}
+          disabled={managedCalendars.length === 0 || isSyncing}
           title={managedCalendars.length === 0 ? "No hi ha cap compte de Google connectat" : "Desconnecta el teu compte de Google"}
         >
           Desconnectar Compte
         </button>
-        <button onClick={handleSaveAndClose} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">
-          Desar i Tancar
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
+              if (activeCalendarId) {
+                executeSync(activeCalendarId);
+                onClose();
+              } else {
+                showToast("Si us plau, selecciona un calendari actiu per sincronitzar.", 'warning');
+              }
+            }}
+            disabled={!activeCalendarId || isSyncing}
+            className="px-4 py-2 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-md disabled:opacity-50"
+          >
+            {isSyncing ? 'Sincronitzant...' : 'Sincronitzar Ara'}
+          </button>
+          <button onClick={handleSaveAndClose} disabled={isSyncing} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50">
+            Desar i Tancar
+          </button>
+        </div>
       </div>
     </div>
   );

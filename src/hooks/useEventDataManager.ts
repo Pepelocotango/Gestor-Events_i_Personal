@@ -638,5 +638,6 @@ markUnsaved();
     mergePeopleGroups,
     replacePeopleGroups,
     replaceMaterialItems,
+    executeSync,
   };
 };
