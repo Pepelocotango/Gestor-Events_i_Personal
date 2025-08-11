@@ -1,6 +1,6 @@
+
 ## DEVELOPING.md
 
-## branca de desenvolupament --> DEV
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
