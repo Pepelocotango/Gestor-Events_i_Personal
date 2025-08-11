@@ -58,34 +58,34 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <li className={cardClass}>
-      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-1">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-0.5">
         <div className="flex-grow">
-          <p className="font-semibold text-base">{person?.name || 'Persona Desconeguda'}</p>
-          <p className="text-sm opacity-80">{formatDateRangeDMY(assignment.startDate, assignment.endDate)}</p>
-          <p className="text-sm font-bold opacity-90">
+          <p className="font-semibold text-sm">{person?.name || 'Persona Desconeguda'}</p>
+          <p className="text-xs opacity-80">{formatDateRangeDMY(assignment.startDate, assignment.endDate)}</p>
+          <p className="text-xs font-bold opacity-90">
             {getStatusSummaryText(assignment)}
           </p>
-          {assignment.notes && <p className="text-xs mt-1 italic opacity-70 whitespace-pre-wrap">Nota: {assignment.notes}</p>}
+          {assignment.notes && <p className="text-xs mt-0.5 italic opacity-70 whitespace-pre-wrap">Nota: {assignment.notes}</p>}
         </div>
-        <div className="flex flex-col space-y-1 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-1 self-start sm:self-center flex-shrink-0">
-          <div className="flex items-center space-x-1">
+        <div className="flex flex-col space-y-0.5 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-0.5 self-start sm:self-center flex-shrink-0">
+          <div className="flex items-center space-x-0.5">
             {isMultiDay && (
               <button
                 onClick={toggleDailyView}
-                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                className={`px-1.5 py-0.5 rounded-md text-xs font-medium transition-colors ${
                   isDailyViewExpanded ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
                 }`}
               >
-                {isDailyViewExpanded ? "Ocultar Dies" : "Mostrar Dies"}
+                {isDailyViewExpanded ? "Ocultar" : "Mostrar"}
               </button>
             )}
             {[AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No].map(status => (
               <button
                 key={status}
                 onClick={() => onGeneralStatusChange(eventFrame.id, assignment.id, status)}
-                className={`font-semibold px-2 py-1 text-xs rounded-md transition-opacity ${
+                className={`font-semibold px-1.5 py-0.5 text-xs rounded-md transition-opacity ${
                   assignment.status === status && assignment.status !== AssignmentStatus.Mixed
-                    ? 'opacity-100 ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-black/50'
+                    ? 'opacity-100 ring-1 ring-offset-1 dark:ring-offset-gray-900 ring-black/50'
                     : 'opacity-60 hover:opacity-100'
                 } ${status === AssignmentStatus.Yes ? 'bg-green-500 text-white' : status === AssignmentStatus.Pending ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'}`}
               >
@@ -93,19 +93,19 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               </button>
             ))}
           </div>
-          <div className="flex items-center justify-end space-x-1">
-            <button onClick={() => onEdit(eventFrame.id, assignment.id)} className="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10">
-              <EditIcon className="w-5 h-5" />
+          <div className="flex items-center justify-end space-x-0.5">
+            <button onClick={() => onEdit(eventFrame.id, assignment.id)} className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10">
+              <EditIcon className="w-4 h-4" />
             </button>
-            <button onClick={() => onDelete(eventFrame.id, assignment.id)} className="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10">
-              <TrashIcon className="w-5 h-5" />
+            <button onClick={() => onDelete(eventFrame.id, assignment.id)} className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10">
+              <TrashIcon className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
       {isMultiDay && isDailyViewExpanded && (
-        <div className="daily-details-section p-2">
-          <h6 className="text-sm font-semibold mb-1">Estat per dia:</h6>
+        <div className="daily-details-section p-1">
+          <h6 className="text-xs font-semibold mb-0.5">Estat per dia:</h6>
           <div className="space-y-0.5">
             {getDaysInRange(assignment.startDate, assignment.endDate).map(date => {
               const currentDailyStatus = assignment.dailyStatuses?.[date] || (assignment.status !== AssignmentStatus.Mixed ? assignment.status : AssignmentStatus.Pending);
@@ -118,9 +118,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               const rowClass = statusRowClasses[currentDailyStatus] || 'daily-row-mixed';
 
               return (
-                <div key={date} className={`flex items-center justify-between p-1 rounded-md transition-colors duration-200 ${rowClass}`}>
-                  <span className="text-sm font-medium">{formatDateDMY(date)}:</span>
-                  <div className="flex space-x-1">
+                <div key={date} className={`flex items-center justify-between p-0.5 rounded-md transition-colors duration-200 ${rowClass}`}>
+                  <span className="text-xs font-medium">{formatDateDMY(date)}:</span>
+                  <div className="flex space-x-0.5">
                     {[AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No].map(s => (
                       <button
                         key={s}

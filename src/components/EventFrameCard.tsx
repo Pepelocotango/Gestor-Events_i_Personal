@@ -38,9 +38,9 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
     .sort((a, b) => (getPersonGroupById(a.personGroupId)?.name || '').localeCompare(getPersonGroupById(b.personGroupId)?.name || ''));
 
   return (
-    <div ref={ref} className="mb-2 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
+    <div ref={ref} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
       <div
-        className="p-2 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
+        className="p-1 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
         onClick={(e) => {
           if ((e.target as HTMLElement).closest('button, input, select, a')) {
             skipNextCollapse.current = true;
@@ -51,7 +51,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
         }}
       >
         <div className="flex flex-col sm:flex-row justify-between sm:items-center">
-          <div className="mb-2 sm:mb-0 flex items-center gap-2">
+          <div className="mb-1 sm:mb-0 flex items-center gap-1.5">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -61,11 +61,11 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               }}
               className="focus:outline-none"
             >
-            <CheckCircleIcon className={`w-6 h-6 transition-colors ${eventFrame.personnelComplete ? 'text-green-500' : 'text-yellow-500'}`} />
+            <CheckCircleIcon className={`w-5 h-5 transition-colors ${eventFrame.personnelComplete ? 'text-green-500' : 'text-yellow-500'}`} />
             </button>
             <h4
               id={`event-frame-title-${eventFrame.id}`}
-              className="text-lg font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2" // <<< Afegim classes flex
+              className="text-base font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5" // <<< Afegim classes flex
               onClick={(e) => {
                 e.stopPropagation();
                 skipNextCollapse.current = true;
@@ -80,33 +80,33 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
 
               {eventFrame.name}
             </h4>
-            {eventFrame.place && <p className="text-sm text-gray-500 dark:text-gray-400">{eventFrame.place}</p>}
-            <p className="text-sm text-gray-500 dark:text-gray-400">{formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)}</p>
+            {eventFrame.place && <p className="text-xs text-gray-500 dark:text-gray-400">{eventFrame.place}</p>}
+            <p className="text-xs text-gray-500 dark:text-gray-400">{formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)}</p>
           </div>
-          <div className="flex items-center space-x-1 sm:space-x-1 flex-wrap">
-            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-5 h-5" /></button>
-            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-5 h-5" /></button>
-            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('addAssignment', { eventFrame }); }} className="p-1 text-green-600 ..."><PersonAddIcon className="w-5 h-5" /></button>
-            <button onClick={(e) => { e.stopPropagation(); onToggleExpand(eventFrame.id); }} className="p-1.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
-              {isExpanded ? <ChevronUpIcon className="w-6 h-6" /> : <ChevronDownIcon className="w-6 h-6" />}
+          <div className="flex items-center space-x-0.5 sm:space-x-0.5 flex-wrap">
+            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
+            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
+            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('addAssignment', { eventFrame }); }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
+            <button onClick={(e) => { e.stopPropagation(); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+              {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </div>
 
       {isExpanded && (
-        <div className="p-2 bg-white dark:bg-gray-800">
+        <div className="p-1 bg-white dark:bg-gray-800">
           {eventFrame.generalNotes && (
-            <div className="mb-2">
-              <h5 className="font-medium">Notes Generals</h5>
-              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{eventFrame.generalNotes}</p>
+            <div className="mb-1">
+              <h5 className="font-medium text-sm">Notes Generals</h5>
+              <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{eventFrame.generalNotes}</p>
             </div>
           )}
-          <h5 className="font-medium mb-2">Assignacions</h5>
+          <h5 className="font-medium text-sm mb-1">Assignacions</h5>
           {filteredAssignments.length === 0 ? (
-            <p className="text-sm text-gray-500">No hi ha assignacions que coincideixin amb els filtres.</p>
+            <p className="text-xs text-gray-500">No hi ha assignacions que coincideixin amb els filtres.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {filteredAssignments.map(assign => (
                 <AssignmentCard
                   key={assign.id}

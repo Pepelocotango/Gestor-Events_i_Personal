@@ -17,7 +17,7 @@ const Navigation: React.FC = () => {
     }`;
 
   return (
-    <nav className="flex justify-center my-2">
+    <nav className="flex justify-center my-1">
       <div className="flex space-x-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
         
         <NavLink to="/" className={getLinkClassName}>

@@ -45,15 +45,15 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
   useEffect(() => { setIsOpen(defaultOpen); }, [defaultOpen]);
 
   return (
-    <div className="mb-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
-      <button id={buttonId} onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-2 text-left text-lg font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
-        <div className="flex items-center gap-2">
+    <div className="mb-2 bg-white dark:bg-gray-800 shadow-md rounded-lg">
+      <button id={buttonId} onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-1.5 text-left text-base font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
+        <div className="flex items-center gap-1.5">
           {icon && <React.Fragment>{icon}</React.Fragment>}
           <span>{title}</span>
         </div>
         {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
       </button>
-      {isOpen && <div id={contentId} className="p-2 border-t border-gray-200 dark:border-gray-700">{children}</div>}
+      {isOpen && <div id={contentId} className="p-1.5 border-t border-gray-200 dark:border-gray-700">{children}</div>}
     </div>
   );
 };
@@ -307,9 +307,9 @@ useEffect(() => {
   };
 
     return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
-        <div className="calendar-wrapper" style={{ padding: '0.5rem' }}>
+        <div className="calendar-wrapper" style={{ padding: '0.25rem' }}>
           <FullCalendar
                 ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
@@ -343,40 +343,40 @@ useEffect(() => {
       </CollapsibleSection>
 
       <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} defaultOpen={true} id="event-list-section">
-        <div className="mb-2 flex justify-start items-center gap-2">
-            <button onClick={() => openModal('addEventFrame')} className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold flex items-center gap-2">
-              <PlusIcon className="w-5 h-5"/> Afegir Nou Marc
+        <div className="mb-1 flex justify-start items-center gap-1">
+            <button onClick={() => openModal('addEventFrame')} className="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold flex items-center gap-1">
+              <PlusIcon className="w-4 h-4"/> Afegir Nou Marc
             </button>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="flex items-center gap-1 px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 text-sm font-medium"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 text-xs font-medium"
               title={`Ordena per data ${sortOrder === 'asc' ? 'descendent' : 'ascendent'}`}
             >
-              {sortOrder === 'asc' ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />} Ordena per data
+              {sortOrder === 'asc' ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />} Ordena
             </button>
         </div>
         
-        <div ref={listSectionRef} className="mb-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-2">
-            <div className="flex-grow min-w-[200px]"><label htmlFor="filterText" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cerca general</label><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Nom, lloc, persona..."/></div>
-            <div className="flex-grow min-w-[150px]"><label htmlFor="filterUIEventFrame" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Marc</label><select id="filterUIEventFrame" value={filterUIEventFrame} onChange={e => setFilterUIEventFrame(e.target.value)} className="mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></div>
-            <div className="flex-grow min-w-[150px]"><label htmlFor="filterUIPerson" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Persona</label><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Totes --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-            <div className="flex-grow min-w-[120px]"><label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Estat</label><select id="filterStatus" value={filterStatus} onChange={e => setFilterStatus(e.target.value as AssignmentStatus | '')} className="mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Object.values(AssignmentStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+        <div ref={listSectionRef} className="mb-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-1">
+            <div className="flex-grow min-w-[180px]"><label htmlFor="filterText" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Cerca general</label><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Nom, lloc, persona..."/></div>
+            <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIEventFrame" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Marc</label><select id="filterUIEventFrame" value={filterUIEventFrame} onChange={e => setFilterUIEventFrame(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></div>
+            <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIPerson" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Persona</label><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Totes --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+            <div className="flex-grow min-w-[110px]"><label htmlFor="filterStatus" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Estat</label><select id="filterStatus" value={filterStatus} onChange={e => setFilterStatus(e.target.value as AssignmentStatus | '')} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Object.values(AssignmentStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></div>
             
-            <div className="flex-grow min-w-[150px]"><label htmlFor="filterDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Conté Data</label>
-                <input type="date" id="filterDate" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+            <div className="flex-grow min-w-[140px]"><label htmlFor="filterDate" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Conté Data</label>
+                <input type="date" id="filterDate" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                
-                {filterDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
+                {filterDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-0.5"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
             </div>
-            <div className="flex-grow min-w-[150px]"><label htmlFor="filterPlace" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lloc</label><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></div>            <div className="flex items-center gap-2">
-                <button onClick={() => { logger.info('[UI] Iniciant exportació de vista actual a CSV.'); onExportCurrentViewToCsv(); }} className="px-3 py-1 rounded-md text-sm font-medium flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-sm">
-                    <CsvIcon /> Exportar
+            <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Lloc</label><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></div>            <div className="flex items-center gap-1">
+                <button onClick={() => { logger.info('[UI] Iniciant exportació de vista actual a CSV.'); onExportCurrentViewToCsv(); }} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white shadow-sm">
+                    <CsvIcon className="w-4 h-4" />
                 </button>
 
-                <button onClick={handleExportListToPdf} className="px-3 py-1 rounded-md text-sm font-medium flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white shadow-sm">
-                    <PdfIcon /> Exportar
+                <button onClick={handleExportListToPdf} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white shadow-sm">
+                    <PdfIcon className="w-4 h-4" />
                 </button>
                 
-                <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame(''); setFilterToShowEventFrameId(null);}} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
+                <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame(''); setFilterToShowEventFrameId(null);}} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
             </div>
         </div>
 
