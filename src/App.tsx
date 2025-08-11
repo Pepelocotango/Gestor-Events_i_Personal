@@ -700,8 +700,10 @@ const App: React.FC = () => {
             </Suspense>
           </main>
 
-          <footer className="bg-white dark:bg-gray-800 p-2 text-center text-xs text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
-            © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.5.0-dev. Evolució Gestió Integral d'Esdeveniments v10.1.
+
+          <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
+            © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.5.2. Evolució Gestió Integral d'Esdeveniments v10.1.
+
           </footer>
 
           <Modal
