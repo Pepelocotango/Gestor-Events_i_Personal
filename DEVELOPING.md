@@ -17,7 +17,7 @@ El "Gestor d'Esdeveniments i Personal" és una aplicació d'escriptori multiplat
 -   **Planificació:** Creació d'esdeveniments marc i assignació de personal.
 -   **Gestió de Recursos:** Manteniment d'una base de dades centralitzada de personal/proveïdors i un inventari de material amb control d'estoc.
 -   **Documentació Tècnica:** Generació de "Fitxes de Bolo" detallades per a cada esdeveniment.
--   **Connectivitat:** Sincronització unidireccional amb Google Calendar i visualització de calendaris externs.
+-   **Connectivitat:** Sincronització unidireccional amb múltiples calendaris de Google gestionats per l'app i visualització de calendaris externs.
 -   **Anàlisi i Exportació:** Creació de resums de dades i exportació a formats estàndard com PDF i CSV.
 
 L'aplicació està dissenyada per funcionar de manera totalment autònoma (offline), sent la integració amb serveis externs una capa opcional.
@@ -117,7 +117,24 @@ Les rutes principals es defineixen com a constants a l'inici del fitxer:
 -   `BACKUP_DIR`: (`.../backups/`) Subdirectori on es guarden les còpies de seguretat automàtiques.
 -   `LOGS_DIR`: (`.../logs/`) Subdirectori per als fitxers de log de cada sessió.
 -   `GOOGLE_TOKENS_PATH`: (`.../google-tokens.json`) Emmagatzema els tokens d'accés i de refresc d'OAuth 2.0 un cop l'usuari s'ha autenticat.
--   `GOOGLE_CONFIG_PATH`: (`.../google-config.json`) Desa la configuració de Google Calendar triada per l'usuari (calendaris a visualitzar, sufix personalitzat, etc.).
+-   `GOOGLE_CONFIG_PATH`: (`.../google-config.json`) Desa la configuració de Google Calendar. La seva estructura ha evolucionat per suportar múltiples calendaris:
+    ```json
+    {
+      "userEmail": "usuari@exemple.com",
+      "activeAppCalendarId": "id_calendari_actiu_123",
+      "managedAppCalendars": [
+        {
+          "id": "id_calendari_actiu_123",
+          "name": "Gestor d'Esdeveniments (App) - Teatre Principal",
+          "suffix": "Teatre Principal"
+        }
+      ],
+      "selectedCalendarIds": ["id_calendari_extern_per_visualitzar_abc"]
+    }
+    ```
+    - `activeAppCalendarId`: L'ID del calendari que s'utilitzarà per defecte per a la propera sincronització.
+    - `managedAppCalendars`: Una llista de tots els calendaris que l'aplicació ha creat i sobre els quals té permís d'escriptura.
+    - `selectedCalendarIds`: Una llista d'IDs de calendaris (tant gestionats com externs) que l'usuari vol visualitzar al calendari principal.
 
 #### Logs de Sessió
 
@@ -193,8 +210,10 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `load-google-config`, `save-google-config`: Llegeixen i escriuen les preferències de l'usuari per a Google Calendar.
     -   `google-get-calendar-list`: Obté la llista de calendaris del compte de l'usuari.
     -   `get-google-events`: Recupera esdeveniments dels calendaris seleccionats per a visualització.
-    -   `sync-with-google`: Orquestra la sincronització unidireccional.
-    -   `clear-google-app-calendar`: Buidar el calendari de l'aplicació a Google.
+    -   `sync-with-google(payload)`: Orquestra la sincronització unidireccional cap a un calendari específic.
+    -   `create-new-app-calendar(suffix)`: Crea un nou calendari gestionat per l'app.
+    -   `delete-app-calendar(calendarId)`: Elimina un calendari gestionat específic.
+    -   `google-disconnect`: Desconnecta el compte de Google i elimina tots els calendaris gestionats.
 
 -   **Accions de l'Aplicació:**
     -   `perform-hard-reset`: Realitza un "reset de fàbrica" eliminant els fitxers de dades, configuració i tokens, permetent a l'usuari començar de zero.
@@ -207,27 +226,9 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
 
 ### 3.4. Integració amb Serveis Externs: Google Calendar API
 
-Una de les funcionalitats clau del backend és gestionar la comunicació amb l'API de Google Calendar.
+Aquesta secció ha estat refactoritzada per suportar múltiples calendaris. Per a una descripció detallada del nou flux, vegeu la secció **5.1. Flux de Sincronització amb Google Calendar (Multi-Calendari)**.
 
--   **Credencials i Configuració:**
-    -   El fitxer `google-credentials.json` (no inclòs al repositori) conté el `client_id` i `client_secret` obtinguts de Google Cloud Console.
-    -   La funció `loadGoogleCredentials` llegeix aquest fitxer a l'inici i inicialitza el client `google.auth.OAuth2`.
-    -   Els tokens d'usuari (`access_token`, `refresh_token`) es guarden de forma segura a `google-tokens.json` a la carpeta de dades de l'usuari.
-
--   **Arquitectura Híbrida d'Autenticació:** Per millorar la seguretat, la integritat de les dades i seguir les millors pràctiques de Google, l'aplicació utilitza un model híbrid que combina un **Compte de Servei** i el flux **OAuth 2.0**, seguint el **Principi de Mínim Privilegi**.
-    -   **Compte de Servei (`service-account.json`):** És l'autenticació principal de l'aplicació. Actua com una entitat pròpia i és la **propietària** del calendari de l'app. S'encarrega de totes les operacions d'escriptura (crear/eliminar el calendari, afegir/esborrar esdeveniments). Això garanteix que l'aplicació sigui l'única font de veritat i que l'usuari no pugui modificar els esdeveniments directament a Google Calendar.
-    -   **OAuth 2.0 per a l'Usuari (`google-credentials.json`):** El flux d'autenticació de l'usuari ara té un propòsit molt limitat i de baix risc:
-        1.  Obtenir l'**adreça de correu electrònic** de l'usuari per poder compartir amb ell el calendari de l'app.
-        2.  Obtenir permís de **només lectura** (`calendar.readonly`) per poder visualitzar els altres calendaris de l'usuari a l'aplicació.
-
--   **Flux de Connexió per a l'Usuari:**
-    1.  L'usuari inicia la connexió i se l'envia al flux de consentiment de Google. Ara només ha d'acceptar permisos de baix risc (veure el seu email i els seus calendaris).
-    2.  L'aplicació rep els tokens OAuth 2.0 i immediatament fa una crida a l'API de Google People per obtenir i desar l'email de l'usuari a `google-config.json`.
-    3.  A la primera sincronització, l'aplicació utilitza el seu **Compte de Servei** per crear un nou calendari.
-    4.  Immediatament després, comparteix aquest calendari amb l'email de l'usuari, atorgant-li només el rol de **"lector" (`reader`)** i sense enviar notificacions per correu.
-    5.  A partir d'aquest moment, el calendari de l'app apareix al Google Calendar de l'usuari en mode de només lectura.
-
-----
+---
 
 ## 4. Frontend: Gestió d'Estat i Lògica de la UI (React)
 
@@ -263,7 +264,8 @@ El fitxer **`src/hooks/useEventDataManager.ts`** és el component més important
 
 4.  **Interacció amb el Backend:**
     -   Orquestra les crides a les funcions exposades a `window.electronAPI` per a operacions que requereixen accés natiu. Exemples:
-        -   `syncWithGoogle`: Recopila les dades locals amb `exportData()` i les envia al backend.
+        -   `syncWithGoogle`: Inicia el flux de sincronització, que ara obre un modal de selecció.
+        -   `executeSync`: Executa la sincronització real contra un calendari específic.
         -   `refreshGoogleEvents`: Demana al backend la llista actualitzada d'esdeveniments de Google Calendar.
 
 5.  **Persistència de Dades:**
@@ -284,6 +286,7 @@ Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les
 -   **`MaterialItem`**: Defineix un article a l'inventari, amb propietats com `stock` i `category`.
 -   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo, incloent sub-estructures com `TechSheetProvider` i `TechSheetNeed`.
 -   **`AppData`**: Defineix l'estructura de l'objecte que es desa al fitxer `events_data.json`, amb llistes planes per a cada tipus de dada per facilitar la serialització.
+-   **`GoogleConfig` i `ManagedAppCalendar`**: Tipifiquen la nova estructura de dades per a la configuració de Google.
 -   **`ElectronAPI`**: Tipifica l'objecte `window.electronAPI`, proporcionant autocompletat i seguretat de tipus en les comunicacions amb el backend.
 
 ### 4.3. Estructura de Components i Vistes
@@ -328,36 +331,50 @@ El component `Navigation.tsx` renderitza els enllaços (`NavLink`) que permeten 
 
 Aquesta secció descriu el funcionament intern de les característiques més importants de l'aplicació, detallant la interacció entre el backend, el frontend i la lògica de negoci.
 
-### 5.1. Flux de Sincronització amb Google Calendar
+### 5.1. Flux de Sincronització amb Google Calendar (Multi-Calendari)
 
-La integració amb Google Calendar és una funcionalitat opcional però potent que funciona de manera **unidireccional**: l'aplicació local és sempre la font de veritat, i els seus canvis sobreescriuen les dades al calendari de Google dedicat.
+La integració amb Google Calendar s'ha refactoritzat per passar d'un model 1-a-1 (una app, un calendari) a un model **1-a-N** (una app, N calendaris). L'aplicació local continua sent sempre la font de veritat.
 
-#### Flux d'Execució
+#### Arquitectura Híbrida d'Autenticació
 
-1.  **[UI] Inici de l'Acció:** L'usuari fa clic a "Sincronitzar".
-2.  **[Frontend] Crida al Backend:** S'invoca `window.electronAPI.syncWithGoogle(localData)`, enviant les dades actuals de l'aplicació al procés principal.
-3.  **[Backend] Gestor `sync-with-google`:** La lògica a `main.cjs` pren el control en una seqüència robusta:
-    a. **Gestió del Sufix del Calendari:** El sistema comprova si l'usuari ha canviat el sufix personalitzat del nom del calendari. Si és així, li demana confirmació per crear un nou calendari amb el nou nom, forçant la creació d'un calendari separat i evitant sobreescriure l'antic per error.
-    b. **Creació/Verificació del Calendari:** Si no hi ha cap calendari de l'app configurat, o si s'ha decidit crear-ne un de nou, s'invoca la lògica `findOrCreateAppCalendar` per crear-lo amb el Compte de Servei i compartir-lo amb l'usuari.
-    c. **Verificació i Autoreparació:** Abans de continuar, es comprova si el calendari de l'app encara existeix a Google. Si falla amb un error `404 Not Found` (perquè l'usuari l'ha eliminat manualment), el sistema activa el seu procés d'**autoreparació**: crea un nou calendari i el comparteix de nou, garantint la continuïtat.
-    d. **Confirmació de l'Usuari:** Es mostra un diàleg natiu advertint que l'operació sobreescriurà totes les dades del calendari de l'app a Google.
-    e. **Buidatge Complet:** Si l'usuari confirma, el sistema primer elimina **tots** els esdeveniments existents al calendari de Google de l'app. Aquesta operació es fa amb una petita pausa entre cada eliminació per evitar excedir els límits de l'API de Google.
-    f. **Pujada d'Esdeveniments amb Descripció Enriquida:** Finalment, el sistema itera sobre tots els esdeveniments locals i els crea de nou a Google. La descripció de cada esdeveniment de Google s'omple amb informació detallada de la fitxa de bolo, incloent seccions formatades per a **Personal Tècnic**, **Horaris** i altres detalls.
-4.  **[Frontend] Finalització:** El backend retorna les dades actualitzades (amb els nous ID d'esdeveniment de Google) al frontend, que actualitza el seu estat i mostra un missatge d'èxit.
+El model híbrid es manté:
+-   **Compte de Servei (`service-account.json`):** És l'autenticació principal de l'aplicació. Actua com una entitat pròpia i és la **propietària** dels calendaris de l'app. S'encarrega de totes les operacions d'escriptura (crear/eliminar calendaris, afegir/esborrar esdeveniments).
+-   **OAuth 2.0 per a l'Usuari (`google-credentials.json`):** El flux de l'usuari s'utilitza per obtenir el seu email i per llegir els seus calendaris personals (només lectura).
 
-#### Flux de Desconnexió i Neteja
+#### Flux de Creació d'un Nou Calendari Gestionat
 
-L'aplicació ofereix dues maneres de gestionar la neteja de la integració amb Google, donant control a l'usuari.
+1.  **[UI]** L'usuari obre el modal de configuració de Google (`GoogleSettingsModal`) i fa clic a "+ Crear Nou".
+2.  **[Frontend]** S'obre un nou modal dedicat (`CreateCalendarModal`) que demana un sufix per al nou calendari.
+3.  **[Frontend]** En confirmar, es crida a `window.electronAPI.createNewAppCalendar(suffix)`.
+4.  **[Backend]** El gestor `createNewAppCalendar` a `main.cjs`:
+    a. Comprova que no existeixi ja un calendari gestionat amb el mateix nom per evitar duplicats a la configuració.
+    b. Invoca `findOrCreateAppCalendar` que, utilitzant el Compte de Servei, crea un nou calendari a Google Calendar amb el nom `Gestor d'Esdeveniments (App) - [Sufix]` o reutilitza un d'existent amb el mateix nom.
+    c. Afegeix el nou calendari (amb el seu ID, nom i sufix) a la llista `managedAppCalendars` de `google-config.json`.
+    d. Estableix aquest nou calendari com a `activeAppCalendarId`.
+    e. Desa el fitxer de configuració i retorna la nova llista de calendaris al frontend.
+5.  **[Frontend]** El modal de creació es tanca i notifica al modal de configuració (mitjançant un `CustomEvent`) que ha de refrescar la seva llista de calendaris.
 
--   **Desconnexió Completa (`google-disconnect`):** Aquesta és l'opció principal, accessible des del modal de configuració. Executa una neteja total en tres passos:
-    1.  **Eliminació del Calendari Remot:** Utilitzant el **Compte de Servei**, es fa una crida a l'API per **eliminar permanentment** el calendari de l'aplicació que s'havia creat.
-    2.  **Revocació de Permisos:** Utilitzant el client **OAuth 2.0** de l'usuari, es revoquen els tokens d'accés, tallant formalment la connexió des del punt de vista de Google.
-    3.  **Neteja Local:** S'eliminen els fitxers `google-tokens.json` i `google-config.json` de l'ordinador de l'usuari.
+#### Flux de Sincronització Explícita
 
--   **Eliminació Només del Calendari (`delete-app-calendar`):** Aquesta és una acció més específica, pensada per a casos on l'usuari vol "començar de zero" amb el calendari sense desconnectar el seu compte.
-    1.  Utilitza el **Compte de Servei** per eliminar el calendari de l'app de Google.
-    2.  Neteja l'ID del calendari i el sufix de creació del fitxer `google-config.json` local, però **conserva** la resta de la configuració i els tokens de l'usuari. La propera sincronització crearà un calendari nou.
+1.  **[UI]** L'usuari fa clic al botó principal "Sincronitzar" o al botó "Sincronitzar Ara" dins del modal de configuració.
+2.  **[Frontend]** S'activa la lògica a `useEventDataManager`:
+    -   Si la sincronització es va iniciar des del botó principal, s'obre el modal `SelectSyncCalendarModal`, que mostra la llista de `managedAppCalendars` i permet a l'usuari triar una destinació. El calendari actiu (`activeAppCalendarId`) apareix preseleccionat.
+    -   Si es va iniciar des de la configuració, se salta aquest pas i s'utilitza directament l'ID del calendari actiu.
+3.  **[Frontend]** S'invoca la funció `executeSync(targetCalendarId)` amb l'ID del calendari escollit.
+4.  **[Frontend]** Es crida a `window.electronAPI.syncWithGoogle({ localData, targetCalendarId })`.
+5.  **[Backend]** El gestor `sync-with-google` a `main.cjs` executa la lògica:
+    a. **Verificació i Autoreparació:** Comprova si `targetCalendarId` encara existeix a Google. Si rep un error `404 Not Found`, l'elimina de la llista `managedAppCalendars` a la configuració local i retorna un error `CALENDAR_NOT_FOUND` al frontend.
+    b. **Confirmació de l'Usuari:** Mostra un diàleg advertint que l'operació sobreescriurà les dades.
+    c. **Buidatge i Càrrega:** Si es confirma, buida completament el calendari de destinació i hi puja tots els esdeveniments locals, enriquint la descripció amb dades de la fitxa de bolo.
+    d. **Actualització del Calendari Actiu:** Després d'una sincronització amb èxit, actualitza `activeAppCalendarId` al fitxer de configuració amb el `targetCalendarId` que s'acaba d'utilitzar.
+6.  **[Frontend]** El frontend gestiona la resposta:
+    -   En cas d'èxit, actualitza les dades i mostra una notificació.
+    -   Si rep l'error `CALENDAR_NOT_FOUND`, mostra un missatge a l'usuari i torna a obrir el modal de selecció perquè pugui triar un altre calendari.
 
+#### Flux de Neteja i Desconnexió
+
+-   **Eliminació d'un Sol Calendari (`delete-app-calendar`):** Des del modal de configuració, l'usuari pot eliminar un calendari gestionat específic. Aquesta acció l'esborra de Google i de la llista `managedAppCalendars` a la configuració.
+-   **Desconnexió Completa (`google-disconnect`):** Aquesta acció itera sobre **tots** els calendaris a `managedAppCalendars`, els elimina un per un de Google, revoca els tokens de l'usuari i esborra els fitxers de configuració locals.
 
 ### 5.2. Gestor de Fitxes de Bolo (`Tech Sheets`)
 
@@ -461,21 +478,6 @@ L'aplicació ofereix múltiples opcions per externalitzar i internalitzar dades,
 
 #### Exportació a PDF i CSV
 
--   **Lògica Centralitzada:** Tota la lògica de generació de documents es troba a **`src/utils/pdfGenerator.ts`**. Aquesta centralització fa que el manteniment dels formats d'exportació sigui més senzill.
--   **Exportació de Vistes Filtrades:**
-    -   `MainDisplay.tsx` manté un estat (`currentlyDisplayedFrames`) que reflecteix la llista d'esdeveniments actualment visibles segons els filtres aplicats.
-    -   Quan l'usuari clica "Exportar a CSV/PDF", aquesta llista filtrada és la que es passa a les funcions d'exportació, assegurant que l'arxiu generat sigui un reflex fidel del que l'usuari veu a la pantalla.
-
-La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha estat optimitzada per crear documents nets i rellevants:
-
--   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
--   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
--   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (p. ex., canviant de 'SI' a 'NO'), les dades associades s'esborren de l'estat, assegurant que el PDF reflecteixi sempre la informació visible.
----------
-
-
-#### Exportació a PDF i CSV
-
 -   **Lògica Centralitzada:** Tota la lògica de generació de documents es troba a **`src/utils/pdfGenerator.ts`** per als PDF i a **`src/utils/csvUtils.ts`** per a les utilitats de CSV. Aquesta centralització fa que el manteniment dels formats d'exportació sigui més senzill.
 -   **Exportació de Vistes Filtrades:**
     -   `MainDisplay.tsx` manté un estat (`currentlyDisplayedFrames`) que reflecteix la llista d'esdeveniments actualment visibles segons els filtres aplicats.
@@ -558,8 +560,6 @@ La conversió entre aquests dos formats es gestiona de manera centralitzada per 
 -   **Ús a l'Aplicació:**
     -   **Entrada de Dades:** Els formularis amb camps de data utilitzen `<input type="date">`, que internament treballa amb el format `YYYY-MM-DD`. Aquest és el format que es desa a l'estat de React.
     -   **Visualització de Dades:** Tots els components que mostren una data a l'usuari (les targetes d'esdeveniments, els modals de detalls, els resums, etc.) importen i utilitzen les funcions de `dateFormat.ts` per mostrar-les en format `DD/MM/YYYY`. De la mateixa manera, el generador de documents (`pdfGenerator.ts`) utilitza aquestes funcions per garantir que els PDF exportats siguin fàcilment llegibles.
-
-Aquesta estratègia permet mantenir un format de dades intern robust i estàndard, mentre s'aplica una capa de presentació consistent i amigable a tota la interfície d'usuari.
 
 ---
 
