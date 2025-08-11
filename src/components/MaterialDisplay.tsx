@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, useMemo, useCallback } from 'react';
+import React, { useState, FormEvent, useMemo, useCallback, useEffect } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { MaterialItem } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
