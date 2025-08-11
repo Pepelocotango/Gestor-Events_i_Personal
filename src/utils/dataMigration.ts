@@ -37,12 +37,13 @@ interface OldAssignmentData {
   }[];
 }
 
+import { formatDateDMY } from './dateFormat';
+
 export const migrateData = (
   peopleData?: OldPeopleData, 
   eventData?: OldEventData, 
   assignmentData?: OldAssignmentData
 ): AppData => {
-  // Convertir people a peopleGroups
   const peopleGroups: PersonGroup[] = (peopleData?.people || []).map(p => ({
     id: p.id.toString(),
     name: p.name,
@@ -54,18 +55,46 @@ export const migrateData = (
     notes: p.notes || ''
   }));
 
-  // Convertir events a eventFrames
-  const eventFrames: EventFrameForExport[] = (eventData?.eventFrames || []).map(e => ({
-    id: e.id.toString(),
-    name: e.eventName,
-    place: e.location || '',
-    startDate: e.generalStartDate,
-    endDate: e.generalEndDate || e.generalStartDate,
-    generalNotes: e.notesGeneral || '',
-    personnelComplete: e.isPersonnelComplete || false
-  }));
+  const eventFrames: EventFrameForExport[] = (eventData?.eventFrames || []).map(e => {
+    const eventFrame = {
+      id: e.id.toString(),
+      name: e.eventName,
+      place: e.location || '',
+      startDate: e.generalStartDate,
+      endDate: e.generalEndDate || e.generalStartDate,
+      generalNotes: e.notesGeneral || '',
+      personnelComplete: e.isPersonnelComplete || false,
+    };
+    return {
+      ...eventFrame,
+      techSheet: {
+        eventName: eventFrame.name,
+        location: eventFrame.place || '',
+        date: formatDateDMY(eventFrame.startDate),
+        showTime: '',
+        showDuration: '',
+        parkingInfo: '',
+        technicalProviders: [],
+        preAssemblySchedule: '',
+        assemblySchedule: [],
+        dressingRooms: '',
+        actors: '',
+        companyTechnicians: '',
+        lightingNeeds: [],
+        soundNeeds: [],
+        videoNeeds: [],
+        videoDetails: '',
+        machineryNeeds: [],
+        controlLocation: '',
+        otherEquipment: '',
+        rentals: '',
+        blueprints: '',
+        companyContact: '',
+        observations: '',
+      }
+    }
+  });
 
-  // Convertir assignments manteniendo las referencias
   const assignments: Assignment[] = (assignmentData?.assignments || []).map(a => ({
     id: a.id.toString(),
     eventFrameId: a.eventFrameId.toString(),
@@ -80,7 +109,7 @@ export const migrateData = (
     peopleGroups,
     eventFrames,
     assignments,
-    materialItems: [] // Es retorna un array buit, ja que les dades antigues no tenien material.
+    materialItems: []
   };
 };
 
@@ -98,53 +127,20 @@ const convertOldStatus = (status?: string): AssignmentStatus => {
 export const validateMigratedData = (data: AppData): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Validar que todos los IDs sean strings
-  if (data.peopleGroups.some(p => typeof p.id !== 'string')) {
-    errors.push('Algunos IDs de peopleGroups no son strings');
-  }
-  if (data.eventFrames.some(e => typeof e.id !== 'string')) {
-    errors.push('Algunos IDs de eventFrames no son strings');
-  }
-  if (data.assignments.some(a => typeof a.id !== 'string')) {
-    errors.push('Algunos IDs de assignments no son strings');
+  if (!data.peopleGroups || !Array.isArray(data.peopleGroups)) {
+    errors.push("El format de les dades de persones és invàlid.");
   }
 
-  // Validar referencias de assignments
-  data.assignments.forEach(a => {
-    if (!data.eventFrames.some(e => e.id === a.eventFrameId)) {
-      errors.push(`Assignment ${a.id} referencia a un eventFrame que no existe: ${a.eventFrameId}`);
-    }
-    if (!data.peopleGroups.some(p => p.id === a.personGroupId)) {
-      errors.push(`Assignment ${a.id} referencia a una persona que no existe: ${a.personGroupId}`);
-    }
-  });
+  if (!data.eventFrames || !Array.isArray(data.eventFrames)) {
+    errors.push("El format de les dades d'esdeveniments és invàlid.");
+  }
 
-  // Validar fechas
-  data.eventFrames.forEach(e => {
-    if (!isValidDate(e.startDate)) {
-      errors.push(`EventFrame ${e.id} tiene una fecha de inicio inválida: ${e.startDate}`);
-    }
-    if (!isValidDate(e.endDate)) {
-      errors.push(`EventFrame ${e.id} tiene una fecha de fin inválida: ${e.endDate}`);
-    }
-  });
-
-  data.assignments.forEach(a => {
-    if (!isValidDate(a.startDate)) {
-      errors.push(`Assignment ${a.id} tiene una fecha de inicio inválida: ${a.startDate}`);
-    }
-    if (!isValidDate(a.endDate)) {
-      errors.push(`Assignment ${a.id} tiene una fecha de fin inválida: ${a.endDate}`);
-    }
-  });
+  if (!data.assignments || !Array.isArray(data.assignments)) {
+    errors.push("El format de les dades d'assignacions és invàlid.");
+  }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
-};
-
-const isValidDate = (dateString: string): boolean => {
-  const date = new Date(dateString);
-  return date instanceof Date && !isNaN(date.getTime());
 };

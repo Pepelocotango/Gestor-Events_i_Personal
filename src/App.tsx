@@ -24,6 +24,8 @@ const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteM
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
 const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
+const SelectSyncCalendarModal = lazy(() => import('./components/modals/SelectSyncCalendarModal'));
+const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalendarModal'));
 
 interface ToastState {
   id: string;
@@ -72,7 +74,7 @@ const App: React.FC = () => {
   };
 
   // --- 3. INICIALITZACIÓ DEL HOOK DE DADES ---
-  const eventDataManagerHookResult = useEventDataManager(showToast);
+  const eventDataManagerHookResult = useEventDataManager(showToast, openModal, closeModal);
   
   const { 
     loadData: loadDataFromManager, 
@@ -94,6 +96,19 @@ const App: React.FC = () => {
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
+
+  useEffect(() => {
+    if (isSyncing) {
+      setLoadingOverlayMessage('Sincronitzant amb Google Calendar...');
+      setIsLoadingOverlayVisible(true);
+    } else {
+      // Només amaguem l'overlay si no hi ha un altre missatge de càrrega actiu
+      if (loadingOverlayMessage === 'Sincronitzant amb Google Calendar...') {
+        setIsLoadingOverlayVisible(false);
+        setLoadingOverlayMessage('');
+      }
+    }
+  }, [isSyncing]);
 
   useEffect(() => {
     let cleanupShowLoading: (() => void) | undefined;
@@ -256,7 +271,7 @@ const App: React.FC = () => {
         logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
         try {
           if (hasUnsavedChangesRef.current) { // Utilitza la referència
-            const dataToSave = exportDataFromManager();
+            const dataToSave = await exportDataFromManager();
             logger.info("Renderer: Desant dades abans de sortir...");
             await window.electronAPI?.saveAppData?.(dataToSave);
           } else {
@@ -330,20 +345,11 @@ const App: React.FC = () => {
     if (window.electronAPI) {
       const cleanup = window.electronAPI.onMenuAction((action) => {
         switch (action) {
-          case 'load-all':
-            controlsRef.current?.triggerLoadFile();
-            break;
           case 'save-all':
             controlsRef.current?.handleSaveData('all');
             break;
-          case 'load-material':
-            controlsRef.current?.triggerLoadMaterialFile();
-            break;
           case 'hard-reset':
             controlsRef.current?.handleRequestHardReset();
-            break;
-          case 'load-people':
-            controlsRef.current?.triggerLoadPeopleFile();
             break;
           case 'save-people':
             controlsRef.current?.handleSaveData('people');
@@ -371,6 +377,22 @@ const App: React.FC = () => {
       return cleanup;
     }
   }, [syncWithGoogle, openModal, toggleTheme]);
+
+  useEffect(() => {
+    if (window.electronAPI?.onFileDataLoaded) {
+      const cleanup = window.electronAPI.onFileDataLoaded((data) => {
+        logger.info('[IPC] Dades de fitxer rebudes des del menú', { type: data.type, fileName: data.fileName });
+        if (data.type === 'all') {
+          controlsRef.current?.processAllData(data.content, data.fileName);
+        } else if (data.type === 'material') {
+          controlsRef.current?.processMaterialData(data.content);
+        } else if (data.type === 'people') {
+          controlsRef.current?.processPeopleData(data.content);
+        }
+      });
+      return cleanup;
+    }
+  }, []);
 
   const handleExportCurrentViewToCsv = () => {
     const dataToExport: SummaryRow[] = [];
@@ -514,6 +536,7 @@ const App: React.FC = () => {
                   titleOverride={modalState.data!.titleOverride}
                   confirmButtonText={modalState.data!.confirmButtonText}
                   cancelButtonText={modalState.data!.cancelButtonText}
+                  requiresInput={modalState.data!.requiresInput}
                 />;
       case 'confirmDeleteEventFrame':
         return <ConfirmDeleteModal
@@ -539,6 +562,15 @@ const App: React.FC = () => {
       
       case 'googleSettings':
         return <GoogleSettingsModal onClose={closeModal} showToast={showToast} />;
+      case 'createAppCalendar':
+        return <CreateCalendarModal onClose={closeModal} showToast={showToast} />;
+      case 'selectSyncCalendar':
+        return <SelectSyncCalendarModal
+                  onClose={closeModal}
+                  onConfirm={modalState.data!.onConfirmSync!}
+                  managedCalendars={modalState.data!.managedCalendars!}
+                  activeCalendarId={modalState.data!.activeCalendarId!}
+                />;
       case 'mergeOrReplace':
         return (
           <MergeOrReplaceModal
@@ -578,6 +610,8 @@ const App: React.FC = () => {
       case 'editEventFrame': return "Editar Marc d'Esdeveniment";
       case 'addAssignment': return `Nova Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
       case 'editAssignment': return `Editar Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
+      case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
+      case 'createAppCalendar': return "Crear Nou Calendari de l'App";
       
       case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
@@ -589,23 +623,26 @@ const App: React.FC = () => {
   };
 
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
-    if (!modalState.type) return 'xl'; // Nou valor per defecte
+    if (!modalState.type) return 'xl';
     switch (modalState.type) {
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':
       case 'editAssignment':
       case 'eventFrameDetails':
-        return '4xl'; // Abans '2xl'
+        return '4xl';
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmHardReset':
-        return 'xl'; // Abans 'lg'
+        return 'xl';
       case 'googleSettings':
-        return '2xl'; // Mida adequada per a la configuració
+        return '2xl';
+      case 'selectSyncCalendar':
+      case 'createAppCalendar':
+          return 'xl';
       case 'mergeOrReplace':
-        return 'lg'; // Mantenim una mida més petita per a aquest diàleg
-      default: return 'xl'; // Nou valor per defecte
+        return 'lg';
+      default: return 'xl';
     }
   }
 
@@ -613,8 +650,8 @@ const App: React.FC = () => {
     <EventDataProvider value={contextValue}>
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm py-2">
-            <div className="container mx-auto px-4">
+          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm p-2">
+            <div className="container mx-auto">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   ref={controlsRef}
@@ -636,7 +673,7 @@ const App: React.FC = () => {
             </div>
           </header>
 
-          <main className="container mx-auto px-4 pt-2 pb-4 flex-grow">
+          <main className="container mx-auto p-1 flex-grow">
             <Suspense fallback={<div className="text-center p-8">Carregant vista...</div>}>
               <Routes>
                 <Route
@@ -663,8 +700,10 @@ const App: React.FC = () => {
             </Suspense>
           </main>
 
+
           <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
-            © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.4.0-dev. Evolució Gestió Integral d'Esdeveniments v10.1.
+            © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.5.2. Evolució Gestió Integral d'Esdeveniments v10.1.
+
           </footer>
 
           <Modal

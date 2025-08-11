@@ -6,33 +6,54 @@ interface CollapsibleSectionProps {
   icon?: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  isExpanded?: boolean; // Prop per controlar l'estat des de fora
+  onToggle?: () => void; // Callback per notificar el canvi d'estat
   id?: string;
   headerClassName?: string;
   contentClassName?: string;
 }
 
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ 
-  title, 
-  icon, 
-  children, 
-  defaultOpen = false, 
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
+  title,
+  icon,
+  children,
+  defaultOpen = false,
+  isExpanded,
+  onToggle,
   id,
   headerClassName = '',
   contentClassName = ''
 }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
+
+  // Determina si el component està obert. Prioritza el prop extern si existeix.
+  const isOpen = isExpanded !== undefined ? isExpanded : internalIsOpen;
+
+  const handleToggle = () => {
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalIsOpen(prev => !prev);
+    }
+  };
+
   const buttonId = id ? `${id}-button` : undefined;
   const contentId = id ? `${id}-content` : undefined;
 
-  useEffect(() => { setIsOpen(defaultOpen); }, [defaultOpen]);
+  // Sincronitza l'estat intern si el prop extern canvia (només per al cas no controlat)
+  useEffect(() => {
+    if (isExpanded === undefined) {
+      setInternalIsOpen(defaultOpen);
+    }
+  }, [defaultOpen, isExpanded]);
 
   return (
     <div className="mb-2 bg-white dark:bg-gray-800 shadow rounded-lg">
-      <button 
-        id={buttonId} 
-        onClick={() => setIsOpen(!isOpen)} 
-        className={`w-full flex justify-between items-center p-3 text-left font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg ${headerClassName}`} 
-        aria-expanded={isOpen} 
+      <button
+        id={buttonId}
+        onClick={handleToggle}
+        className={`w-full flex justify-between items-center p-3 text-left font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg ${headerClassName}`}
+        aria-expanded={isOpen}
         aria-controls={contentId}
       >
         <div className="flex items-center gap-2">

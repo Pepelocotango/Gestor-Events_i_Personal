@@ -27,6 +27,11 @@ jobs:
         env:
           CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
         run: echo "$CREDENTIALS_JSON" > google-credentials.json
+      
+      - name: 4.6 Create service-account.json from secret
+        env:
+          SERVICE_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+        run: echo "$SERVICE_JSON" > service-account.json
 
       - name: Comprova que google-credentials.json existeix i no està buit
         run: |
@@ -35,8 +40,15 @@ jobs:
             exit 1
           fi
 
-      - name: 5. Pujada dels artefactes de macOS
+      - name: 5. Creació del paquet ZIP per a macOS
+        run: |
+          DMG_NAME="GestorEsdevenimentsPersonal_v0.5.2-macOS-10.15+.dmg"
+          ZIP_NAME="GestorEsdevenimentsPersonal_v0.5.2-macOS.zip"
+          mv "dist/${DMG_NAME}" .
+          zip -r "${ZIP_NAME}" "${DMG_NAME}" LICENSE README.md DEVELOPING.md "examples json"
+
+      - name: 6. Pujada del ZIP de macOS com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdeveniments-macOS-x64-v0.4.0-dev
-          path: dist/
+          name: GestorEsdevenimentsPersonal_v0.5.2-macOS.zip
+          path: GestorEsdevenimentsPersonal_v0.5.2-macOS.zip

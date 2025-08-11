@@ -1,7 +1,7 @@
 {
   "name": "gestor-esdeveniments-personal",
-  "productName": "Gestor de Esdeveniments i Personal v0.4.0-dev",
-  "version": "0.4.0-dev",
+  "productName": "GestorEsdevenimentsPersonal",
+  "version": "0.5.2",
   "description": "Una aplicació per gestionar esdeveniments i personal",
   "author": "Pep",
   "main": "main.cjs",
@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "electron": "wait-on tcp:3000 && electron .",
+    "electron": "wait-on tcp:5173 && electron .",
     "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
     "build:electron": "npm run build && electron-builder",
     "dist": "electron-builder",
@@ -55,7 +55,7 @@
   },
   "build": {
     "appId": "com.gestorevents.app",
-    "productName": "gestor-esdeveniments",
+    "productName": "GestorEsdevenimentsPersonal",
     "directories": {
       "output": "dist"
     },
@@ -63,31 +63,31 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
-      "google-credentials.json"
+      "google-credentials.json",
+      "service-account.json"
     ],
-"extraResources": [
-  {
-    "from": "examples json",
-    "to": "examples json"
-  },
-  {
-    "from": "LICENSE",
-    "to": "LICENSE"
-  },
-  {
-    "from": "README.md",
-    "to": "README.md"
-  },
-  {
-    "from": "DEVELOPING.md",
-    "to": "DEVELOPING.md"
-  }
-],
+    "extraResources": [
+      {
+        "from": "examples json",
+        "to": "examples json"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "README.md",
+        "to": "README.md"
+      },
+      {
+        "from": "DEVELOPING.md",
+        "to": "DEVELOPING.md"
+      }
+    ],
     "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Office"
+      "target": "AppImage",
+      "category": "Office",
+      "artifactName": "${productName}_v${version}-Linux-Ubuntu18.04+.${ext}"
     },
     "win": {
       "target": [
@@ -103,7 +103,8 @@
       ],
       "category": "public.app-category.productivity",
       "icon": "public/icon.icns",
-      "identity": null
+      "identity": null,
+      "artifactName": "${productName}_v${version}-macOS-10.15+.${ext}"
     }
   }
 }

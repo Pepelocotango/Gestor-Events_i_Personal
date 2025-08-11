@@ -1,9 +1,10 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useMemo } from 'react';
 import { saveAs } from 'file-saver';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup } from '../types';
 import { TrashIcon, EditIcon, CsvIcon, PdfIcon } from '../constants';
 import { exportPeopleToPdf } from '../utils/pdfGenerator';
+import { escapeCsvCell } from '../utils/csvUtils';
 
 
 const PeopleDisplay: React.FC = () => {
@@ -29,6 +30,8 @@ const PeopleDisplay: React.FC = () => {
       .trim();
   }
 
+  const [sortConfig, setSortConfig] = useState<{ key: keyof PersonGroup, direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
+
   const filteredPeopleGroups = peopleGroups.filter(pg => {
     if (!search.trim()) return true;
     const s = normalize(search);
@@ -37,6 +40,30 @@ const PeopleDisplay: React.FC = () => {
       .map(val => normalize(val!))
       .some(val => val.includes(s));
   });
+
+  const sortedPeopleGroups = useMemo(() => {
+    const sortableItems = [...filteredPeopleGroups];
+    sortableItems.sort((a, b) => {
+      const valA = a[sortConfig.key];
+      const valB = b[sortConfig.key];
+      let comparison = 0;
+
+      if (valA === undefined || valA === null || valA === '') comparison = 1;
+      else if (valB === undefined || valB === null || valB === '') comparison = -1;
+      else comparison = String(valA).localeCompare(String(valB), 'ca', { sensitivity: 'base' });
+
+      return sortConfig.direction === 'ascending' ? comparison : -comparison;
+    });
+    return sortableItems;
+  }, [filteredPeopleGroups, sortConfig]);
+
+  const requestSort = (key: keyof PersonGroup) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
 
@@ -129,16 +156,17 @@ const PeopleDisplay: React.FC = () => {
   const exportPeopleToCSV = async () => {
     const header = ['Nom', 'Rol', 'Telèfon 1', 'Telèfon 2', 'Email', 'Web', 'Notes'];
     const rows = filteredPeopleGroups.map(p => [
-      p.name || '',
-      p.role || '',
-      p.tel1 || '',
-      p.tel2 || '',
-      p.email || '',
-      p.web || '',
-      p.notes || ''
+      p.name,
+      p.role,
+      p.tel1,
+      p.tel2,
+      p.email,
+      p.web,
+      p.notes
     ]);
-    const csv = [header, ...rows]
-      .map(row => row.map(field => '"' + String(field).replace(/"/g, '""') + '"').join(','))
+
+    const csvContent = [header, ...rows]
+      .map(row => row.map(escapeCsvCell).join(','))
       .join('\n');
 
     const today = new Date().toISOString().slice(0, 10);
@@ -149,7 +177,7 @@ const PeopleDisplay: React.FC = () => {
         title: 'Desar CSV',
         defaultPath: filename,
         filters: [{ name: 'CSV', extensions: ['csv'] }],
-        data: csv,
+        data: "\uFEFF" + csvContent,
       });
       if (result.success) {
         showToast('CSV desat amb èxit!', 'success');
@@ -157,7 +185,7 @@ const PeopleDisplay: React.FC = () => {
         showToast(`Error en desar el CSV: ${result.message}`, 'error');
       }
     } else {
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8' });
       saveAs(blob, filename);
     }
   };
@@ -167,13 +195,13 @@ const PeopleDisplay: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Gestor de Persones i Grups</h2>
+    <div className="space-y-4">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Gestor de Persones i Grups</h2>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Columna del formulari */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <form onSubmit={handleSubmit} className="space-y-4" aria-labelledby="people-group-form-title">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                <form onSubmit={handleSubmit} className="space-y-3" aria-labelledby="people-group-form-title">
                     <div className="flex items-center justify-between mb-2">
                         <h4 id="people-group-form-title" className="text-lg font-medium text-gray-800 dark:text-gray-200">{editingPerson ? 'Editar Persona/Grup' : 'Afegir Nova Persona/Grup'}</h4>
                         {editingPerson && (
@@ -184,11 +212,11 @@ const PeopleDisplay: React.FC = () => {
                             aria-label="Eliminar aquesta persona/grup"
                             className="ml-2 p-2 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-700 dark:hover:bg-red-800 text-red-600 dark:text-red-200 transition-colors"
                             >
-                            <TrashIcon className="w-5 h-5" />
+                            <TrashIcon className="w-4 h-4" />
                             </button>
                         )}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2 gap-y-2">
                         <div>
                             <label htmlFor="pg-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom</label>
                             <input type="text" id="pg-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required aria-required="true" />
@@ -222,44 +250,53 @@ const PeopleDisplay: React.FC = () => {
                         <textarea id="pg-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={commonInputClass}></textarea>
                     </div>
                     <div className="flex justify-end space-x-2 pt-2">
-                        {editingPerson && <button type="button" onClick={resetForm} className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar Edició</button>}
-                        <button type="submit" className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{editingPerson ? 'Actualitzar' : 'Afegir'}</button>
+                        {editingPerson && <button type="button" onClick={resetForm} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar Edició</button>}
+                        <button type="submit" className="px-2 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{editingPerson ? 'Actualitzar' : 'Afegir'}</button>
                     </div>
                 </form>
             </div>
 
             {/* Columna de la llista */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
                 <div className="flex items-center justify-between mb-2">
                     <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Llista de Persones/Grups</h4>
                     <div className="flex items-center gap-2">
-                        <button type="button" onClick={exportPeopleToCSV} className="p-2 rounded-md bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700/60" title="Exportar a CSV">
-                            <CsvIcon className="w-5 h-5" />
+                        <button type="button" onClick={exportPeopleToCSV} className="p-1 rounded-md bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700/60" title="Exportar a CSV">
+                            <CsvIcon className="w-4 h-4" />
                         </button>
-                        <button type="button" onClick={exportToPdf} className="p-2 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60" title="Exportar a PDF">
-                            <PdfIcon className="w-5 h-5" />
+                        <button type="button" onClick={exportToPdf} className="p-1 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60" title="Exportar a PDF">
+                            <PdfIcon className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
-                <div className="mb-3 flex items-center gap-2">
+                <div className="mb-2 flex items-center gap-2">
                     <span className="text-gray-500 dark:text-gray-400">
                     <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline align-middle"><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/></svg>
                     </span>
                     <input
                     type="search"
-                    className="block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Cerca per nom, rol, email, tel..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     aria-label="Cercar persona o grup"
                     />
                 </div>
-                {filteredPeopleGroups.length === 0 ? (
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium">Ordenar per:</span>
+                    <button onClick={() => requestSort('name')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>
+                        Nom {sortConfig.key === 'name' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                    </button>
+                    <button onClick={() => requestSort('role')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'role' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>
+                        Rol {sortConfig.key === 'role' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                    </button>
+                </div>
+                {sortedPeopleGroups.length === 0 ? (
                     <p className="text-gray-500 dark:text-gray-400">No hi ha persones o grups que coincideixin amb la cerca.</p>
                 ) : (
-                    <ul className="space-y-2 max-h-[60vh] overflow-y-auto" aria-label="Llista de persones i grups existents">
-                    {filteredPeopleGroups.map(p => (
-                        <li key={p.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <ul className="space-y-1 max-h-[55vh] overflow-y-auto" aria-label="Llista de persones i grups existents">
+                    {sortedPeopleGroups.map((p: PersonGroup) => (
+                        <li key={p.id} className="p-2 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                         <div className="flex justify-between items-start">
                             <div className="flex-grow">
                                 <span className="font-semibold text-gray-800 dark:text-gray-100">{p.name}</span>
@@ -285,12 +322,12 @@ const PeopleDisplay: React.FC = () => {
 
         {showDeleteModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full">
-                    <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">Confirmar Eliminació</h3>
-                    <p className="mb-6 text-gray-700 dark:text-gray-300">Segur que vols eliminar <span className="font-bold">{editingPerson?.name}</span>? Aquesta acció no es pot desfer.</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm w-full">
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">Confirmar Eliminació</h3>
+                    <p className="mb-4 text-gray-700 dark:text-gray-300">Segur que vols eliminar <span className="font-bold">{editingPerson?.name}</span>? Aquesta acció no es pot desfer.</p>
                     <div className="flex justify-end gap-2">
-                    <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
-                    <button onClick={confirmActualDeletePerson} className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">Eliminar</button>
+                    <button onClick={() => setShowDeleteModal(false)} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
+                    <button onClick={confirmActualDeletePerson} className="px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">Eliminar</button>
                     </div>
                 </div>
             </div>

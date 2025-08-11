@@ -33,6 +33,7 @@ export interface Assignment {
 
 export interface TechSheetRoleItem {
   id: string; // ID únic per a la clau de React
+  assignmentId?: string; // ID de l'assignació original
   role: string;
   quantity: number | string; // Permetem string per a l'entrada de text
   notes?: string;
@@ -42,6 +43,7 @@ export interface TechSheetProvider {
   id: string; // ID únic per a la clau de React
   personGroupId: string; // Enllaç al PersonGroup (empresa o autònom)
   roles: TechSheetRoleItem[]; // Llista de rols que proporciona
+  isManual?: boolean; // Per identificar proveïdors afegits manualment
 }
 
 export interface TechSheetScheduleItem {
@@ -128,12 +130,35 @@ export interface MaterialItem {
   notes?: string;
 }
 
+export interface ManagedAppCalendar {
+  id: string;
+  name: string;
+  suffix: string;
+}
+
+export interface GoogleConfig {
+  userEmail?: string;
+  activeAppCalendarId?: string | null;
+  managedAppCalendars?: ManagedAppCalendar[];
+  selectedCalendarIds?: string[];
+  // Obsolete fields, for migration/safety
+  appCalendarId?: string;
+  calendarSuffix?: string;
+  createdWithSuffix?: string;
+}
+
+export interface GoogleConfigForExport {
+  userEmail?: string;
+  activeAppCalendarId?: string | null;
+  managedAppCalendars?: ManagedAppCalendar[];
+}
+
 export interface AppData {
   eventFrames: EventFrameForExport[];
   peopleGroups: PersonGroup[];
   materialItems: MaterialItem[];
   assignments: Assignment[];
-  googleConfig?: GoogleConfig;
+  googleConfig?: GoogleConfigForExport;
 }
 
 export interface InitialEventFrameData {
@@ -142,8 +167,8 @@ export interface InitialEventFrameData {
 }
 
 export type ShowToastFunction = (
-  message: string, 
-  type?: 'success' | 'error' | 'info' | 'warning', 
+  message: string,
+  type?: 'success' | 'error' | 'info' | 'warning',
   persistent?: boolean
 ) => void;
 
@@ -160,6 +185,8 @@ export type ModalType =
   | 'googleSettings'
   | 'confirmHardReset'
   | 'mergeOrReplace'
+  | 'selectSyncCalendar'
+  | 'createAppCalendar'
   | null;
 
 export interface ModalData {
@@ -173,12 +200,16 @@ export interface ModalData {
     startDate?: string;
     endDate?: string;
     itemType?: string;
-    onConfirmSpecial?: () => void;
+    onConfirmSpecial?: (inputValue?: string) => void;
     confirmButtonText?: string;
     cancelButtonText?: string;
     onCloseModal?: () => void;
     titleOverride?: string;
     newData?: PersonGroup[] | MaterialItem[];
+    requiresInput?: boolean;
+    managedCalendars?: ManagedAppCalendar[];
+    activeCalendarId?: string | null;
+    onConfirmSync?: (targetCalendarId: string) => void;
 }
 
 export interface ModalState {
@@ -195,7 +226,7 @@ export interface EventDataConteImplicits {
   deleteEventFrame: (eventFrameId: string) => void;
   getEventFrameById: (eventFrameId: string) => EventFrame | undefined;
   openModal: (type: ModalType, data?: ModalData) => void;
-  showToast: ShowToastFunction; // <<< LÍNIA AFEGIDA
+  showToast: ShowToastFunction;
   addPersonGroup: (personGroup: Omit<PersonGroup, 'id'>) => void;
   updatePersonGroup: (personGroup: PersonGroup) => void;
   deletePersonGroup: (personGroupId: string) => void;
@@ -203,8 +234,8 @@ export interface EventDataConteImplicits {
   addAssignment: (eventFrameId: string, assignment: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>) => { success: boolean; message?: string; warningMessage?: string };
   updateAssignment: (assignment: Assignment, context?: { changedDate?: string }) => { success: boolean; message?: string; warningMessage?: string };
   deleteAssignment: (eventFrameId: string, assignmentId: string) => void;  getAssignmentById: (eventFrameId: string, assignmentId: string) => Assignment | undefined;
-  loadData: (data: AppData | null) => void;
-  exportData: () => AppData;
+  loadData: (data: AppData | null) => Promise<void>;
+  exportData: () => Promise<AppData>;
   setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: (value: boolean) => void;
@@ -213,8 +244,6 @@ export interface EventDataConteImplicits {
   syncWithGoogle: () => Promise<void>;
   isSyncing: boolean;
   addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
-
-  
   materialItems: MaterialItem[];
   addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => void;
   updateMaterialItem: (updatedItem: MaterialItem) => void;
@@ -224,6 +253,7 @@ export interface EventDataConteImplicits {
   mergePeopleGroups: (newPeople: PersonGroup[]) => void;
   replacePeopleGroups: (newPeople: PersonGroup[]) => void;
   replaceMaterialItems: (newItems: MaterialItem[]) => void;
+  executeSync: (targetCalendarId: string) => Promise<void>;
 }
 
 export type EventDataManagerReturn = Omit<EventDataConteImplicits, 'openModal' | 'showToast'>;
@@ -285,11 +315,6 @@ export interface CalendarEventFrameEvent extends BaseCalendarEvent {
 }
 
 export type CalendarEventType = CalendarAssignmentEvent | CalendarEventFrameEvent;
-export interface GoogleConfig {
-  selectedCalendarIds: string[];
-  appCalendarId?: string;
-  calendarSuffix?: string;
-}
 
 export interface GoogleCalendar {
   id: string;
@@ -315,18 +340,20 @@ export interface ShowSaveDialogResult {
 export interface ElectronAPI {
   showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
   loadAppData: () => Promise<any>;
-  saveAppData: (data: any) => Promise<boolean>;
-  loadGoogleConfig: () => Promise<any>;
+  saveAppData: (data: AppData) => Promise<boolean>;
+  loadGoogleConfig: () => Promise<GoogleConfig | null>;
   onConfirmQuit: (callback: () => void) => void;
   sendQuitConfirmedByRenderer: () => void;
   startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
   onGoogleAuthSuccess: (callback: () => void) => void;
   onGoogleAuthError: (callback: (errorMessage: string) => void) => void;
-  getCalendarList: () => Promise<any>;
-  saveGoogleConfig: (config: any) => Promise<any>;
-  getGoogleEvents: () => Promise<any>;
-  syncWithGoogle: (localData: any) => Promise<any>;
-  clearGoogleAppCalendar: () => Promise<any>;
+  getCalendarList: () => Promise<{ success: boolean, calendars?: GoogleCalendar[], message?: string }>;
+  saveGoogleConfig: (config: Partial<GoogleConfig>) => Promise<{ success: boolean, data?: GoogleConfig, message?: string }>;
+  getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
+  syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
+  googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
+  deleteAppCalendar: (calendarId: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
+  createNewAppCalendar: (suffix: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
   getDefaultDataPath: () => Promise<string>;
   performHardReset: () => Promise<{ success: boolean; message?: string }>;
   onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
@@ -334,6 +361,9 @@ export interface ElectronAPI {
   showLoadingOverlay: (callback: (message: string) => void) => () => void;
   hideLoadingOverlay: (callback: () => void) => () => void;
   onMenuAction: (callback: (action: string) => void) => () => void;
+  onFileDataLoaded: (callback: (data: { type: string; content: string; fileName: string }) => void) => () => void;
+  getSessionData: () => Promise<any>;
+  saveSessionData: (key: string, value: any) => Promise<void>;
   log: (message: string, data?: any) => void;
 }
 

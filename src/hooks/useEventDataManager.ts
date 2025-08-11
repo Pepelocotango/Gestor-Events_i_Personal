@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem, ModalType, ModalData } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import logger from '../utils/logger';
 
@@ -12,7 +12,7 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
   showTime: '',
   showDuration: '',
   parkingInfo: '',
-  technicalProviders: [], // Abans 'technicalPersonnel'
+  technicalProviders: [],
   preAssemblySchedule: '',
   assemblySchedule: [],
   dressingRooms: '',
@@ -35,6 +35,8 @@ type AssignmentOperationResult = { success: boolean; message?: string; warningMe
 
 export const useEventDataManager = (
   showToast: ShowToastFunction,
+  openModal: (type: ModalType, data?: ModalData) => void,
+  closeModal: () => void,
 ): EventDataManagerReturn => {
   const [eventFrames, setEventFrames] = useState<EventFrame[]>([]);
   const [peopleGroups, setPeopleGroups] = useState<PersonGroup[]>([]);
@@ -57,14 +59,17 @@ export const useEventDataManager = (
 
   const refreshGoogleEvents = useCallback(async () => {
     if (window.electronAPI?.getGoogleEvents) {
-        const result = await window.electronAPI.getGoogleEvents();
-        if (result.success && result.events) {
-            setGoogleEvents(result.events);
-        } else if (result.message) {
-            console.error("Error refrescant esdeveniments de Google:", result.message);
-        }
+      const result = await window.electronAPI.getGoogleEvents();
+      if (result.success && result.events) {
+        setGoogleEvents(result.events);
+      } else if (result.message) {
+        console.error("Error refrescant esdeveniments de Google:", result.message);
+        showToast(result.message, 'error');
+      }
+    } else {
+      console.warn("La funció 'getGoogleEvents' no està disponible fora d'Electron.");
     }
-  }, []);
+  }, [showToast]);
 
   const addEventFrame = useCallback((newEventFrameData: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): EventFrame => {
     logger.info('[ACTION] addEventFrame', { name: newEventFrameData.name });
@@ -82,12 +87,14 @@ export const useEventDataManager = (
   
   const updateEventFrame = useCallback((updatedEventFrame: EventFrame) => {
     logger.info('[ACTION] updateEventFrame', { id: updatedEventFrame.id, name: updatedEventFrame.name });
-    if (!updatedEventFrame.techSheet) {
-      logger.info(`Generant fitxa tècnica per a l'esdeveniment antic: ${updatedEventFrame.name}`);
-      updatedEventFrame.techSheet = createDefaultTechSheet(updatedEventFrame);
+
+    let finalUpdatedEventFrame = { ...updatedEventFrame };
+    if (!finalUpdatedEventFrame.techSheet) {
+      logger.info(`Generant fitxa tècnica per a l'esdeveniment antic: ${finalUpdatedEventFrame.name}`);
+      finalUpdatedEventFrame.techSheet = createDefaultTechSheet(finalUpdatedEventFrame);
     }
 
-    setEventFrames(prev => prev.map(ef => ef.id === updatedEventFrame.id ? updatedEventFrame : ef)
+    setEventFrames(prev => prev.map(ef => ef.id === finalUpdatedEventFrame.id ? finalUpdatedEventFrame : ef)
       .sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name))
     );
     markUnsaved();
@@ -173,44 +180,48 @@ markUnsaved();
     const materialItem = materialItemsRef.current.find(item => item.id === materialId);
     if (!materialItem) return { available: 0, total: 0 };
 
-    let committedStock = 0;
     const start = new Date(startDate);
     const end = new Date(endDate);
+    let minAvailable = materialItem.stock;
 
-    eventFramesRef.current.forEach(ef => {
-      // No comptem el material de l'esdeveniment que estem editant
-      if (ef.id === currentEventFrameId) return;
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const currentDate = new Date(d);
+      let dailyCommittedStock = 0;
 
-      const efStart = new Date(ef.startDate);
-      const efEnd = new Date(ef.endDate);
+      eventFramesRef.current.forEach(ef => {
+        if (ef.id === currentEventFrameId) return;
 
-      // Comprovem si hi ha solapament de dates
-      if (start <= efEnd && end >= efStart) {
-        const needsLists: (keyof TechSheetData)[] = ['lightingNeeds', 'soundNeeds', 'videoNeeds', 'machineryNeeds'];
-        needsLists.forEach(listKey => {
-          const needs = ef.techSheet?.[listKey];
-          if (Array.isArray(needs)) {
-            needs.forEach(need => {
-              
-              if (typeof need === 'object' && need !== null && 'materialItemId' in need && 'quantity' in need) {
-                if (need.materialItemId === materialId) {
-                  committedStock += Number(need.quantity) || 0;
+        const efStart = new Date(ef.startDate);
+        const efEnd = new Date(ef.endDate);
+
+        if (currentDate >= efStart && currentDate <= efEnd) {
+          const needsLists: (keyof TechSheetData)[] = ['lightingNeeds', 'soundNeeds', 'videoNeeds', 'machineryNeeds'];
+          needsLists.forEach(listKey => {
+            const needs = ef.techSheet?.[listKey];
+            if (Array.isArray(needs)) {
+              needs.forEach(need => {
+                if (typeof need === 'object' && need !== null && 'materialItemId' in need && 'quantity' in need && need.materialItemId === materialId) {
+                  dailyCommittedStock += Number(need.quantity) || 0;
                 }
-              }
-            });
-          }
-        });
+              });
+            }
+          });
+        }
+      });
+
+      const availableOnDay = materialItem.stock - dailyCommittedStock;
+      if (availableOnDay < minAvailable) {
+        minAvailable = availableOnDay;
       }
-    });
+    }
 
     return {
       total: materialItem.stock,
-      available: materialItem.stock - committedStock,
+      available: minAvailable,
     };
   }, [eventFramesRef, materialItemsRef]);
 
   const addMaterialItemsFromFile = useCallback((newItems: MaterialItem[]) => {
-    // Filtrem per evitar duplicats basats en el nom (podria ser un ID si el JSON en tingués)
     const existingNames = new Set(materialItemsRef.current.map(item => item.name.toLowerCase()));
     const itemsToAdd = newItems.filter(newItem => !existingNames.has(newItem.name.toLowerCase()));
     
@@ -385,7 +396,55 @@ markUnsaved();
     return eventFrame?.assignments.find(a => a.id === assignmentId);
   }, [eventFrames]);
 
-  const loadData = useCallback((data: AppData | null) => {
+  const validateMigratedData = useCallback((data: AppData): boolean => {
+    const errors: string[] = [];
+    const isValidDate = (dateString: string): boolean => {
+      const date = new Date(dateString);
+      return date instanceof Date && !isNaN(date.getTime());
+    };
+
+    if (data.peopleGroups.some(p => typeof p.id !== 'string')) errors.push('Alguns IDs de grups de persones no són strings.');
+    if (data.eventFrames.some(e => typeof e.id !== 'string')) errors.push('Alguns IDs de marcs d\'esdeveniments no són strings.');
+    if (data.assignments.some(a => typeof a.id !== 'string')) errors.push('Alguns IDs d\'assignacions no són strings.');
+
+    data.assignments.forEach(a => {
+      if (!data.eventFrames.some(e => e.id === a.eventFrameId)) errors.push(`L'assignació ${a.id} fa referència a un esdeveniment que no existeix: ${a.eventFrameId}`);
+      if (!data.peopleGroups.some(p => p.id === a.personGroupId)) errors.push(`L'assignació ${a.id} fa referència a una persona que no existeix: ${a.personGroupId}`);
+    });
+
+    data.eventFrames.forEach(e => {
+      if (!isValidDate(e.startDate)) errors.push(`L'esdeveniment ${e.id} té una data d'inici invàlida: ${e.startDate}`);
+      if (!isValidDate(e.endDate)) errors.push(`L'esdeveniment ${e.id} té una data de finalització invàlida: ${e.endDate}`);
+    });
+
+    data.assignments.forEach(a => {
+      if (!isValidDate(a.startDate)) errors.push(`L'assignació ${a.id} té una data d'inici invàlida: ${a.startDate}`);
+      if (!isValidDate(a.endDate)) errors.push(`L'assignació ${a.id} té una data de finalització invàlida: ${a.endDate}`);
+    });
+
+    if (errors.length > 0) {
+      logger.error("Errors de validació de dades:", errors);
+      showToast(`Errors de validació de dades: ${errors.join(', ')}`, 'error');
+      return false;
+    }
+
+    return true;
+  }, [showToast]);
+
+  const loadData = useCallback(async (data: AppData | null) => {
+    const electronAPI = window.electronAPI;
+    if (data?.googleConfig && electronAPI) {
+      try {
+        await electronAPI.saveGoogleConfig(data.googleConfig);
+        showToast("Configuració de Google carregada des del fitxer.", 'info');
+        window.dispatchEvent(new CustomEvent('googleConfigChanged'));
+        await refreshGoogleEvents();
+      } catch (error) {
+        console.error("Error desant la configuració de Google del fitxer:", error);
+        showToast("No s'ha pogut actualitzar la configuració de Google del fitxer.", 'error');
+      }
+    }
+
     if (!data) {
       setEventFrames([]);
       setPeopleGroups([]);
@@ -393,12 +452,13 @@ markUnsaved();
       return;
     }
 
+    if (!validateMigratedData(data)) {
+      showToast("Les dades carregades no són vàlides i no es poden carregar.", "error");
+      return;
+    }
+
     const loadedEventFrames: EventFrame[] = (data.eventFrames || []).map((efExport: EventFrameForExport) => {
       const defaultTechSheet = createDefaultTechSheet(efExport);
-      // <<< LÒGICA DE CURACIÓ AUTOMÀTICA >>>
-      // Fusiona la fitxa existent (si n'hi ha) amb la per defecte.
-      // Això assegura que els esdeveniments antics rebin la fitxa
-      // i que els que ja en tenien rebin els camps nous que s'hagin afegit.
       const finalTechSheet = { ...defaultTechSheet, ...efExport.techSheet };
 
       return {
@@ -439,19 +499,38 @@ markUnsaved();
     setEventFrames(loadedEventFrames.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)));
     setPeopleGroups((data.peopleGroups || []).sort((a,b) => a.name.localeCompare(b.name)));
     setMaterialItems((data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)));
-  }, []);
+  }, [refreshGoogleEvents, showToast]);
 
-  const exportData = useCallback((): AppData => {
+  const exportData = useCallback(async (): Promise<AppData> => {
     const allAssignmentsList: Assignment[] = eventFramesRef.current.flatMap(ef => ef.assignments);
     const eventFramesForExport: EventFrameForExport[] = eventFramesRef.current.map(({ assignments, ...restOfFrame }) => restOfFrame);
+
+    let googleConfigForExport: AppData['googleConfig'] = undefined;
+    const electronAPI = window.electronAPI;
+    if (electronAPI) {
+      try {
+        const fullConfig = await electronAPI.loadGoogleConfig();
+        if (fullConfig) {
+          googleConfigForExport = {
+            userEmail: fullConfig.userEmail,
+            activeAppCalendarId: fullConfig.activeAppCalendarId,
+            managedAppCalendars: fullConfig.managedAppCalendars
+          };
+        }
+      } catch (error) {
+        console.error("Error carregant la configuració de Google durant l'exportació:", error);
+        showToast("No s'ha pogut carregar la configuració de Google per desar-la.", 'error');
+      }
+    }
 
     return {
       peopleGroups: peopleGroupsRef.current,
       eventFrames: eventFramesForExport,
       materialItems: materialItemsRef.current,
       assignments: allAssignmentsList,
+      googleConfig: googleConfigForExport
     };
-   }, []);
+   }, [showToast]);
 
   const setPersonnelComplete = useCallback((eventFrameId: string, complete: boolean) => {
     logger.info('[ACTION] setPersonnelComplete', { eventFrameId, complete });
@@ -459,27 +538,60 @@ markUnsaved();
     markUnsaved();
   }, [markUnsaved]);
 
-  const syncWithGoogle = useCallback(async () => {
-    logger.info('[ACTION] Iniciant sincronització amb Google...');
+  const syncWithGoogleRef = useRef<() => Promise<void>>();
+
+  const executeSync = useCallback(async (targetCalendarId: string) => {
+    logger.info(`[ACTION] Executant sincronització amb Google per a ${targetCalendarId}`);
+    closeModal();
     setIsSyncing(true);
-    if (!window.electronAPI) {
+
+    const electronAPI = window.electronAPI;
+    if (electronAPI) {
+      const localData = await exportData();
+      const result = await electronAPI.syncWithGoogle({ localData, targetCalendarId });
+
+      if (result.success && result.data) {
+          loadData(result.data);
+          await refreshGoogleEvents();
+          showToast(result.message || 'Sincronització completada.', 'success');
+      } else if (result.code === 'CALENDAR_NOT_FOUND') {
+          showToast(result.message || 'El calendari seleccionat no existeix.', 'error', true);
+          await refreshGoogleEvents();
+          syncWithGoogleRef.current?.();
+      } else {
+          showToast(result.message || 'Hi ha hagut un error durant la sincronització.', 'error');
+      }
+    } else {
+      showToast("L'API d'Electron no està disponible.", 'error');
+    }
+    setIsSyncing(false);
+  }, [exportData, loadData, refreshGoogleEvents, showToast, closeModal]);
+
+  const syncWithGoogle = useCallback(async () => {
+    logger.info('[ACTION] Iniciant flux de sincronització amb Google...');
+    if (!window.electronAPI?.loadGoogleConfig) {
         showToast('La sincronització només està disponible a l\'aplicació d\'escriptori.', 'warning');
-        setIsSyncing(false);
         return;
     }
 
-    const localData = exportData();
-    const result = await window.electronAPI.syncWithGoogle(localData);
+    const config = await window.electronAPI.loadGoogleConfig();
 
-    if (result.success && result.data) {
-        loadData(result.data);
-        await refreshGoogleEvents();
-        showToast(result.message || 'Sincronització completada.', 'success');
-    } else {
-        showToast(result.message || 'Hi ha hagut un error durant la sincronització.', 'error');
+    if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
+      showToast("No hi ha calendaris de l'app per sincronitzar. Si us plau, crea'n un a la configuració.", 'warning');
+      openModal('googleSettings');
+      return;
     }
-    setIsSyncing(false);
-  }, [showToast, exportData, loadData, refreshGoogleEvents]);
+
+    openModal('selectSyncCalendar', {
+      managedCalendars: config.managedAppCalendars,
+      activeCalendarId: config.activeAppCalendarId,
+      onConfirmSync: (targetCalendarId: string) => {
+        executeSync(targetCalendarId);
+      }
+    });
+  }, [showToast, openModal, executeSync]);
+
+  syncWithGoogleRef.current = syncWithGoogle;
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -526,5 +638,6 @@ markUnsaved();
     mergePeopleGroups,
     replacePeopleGroups,
     replaceMaterialItems,
+    executeSync,
   };
 };

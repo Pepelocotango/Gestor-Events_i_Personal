@@ -14,30 +14,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCalendarList: () => ipcRenderer.invoke('google-get-calendar-list'),
   saveGoogleConfig: (config) => ipcRenderer.invoke('save-google-config', config),
   getGoogleEvents: () => ipcRenderer.invoke('get-google-events'),
-  syncWithGoogle: (localData) => ipcRenderer.invoke('sync-with-google', localData),
-  clearGoogleAppCalendar: () => ipcRenderer.invoke('clear-google-app-calendar'),
+  syncWithGoogle: (payload) => ipcRenderer.invoke('sync-with-google', payload),
+  googleDisconnect: () => ipcRenderer.invoke('google-disconnect'),
+  deleteAppCalendar: (calendarId) => ipcRenderer.invoke('delete-app-calendar', calendarId),
+  createNewAppCalendar: (suffix) => ipcRenderer.invoke('create-new-app-calendar', suffix),
   getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),
   performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
-  onAppWillRelaunchAfterReset: (callback) => {
-    const handler = (event, ...args) => callback(...args);
-    ipcRenderer.on('app-will-relaunch-after-reset', handler);
-    return () => ipcRenderer.removeListener('app-will-relaunch-after-reset', handler);
-  },
-  onDevModeQuitAfterReset: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('dev-mode-quit-after-reset', handler);
-    return () => ipcRenderer.removeListener('dev-mode-quit-after-reset', handler);
-  },
-  showLoadingOverlay: (callback) => {
-    const handler = (event, message) => callback(message);
-    ipcRenderer.on('show-loading-overlay', handler);
-    return () => ipcRenderer.removeListener('show-loading-overlay', handler);
-  },
-  hideLoadingOverlay: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('hide-loading-overlay', handler);
-    return () => ipcRenderer.removeListener('hide-loading-overlay', handler);
-  },
 
   // Menu actions
   onMenuAction: (callback) => {
@@ -47,6 +29,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('menu-action', handler);
     };
   },
+  onFileDataLoaded: (callback) => {
+    const handler = (event, data) => callback(data);
+    ipcRenderer.on('file-data-loaded', handler);
+    return () => {
+      ipcRenderer.removeListener('file-data-loaded', handler);
+    };
+  },
   showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
+  getSessionData: () => ipcRenderer.invoke('get-session-data'),
+  saveSessionData: (key, value) => ipcRenderer.invoke('save-session-data', { key, value }),
   log: (message, data) => ipcRenderer.send('log-message', message, data)
 });

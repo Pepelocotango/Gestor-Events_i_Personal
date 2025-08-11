@@ -28,6 +28,12 @@ jobs:
       run: echo "%CREDENTIALS_JSON%" > google-credentials.json
       shell: cmd
 
+    - name: 4.6 Create service-account.json from secret
+      env:
+        SERVICE_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+      run: echo "%SERVICE_JSON%" > service-account.json
+      shell: cmd
+
     - name: Comprova que google-credentials.json existeix i no està buit
       shell: cmd
       run: |
@@ -44,11 +50,23 @@ jobs:
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
-    # 5. Puja l'arxiu .exe que es genera a la carpeta 'dist' com a resultat
-    - name: Pujada de l'executable com a artefacte
+    # 5. Creació del paquet ZIP per a Windows
+    - name: Crear paquet ZIP de Windows
+      id: zip_windows
+      shell: pwsh
+      run: |
+        $filesToZip = Get-ChildItem -Path "dist" -Filter "*.exe" | ForEach-Object { $_.FullName }
+        $filesToZip += @("LICENSE", "README.md", "DEVELOPING.md")
+        $filesToZip += Get-ChildItem -Path "examples json" -Recurse | ForEach-Object { $_.FullName }
+
+        $zipName = "GestorEsdevenimentsPersonal_v0.5.2-Windows.zip"
+        echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
+
+        Compress-Archive -Path $filesToZip -DestinationPath $zipName
+
+    # 6. Pujada de l'artefacte ZIP de Windows
+    - name: Pujada del ZIP de Windows
       uses: actions/upload-artifact@v4
       with:
-        name: GestorEsdeveniments-Windows-Installer-v0.4.0-dev
-        # El teu package.json confirma que la sortida és a la carpeta 'dist'.
-        # L'asterisc (*) ajuda a trobar l'arxiu encara que el nom complet variï.
-        path: dist/*.exe
+        name: ${{ steps.zip_windows.outputs.zip_name }}
+        path: ${{ steps.zip_windows.outputs.zip_name }}

@@ -10,15 +10,15 @@ const DocumentTextIcon = ({ className = "w-5 h-5" }) => (
 
 const Navigation: React.FC = () => {
   const getLinkClassName = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+    `flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-md transition-colors ${
       isActive
         ? 'bg-blue-600 text-white shadow'
         : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200'
     }`;
 
   return (
-    <nav className="flex justify-center my-3">
-      <div className="flex space-x-4 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+    <nav className="flex justify-center my-1">
+      <div className="flex space-x-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
         
         <NavLink to="/" className={getLinkClassName}>
           <CalendarIcon className="h-5 w-5" />

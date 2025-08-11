@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { GoogleCalendar, GoogleConfig, ShowToastFunction } from '@/types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { GoogleCalendar, GoogleConfig, ManagedAppCalendar, ShowToastFunction } from '@/types';
 import { useEventData } from '@/contexts/EventDataContext';
 
 interface GoogleSettingsModalProps {
@@ -8,51 +8,63 @@ interface GoogleSettingsModalProps {
 }
 
 const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, showToast }) => {
-  const { refreshGoogleEvents } = useEventData();
-  const [calendars, setCalendars] = useState<GoogleCalendar[]>([]);
+  const { refreshGoogleEvents, openModal, executeSync, isSyncing } = useEventData();
+
+  // State for external, read-only calendars
+  const [externalCalendars, setExternalCalendars] = useState<GoogleCalendar[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [appCalendarId, setAppCalendarId] = useState<string | null>(null);
-  const [calendarSuffix, setCalendarSuffix] = useState('');
+
+  // State for app-managed calendars
+  const [managedCalendars, setManagedCalendars] = useState<ManagedAppCalendar[]>([]);
+  const [activeCalendarId, setActiveCalendarId] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAndLoadConfig = async () => {
-      if (window.electronAPI?.loadGoogleConfig && window.electronAPI?.getCalendarList) {
-        setLoading(true);
-        try {
-          const [configResult, calendarsResult] = await Promise.all([
-            window.electronAPI.loadGoogleConfig() as Promise<GoogleConfig | null>,
-            window.electronAPI.getCalendarList()
-          ]);
+  const fetchAndLoadConfig = useCallback(async () => {
+    if (window.electronAPI?.loadGoogleConfig && window.electronAPI?.getCalendarList) {
+      setLoading(true);
+      try {
+        const [configResult, calendarsResult] = await Promise.all([
+          window.electronAPI.loadGoogleConfig() as Promise<GoogleConfig | null>,
+          window.electronAPI.getCalendarList()
+        ]);
 
-          if (configResult) {
-            setSelectedIds(new Set(configResult.selectedCalendarIds || []));
-            setAppCalendarId(configResult.appCalendarId || null);
-            setCalendarSuffix(configResult.calendarSuffix || '');
-          } else {
-            // Si no hi ha configuració, inicialitzem els estats
-            setSelectedIds(new Set());
-            setAppCalendarId(null);
-            setCalendarSuffix('');
-          }
-
-          if (calendarsResult.success) {
-            setCalendars(calendarsResult.calendars || []);
-          } else {
-            setError(calendarsResult.message || 'Error desconegut obtenint calendaris.');
-          }
-        } catch (err) {
-          setError((err as Error).message);
-        } finally {
-          setLoading(false);
+        if (configResult) {
+          setSelectedIds(new Set(configResult.selectedCalendarIds || []));
+          setManagedCalendars(configResult.managedAppCalendars || []);
+          setActiveCalendarId(configResult.activeAppCalendarId || null);
         }
+
+        if (calendarsResult.success) {
+          const managedIdsSet = new Set(configResult?.managedAppCalendars?.map(c => c.id) || []);
+          setExternalCalendars(calendarsResult.calendars?.filter(c => !managedIdsSet.has(c.id)) || []);
+        } else {
+          setError(calendarsResult.message || 'Error desconegut obtenint calendaris.');
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
       }
-    };
-    fetchAndLoadConfig();
+    }
   }, []);
 
-  const handleToggle = (calendarId: string) => {
+  useEffect(() => {
+    fetchAndLoadConfig();
+
+    const handleConfigChange = () => {
+        showToast('La configuració de Google ha canviat, actualitzant...', 'info');
+        fetchAndLoadConfig();
+    };
+
+    window.addEventListener('googleConfigChanged', handleConfigChange);
+    return () => {
+        window.removeEventListener('googleConfigChanged', handleConfigChange);
+    };
+  }, [fetchAndLoadConfig, showToast]);
+
+  const handleToggleExternal = (calendarId: string) => {
     setSelectedIds(prev => {
       const newSet = new Set(prev);
       if (newSet.has(calendarId)) newSet.delete(calendarId);
@@ -61,22 +73,85 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
     });
   };
 
-  const handleSave = async () => {
+  const handleCreateNewCalendar = () => {
+    openModal('createAppCalendar');
+  };
+
+  const handleDeleteCalendar = (calendar: ManagedAppCalendar) => {
+    openModal('confirmHardReset', {
+      titleOverride: "Confirmar Eliminació de Calendari",
+      itemName: `Estàs segur que vols eliminar permanentment el calendari "${calendar.name}" del teu compte de Google i de l'aplicació? Aquesta acció no es pot desfer.`,
+      confirmButtonText: "Sí, Eliminar Calendari",
+      onConfirmSpecial: async () => {
+        if (window.electronAPI?.deleteAppCalendar) {
+          try {
+            const result = await window.electronAPI.deleteAppCalendar(calendar.id);
+            if (result.success && result.data) {
+              showToast(result.message || 'Calendari eliminat correctament.', 'success');
+              setManagedCalendars(result.data.managedAppCalendars);
+              setActiveCalendarId(result.data.activeAppCalendarId);
+              // Also remove from the general selection list
+              setSelectedIds(prev => {
+                  const newSet = new Set(prev);
+                  newSet.delete(calendar.id);
+                  return newSet;
+              });
+              await refreshGoogleEvents();
+            } else {
+              showToast(result.message || 'Hi ha hagut un error durant l\'eliminació.', 'error');
+            }
+          } catch (err) {
+            showToast((err as Error).message, 'error');
+          }
+        }
+      },
+    });
+  };
+
+  const handleSaveAndClose = async () => {
     if (window.electronAPI?.saveGoogleConfig) {
-      const configToSave: GoogleConfig = {
+      const configToSave: Partial<GoogleConfig> = {
         selectedCalendarIds: Array.from(selectedIds),
-        appCalendarId: appCalendarId || undefined,
-        calendarSuffix: calendarSuffix.trim()
+        activeAppCalendarId: activeCalendarId,
       };
       const result = await window.electronAPI.saveGoogleConfig(configToSave);
       if (result.success) {
-        showToast('Configuració de calendaris desada.', 'success');
+        showToast('Configuració desada.', 'success');
         await refreshGoogleEvents();
         onClose();
       } else {
-        showToast('No s\'ha pogut desar la configuració.', 'error');
+        showToast(result.message || 'No s\'ha pogut desar la configuració.', 'error');
       }
     }
+  };
+
+  const handleDisconnect = () => {
+    openModal('confirmHardReset', {
+      titleOverride: "Confirmar Desconnexió de Google",
+      itemName: "Estàs segur que vols desconnectar el teu compte de Google? Aquesta acció és irreversible i farà el següent:<br><br>" +
+                "<ul class='list-disc list-inside text-left'>" +
+                "<li><b>Eliminarà TOTS</b> els calendaris gestionats per l'aplicació del teu compte de Google.</li>" +
+                "<li><b>Revocarà</b> l'accés de l'aplicació al teu compte.</li>" +
+                "<li><b>Esborrarà</b> tota la configuració local de Google.</li>" +
+                "</ul>",
+      confirmButtonText: "Sí, Desconnectar",
+      onConfirmSpecial: async () => {
+        if (window.electronAPI?.googleDisconnect) {
+          try {
+            const result = await window.electronAPI.googleDisconnect();
+            if (result.success) {
+              showToast('Compte de Google desconnectat correctament.', 'success');
+              await refreshGoogleEvents();
+              onClose();
+            } else {
+              showToast(result.message || 'Hi ha hagut un error durant la desconnexió.', 'error');
+            }
+          } catch (err) {
+            showToast((err as Error).message, 'error');
+          }
+        }
+      },
+    });
   };
 
   return (
@@ -84,58 +159,141 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
       <div>
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">Configuració de Google Calendar</h3>
         <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400">
-          <p><strong className="font-semibold">Important:</strong> L'aplicació crearà un calendari dedicat (p. ex., "Gestor d'Esdeveniments (App)") al teu compte de Google.</p>
-          <p>La sincronització és <strong>unidireccional</strong>: les dades de l'app sobreescriuen les dades d'aquest calendari. Qualsevol canvi que facis directament a Google Calendar en aquest calendari específic <strong>es perdrà</strong> a la propera sincronització.</p>
+          <p><strong className="font-semibold">Important:</strong> La sincronització és <strong>unidireccional</strong>: les dades de l'app sobreescriuen les del calendari seleccionat a Google. Qualsevol canvi fet directament a Google en aquests calendaris <strong>es perdrà</strong>.</p>
         </div>
       </div>
 
-      <div>
-        <label htmlFor="calendarSuffix" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Sufix personalitzat per al calendari (opcional)
-        </label>
-        <input
-          type="text"
-          id="calendarSuffix"
-          value={calendarSuffix}
-          onChange={(e) => setCalendarSuffix(e.target.value)}
-          placeholder="Ex: Teatre Principal"
-          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md"
-        />
-        <p className="mt-1 text-xs text-gray-500">El nom final serà: Gestor d'Esdeveniments (App) - {calendarSuffix || "..."}</p>
+      {/* Secció per als calendaris de l'aplicació */}
+      <div className="p-4 border dark:border-gray-600 rounded-md space-y-4">
+        <div className="flex justify-between items-center">
+          <h4 className="font-semibold text-gray-800 dark:text-gray-200">Calendaris de l'App Gestionats</h4>
+          <button onClick={handleCreateNewCalendar} className="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md">
+            + Crear Nou
+          </button>
+        </div>
+
+        {loading && <p className="text-center text-gray-500">Carregant...</p>}
+        {!loading && managedCalendars.length > 0 && (
+          <ul className="space-y-3 max-h-48 overflow-y-auto pr-2">
+            {managedCalendars.map(cal => (
+              <li key={cal.id} className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center flex-grow">
+                    <input
+                      type="radio"
+                      id={`cal-${cal.id}`}
+                      name="activeCalendar"
+                      checked={cal.id === activeCalendarId}
+                      onChange={() => setActiveCalendarId(cal.id)}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-500"
+                    />
+                    <div className="ml-3">
+                      <label htmlFor={`cal-${cal.id}`} className="block text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer">
+                        {cal.name}
+                        {cal.id === activeCalendarId && <span className="ml-2 text-xs font-bold text-indigo-600 dark:text-indigo-400">(ACTIU)</span>}
+                      </label>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Sufix: {cal.suffix || '(cap)'}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteCalendar(cal)}
+                    className="ml-4 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+                <div className="mt-2 pl-7">
+                    <div className="flex rounded-md shadow-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 text-xs">
+                        ID
+                      </span>
+                      <input
+                        type="text"
+                        readOnly
+                        value={cal.id}
+                        className="flex-1 min-w-0 block w-full px-2 py-1 rounded-none bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-xs"
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(cal.id);
+                          showToast('ID del calendari copiat!', 'success');
+                        }}
+                        className="inline-flex items-center px-3 py-1 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md bg-gray-200 dark:bg-gray-700 text-xs hover:bg-gray-300 dark:hover:bg-gray-600"
+                      >
+                        Copiar
+                      </button>
+                    </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {!loading && managedCalendars.length === 0 && (
+          <div className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+            <p>No hi ha cap calendari gestionat per l'aplicació.</p>
+            <p>Fes clic a "Crear Nou" per començar.</p>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 border dark:border-gray-600 rounded-md min-h-[200px]">
-        <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Calendaris addicionals (només lectura)</h4>
+      {/* Secció per a calendaris addicionals de només lectura */}
+      <div className="p-4 border dark:border-gray-600 rounded-md min-h-[150px]">
+        <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Altres Calendaris de Google (només lectura)</h4>
         {loading && <p className="text-center text-gray-500">Carregant calendaris...</p>}
         {error && <p className="text-center text-red-500">{error}</p>}
-        {!loading && !error && (
+        {!loading && !error && externalCalendars.length > 0 && (
           <ul className="space-y-2 max-h-48 overflow-y-auto">
-            {calendars.map(cal => (
+            {externalCalendars.map(cal => (
               <li key={cal.id} className="flex items-center">
                 <input
                   type="checkbox"
                   id={cal.id}
                   checked={selectedIds.has(cal.id)}
-                  onChange={() => handleToggle(cal.id)}
-                  disabled={cal.id === appCalendarId}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
+                  onChange={() => handleToggleExternal(cal.id)}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                   style={{ accentColor: cal.backgroundColor }}
                 />
                 <label htmlFor={cal.id} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {cal.summary}
-                  {cal.id === appCalendarId && <span className="ml-2 text-xs font-bold text-indigo-600">(Calendari de l'App)</span>}
-                  {cal.primary && cal.id !== appCalendarId && ' (Principal)'}
+                  {cal.primary && ' (Principal)'}
                 </label>
               </li>
             ))}
           </ul>
         )}
+        {!loading && !error && externalCalendars.length === 0 && (
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">No s'han trobat altres calendaris de Google per seleccionar.</p>
+        )}
       </div>
       
-      <div className="flex justify-end pt-4 border-t dark:border-gray-700">
-        <button onClick={handleSave} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">
-          Desar i Tancar
+      <div className="flex justify-between items-center pt-4 border-t dark:border-gray-700">
+        <button
+          onClick={handleDisconnect}
+          className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
+          disabled={managedCalendars.length === 0 || isSyncing}
+          title={managedCalendars.length === 0 ? "No hi ha cap compte de Google connectat" : "Desconnecta el teu compte de Google"}
+        >
+          Desconnectar Compte
         </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
+              if (activeCalendarId) {
+                executeSync(activeCalendarId);
+                onClose();
+              } else {
+                showToast("Si us plau, selecciona un calendari actiu per sincronitzar.", 'warning');
+              }
+            }}
+            disabled={!activeCalendarId || isSyncing}
+            className="px-4 py-2 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-md disabled:opacity-50"
+          >
+            {isSyncing ? 'Sincronitzant...' : 'Sincronitzar Ara'}
+          </button>
+          <button onClick={handleSaveAndClose} disabled={isSyncing} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50">
+            Desar i Tancar
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { EventFrame } from '../types';
 
@@ -7,6 +7,26 @@ const TechSheetForm = lazy(() => import('./tech_sheets/TechSheetForm'));
 const TechSheetsDisplay: React.FC = () => {
   const { eventFrames } = useEventData();
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
+
+  useEffect(() => {
+    const loadLastViewed = async () => {
+      if (window.electronAPI?.getSessionData) {
+        const sessionData = await window.electronAPI.getSessionData();
+        const lastId = sessionData?.lastViewedTechSheetId;
+        // Comprovem si l'esdeveniment encara existeix abans de seleccionar-lo
+        if (lastId && eventFrames.some(ef => ef.id === lastId)) {
+          setSelectedEventFrameId(lastId);
+        }
+      }
+    };
+    loadLastViewed();
+  }, [eventFrames]); // S'executa quan els eventFrames canvien (després de la càrrega inicial)
+
+  useEffect(() => {
+    if (selectedEventFrameId && window.electronAPI?.saveSessionData) {
+      window.electronAPI.saveSessionData('lastViewedTechSheetId', selectedEventFrameId);
+    }
+  }, [selectedEventFrameId]);
 
   const sortedEventFrames = useMemo(() => {
     return [...eventFrames].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());

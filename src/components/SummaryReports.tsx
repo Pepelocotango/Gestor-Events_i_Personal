@@ -5,6 +5,7 @@ import { CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import { formatDateDMY, formatDateRangeDMY } from '../utils/dateFormat';
 import { getStatusSummaryText } from '../utils/statusUtils';
 import { exportSummariesToPdf } from '../utils/pdfGenerator';
+import { escapeCsvCell } from '../utils/csvUtils';
 
 interface SummaryReportsProps {
   setToastMessage: ShowToastFunction;
@@ -85,16 +86,6 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     });
     return new Map([...map.entries()].sort((a, b) => a[0].localeCompare(b[0])));
   }, [allAssignmentsSummary]);
-
-  // --- LÒGICA D'EXPORTACIÓ (sense canvis) ---
-  const escapeCsvCell = (cellData: string | number | boolean | undefined | null): string => {
-    if (cellData === undefined || cellData === null) return '';
-    const stringData = String(cellData);
-    if (stringData.includes(',') || stringData.includes('"') || stringData.includes('\n')) {
-      return `"${stringData.replace(/"/g, '""')}"`;
-    }
-    return stringData;
-  };
 
   const downloadCsv = async (csvContent: string, filename: string) => {
     if (!csvContent.trim() || csvContent.split('\n').length <= 1) {
