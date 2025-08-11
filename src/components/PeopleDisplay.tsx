@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useMemo } from 'react';
 import { saveAs } from 'file-saver';
 import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup } from '../types';
@@ -295,7 +295,7 @@ const PeopleDisplay: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400">No hi ha persones o grups que coincideixin amb la cerca.</p>
                 ) : (
                     <ul className="space-y-2 max-h-[55vh] overflow-y-auto" aria-label="Llista de persones i grups existents">
-                    {sortedPeopleGroups.map(p => (
+                    {sortedPeopleGroups.map((p: PersonGroup) => (
                         <li key={p.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                         <div className="flex justify-between items-start">
                             <div className="flex-grow">

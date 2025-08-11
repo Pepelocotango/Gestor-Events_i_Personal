@@ -22,7 +22,7 @@ const MaterialDisplay: React.FC = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [search, setSearch] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof MaterialItem; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
-  const [allExpanded, setAllExpanded] = useState<boolean | null>(true);
+  const [allExpanded, setAllExpanded] = useState<boolean>(true);
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
 
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
