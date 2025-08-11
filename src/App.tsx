@@ -673,7 +673,7 @@ const App: React.FC = () => {
             </div>
           </header>
 
-          <main className="container mx-auto px-4 pt-2 pb-4 flex-grow">
+          <main className="container mx-auto px-2 pt-1 pb-2 flex-grow">
             <Suspense fallback={<div className="text-center p-8">Carregant vista...</div>}>
               <Routes>
                 <Route
