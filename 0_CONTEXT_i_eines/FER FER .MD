@@ -1,4 +1,10 @@
+## millorar hard reset "reset de fàbrica" borrar tot inclòs calendaris
 
+# actualitzar a versio 0.5.2
+actualitzar readme
+actualitzar relases
+donar informació relases
+actualitzar noms a v0.5.2
 
 # PLÀ MIGRACIÓ GOOGLE CALENDAR
 
