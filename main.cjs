@@ -214,8 +214,10 @@ async function saveDataWithErrorHandling(filePath, data) {
   }
 }
 
-async function saveSessionWindowData(data) {
-  return saveDataWithErrorHandling(SESSION_FILE, data);
+async function saveSessionData(newData) {
+  const currentData = loadSessionData();
+  const mergedData = { ...currentData, ...newData };
+  return saveDataWithErrorHandling(SESSION_FILE, mergedData);
 }
 
 async function createBackup() {
@@ -460,7 +462,7 @@ app.on('before-quit', async (event) => {
   event.preventDefault();
   if (mainWindow && !mainWindow.isDestroyed()) {
     const windowBounds = mainWindow.getBounds();
-    await saveSessionWindowData({
+    await saveSessionData({
       width: windowBounds.width,
       height: windowBounds.height,
       x: windowBounds.x,
@@ -1137,6 +1139,24 @@ ipcMain.handle('create-new-app-calendar', async (event, suffix) => {
         console.error("Error creant el nou calendari de l'app:", error);
         return { success: false, message: `No s'ha pogut crear el calendari: ${error.message}` };
     }
+});
+
+ipcMain.handle('get-session-data', async () => {
+  return loadSessionData();
+});
+
+ipcMain.handle('save-session-data', async (event, { key, value }) => {
+  if (!key) {
+    console.error('Error: "key" és necessari per a desar dades de sessió.');
+    return { success: false, message: 'La clau no pot ser buida.' };
+  }
+  try {
+    await saveSessionData({ [key]: value });
+    return { success: true };
+  } catch (error) {
+    console.error(`Error desant la clau de sessió "${key}":`, error);
+    return { success: false, message: error.message };
+  }
 });
 
 ipcMain.handle('delete-app-calendar', async (event, calendarIdToDelete) => {

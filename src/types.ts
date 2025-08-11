@@ -361,6 +361,9 @@ export interface ElectronAPI {
   showLoadingOverlay: (callback: (message: string) => void) => () => void;
   hideLoadingOverlay: (callback: () => void) => () => void;
   onMenuAction: (callback: (action: string) => void) => () => void;
+  onFileDataLoaded: (callback: (data: { type: string; content: string; fileName: string }) => void) => () => void;
+  getSessionData: () => Promise<any>;
+  saveSessionData: (key: string, value: any) => Promise<void>;
   log: (message: string, data?: any) => void;
 }
 

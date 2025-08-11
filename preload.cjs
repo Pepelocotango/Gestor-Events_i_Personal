@@ -37,5 +37,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
   showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
+  getSessionData: () => ipcRenderer.invoke('get-session-data'),
+  saveSessionData: (key, value) => ipcRenderer.invoke('save-session-data', { key, value }),
   log: (message, data) => ipcRenderer.send('log-message', message, data)
 });
