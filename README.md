@@ -1,5 +1,3 @@
-### NOVA BRANCA DESENVOLUPAMENT --> MAIN
-
 ### `README.md`**
 
 # Gestor d'Esdeveniments i Personal v0.5.2
