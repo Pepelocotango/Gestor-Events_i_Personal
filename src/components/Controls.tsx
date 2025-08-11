@@ -37,6 +37,57 @@ const Controls = forwardRef<any, ControlsProps>(({
   const peopleFileInputRef = useRef<HTMLInputElement>(null);
   const materialFileInputRef = useRef<HTMLInputElement>(null);
 
+  const processAllData = (fileContent: string, fileName: string) => {
+    try {
+      if (!fileContent) {
+        showToast("Error: El contingut del fitxer està buit.", 'error');
+        return;
+      }
+      const jsonData = JSON.parse(fileContent);
+      if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
+        loadData(jsonData);
+        showToast("Totes les dades carregades correctament.", 'success');
+        setHasUnsavedChanges(true);
+        setCurrentDataPath(fileName);
+      } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
+        const migratedData = migrateData(
+          { people: jsonData.people || [] },
+          { eventFrames: jsonData.eventFrames || [] },
+          { assignments: jsonData.assignments || [] }
+        );
+        const validation = validateMigratedData(migratedData);
+        if (!validation.isValid) {
+          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
+          return;
+        }
+        loadData(migratedData);
+        showToast("Dades antigues migrades i carregades correctament.", 'success');
+        setHasUnsavedChanges(true);
+        setCurrentDataPath(fileName);
+      } else {
+        showToast("Error: El format del fitxer JSON no és vàlid.", 'error');
+      }
+    } catch (error) {
+      showToast(`Error en processar les dades: ${(error as Error).message}`, 'error');
+    }
+  };
+
+  const processMaterialData = (fileContent: string) => {
+    try {
+      const jsonData = JSON.parse(fileContent);
+      if (Array.isArray(jsonData.materialItems)) {
+        onOpenModal('mergeOrReplace', {
+          itemType: 'material',
+          newData: jsonData.materialItems,
+        });
+      } else {
+        showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
+      }
+    } catch (error) {
+      showToast(`Error en processar el fitxer de material: ${(error as Error).message}`, 'error');
+    }
+  };
+
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
     logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'tot' });
     const file = event.target.files?.[0];
@@ -44,43 +95,44 @@ const Controls = forwardRef<any, ControlsProps>(({
     const fileName = file.name;
     const reader = new FileReader();
     reader.onload = (e) => {
-      try {
-        const fileContent = e.target?.result as string;
-        if (!fileContent) {
-          showToast("Error: El fitxer està buit.", 'error');
-          return;
-        }
-        const jsonData = JSON.parse(fileContent);
-        if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
-          loadData(jsonData);
-          showToast("Totes les dades carregades correctament.", 'success');
-          setHasUnsavedChanges(true);
-          setCurrentDataPath(fileName);
-        } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
-          const migratedData = migrateData(
-            { people: jsonData.people || [] },
-            { eventFrames: jsonData.eventFrames || [] },
-            { assignments: jsonData.assignments || [] }
-          );
-          const validation = validateMigratedData(migratedData);
-          if (!validation.isValid) {
-            showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
-            return;
-          }
-          loadData(migratedData);
-          showToast("Dades antigues migrades i carregades correctament.", 'success');
-          setHasUnsavedChanges(true);
-          setCurrentDataPath(fileName);
-        } else {
-          showToast("Error: El format del fitxer JSON no és vàlid.", 'error');
-        }
-      } catch (error) {
-        showToast(`Error en carregar les dades: ${(error as Error).message}`, 'error');
-      } finally {
-        if (event.target) event.target.value = "";
-      }
+      const fileContent = e.target?.result as string;
+      processAllData(fileContent, fileName);
+      if (event.target) event.target.value = "";
     };
     reader.readAsText(file);
+  };
+
+  const processPeopleData = (fileContent: string) => {
+    try {
+      if (!fileContent) {
+        showToast("Error: El fitxer de persones està buit.", 'error');
+        return;
+      }
+      const jsonData = JSON.parse(fileContent);
+      let newPeople: PersonGroup[] = [];
+      if (Array.isArray(jsonData.peopleGroups)) {
+        newPeople = jsonData.peopleGroups;
+      } else if (Array.isArray(jsonData.people)) {
+        const migratedData = migrateData({ people: jsonData.people });
+        const validation = validateMigratedData(migratedData);
+        if (!validation.isValid) {
+          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
+          return;
+        }
+        newPeople = migratedData.peopleGroups;
+      } else {
+        showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
+        return;
+      }
+
+      onOpenModal('mergeOrReplace', {
+        itemType: 'persones',
+        newData: newPeople,
+      });
+
+    } catch (error) {
+      showToast(`Error en carregar les dades de persones: ${(error as Error).message}`, 'error');
+    }
   };
 
   const handleLoadPeopleData = (event: ChangeEvent<HTMLInputElement>) => {
@@ -89,39 +141,9 @@ const Controls = forwardRef<any, ControlsProps>(({
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
-      try {
-        const fileContent = e.target?.result as string;
-        if (!fileContent) {
-          showToast("Error: El fitxer de persones està buit.", 'error');
-          return;
-        }
-        const jsonData = JSON.parse(fileContent);
-        let newPeople: PersonGroup[] = [];
-        if (Array.isArray(jsonData.peopleGroups)) {
-          newPeople = jsonData.peopleGroups;
-        } else if (Array.isArray(jsonData.people)) {
-          const migratedData = migrateData({ people: jsonData.people });
-          const validation = validateMigratedData(migratedData);
-          if (!validation.isValid) {
-            showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
-            return;
-          }
-          newPeople = migratedData.peopleGroups;
-        } else {
-          showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
-          return;
-        }
-
-        onOpenModal('mergeOrReplace', {
-          itemType: 'persones',
-          newData: newPeople,
-        });
-
-      } catch (error) {
-        showToast(`Error en carregar les dades de persones: ${(error as Error).message}`, 'error');
-      } finally {
-        if (event.target) event.target.value = "";
-      }
+      const fileContent = e.target?.result as string;
+      processPeopleData(fileContent);
+      if (event.target) event.target.value = "";
     };
     reader.readAsText(file);
   };
@@ -130,26 +152,11 @@ const Controls = forwardRef<any, ControlsProps>(({
     logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'material' });
     const file = event.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const jsonData = JSON.parse(content);
-        
-        if (Array.isArray(jsonData.materialItems)) {
-          onOpenModal('mergeOrReplace', {
-            itemType: 'material',
-            newData: jsonData.materialItems,
-          });
-        } else {
-          showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
-        }
-      } catch (error) {
-        showToast(`Error en carregar el fitxer de material: ${(error as Error).message}`, 'error');
-      } finally {
-        if (event.target) event.target.value = '';
-      }
+      const content = e.target?.result as string;
+      processMaterialData(content);
+      if (event.target) event.target.value = '';
     };
     reader.readAsText(file);
   };
@@ -237,6 +244,9 @@ const Controls = forwardRef<any, ControlsProps>(({
     handleRequestHardReset,
     triggerLoadPeopleFile,
     handleConnectGoogle,
+    processAllData,
+    processMaterialData,
+    processPeopleData,
   }));
 
   const handleRequestHardReset = () => {

@@ -380,16 +380,40 @@ async function createWindow() {
     });
   }
 
+  const createLoadFileClickHandler = (type, options) => async () => {
+    if (!mainWindow) return;
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+        ...options,
+      });
+      if (result.canceled || !result.filePaths.length) {
+        return;
+      }
+      const filePath = result.filePaths[0];
+      const content = fs.readFileSync(filePath, 'utf8');
+      mainWindow.webContents.send('file-data-loaded', {
+        type,
+        content,
+        fileName: path.basename(filePath)
+      });
+    } catch (error) {
+      console.error(`Error en carregar el fitxer (${type}):`, error);
+      dialog.showErrorBox('Error de Càrrega', `No s'ha pogut llegir el fitxer.\n${error.message}`);
+    }
+  };
+
   const template = [
     {
       label: 'Arxiu',
       submenu: [
-        { label: 'Carregar Tot', click: () => mainWindow.webContents.send('menu-action', 'load-all') },
+        { label: 'Carregar Tot', click: createLoadFileClickHandler('all', { title: 'Carregar Fitxer de Dades Complet' }) },
         { label: 'Guardar Tot', click: () => mainWindow.webContents.send('menu-action', 'save-all') },
-        { label: 'Carregar Material', click: () => mainWindow.webContents.send('menu-action', 'load-material') },
+        { label: 'Carregar Material', click: createLoadFileClickHandler('material', { title: 'Carregar Fitxer de Material' }) },
         { label: 'Començar de Zero', click: () => mainWindow.webContents.send('menu-action', 'hard-reset') },
         { type: 'separator' },
-        { label: 'Carregar Persones', click: () => mainWindow.webContents.send('menu-action', 'load-people') },
+        { label: 'Carregar Persones', click: createLoadFileClickHandler('people', { title: 'Carregar Fitxer de Persones' }) },
         { label: 'Guardar Persones', click: () => mainWindow.webContents.send('menu-action', 'save-people') },
         { label: 'Guardar Material', click: () => mainWindow.webContents.send('menu-action', 'save-material') },
         { type: 'separator' },

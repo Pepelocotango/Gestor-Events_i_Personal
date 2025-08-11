@@ -345,20 +345,11 @@ const App: React.FC = () => {
     if (window.electronAPI) {
       const cleanup = window.electronAPI.onMenuAction((action) => {
         switch (action) {
-          case 'load-all':
-            controlsRef.current?.triggerLoadFile();
-            break;
           case 'save-all':
             controlsRef.current?.handleSaveData('all');
             break;
-          case 'load-material':
-            controlsRef.current?.triggerLoadMaterialFile();
-            break;
           case 'hard-reset':
             controlsRef.current?.handleRequestHardReset();
-            break;
-          case 'load-people':
-            controlsRef.current?.triggerLoadPeopleFile();
             break;
           case 'save-people':
             controlsRef.current?.handleSaveData('people');
@@ -386,6 +377,22 @@ const App: React.FC = () => {
       return cleanup;
     }
   }, [syncWithGoogle, openModal, toggleTheme]);
+
+  useEffect(() => {
+    if (window.electronAPI?.onFileDataLoaded) {
+      const cleanup = window.electronAPI.onFileDataLoaded((data) => {
+        logger.info('[IPC] Dades de fitxer rebudes des del menú', { type: data.type, fileName: data.fileName });
+        if (data.type === 'all') {
+          controlsRef.current?.processAllData(data.content, data.fileName);
+        } else if (data.type === 'material') {
+          controlsRef.current?.processMaterialData(data.content);
+        } else if (data.type === 'people') {
+          controlsRef.current?.processPeopleData(data.content);
+        }
+      });
+      return cleanup;
+    }
+  }, []);
 
   const handleExportCurrentViewToCsv = () => {
     const dataToExport: SummaryRow[] = [];

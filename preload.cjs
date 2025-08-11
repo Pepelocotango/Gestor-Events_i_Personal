@@ -29,6 +29,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('menu-action', handler);
     };
   },
+  onFileDataLoaded: (callback) => {
+    const handler = (event, data) => callback(data);
+    ipcRenderer.on('file-data-loaded', handler);
+    return () => {
+      ipcRenderer.removeListener('file-data-loaded', handler);
+    };
+  },
   showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
   log: (message, data) => ipcRenderer.send('log-message', message, data)
 });
