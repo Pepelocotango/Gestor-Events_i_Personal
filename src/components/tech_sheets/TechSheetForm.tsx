@@ -249,26 +249,26 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6 tech-sheet-form-container">
+    <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow space-y-4 tech-sheet-form-container">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           Fitxa de Bolo: <span className="text-blue-600 dark:text-blue-400">{eventFrame.name}</span>
         </h2>
         <div className="flex items-center gap-2">
             <button
                 onClick={handleManualSave}
 
-                className="save-changes-button px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print"
+                className="save-changes-button px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print"
 
             >
                 Desar Canvis
             </button>
-            <button onClick={handleExportToPdf} className="export-pdf-button px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">
+            <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">
                 Exportar a PDF
             </button>
         </div>
       </div>
-      <div className="mt-2">
+      <div className="mt-1">
         <p className="text-sm text-gray-500 dark:text-gray-400">Edita els detalls tècnics de l'esdeveniment. Els canvis es desen automàticament.</p>
       </div>
 
@@ -287,7 +287,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               setFormData(prev => ({ ...prev, parkingInfo: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
               markAsDirty();
             }}
-            className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">--</option>
             <option value="SI">SI</option>
@@ -340,7 +340,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               });
               markAsDirty();
             }}
-            className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">--</option>
             <option value="SI">SI</option>
@@ -361,10 +361,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         </div>
         
         {formData.preAssemblySchedule?.startsWith('SI') && (
-          <div className="col-span-full space-y-4">
-            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 -mb-2">HORARIS DETALLATS:</h4>
+          <div className="col-span-full space-y-2">
+            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 -mb-1">HORARIS DETALLATS:</h4>
             {formData.assemblySchedule.map((item, index) => (
-              <div key={item.id} className="flex items-start gap-4 w-full">
+              <div key={item.id} className="flex items-start gap-2 w-full">
                 <div className="w-1/4">
                   <TechSheetField
                     id={`schedule-time-${index}`}
@@ -398,7 +398,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               <button
                 type="button"
                 onClick={() => handleAddListItem('assemblySchedule')}
-                className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
               >
                 + Afegir Ítem Horari
               </button>
@@ -419,7 +419,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               setFormData(prev => ({ ...prev, actorsNumber: val, actors: val > 0 ? prev.actors : '' }));
               markAsDirty();
             }}
-            className="mt-1 block w-24 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            className="mt-1 block w-24 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">--</option>
             {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
@@ -446,7 +446,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               setFormData(prev => ({ ...prev, companyTechniciansNumber: val, companyTechnicians: val > 0 ? prev.companyTechnicians : '' }));
               markAsDirty();
             }}
-            className="mt-1 block w-24 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            className="mt-1 block w-24 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">--</option>
             {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
@@ -502,7 +502,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               });
               markAsDirty();
             }}
-            className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">--</option>
             <option value="SI">SI</option>

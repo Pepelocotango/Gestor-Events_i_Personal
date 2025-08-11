@@ -7,26 +7,26 @@
 .container {
   width: 98%;
   max-width: none;
-  margin: 10px auto;
-  padding: 15px;
+  margin: 5px auto;
+  padding: 8px;
 }
 
 .section {
-  margin-bottom: 20px;
-  padding: 15px;
+  margin-bottom: 10px;
+  padding: 8px;
 }
 
 /* Reducir espaciado en pantallas medianas */
 @media (min-width: 1024px) and (max-width: 1279px) {
   .container {
     width: 99%;
-    margin: 8px auto;
-    padding: 12px;
+    margin: 4px auto;
+    padding: 8px;
   }
 
   .section {
-    margin-bottom: 15px;
-    padding: 12px;
+    margin-bottom: 10px;
+    padding: 8px;
   }
 
   /* Ajuste de grid para mejor aprovechamiento */
@@ -79,7 +79,7 @@
 @layer components {
   /* Estils per a la targeta d'assignació */
   .assignment-card {
-    @apply p-4 rounded-lg shadow-md transition-colors duration-300;
+    @apply p-2 rounded-lg shadow-md transition-colors duration-300;
   }
   .assignment-card-yes {
     @apply bg-green-100 dark:bg-green-900/60 text-green-900 dark:text-green-100;
@@ -96,7 +96,7 @@
 
   /* Estils per a la secció de detall diari */
   .daily-details-section {
-    @apply mt-3 pt-3 border-t bg-black/5 dark:bg-black/20 rounded-b-md;
+    @apply mt-2 pt-2 border-t bg-black/5 dark:bg-black/20 rounded-b-md;
   }
   
   /* Fons per a cada fila diària */

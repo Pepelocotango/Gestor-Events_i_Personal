@@ -87,13 +87,13 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
       openModal('addAssignment', { eventFrame: newEventFrame }); 
     }
   };
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
+  const commonInputClass = "mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
   
   const uniqueEventNames = Array.from(new Set(eventFrames.map(ef => ef.name).filter(Boolean)));
   const uniqueLocations = Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean)));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" aria-labelledby="event-frame-form-title" id="event-frame-form-modal-actual-form">
+    <form onSubmit={handleSubmit} className="space-y-3" aria-labelledby="event-frame-form-title" id="event-frame-form-modal-actual-form">
       <h2 id="event-frame-form-title" className="sr-only">{eventFrameToEdit && eventFrameToEdit.id ? 'Formulari Edició Marc Esdeveniment' : 'Formulari Nou Marc Esdeveniment'}</h2>
       <div>
         <label htmlFor="ef-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom de l'Esdeveniment</label>
@@ -110,7 +110,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
             {uniqueLocations.map(loc => <option key={loc} value={loc} />)}
         </datalist>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
           <label htmlFor="ef-startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data d'Inici</label>
           <input type="date" id="ef-startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
@@ -128,19 +128,19 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
         <label htmlFor="ef-generalNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals (Opcional)</label>
         <textarea id="ef-generalNotes" value={generalNotes} onChange={e => setGeneralNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
       </div>
-      <div className="flex justify-end space-x-3 pt-4">
-        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
+      <div className="flex justify-end space-x-2 pt-2">
+        <button type="button" onClick={onClose} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
         {/* <<< AFEGIR AQUEST BLOC >>> */}
         {!eventFrameToEdit?.id && (
           <button
             type="button"
             onClick={handleCreateAndAssign}
-            className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+            className="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
           >
             Crear i Assignar
           </button>
         )}
-        <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{eventFrameToEdit && eventFrameToEdit.id ? 'Actualitzar' : 'Crear'}</button>
+        <button type="submit" className="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{eventFrameToEdit && eventFrameToEdit.id ? 'Actualitzar' : 'Crear'}</button>
       </div>
     </form>
   );

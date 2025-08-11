@@ -650,8 +650,8 @@ const App: React.FC = () => {
     <EventDataProvider value={contextValue}>
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm py-2">
-            <div className="container mx-auto px-4">
+          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm p-2">
+            <div className="container mx-auto">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   ref={controlsRef}
@@ -673,7 +673,7 @@ const App: React.FC = () => {
             </div>
           </header>
 
-          <main className="container mx-auto px-4 pt-2 pb-4 flex-grow">
+          <main className="container mx-auto p-1 flex-grow">
             <Suspense fallback={<div className="text-center p-8">Carregant vista...</div>}>
               <Routes>
                 <Route
@@ -700,8 +700,10 @@ const App: React.FC = () => {
             </Suspense>
           </main>
 
+
           <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
             © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.5.2. Evolució Gestió Integral d'Esdeveniments v10.1.
+
           </footer>
 
           <Modal
