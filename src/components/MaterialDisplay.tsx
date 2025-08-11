@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, useMemo, useCallback } from 'react';
+import React, { useState, FormEvent, useMemo, useCallback, useEffect } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { MaterialItem } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
@@ -21,11 +21,13 @@ const MaterialDisplay: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [search, setSearch] = useState('');
-  const [sortConfig, setSortConfig] = useState<{ key: keyof MaterialItem | null; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
-  
+  const [sortConfig, setSortConfig] = useState<{ key: keyof MaterialItem; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
+  const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
+  const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
+
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 
-  const categories = useMemo(() => Array.from(new Set(materialItems.map((item: MaterialItem) => item.category))).sort(), [materialItems]);
+  const categories = useMemo(() => Array.from(new Set(materialItems.map((item: MaterialItem) => item.category))).sort((a,b) => a.localeCompare(b, 'ca', { sensitivity: 'base' })), [materialItems]);
 
   const resetForm = () => {
     setEditingItem(null);
@@ -92,51 +94,103 @@ const MaterialDisplay: React.FC = () => {
     setSortConfig({ key, direction });
   }, [sortConfig]);
 
-  const filteredItems = materialItems.filter((item: MaterialItem) => {
+  const filteredItems = useMemo(() => materialItems.filter((item: MaterialItem) => {
     const searchTerm = search.toLowerCase();
     return (
       item.name.toLowerCase().includes(searchTerm) ||
       item.category.toLowerCase().includes(searchTerm) ||
       item.location.toLowerCase().includes(searchTerm)
     );
-  });
+  }), [materialItems, search]);
   
-  const sortedItemsByCategory = useMemo(() => {
-    const grouped: { [category: string]: MaterialItem[] } = {};
-    filteredItems.forEach(item => {
-      const category = item.category || 'Sense Categoria';
-      if (!grouped[category]) {
-        grouped[category] = [];
-      }
-      grouped[category].push(item);
-    });
+  const sortedItems = useMemo(() => {
+    const sortableItems = [...filteredItems];
 
-    // Ara, ordena els ítems dins de cada categoria
-    if (sortConfig.key) {
-      const key = sortConfig.key;
+    if (sortMode === 'category') {
+      const grouped: { [category: string]: MaterialItem[] } = {};
+      sortableItems.forEach(item => {
+        const category = item.category || 'Sense Categoria';
+        if (!grouped[category]) grouped[category] = [];
+        grouped[category].push(item);
+      });
+
       Object.values(grouped).forEach(items => {
         items.sort((a, b) => {
-          const valA = a[key];
-          const valB = b[key];
-
+          const valA = a[sortConfig.key];
+          const valB = b[sortConfig.key];
           let comparison = 0;
-          if (typeof valA === 'number' && typeof valB === 'number') {
-            comparison = valA - valB;
-          } else if (valA !== undefined && valB !== undefined) {
-            comparison = String(valA).localeCompare(String(valB), 'ca', { sensitivity: 'base' });
-          } else if (valA !== undefined) {
-            comparison = 1;
-          } else if (valB !== undefined) {
-            comparison = -1;
-          }
-
+          if (typeof valA === 'number' && typeof valB === 'number') comparison = valA - valB;
+          else if (valA !== undefined && valB !== undefined) comparison = String(valA).localeCompare(String(valB), 'ca', { sensitivity: 'base' });
+          else if (valA !== undefined) comparison = 1;
+          else if (valB !== undefined) comparison = -1;
           return sortConfig.direction === 'ascending' ? comparison : -comparison;
         });
       });
+      return Object.entries(grouped).sort(([catA], [catB]) => catA.localeCompare(catB, 'ca', { sensitivity: 'base' }));
+    } else { // sortMode === 'name'
+      sortableItems.sort((a, b) => {
+        const comparison = a.name.localeCompare(b.name, 'ca', { sensitivity: 'base' });
+        return sortConfig.direction === 'ascending' ? comparison : -comparison;
+      });
+      return sortableItems;
     }
+  }, [filteredItems, sortConfig, sortMode]);
 
-    return Object.entries(grouped).sort(([catA], [catB]) => catA.localeCompare(catB));
-  }, [filteredItems, sortConfig]);
+  useEffect(() => {
+    if (sortMode === 'category') {
+      const initialExpandedState = (sortedItems as [string, MaterialItem[]][]).reduce((acc, [category]) => {
+        acc[category] = true; // Default to all expanded
+        return acc;
+      }, {} as { [key: string]: boolean });
+      setExpandedCategories(initialExpandedState);
+    }
+  }, [sortedItems, sortMode]);
+
+  const handleSortModeChange = (mode: 'category' | 'name') => {
+    setSortMode(mode);
+    if (mode === 'category') {
+      setSortConfig({ key: 'category', direction: 'ascending' });
+    } else { // mode === 'name'
+      setSortConfig({ key: 'name', direction: 'ascending' });
+    }
+  };
+
+  const toggleAll = () => {
+    const allCurrentlyExpanded = Object.values(expandedCategories).every(Boolean);
+    const newState = { ...expandedCategories };
+    for (const key in newState) {
+      newState[key] = !allCurrentlyExpanded;
+    }
+    setExpandedCategories(newState);
+  };
+
+  const handleToggleCategory = (category: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
+  const renderItemRow = (item: MaterialItem) => (
+    <div key={item.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60">
+      <div className="flex justify-between items-start gap-2">
+        <div className="w-2/5">
+          <p className="font-semibold">{item.name}</p>
+          {item.notes && <p className="text-xs italic mt-1 text-gray-500 dark:text-gray-400">{item.notes}</p>}
+        </div>
+        <div className="w-1/5">
+          <p className="text-sm text-gray-600 dark:text-gray-300">{item.stock}</p>
+        </div>
+        <div className="w-2/5">
+          <p className="text-sm text-gray-600 dark:text-gray-300">{item.location}</p>
+        </div>
+        <div className="w-16 flex-shrink-0 flex items-center justify-end space-x-2">
+          <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
+          <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -207,53 +261,56 @@ const MaterialDisplay: React.FC = () => {
             </div>
           </div>
 
-          <div className="max-h-[60vh] overflow-y-auto space-y-2">
-            <div className="hidden md:flex items-center gap-2 p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b dark:border-gray-600 mb-2">
-              <button onClick={() => requestSort('name')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                Nom
-                {sortConfig.key === 'name' && <SortArrow direction={sortConfig.direction} />}
-              </button>
-              <button onClick={() => requestSort('stock')} className="w-1/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                Estoc
-                {sortConfig.key === 'stock' && <SortArrow direction={sortConfig.direction} />}
-              </button>
-              <button onClick={() => requestSort('location')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                Ubicació
-                {sortConfig.key === 'location' && <SortArrow direction={sortConfig.direction} />}
-              </button>
-              <div className="w-16 flex-shrink-0 text-right">Accions</div>
+          <div className="flex items-center gap-4 mb-3 border-b dark:border-gray-700 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">Ordenar per:</span>
+              <button onClick={() => handleSortModeChange('category')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'category' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Categoria</button>
+              <button onClick={() => handleSortModeChange('name')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Nom d'Ítem</button>
             </div>
+            {sortMode === 'category' && Object.keys(expandedCategories).length > 0 && (
+              <button onClick={toggleAll} className="px-2 py-1 text-sm rounded-md bg-gray-200 dark:bg-gray-600">
+                {Object.values(expandedCategories).every(Boolean) ? 'Col·lapsar Tot' : 'Expandir Tot'}
+              </button>
+            )}
+          </div>
+
+          <div className="max-h-[60vh] overflow-y-auto space-y-2">
+            {sortMode === 'category' && (
+              <div className="hidden md:flex items-center gap-2 p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b dark:border-gray-600 mb-2">
+                <button onClick={() => requestSort('name')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                  Nom
+                  {sortConfig.key === 'name' && <SortArrow direction={sortConfig.direction} />}
+                </button>
+                <button onClick={() => requestSort('stock')} className="w-1/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                  Estoc
+                  {sortConfig.key === 'stock' && <SortArrow direction={sortConfig.direction} />}
+                </button>
+                <button onClick={() => requestSort('location')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                  Ubicació
+                  {sortConfig.key === 'location' && <SortArrow direction={sortConfig.direction} />}
+                </button>
+                <div className="w-16 flex-shrink-0 text-right">Accions</div>
+              </div>
+            )}
             {filteredItems.length > 0 ? (
-              sortedItemsByCategory.map(([category, items]) => (
-                <CollapsibleSection 
-                  key={category} 
-                  title={`${category} (${items.length})`}
-                  defaultOpen={true}
-                  headerClassName="bg-gray-50 dark:bg-gray-700/50 text-md"
-                  contentClassName="space-y-2"
-                >
-                  {items.map((item: MaterialItem) => (
-                    <div key={item.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="w-2/5">
-                          <p className="font-semibold">{item.name}</p>
-                          {item.notes && <p className="text-xs italic mt-1 text-gray-500 dark:text-gray-400">{item.notes}</p>}
-                        </div>
-                        <div className="w-1/5">
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{item.stock}</p>
-                        </div>
-                        <div className="w-2/5">
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{item.location}</p>
-                        </div>
-                        <div className="w-16 flex-shrink-0 flex items-center justify-end space-x-2">
-                          <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
-                          <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CollapsibleSection>
-              ))
+              sortMode === 'category' ? (
+                (sortedItems as [string, MaterialItem[]][]).map(([category, items]) => (
+                  <CollapsibleSection
+                    key={category}
+                    title={`${category} (${items.length})`}
+                    isExpanded={expandedCategories[category]}
+                    onToggle={() => handleToggleCategory(category)}
+                    headerClassName="bg-gray-50 dark:bg-gray-700/50 text-md"
+                    contentClassName="space-y-2"
+                  >
+                    {items.map(renderItemRow)}
+                  </CollapsibleSection>
+                ))
+              ) : (
+                <div className="space-y-2">
+                  {(sortedItems as MaterialItem[]).map(renderItemRow)}
+                </div>
+              )
             ) : <p className="text-center text-gray-500">No s'ha trobat material o l'inventari està buit.</p>}
           </div>
         </div>

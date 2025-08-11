@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "electron": "wait-on tcp:3000 && electron .",
+    "electron": "wait-on tcp:5173 && electron .",
     "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
     "build:electron": "npm run build && electron-builder",
     "dist": "electron-builder",
