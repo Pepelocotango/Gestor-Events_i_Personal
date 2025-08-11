@@ -22,7 +22,7 @@ const MaterialDisplay: React.FC = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [search, setSearch] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof MaterialItem; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
-  const [allExpanded, setAllExpanded] = useState<boolean>(true);
+  const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
 
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
@@ -132,20 +132,43 @@ const MaterialDisplay: React.FC = () => {
         const comparison = a.name.localeCompare(b.name, 'ca', { sensitivity: 'base' });
         return sortConfig.direction === 'ascending' ? comparison : -comparison;
       });
-      setSortConfig({ key: 'name', direction: sortConfig.direction });
       return sortableItems;
     }
   }, [filteredItems, sortConfig, sortMode]);
 
+  useEffect(() => {
+    if (sortMode === 'category') {
+      const initialExpandedState = (sortedItems as [string, MaterialItem[]][]).reduce((acc, [category]) => {
+        acc[category] = true; // Default to all expanded
+        return acc;
+      }, {} as { [key: string]: boolean });
+      setExpandedCategories(initialExpandedState);
+    }
+  }, [sortedItems, sortMode]);
+
   const handleSortModeChange = (mode: 'category' | 'name') => {
     setSortMode(mode);
-    setAllExpanded(true);
-    if (mode === 'category') setSortConfig({ key: 'category', direction: 'ascending' });
-    if (mode === 'name') setSortConfig({ key: 'name', direction: 'ascending' });
+    if (mode === 'category') {
+      setSortConfig({ key: 'category', direction: 'ascending' });
+    } else { // mode === 'name'
+      setSortConfig({ key: 'name', direction: 'ascending' });
+    }
   };
 
   const toggleAll = () => {
-    setAllExpanded(prev => !prev);
+    const allCurrentlyExpanded = Object.values(expandedCategories).every(Boolean);
+    const newState = { ...expandedCategories };
+    for (const key in newState) {
+      newState[key] = !allCurrentlyExpanded;
+    }
+    setExpandedCategories(newState);
+  };
+
+  const handleToggleCategory = (category: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
   };
 
   const renderItemRow = (item: MaterialItem) => (
@@ -244,36 +267,39 @@ const MaterialDisplay: React.FC = () => {
               <button onClick={() => handleSortModeChange('category')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'category' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Categoria</button>
               <button onClick={() => handleSortModeChange('name')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Nom d'Ítem</button>
             </div>
-            {sortMode === 'category' && (
+            {sortMode === 'category' && Object.keys(expandedCategories).length > 0 && (
               <button onClick={toggleAll} className="px-2 py-1 text-sm rounded-md bg-gray-200 dark:bg-gray-600">
-                {allExpanded ? 'Col·lapsar Tot' : 'Expandir Tot'}
+                {Object.values(expandedCategories).every(Boolean) ? 'Col·lapsar Tot' : 'Expandir Tot'}
               </button>
             )}
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto space-y-2">
-            <div className="hidden md:flex items-center gap-2 p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b dark:border-gray-600 mb-2">
-              <button onClick={() => requestSort('name')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                Nom
-                {sortConfig.key === 'name' && <SortArrow direction={sortConfig.direction} />}
-              </button>
-              <button onClick={() => requestSort('stock')} className="w-1/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                Estoc
-                {sortConfig.key === 'stock' && <SortArrow direction={sortConfig.direction} />}
-              </button>
-              <button onClick={() => requestSort('location')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                Ubicació
-                {sortConfig.key === 'location' && <SortArrow direction={sortConfig.direction} />}
-              </button>
-              <div className="w-16 flex-shrink-0 text-right">Accions</div>
-            </div>
+            {sortMode === 'category' && (
+              <div className="hidden md:flex items-center gap-2 p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b dark:border-gray-600 mb-2">
+                <button onClick={() => requestSort('name')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                  Nom
+                  {sortConfig.key === 'name' && <SortArrow direction={sortConfig.direction} />}
+                </button>
+                <button onClick={() => requestSort('stock')} className="w-1/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                  Estoc
+                  {sortConfig.key === 'stock' && <SortArrow direction={sortConfig.direction} />}
+                </button>
+                <button onClick={() => requestSort('location')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                  Ubicació
+                  {sortConfig.key === 'location' && <SortArrow direction={sortConfig.direction} />}
+                </button>
+                <div className="w-16 flex-shrink-0 text-right">Accions</div>
+              </div>
+            )}
             {filteredItems.length > 0 ? (
               sortMode === 'category' ? (
                 (sortedItems as [string, MaterialItem[]][]).map(([category, items]) => (
                   <CollapsibleSection
                     key={category}
                     title={`${category} (${items.length})`}
-                    isExpanded={allExpanded}
+                    isExpanded={expandedCategories[category]}
+                    onToggle={() => handleToggleCategory(category)}
                     headerClassName="bg-gray-50 dark:bg-gray-700/50 text-md"
                     contentClassName="space-y-2"
                   >
@@ -281,7 +307,9 @@ const MaterialDisplay: React.FC = () => {
                   </CollapsibleSection>
                 ))
               ) : (
-                (sortedItems as MaterialItem[]).map(renderItemRow)
+                <div className="space-y-2">
+                  {(sortedItems as MaterialItem[]).map(renderItemRow)}
+                </div>
               )
             ) : <p className="text-center text-gray-500">No s'ha trobat material o l'inventari està buit.</p>}
           </div>
