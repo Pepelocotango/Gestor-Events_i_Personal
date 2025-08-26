@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShowToastFunction } from '@/types';
 import { useEventData } from '@/contexts/EventDataContext';
+import Tooltip from '../ui/Tooltip';
 
 interface CreateCalendarModalProps {
   onClose: () => void;
@@ -68,20 +69,24 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, show
       </div>
 
       <div className="flex justify-end space-x-2 pt-4 border-t dark:border-gray-700">
-        <button
-          onClick={onClose}
-          disabled={isCreating}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
-        >
-          Cancel·lar
-        </button>
-        <button
-          onClick={handleCreate}
-          disabled={isCreating}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
-        >
-          {isCreating ? 'Creant...' : 'Crear Calendari'}
-        </button>
+        <Tooltip text="Tancar sense crear un nou calendari">
+          <button
+            onClick={onClose}
+            disabled={isCreating}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+          >
+            Cancel·lar
+          </button>
+        </Tooltip>
+        <Tooltip text="Crear un nou calendari a Google Calendar amb el sufix especificat">
+          <button
+            onClick={handleCreate}
+            disabled={isCreating}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
+          >
+            {isCreating ? 'Creant...' : 'Crear Calendari'}
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

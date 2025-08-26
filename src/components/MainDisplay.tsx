@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, forwardRef, useImperativeH
 import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData, ShowToastFunction } from '../types';
 import { useEventData } from '../contexts/EventDataContext';
 import logger from '../utils/logger';
+import Tooltip from './ui/Tooltip';
 
 import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
@@ -344,16 +345,19 @@ useEffect(() => {
 
       <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} defaultOpen={true} id="event-list-section">
         <div className="mb-1 flex justify-start items-center gap-1">
+          <Tooltip text="Crear un nou marc d'esdeveniment">
             <button onClick={() => openModal('addEventFrame')} className="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold flex items-center gap-1">
               <PlusIcon className="w-4 h-4"/> Afegir Nou Marc
             </button>
+          </Tooltip>
+          <Tooltip text={`Ordena per data ${sortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 text-xs font-medium"
-              title={`Ordena per data ${sortOrder === 'asc' ? 'descendent' : 'ascendent'}`}
             >
               {sortOrder === 'asc' ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />} Ordena
             </button>
+          </Tooltip>
         </div>
         
         <div ref={listSectionRef} className="mb-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-1">
@@ -368,15 +372,19 @@ useEffect(() => {
                 {filterDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-0.5"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
             </div>
             <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Lloc</label><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></div>            <div className="flex items-center gap-1">
+              <Tooltip text="Exportar la vista actual a CSV">
                 <button onClick={() => { logger.info('[UI] Iniciant exportació de vista actual a CSV.'); onExportCurrentViewToCsv(); }} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white shadow-sm">
                     <CsvIcon className="w-4 h-4" />
                 </button>
-
+              </Tooltip>
+              <Tooltip text="Exportar la vista actual a PDF">
                 <button onClick={handleExportListToPdf} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white shadow-sm">
                     <PdfIcon className="w-4 h-4" />
                 </button>
-                
+              </Tooltip>
+              <Tooltip text="Netejar tots els filtres">
                 <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame(''); setFilterToShowEventFrameId(null);}} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
+              </Tooltip>
             </div>
         </div>
 

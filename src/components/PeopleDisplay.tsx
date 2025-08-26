@@ -5,6 +5,7 @@ import { PersonGroup } from '../types';
 import { TrashIcon, EditIcon, CsvIcon, PdfIcon } from '../constants';
 import { exportPeopleToPdf } from '../utils/pdfGenerator';
 import { escapeCsvCell } from '../utils/csvUtils';
+import Tooltip from './ui/Tooltip';
 
 
 const PeopleDisplay: React.FC = () => {
@@ -205,15 +206,16 @@ const PeopleDisplay: React.FC = () => {
                     <div className="flex items-center justify-between mb-2">
                         <h4 id="people-group-form-title" className="text-lg font-medium text-gray-800 dark:text-gray-200">{editingPerson ? 'Editar Persona/Grup' : 'Afegir Nova Persona/Grup'}</h4>
                         {editingPerson && (
-                            <button
-                            type="button"
-                            onClick={handleDeleteFromEdit}
-                            title="Eliminar aquesta persona/grup"
-                            aria-label="Eliminar aquesta persona/grup"
-                            className="ml-2 p-2 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-700 dark:hover:bg-red-800 text-red-600 dark:text-red-200 transition-colors"
-                            >
-                            <TrashIcon className="w-4 h-4" />
-                            </button>
+                            <Tooltip text="Eliminar aquesta persona/grup">
+                                <button
+                                type="button"
+                                onClick={handleDeleteFromEdit}
+                                aria-label="Eliminar aquesta persona/grup"
+                                className="ml-2 p-2 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-700 dark:hover:bg-red-800 text-red-600 dark:text-red-200 transition-colors"
+                                >
+                                <TrashIcon className="w-4 h-4" />
+                                </button>
+                            </Tooltip>
                         )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2 gap-y-2">
@@ -250,8 +252,14 @@ const PeopleDisplay: React.FC = () => {
                         <textarea id="pg-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={commonInputClass}></textarea>
                     </div>
                     <div className="flex justify-end space-x-2 pt-2">
-                        {editingPerson && <button type="button" onClick={resetForm} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar Edició</button>}
-                        <button type="submit" className="px-2 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{editingPerson ? 'Actualitzar' : 'Afegir'}</button>
+                        {editingPerson && (
+                            <Tooltip text="Cancel·lar els canvis i netejar el formulari">
+                                <button type="button" onClick={resetForm} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar Edició</button>
+                            </Tooltip>
+                        )}
+                        <Tooltip text={editingPerson ? 'Desar els canvis' : 'Afegir la nova persona/grup'}>
+                            <button type="submit" className="px-2 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{editingPerson ? 'Actualitzar' : 'Afegir'}</button>
+                        </Tooltip>
                     </div>
                 </form>
             </div>
@@ -261,12 +269,16 @@ const PeopleDisplay: React.FC = () => {
                 <div className="flex items-center justify-between mb-2">
                     <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Llista de Persones/Grups</h4>
                     <div className="flex items-center gap-2">
-                        <button type="button" onClick={exportPeopleToCSV} className="p-1 rounded-md bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700/60" title="Exportar a CSV">
-                            <CsvIcon className="w-4 h-4" />
-                        </button>
-                        <button type="button" onClick={exportToPdf} className="p-1 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60" title="Exportar a PDF">
-                            <PdfIcon className="w-4 h-4" />
-                        </button>
+                        <Tooltip text="Exportar a CSV">
+                            <button type="button" onClick={exportPeopleToCSV} className="p-1 rounded-md bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700/60">
+                                <CsvIcon className="w-4 h-4" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip text="Exportar a PDF">
+                            <button type="button" onClick={exportToPdf} className="p-1 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60">
+                                <PdfIcon className="w-4 h-4" />
+                            </button>
+                        </Tooltip>
                     </div>
                 </div>
                 <div className="mb-2 flex items-center gap-2">
@@ -303,8 +315,12 @@ const PeopleDisplay: React.FC = () => {
                                 {p.role && <p className="text-xs text-gray-600 dark:text-gray-300">Rol: {p.role}</p>}
                             </div>
                             <div className="space-x-2 flex-shrink-0">
-                                <button onClick={() => handleEdit(p)} className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors" title={`Editar ${p.name}`} aria-label={`Editar ${p.name}`}><EditIcon className="w-4 h-4"/></button>
-                                <button onClick={() => handleDeletePerson(p)} className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors" title={`Eliminar ${p.name}`} aria-label={`Eliminar ${p.name}`}><TrashIcon className="w-4 h-4"/></button>
+                                <Tooltip text={`Editar ${p.name}`}>
+                                    <button onClick={() => handleEdit(p)} className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors" aria-label={`Editar ${p.name}`}><EditIcon className="w-4 h-4"/></button>
+                                </Tooltip>
+                                <Tooltip text={`Eliminar ${p.name}`}>
+                                    <button onClick={() => handleDeletePerson(p)} className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors" aria-label={`Eliminar ${p.name}`}><TrashIcon className="w-4 h-4"/></button>
+                                </Tooltip>
                             </div>
                         </div>
                         <div className="mt-1 text-xs space-y-0.5 text-gray-500 dark:text-gray-400">

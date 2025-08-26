@@ -3,6 +3,7 @@ import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../constants';
 import { formatDateDMY } from '../../utils/dateFormat';
+import Tooltip from '../ui/Tooltip';
 
 interface AssignmentFormProps {
   onClose: () => void;
@@ -148,8 +149,12 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
         <textarea id="as-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
       </div>
       <div className="flex justify-end space-x-3 pt-4">
-        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300">Cancel·lar</button>
-        <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md" disabled={peopleGroups.length === 0 && !assignmentToEdit}>{assignmentToEdit ? 'Actualitzar' : 'Crear'}</button>
+        <Tooltip text="Tancar el formulari sense desar canvis">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300">Cancel·lar</button>
+        </Tooltip>
+        <Tooltip text={assignmentToEdit ? 'Desar els canvis de l\'assignació' : 'Crear la nova assignació'}>
+          <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md" disabled={peopleGroups.length === 0 && !assignmentToEdit}>{assignmentToEdit ? 'Actualitzar' : 'Crear'}</button>
+        </Tooltip>
       </div>
     </form>
   );

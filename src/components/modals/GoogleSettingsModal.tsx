@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GoogleCalendar, GoogleConfig, ManagedAppCalendar, ShowToastFunction } from '@/types';
 import { useEventData } from '@/contexts/EventDataContext';
+import Tooltip from '../ui/Tooltip';
 
 interface GoogleSettingsModalProps {
   onClose: () => void;
@@ -167,9 +168,11 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
       <div className="p-4 border dark:border-gray-600 rounded-md space-y-4">
         <div className="flex justify-between items-center">
           <h4 className="font-semibold text-gray-800 dark:text-gray-200">Calendaris de l'App Gestionats</h4>
-          <button onClick={handleCreateNewCalendar} className="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md">
-            + Crear Nou
-          </button>
+          <Tooltip text="Obrir el diàleg per crear un nou calendari a Google gestionat per l'app">
+            <button onClick={handleCreateNewCalendar} className="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md">
+              + Crear Nou
+            </button>
+          </Tooltip>
         </div>
 
         {loading && <p className="text-center text-gray-500">Carregant...</p>}
@@ -179,14 +182,16 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
               <li key={cal.id} className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center flex-grow">
-                    <input
-                      type="radio"
-                      id={`cal-${cal.id}`}
-                      name="activeCalendar"
-                      checked={cal.id === activeCalendarId}
-                      onChange={() => setActiveCalendarId(cal.id)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-500"
-                    />
+                    <Tooltip text="Seleccionar com a calendari actiu per a la sincronització">
+                      <input
+                        type="radio"
+                        id={`cal-${cal.id}`}
+                        name="activeCalendar"
+                        checked={cal.id === activeCalendarId}
+                        onChange={() => setActiveCalendarId(cal.id)}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-500"
+                      />
+                    </Tooltip>
                     <div className="ml-3">
                       <label htmlFor={`cal-${cal.id}`} className="block text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer">
                         {cal.name}
@@ -195,12 +200,14 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                       <span className="text-xs text-gray-500 dark:text-gray-400">Sufix: {cal.suffix || '(cap)'}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleDeleteCalendar(cal)}
-                    className="ml-4 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
-                  >
-                    Eliminar
-                  </button>
+                  <Tooltip text={`Eliminar el calendari '${cal.name}' de Google i de l'app`}>
+                    <button
+                      onClick={() => handleDeleteCalendar(cal)}
+                      className="ml-4 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                    >
+                      Eliminar
+                    </button>
+                  </Tooltip>
                 </div>
                 <div className="mt-2 pl-7">
                     <div className="flex rounded-md shadow-sm">
@@ -213,15 +220,17 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                         value={cal.id}
                         className="flex-1 min-w-0 block w-full px-2 py-1 rounded-none bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-xs"
                       />
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(cal.id);
-                          showToast('ID del calendari copiat!', 'success');
-                        }}
-                        className="inline-flex items-center px-3 py-1 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md bg-gray-200 dark:bg-gray-700 text-xs hover:bg-gray-300 dark:hover:bg-gray-600"
-                      >
-                        Copiar
-                      </button>
+                      <Tooltip text="Copiar l'ID del calendari al porta-retalls">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(cal.id);
+                            showToast('ID del calendari copiat!', 'success');
+                          }}
+                          className="inline-flex items-center px-3 py-1 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md bg-gray-200 dark:bg-gray-700 text-xs hover:bg-gray-300 dark:hover:bg-gray-600"
+                        >
+                          Copiar
+                        </button>
+                      </Tooltip>
                     </div>
                 </div>
               </li>
@@ -267,32 +276,37 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
       </div>
       
       <div className="flex justify-between items-center pt-4 border-t dark:border-gray-700">
-        <button
-          onClick={handleDisconnect}
-          className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
-          disabled={managedCalendars.length === 0 || isSyncing}
-          title={managedCalendars.length === 0 ? "No hi ha cap compte de Google connectat" : "Desconnecta el teu compte de Google"}
-        >
-          Desconnectar Compte
-        </button>
-        <div className="flex items-center space-x-2">
+        <Tooltip text={managedCalendars.length === 0 ? "No hi ha cap compte de Google connectat" : "Desconnecta el teu compte de Google i elimina les dades relacionades"}>
           <button
-            onClick={() => {
-              if (activeCalendarId) {
-                executeSync(activeCalendarId);
-                onClose();
-              } else {
-                showToast("Si us plau, selecciona un calendari actiu per sincronitzar.", 'warning');
-              }
-            }}
-            disabled={!activeCalendarId || isSyncing}
-            className="px-4 py-2 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-md disabled:opacity-50"
+            onClick={handleDisconnect}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
+            disabled={managedCalendars.length === 0 || isSyncing}
           >
-            {isSyncing ? 'Sincronitzant...' : 'Sincronitzar Ara'}
+            Desconnectar Compte
           </button>
-          <button onClick={handleSaveAndClose} disabled={isSyncing} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50">
-            Desar i Tancar
-          </button>
+        </Tooltip>
+        <div className="flex items-center space-x-2">
+          <Tooltip text={!activeCalendarId ? "Selecciona un calendari actiu per poder sincronitzar" : "Forçar una sincronització manual ara"}>
+            <button
+              onClick={() => {
+                if (activeCalendarId) {
+                  executeSync(activeCalendarId);
+                  onClose();
+                } else {
+                  showToast("Si us plau, selecciona un calendari actiu per sincronitzar.", 'warning');
+                }
+              }}
+              disabled={!activeCalendarId || isSyncing}
+              className="px-4 py-2 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-md disabled:opacity-50"
+            >
+              {isSyncing ? 'Sincronitzant...' : 'Sincronitzar Ara'}
+            </button>
+          </Tooltip>
+          <Tooltip text="Desar la configuració actual i tancar la finestra">
+            <button onClick={handleSaveAndClose} disabled={isSyncing} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50">
+              Desar i Tancar
+            </button>
+          </Tooltip>
         </div>
       </div>
     </div>

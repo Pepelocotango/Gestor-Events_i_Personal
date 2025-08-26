@@ -582,6 +582,35 @@ Aquest fitxer és el centre de la configuració d'estils.
 -   Conté les directives base de Tailwind (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`).
 -   Defineix algunes classes personalitzades a `@layer components`, com `assignment-card-*`, que agrupen diverses utilitats de Tailwind per a una reutilització més senzilla.
 
+### 6.1. Sistema de Tooltips Personalitzat
+
+Per millorar la coherència i l'experiència d'usuari, s'ha abandonat l'ús de l'atribut natiu `title` d'HTML a favor d'un sistema de tooltips personalitzat. L'atribut `title` no permet estilització i el seu comportament (com el retard d'aparició) depèn del navegador.
+
+El nou sistema es basa en el component reutilitzable `Tooltip`.
+
+#### Ús del Component `Tooltip`
+
+El component `Tooltip` es troba a `src/components/ui/Tooltip.tsx` i funciona com un embolcall (wrapper). Per afegir un tooltip a qualsevol element, simplement cal embolcallar-lo amb el component `Tooltip` i passar-li el text a mostrar a través de la propietat `text`.
+
+**Exemple d'ús:**
+
+```tsx
+import Tooltip from './ui/Tooltip';
+
+// ...
+
+<Tooltip text="Aquest és el text que es mostrarà al tooltip">
+  <button onClick={laMevaFuncio}>
+    La Meva Acció
+  </button>
+</Tooltip>
+```
+
+#### Funcionament Intern i Estilització
+
+-   El component `Tooltip` clona l'element fill (`children`) i li afegeix automàticament una classe CSS (`has-tooltip`) i un atribut de dades (`data-tooltip-text`).
+-   Tota la lògica visual i de comportament (estils, animacions i retard d'aparició) es gestiona de manera centralitzada a **`src/index.css`** mitjançant les regles CSS associades a la classe `has-tooltip` i el pseudo-element `::after`. Això garanteix que tots els tooltips de l'aplicació tinguin un aspecte i un comportament consistents.
+
 ---
 
 ## 7. Compilació i Desplegament (CI/CD)

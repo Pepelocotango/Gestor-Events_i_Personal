@@ -5,6 +5,7 @@ import { PersonAddIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, Goo
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { formatDateRangeDMY } from '@/utils/dateFormat';
 import AssignmentCard from './AssignmentCard';
+import Tooltip from './ui/Tooltip';
 
 interface EventFrameCardProps {
   eventFrame: EventFrame;
@@ -73,10 +74,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               }}
             >
               {eventFrame.googleEventId && (
-              <span title="Aquest esdeveniment està sincronitzat amb Google Calendar">
-                <GoogleIcon className="w-4 h-4" />
-              </span>
-            )}
+                <Tooltip text="Aquest esdeveniment està sincronitzat amb Google Calendar">
+                  <span>
+                    <GoogleIcon className="w-4 h-4" />
+                  </span>
+                </Tooltip>
+              )}
 
               {eventFrame.name}
             </h4>
@@ -84,12 +87,20 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
             <p className="text-xs text-gray-500 dark:text-gray-400">{formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)}</p>
           </div>
           <div className="flex items-center space-x-0.5 sm:space-x-0.5 flex-wrap">
-            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
-            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
-            <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('addAssignment', { eventFrame }); }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
-            <button onClick={(e) => { e.stopPropagation(); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
-              {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
-            </button>
+            <Tooltip text="Editar els detalls de l'esdeveniment">
+              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
+            </Tooltip>
+            <Tooltip text="Eliminar l'esdeveniment">
+              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
+            </Tooltip>
+            <Tooltip text="Afegir una nova assignació de personal">
+              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('addAssignment', { eventFrame }); }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
+            </Tooltip>
+            <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
+              <button onClick={(e) => { e.stopPropagation(); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+                {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>

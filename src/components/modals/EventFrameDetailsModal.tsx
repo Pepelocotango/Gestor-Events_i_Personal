@@ -3,6 +3,7 @@ import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, AssignmentStatus, ShowToastFunction } from '../../types';
 import { formatDateDMY, formatDateRangeDMY } from '../../utils/dateFormat';
 import { getStatusSummaryText } from '../../utils/statusUtils';
+import Tooltip from '../ui/Tooltip';
 
 interface CommonFormProps {
   onClose: () => void;
@@ -67,31 +68,39 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
         )}
       </div>
       <div className="flex justify-between items-center pt-4 mt-4 border-t dark:border-gray-700">
-        <button
-          onClick={() => onShowOnList(eventFrame.id)}
-          className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-        >
-          Mostrar a la Llista
-        </button>
+        <Tooltip text="Localitzar i ressaltar aquest esdeveniment a la llista principal">
+          <button
+            onClick={() => onShowOnList(eventFrame.id)}
+            className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+          >
+            Mostrar a la Llista
+          </button>
+        </Tooltip>
         <div className="space-x-2">
+          <Tooltip text="Obrir el formulari per editar els detalls d'aquest marc">
             <button
-            onClick={() => contextOpenModal('editEventFrame', { eventFrameToEdit: eventFrame })}
-            className="px-4 py-2 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
+              onClick={() => contextOpenModal('editEventFrame', { eventFrameToEdit: eventFrame })}
+              className="px-4 py-2 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
             >
-            Editar Marc
+              Editar Marc
             </button>
+          </Tooltip>
+          <Tooltip text="Eliminar aquest marc d'esdeveniment i totes les seves assignacions">
             <button
-            onClick={handleDeleteClick} 
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+              onClick={handleDeleteClick}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
             >
-            Eliminar Marc
+              Eliminar Marc
             </button>
+          </Tooltip>
+          <Tooltip text="Tancar aquesta finestra de detalls">
             <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
             >
-            Tancar
+              Tancar
             </button>
+          </Tooltip>
         </div>
       </div>
     </div>

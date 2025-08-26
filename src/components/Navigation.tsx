@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { CalendarIcon, BoxIcon, UsersIcon } from '../constants';
+import Tooltip from './ui/Tooltip';
 
 const DocumentTextIcon = ({ className = "w-5 h-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -19,26 +20,33 @@ const Navigation: React.FC = () => {
   return (
     <nav className="flex justify-center my-1">
       <div className="flex space-x-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+        <Tooltip text="Anar a la vista principal del calendari i llista d'esdeveniments">
+          <NavLink to="/" className={getLinkClassName}>
+            <CalendarIcon className="h-5 w-5" />
+            <span>Calendari i Llista</span>
+          </NavLink>
+        </Tooltip>
         
-        <NavLink to="/" className={getLinkClassName}>
-          <CalendarIcon className="h-5 w-5" />
-          <span>Calendari i Llista</span>
-        </NavLink>
-        
-        <NavLink to="/tech-sheets" className={getLinkClassName}>
-          <DocumentTextIcon className="h-5 w-5" />
-          <span>Fitxes de Bolo</span>
-        </NavLink>
+        <Tooltip text="Anar a la gestió de fitxes tècniques (bolos)">
+          <NavLink to="/tech-sheets" className={getLinkClassName}>
+            <DocumentTextIcon className="h-5 w-5" />
+            <span>Fitxes de Bolo</span>
+          </NavLink>
+        </Tooltip>
 
-        <NavLink to="/people" className={getLinkClassName}>
-          <UsersIcon className="h-5 w-5" />
-          <span>Persones</span>
-        </NavLink>
+        <Tooltip text="Anar a la gestió de persones i grups">
+          <NavLink to="/people" className={getLinkClassName}>
+            <UsersIcon className="h-5 w-5" />
+            <span>Persones</span>
+          </NavLink>
+        </Tooltip>
 
-        <NavLink to="/material" className={getLinkClassName}>
-          <BoxIcon className="h-5 w-5" />
-          <span>Material</span>
-        </NavLink>
+        <Tooltip text="Anar a la gestió d'inventari de material">
+          <NavLink to="/material" className={getLinkClassName}>
+            <BoxIcon className="h-5 w-5" />
+            <span>Material</span>
+          </NavLink>
+        </Tooltip>
       
       </div>
     </nav>

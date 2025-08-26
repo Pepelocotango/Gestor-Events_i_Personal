@@ -4,6 +4,7 @@ import { MaterialItem } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
 import { exportMaterialToPdf } from '../utils/pdfGenerator';
 import CollapsibleSection from './ui/CollapsibleSection';
+import Tooltip from './ui/Tooltip';
 
 const SortArrow = ({ direction }: { direction: 'ascending' | 'descending' | null }) => {
   if (!direction) return null;
@@ -185,8 +186,12 @@ const MaterialDisplay: React.FC = () => {
           <p className="text-sm text-gray-600 dark:text-gray-300">{item.location}</p>
         </div>
         <div className="w-16 flex-shrink-0 flex items-center justify-end space-x-2">
-          <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
-          <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
+          <Tooltip text={`Editar ${item.name}`}>
+            <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
+          </Tooltip>
+          <Tooltip text={`Eliminar ${item.name}`}>
+            <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
+          </Tooltip>
         </div>
       </div>
     </div>
@@ -237,8 +242,14 @@ const MaterialDisplay: React.FC = () => {
             </div>
             
             <div className="flex justify-end space-x-2 pt-2">
-              {editingItem && <button type="button" onClick={resetForm} className="px-3 py-1.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 rounded-md">Cancel·lar</button>}
-              <button type="submit" className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">{editingItem ? 'Actualitzar' : 'Afegir'}</button>
+              {editingItem && (
+                <Tooltip text="Descartar canvis i netejar el formulari">
+                  <button type="button" onClick={resetForm} className="px-3 py-1.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 rounded-md">Cancel·lar</button>
+                </Tooltip>
+              )}
+              <Tooltip text={editingItem ? 'Desar els canvis fets a l\'ítem' : 'Afegir el nou ítem a l\'inventari'}>
+                <button type="submit" className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">{editingItem ? 'Actualitzar' : 'Afegir'}</button>
+              </Tooltip>
             </div>
           </form>
         </div>
@@ -249,15 +260,16 @@ const MaterialDisplay: React.FC = () => {
             <h4 className="text-lg font-medium">Inventari</h4>
             <div className="flex items-center gap-2">
                 <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
-                <button
-                  onClick={handleExportPdf}
-                  className="p-2 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60"
-                  title="Exportar llista a PDF"
-                  aria-label="Exportar llista de material a PDF"
-                  disabled={filteredItems.length === 0}
-                >
-                  <PdfIcon className="w-5 h-5" />
-                </button>
+                <Tooltip text="Exportar llista a PDF">
+                  <button
+                    onClick={handleExportPdf}
+                    className="p-2 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60"
+                    aria-label="Exportar llista de material a PDF"
+                    disabled={filteredItems.length === 0}
+                  >
+                    <PdfIcon className="w-5 h-5" />
+                  </button>
+                </Tooltip>
             </div>
           </div>
 
