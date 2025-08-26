@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ManagedAppCalendar } from '@/types';
+import Tooltip from '../ui/Tooltip';
 
 interface SelectSyncCalendarModalProps {
   onClose: () => void;
@@ -48,15 +49,17 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
         <div className="space-y-2 max-h-60 overflow-y-auto p-1">
           {managedCalendars.map(cal => (
             <div key={cal.id} className="flex items-center p-2 rounded-md border border-transparent has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-900/20">
-              <input
-                type="radio"
-                id={`sync-cal-${cal.id}`}
-                name="syncCalendar"
-                value={cal.id}
-                checked={cal.id === selectedCalendarId}
-                onChange={() => setSelectedCalendarId(cal.id)}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-              />
+              <Tooltip text={`Seleccionar el calendari '${cal.name}' com a destinació per a la sincronització`}>
+                <input
+                  type="radio"
+                  id={`sync-cal-${cal.id}`}
+                  name="syncCalendar"
+                  value={cal.id}
+                  checked={cal.id === selectedCalendarId}
+                  onChange={() => setSelectedCalendarId(cal.id)}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                />
+              </Tooltip>
               <label htmlFor={`sync-cal-${cal.id}`} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {cal.name}
               </label>
@@ -71,19 +74,23 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
       )}
 
       <div className="flex justify-end items-center pt-4 border-t dark:border-gray-700 space-x-2">
-        <button
-          onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
-        >
-          Cancel·lar
-        </button>
-        <button
-          onClick={handleSync}
-          disabled={!selectedCalendarId}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {selectedCalendar ? `Sincronitzar amb "${selectedCalendar.name}"` : 'Selecciona un calendari'}
-        </button>
+        <Tooltip text="Tancar sense sincronitzar">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            Cancel·lar
+          </button>
+        </Tooltip>
+        <Tooltip text={!selectedCalendarId ? 'Has de seleccionar un calendari per poder sincronitzar' : `Sobreescriurà les dades de '${selectedCalendar?.name}' amb les dades actuals de l'app`}>
+          <button
+            onClick={handleSync}
+            disabled={!selectedCalendarId}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {selectedCalendar ? `Sincronitzar amb "${selectedCalendar.name}"` : 'Selecciona un calendari'}
+          </button>
+        </Tooltip>
       </div>
     </div>
   );
