@@ -53,17 +53,19 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       >
         <div className="flex flex-col sm:flex-row justify-between sm:items-center">
           <div className="mb-1 sm:mb-0 flex items-center gap-1.5">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                skipNextCollapse.current = true;
-                onUpdateEventFrame({ ...eventFrame, personnelComplete: !eventFrame.personnelComplete });
-                setToastMessage(eventFrame.personnelComplete ? 'Marc marcat com a incomplet.' : 'Marc marcat com a complet.', 'success');
-              }}
-              className="focus:outline-none"
-            >
-            <CheckCircleIcon className={`w-5 h-5 transition-colors ${eventFrame.personnelComplete ? 'text-green-500' : 'text-yellow-500'}`} />
-            </button>
+            <Tooltip text={eventFrame.personnelComplete ? 'Marcar com a incomplet' : 'Marcar com a complet'}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipNextCollapse.current = true;
+                  onUpdateEventFrame({ ...eventFrame, personnelComplete: !eventFrame.personnelComplete });
+                  setToastMessage(eventFrame.personnelComplete ? 'Marc marcat com a incomplet.' : 'Marc marcat com a complet.', 'success');
+                }}
+                className="focus:outline-none"
+              >
+              <CheckCircleIcon className={`w-5 h-5 transition-colors ${eventFrame.personnelComplete ? 'text-green-500' : 'text-yellow-500'}`} />
+              </button>
+            </Tooltip>
             <h4
               id={`event-frame-title-${eventFrame.id}`}
               className="text-base font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5" // <<< Afegim classes flex

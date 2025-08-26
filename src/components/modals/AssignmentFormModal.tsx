@@ -115,34 +115,42 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
       )}
       <div>
         <label htmlFor="as-person" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Persona/Grup</label>
-        <select id="as-person" value={personGroupId} onChange={e => setPersonGroupId(e.target.value)} className={commonInputClass} required disabled={peopleGroups.length === 0}>
-          {peopleGroups.length === 0 ? <option value="" disabled>No hi ha persones/grups</option> :
-            <>
-              <option value="" disabled>Selecciona una persona o grup</option>
-              {peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </>
-          }
-        </select>
+        <Tooltip text="Seleccionar la persona o grup a assignar">
+          <select id="as-person" value={personGroupId} onChange={e => setPersonGroupId(e.target.value)} className={commonInputClass} required disabled={peopleGroups.length === 0}>
+            {peopleGroups.length === 0 ? <option value="" disabled>No hi ha persones/grups</option> :
+              <>
+                <option value="" disabled>Selecciona una persona o grup</option>
+                {peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </>
+            }
+          </select>
+        </Tooltip>
         {errors.personGroupId && <p className="text-red-500 text-xs mt-1">{errors.personGroupId}</p>}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="as-startDate" className="block text-sm font-medium">Data d'Inici</label>
-          <input type="date" id="as-startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className={commonInputClass} required />
+          <Tooltip text="Data d'inici de l'assignació">
+            <input type="date" id="as-startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className={commonInputClass} required />
+          </Tooltip>
           {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
         </div>
         <div>
           <label htmlFor="as-endDate" className="block text-sm font-medium">Data de Fi</label>
-          <input type="date" id="as-endDate" value={endDate} onChange={e => setEndDate(e.target.value)} className={commonInputClass} required />
+          <Tooltip text="Data de fi de l'assignació">
+            <input type="date" id="as-endDate" value={endDate} onChange={e => setEndDate(e.target.value)} className={commonInputClass} required />
+          </Tooltip>
           {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
         </div>
       </div>
       {errors.datesRange && <p className="text-red-500 text-xs text-center -mt-2">{errors.datesRange}</p>}
       <div>
         <label htmlFor="as-status" className="block text-sm font-medium">Estat</label>
-        <select id="as-status" value={status} onChange={e => setStatus(e.target.value as AssignmentStatus)} className={commonInputClass}>
-          {ASSIGNMENT_STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </select>
+        <Tooltip text="Estat general de l'assignació">
+          <select id="as-status" value={status} onChange={e => setStatus(e.target.value as AssignmentStatus)} className={commonInputClass}>
+            {ASSIGNMENT_STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          </select>
+        </Tooltip>
       </div>
       <div>
         <label htmlFor="as-notes" className="block text-sm font-medium">Notes (Opcional)</label>

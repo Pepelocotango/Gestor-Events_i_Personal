@@ -52,20 +52,22 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, show
         <label htmlFor="calendar-suffix" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Sufix del Calendari
         </label>
-        <input
-          type="text"
-          id="calendar-suffix"
-          value={suffix}
-          onChange={(e) => setSuffix(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          placeholder="Ex: Teatre Principal"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleCreate();
-            }
-          }}
-        />
+        <Tooltip text="Sufix que s'afegirà al nom del calendari. Ha de ser únic.">
+          <input
+            type="text"
+            id="calendar-suffix"
+            value={suffix}
+            onChange={(e) => setSuffix(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            placeholder="Ex: Teatre Principal"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleCreate();
+              }
+            }}
+          />
+        </Tooltip>
       </div>
 
       <div className="flex justify-end space-x-2 pt-4 border-t dark:border-gray-700">

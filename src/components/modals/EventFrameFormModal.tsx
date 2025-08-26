@@ -98,7 +98,9 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
       <h2 id="event-frame-form-title" className="sr-only">{eventFrameToEdit && eventFrameToEdit.id ? 'Formulari Edició Marc Esdeveniment' : 'Formulari Nou Marc Esdeveniment'}</h2>
       <div>
         <label htmlFor="ef-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom de l'Esdeveniment</label>
-        <input type="text" id="ef-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required aria-required="true" list={eventNameDatalistId}/>
+        <Tooltip text="Nom principal de l'esdeveniment">
+          <input type="text" id="ef-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required aria-required="true" list={eventNameDatalistId}/>
+        </Tooltip>
         <datalist id={eventNameDatalistId}>
             {uniqueEventNames.map(n => <option key={n} value={n} />)}
         </datalist>
@@ -106,7 +108,9 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
       </div>
       <div>
         <label htmlFor="ef-place" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lloc (Opcional)</label>
-        <input type="text" id="ef-place" value={place} onChange={e => setPlace(e.target.value)} className={commonInputClass} list={locationDatalistId} />
+        <Tooltip text="Ubicació o lloc de l'esdeveniment">
+          <input type="text" id="ef-place" value={place} onChange={e => setPlace(e.target.value)} className={commonInputClass} list={locationDatalistId} />
+        </Tooltip>
         <datalist id={locationDatalistId}>
             {uniqueLocations.map(loc => <option key={loc} value={loc} />)}
         </datalist>
@@ -114,20 +118,26 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
           <label htmlFor="ef-startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data d'Inici</label>
-          <input type="date" id="ef-startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
+          <Tooltip text="Data d'inici del marc d'esdeveniment">
+            <input type="date" id="ef-startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
+          </Tooltip>
           {startDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(startDate)}</p>}
           {errors.startDate && <p className="text-red-500 text-xs mt-1" role="alert">{errors.startDate}</p>}
         </div>
         <div>
           <label htmlFor="ef-endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data de Fi</label>
-          <input type="date" id="ef-endDate" value={endDate} onChange={e => setEndDate(e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
+          <Tooltip text="Data de fi del marc d'esdeveniment">
+            <input type="date" id="ef-endDate" value={endDate} onChange={e => setEndDate(e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
+          </Tooltip>
           {endDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(endDate)}</p>}
           {errors.endDate && <p className="text-red-500 text-xs mt-1" role="alert">{errors.endDate}</p>}
         </div>
       </div>
       <div>
         <label htmlFor="ef-generalNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals (Opcional)</label>
-        <textarea id="ef-generalNotes" value={generalNotes} onChange={e => setGeneralNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
+        <Tooltip text="Anotacions generals sobre l'esdeveniment">
+          <textarea id="ef-generalNotes" value={generalNotes} onChange={e => setGeneralNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
+        </Tooltip>
       </div>
       <div className="flex justify-end space-x-2 pt-2">
         <Tooltip text="Tancar el formulari sense desar">

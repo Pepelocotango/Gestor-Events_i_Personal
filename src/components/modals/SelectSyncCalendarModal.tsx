@@ -49,15 +49,17 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
         <div className="space-y-2 max-h-60 overflow-y-auto p-1">
           {managedCalendars.map(cal => (
             <div key={cal.id} className="flex items-center p-2 rounded-md border border-transparent has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-900/20">
-              <input
-                type="radio"
-                id={`sync-cal-${cal.id}`}
-                name="syncCalendar"
-                value={cal.id}
-                checked={cal.id === selectedCalendarId}
-                onChange={() => setSelectedCalendarId(cal.id)}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-              />
+              <Tooltip text={`Seleccionar el calendari '${cal.name}' com a destinació per a la sincronització`}>
+                <input
+                  type="radio"
+                  id={`sync-cal-${cal.id}`}
+                  name="syncCalendar"
+                  value={cal.id}
+                  checked={cal.id === selectedCalendarId}
+                  onChange={() => setSelectedCalendarId(cal.id)}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                />
+              </Tooltip>
               <label htmlFor={`sync-cal-${cal.id}`} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {cal.name}
               </label>

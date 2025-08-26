@@ -254,14 +254,16 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
           <ul className="space-y-2 max-h-48 overflow-y-auto">
             {externalCalendars.map(cal => (
               <li key={cal.id} className="flex items-center">
-                <input
-                  type="checkbox"
-                  id={cal.id}
-                  checked={selectedIds.has(cal.id)}
-                  onChange={() => handleToggleExternal(cal.id)}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  style={{ accentColor: cal.backgroundColor }}
-                />
+                <Tooltip text={`Mostrar/ocultar el calendari '${cal.summary}' a la vista principal`}>
+                  <input
+                    type="checkbox"
+                    id={cal.id}
+                    checked={selectedIds.has(cal.id)}
+                    onChange={() => handleToggleExternal(cal.id)}
+                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    style={{ accentColor: cal.backgroundColor }}
+                  />
+                </Tooltip>
                 <label htmlFor={cal.id} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {cal.summary}
                   {cal.primary && ' (Principal)'}

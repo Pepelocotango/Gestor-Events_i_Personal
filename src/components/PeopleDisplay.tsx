@@ -221,35 +221,49 @@ const PeopleDisplay: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2 gap-y-2">
                         <div>
                             <label htmlFor="pg-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom</label>
-                            <input type="text" id="pg-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required aria-required="true" />
+                            <Tooltip text="Nom de la persona o grup. Aquest camp és obligatori i ha de ser únic.">
+                              <input type="text" id="pg-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required aria-required="true" />
+                            </Tooltip>
                             {errors.name && <p className="text-red-500 text-xs mt-1" role="alert">{errors.name}</p>}
                         </div>
                         <div>
                             <label htmlFor="pg-role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rol/Tipus (Opcional)</label>
-                            <input type="text" id="pg-role" value={role} onChange={e => setRole(e.target.value)} className={commonInputClass} />
+                            <Tooltip text="Rol o tipus de servei (p. ex. Tècnic de so, Proveïdor de llums)">
+                              <input type="text" id="pg-role" value={role} onChange={e => setRole(e.target.value)} className={commonInputClass} />
+                            </Tooltip>
                         </div>
                         <div>
                             <label htmlFor="pg-tel1" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Telèfon 1 (Opcional)</label>
-                            <input type="tel" id="pg-tel1" value={tel1} onChange={e => setTel1(e.target.value)} className={commonInputClass} />
+                            <Tooltip text="Primer telèfon de contacte">
+                              <input type="tel" id="pg-tel1" value={tel1} onChange={e => setTel1(e.target.value)} className={commonInputClass} />
+                            </Tooltip>
                         </div>
                         <div>
                             <label htmlFor="pg-tel2" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Telèfon 2 (Opcional)</label>
-                            <input type="tel" id="pg-tel2" value={tel2} onChange={e => setTel2(e.target.value)} className={commonInputClass} />
+                            <Tooltip text="Segon telèfon de contacte">
+                              <input type="tel" id="pg-tel2" value={tel2} onChange={e => setTel2(e.target.value)} className={commonInputClass} />
+                            </Tooltip>
                         </div>
                         <div>
                             <label htmlFor="pg-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Correu Electrònic (Opcional)</label>
-                            <input type="email" id="pg-email" value={email} onChange={e => setEmail(e.target.value)} className={commonInputClass} />
+                            <Tooltip text="Adreça de correu electrònic">
+                              <input type="email" id="pg-email" value={email} onChange={e => setEmail(e.target.value)} className={commonInputClass} />
+                            </Tooltip>
                             {errors.email && <p className="text-red-500 text-xs mt-1" role="alert">{errors.email}</p>}
                         </div>
                         <div>
                             <label htmlFor="pg-web" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Pàgina Web (Opcional)</label>
-                            <input type="url" id="pg-web" value={web} onChange={e => setWeb(e.target.value)} className={commonInputClass} placeholder="https://exemple.com"/>
+                            <Tooltip text="Pàgina web de la persona o grup">
+                              <input type="url" id="pg-web" value={web} onChange={e => setWeb(e.target.value)} className={commonInputClass} placeholder="https://exemple.com"/>
+                            </Tooltip>
                             {errors.web && <p className="text-red-500 text-xs mt-1" role="alert">{errors.web}</p>}
                         </div>
                     </div>
                     <div className="col-span-1 md:col-span-2">
                         <label htmlFor="pg-notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes (Opcional)</label>
-                        <textarea id="pg-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={commonInputClass}></textarea>
+                        <Tooltip text="Qualsevol informació addicional rellevant">
+                          <textarea id="pg-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={commonInputClass}></textarea>
+                        </Tooltip>
                     </div>
                     <div className="flex justify-end space-x-2 pt-2">
                         {editingPerson && (
@@ -285,23 +299,29 @@ const PeopleDisplay: React.FC = () => {
                     <span className="text-gray-500 dark:text-gray-400">
                     <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline align-middle"><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/></svg>
                     </span>
-                    <input
-                    type="search"
-                    className="block w-full px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="Cerca per nom, rol, email, tel..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    aria-label="Cercar persona o grup"
-                    />
+                    <Tooltip text="Cercar per nom, rol, email o telèfon">
+                      <input
+                      type="search"
+                      className="block w-full px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="Cerca per nom, rol, email, tel..."
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      aria-label="Cercar persona o grup"
+                      />
+                    </Tooltip>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm font-medium">Ordenar per:</span>
-                    <button onClick={() => requestSort('name')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>
-                        Nom {sortConfig.key === 'name' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
-                    </button>
-                    <button onClick={() => requestSort('role')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'role' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>
-                        Rol {sortConfig.key === 'role' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
-                    </button>
+                    <Tooltip text="Ordenar per nom (A-Z / Z-A)">
+                      <button onClick={() => requestSort('name')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>
+                          Nom {sortConfig.key === 'name' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Ordenar per rol (A-Z / Z-A)">
+                      <button onClick={() => requestSort('role')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'role' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>
+                          Rol {sortConfig.key === 'role' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                      </button>
+                    </Tooltip>
                 </div>
                 {sortedPeopleGroups.length === 0 ? (
                     <p className="text-gray-500 dark:text-gray-400">No hi ha persones o grups que coincideixin amb la cerca.</p>

@@ -47,13 +47,15 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
 
   return (
     <div className="mb-2 bg-white dark:bg-gray-800 shadow-md rounded-lg">
-      <button id={buttonId} onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-1.5 text-left text-base font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
-        <div className="flex items-center gap-1.5">
-          {icon && <React.Fragment>{icon}</React.Fragment>}
-          <span>{title}</span>
-        </div>
-        {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-      </button>
+      <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
+        <button id={buttonId} onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-1.5 text-left text-base font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
+          <div className="flex items-center gap-1.5">
+            {icon && <React.Fragment>{icon}</React.Fragment>}
+            <span>{title}</span>
+          </div>
+          {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+        </button>
+      </Tooltip>
       {isOpen && <div id={contentId} className="p-1.5 border-t border-gray-200 dark:border-gray-700">{children}</div>}
     </div>
   );
@@ -361,17 +363,19 @@ useEffect(() => {
         </div>
         
         <div ref={listSectionRef} className="mb-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-1">
-            <div className="flex-grow min-w-[180px]"><label htmlFor="filterText" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Cerca general</label><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Nom, lloc, persona..."/></div>
-            <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIEventFrame" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Marc</label><select id="filterUIEventFrame" value={filterUIEventFrame} onChange={e => setFilterUIEventFrame(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></div>
-            <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIPerson" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Persona</label><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Totes --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-            <div className="flex-grow min-w-[110px]"><label htmlFor="filterStatus" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Estat</label><select id="filterStatus" value={filterStatus} onChange={e => setFilterStatus(e.target.value as AssignmentStatus | '')} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Object.values(AssignmentStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+            <div className="flex-grow min-w-[180px]"><label htmlFor="filterText" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Cerca general</label><Tooltip text="Cerca per nom d'esdeveniment, lloc, notes o nom de persona assignada"><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Nom, lloc, persona..."/></Tooltip></div>
+            <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIEventFrame" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Marc</label><Tooltip text="Filtrar per un marc d'esdeveniment específic"><select id="filterUIEventFrame" value={filterUIEventFrame} onChange={e => setFilterUIEventFrame(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></Tooltip></div>
+            <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIPerson" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Persona</label><Tooltip text="Filtrar per persona o grup assignat"><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Totes --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Tooltip></div>
+            <div className="flex-grow min-w-[110px]"><label htmlFor="filterStatus" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Estat</label><Tooltip text="Filtrar per estat de l'assignació"><select id="filterStatus" value={filterStatus} onChange={e => setFilterStatus(e.target.value as AssignmentStatus | '')} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Object.values(AssignmentStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></Tooltip></div>
             
             <div className="flex-grow min-w-[140px]"><label htmlFor="filterDate" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Conté Data</label>
+              <Tooltip text="Mostrar només esdeveniments que estiguin actius en aquesta data">
                 <input type="date" id="filterDate" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+              </Tooltip>
                
                 {filterDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-0.5"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
             </div>
-            <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Lloc</label><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></div>            <div className="flex items-center gap-1">
+            <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Lloc</label><Tooltip text="Filtrar per lloc de l'esdeveniment"><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></Tooltip></div>            <div className="flex items-center gap-1">
               <Tooltip text="Exportar la vista actual a CSV">
                 <button onClick={() => { logger.info('[UI] Iniciant exportació de vista actual a CSV.'); onExportCurrentViewToCsv(); }} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white shadow-sm">
                     <CsvIcon className="w-4 h-4" />
