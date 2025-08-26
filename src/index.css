@@ -145,13 +145,14 @@
     @apply absolute bottom-full left-1/2 -translate-x-1/2 mb-2;
     @apply bg-gray-800 text-white text-xs font-semibold;
     @apply px-2 py-1 rounded-md shadow-lg;
-    @apply whitespace-nowrap;
+    max-width: 250px;
+    white-space: normal;
     @apply opacity-0 invisible;
     transition-property: opacity, visibility;
     transition-duration: 0.2s;
     transition-timing-function: ease-in-out;
     transition-delay: 0.5s;
-    z-index: 10;
+    z-index: 9999;
   }
   .has-tooltip:hover::after {
     @apply opacity-100 visible;
