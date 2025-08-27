@@ -4,6 +4,7 @@ import { PersonGroup, ModalType, ShowToastFunction } from '../types';
 import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
+import Tooltip from './ui/Tooltip';
 
 interface ControlsProps {
   theme: string;
@@ -285,16 +286,19 @@ const Controls = forwardRef<any, ControlsProps>(({
   return (
     <div className="p-1 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg w-full">
       <div className="flex justify-between items-center w-full">
-        <div className="text-xs text-gray-500 dark:text-gray-400 truncate" title={currentDataPath}>
-          Fitxer de dades: <strong>{currentDataPath}</strong>
-        </div>
-        <button
-          onClick={toggleExpansion}
-          className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-          title={isExpanded ? "Col·lapsar controls" : "Expandir controls"}
-        >
-          {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
-        </button>
+        <Tooltip text={currentDataPath}>
+          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            Fitxer de dades: <strong>{currentDataPath}</strong>
+          </div>
+        </Tooltip>
+        <Tooltip text={isExpanded ? "Col·lapsar controls" : "Expandir controls"}>
+          <button
+            onClick={toggleExpansion}
+            className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
+          </button>
+        </Tooltip>
       </div>
 
       {isExpanded && (
@@ -302,21 +306,29 @@ const Controls = forwardRef<any, ControlsProps>(({
           {/* Fila Superior */}
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-1">
-                <button onClick={triggerLoadFile} className="flex items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm" title="Carregar totes les dades des d'un fitxer JSON">
+              <Tooltip text="Carregar totes les dades des d'un fitxer JSON">
+                <button onClick={triggerLoadFile} className="flex items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <LoadIcon /> Carregar Tot
                 </button>
-                <input type="file" ref={fileInputRef} onChange={handleLoadAllData} accept=".json" className="hidden" aria-hidden="true" />
-                <button onClick={() => handleSaveData('all')} className="flex items-center justify-center gap-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm" title="Guardar totes les dades a un fitxer JSON">
+              </Tooltip>
+              <input type="file" ref={fileInputRef} onChange={handleLoadAllData} accept=".json" className="hidden" aria-hidden="true" />
+              <Tooltip text="Guardar totes les dades a un fitxer JSON">
+                <button onClick={() => handleSaveData('all')} className="flex items-center justify-center gap-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <SaveIcon /> Guardar Tot
                 </button>
-                <button onClick={triggerLoadMaterialFile} className="flex items-center justify-center gap-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm" title="Afegir material des d'un fitxer JSON">
+              </Tooltip>
+              <Tooltip text="Afegir material des d'un fitxer JSON">
+                <button onClick={triggerLoadMaterialFile} className="flex items-center justify-center gap-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <LoadIcon /> Carregar Material
                 </button>
-                <input type="file" ref={materialFileInputRef} onChange={handleLoadMaterialData} accept=".json" className="hidden" />
+              </Tooltip>
+              <input type="file" ref={materialFileInputRef} onChange={handleLoadMaterialData} accept=".json" className="hidden" />
 
-                <button onClick={handleRequestHardReset} className="flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm" title="Començar de zero (esborra totes les dades actuals)">
+              <Tooltip text="Començar de zero (esborra totes les dades actuals)">
+                <button onClick={handleRequestHardReset} className="flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <TrashIcon className="w-4 h-4" /> Començar de Zero
                 </button>
+              </Tooltip>
             </div>
 
             {hasUnsavedChanges && (
@@ -325,33 +337,40 @@ const Controls = forwardRef<any, ControlsProps>(({
               </div>
             )}
             
-            <button onClick={toggleTheme} className="rounded-full p-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500" title={theme === 'dark' ? 'Canviar a tema clar' : 'Canviar a tema fosc'}>
-                {theme === 'dark' ? <SunIcon className="w-5 h-5 text-yellow-400" /> : <MoonIcon className="w-5 h-5 text-gray-700" />}
-            </button>
+            <Tooltip text={theme === 'dark' ? 'Canviar a tema clar' : 'Canviar a tema fosc'}>
+              <button onClick={toggleTheme} className="rounded-full p-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  {theme === 'dark' ? <SunIcon className="w-5 h-5 text-yellow-400" /> : <MoonIcon className="w-5 h-5 text-gray-700" />}
+              </button>
+            </Tooltip>
           </div>
 
           {/* Fila Inferior */}
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-1">
-                <button onClick={triggerLoadPeopleFile} className="flex items-center justify-center gap-1 bg-sky-500 hover:bg-sky-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm" title="Carregar només dades de persones">
+              <Tooltip text="Carregar només dades de persones">
+                <button onClick={triggerLoadPeopleFile} className="flex items-center justify-center gap-1 bg-sky-500 hover:bg-sky-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <LoadIcon /> Carregar Persones
                 </button>
-                <input type="file" ref={peopleFileInputRef} onChange={handleLoadPeopleData} accept=".json" className="hidden" />
-                <button onClick={() => handleSaveData('people')} className="flex items-center justify-center gap-1 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm" title="Guardar només les dades de persones">
+              </Tooltip>
+              <input type="file" ref={peopleFileInputRef} onChange={handleLoadPeopleData} accept=".json" className="hidden" />
+              <Tooltip text="Guardar només les dades de persones">
+                <button onClick={() => handleSaveData('people')} className="flex items-center justify-center gap-1 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <SaveIcon /> Guardar Persones
                 </button>
-
-                <button onClick={() => handleSaveData('material')} className="flex items-center justify-center gap-1 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm" title="Guardar només les dades de material">
+              </Tooltip>
+              <Tooltip text="Guardar només les dades de material">
+                <button onClick={() => handleSaveData('material')} className="flex items-center justify-center gap-1 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <SaveIcon /> Guardar Material
                 </button>
+              </Tooltip>
             </div>
 
             <div className="flex items-center gap-1">
+              <Tooltip text="Sincronitzar manualment amb Google Calendar">
                 <button
                   onClick={onSyncWithGoogle}
                   disabled={isSyncing}
                   className="flex items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm disabled:opacity-50 disabled:cursor-wait w-40"
-                  title="Sincronitzar manualment amb Google Calendar"
                 >
                   {isSyncing ? (
                     <>
@@ -368,17 +387,21 @@ const Controls = forwardRef<any, ControlsProps>(({
                     </>
                   )}
                 </button>
-                <button onClick={() => onOpenModal('googleSettings')} className="flex items-center justify-center gap-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm" title="Configurar la connexió amb Google">
+              </Tooltip>
+              <Tooltip text="Configurar la connexió amb Google">
+                <button onClick={() => onOpenModal('googleSettings')} className="flex items-center justify-center gap-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <GoogleIcon /> Configurar
                 </button>
+              </Tooltip>
+              <Tooltip text="Connectar amb Google Calendar">
                 <button
                     onClick={handleConnectGoogle}
                     className="flex items-center justify-center gap-1 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-1 px-2 rounded-md transition-colors text-sm border border-gray-300"
-                    title="Connectar amb Google Calendar"
                 >
                     <GoogleIcon />
                     <span>Connectar Google</span>
                 </button>
+              </Tooltip>
             </div>
           </div>
         </div>

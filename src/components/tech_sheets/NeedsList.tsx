@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import TechSheetField from './TechSheetField';
 import { MaterialItem } from '../../types';
+import Tooltip from '../ui/Tooltip';
 
 interface NeedsListProps {
   needs: any[];
@@ -82,24 +83,27 @@ const NeedsList: React.FC<NeedsListProps> = ({
               />
             </div>
             <div className="w-auto flex-shrink-0 pt-2">
-              <button
-                type="button"
-                onClick={() => onRemoveListItem(listName, index)}
-                className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
-                title="Eliminar"
-              >×</button>
+              <Tooltip text="Eliminar aquesta necessitat">
+                <button
+                  type="button"
+                  onClick={() => onRemoveListItem(listName, index)}
+                  className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
+                >×</button>
+              </Tooltip>
             </div>
           </div>
         )
       })}
       <div className="col-span-full mt-2 no-print">
-        <button
-          type="button"
-          onClick={() => onAddListItem(listName)}
-          className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
-        >
-          + Afegir Necessitat {title}
-        </button>
+        <Tooltip text={`Afegir una nova línia de necessitat de ${title.toLowerCase()}`}>
+          <button
+            type="button"
+            onClick={() => onAddListItem(listName)}
+            className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+          >
+            + Afegir Necessitat {title}
+          </button>
+        </Tooltip>
       </div>
     </>
   );

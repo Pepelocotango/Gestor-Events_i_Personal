@@ -1,5 +1,5 @@
 
-## DEVELOPING.md
+## DEVELOPING.md v0.5.2
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
@@ -300,8 +300,8 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
     -   `MaterialDisplay.tsx`: La vista per a la gestió de l'inventari de material.
 
 -   **Components de Lògica de Negoci:**
-    -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. Gestiona el seu propi estat d'expansió i conté la lògica per renderitzar la llista de `AssignmentCard`.
-    -   `AssignmentCard.tsx`: Gestiona la presentació d'una única assignació, incloent la lògica per mostrar i interactuar amb la vista detallada per dies.
+    -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. Gestiona el seu propi estat d'expansió i conté la lògica per renderitzar la llista de `AssignmentCard`. S'ha estandarditzat perquè tota la capçalera sigui clicable per expandir/col·lapsar.
+    -   `AssignmentCard.tsx`: Gestiona la presentació d'una única assignació. S'ha estandarditzat com `EventFrameCard` per permetre expandir/col·lapsar la vista diària fent clic a qualsevol lloc de la capçalera.
     -   `SummaryReports.tsx`: Calcula i renderitza les diferents vistes de resum de dades.
 
 -   **Ecosistema de Fitxes de Bolo (`src/components/tech_sheets/`):**
@@ -582,6 +582,41 @@ Aquest fitxer és el centre de la configuració d'estils.
 -   Conté les directives base de Tailwind (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`).
 -   Defineix algunes classes personalitzades a `@layer components`, com `assignment-card-*`, que agrupen diverses utilitats de Tailwind per a una reutilització més senzilla.
 
+### 6.1. Sistema de Tooltips (Basat en Portals)
+
+Per millorar la fiabilitat i resoldre problemes de visibilitat (`z-index` i `clipping`), el sistema de tooltips ha estat refactoritzat per utilitzar `ReactDOM.createPortal`. Aquesta tècnica "teletransporta" el tooltip al final del `document.body`, traient-lo del flux normal del DOM i evitant que quedi atrapat dins de contenidors pares amb contextos de solapament propis.
+
+#### Ús del Component `Tooltip`
+
+L'ús del component no ha canviat. Per afegir un tooltip, simplement cal embolcallar qualsevol element amb el component `Tooltip` i passar-li el text a mostrar a través de la propietat `text`.
+
+**Exemple d'ús:**
+
+```tsx
+import Tooltip from './ui/Tooltip';
+
+// ...
+
+<Tooltip text="Aquest és el text que es mostrarà al tooltip">
+  <button onClick={laMevaFuncio}>
+    La Meva Acció
+  </button>
+</Tooltip>
+```
+
+#### Funcionament Intern
+
+-   **Component `Tooltip` (`src/components/ui/Tooltip.tsx`):**
+    -   Clona l'element fill (`children`) per afegir-hi `event listeners` (`onMouseEnter`, `onMouseLeave`).
+    -   Utilitza `useState` per controlar la visibilitat del tooltip.
+    -   Utilitza `setTimeout` i `clearTimeout` per gestionar un retard de 0.5 segons abans de mostrar el tooltip.
+    -   Calcula la posició de l'element fill amb `getBoundingClientRect()` per posicionar el tooltip de manera absoluta a la pantalla.
+    -   Renderitza un `<div>` amb el contingut del tooltip mitjançant `ReactDOM.createPortal`, que l'injecta al final del `<body>`.
+-   **Estils (`src/index.css`):**
+    -   La classe `.tooltip-portal` defineix l'estil del tooltip (fons, color, mida de font, etc.).
+    -   Utilitza `position: absolute` i `transform` per posicionar-se correctament respecte a l'element que l'activa.
+    -   Té un `z-index` molt alt per assegurar que sempre es mostri per sobre de tots els altres elements.
+
 ---
 
 ## 7. Compilació i Desplegament (CI/CD)
@@ -662,6 +697,7 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 
 -   **Immutabilitat de l'Estat: Tota la gestió de l'estat de React segueix el principi d'immutabilitat. En lloc de modificar directament objectes o arrays de l'estat, sempre es creen noves instàncies ([...array], {...objecte}), la qual cosa evita efectes secundaris i bugs de renderitzat.
 -   **Separació de Responsabilitats: Les funcions d'utilitat (com la generació de CSV o la migració de dades) s'abstrauen en mòduls dedicats a src/utils/ per promoure la reutilització de codi i seguir el principi DRY (Don't Repeat Yourself).
+-   **Consistència de la Interfície d'Usuari**: S'ha fet un esforç per estandarditzar el comportament dels components interactius. Per exemple, totes les seccions col·lapsables ara permeten expandir/col·lapsar fent clic a qualsevol lloc de la capçalera, no només a la icona.
 -   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 ---
