@@ -14,7 +14,7 @@ const Navigation: React.FC = () => {
     `flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-md transition-colors ${
       isActive
         ? 'bg-blue-600 text-white shadow'
-        : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200'
+        : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-black dark:text-gray-200'
     }`;
 
   return (

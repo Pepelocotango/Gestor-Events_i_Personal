@@ -151,7 +151,7 @@
     transition-property: opacity, visibility;
     transition-duration: 0.2s;
     transition-timing-function: ease-in-out;
-    transition-delay: 0.5s;
+    transition-delay: 0.1s;
     z-index: 9999;
   }
   .has-tooltip:hover::after {
