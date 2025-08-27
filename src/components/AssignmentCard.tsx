@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useEventData } from '../contexts/EventDataContext';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
@@ -43,6 +43,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { getPersonGroupById } = useEventData();
   const person = getPersonGroupById(assignment.personGroupId);
   const isMultiDay = assignment.startDate !== assignment.endDate;
+  const skipNextCollapse = useRef(false);
 
   const statusCardClasses: { [key in AssignmentStatus]: string } = {
     [AssignmentStatus.Yes]: 'assignment-card-yes',
@@ -59,7 +60,20 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <li className={cardClass}>
-      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-0.5">
+      <div
+        className={`flex flex-col sm:flex-row justify-between sm:items-start gap-0.5 ${isMultiDay ? 'cursor-pointer' : ''}`}
+        onClick={(e) => {
+          if (!isMultiDay) return;
+          if ((e.target as HTMLElement).closest('button, input, select, a')) {
+            skipNextCollapse.current = true;
+            return;
+          }
+          if (!skipNextCollapse.current) {
+            toggleDailyView();
+          }
+          skipNextCollapse.current = false;
+        }}
+      >
         <div className="flex-grow">
           <p className="font-semibold text-sm">{person?.name || 'Persona Desconeguda'}</p>
           <p className="text-xs opacity-80">{formatDateRangeDMY(assignment.startDate, assignment.endDate)}</p>
@@ -73,7 +87,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             {isMultiDay && (
               <Tooltip text={isDailyViewExpanded ? "Ocultar vista diària" : "Mostrar vista diària"}>
                 <button
-                  onClick={toggleDailyView}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleDailyView();
+                  }}
                   className={`px-1.5 py-0.5 rounded-md text-xs font-medium transition-colors ${
                     isDailyViewExpanded ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
                   }`}
