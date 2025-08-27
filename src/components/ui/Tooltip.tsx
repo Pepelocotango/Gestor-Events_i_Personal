@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, ReactElement } from 'react';
+import React, { useState, useRef, ReactElement } from 'react';
 import ReactDOM from 'react-dom';
 
 interface TooltipProps {
