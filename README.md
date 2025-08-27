@@ -1,3 +1,6 @@
+
+### NOVA BRANCA DESENVOLUPAMENT --> DEV
+ CHECKPOINT_V0.5.2
 ### `README.md`**
 
 # Gestor d'Esdeveniments i Personal v0.5.2

@@ -4,6 +4,7 @@ import { MaterialItem } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
 import { exportMaterialToPdf } from '../utils/pdfGenerator';
 import CollapsibleSection from './ui/CollapsibleSection';
+import Tooltip from './ui/Tooltip';
 
 const SortArrow = ({ direction }: { direction: 'ascending' | 'descending' | null }) => {
   if (!direction) return null;
@@ -185,8 +186,12 @@ const MaterialDisplay: React.FC = () => {
           <p className="text-sm text-gray-600 dark:text-gray-300">{item.location}</p>
         </div>
         <div className="w-16 flex-shrink-0 flex items-center justify-end space-x-2">
-          <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
-          <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
+          <Tooltip text={`Editar ${item.name}`}>
+            <button onClick={() => handleEdit(item)} className="p-1"><EditIcon className="w-4 h-4 text-blue-600" /></button>
+          </Tooltip>
+          <Tooltip text={`Eliminar ${item.name}`}>
+            <button onClick={() => handleDelete(item)} className="p-1"><TrashIcon className="w-4 h-4 text-red-600" /></button>
+          </Tooltip>
         </div>
       </div>
     </div>
@@ -206,13 +211,17 @@ const MaterialDisplay: React.FC = () => {
             
             <div>
               <label htmlFor="mat-name" className="block text-sm font-medium">Nom</label>
-              <input type="text" id="mat-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required />
+              <Tooltip text="Nom de l'ítem de material">
+                <input type="text" id="mat-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required />
+              </Tooltip>
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
 
             <div>
               <label htmlFor="mat-category" className="block text-sm font-medium">Categoria</label>
-              <input type="text" id="mat-category" value={category} onChange={e => setCategory(e.target.value)} className={commonInputClass} list="category-suggestions" required />
+              <Tooltip text="Categoria a la que pertany l'ítem">
+                <input type="text" id="mat-category" value={category} onChange={e => setCategory(e.target.value)} className={commonInputClass} list="category-suggestions" required />
+              </Tooltip>
               <datalist id="category-suggestions">
                 {categories.map((cat: string) => <option key={cat} value={cat} />)}
               </datalist>
@@ -222,23 +231,35 @@ const MaterialDisplay: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="mat-stock" className="block text-sm font-medium">Estoc</label>
-                <input type="number" id="mat-stock" value={stock} onChange={e => setStock(Number(e.target.value))} className={commonInputClass} min="0" required />
+                <Tooltip text="Quantitat total d'aquest ítem en inventari">
+                  <input type="number" id="mat-stock" value={stock} onChange={e => setStock(Number(e.target.value))} className={commonInputClass} min="0" required />
+                </Tooltip>
                 {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock}</p>}
               </div>
               <div>
                 <label htmlFor="mat-location" className="block text-sm font-medium">Ubicació</label>
-                <input type="text" id="mat-location" value={location} onChange={e => setLocation(e.target.value)} className={commonInputClass} />
+                <Tooltip text="On es guarda aquest ítem (opcional)">
+                  <input type="text" id="mat-location" value={location} onChange={e => setLocation(e.target.value)} className={commonInputClass} />
+                </Tooltip>
               </div>
             </div>
 
             <div>
               <label htmlFor="mat-notes" className="block text-sm font-medium">Notes</label>
-              <textarea id="mat-notes" value={notes} onChange={e => setNotes(e.target.value)} className={commonInputClass} rows={3}></textarea>
+              <Tooltip text="Anotacions addicionals sobre l'ítem (opcional)">
+                <textarea id="mat-notes" value={notes} onChange={e => setNotes(e.target.value)} className={commonInputClass} rows={3}></textarea>
+              </Tooltip>
             </div>
             
             <div className="flex justify-end space-x-2 pt-2">
-              {editingItem && <button type="button" onClick={resetForm} className="px-3 py-1.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 rounded-md">Cancel·lar</button>}
-              <button type="submit" className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">{editingItem ? 'Actualitzar' : 'Afegir'}</button>
+              {editingItem && (
+                <Tooltip text="Descartar canvis i netejar el formulari">
+                  <button type="button" onClick={resetForm} className="px-3 py-1.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 rounded-md">Cancel·lar</button>
+                </Tooltip>
+              )}
+              <Tooltip text={editingItem ? 'Desar els canvis fets a l\'ítem' : 'Afegir el nou ítem a l\'inventari'}>
+                <button type="submit" className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">{editingItem ? 'Actualitzar' : 'Afegir'}</button>
+              </Tooltip>
             </div>
           </form>
         </div>
@@ -248,47 +269,62 @@ const MaterialDisplay: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-medium">Inventari</h4>
             <div className="flex items-center gap-2">
-                <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
-                <button
-                  onClick={handleExportPdf}
-                  className="p-2 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60"
-                  title="Exportar llista a PDF"
-                  aria-label="Exportar llista de material a PDF"
-                  disabled={filteredItems.length === 0}
-                >
-                  <PdfIcon className="w-5 h-5" />
-                </button>
+                <Tooltip text="Cercar per nom, categoria o ubicació">
+                  <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
+                </Tooltip>
+                <Tooltip text="Exportar llista a PDF">
+                  <button
+                    onClick={handleExportPdf}
+                    className="p-2 rounded-md bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60"
+                    aria-label="Exportar llista de material a PDF"
+                    disabled={filteredItems.length === 0}
+                  >
+                    <PdfIcon className="w-5 h-5" />
+                  </button>
+                </Tooltip>
             </div>
           </div>
 
           <div className="flex items-center gap-4 mb-3 border-b dark:border-gray-700 pb-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">Ordenar per:</span>
-              <button onClick={() => handleSortModeChange('category')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'category' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Categoria</button>
-              <button onClick={() => handleSortModeChange('name')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Nom d'Ítem</button>
+              <Tooltip text="Agrupar per categoria i ordenar dins de cada grup">
+                <button onClick={() => handleSortModeChange('category')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'category' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Categoria</button>
+              </Tooltip>
+              <Tooltip text="Ordenar tota la llista per nom d'ítem">
+                <button onClick={() => handleSortModeChange('name')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Nom d'Ítem</button>
+              </Tooltip>
             </div>
             {sortMode === 'category' && Object.keys(expandedCategories).length > 0 && (
-              <button onClick={toggleAll} className="px-2 py-1 text-sm rounded-md bg-gray-200 dark:bg-gray-600">
-                {Object.values(expandedCategories).every(Boolean) ? 'Col·lapsar Tot' : 'Expandir Tot'}
-              </button>
+              <Tooltip text="Expandir o col·lapsar totes les categories">
+                <button onClick={toggleAll} className="px-2 py-1 text-sm rounded-md bg-gray-200 dark:bg-gray-600">
+                  {Object.values(expandedCategories).every(Boolean) ? 'Col·lapsar Tot' : 'Expandir Tot'}
+                </button>
+              </Tooltip>
             )}
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto space-y-2">
             {sortMode === 'category' && (
               <div className="hidden md:flex items-center gap-2 p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b dark:border-gray-600 mb-2">
-                <button onClick={() => requestSort('name')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                  Nom
-                  {sortConfig.key === 'name' && <SortArrow direction={sortConfig.direction} />}
-                </button>
-                <button onClick={() => requestSort('stock')} className="w-1/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                  Estoc
-                  {sortConfig.key === 'stock' && <SortArrow direction={sortConfig.direction} />}
-                </button>
-                <button onClick={() => requestSort('location')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
-                  Ubicació
-                  {sortConfig.key === 'location' && <SortArrow direction={sortConfig.direction} />}
-                </button>
+                <Tooltip text="Ordenar per nom">
+                  <button onClick={() => requestSort('name')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                    Nom
+                    {sortConfig.key === 'name' && <SortArrow direction={sortConfig.direction} />}
+                  </button>
+                </Tooltip>
+                <Tooltip text="Ordenar per estoc">
+                  <button onClick={() => requestSort('stock')} className="w-1/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                    Estoc
+                    {sortConfig.key === 'stock' && <SortArrow direction={sortConfig.direction} />}
+                  </button>
+                </Tooltip>
+                <Tooltip text="Ordenar per ubicació">
+                  <button onClick={() => requestSort('location')} className="w-2/5 text-left hover:text-gray-800 dark:hover:text-gray-200">
+                    Ubicació
+                    {sortConfig.key === 'location' && <SortArrow direction={sortConfig.direction} />}
+                  </button>
+                </Tooltip>
                 <div className="w-16 flex-shrink-0 text-right">Accions</div>
               </div>
             )}

@@ -7,6 +7,7 @@ import { formatDateDMY } from '../../utils/dateFormat';
 import { exportTechSheetToPdf } from '../../utils/pdfGenerator';
 import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
+import Tooltip from '../ui/Tooltip';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
@@ -255,17 +256,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           Fitxa de Bolo: <span className="text-blue-600 dark:text-blue-400">{eventFrame.name}</span>
         </h2>
         <div className="flex items-center gap-2">
-            <button
-                onClick={handleManualSave}
-
-                className="save-changes-button px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print"
-
-            >
-                Desar Canvis
-            </button>
-            <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">
-                Exportar a PDF
-            </button>
+            <Tooltip text="Forçar el desat immediat de tots els canvis pendents">
+              <button
+                  onClick={handleManualSave}
+                  className="save-changes-button px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print"
+              >
+                  Desar Canvis
+              </button>
+            </Tooltip>
+            <Tooltip text="Generar i descarregar un PDF amb la fitxa tècnica actual">
+              <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">
+                  Exportar a PDF
+              </button>
+            </Tooltip>
         </div>
       </div>
       <div className="mt-1">
@@ -383,25 +386,28 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                   />
                 </div>
                 <div className="w-auto flex-shrink-0 pt-7">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveListItem('assemblySchedule', index)}
-                    className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
-                    title="Eliminar horari"
-                  >
-                    ×
-                  </button>
+                  <Tooltip text="Eliminar aquesta línia d'horari">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveListItem('assemblySchedule', index)}
+                      className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
+                    >
+                      ×
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
             ))}
             <div className="mt-2 no-print">
-              <button
-                type="button"
-                onClick={() => handleAddListItem('assemblySchedule')}
-                className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
-              >
-                + Afegir Ítem Horari
-              </button>
+              <Tooltip text="Afegir una nova línia a la planificació d'horaris">
+                <button
+                  type="button"
+                  onClick={() => handleAddListItem('assemblySchedule')}
+                  className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                >
+                  + Afegir Ítem Horari
+                </button>
+              </Tooltip>
             </div>
           </div>
         )}

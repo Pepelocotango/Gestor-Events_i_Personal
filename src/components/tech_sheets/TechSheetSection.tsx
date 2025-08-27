@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '../../constants';
+import Tooltip from '../ui/Tooltip';
 
 
 interface TechSheetSectionProps {
@@ -20,15 +21,17 @@ const gridClasses = layout === 'single-column'
   return (
     <div className="mb-2 border border-gray-200 dark:border-gray-700 rounded-lg">
       <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex-1 flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-700/50 rounded-t-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          aria-expanded={isOpen}
-        >
-          <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">{title}</h3>
-          {isOpen ? <ChevronUpIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <ChevronDownIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />}
-        </button>
+        <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex-1 flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-700/50 rounded-t-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-expanded={isOpen}
+          >
+            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">{title}</h3>
+            {isOpen ? <ChevronUpIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <ChevronDownIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />}
+          </button>
+        </Tooltip>
         {headerActions && <div className="pr-3">{headerActions}</div>}
       </div>
       {isOpen && (
