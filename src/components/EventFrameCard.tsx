@@ -39,7 +39,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
     .sort((a, b) => (getPersonGroupById(a.personGroupId)?.name || '').localeCompare(getPersonGroupById(b.personGroupId)?.name || ''));
 
   return (
-    <div ref={ref} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
+    <div ref={ref} className="mb-1 rounded-lg shadow-sm bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
       <div
         className="p-1 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
         onClick={(e) => {
