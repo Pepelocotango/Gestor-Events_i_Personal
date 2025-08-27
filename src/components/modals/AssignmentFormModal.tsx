@@ -154,7 +154,9 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
       </div>
       <div>
         <label htmlFor="as-notes" className="block text-sm font-medium">Notes (Opcional)</label>
-        <textarea id="as-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
+        <Tooltip text="Afegeix notes o comentaris addicionals per a aquesta assignació">
+          <textarea id="as-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
+        </Tooltip>
       </div>
       <div className="flex justify-end space-x-3 pt-4">
         <Tooltip text="Tancar el formulari sense desar canvis">

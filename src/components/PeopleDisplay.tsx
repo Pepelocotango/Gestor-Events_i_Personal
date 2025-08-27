@@ -362,8 +362,12 @@ const PeopleDisplay: React.FC = () => {
                     <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">Confirmar Eliminació</h3>
                     <p className="mb-4 text-gray-700 dark:text-gray-300">Segur que vols eliminar <span className="font-bold">{editingPerson?.name}</span>? Aquesta acció no es pot desfer.</p>
                     <div className="flex justify-end gap-2">
-                    <button onClick={() => setShowDeleteModal(false)} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
-                    <button onClick={confirmActualDeletePerson} className="px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">Eliminar</button>
+                        <Tooltip text="Tancar aquest diàleg sense eliminar">
+                            <button onClick={() => setShowDeleteModal(false)} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
+                        </Tooltip>
+                        <Tooltip text="Eliminar permanentment aquesta persona/grup">
+                            <button onClick={confirmActualDeletePerson} className="px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">Eliminar</button>
+                        </Tooltip>
                     </div>
                 </div>
             </div>
