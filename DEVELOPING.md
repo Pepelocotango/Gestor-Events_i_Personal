@@ -300,8 +300,8 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
     -   `MaterialDisplay.tsx`: La vista per a la gestió de l'inventari de material.
 
 -   **Components de Lògica de Negoci:**
-    -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. Gestiona el seu propi estat d'expansió i conté la lògica per renderitzar la llista de `AssignmentCard`.
-    -   `AssignmentCard.tsx`: Gestiona la presentació d'una única assignació, incloent la lògica per mostrar i interactuar amb la vista detallada per dies.
+    -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. Gestiona el seu propi estat d'expansió i conté la lògica per renderitzar la llista de `AssignmentCard`. S'ha estandarditzat perquè tota la capçalera sigui clicable per expandir/col·lapsar.
+    -   `AssignmentCard.tsx`: Gestiona la presentació d'una única assignació. S'ha estandarditzat com `EventFrameCard` per permetre expandir/col·lapsar la vista diària fent clic a qualsevol lloc de la capçalera.
     -   `SummaryReports.tsx`: Calcula i renderitza les diferents vistes de resum de dades.
 
 -   **Ecosistema de Fitxes de Bolo (`src/components/tech_sheets/`):**
@@ -582,15 +582,13 @@ Aquest fitxer és el centre de la configuració d'estils.
 -   Conté les directives base de Tailwind (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`).
 -   Defineix algunes classes personalitzades a `@layer components`, com `assignment-card-*`, que agrupen diverses utilitats de Tailwind per a una reutilització més senzilla.
 
-### 6.1. Sistema de Tooltips Personalitzat
+### 6.1. Sistema de Tooltips (Basat en Portals)
 
-Per millorar la coherència i l'experiència d'usuari, s'ha abandonat l'ús de l'atribut natiu `title` d'HTML a favor d'un sistema de tooltips personalitzat. L'atribut `title` no permet estilització i el seu comportament (com el retard d'aparició) depèn del navegador.
-
-El nou sistema es basa en el component reutilitzable `Tooltip`.
+Per millorar la fiabilitat i resoldre problemes de visibilitat (`z-index` i `clipping`), el sistema de tooltips ha estat refactoritzat per utilitzar `ReactDOM.createPortal`. Aquesta tècnica "teletransporta" el tooltip al final del `document.body`, traient-lo del flux normal del DOM i evitant que quedi atrapat dins de contenidors pares amb contextos de solapament propis.
 
 #### Ús del Component `Tooltip`
 
-El component `Tooltip` es troba a `src/components/ui/Tooltip.tsx` i funciona com un embolcall (wrapper). Per afegir un tooltip a qualsevol element, simplement cal embolcallar-lo amb el component `Tooltip` i passar-li el text a mostrar a través de la propietat `text`.
+L'ús del component no ha canviat. Per afegir un tooltip, simplement cal embolcallar qualsevol element amb el component `Tooltip` i passar-li el text a mostrar a través de la propietat `text`.
 
 **Exemple d'ús:**
 
@@ -606,10 +604,18 @@ import Tooltip from './ui/Tooltip';
 </Tooltip>
 ```
 
-#### Funcionament Intern i Estilització
+#### Funcionament Intern
 
--   El component `Tooltip` clona l'element fill (`children`) i li afegeix automàticament una classe CSS (`has-tooltip`) i un atribut de dades (`data-tooltip-text`).
--   Tota la lògica visual i de comportament (estils, animacions i retard d'aparició) es gestiona de manera centralitzada a **`src/index.css`** mitjançant les regles CSS associades a la classe `has-tooltip` i el pseudo-element `::after`. Això garanteix que tots els tooltips de l'aplicació tinguin un aspecte i un comportament consistents.
+-   **Component `Tooltip` (`src/components/ui/Tooltip.tsx`):**
+    -   Clona l'element fill (`children`) per afegir-hi `event listeners` (`onMouseEnter`, `onMouseLeave`).
+    -   Utilitza `useState` per controlar la visibilitat del tooltip.
+    -   Utilitza `setTimeout` i `clearTimeout` per gestionar un retard de 0.5 segons abans de mostrar el tooltip.
+    -   Calcula la posició de l'element fill amb `getBoundingClientRect()` per posicionar el tooltip de manera absoluta a la pantalla.
+    -   Renderitza un `<div>` amb el contingut del tooltip mitjançant `ReactDOM.createPortal`, que l'injecta al final del `<body>`.
+-   **Estils (`src/index.css`):**
+    -   La classe `.tooltip-portal` defineix l'estil del tooltip (fons, color, mida de font, etc.).
+    -   Utilitza `position: absolute` i `transform` per posicionar-se correctament respecte a l'element que l'activa.
+    -   Té un `z-index` molt alt per assegurar que sempre es mostri per sobre de tots els altres elements.
 
 ---
 
@@ -691,6 +697,7 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 
 -   **Immutabilitat de l'Estat: Tota la gestió de l'estat de React segueix el principi d'immutabilitat. En lloc de modificar directament objectes o arrays de l'estat, sempre es creen noves instàncies ([...array], {...objecte}), la qual cosa evita efectes secundaris i bugs de renderitzat.
 -   **Separació de Responsabilitats: Les funcions d'utilitat (com la generació de CSV o la migració de dades) s'abstrauen en mòduls dedicats a src/utils/ per promoure la reutilització de codi i seguir el principi DRY (Don't Repeat Yourself).
+-   **Consistència de la Interfície d'Usuari**: S'ha fet un esforç per estandarditzar el comportament dels components interactius. Per exemple, totes les seccions col·lapsables ara permeten expandir/col·lapsar fent clic a qualsevol lloc de la capçalera, no només a la icona.
 -   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 ---
