@@ -49,19 +49,27 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
   return (
     <div className="mb-2 bg-white dark:bg-gray-800 shadow rounded-lg">
-      <button
+      <div
         id={buttonId}
         onClick={handleToggle}
-        className={`w-full flex justify-between items-center p-3 text-left font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg ${headerClassName}`}
+        className={`w-full flex justify-between items-center p-3 text-left font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg cursor-pointer ${headerClassName}`}
         aria-expanded={isOpen}
         aria-controls={contentId}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleToggle();
+          }
+        }}
       >
         <div className="flex items-center gap-2">
           {icon && <React.Fragment>{icon}</React.Fragment>}
           <span>{title}</span>
         </div>
         {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-      </button>
+      </div>
       {isOpen && <div id={contentId} className={`p-4 border-t border-gray-200 dark:border-gray-700 ${contentClassName}`}>{children}</div>}
     </div>
   );
