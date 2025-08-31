@@ -702,6 +702,35 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 ---
 
+### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
+
+Per garantir la màxima robustesa i evitar pèrdues de dades o bloquejos de l'aplicació a causa de fitxers de dades corruptes o amb formats antics, s'ha implementat un pipeline de càrrega de dades de diversos passos. Aquest sistema prioritza una experiència d'usuari ràpida per a dades vàlides (el "camí feliç") mentre proporciona una xarxa de seguretat per a dades que requereixen correccions.
+
+#### El Pipeline de Processament de Dades
+
+La lògica central resideix a la funció `loadData` del hook `useEventDataManager.ts` i segueix aquesta seqüència:
+
+1.  **Migració (Sempre):**
+    -   **Objectiu:** Assegurar que les dades, independentment de la seva versió original, tinguin sempre l'estructura de dades més recent definida a `types.ts`.
+    -   **Implementació:** La funció itera sobre cada `eventFrame` i passa el seu `techSheet` a la funció `migrateTechSheetData` (`src/utils/techSheetMigration.ts`). Aquesta funció comprova si la fitxa ja té el format nou; si no, la transforma, afegint els camps nous amb valors per defecte i reestructurant els antics.
+    -   **Tolerància a Errors:** La migració està dins d'un bloc `try...catch`. Si falla per qualsevol motiu (p. ex., un format de dades completament inesperat), es registra l'error i es genera una fitxa tècnica per defecte, evitant que l'aplicació es bloquegi.
+
+2.  **Validació (Sempre):**
+    -   **Objectiu:** Comprovar la integritat referencial de les dades ja migrades.
+    -   **Implementació:** Les dades migradas es passen a la funció `validateData` (`src/utils/dataIntegrity.ts`). Aquesta funció comprova, per exemple, que cada `assignment` apunti a un `eventFrameId` i a un `personGroupId` que realment existeixin a les llistes corresponents.
+    -   **Resultat:** Retorna un objecte `{ isValid: boolean, errors: ValidationError[] }`.
+
+3.  **Decisió i Rutes Condicionals:**
+    -   **Cas A: Dades Vàlides (isValid: true)**
+        -   **Acció:** S'executa la funció `_applyDataToState`, que carrega les dades directament a l'estat de React.
+        -   **Feedback:** Es mostra un missatge d'èxit simple i ràpid a l'usuari. El procés acaba aquí.
+    -   **Cas B: Dades Invàlides (isValid: false)**
+        -   **Reparació:** Les dades i l'informe d'errors es passen a la funció `repairData` (`src/utils/dataIntegrity.ts`). Aquesta funció elimina els elements trencats (p. ex., les assignacions invàlides) i retorna les dades netes i un array de missatges explicant les correccions (`fixes`).
+        -   **Confirmació de l'Usuari:** S'obre el modal `ConfirmRepairModal.tsx`, mostrant la llista de `fixes` a l'usuari.
+        -   **Decisió Final:** L'usuari pot triar entre carregar la versió reparada o cancel·lar l'operació. Les dades només es carreguen si l'usuari dona el seu consentiment explícit.
+
+Aquest sistema garanteix que l'aplicació sigui extremadament resilient a errors de dades, alhora que manté una experiència fluida per a la majoria d'usuaris les dades dels quals són correctes.
+
 ### 9. Solució de Bug de Renderitzat del Calendari
 
 S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de *repaint/reflow* del navegador que FullCalendar no gestiona automàticament.
