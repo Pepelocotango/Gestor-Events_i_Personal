@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem } from '../../types';
+import { migrateTechSheetData } from '../../utils/techSheetMigration';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -8,6 +9,7 @@ import { exportTechSheetToPdf } from '../../utils/pdfGenerator';
 import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';
+import ConditionalFormControl from './ConditionalFormControl';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
@@ -16,16 +18,26 @@ interface TechSheetFormProps {
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability } = useEventData();
 
-  const getInitialFormData = (): TechSheetData => {
-    const data = eventFrame.techSheet!;
-    return data.technicalProviders ? data : { ...data, technicalProviders: [] };
-  };
-
-  const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
+  const [formData, setFormData] = useState<TechSheetData>(() => migrateTechSheetData(eventFrame.techSheet, eventFrame));
   const formDataRef = useRef(formData);
 
   const isDirtyRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const eventDates = useMemo(() => {
+    const dates: string[] = [];
+    const start = new Date(eventFrame.startDate);
+    const end = new Date(eventFrame.endDate);
+    start.setUTCHours(0, 0, 0, 0);
+    end.setUTCHours(0, 0, 0, 0);
+
+    let current = new Date(start);
+    while (current <= end) {
+      dates.push(current.toISOString().split('T')[0]); // YYYY-MM-DD
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  }, [eventFrame.startDate, eventFrame.endDate]);
 
   // Mantenir la referència sempre actualitzada
   useEffect(() => {
@@ -109,59 +121,93 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
   const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
 
-  type TechSheetNeedListKey = 'lightingNeeds' | 'soundNeeds' | 'videoNeeds' | 'machineryNeeds';
-  type TechSheetScheduleListKey = 'assemblySchedule';
-  type TechSheetListKey = TechSheetNeedListKey | TechSheetScheduleListKey;
-
-  const handleListChange = useCallback((listName: string, index: number, field: string, value: any) => {
+  // A more robust handler for list-like structures within conditional fields
+  const handleNestedListChange = (
+    fieldName: 'detailedSchedule' | 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals',
+    index: number,
+    itemField: string,
+    value: any
+  ) => {
     setFormData(prev => {
-      const newList = [...(prev[listName as TechSheetListKey] as any[])];
+      const listOwner = prev[fieldName];
+      const newList = [...(listOwner.items || listOwner.needs)];
       const currentItem = { ...newList[index] };
-      currentItem[field] = value;
-      
-      if (field === 'description') {
+      (currentItem as any)[itemField] = value;
+
+      // Special handling for material item linking
+      if (itemField === 'description') {
         const matchedItem = materialItems.find(item => item.name === value);
-        currentItem.materialItemId = matchedItem ? matchedItem.id : null;
+        (currentItem as any).materialItemId = matchedItem ? matchedItem.id : null;
       }
 
       newList[index] = currentItem;
-      return { ...prev, [listName]: newList };
+
+      const updatedField = { ...listOwner, [listOwner.items ? 'items' : 'needs']: newList };
+
+      return { ...prev, [fieldName]: updatedField };
     });
     markAsDirty();
-  }, [materialItems]);
-  
-  const handleRemoveListItem = useCallback((listName: string, index: number) => {
-    const newList = (formData[listName as TechSheetListKey] as any[]).filter((_, i) => i !== index);
-    const updatedFormData = { ...formData, [listName]: newList };
-    setFormData(updatedFormData);
+  };
+
+  const handleAddNestedListItem = (
+    fieldName: 'detailedSchedule' | 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals'
+  ) => {
+    setFormData(prev => {
+      const listOwner = prev[fieldName];
+      const listKey = listOwner.items ? 'items' : 'needs';
+      const oldList = listOwner[listKey] || [];
+
+      let newItem: any;
+      if (fieldName === 'detailedSchedule') {
+        newItem = { id: generateLocalId(), date: eventFrame.startDate, time: '', description: '' };
+      } else {
+        newItem = { id: generateLocalId(), quantity: 1, description: '', origin: 'Propi / CIA / lloguer' };
+      }
+
+      const newList = [...oldList, newItem];
+      const updatedField = { ...listOwner, [listKey]: newList };
+
+      return { ...prev, [fieldName]: updatedField };
+    });
     markAsDirty();
-  }, [formData]);
+  };
   
-  const handleAddListItem = useCallback((listName: string) => {
-    let newItem: any;
-    switch (listName) {
-      case 'assemblySchedule':
-        newItem = { id: generateLocalId(), time: '', description: '' };
-        break;
-      case 'lightingNeeds':
-      case 'soundNeeds':
-      case 'videoNeeds':
-      case 'machineryNeeds':
-        newItem = { id: generateLocalId(), quantity: 1, description: '', origin: '' };
-        break;
-      default:
-        return;
-    }
-    setFormData(prev => ({
-      ...prev,
-      [listName]: [...(prev[listName as TechSheetListKey] as any[]), newItem],
-    }));
+  const handleRemoveNestedListItem = (
+    fieldName: 'detailedSchedule' | 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals',
+    index: number
+  ) => {
+    setFormData(prev => {
+      const listOwner = prev[fieldName];
+      const listKey = listOwner.items ? 'items' : 'needs';
+      const oldList = listOwner[listKey] || [];
+
+      const newList = oldList.filter((_: any, i: number) => i !== index);
+      const updatedField = { ...listOwner, [listKey]: newList };
+
+      return { ...prev, [fieldName]: updatedField };
+    });
     markAsDirty();
-  }, []);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    markAsDirty();
+  };
+
+  const handleConditionalChange = <T extends keyof TechSheetData>(
+    fieldName: T,
+    subFieldName: keyof TechSheetData[T],
+    value: any
+  ) => {
+    setFormData(prev => {
+      const newFormData = { ...prev };
+      const field = newFormData[fieldName] as any;
+      if (field) {
+        field[subFieldName] = value;
+      }
+      return newFormData;
+    });
     markAsDirty();
   };
 
@@ -246,7 +292,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         showToast('Desant canvis pendents abans d\'exportar...', 'info');
         saveData(true); // Desa immediatament abans d'exportar
     }
-    exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
+    exportTechSheetToPdf(formData, eventFrame, getPersonGroupById, showToast);
   };
 
   return (
@@ -275,40 +321,33 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         <p className="text-sm text-gray-500 dark:text-gray-400">Edita els detalls tècnics de l'esdeveniment. Els canvis es desen automàticament.</p>
       </div>
 
+      {eventFrame.generalNotes && (
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md dark:bg-yellow-900/20 dark:border-yellow-800/30">
+          <h4 className="font-semibold text-yellow-800 dark:text-yellow-200">Notes Generals de l'Esdeveniment:</h4>
+          <p className="text-sm text-yellow-700 dark:text-yellow-300 whitespace-pre-wrap">{eventFrame.generalNotes}</p>
+        </div>
+      )}
+
       <TechSheetSection title="Informació General" layout="single-column">
         <TechSheetField id="eventName" label="NOM DEL ESDEVENIMENT:" value={formData.eventName} onChange={handleChange} required />
         <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} />
         <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} />
         <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} type="time" />
         <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} placeholder="XX min" />
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ZONA RESERVADA PARKING:</label>
-          <select
-            value={formData.parkingInfo?.startsWith('SI') ? 'SI' : (formData.parkingInfo?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => ({ ...prev, parkingInfo: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.parkingInfo?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls de la zona de parking..."
-              value={formData.parkingInfo.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, parkingInfo: `SI: ${e.target.value}` }));
-                markAsDirty();
-              }}
-            />
-          )}
-        </div>
+
+        <ConditionalFormControl
+          label="ZONA RESERVADA PARKING:"
+          enabled={formData.parkingInfo?.enabled || false}
+          onToggle={(enabled) => handleConditionalChange('parkingInfo', 'enabled', enabled)}
+        >
+          <textarea
+            className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            rows={2}
+            placeholder="Detalls de la zona de parking, vehicles, metres reservats ..."
+            value={formData.parkingInfo?.details || ''}
+            onChange={(e) => handleConditionalChange('parkingInfo', 'details', e.target.value)}
+          />
+        </ConditionalFormControl>
       </TechSheetSection>
 
       <TechnicalPersonnelSection
@@ -329,71 +368,73 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       />
 
       <TechSheetSection title="Premuntatge i Horaris">
-        <div className="mb-2 col-span-full">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">PREMUNTATGE:</label>
-          <select
-            value={formData.preAssemblySchedule?.startsWith('SI') ? 'SI' : (formData.preAssemblySchedule?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => {
-                if (val === 'NO' || val === '') {
-                  return { ...prev, preAssemblySchedule: val, assemblySchedule: [] };
-                }
-                return { ...prev, preAssemblySchedule: 'SI: ' };
-              });
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        <ConditionalFormControl
+          label="PREMUNTATGE"
+          enabled={formData.preAssembly?.enabled || false}
+          onToggle={(enabled) => {
+            handleConditionalChange('preAssembly', 'enabled', enabled);
+            if (!enabled) {
+              handleConditionalChange('detailedSchedule', 'enabled', false);
+            }
+          }}
+        >
+          <textarea
+            className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            rows={2}
+            placeholder="Detalls premuntatge, personal, horaris..."
+            value={formData.preAssembly?.details || ''}
+            onChange={(e) => handleConditionalChange('preAssembly', 'details', e.target.value)}
+          />
+        </ConditionalFormControl>
+
+        {formData.preAssembly?.enabled && (
+          <ConditionalFormControl
+            label="HORARIS DETALLATS"
+            enabled={formData.detailedSchedule?.enabled || false}
+            onToggle={(enabled) => handleConditionalChange('detailedSchedule', 'enabled', enabled)}
           >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.preAssemblySchedule?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls premuntatge, personal, horaris..."
-              value={formData.preAssemblySchedule.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, preAssemblySchedule: `SI: ${e.target.value}` }));
-                markAsDirty();
-              }}
-            />
-          )}
-        </div>
-        
-        {formData.preAssemblySchedule?.startsWith('SI') && (
-          <div className="col-span-full space-y-2">
-            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 -mb-1">HORARIS DETALLATS:</h4>
-            {formData.assemblySchedule.map((item, index) => (
-              <div key={item.id} className="flex items-start gap-2 w-full">
+            {formData.detailedSchedule?.items?.map((item, index) => (
+              <div key={item.id} className="flex items-start gap-2 w-full p-2 bg-gray-50 dark:bg-gray-800/50 rounded-md">
                 <div className="w-1/4">
-                  <TechSheetField
+                  <label htmlFor={`schedule-date-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Dia</label>
+                   <select
+                      id={`schedule-date-${index}`}
+                      value={item.date || ''}
+                      onChange={(e) => handleNestedListChange('detailedSchedule', index, 'date', e.target.value)}
+                      className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
+                   >
+                     {eventDates.map(date => (
+                       <option key={date} value={date}>{formatDateDMY(date)}</option>
+                     ))}
+                   </select>
+                </div>
+                <div className="w-1/4">
+                   <label htmlFor={`schedule-time-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Hora</label>
+                   <input
                     id={`schedule-time-${index}`}
-                    label={`Hora ${index + 1}`}
-                    value={item.time}
-                    onChange={(e) => handleListChange('assemblySchedule', index, 'time', e.target.value)}
                     type="time"
+                    value={item.time}
+                    onChange={(e) => handleNestedListChange('detailedSchedule', index, 'time', e.target.value)}
+                    className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
                   />
                 </div>
-                <div className="w-3/4">
-                  <TechSheetField
+                <div className="w-2/4">
+                  <label htmlFor={`schedule-desc-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Descripció</label>
+                  <input
                     id={`schedule-desc-${index}`}
-                    label={`Descripció ${index + 1}`}
+                    type="text"
                     value={item.description}
-                    onChange={(e) => handleListChange('assemblySchedule', index, 'description', e.target.value)}
+                    onChange={(e) => handleNestedListChange('detailedSchedule', index, 'description', e.target.value)}
+                    className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
                   />
                 </div>
-                <div className="w-auto flex-shrink-0 pt-7">
+                <div className="w-auto flex-shrink-0 pt-6">
                   <Tooltip text="Eliminar aquesta línia d'horari">
                     <button
                       type="button"
-                      onClick={() => handleRemoveListItem('assemblySchedule', index)}
-                      className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
-                    >
-                      ×
-                    </button>
+                      onClick={() => handleRemoveNestedListItem('detailedSchedule', index)}
+                      className="remove-item-button text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
+                    >×</button>
                   </Tooltip>
                 </div>
               </div>
@@ -402,216 +443,206 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               <Tooltip text="Afegir una nova línia a la planificació d'horaris">
                 <button
                   type="button"
-                  onClick={() => handleAddListItem('assemblySchedule')}
-                  className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
-                >
-                  + Afegir Ítem Horari
-                </button>
+                  onClick={() => handleAddNestedListItem('detailedSchedule')}
+                  className="add-item-button px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-semibold"
+                >+ Afegir Ítem Horari</button>
               </Tooltip>
             </div>
-          </div>
+          </ConditionalFormControl>
         )}
-        
       </TechSheetSection>
 
       <TechSheetSection title="Logística">
-        <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms} onChange={handleChange} placeholder="Ex: SI X"/>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ACTORS:</label>
-          <select
-            value={formData.actorsNumber || ''}
-            onChange={e => {
-              const val = parseInt(e.target.value, 10);
-              setFormData(prev => ({ ...prev, actorsNumber: val, actors: val > 0 ? prev.actors : '' }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-24 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-          {Number(formData.actorsNumber) > 0 && (
+        <ConditionalFormControl
+          label="CAMERINOS"
+          enabled={formData.dressingRooms?.enabled || false}
+          onToggle={(enabled) => handleConditionalChange('dressingRooms', 'enabled', enabled)}
+        >
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Quantitat</label>
+              <select
+                value={formData.dressingRooms?.quantity || 0}
+                onChange={(e) => handleConditionalChange('dressingRooms', 'quantity', e.target.value)}
+                className="block w-24 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              >
+                {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div className="flex-grow">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Notes addicionals</label>
+              <input
+                type="text"
+                placeholder="Ex: Amb dutxa, accessibles..."
+                value={formData.dressingRooms?.details || ''}
+                onChange={(e) => handleConditionalChange('dressingRooms', 'details', e.target.value)}
+                className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
+              />
+            </div>
+          </div>
+        </ConditionalFormControl>
+
+        <ConditionalFormControl
+          label="ACTORS"
+          enabled={formData.actors?.enabled || false}
+          onToggle={(enabled) => handleConditionalChange('actors', 'enabled', enabled)}
+        >
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Quantitat</label>
+              <select
+                value={formData.actors?.quantity || 0}
+                onChange={(e) => handleConditionalChange('actors', 'quantity', e.target.value)}
+                className="block w-24 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              >
+                {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="mt-2">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Noms</label>
             <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               rows={2}
               placeholder="Noms dels actors..."
-              value={formData.actors || ''}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, actors: e.target.value }));
-                markAsDirty();
-              }}
+              value={formData.actors?.names || ''}
+              onChange={(e) => handleConditionalChange('actors', 'names', e.target.value)}
+              className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
-          )}
-        </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">TÈCNICS/PRODUCCIÓ CIA:</label>
-          <select
-            value={formData.companyTechniciansNumber || ''}
-            onChange={e => {
-              const val = parseInt(e.target.value, 10);
-              setFormData(prev => ({ ...prev, companyTechniciansNumber: val, companyTechnicians: val > 0 ? prev.companyTechnicians : '' }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-24 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-          {Number(formData.companyTechniciansNumber) > 0 && (
+          </div>
+        </ConditionalFormControl>
+
+        <ConditionalFormControl
+          label="TÈCNICS/PRODUCCIÓ CIA"
+          enabled={formData.companyTechnicians?.enabled || false}
+          onToggle={(enabled) => handleConditionalChange('companyTechnicians', 'enabled', enabled)}
+        >
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Quantitat</label>
+              <select
+                value={formData.companyTechnicians?.quantity || 0}
+                onChange={(e) => handleConditionalChange('companyTechnicians', 'quantity', e.target.value)}
+                className="block w-24 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              >
+                {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="mt-2">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Noms</label>
             <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               rows={2}
               placeholder="Noms dels tècnics/producció..."
-              value={formData.companyTechnicians || ''}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, companyTechnicians: e.target.value }));
-                markAsDirty();
-              }}
+              value={formData.companyTechnicians?.names || ''}
+              onChange={(e) => handleConditionalChange('companyTechnicians', 'names', e.target.value)}
+              className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
-          )}
-        </div>
+          </div>
+        </ConditionalFormControl>
       </TechSheetSection>
 
       <TechSheetSection title="Necessitats Tècniques">
-        <NeedsList
-          needs={formData.lightingNeeds}
-          title="Il·luminació"
-          listName="lightingNeeds"
-          materialItems={materialItems}
-          eventFrame={eventFrame}
-          onListChange={handleListChange}
-          onRemoveListItem={handleRemoveListItem}
-          onAddListItem={handleAddListItem}
-          getMaterialAvailability={getMaterialAvailability}
-        />
-        <NeedsList
-          needs={formData.soundNeeds}
-          title="So"
-          listName="soundNeeds"
-          materialItems={materialItems}
-          eventFrame={eventFrame}
-          onListChange={handleListChange}
-          onRemoveListItem={handleRemoveListItem}
-          onAddListItem={handleAddListItem}
-          getMaterialAvailability={getMaterialAvailability}
-        />
-        <div className="col-span-full mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">VÍDEO:</label>
-          <select value={formData.videoDetails?.startsWith('SI') ? 'SI' : (formData.videoDetails?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => {
-                if (val === 'NO' || val === '') {
-                  return { ...prev, videoDetails: val, videoNeeds: [] };
-                }
-                return { ...prev, videoDetails: 'SI: ' };
-              });
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.videoDetails?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2} placeholder="Detalls generals de vídeo..." value={formData.videoDetails.replace(/^SI:?\s*/, '')}
-              onChange={e => { setFormData(prev => ({ ...prev, videoDetails: `SI: ${e.target.value}` })); markAsDirty(); }}
-            />
-          )}
-        </div>
-        {formData.videoDetails?.startsWith('SI') && (
-          <NeedsList
-            needs={formData.videoNeeds}
-            title="Vídeo"
-            listName="videoNeeds"
-            materialItems={materialItems}
-            eventFrame={eventFrame}
-            onListChange={handleListChange}
-            onRemoveListItem={handleRemoveListItem}
-            onAddListItem={handleAddListItem}
-            getMaterialAvailability={getMaterialAvailability}
-          />
-        )}
-        <NeedsList
-          needs={formData.machineryNeeds}
-          title="Maquinària"
-          listName="machineryNeeds"
-          materialItems={materialItems}
-          eventFrame={eventFrame}
-          onListChange={handleListChange}
-          onRemoveListItem={handleRemoveListItem}
-          onAddListItem={handleAddListItem}
-          getMaterialAvailability={getMaterialAvailability}
-        />
+        {(['lighting', 'sound', 'video', 'machinery', 'otherEquipment', 'rentals'] as const).map(needKey => {
+          const titleMap = {
+            lighting: 'Il·luminació',
+            sound: 'So',
+            video: 'Vídeo',
+            machinery: 'Maquinària',
+            otherEquipment: "Material d'altres equipaments",
+            rentals: 'Lloguers',
+          };
+          const sectionData = formData[needKey];
+
+          return (
+            <ConditionalFormControl
+              key={needKey}
+              label={titleMap[needKey].toUpperCase()}
+              enabled={sectionData?.enabled || false}
+              onToggle={(enabled) => handleConditionalChange(needKey, 'enabled', enabled)}
+            >
+              <textarea
+                className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                rows={2}
+                placeholder={`Detalls generals de ${titleMap[needKey].toLowerCase()}...`}
+                value={sectionData?.details || ''}
+                onChange={(e) => handleConditionalChange(needKey, 'details', e.target.value)}
+              />
+              <div className="mt-4">
+                <NeedsList
+                  needs={sectionData?.needs || []}
+                  title={titleMap[needKey]}
+                  listName={needKey}
+                  materialItems={materialItems}
+                  eventFrame={eventFrame}
+                  onListChange={handleNestedListChange}
+                  onRemoveListItem={handleRemoveNestedListItem}
+                  onAddListItem={handleAddNestedListItem}
+                  getMaterialAvailability={getMaterialAvailability}
+                />
+              </div>
+            </ConditionalFormControl>
+          );
+        })}
       </TechSheetSection>
-      
+
       <TechSheetSection title="Altres Detalls">
-        <TechSheetField id="controlLocation" label="CONTROL A:" value={formData.controlLocation} onChange={handleChange} placeholder="Ex: X PLATEA"/>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MATERIAL D’ALTRES EQUIPAMENTS:</label>
-          <select
-            value={formData.otherEquipment?.startsWith('SI') ? 'SI' : (formData.otherEquipment?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => ({ ...prev, otherEquipment: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.otherEquipment?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls del material d’altres equipaments..."
-              value={formData.otherEquipment.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, otherEquipment: `SI: ${e.target.value}` }));
-                markAsDirty();
-              }}
-            />
-          )}
-        </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">LLOGUERS:</label>
-          <select
-            value={formData.rentals?.startsWith('SI') ? 'SI' : (formData.rentals?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => ({ ...prev, rentals: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.rentals?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls dels lloguers..."
-              value={formData.rentals.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, rentals: `SI: ${e.target.value}` }));
-                markAsDirty();
-              }}
-            />
-          )}
-        </div>
-        <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints} onChange={handleChange} as="textarea" rows={3} placeholder="Ex: XX x/x/x HORARIS x/x/x"/>
+        <ConditionalFormControl
+          label="CONTROL A"
+          enabled={formData.controlLocation?.enabled || false}
+          onToggle={(enabled) => handleConditionalChange('controlLocation', 'enabled', enabled)}
+        >
+          <input
+            type="text"
+            placeholder="Cabina/Platea"
+            value={formData.controlLocation?.details || ''}
+            onChange={(e) => handleConditionalChange('controlLocation', 'details', e.target.value)}
+            className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
+          />
+        </ConditionalFormControl>
+
+        <ConditionalFormControl
+          label="PLÀNOLS"
+          enabled={formData.blueprints?.enabled || false}
+          onToggle={(enabled) => handleConditionalChange('blueprints', 'enabled', enabled)}
+        >
+          <textarea
+            rows={3}
+            placeholder="Enllaç a plànols, o descripció..."
+            value={formData.blueprints?.details || ''}
+            onChange={(e) => handleConditionalChange('blueprints', 'details', e.target.value)}
+            className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </ConditionalFormControl>
       </TechSheetSection>
 
       <TechSheetSection title="Contacte i Observacions">
-        <TechSheetField id="companyContact" label="PERSONA DE CONTACTE COMPANYIA:" value={formData.companyContact} onChange={handleChange} />
-        <TechSheetField id="observations" label="ALTRES / OBSERVACIONS:" value={formData.observations} onChange={handleChange} as="textarea" rows={4}/>
+        <ConditionalFormControl
+          label="PERSONA DE CONTACTE COMPANYIA"
+          enabled={formData.companyContact?.enabled || false}
+          onToggle={(enabled) => handleConditionalChange('companyContact', 'enabled', enabled)}
+        >
+          <input
+            type="text"
+            placeholder="Nom, telèfon, email..."
+            value={formData.companyContact?.details || ''}
+            onChange={(e) => handleConditionalChange('companyContact', 'details', e.target.value)}
+            className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
+          />
+        </ConditionalFormControl>
+
+        <ConditionalFormControl
+          label="ALTRES / OBSERVACIONS"
+          enabled={formData.observations?.enabled || false}
+          onToggle={(enabled) => handleConditionalChange('observations', 'enabled', enabled)}
+        >
+          <textarea
+            rows={4}
+            placeholder="Qualsevol altre detall o observació important..."
+            value={formData.observations?.details || ''}
+            onChange={(e) => handleConditionalChange('observations', 'details', e.target.value)}
+            className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </ConditionalFormControl>
       </TechSheetSection>
 
     </div>

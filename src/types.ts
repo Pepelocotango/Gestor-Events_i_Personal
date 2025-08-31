@@ -46,59 +46,93 @@ export interface TechSheetProvider {
   isManual?: boolean; // Per identificar proveïdors afegits manualment
 }
 
+// Estructures genèriques per a seccions condicionals
+export interface ConditionalToggle {
+  enabled: boolean;
+}
+
+export interface ConditionalString extends ConditionalToggle {
+  details: string;
+}
+
+export interface ConditionalQuantityAndString extends ConditionalToggle {
+  quantity: number | string;
+  details: string;
+}
+
+export interface ConditionalNeeds extends ConditionalToggle {
+  details: string;
+  needs: TechSheetNeed[];
+}
+
 export interface TechSheetScheduleItem {
   id: string;
+  date: string; // CAMP NOU: data per a l'ítem d'horari
   time: string;
   description: string;
 }
 
 export interface TechSheetNeed {
   id: string;
-  materialItemId?: string | null; // ID de l'ítem de material de l'inventari
+  materialItemId?: string | null;
   quantity: number | string;
   description: string;
-  origin: string; // <<< CANVIAT: Ara és un string lliure
+  origin: string;
 }
 
 export interface TechSheetData {
-  // Secció General
+  // --- CAMPS SEMPRE PRESENTS ---
   eventName: string;
   location: string;
   date: string;
   showTime: string;
   showDuration: string;
-  parkingInfo: string;
-  
-  // Secció Personal
   technicalProviders: TechSheetProvider[];
+
+  // --- SECCIONS CONDICIONALS ---
+
+  // Informació General
+  parkingInfo: ConditionalString;
+
+  // Premuntatge i Horaris
+  preAssembly: ConditionalString;
+  detailedSchedule: {
+    enabled: boolean;
+    items: TechSheetScheduleItem[];
+  };
+
+  // Logística
+  dressingRooms: ConditionalQuantityAndString;
+  actors: {
+    enabled: boolean;
+    quantity: number | string;
+    names: string;
+  };
+  companyTechnicians: {
+    enabled: boolean;
+    quantity: number | string;
+    names: string;
+  };
+
+  // Necessitats Tècniques
+  lighting: ConditionalNeeds;
+  sound: ConditionalNeeds;
+  video: ConditionalNeeds;
+  machinery: ConditionalNeeds;
+  otherEquipment: ConditionalNeeds;
+  rentals: ConditionalNeeds;
   
-  // Secció Horaris
-  preAssemblySchedule: string;
-  assemblySchedule: TechSheetScheduleItem[];
-  
-  // Secció Logística
-  dressingRooms: string;
-  actors: string;
-  /** Nombre d'actors (selector numèric al formulari) */
-  actorsNumber?: number;
-  companyTechnicians: string;
-  /** Nombre de tècnics/producció de companyia (selector numèric al formulari) */
-  companyTechniciansNumber?: number;
-  
-  // Seccions de Necessitats Tècniques
-  lightingNeeds: TechSheetNeed[];
-  soundNeeds: TechSheetNeed[];
-  videoNeeds: TechSheetNeed[]; // Llista de necessitats específiques de vídeo
-  videoDetails?: string; // Camp de text per a notes generals de vídeo (ex: "NO", o descripció si no hi ha ítems)
-  machineryNeeds: TechSheetNeed[];
-  
-  // Altres seccions
-  controlLocation: string;
-  otherEquipment: string;
-  rentals: string;
-  blueprints: string;
-  companyContact: string;
-  observations: string;
+  // Altres Detalls
+  controlLocation: ConditionalString;
+  blueprints: ConditionalString;
+
+  // Contacte i Observacions
+  companyContact: ConditionalString;
+  observations: ConditionalString;
+
+  // Permet camps arbitraris per a la migració de dades antigues.
+  // El codi de migració s'encarregarà de transformar-los a la nova estructura.
+  [key: string]: any;
 }
 // <<< FI DE LES NOVES INTERFÍCIES >>>
 

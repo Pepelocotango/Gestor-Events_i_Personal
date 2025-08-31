@@ -630,6 +630,42 @@ markUnsaved();
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  // Load mock data for browser-based development/testing
+  useEffect(() => {
+    if (!window.electronAPI) {
+      console.warn("Entorn no-Electron detectat. Carregant dades de prova.");
+      const mockAppData: AppData = {
+        peopleGroups: [{ id: 'p1', name: 'Tècnic de Prova', role: 'Tècnic' }],
+        eventFrames: [
+          {
+            id: 'ef1',
+            name: 'Esdeveniment de Prova 1',
+            startDate: '2025-09-01',
+            endDate: '2025-09-02',
+            place: 'Teatre Principal',
+            techSheet: createDefaultTechSheet({
+              name: 'Esdeveniment de Prova 1',
+              startDate: '2025-09-01',
+              endDate: '2025-09-02',
+              place: 'Teatre Principal',
+            })
+          },
+          {
+            id: 'ef2',
+            name: 'Esdeveniment de Prova 2',
+            startDate: '2025-09-10',
+            endDate: '2025-09-10',
+            place: 'Sala Petita',
+          }
+        ],
+        assignments: [],
+        materialItems: [{id: 'm1', name: 'Foco PC', category: 'Il·luminació', stock: 10, location: 'Magatzem 1'}],
+      };
+      loadData(mockAppData);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return {
     eventFrames,
     peopleGroups,
