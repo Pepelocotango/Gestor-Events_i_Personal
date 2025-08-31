@@ -3,7 +3,6 @@ import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
 import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon } from '../constants';
-import { migrateData, validateMigratedData } from '../utils/dataMigration';
 import Tooltip from './ui/Tooltip';
 
 interface ControlsProps {
@@ -51,21 +50,6 @@ const Controls = forwardRef<any, ControlsProps>(({
       if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
         loadData(jsonData);
         showToast("Totes les dades carregades correctament.", 'success');
-        setHasUnsavedChanges(true);
-        setCurrentDataPath(fileName);
-      } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
-        const migratedData = migrateData(
-          { people: jsonData.people || [] },
-          { eventFrames: jsonData.eventFrames || [] },
-          { assignments: jsonData.assignments || [] }
-        );
-        const validation = validateMigratedData(migratedData);
-        if (!validation.isValid) {
-          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
-          return;
-        }
-        loadData(migratedData);
-        showToast("Dades antigues migrades i carregades correctament.", 'success');
         setHasUnsavedChanges(true);
         setCurrentDataPath(fileName);
       } else {
@@ -116,14 +100,6 @@ const Controls = forwardRef<any, ControlsProps>(({
       let newPeople: PersonGroup[] = [];
       if (Array.isArray(jsonData.peopleGroups)) {
         newPeople = jsonData.peopleGroups;
-      } else if (Array.isArray(jsonData.people)) {
-        const migratedData = migrateData({ people: jsonData.people });
-        const validation = validateMigratedData(migratedData);
-        if (!validation.isValid) {
-          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
-          return;
-        }
-        newPeople = migratedData.peopleGroups;
       } else {
         showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
         return;

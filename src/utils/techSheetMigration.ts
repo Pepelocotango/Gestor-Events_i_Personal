@@ -1,24 +1,35 @@
-import { TechSheetData, EventFrame, ConditionalString, ConditionalQuantityAndString, ConditionalNeeds } from '../types';
+import { TechSheetData, EventFrame } from '../types';
 import { formatDateDMY } from './dateFormat';
 
 const isObject = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 
-const defaultConditionalString = (): ConditionalString => ({ enabled: false, details: '' });
-const defaultConditionalQuantityAndString = (): ConditionalQuantityAndString => ({ enabled: false, quantity: 0, details: '' });
-const defaultConditionalNeeds = (): ConditionalNeeds => ({ enabled: false, details: '', needs: [] });
 
 export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechSheetData => {
-  if (data && isObject(data.preAssembly)) {
-    const needsKeys = ['lighting', 'sound', 'video', 'machinery', 'otherEquipment', 'rentals'];
+  // Check if data is already in the new format (with status field)
+  if (data && isObject(data.preAssembly) && 'status' in data.preAssembly) {
+    const needsKeys: (keyof TechSheetData)[] = ['lighting', 'sound', 'video', 'machinery', 'otherEquipment', 'rentals'];
     needsKeys.forEach(key => {
-      if (data[key] && !data[key].needs) {
-        data[key].needs = [];
+      const section = data[key];
+      // This is the fix for the crash. Ensure the section is an object before trying to access .needs
+      if (isObject(section) && !section.needs) {
+        section.needs = [];
       }
     });
     return data as TechSheetData;
   }
 
   const oldData = data || {};
+  const fromStringToStatus = (val: any) => {
+    if (typeof val !== 'string' || val.trim() === '' || val.trim() === '--') return 'unset';
+    if (val.startsWith('SI')) return 'yes';
+    if (val.startsWith('NO')) return 'no';
+    return 'yes'; // Default to 'yes' if there is text but no SI/NO prefix
+  };
+
+  const fromEnabledToStatus = (val: any) => {
+    if (typeof val === 'boolean') return val ? 'yes' : 'no';
+    return 'unset';
+  }
 
   const newSheet: TechSheetData = {
     eventName: oldData.eventName || eventFrame.name,
@@ -27,80 +38,56 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
     showTime: oldData.showTime || '',
     showDuration: oldData.showDuration || '',
     technicalProviders: oldData.technicalProviders || [],
-    parkingInfo: (() => {
-      const val = oldData.parkingInfo;
-      if (typeof val === 'string') {
-        if (val.startsWith('SI')) return { enabled: true, details: val.replace(/^SI:?\s*/, '') };
-        if (val.startsWith('NO')) return defaultConditionalString();
-        return val.trim() ? { enabled: true, details: val } : defaultConditionalString();
-      }
-      return defaultConditionalString();
-    })(),
-    preAssembly: (() => {
-      const val = oldData.preAssemblySchedule;
-      if (typeof val === 'string' && val.startsWith('SI')) {
-        return { enabled: true, details: val.replace(/^SI:?\s*/, '') };
-      }
-      return defaultConditionalString();
-    })(),
-    detailedSchedule: {
-      enabled: typeof oldData.preAssemblySchedule === 'string' && oldData.preAssemblySchedule.startsWith('SI'),
-      items: (oldData.assemblySchedule || []).map((item: any) => ({
-        id: item.id,
-        time: item.time,
-        description: item.description,
-        date: eventFrame.startDate,
-      })),
+
+    parkingInfo: {
+      status: fromStringToStatus(oldData.parkingInfo),
+      details: typeof oldData.parkingInfo === 'string' ? oldData.parkingInfo.replace(/^SI:?\s*/, '') : '',
     },
-    dressingRooms: (() => {
-        const val = oldData.dressingRooms;
-        if (typeof val === 'string' && val.trim()) {
-            const match = val.match(/(\d+)/);
-            const quantity = match ? parseInt(match[0], 10) : 1;
-            const details = /^\d+\s*$/.test(val.trim()) ? '' : val;
-            return { enabled: true, quantity, details };
-        }
-        return defaultConditionalQuantityAndString();
-    })(),
+    preAssembly: {
+      status: fromStringToStatus(oldData.preAssemblySchedule),
+      details: typeof oldData.preAssemblySchedule === 'string' ? oldData.preAssemblySchedule.replace(/^SI:?\s*/, '') : '',
+    },
+    detailedSchedule: {
+      status: fromStringToStatus(oldData.preAssemblySchedule),
+      items: (oldData.assemblySchedule || []).map((item: any) => ({ ...item, date: eventFrame.startDate })),
+    },
+    dressingRooms: {
+        status: fromStringToStatus(oldData.dressingRooms),
+        quantity: parseInt(oldData.dressingRooms?.match(/(\d+)/)?.[0] || '0', 10),
+        details: typeof oldData.dressingRooms === 'string' ? oldData.dressingRooms : '',
+    },
     actors: {
-      enabled: (oldData.actorsNumber || 0) > 0,
+      status: fromEnabledToStatus((oldData.actorsNumber || 0) > 0),
       quantity: oldData.actorsNumber || 0,
       names: oldData.actors || '',
     },
     companyTechnicians: {
-      enabled: (oldData.companyTechniciansNumber || 0) > 0,
+      status: fromEnabledToStatus((oldData.companyTechniciansNumber || 0) > 0),
       quantity: oldData.companyTechniciansNumber || 0,
       names: oldData.companyTechnicians || '',
     },
-    lighting: { enabled: (oldData.lightingNeeds?.length || 0) > 0, details: '', needs: oldData.lightingNeeds || [] },
-    sound: { enabled: (oldData.soundNeeds?.length || 0) > 0, details: '', needs: oldData.soundNeeds || [] },
-    machinery: { enabled: (oldData.machineryNeeds?.length || 0) > 0, details: '', needs: oldData.machineryNeeds || [] },
-    video: (() => {
-      const enabled = typeof oldData.videoDetails === 'string' && oldData.videoDetails.startsWith('SI');
-      return {
-        enabled,
-        details: enabled ? oldData.videoDetails.replace(/^SI:?\s*/, '') : '',
-        needs: oldData.videoNeeds || [],
-      };
-    })(),
-    otherEquipment: (() => {
-      const val = oldData.otherEquipment;
-      if (typeof val === 'string' && val.startsWith('SI')) {
-        return { enabled: true, details: val.replace(/^SI:?\s*/, ''), needs: [] };
-      }
-      return defaultConditionalNeeds();
-    })(),
-    rentals: (() => {
-      const val = oldData.rentals;
-      if (typeof val === 'string' && val.startsWith('SI')) {
-        return { enabled: true, details: val.replace(/^SI:?\s*/, ''), needs: [] };
-      }
-      return defaultConditionalNeeds();
-    })(),
-    controlLocation: oldData.controlLocation ? { enabled: true, details: oldData.controlLocation } : defaultConditionalString(),
-    blueprints: oldData.blueprints ? { enabled: true, details: oldData.blueprints } : defaultConditionalString(),
-    companyContact: oldData.companyContact ? { enabled: true, details: oldData.companyContact } : defaultConditionalString(),
-    observations: oldData.observations ? { enabled: true, details: oldData.observations } : defaultConditionalString(),
+    lighting: { status: (oldData.lightingNeeds?.length || 0) > 0 ? 'yes' : 'unset', details: '', needs: oldData.lightingNeeds || [] },
+    sound: { status: (oldData.soundNeeds?.length || 0) > 0 ? 'yes' : 'unset', details: '', needs: oldData.soundNeeds || [] },
+    machinery: { status: (oldData.machineryNeeds?.length || 0) > 0 ? 'yes' : 'unset', details: '', needs: oldData.machineryNeeds || [] },
+    video: {
+      status: fromStringToStatus(oldData.videoDetails),
+      details: typeof oldData.videoDetails === 'string' ? oldData.videoDetails.replace(/^SI:?\s*/, '') : '',
+      needs: oldData.videoNeeds || [],
+    },
+    otherEquipment: {
+      status: fromStringToStatus(oldData.otherEquipment),
+      details: typeof oldData.otherEquipment === 'string' ? oldData.otherEquipment.replace(/^SI:?\s*/, '') : '',
+      needs: [],
+    },
+    rentals: {
+      status: fromStringToStatus(oldData.rentals),
+      details: typeof oldData.rentals === 'string' ? oldData.rentals.replace(/^SI:?\s*/, '') : '',
+      needs: [],
+    },
+    controlLocation: { status: oldData.controlLocation ? 'yes' : 'unset', details: oldData.controlLocation || '' },
+    blueprints: { status: oldData.blueprints ? 'yes' : 'unset', details: oldData.blueprints || '' },
+    companyContact: { status: oldData.companyContact ? 'yes' : 'unset', details: oldData.companyContact || '' },
+    observations: { status: oldData.observations ? 'yes' : 'unset', details: oldData.observations || '' },
   };
 
   return newSheet;

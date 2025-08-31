@@ -6,8 +6,8 @@ import logger from '../utils/logger';
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
 const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): TechSheetData => {
-  const defaultConditionalString = () => ({ enabled: false, details: '' });
-  const defaultConditionalNeeds = () => ({ enabled: false, details: '', needs: [] });
+  const defaultConditionalString = () => ({ status: 'unset' as const, details: '' });
+  const defaultConditionalNeeds = () => ({ status: 'unset' as const, details: '', needs: [] });
 
   return {
     eventName: eventFrame.name,
@@ -19,11 +19,11 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
 
     parkingInfo: defaultConditionalString(),
     preAssembly: defaultConditionalString(),
-    detailedSchedule: { enabled: false, items: [] },
+    detailedSchedule: { status: 'unset', items: [] },
 
-    dressingRooms: { enabled: false, quantity: 0, details: '' },
-    actors: { enabled: false, quantity: 0, names: '' },
-    companyTechnicians: { enabled: false, quantity: 0, names: '' },
+    dressingRooms: { status: 'unset', quantity: 0, details: '' },
+    actors: { status: 'unset', quantity: 0, names: '' },
+    companyTechnicians: { status: 'unset', quantity: 0, names: '' },
 
     lighting: defaultConditionalNeeds(),
     sound: defaultConditionalNeeds(),

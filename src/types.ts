@@ -47,8 +47,10 @@ export interface TechSheetProvider {
 }
 
 // Estructures genèriques per a seccions condicionals
+export type ConditionalStatus = 'yes' | 'no' | 'unset';
+
 export interface ConditionalToggle {
-  enabled: boolean;
+  status: ConditionalStatus;
 }
 
 export interface ConditionalString extends ConditionalToggle {
@@ -97,19 +99,19 @@ export interface TechSheetData {
   // Premuntatge i Horaris
   preAssembly: ConditionalString;
   detailedSchedule: {
-    enabled: boolean;
+    status: ConditionalStatus;
     items: TechSheetScheduleItem[];
   };
 
   // Logística
   dressingRooms: ConditionalQuantityAndString;
   actors: {
-    enabled: boolean;
+    status: ConditionalStatus;
     quantity: number | string;
     names: string;
   };
   companyTechnicians: {
-    enabled: boolean;
+    status: ConditionalStatus;
     quantity: number | string;
     names: string;
   };

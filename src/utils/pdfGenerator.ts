@@ -258,7 +258,7 @@ export const exportTechSheetToPdf = async (
     if (eventFrame.generalNotes) {
       headerBody.push([{ content: 'NOTES GENERALS:', styles: labelStyles }, sane(eventFrame.generalNotes)]);
     }
-    if (formData.parkingInfo.enabled) {
+    if (formData.parkingInfo.status === 'yes') {
       headerBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, sane(formData.parkingInfo.details)]);
     }
     autoTable(pdf, { body: headerBody, theme: 'grid', startY: y });
@@ -276,10 +276,10 @@ export const exportTechSheetToPdf = async (
 
     // --- Taula 3: Horaris ---
     const scheduleBody: any[][] = [];
-    if (formData.preAssembly.enabled) {
+    if (formData.preAssembly.status === 'yes') {
       scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, sane(formData.preAssembly.details)]);
     }
-    if (formData.detailedSchedule.enabled && formData.detailedSchedule.items.length > 0) {
+    if (formData.detailedSchedule.status === 'yes' && formData.detailedSchedule.items.length > 0) {
       const validSchedules = formData.detailedSchedule.items.filter(item => item.time || item.description);
       if (validSchedules.length > 0) {
         scheduleBody.push([{ content: 'Horaris Detallats', colSpan: 3, styles: subHeadStyles }]);
@@ -293,9 +293,9 @@ export const exportTechSheetToPdf = async (
 
     // --- Taula 4: Logística ---
     const logisticsBody = [];
-    if (formData.dressingRooms.enabled) logisticsBody.push([{ content: 'Camerinos:', styles: labelStyles }, `${sane(formData.dressingRooms.quantity)} - ${sane(formData.dressingRooms.details)}`]);
-    if (formData.actors.enabled) logisticsBody.push([{ content: 'Actors:', styles: labelStyles }, `${sane(formData.actors.quantity)} - ${sane(formData.actors.names)}`]);
-    if (formData.companyTechnicians.enabled) logisticsBody.push([{ content: 'Tècnics/Producció Cia:', styles: labelStyles }, `${sane(formData.companyTechnicians.quantity)} - ${sane(formData.companyTechnicians.names)}`]);
+    if (formData.dressingRooms.status === 'yes') logisticsBody.push([{ content: 'Camerinos:', styles: labelStyles }, `${sane(formData.dressingRooms.quantity)} - ${sane(formData.dressingRooms.details)}`]);
+    if (formData.actors.status === 'yes') logisticsBody.push([{ content: 'Actors:', styles: labelStyles }, `${sane(formData.actors.quantity)} - ${sane(formData.actors.names)}`]);
+    if (formData.companyTechnicians.status === 'yes') logisticsBody.push([{ content: 'Tècnics/Producció Cia:', styles: labelStyles }, `${sane(formData.companyTechnicians.quantity)} - ${sane(formData.companyTechnicians.names)}`]);
     if (logisticsBody.length > 0) {
       autoTable(pdf, { head: [[{ content: 'LOGÍSTICA', colSpan: 2, styles: headStyles }]], body: logisticsBody, startY: y, theme: 'grid' });
       y = (pdf as any).lastAutoTable.finalY + 7;
@@ -308,7 +308,7 @@ export const exportTechSheetToPdf = async (
 
     needsKeys.forEach(key => {
       const section = formData[key] as any;
-      if (section?.enabled) {
+      if (section?.status === 'yes') {
         const validNeeds = section.needs?.filter((n: any) => sane(n.description) !== '-' || sane(n.quantity) !== '-');
         if (sane(section.details) !== '-' || (validNeeds && validNeeds.length > 0)) {
           needsBody.push([{ content: titleMap[key as keyof typeof titleMap], colSpan: 3, styles: subHeadStyles }]);
@@ -329,10 +329,10 @@ export const exportTechSheetToPdf = async (
 
     // --- Taula 6: Altres Detalls i Contacte ---
     const otherDetailsBody: any[][] = [];
-    if (formData.controlLocation.enabled) otherDetailsBody.push([{ content: 'Control a:', styles: labelStyles }, sane(formData.controlLocation.details)]);
-    if (formData.blueprints.enabled) otherDetailsBody.push([{ content: 'Plànols:', styles: labelStyles }, sane(formData.blueprints.details)]);
-    if (formData.companyContact.enabled) otherDetailsBody.push([{ content: 'Contacte Companyia:', styles: labelStyles }, sane(formData.companyContact.details)]);
-    if (formData.observations.enabled) otherDetailsBody.push([{ content: 'Observacions:', styles: labelStyles }, sane(formData.observations.details)]);
+    if (formData.controlLocation.status === 'yes') otherDetailsBody.push([{ content: 'Control a:', styles: labelStyles }, sane(formData.controlLocation.details)]);
+    if (formData.blueprints.status === 'yes') otherDetailsBody.push([{ content: 'Plànols:', styles: labelStyles }, sane(formData.blueprints.details)]);
+    if (formData.companyContact.status === 'yes') otherDetailsBody.push([{ content: 'Contacte Companyia:', styles: labelStyles }, sane(formData.companyContact.details)]);
+    if (formData.observations.status === 'yes') otherDetailsBody.push([{ content: 'Observacions:', styles: labelStyles }, sane(formData.observations.details)]);
     if (otherDetailsBody.length > 0) {
       autoTable(pdf, { head: [[{ content: 'ALTRES DETALLS I CONTACTE', colSpan: 2, styles: headStyles }]], body: otherDetailsBody, startY: y, theme: 'grid', columnStyles: { 0: { cellWidth: 60 } } });
       y = (pdf as any).lastAutoTable.finalY + 7;

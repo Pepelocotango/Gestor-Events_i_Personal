@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem } from '../../types';
+import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ConditionalStatus } from '../../types';
 import { migrateTechSheetData } from '../../utils/techSheetMigration';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
@@ -194,9 +194,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
     markAsDirty();
   };
 
-  const handleConditionalChange = <T extends keyof TechSheetData>(
-    fieldName: T,
-    subFieldName: keyof TechSheetData[T],
+  const handleConditionalChange = (
+    fieldName: keyof TechSheetData,
+    subFieldName: string,
     value: any
   ) => {
     setFormData(prev => {
@@ -208,6 +208,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       return newFormData;
     });
     markAsDirty();
+  };
+
+  const handleStatusChange = (fieldName: keyof TechSheetData, newStatus: ConditionalStatus) => {
+    handleConditionalChange(fieldName, 'status', newStatus);
   };
 
   const handleProviderChange = useCallback((providerIndex: number, personGroupId: string) => {
@@ -336,8 +340,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
         <ConditionalFormControl
           label="ZONA RESERVADA PARKING:"
-          enabled={formData.parkingInfo?.enabled || false}
-          onToggle={(enabled) => handleConditionalChange('parkingInfo', 'enabled', enabled)}
+          status={formData.parkingInfo?.status || 'unset'}
+          onStatusChange={(status) => handleStatusChange('parkingInfo', status)}
         >
           <textarea
             className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -369,11 +373,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       <TechSheetSection title="Premuntatge i Horaris">
         <ConditionalFormControl
           label="PREMUNTATGE"
-          enabled={formData.preAssembly?.enabled || false}
-          onToggle={(enabled) => {
-            handleConditionalChange('preAssembly', 'enabled', enabled);
-            if (!enabled) {
-              handleConditionalChange('detailedSchedule', 'enabled', false);
+          status={formData.preAssembly?.status || 'unset'}
+          onStatusChange={(status) => {
+            handleStatusChange('preAssembly', status);
+            if (status !== 'yes') {
+              handleStatusChange('detailedSchedule', 'no');
             }
           }}
         >
@@ -386,11 +390,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           />
         </ConditionalFormControl>
 
-        {formData.preAssembly?.enabled && (
+        {formData.preAssembly?.status === 'yes' && (
           <ConditionalFormControl
             label="HORARIS DETALLATS"
-            enabled={formData.detailedSchedule?.enabled || false}
-            onToggle={(enabled) => handleConditionalChange('detailedSchedule', 'enabled', enabled)}
+            status={formData.detailedSchedule?.status || 'unset'}
+            onStatusChange={(status) => handleStatusChange('detailedSchedule', status)}
           >
             {formData.detailedSchedule?.items?.map((item, index) => (
               <div key={item.id} className="flex items-start gap-2 w-full p-2 bg-gray-50 dark:bg-gray-800/50 rounded-md">
@@ -454,8 +458,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       <TechSheetSection title="Logística">
         <ConditionalFormControl
           label="CAMERINOS"
-          enabled={formData.dressingRooms?.enabled || false}
-          onToggle={(enabled) => handleConditionalChange('dressingRooms', 'enabled', enabled)}
+          status={formData.dressingRooms?.status || 'unset'}
+          onStatusChange={(status) => handleStatusChange('dressingRooms', status)}
         >
           <div className="flex items-center gap-4">
             <div>
@@ -483,8 +487,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
         <ConditionalFormControl
           label="ACTORS"
-          enabled={formData.actors?.enabled || false}
-          onToggle={(enabled) => handleConditionalChange('actors', 'enabled', enabled)}
+          status={formData.actors?.status || 'unset'}
+          onStatusChange={(status) => handleStatusChange('actors', status)}
         >
           <div className="flex items-center gap-4">
             <div>
@@ -512,8 +516,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
         <ConditionalFormControl
           label="TÈCNICS/PRODUCCIÓ CIA"
-          enabled={formData.companyTechnicians?.enabled || false}
-          onToggle={(enabled) => handleConditionalChange('companyTechnicians', 'enabled', enabled)}
+          status={formData.companyTechnicians?.status || 'unset'}
+          onStatusChange={(status) => handleStatusChange('companyTechnicians', status)}
         >
           <div className="flex items-center gap-4">
             <div>
@@ -556,8 +560,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
             <ConditionalFormControl
               key={needKey}
               label={titleMap[needKey].toUpperCase()}
-              enabled={sectionData?.enabled || false}
-              onToggle={(enabled) => handleConditionalChange(needKey, 'enabled', enabled)}
+              status={sectionData?.status || 'unset'}
+              onStatusChange={(status) => handleStatusChange(needKey, status)}
             >
               <textarea
                 className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -587,8 +591,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       <TechSheetSection title="Altres Detalls">
         <ConditionalFormControl
           label="CONTROL A"
-          enabled={formData.controlLocation?.enabled || false}
-          onToggle={(enabled) => handleConditionalChange('controlLocation', 'enabled', enabled)}
+          status={formData.controlLocation?.status || 'unset'}
+          onStatusChange={(status) => handleStatusChange('controlLocation', status)}
         >
           <input
             type="text"
@@ -601,8 +605,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
         <ConditionalFormControl
           label="PLÀNOLS"
-          enabled={formData.blueprints?.enabled || false}
-          onToggle={(enabled) => handleConditionalChange('blueprints', 'enabled', enabled)}
+          status={formData.blueprints?.status || 'unset'}
+          onStatusChange={(status) => handleStatusChange('blueprints', status)}
         >
           <textarea
             rows={3}
@@ -617,8 +621,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       <TechSheetSection title="Contacte i Observacions">
         <ConditionalFormControl
           label="PERSONA DE CONTACTE COMPANYIA"
-          enabled={formData.companyContact?.enabled || false}
-          onToggle={(enabled) => handleConditionalChange('companyContact', 'enabled', enabled)}
+          status={formData.companyContact?.status || 'unset'}
+          onStatusChange={(status) => handleStatusChange('companyContact', status)}
         >
           <input
             type="text"
@@ -631,8 +635,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
         <ConditionalFormControl
           label="ALTRES / OBSERVACIONS"
-          enabled={formData.observations?.enabled || false}
-          onToggle={(enabled) => handleConditionalChange('observations', 'enabled', enabled)}
+          status={formData.observations?.status || 'unset'}
+          onStatusChange={(status) => handleStatusChange('observations', status)}
         >
           <textarea
             rows={4}
