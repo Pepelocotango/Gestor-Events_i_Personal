@@ -710,3 +710,45 @@ La solució implementada força el calendari a recalcular les seves dimensions i
 
 -   **`src/components/MainDisplay.tsx`**: Utilitza `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que internament crida a `calendarApi.updateSize()`.
 -   **`src/App.tsx`**: Crea una referència (`useRef`) al component `MainDisplay` i utilitza un `useEffect` que, en detectar un canvi a `toastState`, crida a la funció `handleResize` del component fill.
+
+### 5.10. Barra de Progrés en Temps Real per a Tasques Asíncrones
+
+Per millorar l'experiència d'usuari durant operacions llargues i asíncrones com la sincronització amb Google Calendar, s'ha implementat un sistema de feedback en temps real que substitueix els spinners de càrrega genèrics per una barra de progrés informativa.
+
+#### Objectiu
+
+L'objectiu és proporcionar a l'usuari informació clara i detallada sobre l'estat d'una tasca de llarga durada, incloent:
+- El progrés general mitjançant una barra visual.
+- El pas concret que s'està executant (`Pas X de Y`).
+- Un missatge descriptiu de l'acció actual (p. ex., "Eliminant esdeveniment: 'Reunió Antiga'").
+
+Això redueix la incertesa i ofereix una experiència més transparent.
+
+#### Arquitectura de Comunicació
+
+La funcionalitat es basa en una comunicació unidireccional contínua des del backend (procés principal) cap al frontend (procés de renderitzat) mentre la tasca està en execució.
+
+1.  **Backend (`main.cjs`): L'Emissor**
+    -   El gestor IPC que executa la tasca llarga (p. ex., `sync-with-google`) és el responsable de calcular el progrés i emetre els esdeveniments.
+    -   **Càlcul Inicial:** Abans d'iniciar el bucle de la tasca, calcula el nombre total de passos (p. ex., esdeveniments a eliminar + esdeveniments a crear).
+    -   **Emissió de Progrés:** Dins del bucle, a cada iteració, envia un missatge al frontend a través d'un canal IPC dedicat (`'sync-progress'`) utilitzant `mainWindow.webContents.send()`. El missatge conté un objecte amb l'estat actual: `{ current, total, message }`.
+
+2.  **Pont Segur (`preload.cjs`): El Canalitzador**
+    -   Per mantenir la seguretat del `contextBridge`, el canal `'sync-progress'` no s'exposa directament.
+    -   En canvi, s'exposa una funció específica `onSyncProgress(callback)` a l'objecte `window.electronAPI`.
+    -   Aquesta funció permet al frontend subscriure's de manera segura als missatges enviats pel canal `'sync-progress'`.
+    -   Crucialment, retorna una **funció de neteja** que elimina el listener (`ipcRenderer.removeListener`), permetent una gestió correcta del cicle de vida i evitant fuites de memòria al frontend.
+
+3.  **Frontend (`useEventDataManager.ts`): El Receptor i Gestor d'Estat**
+    -   Un `useState` (`syncProgress`) emmagatzema l'estat actual de la barra de progrés (`{ current, total, message, visible }`).
+    -   Un `useEffect` s'encarrega de la subscripció:
+        -   Crida a `window.electronAPI.onSyncProgress()` passant-li una funció de callback (`handleSyncProgress`).
+        -   Aquesta callback actualitza l'estat `syncProgress` cada vegada que rep un missatge del backend.
+        -   La funció de neteja retornada per `onSyncProgress` s'utilitza en la funció de retorn del `useEffect` per cancel·lar la subscripció quan el component es desmunta.
+    -   La funció que inicia la tasca (p. ex., `executeSync`) s'encarrega d'activar la visibilitat de la barra de progrés (`visible: true`) al començament i de desactivar-la (`visible: false`) quan la tasca principal (la `Promise` de `syncWithGoogle`) es completa.
+
+4.  **UI (`SyncProgressOverlay.tsx`): El Visualitzador**
+    -   És un component de React simple que rep l'objecte `syncProgress` com a propietat.
+    -   Renderitza la barra de progrés, els textos i els comptadors basant-se en les dades rebudes.
+    -   La barra de progrés s'actualitza visualment calculant el percentatge (`(current / total) * 100`).
+    -   El component només es renderitza si la propietat `visible` de l'estat `syncProgress` és `true`.
