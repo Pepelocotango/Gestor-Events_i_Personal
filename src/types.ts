@@ -237,6 +237,7 @@ export type ModalType =
   | 'mergeOrReplace'
   | 'selectSyncCalendar'
   | 'createAppCalendar'
+  | 'confirmDataRepair'
   | null;
 
 export interface ModalData {
@@ -250,6 +251,8 @@ export interface ModalData {
     startDate?: string;
     endDate?: string;
     itemType?: string;
+    onConfirm?: () => void;
+    onCancel?: () => void;
     onConfirmSpecial?: (inputValue?: string) => void;
     confirmButtonText?: string;
     cancelButtonText?: string;
@@ -260,6 +263,7 @@ export interface ModalData {
     managedCalendars?: ManagedAppCalendar[];
     activeCalendarId?: string | null;
     onConfirmSync?: (targetCalendarId: string) => void;
+    fixes?: string[];
 }
 
 export interface ModalState {
