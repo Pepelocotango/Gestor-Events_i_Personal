@@ -52,9 +52,9 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
       items: (oldData.assemblySchedule || []).map((item: any) => ({ ...item, date: eventFrame.startDate })),
     },
     dressingRooms: {
-        status: fromStringToStatus(oldData.dressingRooms),
-        quantity: parseInt(oldData.dressingRooms?.match(/(\d+)/)?.[0] || '0', 10),
-        details: typeof oldData.dressingRooms === 'string' ? oldData.dressingRooms : '',
+      status: fromStringToStatus(oldData.dressingRooms),
+      quantity: typeof oldData.dressingRooms === 'string' ? parseInt(oldData.dressingRooms.match(/(\d+)/)?.[0] || '0', 10) : 0,
+      details: typeof oldData.dressingRooms === 'string' ? oldData.dressingRooms : '',
     },
     actors: {
       status: fromEnabledToStatus((oldData.actorsNumber || 0) > 0),
