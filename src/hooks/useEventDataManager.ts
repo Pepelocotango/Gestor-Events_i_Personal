@@ -576,19 +576,19 @@ markUnsaved();
   }, [exportData, loadData, refreshGoogleEvents, showToast, closeModal]);
 
   useEffect(() => {
-    const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
-    if (ipcRenderer) {
-      const handleSyncProgress = (_event: any, progress: Omit<SyncProgressState, 'visible'>) => {
+    const electronAPI = window.electronAPI;
+    if (electronAPI?.onSyncProgress) {
+      const handleSyncProgress = (progress: Omit<SyncProgressState, 'visible'>) => {
         setSyncProgress({
           ...progress,
           visible: true,
         });
       };
 
-      ipcRenderer.on('sync-progress', handleSyncProgress);
+      const cleanup = electronAPI.onSyncProgress(handleSyncProgress);
 
       return () => {
-        ipcRenderer.removeListener('sync-progress', handleSyncProgress);
+        cleanup();
       };
     }
   }, []);
