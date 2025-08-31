@@ -68,6 +68,7 @@ export interface TechSheetRoleItem {
   role: string;
   quantity: number | string;
   notes?: string;
+  printNotes?: boolean;
 }
 
 export interface TechSheetProvider {
@@ -103,27 +104,18 @@ export interface TechSheetData {
   companyTechnicians?: string;
 
   // Technical Needs
-  lightingNeeds?: NeedItem[];
-  soundNeeds?: NeedItem[];
-  video?: ConditionalSection;
-  videoNeeds?: NeedItem[];
-  machineryNeeds?: NeedItem[];
-  rentals?: ConditionalSection;
-  rentalsNeeds?: NeedItem[];
-  otherEquipment?: ConditionalSection;
-  otherEquipmentNeeds?: NeedItem[];
-  electrical?: ConditionalSection;
-  electricalNeeds?: NeedItem[];
-  structures?: ConditionalSection;
-  structuresNeeds?: NeedItem[];
-  platforms?: ConditionalSection;
-  platformsNeeds?: NeedItem[];
-  consumables?: ConditionalSection;
-  consumablesNeeds?: NeedItem[];
-  curtains?: ConditionalSection;
-  curtainsNeeds?: NeedItem[];
-  transport?: ConditionalSection;
-  transportNeeds?: NeedItem[];
+  lighting?: ConditionalSection<{ needs: NeedItem[] }>;
+  sound?: ConditionalSection<{ needs: NeedItem[] }>;
+  video?: ConditionalSection<{ needs: NeedItem[] }>;
+  machinery?: ConditionalSection<{ needs: NeedItem[] }>;
+  rentals?: ConditionalSection<{ needs: NeedItem[] }>;
+  otherEquipment?: ConditionalSection<{ needs: NeedItem[] }>;
+  electrical?: ConditionalSection<{ needs: NeedItem[] }>;
+  structures?: ConditionalSection<{ needs: NeedItem[] }>;
+  platforms?: ConditionalSection<{ needs: NeedItem[] }>;
+  consumables?: ConditionalSection<{ needs: NeedItem[] }>;
+  curtains?: ConditionalSection<{ needs: NeedItem[] }>;
+  transport?: ConditionalSection<{ needs: NeedItem[] }>;
   
   // Other Details
   controlLocation?: string;
@@ -140,7 +132,6 @@ export interface TechSheetData {
   showNeeds?: boolean;
   showOther?: boolean;
   showGeneralNotesInPdf?: boolean;
-  showPersonnelNotesInPdf?: boolean;
 
   // Legacy fields that might exist in old data
   parkingInfo?: string;

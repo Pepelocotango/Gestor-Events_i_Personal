@@ -263,10 +263,14 @@ export const exportTechSheetToPdf = async (
         [{ content: 'HORA:', styles: labelStyles }, sane(formData.showTime)],
         [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
     ];
-    if (formData.showGeneralNotesInPdf) {
+    if (formData.showGeneralNotesInPdf && sane(formData.generalNotes) !== '-') {
         headerBody.push([{ content: 'NOTES GENERALS:', styles: labelStyles }, sane(formData.generalNotes)]);
     }
-    headerBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, sane(formData.parking?.details) !== '-' ? `SI: ${sane(formData.parking?.details)}` : 'NO']);
+    if (formData.parking?.status === 'yes') {
+        headerBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, sane(formData.parking.details) !== '-' ? `SI: ${sane(formData.parking.details)}` : 'SI']);
+    } else if (formData.parking?.status === 'no') {
+        headerBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, 'NO']);
+    }
     autoTable(pdf, { body: headerBody, theme: 'grid', startY: y });
     y = (pdf as any).lastAutoTable.finalY + 8;
 
@@ -279,7 +283,7 @@ export const exportTechSheetToPdf = async (
           provider.roles.forEach(role => {
             if (sane(role.role) !== '-' || sane(role.quantity) !== '-') {
                 const row = [sane(role.quantity), sane(role.role), sane(person?.name)];
-                if (formData.showPersonnelNotesInPdf) {
+                if (role.printNotes && sane(role.notes) !== '-') {
                     row.push(sane(role.notes));
                 }
                 personnelBody.push(row);
@@ -290,16 +294,12 @@ export const exportTechSheetToPdf = async (
     }
     if (personnelBody.length > 0) {
         y = checkPageBreak(y);
-        const personnelHead = [['Qt.', 'Càrrec', 'Empresa/Tècnic']];
-        if (formData.showPersonnelNotesInPdf) {
-            personnelHead[0].push('Notes');
-        }
         autoTable(pdf, {
-            head: [[{ content: 'PERSONAL TÈCNIC', colSpan: formData.showPersonnelNotesInPdf ? 4 : 3, styles: headStyles }]],
-            body: [personnelHead[0], ...personnelBody],
+            head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
+            body: [['Qt.', 'Càrrec', 'Empresa/Tècnic', 'Notes'], ...personnelBody],
             startY: y, theme: 'grid',
             headStyles: { ...headStyles, halign: 'center' as 'center' },
-            columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' } }
+            columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
         });
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
@@ -344,39 +344,44 @@ export const exportTechSheetToPdf = async (
 
     // --- Necessitats Tècniques ---
     const needsBody: any[][] = [];
-    const addNeedsToBody = (title: string, needs: NeedItem[] | undefined, details?: string) => {
-        const hasDetails = sane(details) !== '-';
-        const validNeeds = (needs || []).filter(n => sane(n.description) !== '-' || sane(n.quantity) !== '-');
+    const addNeedsToBody = (title: string, section: TechSheetData[keyof TechSheetData]) => {
+        const needsSection = section as { status: 'yes' | 'no' | 'unset', details?: string, data?: { needs: NeedItem[] } };
+        if (!needsSection || needsSection.status !== 'yes') return;
+
+        const hasDetails = sane(needsSection.details) !== '-';
+        const validNeeds = (needsSection.data?.needs || []).filter((n: NeedItem) => sane(n.description) !== '-' || sane(n.quantity) !== '-');
+
         if (hasDetails || validNeeds.length > 0) {
             needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
-              if (hasDetails) needsBody.push([{ content: details!, colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
-            validNeeds.forEach(n => {
-                  needsBody.push([ { content: sane(n.quantity), styles: { halign: 'right' as 'right' } }, sane(n.description), sane(n.origin) ]);
+            if (hasDetails) needsBody.push([{ content: needsSection.details!, colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
+            validNeeds.forEach((n: NeedItem) => {
+                needsBody.push([ { content: sane(n.quantity), styles: { halign: 'right' as 'right' } }, sane(n.description), sane(n.origin) ]);
             });
         }
     };
-    addNeedsToBody('Il·luminació', formData.lightingNeeds);
-    addNeedsToBody('So', formData.soundNeeds);
-    if (formData.video?.status === 'yes') addNeedsToBody('Vídeo', formData.videoNeeds, formData.video.details);
-    addNeedsToBody('Maquinària', formData.machineryNeeds);
-    if (formData.rentals?.status === 'yes') addNeedsToBody('Lloguers', formData.rentalsNeeds, formData.rentals.details);
-    if (formData.otherEquipment?.status === 'yes') addNeedsToBody("Material d'Altres Equipaments", formData.otherEquipmentNeeds, formData.otherEquipment.details);
-    if (formData.electrical?.status === 'yes') addNeedsToBody('Infraestructures Elèctriques', formData.electricalNeeds, formData.electrical.details);
-    if (formData.structures?.status === 'yes') addNeedsToBody('Estructures', formData.structuresNeeds, formData.structures.details);
-    if (formData.platforms?.status === 'yes') addNeedsToBody('Tarimes', formData.platformsNeeds, formData.platforms.details);
-    if (formData.consumables?.status === 'yes') addNeedsToBody('Consumibles', formData.consumablesNeeds, formData.consumables.details);
-    if (formData.curtains?.status === 'yes') addNeedsToBody('Cortinatges', formData.curtainsNeeds, formData.curtains.details);
-    if (formData.transport?.status === 'yes') addNeedsToBody('Transport', formData.transportNeeds, formData.transport.details);
+
+    addNeedsToBody('Il·luminació', formData.lighting);
+    addNeedsToBody('So', formData.sound);
+    addNeedsToBody('Vídeo', formData.video);
+    addNeedsToBody('Maquinària', formData.machinery);
+    addNeedsToBody('Lloguers', formData.rentals);
+    addNeedsToBody("Material d'Altres Equipaments", formData.otherEquipment);
+    addNeedsToBody('Infraestructures Elèctriques', formData.electrical);
+    addNeedsToBody('Estructures', formData.structures);
+    addNeedsToBody('Tarimes', formData.platforms);
+    addNeedsToBody('Consumibles', formData.consumables);
+    addNeedsToBody('Cortinatges', formData.curtains);
+    addNeedsToBody('Transport', formData.transport);
 
     if (needsBody.length > 0) {
-      y = checkPageBreak(y);
-      autoTable(pdf, {
-          head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
-          body: [['Qt.', 'Descripció', 'Origen'], ...needsBody],
-          startY: y, theme: 'grid',
-          columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
-      });
-      y = (pdf as any).lastAutoTable.finalY + 8;
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
+            body: [['Qt.', 'Descripció', 'Origen'], ...needsBody],
+            startY: y, theme: 'grid',
+            columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
     // --- Altres Detalls ---

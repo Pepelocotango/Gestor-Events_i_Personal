@@ -145,25 +145,36 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
               <div className="space-y-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-700">
                 {provider.roles.length > 0 && (
                   <div className="flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
-                    <div className="w-1/6">Quant.</div>
-                    <div className="w-2/5">Rol</div>
-                    <div className="w-2/5">Notes assignació</div>
-                    <div className="w-auto flex-shrink-0"></div>
+                    <div className="w-1/12">Quant.</div>
+                    <div className="w-4/12">Rol</div>
+                    <div className="w-5/12">Notes assignació</div>
+                    <div className="w-1/12 text-center">PDF</div>
+                    <div className="w-1/12 flex-shrink-0"></div>
                   </div>
                 )}
 
                 {provider.roles.map((roleItem, roleIndex) => (
                   <div key={roleItem.id} className="flex items-start gap-4 w-full">
-                    <div className="w-1/6">
+                    <div className="w-1/12">
                       <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="" type="number" value={roleItem.quantity} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} />
                     </div>
-                    <div className="w-2/5">
+                    <div className="w-4/12">
                       <TechSheetField id={`role-${providerIndex}-${roleIndex}`} label="" value={roleItem.role} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'role', e.target.value)} suggestions={TECH_SHEET_ROLE_SUGGESTIONS} />
                     </div>
-                    <div className="w-2/5">
+                    <div className="w-5/12">
                       <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="" value={roleItem.notes || ''} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} as="textarea" rows={1} />
                     </div>
-                    <div className="w-auto flex-shrink-0 pt-2">
+                    <div className="w-1/12 flex flex-col items-center pt-2">
+                        <Tooltip text="Incloure aquestes notes al PDF">
+                            <input
+                                type="checkbox"
+                                checked={roleItem.printNotes ?? true}
+                                onChange={(e) => onRoleChange(providerIndex, roleIndex, 'printNotes', e.target.checked)}
+                                className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                        </Tooltip>
+                    </div>
+                    <div className="w-1/12 flex-shrink-0 pt-2">
                       <Tooltip text="Eliminar aquest rol">
                         <button type="button" onClick={() => onRemoveRole(providerIndex, roleIndex)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
                       </Tooltip>

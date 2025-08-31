@@ -108,11 +108,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       const updatedField = { ...currentField, ...fieldValue };
 
       if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
-        const needsToClear = ['video', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
-        if (needsToClear.includes(fieldName as string)) {
-          return { ...prev, [fieldName]: updatedField, [`${fieldName}Needs`]: [] };
+        if (updatedField.data && Array.isArray(updatedField.data.needs)) {
+            updatedField.data.needs = [];
         }
-        if (fieldName === 'schedule') {
+        if (fieldName === 'schedule' && updatedField.data) {
           updatedField.data = [];
         }
       }
@@ -122,43 +121,46 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
     markAsDirty();
   };
 
-  type TechSheetListKey = 'lightingNeeds' | 'soundNeeds' | 'videoNeeds' | 'machineryNeeds' | 'rentalsNeeds' | 'otherEquipmentNeeds' | 'electricalNeeds' | 'structuresNeeds' | 'platformsNeeds' | 'consumablesNeeds' | 'curtainsNeeds' | 'transportNeeds';
+  type TechSheetNeedsKey = 'lighting' | 'sound' | 'video' | 'machinery' | 'rentals' | 'otherEquipment' | 'electrical' | 'structures' | 'platforms' | 'consumables' | 'curtains' | 'transport';
 
-  const handleListChange = useCallback((listName: string, index: number, field: string, value: any) => {
+  const handleNeedsListChange = useCallback((sectionName: TechSheetNeedsKey, index: number, field: string, value: any) => {
     setFormData(prev => {
-      const key = listName as TechSheetListKey;
-      const list = prev[key] as NeedItem[] || [];
-      const newList = [...list];
-      const currentItem = { ...newList[index] };
-      (currentItem as any)[field] = value;
+        const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+        const newNeeds = [...(section?.data?.needs || [])];
+        const currentItem = { ...newNeeds[index] };
+        (currentItem as any)[field] = value;
 
-      if (field === 'description') {
-        const matchedItem = materialItems.find(item => item.name === value);
-        currentItem.materialItemId = matchedItem ? matchedItem.id : null;
-      }
+        if (field === 'description') {
+            const matchedItem = materialItems.find(item => item.name === value);
+            currentItem.materialItemId = matchedItem ? matchedItem.id : null;
+        }
 
-      newList[index] = currentItem;
-      return { ...prev, [key]: newList };
+        newNeeds[index] = currentItem;
+        const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+
+        return { ...prev, [sectionName]: updatedSection };
     });
     markAsDirty();
   }, [materialItems]);
 
-  const handleRemoveListItem = useCallback((listName: string, index: number) => {
-    const key = listName as TechSheetListKey;
-    setFormData(prev => ({
-        ...prev,
-        [key]: (prev[key] as NeedItem[] | undefined || []).filter((_, i: number) => i !== index),
-    }));
+  const handleRemoveNeedsListItem = useCallback((sectionName: TechSheetNeedsKey, index: number) => {
+    setFormData(prev => {
+        const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+        const newNeeds = (section?.data?.needs || []).filter((_, i) => i !== index);
+        const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+        return { ...prev, [sectionName]: updatedSection };
+    });
     markAsDirty();
   }, []);
 
-  const handleAddListItem = useCallback((listName: string) => {
-    const key = listName as TechSheetListKey;
+  const handleAddNeedsListItem = useCallback((sectionName: TechSheetNeedsKey) => {
     const newItem: NeedItem = { id: generateLocalId(), quantity: 1, description: '', origin: '' };
-    setFormData(prev => ({
-      ...prev,
-      [key]: [...(prev[key] as NeedItem[] | undefined || []), newItem],
-    }));
+    setFormData(prev => {
+        const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+        const newNeeds = [...(section?.data?.needs || []), newItem];
+        const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+        return { ...prev, [sectionName]: updatedSection };
+    });
     markAsDirty();
   }, []);
 
@@ -243,7 +245,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   }, []);
 
   const handleAddRole = useCallback((providerIndex: number) => {
-    const newRole: TechSheetRoleItem = { id: generateLocalId(), role: '', quantity: 1, notes: '' };
+    const newRole: TechSheetRoleItem = { id: generateLocalId(), role: '', quantity: 1, notes: '', printNotes: true };
     setFormData(prev => {
       const newProviders = [...(prev.technicalProviders || [])];
       newProviders[providerIndex].roles.push(newRole);
@@ -281,27 +283,27 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
     exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
   };
 
-  const renderNeedsSection = (title: string, fieldName: keyof TechSheetData, needsListName: TechSheetListKey) => (
+  const renderNeedsSection = (title: string, fieldName: TechSheetNeedsKey) => (
     <ConditionalFormControl
       label={`${title}:`}
-      status={(formData[fieldName] as ConditionalSection)?.status || 'unset'}
+      status={formData[fieldName]?.status || 'unset'}
       onStatusChange={(status) => handleConditionalChange(fieldName, { status })}
     >
       <TechSheetField
         id={`${fieldName}Details`}
         label={`Detalls generals de ${title.toLowerCase()}:`}
-        value={(formData[fieldName] as ConditionalSection)?.details || ''}
+        value={formData[fieldName]?.details || ''}
         onChange={(e) => handleConditionalChange(fieldName, { details: e.target.value })}
         as="textarea"
         rows={2}
       />
       <NeedsList
-        needs={formData[needsListName] || []}
+        needs={formData[fieldName]?.data?.needs || []}
         title={`Material de ${title.toLowerCase()}`}
-        listName={needsListName}
-        onListChange={handleListChange}
-        onRemoveListItem={handleRemoveListItem}
-        onAddListItem={handleAddListItem}
+        listName={fieldName}
+        onListChange={handleNeedsListChange as any}
+        onRemoveListItem={handleRemoveNeedsListItem as any}
+        onAddListItem={handleAddNeedsListItem as any}
         materialItems={materialItems}
         eventFrame={eventFrame}
         getMaterialAvailability={getMaterialAvailability}
@@ -337,7 +339,13 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} type="time" />
         <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} placeholder="XX min" />
         <div className="col-span-full">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals (visibles al PDF si està marcat a la configuració)</label>
+            <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals</label>
+                <div className="flex items-center gap-2">
+                    <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                    <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                </div>
+            </div>
             <textarea id="generalNotes" name="generalNotes" value={formData.generalNotes || ''} onChange={handleChange} rows={3} className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
         </div>
         <div className="col-span-full -mb-3">
@@ -452,18 +460,18 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
       {/* Technical Needs */}
       <TechSheetSection title="Necessitats Tècniques">
-        <NeedsList needs={formData.lightingNeeds || []} title="Il·luminació" listName="lightingNeeds" onListChange={handleListChange} onRemoveListItem={handleRemoveListItem} onAddListItem={handleAddListItem} materialItems={materialItems} eventFrame={eventFrame} getMaterialAvailability={getMaterialAvailability} />
-        <NeedsList needs={formData.soundNeeds || []} title="So" listName="soundNeeds" onListChange={handleListChange} onRemoveListItem={handleRemoveListItem} onAddListItem={handleAddListItem} materialItems={materialItems} eventFrame={eventFrame} getMaterialAvailability={getMaterialAvailability} />
-        {renderNeedsSection('Vídeo', 'video', 'videoNeeds')}
-        <NeedsList needs={formData.machineryNeeds || []} title="Maquinària" listName="machineryNeeds" onListChange={handleListChange} onRemoveListItem={handleRemoveListItem} onAddListItem={handleAddListItem} materialItems={materialItems} eventFrame={eventFrame} getMaterialAvailability={getMaterialAvailability} />
-        {renderNeedsSection('Lloguers', 'rentals', 'rentalsNeeds')}
-        {renderNeedsSection('Material d\'Altres Equipaments', 'otherEquipment', 'otherEquipmentNeeds')}
-        {renderNeedsSection('Infraestructures Elèctriques', 'electrical', 'electricalNeeds')}
-        {renderNeedsSection('Estructures', 'structures', 'structuresNeeds')}
-        {renderNeedsSection('Tarimes', 'platforms', 'platformsNeeds')}
-        {renderNeedsSection('Consumibles', 'consumables', 'consumablesNeeds')}
-        {renderNeedsSection('Cortinatges', 'curtains', 'curtainsNeeds')}
-        {renderNeedsSection('Transport', 'transport', 'transportNeeds')}
+        {renderNeedsSection('Il·luminació', 'lighting')}
+        {renderNeedsSection('So', 'sound')}
+        {renderNeedsSection('Vídeo', 'video')}
+        {renderNeedsSection('Maquinària', 'machinery')}
+        {renderNeedsSection('Lloguers', 'rentals')}
+        {renderNeedsSection('Material d\'Altres Equipaments', 'otherEquipment')}
+        {renderNeedsSection('Infraestructures Elèctriques', 'electrical')}
+        {renderNeedsSection('Estructures', 'structures')}
+        {renderNeedsSection('Tarimes', 'platforms')}
+        {renderNeedsSection('Consumibles', 'consumables')}
+        {renderNeedsSection('Cortinatges', 'curtains')}
+        {renderNeedsSection('Transport', 'transport')}
       </TechSheetSection>
 
       {/* Other Details */}
@@ -497,18 +505,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         </div>
         <div className="col-span-full pt-4">
           <TechSheetField id="observations" label="ALTRES / OBSERVACIONS:" value={formData.observations || ''} onChange={handleChange} as="textarea" rows={4}/>
-        </div>
-      </TechSheetSection>
-
-      {/* PDF Configuration */}
-      <TechSheetSection title="Configuració del PDF" layout="grid-4" isPrintHidden={true}>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-          <label htmlFor="showGeneralNotesInPdf" className="font-medium text-gray-700 dark:text-gray-300">Imprimir Notes Generals</label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="showPersonnelNotesInPdf" name="showPersonnelNotesInPdf" checked={formData.showPersonnelNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-          <label htmlFor="showPersonnelNotesInPdf" className="font-medium text-gray-700 dark:text-gray-300">Imprimir Notes de Personal</label>
         </div>
       </TechSheetSection>
 

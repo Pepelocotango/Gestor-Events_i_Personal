@@ -8,7 +8,7 @@ import logger from '../utils/logger';
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
 const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): TechSheetData => {
-  const defaultConditional = () => ({ status: 'unset' as const, details: '' });
+  const defaultConditional = () => ({ status: 'unset' as const, details: '', needs: [] });
   return {
     eventName: eventFrame.name,
     location: eventFrame.place || '',
@@ -17,35 +17,26 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
     showDuration: '',
     technicalProviders: [],
     generalNotes: `Notes generals per a ${eventFrame.name}`,
-    parking: defaultConditional(),
-    preAssembly: defaultConditional(),
+    parking: { status: 'unset', details: '' },
+    preAssembly: { status: 'unset', details: '' },
     schedule: { status: 'unset', details: '', data: [] },
     dressingRooms: '',
     actorsNumber: 0,
     actors: '',
     companyTechniciansNumber: 0,
     companyTechnicians: '',
-    lightingNeeds: [],
-    soundNeeds: [],
+    lighting: defaultConditional(),
+    sound: defaultConditional(),
     video: defaultConditional(),
-    videoNeeds: [],
-    machineryNeeds: [],
+    machinery: defaultConditional(),
     rentals: defaultConditional(),
-    rentalsNeeds: [],
     otherEquipment: defaultConditional(),
-    otherEquipmentNeeds: [],
     electrical: defaultConditional(),
-    electricalNeeds: [],
     structures: defaultConditional(),
-    structuresNeeds: [],
     platforms: defaultConditional(),
-    platformsNeeds: [],
     consumables: defaultConditional(),
-    consumablesNeeds: [],
     curtains: defaultConditional(),
-    curtainsNeeds: [],
     transport: defaultConditional(),
-    transportNeeds: [],
     controlLocation: '',
     blueprints: '',
     contacts: [],
@@ -56,7 +47,6 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
     showNeeds: true,
     showOther: true,
     showGeneralNotesInPdf: true,
-    showPersonnelNotesInPdf: true,
   };
 };
 
