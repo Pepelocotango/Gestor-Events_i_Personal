@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem, ModalType, ModalData } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem, ModalType, ModalData, SyncProgressState } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import logger from '../utils/logger';
 
@@ -44,6 +44,12 @@ export const useEventDataManager = (
   const [googleEvents, setGoogleEvents] = useState<any[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState<SyncProgressState>({
+    current: 0,
+    total: 0,
+    message: '',
+    visible: false,
+  });
   
   const eventFramesRef = useRef(eventFrames);
   const peopleGroupsRef = useRef(peopleGroups);
@@ -544,6 +550,7 @@ markUnsaved();
     logger.info(`[ACTION] Executant sincronització amb Google per a ${targetCalendarId}`);
     closeModal();
     setIsSyncing(true);
+    setSyncProgress({ current: 0, total: 0, message: 'Iniciant sincronització...', visible: true });
 
     const electronAPI = window.electronAPI;
     if (electronAPI) {
@@ -565,7 +572,26 @@ markUnsaved();
       showToast("L'API d'Electron no està disponible.", 'error');
     }
     setIsSyncing(false);
+    setSyncProgress(prev => ({ ...prev, visible: false }));
   }, [exportData, loadData, refreshGoogleEvents, showToast, closeModal]);
+
+  useEffect(() => {
+    const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
+    if (ipcRenderer) {
+      const handleSyncProgress = (_event: any, progress: Omit<SyncProgressState, 'visible'>) => {
+        setSyncProgress({
+          ...progress,
+          visible: true,
+        });
+      };
+
+      ipcRenderer.on('sync-progress', handleSyncProgress);
+
+      return () => {
+        ipcRenderer.removeListener('sync-progress', handleSyncProgress);
+      };
+    }
+  }, []);
 
   const syncWithGoogle = useCallback(async () => {
     logger.info('[ACTION] Iniciant flux de sincronització amb Google...');
@@ -628,6 +654,7 @@ markUnsaved();
     refreshGoogleEvents,
     syncWithGoogle,
     isSyncing,
+    syncProgress,
     addOrUpdateTechSheet,
     materialItems,
     addMaterialItem,

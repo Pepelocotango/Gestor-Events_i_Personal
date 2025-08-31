@@ -218,6 +218,13 @@ export interface ModalState {
 }
 
 
+export interface SyncProgressState {
+  current: number;
+  total: number;
+  message: string;
+  visible: boolean;
+}
+
 export interface EventDataConteImplicits {
   eventFrames: EventFrame[];
   peopleGroups: PersonGroup[];
@@ -242,6 +249,7 @@ export interface EventDataConteImplicits {
   googleEvents: any[];
   refreshGoogleEvents: () => Promise<void>;
   syncWithGoogle: () => Promise<void>;
+  syncProgress: SyncProgressState;
   isSyncing: boolean;
   addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
   materialItems: MaterialItem[];

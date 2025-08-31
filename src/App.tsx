@@ -13,6 +13,7 @@ const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
+const SyncProgressOverlay = lazy(() => import('./components/ui/SyncProgressOverlay'));
 
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
@@ -82,7 +83,8 @@ const App: React.FC = () => {
     setHasUnsavedChanges, 
     hasUnsavedChanges, 
     syncWithGoogle,
-    isSyncing
+    isSyncing,
+    syncProgress
   } = eventDataManagerHookResult;
 
   // <<<< NOU REF PER A GESTIONAR L'ESTAT DELS CANVIS SENSE DESAR >>>>
@@ -98,17 +100,16 @@ const App: React.FC = () => {
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
 
   useEffect(() => {
-    if (isSyncing) {
+    // This effect can be simplified or removed if syncProgress.visible covers all cases
+    if (isSyncing && !syncProgress.visible) {
       setLoadingOverlayMessage('Sincronitzant amb Google Calendar...');
       setIsLoadingOverlayVisible(true);
-    } else {
-      // Només amaguem l'overlay si no hi ha un altre missatge de càrrega actiu
-      if (loadingOverlayMessage === 'Sincronitzant amb Google Calendar...') {
-        setIsLoadingOverlayVisible(false);
-        setLoadingOverlayMessage('');
-      }
+    } else if (!isSyncing && !syncProgress.visible) {
+      setIsLoadingOverlayVisible(false);
+      setLoadingOverlayMessage('');
     }
-  }, [isSyncing]);
+  }, [isSyncing, syncProgress.visible]);
+
 
   useEffect(() => {
     let cleanupShowLoading: (() => void) | undefined;
@@ -719,8 +720,12 @@ const App: React.FC = () => {
 
           {toastState && <Toast toast={toastState} />}
 
-          {isLoadingOverlayVisible && (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9999]" aria-live="assertive" role="alert">
+          <Suspense fallback={<div></div>}>
+            <SyncProgressOverlay progress={syncProgress} />
+          </Suspense>
+
+          {isLoadingOverlayVisible && !syncProgress.visible && (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
               <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

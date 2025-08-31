@@ -605,13 +605,33 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
   }
 
   try {
+    // --- PREPARACIÓ PER AL PROGRÉS ---
+    const eventsListRes = await calendar.events.list({ calendarId: targetCalendarId, maxResults: 2500 });
+    const eventsToDelete = eventsListRes.data.items || [];
+    const localFramesToUpload = localData.eventFrames || [];
+
+    const totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
+    let currentProgressStep = 0;
+
+    const sendProgress = (message) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('sync-progress', {
+          current: currentProgressStep,
+          total: totalProgressSteps,
+          message: message,
+        });
+      }
+    };
+
     // FASE 1: BUIDAR COMPLETAMENT EL CALENDARI
     console.log(`Buidant el calendari de l'app a Google: ${targetCalendarId}`);
-    const res = await calendar.events.list({ calendarId: targetCalendarId, maxResults: 2500 });
-    const eventsToDelete = res.data.items;
-    if (eventsToDelete && eventsToDelete.length > 0) {
+    if (eventsToDelete.length > 0) {
       console.log(`Trobats ${eventsToDelete.length} esdeveniments per eliminar...`);
       for (const event of eventsToDelete) {
+        currentProgressStep++;
+        const progressMessage = `Eliminant ${currentProgressStep} de ${totalProgressSteps}: "${event.summary || 'Esdeveniment sense títol'}"`;
+        console.log(progressMessage);
+        sendProgress(progressMessage);
         try {
           await calendar.events.delete({ calendarId: targetCalendarId, eventId: event.id });
           await delay(200);
@@ -622,10 +642,14 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
     }
 
     // FASE 2: PUJAR TOTS ELS ESDEVENIMENTS DES DE L'APP LOCAL
-    const localFramesToUpload = localData.eventFrames;
     console.log(`Pujant ${localFramesToUpload.length} esdeveniments locals al calendari de l'app...`);
     
     for (const localFrame of localFramesToUpload) {
+      currentProgressStep++;
+      const progressMessage = `Pujant ${currentProgressStep} de ${totalProgressSteps}: "${localFrame.name}"`;
+      console.log(progressMessage);
+      sendProgress(progressMessage);
+
       const getPersonGroupById = (id) => localData.peopleGroups.find(p => p.id === id);
 
       // --- CONSTRUCCIÓ DE LA DESCRIPCIÓ ENRIQUIDA ---
