@@ -218,6 +218,13 @@ export interface ModalState {
 }
 
 
+export interface SyncProgressState {
+  current: number;
+  total: number;
+  message: string;
+  visible: boolean;
+}
+
 export interface EventDataConteImplicits {
   eventFrames: EventFrame[];
   peopleGroups: PersonGroup[];
@@ -242,6 +249,7 @@ export interface EventDataConteImplicits {
   googleEvents: any[];
   refreshGoogleEvents: () => Promise<void>;
   syncWithGoogle: () => Promise<void>;
+  syncProgress: SyncProgressState;
   isSyncing: boolean;
   addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
   materialItems: MaterialItem[];
@@ -351,6 +359,7 @@ export interface ElectronAPI {
   saveGoogleConfig: (config: Partial<GoogleConfig>) => Promise<{ success: boolean, data?: GoogleConfig, message?: string }>;
   getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
   syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
+  onSyncProgress: (callback: (progress: Omit<SyncProgressState, 'visible'>) => void) => () => void;
   googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
   deleteAppCalendar: (calendarId: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
   createNewAppCalendar: (suffix: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;

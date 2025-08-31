@@ -15,6 +15,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveGoogleConfig: (config) => ipcRenderer.invoke('save-google-config', config),
   getGoogleEvents: () => ipcRenderer.invoke('get-google-events'),
   syncWithGoogle: (payload) => ipcRenderer.invoke('sync-with-google', payload),
+  onSyncProgress: (callback) => {
+    const subscription = (event, ...args) => callback(...args);
+    ipcRenderer.on('sync-progress', subscription);
+    return () => {
+      ipcRenderer.removeListener('sync-progress', subscription);
+    };
+  },
   googleDisconnect: () => ipcRenderer.invoke('google-disconnect'),
   deleteAppCalendar: (calendarId) => ipcRenderer.invoke('delete-app-calendar', calendarId),
   createNewAppCalendar: (suffix) => ipcRenderer.invoke('create-new-app-calendar', suffix),
