@@ -3,19 +3,15 @@ import TechSheetField from './TechSheetField';
 import { MaterialItem } from '../../types';
 import Tooltip from '../ui/Tooltip';
 
-import { TechSheetData } from '../../types';
-
-type NeedKey = keyof Pick<TechSheetData, 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals'>;
-
 interface NeedsListProps {
   needs: any[];
   title: string;
-  listName: NeedKey;
+  listName: string;
   materialItems: MaterialItem[];
   eventFrame: any;
-  onListChange: (listName: NeedKey, index: number, field: string, value: any) => void;
-  onRemoveListItem: (listName: NeedKey, index: number) => void;
-  onAddListItem: (listName: NeedKey) => void;
+  onListChange: (listName: string, index: number, field: string, value: any) => void;
+  onRemoveListItem: (listName: string, index: number) => void;
+  onAddListItem: (listName: string) => void;
   getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string) => { available: number; total: number };
 }
 
@@ -83,7 +79,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 label=""
                 value={need.origin}
                 onChange={e => onListChange(listName, index, 'origin', e.target.value)}
-                placeholder="Propi / CIA / lloguer"
+                placeholder="CIA / TÀG"
               />
             </div>
             <div className="w-auto flex-shrink-0 pt-2">

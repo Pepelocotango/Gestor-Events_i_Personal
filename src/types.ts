@@ -29,52 +29,24 @@ export interface Assignment {
   };
 }
 
-// <<< NOVES INTERFÍCIES PER A LA FITXA TÈCNICA (Tech Sheet) >>>
+// --- Tech Sheet Interfaces ---
 
-export interface TechSheetRoleItem {
-  id: string; // ID únic per a la clau de React
-  assignmentId?: string; // ID de l'assignació original
-  role: string;
-  quantity: number | string; // Permetem string per a l'entrada de text
-  notes?: string;
-}
-
-export interface TechSheetProvider {
-  id: string; // ID únic per a la clau de React
-  personGroupId: string; // Enllaç al PersonGroup (empresa o autònom)
-  roles: TechSheetRoleItem[]; // Llista de rols que proporciona
-  isManual?: boolean; // Per identificar proveïdors afegits manualment
-}
-
-// Estructures genèriques per a seccions condicionals
 export type ConditionalStatus = 'yes' | 'no' | 'unset';
 
-export interface ConditionalToggle {
+export interface ConditionalSection<T extends object = {}> {
   status: ConditionalStatus;
-}
-
-export interface ConditionalString extends ConditionalToggle {
   details: string;
+  data?: T;
 }
 
-export interface ConditionalQuantityAndString extends ConditionalToggle {
-  quantity: number | string;
-  details: string;
-}
-
-export interface ConditionalNeeds extends ConditionalToggle {
-  details: string;
-  needs: TechSheetNeed[];
-}
-
-export interface TechSheetScheduleItem {
+export interface AssemblyScheduleItem {
   id: string;
-  date: string; // CAMP NOU: data per a l'ítem d'horari
+  date: string;
   time: string;
   description: string;
 }
 
-export interface TechSheetNeed {
+export interface NeedItem {
   id: string;
   materialItemId?: string | null;
   quantity: number | string;
@@ -82,8 +54,31 @@ export interface TechSheetNeed {
   origin: string;
 }
 
+export interface ContactPerson {
+  id: string;
+  name: string;
+  role: string;
+  phone: string;
+  email: string;
+}
+
+export interface TechSheetRoleItem {
+  id: string;
+  assignmentId?: string;
+  role: string;
+  quantity: number | string;
+  notes?: string;
+}
+
+export interface TechSheetProvider {
+  id:string;
+  personGroupId: string;
+  roles: TechSheetRoleItem[];
+  isManual?: boolean;
+}
+
 export interface TechSheetData {
-  // --- CAMPS SEMPRE PRESENTS ---
+  // Original fields that must be present
   eventName: string;
   location: string;
   date: string;
@@ -91,52 +86,71 @@ export interface TechSheetData {
   showDuration: string;
   technicalProviders: TechSheetProvider[];
 
-  // --- SECCIONS CONDICIONALS ---
+  // --- NEW FIELDS (optional for backwards compatibility) ---
+  generalNotes?: string;
+  parking?: ConditionalSection;
 
-  // Informació General
-  parkingInfo: ConditionalString;
+  // Sections
+  preAssembly?: ConditionalSection;
+  schedule?: ConditionalSection<AssemblyScheduleItem[]>;
+  logistics?: ConditionalSection; // To group logistics fields
 
-  // Premuntatge i Horaris
-  preAssembly: ConditionalString;
-  detailedSchedule: {
-    status: ConditionalStatus;
-    items: TechSheetScheduleItem[];
-  };
+  // Logistics fields (will be inside logistics object in the future)
+  dressingRooms?: string;
+  actorsNumber?: number | string;
+  actors?: string;
+  companyTechniciansNumber?: number | string;
+  companyTechnicians?: string;
 
-  // Logística
-  dressingRooms: ConditionalQuantityAndString;
-  actors: {
-    status: ConditionalStatus;
-    quantity: number | string;
-    names: string;
-  };
-  companyTechnicians: {
-    status: ConditionalStatus;
-    quantity: number | string;
-    names: string;
-  };
-
-  // Necessitats Tècniques
-  lighting: ConditionalNeeds;
-  sound: ConditionalNeeds;
-  video: ConditionalNeeds;
-  machinery: ConditionalNeeds;
-  otherEquipment: ConditionalNeeds;
-  rentals: ConditionalNeeds;
+  // Technical Needs
+  lightingNeeds?: NeedItem[];
+  soundNeeds?: NeedItem[];
+  video?: ConditionalSection;
+  videoNeeds?: NeedItem[];
+  machineryNeeds?: NeedItem[];
+  rentals?: ConditionalSection;
+  rentalsNeeds?: NeedItem[];
+  otherEquipment?: ConditionalSection;
+  otherEquipmentNeeds?: NeedItem[];
+  electrical?: ConditionalSection;
+  electricalNeeds?: NeedItem[];
+  structures?: ConditionalSection;
+  structuresNeeds?: NeedItem[];
+  platforms?: ConditionalSection;
+  platformsNeeds?: NeedItem[];
+  consumables?: ConditionalSection;
+  consumablesNeeds?: NeedItem[];
+  curtains?: ConditionalSection;
+  curtainsNeeds?: NeedItem[];
+  transport?: ConditionalSection;
+  transportNeeds?: NeedItem[];
   
-  // Altres Detalls
-  controlLocation: ConditionalString;
-  blueprints: ConditionalString;
+  // Other Details
+  controlLocation?: string;
+  blueprints?: string;
 
-  // Contacte i Observacions
-  companyContact: ConditionalString;
-  observations: ConditionalString;
+  // Contacts and Observations
+  contacts?: ContactPerson[];
+  observations?: string;
 
-  // Permet camps arbitraris per a la migració de dades antigues.
-  // El codi de migració s'encarregarà de transformar-los a la nova estructura.
+  // PDF Visibility
+  showLogistics?: boolean;
+  showPreAssembly?: boolean;
+  showSchedule?: boolean;
+  showNeeds?: boolean;
+  showOther?: boolean;
+  showGeneralNotesInPdf?: boolean;
+  showPersonnelNotesInPdf?: boolean;
+
+  // Legacy fields that might exist in old data
+  parkingInfo?: string;
+  preAssemblySchedule?: string;
+  assemblySchedule?: any[];
+  videoDetails?: string;
+  companyContact?: string;
+
   [key: string]: any;
 }
-// <<< FI DE LES NOVES INTERFÍCIES >>>
 
 
 export interface EventFrame {
@@ -152,7 +166,7 @@ export interface EventFrame {
   googleCalendarId?: string;
   lastModified?: string;
   lastSync?: string;
-  techSheet?: TechSheetData; // <<< CAMP AFEGIT
+  techSheet?: TechSheetData;
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;
@@ -368,7 +382,7 @@ export interface GoogleCalendar {
 }
 
 export interface ShowSaveDialogOptions {
-  title: string;
+  title:string;
   defaultPath: string;
   filters: { name: string; extensions: string[] }[];
   data: Buffer | string;

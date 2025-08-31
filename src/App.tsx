@@ -252,6 +252,10 @@ const App: React.FC = () => {
             setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
           }
         }
+      } else {
+        console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
+        loadDataFromManager(null);
+        setHasUnsavedChanges(false); // Comencem "nets"
       }
       setInitialLoadAttempted(true);
     };

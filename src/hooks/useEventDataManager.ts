@@ -6,10 +6,9 @@ import logger from '../utils/logger';
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
 const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): TechSheetData => {
-  const defaultConditionalString = () => ({ status: 'unset' as const, details: '' });
-  const defaultConditionalNeeds = () => ({ status: 'unset' as const, details: '', needs: [] });
-
+  const defaultConditional = () => ({ status: 'unset' as const, details: '' });
   return {
+    // Required fields
     eventName: eventFrame.name,
     location: eventFrame.place || '',
     date: formatDateDMY(eventFrame.startDate),
@@ -17,25 +16,48 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
     showDuration: '',
     technicalProviders: [],
 
-    parkingInfo: defaultConditionalString(),
-    preAssembly: defaultConditionalString(),
-    detailedSchedule: { status: 'unset', items: [] },
-
-    dressingRooms: { status: 'unset', quantity: 0, details: '' },
-    actors: { status: 'unset', quantity: 0, names: '' },
-    companyTechnicians: { status: 'unset', quantity: 0, names: '' },
-
-    lighting: defaultConditionalNeeds(),
-    sound: defaultConditionalNeeds(),
-    video: defaultConditionalNeeds(),
-    machinery: defaultConditionalNeeds(),
-    otherEquipment: defaultConditionalNeeds(),
-    rentals: defaultConditionalNeeds(),
-
-    controlLocation: defaultConditionalString(),
-    blueprints: defaultConditionalString(),
-    companyContact: defaultConditionalString(),
-    observations: defaultConditionalString(),
+    // Optional fields with default values
+    generalNotes: `Notes generals per a ${eventFrame.name}`,
+    parking: defaultConditional(),
+    preAssembly: defaultConditional(),
+    schedule: { status: 'unset', details: '', data: [] },
+    dressingRooms: '',
+    actorsNumber: 0,
+    actors: '',
+    companyTechniciansNumber: 0,
+    companyTechnicians: '',
+    lightingNeeds: [],
+    soundNeeds: [],
+    video: defaultConditional(),
+    videoNeeds: [],
+    machineryNeeds: [],
+    rentals: defaultConditional(),
+    rentalsNeeds: [],
+    otherEquipment: defaultConditional(),
+    otherEquipmentNeeds: [],
+    electrical: defaultConditional(),
+    electricalNeeds: [],
+    structures: defaultConditional(),
+    structuresNeeds: [],
+    platforms: defaultConditional(),
+    platformsNeeds: [],
+    consumables: defaultConditional(),
+    consumablesNeeds: [],
+    curtains: defaultConditional(),
+    curtainsNeeds: [],
+    transport: defaultConditional(),
+    transportNeeds: [],
+    controlLocation: '',
+    blueprints: '',
+    contacts: [],
+    observations: '',
+    showLogistics: true,
+    showPreAssembly: true,
+    showSchedule: true,
+    showNeeds: true,
+    showOther: true,
+    showGeneralNotesInPdf: true,
+    showPersonnelNotesInPdf: true,
   };
 };
 
@@ -637,42 +659,6 @@ markUnsaved();
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
-
-  // Load mock data for browser-based development/testing
-  useEffect(() => {
-    if (!window.electronAPI) {
-      console.warn("Entorn no-Electron detectat. Carregant dades de prova.");
-      const mockAppData: AppData = {
-        peopleGroups: [{ id: 'p1', name: 'Tècnic de Prova', role: 'Tècnic' }],
-        eventFrames: [
-          {
-            id: 'ef1',
-            name: 'Esdeveniment de Prova 1',
-            startDate: '2025-09-01',
-            endDate: '2025-09-02',
-            place: 'Teatre Principal',
-            techSheet: createDefaultTechSheet({
-              name: 'Esdeveniment de Prova 1',
-              startDate: '2025-09-01',
-              endDate: '2025-09-02',
-              place: 'Teatre Principal',
-            })
-          },
-          {
-            id: 'ef2',
-            name: 'Esdeveniment de Prova 2',
-            startDate: '2025-09-10',
-            endDate: '2025-09-10',
-            place: 'Sala Petita',
-          }
-        ],
-        assignments: [],
-        materialItems: [{id: 'm1', name: 'Foco PC', category: 'Il·luminació', stock: 10, location: 'Magatzem 1'}],
-      };
-      loadData(mockAppData);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return {
     eventFrames,
