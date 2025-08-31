@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem } from '../../types';
 import { migrateTechSheetData } from '../../utils/techSheetMigration';
@@ -121,70 +121,69 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
   const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
 
-  // A more robust handler for list-like structures within conditional fields
-  const handleNestedListChange = (
-    fieldName: 'detailedSchedule' | 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals',
-    index: number,
-    itemField: string,
-    value: any
-  ) => {
-    setFormData(prev => {
-      const listOwner = prev[fieldName];
-      const newList = [...(listOwner.items || listOwner.needs)];
-      const currentItem = { ...newList[index] };
-      (currentItem as any)[itemField] = value;
+  type NeedKey = 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals';
 
-      // Special handling for material item linking
-      if (itemField === 'description') {
+  const handleNeedChange = (listName: NeedKey, index: number, field: string, value: any) => {
+    setFormData(prev => {
+      const needsSection = prev[listName];
+      const newNeeds = [...needsSection.needs];
+      const currentItem = { ...newNeeds[index] };
+      (currentItem as any)[field] = value;
+
+      if (field === 'description') {
         const matchedItem = materialItems.find(item => item.name === value);
         (currentItem as any).materialItemId = matchedItem ? matchedItem.id : null;
       }
 
-      newList[index] = currentItem;
-
-      const updatedField = { ...listOwner, [listOwner.items ? 'items' : 'needs']: newList };
-
-      return { ...prev, [fieldName]: updatedField };
+      newNeeds[index] = currentItem;
+      return { ...prev, [listName]: { ...needsSection, needs: newNeeds } };
     });
     markAsDirty();
   };
 
-  const handleAddNestedListItem = (
-    fieldName: 'detailedSchedule' | 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals'
-  ) => {
+  const handleAddNeed = (listName: NeedKey) => {
+    const newNeed = { id: generateLocalId(), quantity: 1, description: '', origin: 'Propi / CIA / lloguer' };
     setFormData(prev => {
-      const listOwner = prev[fieldName];
-      const listKey = listOwner.items ? 'items' : 'needs';
-      const oldList = listOwner[listKey] || [];
-
-      let newItem: any;
-      if (fieldName === 'detailedSchedule') {
-        newItem = { id: generateLocalId(), date: eventFrame.startDate, time: '', description: '' };
-      } else {
-        newItem = { id: generateLocalId(), quantity: 1, description: '', origin: 'Propi / CIA / lloguer' };
-      }
-
-      const newList = [...oldList, newItem];
-      const updatedField = { ...listOwner, [listKey]: newList };
-
-      return { ...prev, [fieldName]: updatedField };
+      const needsSection = prev[listName];
+      const newNeeds = [...needsSection.needs, newNeed];
+      return { ...prev, [listName]: { ...needsSection, needs: newNeeds } };
     });
     markAsDirty();
   };
-  
-  const handleRemoveNestedListItem = (
-    fieldName: 'detailedSchedule' | 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals',
-    index: number
-  ) => {
+
+  const handleRemoveNeed = (listName: NeedKey, index: number) => {
     setFormData(prev => {
-      const listOwner = prev[fieldName];
-      const listKey = listOwner.items ? 'items' : 'needs';
-      const oldList = listOwner[listKey] || [];
+      const needsSection = prev[listName];
+      const newNeeds = needsSection.needs.filter((_, i) => i !== index);
+      return { ...prev, [listName]: { ...needsSection, needs: newNeeds } };
+    });
+    markAsDirty();
+  };
 
-      const newList = oldList.filter((_: any, i: number) => i !== index);
-      const updatedField = { ...listOwner, [listKey]: newList };
+  const handleScheduleChange = (index: number, field: string, value: any) => {
+    setFormData(prev => {
+      const newItems = [...prev.detailedSchedule.items];
+      const currentItem = { ...newItems[index] };
+      (currentItem as any)[field] = value;
+      newItems[index] = currentItem;
+      return { ...prev, detailedSchedule: { ...prev.detailedSchedule, items: newItems } };
+    });
+    markAsDirty();
+  };
 
-      return { ...prev, [fieldName]: updatedField };
+  const handleAddScheduleItem = () => {
+    const newItem = { id: generateLocalId(), date: eventFrame.startDate, time: '', description: '' };
+    setFormData(prev => {
+      const newItems = [...prev.detailedSchedule.items, newItem];
+      return { ...prev, detailedSchedule: { ...prev.detailedSchedule, items: newItems } };
+    });
+    markAsDirty();
+  };
+
+  const handleRemoveScheduleItem = (index: number) => {
+    setFormData(prev => {
+      const newItems = prev.detailedSchedule.items.filter((_, i) => i !== index);
+      return { ...prev, detailedSchedule: { ...prev.detailedSchedule, items: newItems } };
     });
     markAsDirty();
   };
@@ -400,7 +399,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                    <select
                       id={`schedule-date-${index}`}
                       value={item.date || ''}
-                      onChange={(e) => handleNestedListChange('detailedSchedule', index, 'date', e.target.value)}
+                      onChange={(e) => handleScheduleChange(index, 'date', e.target.value)}
                       className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
                    >
                      {eventDates.map(date => (
@@ -414,7 +413,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                     id={`schedule-time-${index}`}
                     type="time"
                     value={item.time}
-                    onChange={(e) => handleNestedListChange('detailedSchedule', index, 'time', e.target.value)}
+                    onChange={(e) => handleScheduleChange(index, 'time', e.target.value)}
                     className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
                   />
                 </div>
@@ -424,7 +423,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                     id={`schedule-desc-${index}`}
                     type="text"
                     value={item.description}
-                    onChange={(e) => handleNestedListChange('detailedSchedule', index, 'description', e.target.value)}
+                    onChange={(e) => handleScheduleChange(index, 'description', e.target.value)}
                     className="block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1"
                   />
                 </div>
@@ -432,7 +431,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                   <Tooltip text="Eliminar aquesta línia d'horari">
                     <button
                       type="button"
-                      onClick={() => handleRemoveNestedListItem('detailedSchedule', index)}
+                      onClick={() => handleRemoveScheduleItem(index)}
                       className="remove-item-button text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
                     >×</button>
                   </Tooltip>
@@ -443,7 +442,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
               <Tooltip text="Afegir una nova línia a la planificació d'horaris">
                 <button
                   type="button"
-                  onClick={() => handleAddNestedListItem('detailedSchedule')}
+                  onClick={handleAddScheduleItem}
                   className="add-item-button px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-semibold"
                 >+ Afegir Ítem Horari</button>
               </Tooltip>
@@ -574,9 +573,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                   listName={needKey}
                   materialItems={materialItems}
                   eventFrame={eventFrame}
-                  onListChange={handleNestedListChange}
-                  onRemoveListItem={handleRemoveNestedListItem}
-                  onAddListItem={handleAddNestedListItem}
+                  onListChange={handleNeedChange}
+                  onRemoveListItem={handleRemoveNeed}
+                  onAddListItem={handleAddNeed}
                   getMaterialAvailability={getMaterialAvailability}
                 />
               </div>

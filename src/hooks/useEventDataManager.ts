@@ -5,31 +5,39 @@ import logger from '../utils/logger';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
-const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): TechSheetData => ({
-  eventName: eventFrame.name,
-  location: eventFrame.place || '',
-  date: formatDateDMY(eventFrame.startDate),
-  showTime: '',
-  showDuration: '',
-  parkingInfo: '',
-  technicalProviders: [],
-  preAssemblySchedule: '',
-  assemblySchedule: [],
-  dressingRooms: '',
-  actors: '',
-  companyTechnicians: '',
-  lightingNeeds: [],
-  soundNeeds: [],
-  videoNeeds: [],
-  videoDetails: '',
-  machineryNeeds: [],
-  controlLocation: '',
-  otherEquipment: '',
-  rentals: '',
-  blueprints: '',
-  companyContact: '',
-  observations: '',
-});
+const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): TechSheetData => {
+  const defaultConditionalString = () => ({ enabled: false, details: '' });
+  const defaultConditionalNeeds = () => ({ enabled: false, details: '', needs: [] });
+
+  return {
+    eventName: eventFrame.name,
+    location: eventFrame.place || '',
+    date: formatDateDMY(eventFrame.startDate),
+    showTime: '',
+    showDuration: '',
+    technicalProviders: [],
+
+    parkingInfo: defaultConditionalString(),
+    preAssembly: defaultConditionalString(),
+    detailedSchedule: { enabled: false, items: [] },
+
+    dressingRooms: { enabled: false, quantity: 0, details: '' },
+    actors: { enabled: false, quantity: 0, names: '' },
+    companyTechnicians: { enabled: false, quantity: 0, names: '' },
+
+    lighting: defaultConditionalNeeds(),
+    sound: defaultConditionalNeeds(),
+    video: defaultConditionalNeeds(),
+    machinery: defaultConditionalNeeds(),
+    otherEquipment: defaultConditionalNeeds(),
+    rentals: defaultConditionalNeeds(),
+
+    controlLocation: defaultConditionalString(),
+    blueprints: defaultConditionalString(),
+    companyContact: defaultConditionalString(),
+    observations: defaultConditionalString(),
+  };
+};
 
 type AssignmentOperationResult = { success: boolean; message?: string; warningMessage?: string };
 

@@ -3,15 +3,19 @@ import TechSheetField from './TechSheetField';
 import { MaterialItem } from '../../types';
 import Tooltip from '../ui/Tooltip';
 
+import { TechSheetData } from '../../types';
+
+type NeedKey = keyof Pick<TechSheetData, 'lighting' | 'sound' | 'video' | 'machinery' | 'otherEquipment' | 'rentals'>;
+
 interface NeedsListProps {
   needs: any[];
   title: string;
-  listName: string;
+  listName: NeedKey;
   materialItems: MaterialItem[];
   eventFrame: any;
-  onListChange: (listName: string, index: number, field: string, value: any) => void;
-  onRemoveListItem: (listName: string, index: number) => void;
-  onAddListItem: (listName: string) => void;
+  onListChange: (listName: NeedKey, index: number, field: string, value: any) => void;
+  onRemoveListItem: (listName: NeedKey, index: number) => void;
+  onAddListItem: (listName: NeedKey) => void;
   getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string) => { available: number; total: number };
 }
 

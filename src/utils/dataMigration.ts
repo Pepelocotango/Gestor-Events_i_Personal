@@ -65,6 +65,8 @@ export const migrateData = (
       generalNotes: e.notesGeneral || '',
       personnelComplete: e.isPersonnelComplete || false,
     };
+    const defaultConditionalString = () => ({ enabled: false, details: '' });
+    const defaultConditionalNeeds = () => ({ enabled: false, details: '', needs: [] });
     return {
       ...eventFrame,
       techSheet: {
@@ -73,24 +75,23 @@ export const migrateData = (
         date: formatDateDMY(eventFrame.startDate),
         showTime: '',
         showDuration: '',
-        parkingInfo: '',
         technicalProviders: [],
-        preAssemblySchedule: '',
-        assemblySchedule: [],
-        dressingRooms: '',
-        actors: '',
-        companyTechnicians: '',
-        lightingNeeds: [],
-        soundNeeds: [],
-        videoNeeds: [],
-        videoDetails: '',
-        machineryNeeds: [],
-        controlLocation: '',
-        otherEquipment: '',
-        rentals: '',
-        blueprints: '',
-        companyContact: '',
-        observations: '',
+        parkingInfo: defaultConditionalString(),
+        preAssembly: defaultConditionalString(),
+        detailedSchedule: { enabled: false, items: [] },
+        dressingRooms: { enabled: false, quantity: 0, details: '' },
+        actors: { enabled: false, quantity: 0, names: '' },
+        companyTechnicians: { enabled: false, quantity: 0, names: '' },
+        lighting: defaultConditionalNeeds(),
+        sound: defaultConditionalNeeds(),
+        video: defaultConditionalNeeds(),
+        machinery: defaultConditionalNeeds(),
+        otherEquipment: defaultConditionalNeeds(),
+        rentals: defaultConditionalNeeds(),
+        controlLocation: defaultConditionalString(),
+        blueprints: defaultConditionalString(),
+        companyContact: defaultConditionalString(),
+        observations: defaultConditionalString(),
       }
     }
   });

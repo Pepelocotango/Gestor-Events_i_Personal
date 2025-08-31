@@ -538,6 +538,36 @@ Les classes CSS esmentades no són classes de Tailwind per defecte. Estan defini
 
 Aquesta arquitectura connecta de manera eficient una simple dada booleana amb múltiples representacions visuals a tota la UI, proporcionant un feedback clar i immediat a l'usuari.
 
+### 5.9. Refactorització de la Fitxa de Bolo (Octubre 2023)
+
+Per millorar la claredat de la interfície i donar un control granular sobre l'exportació a PDF, la secció de "Fitxa de Bolo" ha estat refactoritzada completament.
+
+#### El Patró de Secció Condicional
+
+El canvi principal és la introducció d'un **patró de secció condicional**. La majoria de les seccions de la fitxa, a partir de "Premuntatge", ara estan ocultes per defecte i només mostren un títol i un desplegable **SI/NO**.
+
+-   **Interfície Dinàmica:** Només quan l'usuari selecciona "SI", els camps detallats de la secció es fan visibles i editables.
+-   **PDF Intel·ligent:** La generació del PDF (`pdfGenerator.ts`) ha estat actualitzada per ignorar completament qualsevol secció que estigui marcada com a "NO", resultant en documents més nets i rellevants.
+
+#### Canvis en l'Estructura de Dades (`types.ts`)
+
+Per suportar aquesta funcionalitat, el model de dades `TechSheetData` ha estat modificat profundament:
+
+-   Els camps que abans eren `string` o `TechSheetNeed[]` ara són objectes que implementen interfícies com `ConditionalString` o `ConditionalNeeds`.
+-   Cada objecte condicional conté, com a mínim, una propietat `enabled: boolean` que reflecteix l'estat del desplegable SI/NO.
+-   **Exemple:** `parkingInfo: string` s'ha convertit en `parkingInfo: { enabled: boolean; details: string; }`.
+
+#### Migració de Dades Antigues (`techSheetMigration.ts`)
+
+Per garantir la compatibilitat amb fitxes de bolo creades abans d'aquesta refactorització, s'ha creat un mòdul de migració dedicat: `src/utils/techSheetMigration.ts`.
+
+-   La funció `migrateTechSheetData` s'executa automàticament cada vegada que es carrega una fitxa.
+-   Detecta si les dades estan en el format antic (p. ex., `parkingInfo` és un `string`) i les converteix a la nova estructura d'objectes condicionals sobre la marxa.
+
+#### Component Reutilitzable (`ConditionalFormControl.tsx`)
+
+Per evitar la duplicació de codi i estandarditzar la interfície, s'ha creat el component `src/components/tech_sheets/ConditionalFormControl.tsx`. Aquest component encapsula la lògica del desplegable SI/NO i la renderització condicional del seu contingut (`children`).
+
 ### 5.8. Format de Dates: Intern (YYYY-MM-DD) vs. Visual (DD/MM/YYYY)
 
 L'aplicació utilitza deliberadament dos formats de data diferents per a dues finalitats diferents, una pràctica estàndard per garantir la integritat de les dades i una bona experiència d'usuari.

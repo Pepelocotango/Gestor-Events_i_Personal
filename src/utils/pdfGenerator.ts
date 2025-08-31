@@ -247,7 +247,7 @@ export const exportTechSheetToPdf = async (
     const subHeadStyles: Partial<Styles> = { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' };
 
     // --- Taula 1: Capçalera Principal ---
-    const headerBody = [
+    const headerBody: any[][] = [
       [{ content: 'FITXA DE BOLO', colSpan: 2, styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }],
       [{ content: 'NOM DEL BOLO:', styles: labelStyles }, sane(formData.eventName)],
       [{ content: 'LLOC:', styles: labelStyles }, sane(formData.location)],
