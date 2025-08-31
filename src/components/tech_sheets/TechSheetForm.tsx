@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus } from '../../types';
+import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -47,6 +47,60 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       return currentData;
     });
   }, [eventFrame.name, eventFrame.place, eventFrame.startDate, eventFrame.endDate]);
+
+  useEffect(() => {
+    const confirmedAssignments = eventFrame.assignments.filter((a: any) =>
+      a.status === AssignmentStatus.Yes || (a.status === AssignmentStatus.Mixed && Object.values(a.dailyStatuses || {}).includes(AssignmentStatus.Yes))
+    );
+
+    const manualProviders = formDataRef.current.technicalProviders.filter(p => p.isManual);
+
+    const providersFromAssignments: TechSheetProvider[] = [];
+
+    confirmedAssignments.forEach((assignment: any) => {
+      const personGroupId = assignment.personGroupId;
+      let provider = providersFromAssignments.find(p => p.personGroupId === personGroupId);
+
+      if (!provider) {
+        provider = {
+          id: generateLocalId(),
+          personGroupId,
+          roles: [],
+          isManual: false,
+        };
+        providersFromAssignments.push(provider);
+      }
+
+      let notes = assignment.notes || '';
+      if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
+        const confirmedDays = Object.entries(assignment.dailyStatuses)
+          .filter(([_, status]) => status === AssignmentStatus.Yes)
+          .map(([date, _]) => formatDateDMY(date));
+
+        if (confirmedDays.length > 0) {
+          const daysString = `Dies: ${confirmedDays.join(', ')}`;
+          notes = notes ? `${notes}\n${daysString}` : daysString;
+        }
+      }
+
+      provider.roles.push({
+        id: generateLocalId(),
+        assignmentId: assignment.id,
+        role: '',
+        quantity: 1,
+        notes: notes,
+      });
+    });
+
+    const finalProviders = [...manualProviders, ...providersFromAssignments];
+
+    // Check if there are actual changes before updating state
+    if (JSON.stringify(finalProviders) !== JSON.stringify(formDataRef.current.technicalProviders)) {
+        setFormData(currentData => ({ ...currentData, technicalProviders: finalProviders }));
+        markAsDirty();
+    }
+
+  }, [eventFrame.assignments, eventFrame.id]);
 
   const saveData = useCallback((isManualSave = false) => {
     if (isDirtyRef.current) {
@@ -371,7 +425,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       <TechnicalPersonnelSection
         technicalProviders={formData.technicalProviders || []}
         peopleGroups={peopleGroups}
-        eventFrame={eventFrame}
         onProviderChange={handleProviderChange}
         onRoleChange={handleRoleChange}
         onAddProvider={handleAddProvider}
@@ -379,10 +432,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         onAddRole={handleAddRole}
         onRemoveRole={handleRemoveRole}
         getPersonGroupById={getPersonGroupById}
-        showToast={showToast}
-        addOrUpdateTechSheet={addOrUpdateTechSheet}
-        setFormData={setFormData}
-        formData={formData}
       />
 
       {/* Pre-assembly */}

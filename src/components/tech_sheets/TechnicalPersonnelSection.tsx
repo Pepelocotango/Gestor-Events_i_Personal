@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus } from '../../types';
+import { TechSheetProvider, TechSheetRoleItem, PersonGroup } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
@@ -8,7 +8,6 @@ import Tooltip from '../ui/Tooltip';
 interface TechnicalPersonnelSectionProps {
   technicalProviders: TechSheetProvider[];
   peopleGroups: PersonGroup[];
-  eventFrame: any;
   onProviderChange: (providerIndex: number, personGroupId: string) => void;
   onRoleChange: (providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => void;
   onAddProvider: () => void;
@@ -16,16 +15,11 @@ interface TechnicalPersonnelSectionProps {
   onAddRole: (providerIndex: number) => void;
   onRemoveRole: (providerIndex: number, roleIndex: number) => void;
   getPersonGroupById: (id: string) => PersonGroup | undefined;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
-  addOrUpdateTechSheet: (eventId: string, data: any) => void;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-  formData: any;
 }
 
 const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   technicalProviders,
   peopleGroups,
-  eventFrame,
   onProviderChange,
   onRoleChange,
   onAddProvider,
@@ -33,81 +27,11 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onAddRole,
   onRemoveRole,
   getPersonGroupById,
-  showToast,
-  addOrUpdateTechSheet,
-  setFormData,
-  formData,
 }) => {
-  const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
 
   return (
     <TechSheetSection title="Personal Tècnic"
       layout="single-column"
-      headerActions={
-        <Tooltip text="Afegeix personal confirmat de les assignacions a aquesta llista">
-          <button
-            type="button"
-            onClick={() => {
-              const confirmedAssignments = eventFrame.assignments.filter((a: any) =>
-                a.status === AssignmentStatus.Yes || (a.status === AssignmentStatus.Mixed && Object.values(a.dailyStatuses || {}).includes(AssignmentStatus.Yes))
-              );
-
-              if (confirmedAssignments.length === 0) {
-                showToast('No hi ha personal confirmat a les assignacions per afegir.', 'info');
-                return;
-              }
-
-              // Preserva proveïdors manuals i elimina els provinents d'assignacions
-              const manualProviders = technicalProviders.filter(p => p.isManual);
-
-              let newRolesCount = 0;
-              const providersFromAssignments: TechSheetProvider[] = [];
-
-              confirmedAssignments.forEach((assignment: any) => {
-                const personGroupId = assignment.personGroupId;
-                let provider = providersFromAssignments.find(p => p.personGroupId === personGroupId);
-
-                if (!provider) {
-                  provider = {
-                    id: generateLocalId(),
-                    personGroupId,
-                    roles: [],
-                    isManual: false,
-                  };
-                  providersFromAssignments.push(provider);
-                }
-
-                provider.roles.push({
-                  id: generateLocalId(),
-                  assignmentId: assignment.id,
-                  role: '',
-                  quantity: 1,
-                  notes: assignment.notes || '',
-                });
-                newRolesCount++;
-              });
-
-              const finalProviders = [...manualProviders, ...providersFromAssignments];
-
-              if (newRolesCount > 0) {
-                const updatedFormData = { ...formData, technicalProviders: finalProviders };
-                setFormData(updatedFormData);
-                addOrUpdateTechSheet(eventFrame.id, updatedFormData);
-                showToast(`S'ha actualitzat la llista amb ${newRolesCount} rol(s) des de les assignacions.`, 'success');
-              } else {
-                // Si no hi ha rols nous, potser només cal netejar els antics
-                const updatedFormData = { ...formData, technicalProviders: manualProviders };
-                setFormData(updatedFormData);
-                addOrUpdateTechSheet(eventFrame.id, updatedFormData);
-                showToast('No hi ha personal confirmat a les assignacions. S\'han eliminat les entrades anteriors.', 'info');
-              }
-            }}
-            className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-medium shadow no-print"
-          >
-            <span className="font-bold">⟳</span> <span className="hidden sm:inline">Actualitza des d'assignacions</span>
-          </button>
-        </Tooltip>
-      }
     >
       <div className="col-span-full space-y-6">
         {technicalProviders.map((provider, providerIndex) => {
