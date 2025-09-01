@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -86,6 +86,30 @@ let isAuthenticating = false;
 let googleAuthClient;
 let googleCredentials;
 let googleServiceAccountClient;
+
+const createLoadFileClickHandler = (type, options) => async () => {
+  if (!mainWindow) return;
+  try {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openFile'],
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+      ...options,
+    });
+    if (result.canceled || !result.filePaths.length) {
+      return;
+    }
+    const filePath = result.filePaths[0];
+    const content = fs.readFileSync(filePath, 'utf8');
+    mainWindow.webContents.send('file-data-loaded', {
+      type,
+      content,
+      fileName: path.basename(filePath)
+    });
+  } catch (error) {
+    console.error(`Error en carregar el fitxer (${type}):`, error);
+    dialog.showErrorBox('Error de Càrrega', `No s'ha pogut llegir el fitxer.\n${error.message}`);
+  }
+};
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -355,6 +379,7 @@ async function createWindow() {
     x: sessionData.x,
     y: sessionData.y,
     show: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -382,29 +407,6 @@ async function createWindow() {
     });
   }
 
-  const createLoadFileClickHandler = (type, options) => async () => {
-    if (!mainWindow) return;
-    try {
-      const result = await dialog.showOpenDialog(mainWindow, {
-        properties: ['openFile'],
-        filters: [{ name: 'JSON', extensions: ['json'] }],
-        ...options,
-      });
-      if (result.canceled || !result.filePaths.length) {
-        return;
-      }
-      const filePath = result.filePaths[0];
-      const content = fs.readFileSync(filePath, 'utf8');
-      mainWindow.webContents.send('file-data-loaded', {
-        type,
-        content,
-        fileName: path.basename(filePath)
-      });
-    } catch (error) {
-      console.error(`Error en carregar el fitxer (${type}):`, error);
-      dialog.showErrorBox('Error de Càrrega', `No s'ha pogut llegir el fitxer.\n${error.message}`);
-    }
-  };
 
   const template = [
     {
@@ -443,8 +445,8 @@ async function createWindow() {
     }
   ];
 
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
+  // const menu = Menu.buildFromTemplate(template);
+  // Menu.setApplicationMenu(menu);
 
   // >>> CANVI PRINCIPAL EN LA LÒGICA DE TANCAMENT <<<
   mainWindow.on('close', (event) => {
@@ -454,6 +456,23 @@ async function createWindow() {
     }
   });
 }
+
+app.on('web-contents-created', (event, contents) => {
+  contents.setWindowOpenHandler(({ url }) => {
+    // Open external links in the default browser
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+  // Prevent navigation to external links within the app
+  contents.on('will-navigate', (event, url) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
+});
 
 app.on('before-quit', async (event) => {
   if (isQuitting) {
@@ -1237,5 +1256,65 @@ app.whenReady().then(createWindow);
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
+});
+
+ipcMain.on('trigger-menu-action', (event, action) => {
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+
+  // Per a accions de la finestra, necessitem una finestra enfocada.
+  // Les accions de l'app (com 'quit') o les que depenen de mainWindow poden funcionar igualment.
+  if (!focusedWindow && !['quit', 'load-all', 'load-material', 'load-people'].includes(action)) {
+    console.warn(`S'ha rebut l'acció de menú "${action}" però no hi ha cap finestra enfocada.`);
+    return;
+  }
+
+  switch (action) {
+    // Accions de càrrega de fitxers
+    case 'load-all':
+      createLoadFileClickHandler('all', { title: 'Carregar Fitxer de Dades Complet' })();
+      break;
+    case 'load-material':
+      createLoadFileClickHandler('material', { title: 'Carregar Fitxer de Material' })();
+      break;
+    case 'load-people':
+      createLoadFileClickHandler('people', { title: 'Carregar Fitxer de Persones' })();
+      break;
+
+    // Control de l'aplicació
+    case 'quit':
+      app.quit();
+      break;
+
+    // Controls de la vista (usant la finestra enfocada)
+    case 'reload':
+      focusedWindow.webContents.reload();
+      break;
+    case 'forceReload':
+      focusedWindow.webContents.reloadIgnoringCache();
+      break;
+    case 'toggleDevTools':
+      focusedWindow.webContents.toggleDevTools();
+      break;
+    case 'resetZoom':
+      focusedWindow.webContents.setZoomLevel(0);
+      break;
+    case 'zoomIn':
+      // Per evitar un zoom excessiu, limitem el nivell
+      focusedWindow.webContents.setZoomLevel(focusedWindow.webContents.getZoomLevel() + 0.5);
+      break;
+    case 'zoomOut':
+      focusedWindow.webContents.setZoomLevel(focusedWindow.webContents.getZoomLevel() - 0.5);
+      break;
+    case 'togglefullscreen':
+      focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
+      break;
+
+    // Altres accions es redirigeixen al procés de renderització (com abans)
+    default:
+      if (mainWindow) {
+        mainWindow.webContents.send('menu-action', action);
+      }
+      break;
   }
 });

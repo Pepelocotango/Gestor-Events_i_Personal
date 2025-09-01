@@ -1,9 +1,9 @@
 
 ### NOVA BRANCA DESENVOLUPAMENT --> DEV
- CHECKPOINT_V0.5.2
+ CHECKPOINT_V1.0.0
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal v0.5.2
+# Gestor d'Esdeveniments i Personal V1.0.0
 
 Aplicació d'escriptori multiplataforma (construïda amb Electron, React i Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material amb control d'estoc.
 

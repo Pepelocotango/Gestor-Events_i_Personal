@@ -14,6 +14,7 @@ const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
 const SyncProgressOverlay = lazy(() => import('./components/ui/SyncProgressOverlay'));
+import CustomMenuBar from './components/ui/CustomMenuBar';
 
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
@@ -675,8 +676,9 @@ const App: React.FC = () => {
     <EventDataProvider value={contextValue}>
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm p-2">
-            <div className="container mx-auto">
+          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+            <CustomMenuBar />
+            <div className="container mx-auto p-2">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   ref={controlsRef}
@@ -727,8 +729,8 @@ const App: React.FC = () => {
 
 
           <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
-            © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.5.2. Evolució Gestió Integral d'Esdeveniments v10.1.
-
+            <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.0.0. Llicència MIT (codi lliure). </span>
+            <span>Si vols col·laborar, pots fer-ho al <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">projecte de GitHub</a> o amb una aportació a <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>.</span>
           </footer>
 
           <Modal

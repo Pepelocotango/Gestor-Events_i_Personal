@@ -1,5 +1,5 @@
 
-## DEVELOPING.md v0.5.2
+## DEVELOPING.md V1.0.0
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
@@ -197,7 +197,32 @@ Per evitar la pèrdua de dades no desades, l'aplicació implementa un flux de ta
 
 El procés principal inclou un gestor `process.on('uncaughtException')` com a última línia de defensa. Si es produeix un error no controlat, s'escriu al fitxer de log, es mostra un diàleg d'error a l'usuari i es tanca l'aplicació de manera forçada per evitar un estat inconsistent.
 
-### 3.3. API Interna: Gestors d'IPC (Inter-Process Communication)
+### 3.3. Menú d'Aplicació Personalitzat (Custom Menu Bar)
+
+Per solucionar un bug de renderitzat del menú natiu d'Electron en configuracions de múltiples pantalles a Linux, s'ha reemplaçat el menú natiu per un component de menú personalitzat construït amb React.
+
+#### Arquitectura de la Solució
+
+1.  **Desactivació del Menú Natiu (`main.cjs`):**
+    -   A la configuració de `BrowserWindow`, s'ha afegit la propietat `autoHideMenuBar: true`. Això amaga la barra de menú per defecte, però encara permet accedir-hi prement la tecla `Alt`.
+    -   Les línies `Menu.buildFromTemplate(template)` i `Menu.setApplicationMenu(menu)` han estat comentades per desactivar completament la creació del menú natiu.
+
+2.  **Component de React (`src/components/ui/CustomMenuBar.tsx`):**
+    -   S'ha creat un nou component de React que replica visualment i funcionalment l'estructura del menú anterior.
+    -   Aquest component gestiona el seu propi estat per controlar la visibilitat dels menús desplegables.
+
+3.  **Comunicació Frontend -> Backend (`trigger-menu-action`):**
+    -   Quan un usuari fa clic a un element del menú, el component de React crida a la funció `window.electronAPI.triggerMenuAction(action)`, passant una cadena que identifica l'acció (p. ex., `'save-all'`, `'reload'`).
+    -   Aquesta funció està exposada de manera segura a través de `preload.cjs`.
+
+4.  **Gestor d'Accions Centralitzat (`main.cjs`):**
+    -   S'ha implementat un nou listener `ipcMain.on('trigger-menu-action', ...)` que actua com un enrutador per a totes les accions del menú.
+    -   **Accions del Procés Principal:** Les accions que requereixen accés a les API d'Electron o Node.js (com obrir diàlegs de fitxers, gestionar el zoom de la finestra o tancar l'aplicació) són gestionades directament dins d'aquest listener.
+    -   **Accions del Procés de Renderitzat:** Les accions que afecten l'estat de la UI (com canviar de tema, desar dades o obrir modals) es redirigeixen al procés de renderitzat a través del canal IPC existent `'menu-action'`, on són gestionades pel listener corresponent a `App.tsx`.
+
+Aquest enfocament no només soluciona el bug original, sinó que també proporciona un control total sobre l'aparença i el comportament del menú, permetent una integració més profunda amb el disseny de l'aplicació.
+
+### 3.4. API Interna: Gestors d'IPC (Inter-Process Communication)
 
 La comunicació entre el frontend i el backend es realitza exclusivament a través de canals IPC. `main.cjs` defineix diversos gestors (`ipcMain.handle` i `ipcMain.on`) que conformen l'API interna de l'aplicació.
 
@@ -224,7 +249,7 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
 
     ---
 
-### 3.4. Integració amb Serveis Externs: Google Calendar API
+### 3.5. Integració amb Serveis Externs: Google Calendar API
 
 Aquesta secció ha estat refactoritzada per suportar múltiples calendaris. Per a una descripció detallada del nou flux, vegeu la secció **5.1. Flux de Sincronització amb Google Calendar (Multi-Calendari)**.
 
