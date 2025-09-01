@@ -1,0 +1,130 @@
+{
+  "peopleGroups": [
+    {
+      "id": "person-01",
+      "name": "Joan Garcia",
+      "role": "Cap Tècnic / Regidor",
+      "tel1": "600111222",
+      "tel2": "931112233",
+      "email": "joan.garcia@tecnicsevent.com",
+      "web": "https://www.joangarcia.cat",
+      "notes": "Expert en coordinació d'equips grans. Prefereix contacte per telèfon per urgències."
+    },
+    {
+      "id": "person-02",
+      "name": "Maria Soler",
+      "role": "Tècnic de So",
+      "tel1": "600333444",
+      "email": "maria.soler@email.com",
+      "notes": "Especialista en taules de so digitals Yamaha i Midas. Molt resolutiva."
+    },
+    {
+      "id": "person-03",
+      "name": "Carles Puig",
+      "role": "Tècnic d'Il·luminació",
+      "tel1": "600555666",
+      "email": "carles.puig@email.com",
+      "notes": "Controlador de GrandMA2 i Avolites. Creatiu i eficient."
+    },
+    {
+      "id": "person-04",
+      "name": "Laura Vidal",
+      "role": "Tècnic de Vídeo / Projeccions",
+      "tel1": "600777888",
+      "email": "laura.vidal@email.com",
+      "notes": "Experta en Resolume Arena i sistemes de projecció Barco."
+    },
+    {
+      "id": "person-05",
+      "name": "Albert Pons",
+      "role": "Maquinista / Tècnic d'escenari",
+      "tel1": "600999000",
+      "email": "albert.pons@email.com",
+      "notes": "Fort i amb experiència en muntatges complexos de truss i tarimes."
+    },
+    {
+      "id": "person-06",
+      "name": "Sandra Roca",
+      "role": "Ajudant de Producció",
+      "tel1": "600123456",
+      "email": "sandra.roca@email.com",
+      "notes": "Estudiant en pràctiques. Molt organitzada i proactiva. Ideal per a tasques de suport."
+    },
+    {
+      "id": "person-07",
+      "name": "David Ferrer",
+      "role": "Tècnic Auxiliar / Rigger",
+      "tel1": "600654321",
+      "email": "david.ferrer@email.com",
+      "notes": "Certificat IRATA nivell 1. Disponible per a feines d'alçada."
+    },
+    {
+      "id": "person-08",
+      "name": "Clara Martí",
+      "role": "Coordinadora de Logística",
+      "tel1": "600987654",
+      "email": "clara.marti@logisticafest.es",
+      "notes": "Responsable de voluntaris, acreditacions i transport."
+    },
+    {
+      "id": "person-09",
+      "name": "Jordi Serra",
+      "role": "Conductor / Transportista",
+      "tel1": "600112233",
+      "email": "jordi.serra@transport.com",
+      "notes": "Carnet C+E. Furgoneta pròpia de 3500kg."
+    },
+    {
+      "id": "person-10",
+      "name": "Marta Bosch",
+      "role": "Tècnic de So (Monitors)",
+      "tel1": "600445566",
+      "email": "marta.bosch@email.com",
+      "notes": "Especialista en monitors d'escenari i sistemes in-ear."
+    },
+    {
+      "id": "company-01",
+      "name": "FocusPro Serveis Audiovisuals",
+      "role": "Proveïdor Il·luminació i So",
+      "tel1": "937891234",
+      "tel2": "610111222",
+      "email": "contacte@focuspro.com",
+      "web": "https://www.focuspro.com",
+      "notes": "Empresa de lloguer de material. Cal contractar amb 2 setmanes d'antelació. Contacte principal: Robert."
+    },
+    {
+      "id": "company-02",
+      "name": "Estructures metàl·liques SL",
+      "role": "Proveïdor Estructures i Escenaris",
+      "tel1": "936667788",
+      "email": "info@estructuresmetaliques.com",
+      "web": "https://www.estructuresmetaliques.com",
+      "notes": "Especialistes en escenaris grans i layher. Demanar plànols i certificats de muntatge."
+    },
+    {
+      "id": "company-03",
+      "name": "Càtering L'Àpat",
+      "role": "Proveïdor Càtering",
+      "tel1": "935554433",
+      "email": "reserves@cateringlapat.cat",
+      "web": "https://www.cateringlapat.cat",
+      "notes": "Ofereixen menús per a equips tècnics i artistes. Opcions vegetarianes i sense gluten disponibles."
+    },
+    {
+      "id": "company-04",
+      "name": "Vigilants de Seguretat Pro",
+      "role": "Proveïdor Seguretat",
+      "tel1": "932109876",
+      "email": "info@vigilantspro.es",
+      "notes": "Equips de seguretat per a control d'accessos i vigilància de recintes."
+    },
+    {
+      "id": "company-05",
+      "name": "WC Lloguer Express",
+      "role": "Proveïdor Sanitaris Portàtils",
+      "tel1": "931231231",
+      "email": "contacte@wcexpress.com",
+      "notes": "Lloguer i manteniment de cabines de WC químiques."
+    }
+  ]
+}
