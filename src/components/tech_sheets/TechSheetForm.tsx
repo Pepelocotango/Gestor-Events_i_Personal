@@ -405,26 +405,31 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
       {/* General Info */}
       <TechSheetSection title="Informació General" layout="grid-2">
-        <TechSheetField id="eventName" label="NOM DEL ESDEVENIMENT:" value={formData.eventName} onChange={handleChange} required />
-        <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} />
-        <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} />
-        <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} type="time" />
-        <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} placeholder="XX min" />
+        <TechSheetField id="eventName" label="NOM DEL ESDEVENIMENT:" value={formData.eventName} onChange={handleChange} required tooltipText="El nom de l'esdeveniment es sincronitza automàticament amb el nom del 'Event Frame'."/>
+        <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} tooltipText="El lloc de l'esdeveniment. També es sincronitza des del 'Event Frame'."/>
+        <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} tooltipText="La data o rang de dates de l'esdeveniment. Sincronitzat des del 'Event Frame'."/>
+        <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} type="time" tooltipText="Hora d'inici de la funció o acte principal."/>
+        <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} placeholder="XX min" tooltipText="Durada aproximada de l'espectacle en minuts."/>
         <div className="col-span-full">
             <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals</label>
-                <div className="flex items-center gap-2">
-                    <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-                    <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
-                </div>
+                <Tooltip text="Marca aquesta casella per incloure les notes generals en exportar la fitxa a PDF.">
+                    <div className="flex items-center gap-2">
+                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                        <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                    </div>
+                </Tooltip>
             </div>
-            <textarea id="generalNotes" name="generalNotes" value={formData.generalNotes || ''} onChange={handleChange} rows={3} className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+            <Tooltip text="Afegeix aquí qualsevol nota general o comentari rellevant per a tota la fitxa.">
+                <textarea id="generalNotes" name="generalNotes" value={formData.generalNotes || ''} onChange={handleChange} rows={3} className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+            </Tooltip>
         </div>
         <div className="col-span-full -mb-3">
             <ConditionalFormControl
                 label="ZONA RESERVADA PARKING:"
                 status={formData.parking?.status || 'unset'}
                 onStatusChange={(status) => handleConditionalChange('parking', { status })}
+                tooltipText="Indica si es necessita o no una zona de pàrquing reservada."
             >
                 <TechSheetField
                     id="parkingDetails"
@@ -434,6 +439,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                     as="textarea"
                     rows={2}
                     placeholder="On, quantes places, contacte..."
+                    tooltipText="Especifica la ubicació, el nombre de places necessàries, i a qui contactar per a la gestió del pàrquing."
                 />
             </ConditionalFormControl>
         </div>
@@ -462,6 +468,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           label="PREMUNTATGE:"
           status={formData.preAssembly?.status || 'unset'}
           onStatusChange={(status) => handleConditionalChange('preAssembly', { status })}
+          tooltipText="Indica si es realitzarà un premuntatge previ a l'esdeveniment."
         >
           <TechSheetField
             id="preAssemblyDetails"
@@ -471,6 +478,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
             as="textarea"
             rows={2}
             placeholder="Descripció general del premuntatge..."
+            tooltipText="Descriu les tasques de premuntatge, el personal necessari, i qualsevol altre detall logístic rellevant."
           />
         </ConditionalFormControl>
       </TechSheetSection>
@@ -481,18 +489,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           label="HORARIS:"
           status={formData.schedule?.status || 'unset'}
           onStatusChange={(status) => handleConditionalChange('schedule', { status })}
+          tooltipText="Activa aquesta secció per detallar la planificació horària de l'esdeveniment."
         >
           <div className="col-span-full space-y-2 mt-4">
             {(formData.schedule?.data || []).map((item, index) => (
               <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
                 <div className="col-span-3">
-                  <TechSheetField id={`schedule-date-${index}`} label={`Data ${index + 1}`} value={item.date} onChange={(e) => handleAssemblyScheduleChange(index, 'date', e.target.value)} type="date" />
+                  <TechSheetField id={`schedule-date-${index}`} label={`Data ${index + 1}`} value={item.date} onChange={(e) => handleAssemblyScheduleChange(index, 'date', e.target.value)} type="date" tooltipText="Data de l'activitat programada."/>
                 </div>
                 <div className="col-span-2">
-                  <TechSheetField id={`schedule-time-${index}`} label={`Hora ${index + 1}`} value={item.time} onChange={(e) => handleAssemblyScheduleChange(index, 'time', e.target.value)} type="time" />
+                  <TechSheetField id={`schedule-time-${index}`} label={`Hora ${index + 1}`} value={item.time} onChange={(e) => handleAssemblyScheduleChange(index, 'time', e.target.value)} type="time" tooltipText="Hora d'inici de l'activitat."/>
                 </div>
                 <div className="col-span-6">
-                  <TechSheetField id={`schedule-desc-${index}`} label={`Descripció ${index + 1}`} value={item.description} onChange={(e) => handleAssemblyScheduleChange(index, 'description', e.target.value)} />
+                  <TechSheetField id={`schedule-desc-${index}`} label={`Descripció ${index + 1}`} value={item.description} onChange={(e) => handleAssemblyScheduleChange(index, 'description', e.target.value)} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
                 </div>
                 <div className="col-span-1 flex-shrink-0 pt-7">
                   <Tooltip text="Eliminar aquesta línia d'horari">
@@ -512,19 +521,27 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
       {/* Logistics */}
       <TechSheetSection title="Logística" layout="grid-3">
-        <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms || ''} onChange={handleChange} placeholder="Ex: SI, 2 camerinos individuals..." />
+        <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms || ''} onChange={handleChange} placeholder="Ex: SI, 2 camerinos individuals..." tooltipText="Especifica les necessitats de camerinos: quantitat, tipus (individuals, col·lectius), i qualsevol requeriment especial."/>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ACTORS:</label>
-          <input type="number" name="actorsNumber" value={formData.actorsNumber || ''} onChange={handleChange} className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" min="0" />
+          <Tooltip text="Nombre total d'actors o artistes que participen.">
+            <input type="number" name="actorsNumber" value={formData.actorsNumber || ''} onChange={handleChange} className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" min="0" />
+          </Tooltip>
           {Number(formData.actorsNumber) > 0 && (
-            <textarea className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} placeholder="Noms dels actors..." name="actors" value={formData.actors || ''} onChange={handleChange} />
+            <Tooltip text="Llista els noms dels actors o artistes.">
+              <textarea className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} placeholder="Noms dels actors..." name="actors" value={formData.actors || ''} onChange={handleChange} />
+            </Tooltip>
           )}
         </div>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">TÈCNICS/PRODUCCIÓ CIA:</label>
-          <input type="number" name="companyTechniciansNumber" value={formData.companyTechniciansNumber || ''} onChange={handleChange} className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" min="0" />
+          <Tooltip text="Nombre total de personal tècnic o de producció de la companyia.">
+            <input type="number" name="companyTechniciansNumber" value={formData.companyTechniciansNumber || ''} onChange={handleChange} className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" min="0" />
+          </Tooltip>
           {Number(formData.companyTechniciansNumber) > 0 && (
-            <textarea className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} placeholder="Noms dels tècnics/producció..." name="companyTechnicians" value={formData.companyTechnicians || ''} onChange={handleChange} />
+            <Tooltip text="Llista els noms del personal tècnic o de producció de la companyia.">
+              <textarea className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} placeholder="Noms dels tècnics/producció..." name="companyTechnicians" value={formData.companyTechnicians || ''} onChange={handleChange} />
+            </Tooltip>
           )}
         </div>
       </TechSheetSection>
@@ -547,8 +564,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
       {/* Other Details */}
       <TechSheetSection title="Altres Detalls">
-        <TechSheetField id="controlLocation" label="CONTROL A:" value={formData.controlLocation || ''} onChange={handleChange} placeholder="Ex: X PLATEA"/>
-        <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints || ''} onChange={handleChange} as="textarea" rows={3} placeholder="Ex: XX x/x/x HORARIS x/x/x"/>
+        <TechSheetField id="controlLocation" label="CONTROL A:" value={formData.controlLocation || ''} onChange={handleChange} placeholder="Ex: X PLATEA" tooltipText="Ubicació del control tècnic (so, llums, etc.). Per exemple: 'Cabina fons platea'."/>
+        <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints || ''} onChange={handleChange} as="textarea" rows={3} placeholder="Ex: XX x/x/x HORARIS x/x/x" tooltipText="Enllaços o referències als plànols tècnics de l'esdeveniment (escenari, llums, etc.)."/>
       </TechSheetSection>
 
       {/* Contacts & Observations */}
@@ -557,10 +574,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">CONTACTES DE LA COMPANYIA:</h4>
           {(formData.contacts || []).map((contact, index) => (
             <div key={contact.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-center p-2 border rounded-md dark:border-gray-600">
-              <div className="col-span-3"><TechSheetField id={`contact-name-${index}`} label="Nom" value={contact.name} onChange={(e) => handleContactChange(index, 'name', e.target.value)} placeholder="Nom del contacte" /></div>
-              <div className="col-span-3"><TechSheetField id={`contact-role-${index}`} label="Càrrec" value={contact.role} onChange={(e) => handleContactChange(index, 'role', e.target.value)} placeholder="Ex: Regidor" /></div>
-              <div className="col-span-3"><TechSheetField id={`contact-email-${index}`} label="Email" type="email" value={contact.email} onChange={(e) => handleContactChange(index, 'email', e.target.value)} placeholder="email@exemple.com" /></div>
-              <div className="col-span-2"><TechSheetField id={`contact-phone-${index}`} label="Telèfon" type="tel" value={contact.phone} onChange={(e) => handleContactChange(index, 'phone', e.target.value)} placeholder="600123456" /></div>
+              <div className="col-span-3"><TechSheetField id={`contact-name-${index}`} label="Nom" value={contact.name} onChange={(e) => handleContactChange(index, 'name', e.target.value)} placeholder="Nom del contacte" tooltipText="Nom i cognoms del contacte."/></div>
+              <div className="col-span-3"><TechSheetField id={`contact-role-${index}`} label="Càrrec" value={contact.role} onChange={(e) => handleContactChange(index, 'role', e.target.value)} placeholder="Ex: Regidor" tooltipText="Càrrec o rol del contacte dins la companyia (p. ex., 'Director Tècnic', 'Producció')."/></div>
+              <div className="col-span-3"><TechSheetField id={`contact-email-${index}`} label="Email" type="email" value={contact.email} onChange={(e) => handleContactChange(index, 'email', e.target.value)} placeholder="email@exemple.com" tooltipText="Correu electrònic del contacte."/></div>
+              <div className="col-span-2"><TechSheetField id={`contact-phone-${index}`} label="Telèfon" type="tel" value={contact.phone} onChange={(e) => handleContactChange(index, 'phone', e.target.value)} placeholder="600123456" tooltipText="Número de telèfon del contacte."/></div>
               <div className="col-span-1 flex items-end justify-center pb-1">
                 <Tooltip text="Eliminar contacte">
                   <button type="button" onClick={() => handleRemoveContact(index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
@@ -575,7 +592,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
           </div>
         </div>
         <div className="col-span-full pt-4">
-          <TechSheetField id="observations" label="ALTRES / OBSERVACIONS:" value={formData.observations || ''} onChange={handleChange} as="textarea" rows={4}/>
+          <TechSheetField id="observations" label="ALTRES / OBSERVACIONS:" value={formData.observations || ''} onChange={handleChange} as="textarea" rows={4} tooltipText="Espai per a qualsevol altra informació, observació o requeriment no cobert en les altres seccions."/>
         </div>
       </TechSheetSection>
 
