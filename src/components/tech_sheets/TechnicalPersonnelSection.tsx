@@ -72,7 +72,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
 
               const toRemove = technicalProviders.flatMap(p =>
                 p.roles
-                  .filter(r => r.assignmentId && !confirmedAssignmentsMap.has(r.assignmentId))
+                  .filter(r => !r.assignmentId || !confirmedAssignmentsMap.has(r.assignmentId!))
                   .map(r => ({ ...r, personGroupId: p.personGroupId }))
               );
 
