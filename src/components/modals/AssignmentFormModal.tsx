@@ -14,7 +14,7 @@ interface AssignmentFormProps {
 }
 
 export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, eventFrame, assignmentToEdit, showToast, setExpandedEventFrameId }) => {
-  const { peopleGroups, addAssignment, updateAssignment } = useEventData();
+  const { peopleGroups, addAssignment, updateAssignment, openModal } = useEventData();
   const [personGroupId, setPersonGroupId] = useState('');
   const [startDate, setStartDate] = useState(eventFrame.startDate);
   const [endDate, setEndDate] = useState(eventFrame.endDate);
@@ -63,11 +63,27 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const performSubmit = (force = false) => {
     if (!validate()) return;
 
-    let result;
+    const handleResult = (result: { success: boolean; message?: string; warningMessage?: string }, isUpdate: boolean) => {
+      if (result.success) {
+        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+          openModal('confirmDuplicate', {
+            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            onConfirm: () => performSubmit(true),
+          });
+        } else {
+          if (result.warningMessage) showToast(result.warningMessage, 'warning');
+          showToast(isUpdate ? "Assignació actualitzada." : "Assignació afegida.", 'success');
+          if (!isUpdate && setExpandedEventFrameId) setExpandedEventFrameId(eventFrame.id);
+          onClose();
+        }
+      } else if (result.message) {
+        showToast(`Error: ${result.message}`, 'error');
+      }
+    };
+
     if (assignmentToEdit) {
       const updatedData: Assignment = {
         ...assignmentToEdit,
@@ -81,24 +97,19 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
         updatedData.dailyStatuses = undefined;
       }
       
-      result = updateAssignment(updatedData);
-      if (result.success) showToast("Assignació actualitzada.", 'success');
+      const result = updateAssignment(updatedData, force);
+      handleResult(result, true);
 
     } else {
       const assignmentData = { personGroupId, startDate, endDate, status, notes };
-      result = addAssignment(eventFrame.id, assignmentData);
-      if (result.success && setExpandedEventFrameId) {
-        showToast("Assignació afegida.", 'success');
-        setExpandedEventFrameId(eventFrame.id);
-      }
+      const result = addAssignment(eventFrame.id, assignmentData, force);
+      handleResult(result, false);
     }
+  };
 
-    if (result.success) {
-      if (result.warningMessage) showToast(result.warningMessage, 'warning');
-      onClose();
-    } else if (result.message) {
-      showToast(`Error: ${result.message}`, 'error');
-    }
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    performSubmit(false);
   };
 
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";

@@ -22,11 +22,13 @@ const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFor
 const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFormModal'));
 
 const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteModal'));
+const ConfirmDuplicateModal = lazy(() => import('./components/modals/ConfirmDuplicateModal'));
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
 const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
 const SelectSyncCalendarModal = lazy(() => import('./components/modals/SelectSyncCalendarModal'));
 const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalendarModal'));
+const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/UpdateFromAssignmentsModal'));
 
 interface ToastState {
   id: string;
@@ -596,6 +598,26 @@ const App: React.FC = () => {
             }}
           />
         );
+      case 'updateFromAssignments':
+        return <UpdateFromAssignmentsModal
+                  onClose={closeModal}
+                  onConfirm={modalState.data!.onConfirm!}
+                  toAdd={modalState.data!.toAdd || []}
+                  toRemove={modalState.data!.toRemove || []}
+                  toUpdate={modalState.data!.toUpdate || []}
+                  getPersonGroupById={eventDataManagerHookResult.getPersonGroupById}
+                />;
+      case 'confirmDuplicate':
+        return <ConfirmDuplicateModal
+                  onClose={closeModal}
+                  onConfirm={() => {
+                    if (modalState.data?.onConfirm) {
+                      (modalState.data.onConfirm as () => void)();
+                    }
+                    closeModal();
+                  }}
+                  message={modalState.data?.message || ''}
+                />;
       default:
         return null;
     }
@@ -613,12 +635,14 @@ const App: React.FC = () => {
       case 'editAssignment': return `Editar Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
       case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
       case 'createAppCalendar': return "Crear Nou Calendari de l'App";
+      case 'confirmDuplicate': return "Conflicte d'Assignació Detectat";
       
       case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
         return "Confirmar Eliminació";
+      case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
       default: return "Diàleg";
     }
   };

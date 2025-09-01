@@ -4,6 +4,8 @@ import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
 import Tooltip from '../ui/Tooltip';
+import { ModalType, ModalData, Assignment } from '../../types';
+import { formatDateDMY } from '../../utils/dateFormat';
 
 interface TechnicalPersonnelSectionProps {
   technicalProviders: TechSheetProvider[];
@@ -17,9 +19,8 @@ interface TechnicalPersonnelSectionProps {
   onRemoveRole: (providerIndex: number, roleIndex: number) => void;
   getPersonGroupById: (id: string) => PersonGroup | undefined;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
-  addOrUpdateTechSheet: (eventId: string, data: any) => void;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-  formData: any;
+  openModal: (type: ModalType, data?: ModalData) => void;
+  onConfirmUpdate: (selectedChanges?: any[]) => void;
 }
 
 const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
@@ -34,11 +35,9 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onRemoveRole,
   getPersonGroupById,
   showToast,
-  addOrUpdateTechSheet,
-  setFormData,
-  formData,
+  openModal,
+  onConfirmUpdate,
 }) => {
-  const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
 
   return (
     <TechSheetSection title="Personal Tècnic"
@@ -48,59 +47,56 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
           <button
             type="button"
             onClick={() => {
-              const confirmedAssignments = eventFrame.assignments.filter((a: any) =>
+              const getAssignmentNotes = (assignment: Assignment) => {
+                let notes = assignment.notes || '';
+                if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
+                  const confirmedDays = Object.entries(assignment.dailyStatuses)
+                    .filter(([, status]) => status === AssignmentStatus.Yes)
+                    .map(([date]) => formatDateDMY(date));
+                  if (confirmedDays.length > 0) {
+                    const daysString = `Dies: ${confirmedDays.join(', ')}`;
+                    notes = notes ? `${notes}\n${daysString}` : daysString;
+                  }
+                }
+                return notes;
+              };
+
+              const confirmedAssignments = eventFrame.assignments.filter((a: Assignment) =>
                 a.status === AssignmentStatus.Yes || (a.status === AssignmentStatus.Mixed && Object.values(a.dailyStatuses || {}).includes(AssignmentStatus.Yes))
               );
 
-              if (confirmedAssignments.length === 0) {
-                showToast('No hi ha personal confirmat a les assignacions per afegir.', 'info');
+              const confirmedAssignmentsMap = new Map(confirmedAssignments.map((a: Assignment) => [a.id, a]));
+              const currentRolesMap = new Map(technicalProviders.flatMap(p => p.roles).filter(r => r.assignmentId).map(r => [r.assignmentId!, r]));
+
+              const toAdd = confirmedAssignments.filter((a: Assignment) => !currentRolesMap.has(a.id));
+
+              const toRemove = technicalProviders.flatMap(p =>
+                p.roles
+                  .filter(r => !r.assignmentId || !confirmedAssignmentsMap.has(r.assignmentId!))
+                  .map(r => ({ ...r, personGroupId: p.personGroupId }))
+              );
+
+              const toUpdate = confirmedAssignments
+                .filter((a: Assignment) => currentRolesMap.has(a.id))
+                .map((a: Assignment) => ({
+                  assignment: a,
+                  currentRole: currentRolesMap.get(a.id)!,
+                  newNotes: getAssignmentNotes(a),
+                }))
+                .filter((item: { newNotes: string; currentRole: { notes?: string } }) => item.newNotes !== item.currentRole.notes);
+
+              if (toAdd.length === 0 && toRemove.length === 0 && toUpdate.length === 0) {
+                showToast('No hi ha canvis per aplicar des de les assignacions.', 'info');
                 return;
               }
 
-              // Preserva proveïdors manuals i elimina els provinents d'assignacions
-              const manualProviders = technicalProviders.filter(p => p.isManual);
-
-              let newRolesCount = 0;
-              const providersFromAssignments: TechSheetProvider[] = [];
-
-              confirmedAssignments.forEach((assignment: any) => {
-                const personGroupId = assignment.personGroupId;
-                let provider = providersFromAssignments.find(p => p.personGroupId === personGroupId);
-
-                if (!provider) {
-                  provider = {
-                    id: generateLocalId(),
-                    personGroupId,
-                    roles: [],
-                    isManual: false,
-                  };
-                  providersFromAssignments.push(provider);
-                }
-
-                provider.roles.push({
-                  id: generateLocalId(),
-                  assignmentId: assignment.id,
-                  role: '',
-                  quantity: 1,
-                  notes: assignment.notes || '',
-                });
-                newRolesCount++;
+              openModal('updateFromAssignments', {
+                toAdd,
+                toRemove,
+                toUpdate,
+                getPersonGroupById,
+                onConfirm: onConfirmUpdate,
               });
-
-              const finalProviders = [...manualProviders, ...providersFromAssignments];
-
-              if (newRolesCount > 0) {
-                const updatedFormData = { ...formData, technicalProviders: finalProviders };
-                setFormData(updatedFormData);
-                addOrUpdateTechSheet(eventFrame.id, updatedFormData);
-                showToast(`S'ha actualitzat la llista amb ${newRolesCount} rol(s) des de les assignacions.`, 'success');
-              } else {
-                // Si no hi ha rols nous, potser només cal netejar els antics
-                const updatedFormData = { ...formData, technicalProviders: manualProviders };
-                setFormData(updatedFormData);
-                addOrUpdateTechSheet(eventFrame.id, updatedFormData);
-                showToast('No hi ha personal confirmat a les assignacions. S\'han eliminat les entrades anteriors.', 'info');
-              }
             }}
             className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-medium shadow no-print"
           >
@@ -145,25 +141,36 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
               <div className="space-y-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-700">
                 {provider.roles.length > 0 && (
                   <div className="flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
-                    <div className="w-1/6">Quant.</div>
-                    <div className="w-2/5">Rol</div>
-                    <div className="w-2/5">Notes assignació</div>
-                    <div className="w-auto flex-shrink-0"></div>
+                    <div className="w-1/12">Quant.</div>
+                    <div className="w-4/12">Rol</div>
+                    <div className="w-5/12">Notes assignació</div>
+                    <div className="w-1/12 text-center">PDF</div>
+                    <div className="w-1/12 flex-shrink-0"></div>
                   </div>
                 )}
 
                 {provider.roles.map((roleItem, roleIndex) => (
                   <div key={roleItem.id} className="flex items-start gap-4 w-full">
-                    <div className="w-1/6">
+                    <div className="w-1/12">
                       <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="" type="number" value={roleItem.quantity} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} />
                     </div>
-                    <div className="w-2/5">
+                    <div className="w-4/12">
                       <TechSheetField id={`role-${providerIndex}-${roleIndex}`} label="" value={roleItem.role} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'role', e.target.value)} suggestions={TECH_SHEET_ROLE_SUGGESTIONS} />
                     </div>
-                    <div className="w-2/5">
+                    <div className="w-5/12">
                       <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="" value={roleItem.notes || ''} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} as="textarea" rows={1} />
                     </div>
-                    <div className="w-auto flex-shrink-0 pt-2">
+                    <div className="w-1/12 flex flex-col items-center pt-2">
+                        <Tooltip text="Incloure aquestes notes al PDF">
+                            <input
+                                type="checkbox"
+                                checked={roleItem.printNotes ?? true}
+                                onChange={(e) => onRoleChange(providerIndex, roleIndex, 'printNotes', e.target.checked)}
+                                className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                        </Tooltip>
+                    </div>
+                    <div className="w-1/12 flex-shrink-0 pt-2">
                       <Tooltip text="Eliminar aquest rol">
                         <button type="button" onClick={() => onRemoveRole(providerIndex, roleIndex)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
                       </Tooltip>

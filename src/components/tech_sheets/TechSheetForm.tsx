@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem } from '../../types';
+import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -8,31 +8,28 @@ import { exportTechSheetToPdf } from '../../utils/pdfGenerator';
 import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';
+import ConditionalFormControl from './ConditionalFormControl';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
 }
 
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
-  const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability } = useEventData();
+  const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability, openModal } = useEventData();
 
   const getInitialFormData = (): TechSheetData => {
-    const data = eventFrame.techSheet!;
-    return data.technicalProviders ? data : { ...data, technicalProviders: [] };
+    return eventFrame.techSheet!;
   };
 
   const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
   const formDataRef = useRef(formData);
-
   const isDirtyRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mantenir la referència sempre actualitzada
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
 
-  // Efecte per actualitzar dades del formulari si l'esdeveniment canvia
   useEffect(() => {
     const newEventName = eventFrame.name;
     const newLocation = eventFrame.place || '';
@@ -45,17 +42,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         currentData.date !== newDate
       ) {
         isDirtyRef.current = true;
-
         return { ...currentData, eventName: newEventName, location: newLocation, date: newDate };
       }
       return currentData;
     });
   }, [eventFrame.name, eventFrame.place, eventFrame.startDate, eventFrame.endDate]);
 
-  // Funció de desat centralitzada
   const saveData = useCallback((isManualSave = false) => {
     if (isDirtyRef.current) {
-      addOrUpdateTechSheet(eventFrame.id, formDataRef.current); // Llegeix de la ref
+      addOrUpdateTechSheet(eventFrame.id, formDataRef.current);
       if (isManualSave) {
         showToast('Canvis desats manualment.', 'success');
       } else {
@@ -65,38 +60,22 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
     }
   }, [addOrUpdateTechSheet, eventFrame.id, showToast]);
 
-
-  // Efecte per al desat automàtic amb temporitzador (debounce)
   useEffect(() => {
     if (isDirtyRef.current) {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      saveTimeoutRef.current = setTimeout(() => {
-        saveData();
-      }, 2000); // Desat automàtic després de 2 segons d'inactivitat
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
     }
-
-    // Funció de neteja per al temporitzador
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, [formData, saveData]);
 
-  // Efecte per al desat de seguretat en desmuntar el component
   useEffect(() => {
     return () => {
-      // Aquest efecte s'activa en canviar d'esdeveniment o desmuntar
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      if (isDirtyRef.current) {
-        saveData();
-      }
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (isDirtyRef.current) saveData();
     };
-  }, [saveData]); // Es manté saveData per coherència
+  }, [saveData]);
 
   if (!formData) {
     return <div>Carregant dades de la fitxa tècnica...</div>;
@@ -104,70 +83,136 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
 
   const markAsDirty = () => {
     isDirtyRef.current = true;
-
   };
 
   const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
 
-  type TechSheetNeedListKey = 'lightingNeeds' | 'soundNeeds' | 'videoNeeds' | 'machineryNeeds';
-  type TechSheetScheduleListKey = 'assemblySchedule';
-  type TechSheetListKey = TechSheetNeedListKey | TechSheetScheduleListKey;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
 
-  const handleListChange = useCallback((listName: string, index: number, field: string, value: any) => {
+    if (type === 'checkbox') {
+        const { checked } = e.target as HTMLInputElement;
+        setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+    }
+    markAsDirty();
+  };
+
+  const handleConditionalChange = (
+    fieldName: keyof TechSheetData,
+    fieldValue: Partial<ConditionalSection<any> | { status: ConditionalStatus }>
+  ) => {
     setFormData(prev => {
-      const newList = [...(prev[listName as TechSheetListKey] as any[])];
-      const currentItem = { ...newList[index] };
-      currentItem[field] = value;
-      
-      if (field === 'description') {
-        const matchedItem = materialItems.find(item => item.name === value);
-        currentItem.materialItemId = matchedItem ? matchedItem.id : null;
+      const currentField = prev[fieldName] as ConditionalSection<any> || { status: 'unset', details: ''};
+      const updatedField = { ...currentField, ...fieldValue };
+
+      if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
+        if (updatedField.data && Array.isArray(updatedField.data.needs)) {
+            updatedField.data.needs = [];
+        }
+        if (fieldName === 'schedule' && updatedField.data) {
+          updatedField.data = [];
+        }
       }
 
-      newList[index] = currentItem;
-      return { ...prev, [listName]: newList };
+      return { ...prev, [fieldName]: updatedField };
+    });
+    markAsDirty();
+  };
+
+  type TechSheetNeedsKey = 'lighting' | 'sound' | 'video' | 'machinery' | 'rentals' | 'otherEquipment' | 'electrical' | 'structures' | 'platforms' | 'consumables' | 'curtains' | 'transport';
+
+  const handleNeedsListChange = useCallback((sectionName: TechSheetNeedsKey, index: number, field: string, value: any) => {
+    setFormData(prev => {
+        const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+        const newNeeds = [...(section?.data?.needs || [])];
+        const currentItem = { ...newNeeds[index] };
+        (currentItem as any)[field] = value;
+
+        if (field === 'description') {
+            const matchedItem = materialItems.find(item => item.name === value);
+            currentItem.materialItemId = matchedItem ? matchedItem.id : null;
+        }
+
+        newNeeds[index] = currentItem;
+        const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+
+        return { ...prev, [sectionName]: updatedSection };
     });
     markAsDirty();
   }, [materialItems]);
-  
-  const handleRemoveListItem = useCallback((listName: string, index: number) => {
-    const newList = (formData[listName as TechSheetListKey] as any[]).filter((_, i) => i !== index);
-    const updatedFormData = { ...formData, [listName]: newList };
-    setFormData(updatedFormData);
-    markAsDirty();
-  }, [formData]);
-  
-  const handleAddListItem = useCallback((listName: string) => {
-    let newItem: any;
-    switch (listName) {
-      case 'assemblySchedule':
-        newItem = { id: generateLocalId(), time: '', description: '' };
-        break;
-      case 'lightingNeeds':
-      case 'soundNeeds':
-      case 'videoNeeds':
-      case 'machineryNeeds':
-        newItem = { id: generateLocalId(), quantity: 1, description: '', origin: '' };
-        break;
-      default:
-        return;
-    }
-    setFormData(prev => ({
-      ...prev,
-      [listName]: [...(prev[listName as TechSheetListKey] as any[]), newItem],
-    }));
+
+  const handleRemoveNeedsListItem = useCallback((sectionName: TechSheetNeedsKey, index: number) => {
+    setFormData(prev => {
+        const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+        const newNeeds = (section?.data?.needs || []).filter((_, i) => i !== index);
+        const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+        return { ...prev, [sectionName]: updatedSection };
+    });
     markAsDirty();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleAddNeedsListItem = useCallback((sectionName: TechSheetNeedsKey) => {
+    const newItem: NeedItem = { id: generateLocalId(), quantity: 1, description: '', origin: '' };
+    setFormData(prev => {
+        const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+        const newNeeds = [...(section?.data?.needs || []), newItem];
+        const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+        return { ...prev, [sectionName]: updatedSection };
+    });
+    markAsDirty();
+  }, []);
+
+  const handleAssemblyScheduleChange = (index: number, field: keyof AssemblyScheduleItem, value: string) => {
+    setFormData(prev => {
+        const newSchedule = [...(prev.schedule?.data || [])];
+        newSchedule[index] = { ...newSchedule[index], [field]: value };
+        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
+    });
+    markAsDirty();
+  };
+
+  const handleAddAssemblyScheduleItem = () => {
+    const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: '', time: '', description: '' };
+    setFormData(prev => {
+        const newSchedule = [...(prev.schedule?.data || []), newItem];
+        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
+    });
+    markAsDirty();
+  };
+
+  const handleRemoveAssemblyScheduleItem = (index: number) => {
+    setFormData(prev => {
+        const newSchedule = (prev.schedule?.data || []).filter((_, i) => i !== index);
+        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
+    });
+    markAsDirty();
+  };
+
+  const handleContactChange = (index: number, field: keyof ContactPerson, value: string) => {
+    setFormData(prev => {
+        const newContacts = [...(prev.contacts || [])];
+        newContacts[index] = { ...newContacts[index], [field]: value };
+        return { ...prev, contacts: newContacts };
+    });
+    markAsDirty();
+  };
+
+  const handleAddContact = () => {
+    const newContact: ContactPerson = { id: generateLocalId(), name: '', role: '', email: '', phone: '' };
+    setFormData(prev => ({ ...prev, contacts: [...(prev.contacts || []), newContact] }));
+    markAsDirty();
+  };
+
+  const handleRemoveContact = (index: number) => {
+    setFormData(prev => ({ ...prev, contacts: (prev.contacts || []).filter((_, i) => i !== index) }));
     markAsDirty();
   };
 
   const handleProviderChange = useCallback((providerIndex: number, personGroupId: string) => {
     setFormData(prev => {
-      const newProviders = [...prev.technicalProviders];
+      const newProviders = [...(prev.technicalProviders || [])];
       newProviders[providerIndex].personGroupId = personGroupId;
       return { ...prev, technicalProviders: newProviders };
     });
@@ -178,9 +223,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
     const finalValue = (field === 'role' && typeof value === 'string' && value.includes(': '))
       ? value.split(': ')[1]
       : value;
-
     setFormData(prev => {
-      const newProviders = [...prev.technicalProviders];
+      const newProviders = [...(prev.technicalProviders || [])];
       const newRoles = [...newProviders[providerIndex].roles];
       newRoles[roleIndex] = { ...newRoles[roleIndex], [field]: finalValue };
       newProviders[providerIndex].roles = newRoles;
@@ -190,31 +234,20 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   }, []);
 
   const handleAddProvider = useCallback(() => {
-    const newProvider: TechSheetProvider = {
-      id: generateLocalId(),
-      personGroupId: '',
-      roles: [],
-      isManual: true, // Marcar com a manual
-    };
-    setFormData(prev => ({ ...prev, technicalProviders: [...prev.technicalProviders, newProvider] }));
+    const newProvider: TechSheetProvider = { id: generateLocalId(), personGroupId: '', roles: [], isManual: true };
+    setFormData(prev => ({ ...prev, technicalProviders: [...(prev.technicalProviders || []), newProvider] }));
     markAsDirty();
   }, []);
 
   const handleRemoveProvider = useCallback((providerIndex: number) => {
-    const updatedProviders = formData.technicalProviders.filter((_, i) => i !== providerIndex);
-    setFormData(prev => ({ ...prev, technicalProviders: updatedProviders }));
+    setFormData(prev => ({ ...prev, technicalProviders: (prev.technicalProviders || []).filter((_, i) => i !== providerIndex) }));
     markAsDirty();
-  }, [formData]);
-  
+  }, []);
+
   const handleAddRole = useCallback((providerIndex: number) => {
-    const newRole: TechSheetRoleItem = {
-      id: generateLocalId(),
-      role: '',
-      quantity: 1,
-      notes: '',
-    };
+    const newRole: TechSheetRoleItem = { id: generateLocalId(), role: '', quantity: 1, notes: '', printNotes: true };
     setFormData(prev => {
-      const newProviders = [...prev.technicalProviders];
+      const newProviders = [...(prev.technicalProviders || [])];
       newProviders[providerIndex].roles.push(newRole);
       return { ...prev, technicalProviders: newProviders };
     });
@@ -222,18 +255,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   }, []);
 
   const handleRemoveRole = useCallback((providerIndex: number, roleIndex: number) => {
-    const updatedProviders = [...formData.technicalProviders];
-    updatedProviders[providerIndex].roles = updatedProviders[providerIndex].roles.filter((_, i) => i !== roleIndex);
-    setFormData({ ...formData, technicalProviders: updatedProviders });
+    setFormData(prev => {
+      const newProviders = [...(prev.technicalProviders || [])];
+      newProviders[providerIndex].roles = newProviders[providerIndex].roles.filter((_, i) => i !== roleIndex);
+      return { ...prev, technicalProviders: newProviders };
+    });
     markAsDirty();
-  }, [formData]);
+  }, []);
 
   const handleManualSave = () => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null; // Important: netejar la referència
+      saveTimeoutRef.current = null;
     }
-    // Només desar si hi ha canvis pendents
     if (isDirtyRef.current) {
       saveData(true);
     } else {
@@ -244,30 +278,124 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   const handleExportToPdf = () => {
     if (isDirtyRef.current) {
         showToast('Desant canvis pendents abans d\'exportar...', 'info');
-        saveData(true); // Desa immediatament abans d'exportar
+        saveData(true);
     }
     exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
   };
 
+  const handleConfirmUpdateFromAssignments = (selectedChanges?: any[]) => {
+    if (!selectedChanges || selectedChanges.length === 0) {
+      showToast('No s\'ha seleccionat cap canvi per aplicar.', 'info');
+      return;
+    }
+
+    const toAdd = selectedChanges.filter(c => c.type === 'add').map(c => c.data);
+    const toUpdate = selectedChanges.filter(c => c.type === 'update').map(c => c.data);
+    const toRemoveIds = new Set(selectedChanges.filter(c => c.type === 'remove').map(c => c.data.id));
+
+    setFormData(prev => {
+      let newProviders = [...(prev.technicalProviders || [])];
+
+      // 1. Process removals
+      newProviders = newProviders.map(p => ({
+        ...p,
+        roles: p.roles.filter(r => !toRemoveIds.has(r.id)),
+      })).filter(p => p.roles.length > 0 || p.isManual);
+
+      // 2. Process updates
+      toUpdate.forEach(update => {
+        const provider = newProviders.find(p => p.roles.some(r => r.id === update.currentRole.id));
+        if (provider) {
+          provider.roles = provider.roles.map(r =>
+            r.id === update.currentRole.id ? { ...r, notes: update.newNotes } : r
+          );
+        }
+      });
+
+      // 3. Process additions
+      toAdd.forEach(assignment => {
+        const personGroupId = assignment.personGroupId;
+        let provider = newProviders.find(p => p.personGroupId === personGroupId);
+
+        if (!provider) {
+          provider = {
+            id: generateLocalId(),
+            personGroupId,
+            roles: [],
+            isManual: false,
+          };
+          newProviders.push(provider);
+        }
+
+        let notes = assignment.notes || '';
+        if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
+          const confirmedDays = Object.entries(assignment.dailyStatuses)
+            .filter(([, status]) => status === AssignmentStatus.Yes)
+            .map(([date]) => formatDateDMY(date));
+
+          if (confirmedDays.length > 0) {
+            const daysString = `Dies: ${confirmedDays.join(', ')}`;
+            notes = notes ? `${notes}\n${daysString}` : daysString;
+          }
+        }
+
+        provider.roles.push({
+          id: generateLocalId(),
+          assignmentId: assignment.id,
+          role: '',
+          quantity: 1,
+          notes: notes,
+        });
+      });
+
+      return { ...prev, technicalProviders: newProviders };
+    });
+
+    markAsDirty();
+    showToast(`${selectedChanges.length} canvi(s) aplicat(s) des de les assignacions.`, 'success');
+  };
+
+  const renderNeedsSection = (title: string, fieldName: TechSheetNeedsKey) => (
+    <ConditionalFormControl
+      label={`${title}:`}
+      status={formData[fieldName]?.status || 'unset'}
+      onStatusChange={(status) => handleConditionalChange(fieldName, { status })}
+    >
+      <TechSheetField
+        id={`${fieldName}Details`}
+        label={`Detalls generals de ${title.toLowerCase()}:`}
+        value={formData[fieldName]?.details || ''}
+        onChange={(e) => handleConditionalChange(fieldName, { details: e.target.value })}
+        as="textarea"
+        rows={2}
+      />
+      <NeedsList
+        needs={formData[fieldName]?.data?.needs || []}
+        title={`Material de ${title.toLowerCase()}`}
+        listName={fieldName}
+        onListChange={handleNeedsListChange as any}
+        onRemoveListItem={handleRemoveNeedsListItem as any}
+        onAddListItem={handleAddNeedsListItem as any}
+        materialItems={materialItems}
+        eventFrame={eventFrame}
+        getMaterialAvailability={getMaterialAvailability}
+      />
+    </ConditionalFormControl>
+  );
+
   return (
     <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow space-y-4 tech-sheet-form-container">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           Fitxa de Bolo: <span className="text-blue-600 dark:text-blue-400">{eventFrame.name}</span>
         </h2>
         <div className="flex items-center gap-2">
             <Tooltip text="Forçar el desat immediat de tots els canvis pendents">
-              <button
-                  onClick={handleManualSave}
-                  className="save-changes-button px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print"
-              >
-                  Desar Canvis
-              </button>
+              <button onClick={handleManualSave} className="save-changes-button px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print">Desar Canvis</button>
             </Tooltip>
             <Tooltip text="Generar i descarregar un PDF amb la fitxa tècnica actual">
-              <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">
-                  Exportar a PDF
-              </button>
+              <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">Exportar a PDF</button>
             </Tooltip>
         </div>
       </div>
@@ -275,44 +403,45 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         <p className="text-sm text-gray-500 dark:text-gray-400">Edita els detalls tècnics de l'esdeveniment. Els canvis es desen automàticament.</p>
       </div>
 
-      <TechSheetSection title="Informació General" layout="single-column">
+      {/* General Info */}
+      <TechSheetSection title="Informació General" layout="grid-2">
         <TechSheetField id="eventName" label="NOM DEL ESDEVENIMENT:" value={formData.eventName} onChange={handleChange} required />
         <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} />
         <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} />
         <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} type="time" />
         <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} placeholder="XX min" />
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ZONA RESERVADA PARKING:</label>
-          <select
-            value={formData.parkingInfo?.startsWith('SI') ? 'SI' : (formData.parkingInfo?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => ({ ...prev, parkingInfo: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.parkingInfo?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls de la zona de parking..."
-              value={formData.parkingInfo.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, parkingInfo: `SI: ${e.target.value}` }));
-                markAsDirty();
-              }}
-            />
-          )}
+        <div className="col-span-full">
+            <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals</label>
+                <div className="flex items-center gap-2">
+                    <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                    <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                </div>
+            </div>
+            <textarea id="generalNotes" name="generalNotes" value={formData.generalNotes || ''} onChange={handleChange} rows={3} className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+        </div>
+        <div className="col-span-full -mb-3">
+            <ConditionalFormControl
+                label="ZONA RESERVADA PARKING:"
+                status={formData.parking?.status || 'unset'}
+                onStatusChange={(status) => handleConditionalChange('parking', { status })}
+            >
+                <TechSheetField
+                    id="parkingDetails"
+                    label="Detalls de la zona de parking:"
+                    value={formData.parking?.details || ''}
+                    onChange={(e) => handleConditionalChange('parking', { details: e.target.value })}
+                    as="textarea"
+                    rows={2}
+                    placeholder="On, quantes places, contacte..."
+                />
+            </ConditionalFormControl>
         </div>
       </TechSheetSection>
 
+      {/* Personnel */}
       <TechnicalPersonnelSection
-        technicalProviders={formData.technicalProviders}
+        technicalProviders={formData.technicalProviders || []}
         peopleGroups={peopleGroups}
         eventFrame={eventFrame}
         onProviderChange={handleProviderChange}
@@ -323,295 +452,131 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         onRemoveRole={handleRemoveRole}
         getPersonGroupById={getPersonGroupById}
         showToast={showToast}
-        addOrUpdateTechSheet={addOrUpdateTechSheet}
-        setFormData={setFormData}
-        formData={formData}
+        openModal={openModal}
+        onConfirmUpdate={handleConfirmUpdateFromAssignments}
       />
 
-      <TechSheetSection title="Premuntatge i Horaris">
-        <div className="mb-2 col-span-full">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">PREMUNTATGE:</label>
-          <select
-            value={formData.preAssemblySchedule?.startsWith('SI') ? 'SI' : (formData.preAssemblySchedule?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => {
-                if (val === 'NO' || val === '') {
-                  return { ...prev, preAssemblySchedule: val, assemblySchedule: [] };
-                }
-                return { ...prev, preAssemblySchedule: 'SI: ' };
-              });
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.preAssemblySchedule?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls premuntatge, personal, horaris..."
-              value={formData.preAssemblySchedule.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, preAssemblySchedule: `SI: ${e.target.value}` }));
-                markAsDirty();
-              }}
-            />
-          )}
-        </div>
-        
-        {formData.preAssemblySchedule?.startsWith('SI') && (
-          <div className="col-span-full space-y-2">
-            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 -mb-1">HORARIS DETALLATS:</h4>
-            {formData.assemblySchedule.map((item, index) => (
-              <div key={item.id} className="flex items-start gap-2 w-full">
-                <div className="w-1/4">
-                  <TechSheetField
-                    id={`schedule-time-${index}`}
-                    label={`Hora ${index + 1}`}
-                    value={item.time}
-                    onChange={(e) => handleListChange('assemblySchedule', index, 'time', e.target.value)}
-                    type="time"
-                  />
+      {/* Pre-assembly */}
+      <TechSheetSection title="Premuntatge">
+        <ConditionalFormControl
+          label="PREMUNTATGE:"
+          status={formData.preAssembly?.status || 'unset'}
+          onStatusChange={(status) => handleConditionalChange('preAssembly', { status })}
+        >
+          <TechSheetField
+            id="preAssemblyDetails"
+            label="Detalls premuntatge, personal, etc:"
+            value={formData.preAssembly?.details || ''}
+            onChange={(e) => handleConditionalChange('preAssembly', { details: e.target.value })}
+            as="textarea"
+            rows={2}
+            placeholder="Descripció general del premuntatge..."
+          />
+        </ConditionalFormControl>
+      </TechSheetSection>
+
+      {/* Schedule */}
+      <TechSheetSection title="Horaris">
+        <ConditionalFormControl
+          label="HORARIS:"
+          status={formData.schedule?.status || 'unset'}
+          onStatusChange={(status) => handleConditionalChange('schedule', { status })}
+        >
+          <div className="col-span-full space-y-2 mt-4">
+            {(formData.schedule?.data || []).map((item, index) => (
+              <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
+                <div className="col-span-3">
+                  <TechSheetField id={`schedule-date-${index}`} label={`Data ${index + 1}`} value={item.date} onChange={(e) => handleAssemblyScheduleChange(index, 'date', e.target.value)} type="date" />
                 </div>
-                <div className="w-3/4">
-                  <TechSheetField
-                    id={`schedule-desc-${index}`}
-                    label={`Descripció ${index + 1}`}
-                    value={item.description}
-                    onChange={(e) => handleListChange('assemblySchedule', index, 'description', e.target.value)}
-                  />
+                <div className="col-span-2">
+                  <TechSheetField id={`schedule-time-${index}`} label={`Hora ${index + 1}`} value={item.time} onChange={(e) => handleAssemblyScheduleChange(index, 'time', e.target.value)} type="time" />
                 </div>
-                <div className="w-auto flex-shrink-0 pt-7">
+                <div className="col-span-6">
+                  <TechSheetField id={`schedule-desc-${index}`} label={`Descripció ${index + 1}`} value={item.description} onChange={(e) => handleAssemblyScheduleChange(index, 'description', e.target.value)} />
+                </div>
+                <div className="col-span-1 flex-shrink-0 pt-7">
                   <Tooltip text="Eliminar aquesta línia d'horari">
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveListItem('assemblySchedule', index)}
-                      className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
-                    >
-                      ×
-                    </button>
+                    <button type="button" onClick={() => handleRemoveAssemblyScheduleItem(index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
                   </Tooltip>
                 </div>
               </div>
             ))}
             <div className="mt-2 no-print">
               <Tooltip text="Afegir una nova línia a la planificació d'horaris">
-                <button
-                  type="button"
-                  onClick={() => handleAddListItem('assemblySchedule')}
-                  className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
-                >
-                  + Afegir Ítem Horari
-                </button>
+                <button type="button" onClick={handleAddAssemblyScheduleItem} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Ítem Horari</button>
               </Tooltip>
             </div>
           </div>
-        )}
-        
+        </ConditionalFormControl>
       </TechSheetSection>
 
-      <TechSheetSection title="Logística">
-        <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms} onChange={handleChange} placeholder="Ex: SI X"/>
+      {/* Logistics */}
+      <TechSheetSection title="Logística" layout="grid-3">
+        <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms || ''} onChange={handleChange} placeholder="Ex: SI, 2 camerinos individuals..." />
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ACTORS:</label>
-          <select
-            value={formData.actorsNumber || ''}
-            onChange={e => {
-              const val = parseInt(e.target.value, 10);
-              setFormData(prev => ({ ...prev, actorsNumber: val, actors: val > 0 ? prev.actors : '' }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-24 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
+          <input type="number" name="actorsNumber" value={formData.actorsNumber || ''} onChange={handleChange} className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" min="0" />
           {Number(formData.actorsNumber) > 0 && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Noms dels actors..."
-              value={formData.actors || ''}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, actors: e.target.value }));
-                markAsDirty();
-              }}
-            />
+            <textarea className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} placeholder="Noms dels actors..." name="actors" value={formData.actors || ''} onChange={handleChange} />
           )}
         </div>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">TÈCNICS/PRODUCCIÓ CIA:</label>
-          <select
-            value={formData.companyTechniciansNumber || ''}
-            onChange={e => {
-              const val = parseInt(e.target.value, 10);
-              setFormData(prev => ({ ...prev, companyTechniciansNumber: val, companyTechnicians: val > 0 ? prev.companyTechnicians : '' }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-24 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            {[...Array(21).keys()].map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
+          <input type="number" name="companyTechniciansNumber" value={formData.companyTechniciansNumber || ''} onChange={handleChange} className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" min="0" />
           {Number(formData.companyTechniciansNumber) > 0 && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Noms dels tècnics/producció..."
-              value={formData.companyTechnicians || ''}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, companyTechnicians: e.target.value }));
-                markAsDirty();
-              }}
-            />
+            <textarea className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} placeholder="Noms dels tècnics/producció..." name="companyTechnicians" value={formData.companyTechnicians || ''} onChange={handleChange} />
           )}
         </div>
       </TechSheetSection>
 
+      {/* Technical Needs */}
       <TechSheetSection title="Necessitats Tècniques">
-        <NeedsList
-          needs={formData.lightingNeeds}
-          title="Il·luminació"
-          listName="lightingNeeds"
-          materialItems={materialItems}
-          eventFrame={eventFrame}
-          onListChange={handleListChange}
-          onRemoveListItem={handleRemoveListItem}
-          onAddListItem={handleAddListItem}
-          getMaterialAvailability={getMaterialAvailability}
-        />
-        <NeedsList
-          needs={formData.soundNeeds}
-          title="So"
-          listName="soundNeeds"
-          materialItems={materialItems}
-          eventFrame={eventFrame}
-          onListChange={handleListChange}
-          onRemoveListItem={handleRemoveListItem}
-          onAddListItem={handleAddListItem}
-          getMaterialAvailability={getMaterialAvailability}
-        />
-        <div className="col-span-full mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">VÍDEO:</label>
-          <select value={formData.videoDetails?.startsWith('SI') ? 'SI' : (formData.videoDetails?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => {
-                if (val === 'NO' || val === '') {
-                  return { ...prev, videoDetails: val, videoNeeds: [] };
-                }
-                return { ...prev, videoDetails: 'SI: ' };
-              });
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.videoDetails?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2} placeholder="Detalls generals de vídeo..." value={formData.videoDetails.replace(/^SI:?\s*/, '')}
-              onChange={e => { setFormData(prev => ({ ...prev, videoDetails: `SI: ${e.target.value}` })); markAsDirty(); }}
-            />
-          )}
-        </div>
-        {formData.videoDetails?.startsWith('SI') && (
-          <NeedsList
-            needs={formData.videoNeeds}
-            title="Vídeo"
-            listName="videoNeeds"
-            materialItems={materialItems}
-            eventFrame={eventFrame}
-            onListChange={handleListChange}
-            onRemoveListItem={handleRemoveListItem}
-            onAddListItem={handleAddListItem}
-            getMaterialAvailability={getMaterialAvailability}
-          />
-        )}
-        <NeedsList
-          needs={formData.machineryNeeds}
-          title="Maquinària"
-          listName="machineryNeeds"
-          materialItems={materialItems}
-          eventFrame={eventFrame}
-          onListChange={handleListChange}
-          onRemoveListItem={handleRemoveListItem}
-          onAddListItem={handleAddListItem}
-          getMaterialAvailability={getMaterialAvailability}
-        />
-      </TechSheetSection>
-      
-      <TechSheetSection title="Altres Detalls">
-        <TechSheetField id="controlLocation" label="CONTROL A:" value={formData.controlLocation} onChange={handleChange} placeholder="Ex: X PLATEA"/>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">MATERIAL D’ALTRES EQUIPAMENTS:</label>
-          <select
-            value={formData.otherEquipment?.startsWith('SI') ? 'SI' : (formData.otherEquipment?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => ({ ...prev, otherEquipment: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.otherEquipment?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls del material d’altres equipaments..."
-              value={formData.otherEquipment.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, otherEquipment: `SI: ${e.target.value}` }));
-                markAsDirty();
-              }}
-            />
-          )}
-        </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">LLOGUERS:</label>
-          <select
-            value={formData.rentals?.startsWith('SI') ? 'SI' : (formData.rentals?.startsWith('NO') ? 'NO' : '')}
-            onChange={e => {
-              const val = e.target.value;
-              setFormData(prev => ({ ...prev, rentals: val === 'NO' ? 'NO' : (val === 'SI' ? 'SI: ' : '') }));
-              markAsDirty();
-            }}
-            className="mt-1 block w-32 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">--</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-          {formData.rentals?.startsWith('SI') && (
-            <textarea
-              className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={2}
-              placeholder="Detalls dels lloguers..."
-              value={formData.rentals.replace(/^SI:?\s*/, '')}
-              onChange={e => {
-                setFormData(prev => ({ ...prev, rentals: `SI: ${e.target.value}` }));
-                markAsDirty();
-              }}
-            />
-          )}
-        </div>
-        <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints} onChange={handleChange} as="textarea" rows={3} placeholder="Ex: XX x/x/x HORARIS x/x/x"/>
+        {renderNeedsSection('Il·luminació', 'lighting')}
+        {renderNeedsSection('So', 'sound')}
+        {renderNeedsSection('Vídeo', 'video')}
+        {renderNeedsSection('Maquinària', 'machinery')}
+        {renderNeedsSection('Lloguers', 'rentals')}
+        {renderNeedsSection('Material d\'Altres Equipaments', 'otherEquipment')}
+        {renderNeedsSection('Infraestructures Elèctriques', 'electrical')}
+        {renderNeedsSection('Estructures', 'structures')}
+        {renderNeedsSection('Tarimes', 'platforms')}
+        {renderNeedsSection('Consumibles', 'consumables')}
+        {renderNeedsSection('Cortinatges', 'curtains')}
+        {renderNeedsSection('Transport', 'transport')}
       </TechSheetSection>
 
+      {/* Other Details */}
+      <TechSheetSection title="Altres Detalls">
+        <TechSheetField id="controlLocation" label="CONTROL A:" value={formData.controlLocation || ''} onChange={handleChange} placeholder="Ex: X PLATEA"/>
+        <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints || ''} onChange={handleChange} as="textarea" rows={3} placeholder="Ex: XX x/x/x HORARIS x/x/x"/>
+      </TechSheetSection>
+
+      {/* Contacts & Observations */}
       <TechSheetSection title="Contacte i Observacions">
-        <TechSheetField id="companyContact" label="PERSONA DE CONTACTE COMPANYIA:" value={formData.companyContact} onChange={handleChange} />
-        <TechSheetField id="observations" label="ALTRES / OBSERVACIONS:" value={formData.observations} onChange={handleChange} as="textarea" rows={4}/>
+        <div className="col-span-full space-y-3">
+          <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">CONTACTES DE LA COMPANYIA:</h4>
+          {(formData.contacts || []).map((contact, index) => (
+            <div key={contact.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-center p-2 border rounded-md dark:border-gray-600">
+              <div className="col-span-3"><TechSheetField id={`contact-name-${index}`} label="Nom" value={contact.name} onChange={(e) => handleContactChange(index, 'name', e.target.value)} placeholder="Nom del contacte" /></div>
+              <div className="col-span-3"><TechSheetField id={`contact-role-${index}`} label="Càrrec" value={contact.role} onChange={(e) => handleContactChange(index, 'role', e.target.value)} placeholder="Ex: Regidor" /></div>
+              <div className="col-span-3"><TechSheetField id={`contact-email-${index}`} label="Email" type="email" value={contact.email} onChange={(e) => handleContactChange(index, 'email', e.target.value)} placeholder="email@exemple.com" /></div>
+              <div className="col-span-2"><TechSheetField id={`contact-phone-${index}`} label="Telèfon" type="tel" value={contact.phone} onChange={(e) => handleContactChange(index, 'phone', e.target.value)} placeholder="600123456" /></div>
+              <div className="col-span-1 flex items-end justify-center pb-1">
+                <Tooltip text="Eliminar contacte">
+                  <button type="button" onClick={() => handleRemoveContact(index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
+                </Tooltip>
+              </div>
+            </div>
+          ))}
+          <div className="mt-2 no-print">
+            <Tooltip text="Afegir un nou contacte">
+              <button type="button" onClick={handleAddContact} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Contacte</button>
+            </Tooltip>
+          </div>
+        </div>
+        <div className="col-span-full pt-4">
+          <TechSheetField id="observations" label="ALTRES / OBSERVACIONS:" value={formData.observations || ''} onChange={handleChange} as="textarea" rows={4}/>
+        </div>
       </TechSheetSection>
 
     </div>

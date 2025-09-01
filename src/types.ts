@@ -29,78 +29,119 @@ export interface Assignment {
   };
 }
 
-// <<< NOVES INTERFÍCIES PER A LA FITXA TÈCNICA (Tech Sheet) >>>
+// --- Tech Sheet Interfaces ---
 
-export interface TechSheetRoleItem {
-  id: string; // ID únic per a la clau de React
-  assignmentId?: string; // ID de l'assignació original
-  role: string;
-  quantity: number | string; // Permetem string per a l'entrada de text
-  notes?: string;
+export type ConditionalStatus = 'yes' | 'no' | 'unset';
+
+export interface ConditionalSection<T extends object = {}> {
+  status: ConditionalStatus;
+  details: string;
+  data?: T;
 }
 
-export interface TechSheetProvider {
-  id: string; // ID únic per a la clau de React
-  personGroupId: string; // Enllaç al PersonGroup (empresa o autònom)
-  roles: TechSheetRoleItem[]; // Llista de rols que proporciona
-  isManual?: boolean; // Per identificar proveïdors afegits manualment
-}
-
-export interface TechSheetScheduleItem {
+export interface AssemblyScheduleItem {
   id: string;
+  date: string;
   time: string;
   description: string;
 }
 
-export interface TechSheetNeed {
+export interface NeedItem {
   id: string;
-  materialItemId?: string | null; // ID de l'ítem de material de l'inventari
+  materialItemId?: string | null;
   quantity: number | string;
   description: string;
-  origin: string; // <<< CANVIAT: Ara és un string lliure
+  origin: string;
+}
+
+export interface ContactPerson {
+  id: string;
+  name: string;
+  role: string;
+  phone: string;
+  email: string;
+}
+
+export interface TechSheetRoleItem {
+  id: string;
+  assignmentId?: string;
+  role: string;
+  quantity: number | string;
+  notes?: string;
+  printNotes?: boolean;
+}
+
+export interface TechSheetProvider {
+  id:string;
+  personGroupId: string;
+  roles: TechSheetRoleItem[];
+  isManual?: boolean;
 }
 
 export interface TechSheetData {
-  // Secció General
+  // Original fields that must be present
   eventName: string;
   location: string;
   date: string;
   showTime: string;
   showDuration: string;
-  parkingInfo: string;
-  
-  // Secció Personal
   technicalProviders: TechSheetProvider[];
+
+  // --- NEW FIELDS (optional for backwards compatibility) ---
+  generalNotes?: string;
+  parking?: ConditionalSection;
+
+  // Sections
+  preAssembly?: ConditionalSection;
+  schedule?: ConditionalSection<AssemblyScheduleItem[]>;
+  logistics?: ConditionalSection; // To group logistics fields
+
+  // Logistics fields (will be inside logistics object in the future)
+  dressingRooms?: string;
+  actorsNumber?: number | string;
+  actors?: string;
+  companyTechniciansNumber?: number | string;
+  companyTechnicians?: string;
+
+  // Technical Needs
+  lighting?: ConditionalSection<{ needs: NeedItem[] }>;
+  sound?: ConditionalSection<{ needs: NeedItem[] }>;
+  video?: ConditionalSection<{ needs: NeedItem[] }>;
+  machinery?: ConditionalSection<{ needs: NeedItem[] }>;
+  rentals?: ConditionalSection<{ needs: NeedItem[] }>;
+  otherEquipment?: ConditionalSection<{ needs: NeedItem[] }>;
+  electrical?: ConditionalSection<{ needs: NeedItem[] }>;
+  structures?: ConditionalSection<{ needs: NeedItem[] }>;
+  platforms?: ConditionalSection<{ needs: NeedItem[] }>;
+  consumables?: ConditionalSection<{ needs: NeedItem[] }>;
+  curtains?: ConditionalSection<{ needs: NeedItem[] }>;
+  transport?: ConditionalSection<{ needs: NeedItem[] }>;
   
-  // Secció Horaris
-  preAssemblySchedule: string;
-  assemblySchedule: TechSheetScheduleItem[];
-  
-  // Secció Logística
-  dressingRooms: string;
-  actors: string;
-  /** Nombre d'actors (selector numèric al formulari) */
-  actorsNumber?: number;
-  companyTechnicians: string;
-  /** Nombre de tècnics/producció de companyia (selector numèric al formulari) */
-  companyTechniciansNumber?: number;
-  
-  // Seccions de Necessitats Tècniques
-  lightingNeeds: TechSheetNeed[];
-  soundNeeds: TechSheetNeed[];
-  videoNeeds: TechSheetNeed[]; // Llista de necessitats específiques de vídeo
-  videoDetails?: string; // Camp de text per a notes generals de vídeo (ex: "NO", o descripció si no hi ha ítems)
-  machineryNeeds: TechSheetNeed[];
-  
-  // Altres seccions
-  controlLocation: string;
-  otherEquipment: string;
-  rentals: string;
-  blueprints: string;
-  companyContact: string;
-  observations: string;
+  // Other Details
+  controlLocation?: string;
+  blueprints?: string;
+
+  // Contacts and Observations
+  contacts?: ContactPerson[];
+  observations?: string;
+
+  // PDF Visibility
+  showLogistics?: boolean;
+  showPreAssembly?: boolean;
+  showSchedule?: boolean;
+  showNeeds?: boolean;
+  showOther?: boolean;
+  showGeneralNotesInPdf?: boolean;
+
+  // Legacy fields that might exist in old data
+  parkingInfo?: string;
+  preAssemblySchedule?: string;
+  assemblySchedule?: any[];
+  videoDetails?: string;
+  companyContact?: string;
+
+  [key: string]: any;
 }
-// <<< FI DE LES NOVES INTERFÍCIES >>>
 
 
 export interface EventFrame {
@@ -116,7 +157,7 @@ export interface EventFrame {
   googleCalendarId?: string;
   lastModified?: string;
   lastSync?: string;
-  techSheet?: TechSheetData; // <<< CAMP AFEGIT
+  techSheet?: TechSheetData;
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;
@@ -187,9 +228,17 @@ export type ModalType =
   | 'mergeOrReplace'
   | 'selectSyncCalendar'
   | 'createAppCalendar'
+  | 'confirmDataRepair'
+  | 'confirmDuplicate'
+  | 'updateFromAssignments'
   | null;
 
 export interface ModalData {
+    toAdd?: Assignment[];
+    toRemove?: (TechSheetRoleItem & { personGroupId: string })[];
+    toUpdate?: { assignment: Assignment; currentRole: TechSheetRoleItem; newNotes: string }[];
+    getPersonGroupById?: (id: string) => PersonGroup | undefined;
+    message?: string;
     eventFrameToEdit?: EventFrame;
     eventFrame?: EventFrame;
     assignmentToEdit?: Assignment;
@@ -200,6 +249,8 @@ export interface ModalData {
     startDate?: string;
     endDate?: string;
     itemType?: string;
+    onConfirm?: (selectedChanges?: any[]) => void;
+    onCancel?: () => void;
     onConfirmSpecial?: (inputValue?: string) => void;
     confirmButtonText?: string;
     cancelButtonText?: string;
@@ -210,6 +261,7 @@ export interface ModalData {
     managedCalendars?: ManagedAppCalendar[];
     activeCalendarId?: string | null;
     onConfirmSync?: (targetCalendarId: string) => void;
+    fixes?: string[];
 }
 
 export interface ModalState {
@@ -217,6 +269,11 @@ export interface ModalState {
   data?: ModalData | null;
 }
 
+export type AssignmentOperationResult = {
+  success: boolean;
+  message?: string;
+  warningMessage?: string;
+};
 
 export interface SyncProgressState {
   current: number;
@@ -238,8 +295,8 @@ export interface EventDataConteImplicits {
   updatePersonGroup: (personGroup: PersonGroup) => void;
   deletePersonGroup: (personGroupId: string) => void;
   getPersonGroupById: (personGroupId: string) => PersonGroup | undefined;
-  addAssignment: (eventFrameId: string, assignment: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>) => { success: boolean; message?: string; warningMessage?: string };
-  updateAssignment: (assignment: Assignment, context?: { changedDate?: string }) => { success: boolean; message?: string; warningMessage?: string };
+  addAssignment: (eventFrameId: string, assignment: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>, force?: boolean) => AssignmentOperationResult;
+  updateAssignment: (assignment: Assignment, force?: boolean, context?: { changedDate?: string }) => AssignmentOperationResult;
   deleteAssignment: (eventFrameId: string, assignmentId: string) => void;  getAssignmentById: (eventFrameId: string, assignmentId: string) => Assignment | undefined;
   loadData: (data: AppData | null) => Promise<void>;
   exportData: () => Promise<AppData>;
@@ -332,7 +389,7 @@ export interface GoogleCalendar {
 }
 
 export interface ShowSaveDialogOptions {
-  title: string;
+  title:string;
   defaultPath: string;
   filters: { name: string; extensions: string[] }[];
   data: Buffer | string;

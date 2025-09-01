@@ -400,11 +400,12 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
 
--  **Actualització Intel·ligent des d'Assignacions:** El botó **`⟳ Actualitza des d'assignacions`** executa una sincronització intel·ligent per evitar duplicats i respectar les entrades manuals.
-     1.  **Identifica Assignacions Confirmades:** Obté una llista de tot el personal amb assignacions en estat `Sí` o `Mixt` (amb algun dia `Sí`). Aquesta és la "font de la veritat".
-     2.  **Preserva Entrades Manuals:** Analitza els proveïdors existents a la fitxa i separa aquells que han estat afegits manualment (marcats amb la propietat `isManual: true`) i que no corresponen a una assignació confirmada. Aquests es mantenen intactes.
-     3.  **Neteja i Reconstrueix:** Elimina totes les entrades anteriors que provenien d'assignacions i les reconstrueix de zero a partir de la llista actual de personal confirmat.
-     4.  **Unifica:** Combina les entrades manuals preservades amb les noves entrades generades a partir de les assignacions i desa el resultat final.
+-  **Actualització Interactiva des d'Assignacions:** Per donar un control més gran a l'usuari, el botó **`⟳ Actualitza des d'assignacions`** ja no modifica directament la fitxa, sinó que obre un diàleg de confirmació.
+    1.  **Càlcul de Canvis:** En fer clic, la lògica a `TechnicalPersonnelSection.tsx` compara el personal actual de la fitxa amb les assignacions confirmades i genera tres llistes: personal per afegir, personal per eliminar i personal per mantenir.
+    2.  **Modal de Previsualització (`UpdateFromAssignmentsModal`):** Aquestes llistes s'envien a un nou modal que mostra cada canvi proposat (addicions en verd, eliminacions en vermell) amb una casella de selecció.
+    3.  **Confirmació de l'Usuari:** L'usuari pot seleccionar quins canvis vol aplicar. Pot acceptar totes les suggestions, cap, o una combinació.
+    4.  **Aplicació Selectiva:** Un cop confirmat, el modal retorna només els canvis seleccionats a `TechSheetForm.tsx`, que els aplica a l'estat, garantint que no es perdi cap entrada manual ni s'apliquin canvis no desitjats.
+    5.  **Gestió d'Esdeveniments de Diversos Dies:** La lògica d'afegir nous rols des del modal inclou la funcionalitat de detallar els dies específics per a assignacions de tipus `Mixt`.
 
 
 
@@ -442,16 +443,29 @@ La funció implementa una lògica granular per garantir un càlcul d'estoc prec�
 
 Aquesta lògica, similar al control d'estoc, preveu que una persona sigui assignada a dos llocs alhora.
 
-#### Flux de Validació (`addAssignment` i `updateAssignment`)
+#### Flux de Validació amb Confirmació de l'Usuari
 
-1.  **Recopilació d'Assignacions:** Abans de crear o actualitzar una assignació, el sistema recopila totes les altres assignacions de la persona implicada (`personGroupId`) de tots els esdeveniments.
-2.  **Iteració per Dies:** Itera sobre cada dia del rang de dates de la nova assignació (o de la que s'està modificant).
-3.  **Comprovació de Conflictes:** Per a cada dia, comprova si existeix alguna altra assignació per a aquesta persona en aquest dia concret que tingui un estat de `Sí`, `Pendent` o `Mixt` amb un `Sí` per a aquest dia.
-4.  **Generació d'Advertència:**
-    -   Si es troba un conflicte, l'operació **no es bloqueja**.
-    -   En lloc d'això, es genera un missatge d'advertència detallat (`warningMessage`) que especifica a quin altre esdeveniment i en quina data es produeix el conflicte.
-    -   La funció retorna `{ success: true, warningMessage: "..." }`.
-5.  **Presentació a l'Usuari:** El component `MainDisplay` rep aquest `warningMessage` i el mostra en un diàleg modal (`conflictDialog`), informant l'usuari del conflicte perquè pugui prendre una decisió informada, però sense impedir-li crear l'assignació si és necessari (p. ex., si són tasques compatibles).
+Per oferir més flexibilitat, el sistema ja no bloqueja les assignacions duplicades, sinó que demana confirmació a l'usuari. Aquest flux es va implementar com a solució a un error de l'entorn de compilació que impedia utilitzar tipus de retorn més complexos.
+
+1.  **Detecció de Conflictes (`useEventDataManager.ts`):**
+    -   Les funcions `addAssignment` i `updateAssignment` contenen la lògica per detectar si una persona ja té una altra assignació en el mateix període.
+    -   Aquestes funcions accepten un paràmetre opcional `force: boolean`. La comprovació de conflictes només s'executa si `force` és `false`.
+
+2.  **Senyalització del Conflicte (Workaround):**
+    -   Si es detecta un conflicte, la funció retorna un objecte `{ success: false }` amb un `message` que conté un prefix especial: `DUPLICATE_CONFLICT:`.
+    -   Aquest mètode de prefixar el missatge es va adoptar com a solució alternativa robusta davant d'errors del compilador de TypeScript que impedien la correcta resolució de tipus més complexos.
+
+3.  **Gestió al Formulari (`AssignmentFormModal.tsx`):**
+    -   El component `AssignmentFormModal` crida a `addAssignment` o `updateAssignment` amb `force: false` inicialment.
+    -   En rebre una resposta amb `success: false`, comprova si el `message` comença amb el prefix `DUPLICATE_CONFLICT:`.
+    -   Si és així, invoca `openModal` per mostrar el diàleg `ConfirmDuplicateModal`.
+
+4.  **Confirmació de l'Usuari (`ConfirmDuplicateModal.tsx`):**
+    -   Aquest modal mostra el missatge de conflicte (sense el prefix) i pregunta a l'usuari si vol procedir.
+    -   En confirmar, s'executa una funció de `callback` que torna a cridar `handleSubmit` al formulari, aquest cop amb el paràmetre `force: true`.
+
+5.  **Execució Forçada:**
+    -   La segona crida a `addAssignment` o `updateAssignment`, ara amb `force: true`, omet la comprovació de conflictes i desa l'assignació duplicada.
 
 
 ---
@@ -701,6 +715,35 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 ---
+
+### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
+
+Per garantir la màxima robustesa i evitar pèrdues de dades o bloquejos de l'aplicació a causa de fitxers de dades corruptes o amb formats antics, s'ha implementat un pipeline de càrrega de dades de diversos passos. Aquest sistema prioritza una experiència d'usuari ràpida per a dades vàlides (el "camí feliç") mentre proporciona una xarxa de seguretat per a dades que requereixen correccions.
+
+#### El Pipeline de Processament de Dades
+
+La lògica central resideix a la funció `loadData` del hook `useEventDataManager.ts` i segueix aquesta seqüència:
+
+1.  **Migració (Sempre):**
+    -   **Objectiu:** Assegurar que les dades, independentment de la seva versió original, tinguin sempre l'estructura de dades més recent definida a `types.ts`.
+    -   **Implementació:** La funció itera sobre cada `eventFrame` i passa el seu `techSheet` a la funció `migrateTechSheetData` (`src/utils/techSheetMigration.ts`). Aquesta funció comprova si la fitxa ja té el format nou; si no, la transforma, afegint els camps nous amb valors per defecte i reestructurant els antics.
+    -   **Tolerància a Errors:** La migració està dins d'un bloc `try...catch`. Si falla per qualsevol motiu (p. ex., un format de dades completament inesperat), es registra l'error i es genera una fitxa tècnica per defecte, evitant que l'aplicació es bloquegi.
+
+2.  **Validació (Sempre):**
+    -   **Objectiu:** Comprovar la integritat referencial de les dades ja migrades.
+    -   **Implementació:** Les dades migradas es passen a la funció `validateData` (`src/utils/dataIntegrity.ts`). Aquesta funció comprova, per exemple, que cada `assignment` apunti a un `eventFrameId` i a un `personGroupId` que realment existeixin a les llistes corresponents.
+    -   **Resultat:** Retorna un objecte `{ isValid: boolean, errors: ValidationError[] }`.
+
+3.  **Decisió i Rutes Condicionals:**
+    -   **Cas A: Dades Vàlides (isValid: true)**
+        -   **Acció:** S'executa la funció `_applyDataToState`, que carrega les dades directament a l'estat de React.
+        -   **Feedback:** Es mostra un missatge d'èxit simple i ràpid a l'usuari. El procés acaba aquí.
+    -   **Cas B: Dades Invàlides (isValid: false)**
+        -   **Reparació:** Les dades i l'informe d'errors es passen a la funció `repairData` (`src/utils/dataIntegrity.ts`). Aquesta funció elimina els elements trencats (p. ex., les assignacions invàlides) i retorna les dades netes i un array de missatges explicant les correccions (`fixes`).
+        -   **Confirmació de l'Usuari:** S'obre el modal `ConfirmRepairModal.tsx`, mostrant la llista de `fixes` a l'usuari.
+        -   **Decisió Final:** L'usuari pot triar entre carregar la versió reparada o cancel·lar l'operació. Les dades només es carreguen si l'usuari dona el seu consentiment explícit.
+
+Aquest sistema garanteix que l'aplicació sigui extremadament resilient a errors de dades, alhora que manté una experiència fluida per a la majoria d'usuaris les dades dels quals són correctes.
 
 ### 9. Solució de Bug de Renderitzat del Calendari
 

@@ -8,18 +8,35 @@ interface TechSheetSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   headerActions?: React.ReactNode;
-  layout?: 'single-column' | 'multi-column';
+  layout?: 'single-column' | 'grid-2' | 'grid-3' | 'grid-4';
+  isPrintHidden?: boolean;
 }
 
-const TechSheetSection: React.FC<TechSheetSectionProps> = ({ title, children, defaultOpen = true, headerActions, layout = 'multi-column' }) => {  
+const TechSheetSection: React.FC<TechSheetSectionProps> = ({ title, children, defaultOpen = true, headerActions, layout = 'grid-3', isPrintHidden = false }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-const gridClasses = layout === 'single-column'
-    ? 'p-2 grid grid-cols-1 gap-2'
-    : 'p-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2';
+  let gridClasses = 'p-2 grid gap-4 ';
+  switch (layout) {
+    case 'single-column':
+      gridClasses += 'grid-cols-1';
+      break;
+    case 'grid-2':
+      gridClasses += 'grid-cols-1 md:grid-cols-2';
+      break;
+    case 'grid-3':
+      gridClasses += 'grid-cols-1 md:grid-cols-3';
+      break;
+    case 'grid-4':
+      gridClasses += 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
+      break;
+    default:
+      gridClasses += 'grid-cols-1 md:grid-cols-3';
+  }
+
+  const containerClasses = `mb-2 border border-gray-200 dark:border-gray-700 rounded-lg ${isPrintHidden ? 'no-print' : ''}`;
 
   return (
-    <div className="mb-2 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <div className={containerClasses}>
       <div className="flex items-center justify-between">
         <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
           <button

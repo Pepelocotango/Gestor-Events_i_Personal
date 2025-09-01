@@ -40,8 +40,8 @@ interface OldAssignmentData {
 import { formatDateDMY } from './dateFormat';
 
 export const migrateData = (
-  peopleData?: OldPeopleData, 
-  eventData?: OldEventData, 
+  peopleData?: OldPeopleData,
+  eventData?: OldEventData,
   assignmentData?: OldAssignmentData
 ): AppData => {
   const peopleGroups: PersonGroup[] = (peopleData?.people || []).map(p => ({
@@ -73,24 +73,11 @@ export const migrateData = (
         date: formatDateDMY(eventFrame.startDate),
         showTime: '',
         showDuration: '',
-        parkingInfo: '',
         technicalProviders: [],
-        preAssemblySchedule: '',
-        assemblySchedule: [],
-        dressingRooms: '',
-        actors: '',
-        companyTechnicians: '',
         lightingNeeds: [],
         soundNeeds: [],
         videoNeeds: [],
-        videoDetails: '',
         machineryNeeds: [],
-        controlLocation: '',
-        otherEquipment: '',
-        rentals: '',
-        blueprints: '',
-        companyContact: '',
-        observations: '',
       }
     }
   });
