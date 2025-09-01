@@ -6,7 +6,7 @@ interface ChangeItem {
   id: string;
   label: string;
   details: string;
-  type: 'add' | 'remove';
+  type: 'add' | 'remove' | 'update';
   data: any;
 }
 
@@ -14,8 +14,8 @@ interface UpdateFromAssignmentsModalProps {
   onClose: () => void;
   onConfirm: (selectedChanges: ChangeItem[]) => void;
   toAdd: Assignment[];
-  toRemove: (TechSheetRoleItem & { personGroupId: string })[];
-  toKeep: (TechSheetRoleItem & { personGroupId: string })[];
+  toRemove: TechSheetRoleItem[];
+  toUpdate: { assignment: Assignment; currentRole: TechSheetRoleItem; newNotes: string }[];
   getPersonGroupById: (id: string) => PersonGroup | undefined;
 }
 
@@ -24,25 +24,33 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
   onConfirm,
   toAdd,
   toRemove,
+  toUpdate,
   getPersonGroupById,
 }) => {
   const allChanges = useMemo(() => {
     const addItems: ChangeItem[] = toAdd.map(a => ({
       id: a.id,
       label: `Afegir: ${getPersonGroupById(a.personGroupId)?.name || 'Desconegut'}`,
-      details: `(Assignació del ${a.startDate} al ${a.endDate})`,
+      details: `(Nova assignació)`,
       type: 'add',
       data: a,
     }));
-    const removeItems: ChangeItem[] = toRemove.map(r => ({
+    const removeItems: ChangeItem[] = toRemove.map((r: any) => ({
       id: r.id,
-      label: `Eliminar: ${getPersonGroupById(r.personGroupId)?.name || 'Desconegut'}`,
-      details: `(Rol: ${r.role || 'Sense especificar'})`,
+      label: `Eliminar: Rol de ${getPersonGroupById(r.personGroupId)?.name || 'Desconegut'}`,
+      details: `(Rol actual: ${r.role || 'Sense especificar'})`,
       type: 'remove',
       data: r,
     }));
-    return [...addItems, ...removeItems];
-  }, [toAdd, toRemove, getPersonGroupById]);
+    const updateItems: ChangeItem[] = toUpdate.map(u => ({
+      id: u.assignment.id,
+      label: `Actualitzar: ${getPersonGroupById(u.assignment.personGroupId)?.name || 'Desconegut'}`,
+      details: `(Notes actualitzades)`,
+      type: 'update',
+      data: u,
+    }));
+    return [...addItems, ...updateItems, ...removeItems];
+  }, [toAdd, toRemove, toUpdate, getPersonGroupById]);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(allChanges.map(c => c.id)));
 
@@ -86,8 +94,15 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
             <button onClick={handleDeselectAll} className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">Deseleccionar Tot</button>
           </div>
           <div className="max-h-60 overflow-y-auto space-y-2 p-2 border rounded-md bg-gray-50 dark:bg-gray-800">
-            {allChanges.map(change => (
-              <div key={change.id} className={`p-2 rounded flex items-center ${change.type === 'add' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'}`}>
+            {allChanges.map(change => {
+              const bgColor = change.type === 'add'
+                ? 'bg-green-100 dark:bg-green-900/50'
+                : change.type === 'remove'
+                ? 'bg-red-100 dark:bg-red-900/50'
+                : 'bg-yellow-100 dark:bg-yellow-900/50';
+
+              return (
+              <div key={change.id} className={`p-2 rounded flex items-center ${bgColor}`}>
                 <input
                   type="checkbox"
                   checked={selectedIds.has(change.id)}
@@ -99,7 +114,8 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
                   <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">{change.details}</span>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         </>
       ) : (

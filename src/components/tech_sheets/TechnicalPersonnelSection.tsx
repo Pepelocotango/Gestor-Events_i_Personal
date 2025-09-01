@@ -4,7 +4,8 @@ import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
 import Tooltip from '../ui/Tooltip';
-import { ModalType, ModalData } from '../../types';
+import { ModalType, ModalData, Assignment } from '../../types';
+import { formatDateDMY } from '../../utils/dateFormat';
 
 interface TechnicalPersonnelSectionProps {
   technicalProviders: TechSheetProvider[];
@@ -46,25 +47,45 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
           <button
             type="button"
             onClick={() => {
-              const confirmedAssignments = eventFrame.assignments.filter((a: any) =>
+              const getAssignmentNotes = (assignment: Assignment) => {
+                let notes = assignment.notes || '';
+                if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
+                  const confirmedDays = Object.entries(assignment.dailyStatuses)
+                    .filter(([, status]) => status === AssignmentStatus.Yes)
+                    .map(([date]) => formatDateDMY(date));
+                  if (confirmedDays.length > 0) {
+                    const daysString = `Dies: ${confirmedDays.join(', ')}`;
+                    notes = notes ? `${notes}\n${daysString}` : daysString;
+                  }
+                }
+                return notes;
+              };
+
+              const confirmedAssignments = eventFrame.assignments.filter((a: Assignment) =>
                 a.status === AssignmentStatus.Yes || (a.status === AssignmentStatus.Mixed && Object.values(a.dailyStatuses || {}).includes(AssignmentStatus.Yes))
               );
 
-              const confirmedAssignmentIds = new Set(confirmedAssignments.map((a: any) => a.id));
-              const currentAssignmentIds = new Set(technicalProviders.flatMap(p => p.roles.map(r => r.assignmentId)).filter(Boolean));
+              const confirmedAssignmentsMap = new Map(confirmedAssignments.map((a: Assignment) => [a.id, a]));
+              const currentRolesMap = new Map(technicalProviders.flatMap(p => p.roles).filter(r => r.assignmentId).map(r => [r.assignmentId!, r]));
 
-              const toAdd = confirmedAssignments.filter((a: any) => !currentAssignmentIds.has(a.id));
+              const toAdd = confirmedAssignments.filter((a: Assignment) => !currentRolesMap.has(a.id));
 
-              const toRemove = technicalProviders.flatMap(p => p.roles.map(r => ({ ...r, personGroupId: p.personGroupId }))).filter(r => r.assignmentId && !confirmedAssignmentIds.has(r.assignmentId));
+              const toRemove = technicalProviders.flatMap(p =>
+                p.roles
+                  .filter(r => r.assignmentId && !confirmedAssignmentsMap.has(r.assignmentId))
+                  .map(r => ({ ...r, personGroupId: p.personGroupId }))
+              );
 
-              const toKeep = technicalProviders.flatMap(p => p.roles.map(r => ({ ...r, personGroupId: p.personGroupId }))).filter(r => {
-                if (r.assignmentId) {
-                  return confirmedAssignmentIds.has(r.assignmentId);
-                }
-                return true; // Keep manual entries
-              });
+              const toUpdate = confirmedAssignments
+                .filter((a: Assignment) => currentRolesMap.has(a.id))
+                .map((a: Assignment) => ({
+                  assignment: a,
+                  currentRole: currentRolesMap.get(a.id)!,
+                  newNotes: getAssignmentNotes(a),
+                }))
+                .filter((item: { newNotes: string; currentRole: { notes?: string } }) => item.newNotes !== item.currentRole.notes);
 
-              if (toAdd.length === 0 && toRemove.length === 0) {
+              if (toAdd.length === 0 && toRemove.length === 0 && toUpdate.length === 0) {
                 showToast('No hi ha canvis per aplicar des de les assignacions.', 'info');
                 return;
               }
@@ -72,7 +93,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
               openModal('updateFromAssignments', {
                 toAdd,
                 toRemove,
-                toKeep,
+                toUpdate,
                 getPersonGroupById,
                 onConfirm: onConfirmUpdate,
               });

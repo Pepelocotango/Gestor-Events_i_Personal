@@ -27,7 +27,6 @@ const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSetting
 const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
 const SelectSyncCalendarModal = lazy(() => import('./components/modals/SelectSyncCalendarModal'));
 const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalendarModal'));
-const ConfirmDuplicateModal = lazy(() => import('./components/modals/ConfirmDuplicateModal'));
 const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/UpdateFromAssignmentsModal'));
 
 interface ToastState {
@@ -598,19 +597,13 @@ const App: React.FC = () => {
             }}
           />
         );
-      case 'confirmDuplicate':
-        return <ConfirmDuplicateModal
-                  onClose={closeModal}
-                  onConfirm={modalState.data!.onConfirm!}
-                  message={modalState.data!.message!}
-                />;
       case 'updateFromAssignments':
         return <UpdateFromAssignmentsModal
                   onClose={closeModal}
                   onConfirm={modalState.data!.onConfirm!}
                   toAdd={modalState.data!.toAdd || []}
                   toRemove={modalState.data!.toRemove || []}
-                  toKeep={modalState.data!.toKeep || []}
+                  toUpdate={modalState.data!.toUpdate || []}
                   getPersonGroupById={eventDataManagerHookResult.getPersonGroupById}
                 />;
       default:
@@ -630,14 +623,13 @@ const App: React.FC = () => {
       case 'editAssignment': return `Editar Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
       case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
       case 'createAppCalendar': return "Crear Nou Calendari de l'App";
-      case 'confirmDuplicate': return "Conflicte d'Assignació";
-      case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
       
       case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
         return "Confirmar Eliminació";
+      case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
       default: return "Diàleg";
     }
   };

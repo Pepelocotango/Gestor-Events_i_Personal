@@ -284,20 +284,35 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
   };
 
   const handleConfirmUpdateFromAssignments = (selectedChanges?: any[]) => {
-    if (!selectedChanges) return;
+    if (!selectedChanges || selectedChanges.length === 0) {
+      showToast('No s\'ha seleccionat cap canvi per aplicar.', 'info');
+      return;
+    }
+
     const toAdd = selectedChanges.filter(c => c.type === 'add').map(c => c.data);
+    const toUpdate = selectedChanges.filter(c => c.type === 'update').map(c => c.data);
     const toRemoveIds = new Set(selectedChanges.filter(c => c.type === 'remove').map(c => c.data.id));
 
     setFormData(prev => {
       let newProviders = [...(prev.technicalProviders || [])];
 
-      // Remove roles
+      // 1. Process removals
       newProviders = newProviders.map(p => ({
         ...p,
         roles: p.roles.filter(r => !toRemoveIds.has(r.id)),
       })).filter(p => p.roles.length > 0 || p.isManual);
 
-      // Add roles
+      // 2. Process updates
+      toUpdate.forEach(update => {
+        const provider = newProviders.find(p => p.roles.some(r => r.id === update.currentRole.id));
+        if (provider) {
+          provider.roles = provider.roles.map(r =>
+            r.id === update.currentRole.id ? { ...r, notes: update.newNotes } : r
+          );
+        }
+      });
+
+      // 3. Process additions
       toAdd.forEach(assignment => {
         const personGroupId = assignment.personGroupId;
         let provider = newProviders.find(p => p.personGroupId === personGroupId);
@@ -337,7 +352,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
     });
 
     markAsDirty();
-    showToast(`${selectedChanges.length} canvis aplicats des de les assignacions.`, 'success');
+    showToast(`${selectedChanges.length} canvi(s) aplicat(s) des de les assignacions.`, 'success');
   };
 
   const renderNeedsSection = (title: string, fieldName: TechSheetNeedsKey) => (

@@ -235,8 +235,8 @@ export type ModalType =
 
 export interface ModalData {
     toAdd?: Assignment[];
-    toRemove?: (TechSheetRoleItem & { personGroupId: string; })[];
-    toKeep?: (TechSheetRoleItem & { personGroupId: string; })[];
+    toRemove?: (TechSheetRoleItem & { personGroupId: string })[];
+    toUpdate?: { assignment: Assignment; currentRole: TechSheetRoleItem; newNotes: string }[];
     getPersonGroupById?: (id: string) => PersonGroup | undefined;
     message?: string;
     eventFrameToEdit?: EventFrame;
