@@ -1,76 +1,44 @@
 {
   "materialItems": [
     {
-      "id": "mat-001",
+      "id": "mat-L-001",
       "name": "Focus PC 1kW Robert Juliat",
       "category": "Il·luminació",
-      "stock": 12,
+      "stock": 24,
       "location": "Magatzem 1 - Prestatge A3",
-      "notes": "Inclou garres i portafiltres. Revisar làmpades abans de sortir."
+      "notes": "Nota actualitzada per al merge. Inclou garres i portafiltres."
     },
     {
-      "id": "mat-002",
-      "name": "Focus Retall ETC Source Four 25-50",
-      "category": "Il·luminació",
-      "stock": 8,
-      "location": "Magatzem 1 - Prestatge A4",
-      "notes": "Disponibles 4 lents de 19º i 4 de 36º."
-    },
-    {
-      "id": "mat-003",
-      "name": "Taula de so Yamaha CL5",
-      "category": "So",
-      "stock": 1,
-      "location": "Control Central",
-      "notes": "Inclou flightcase i doghouse. Requereix 2 persones per al transport."
-    },
-    {
-      "id": "mat-004",
+      "id": "mat-S-004",
       "name": "Micròfon Shure SM58",
       "category": "So",
-      "stock": 10,
+      "stock": 20,
       "location": "Calaix de micros A",
       "notes": "Micròfon dinàmic per a veu. Inclou pinça."
     },
     {
-      "id": "mat-005",
-      "name": "Micròfon de diadema DPA 4066",
-      "category": "So",
-      "stock": 4,
-      "location": "Calaix de micros B",
-      "notes": "Color beige. Connector Mini-XLR per a petaca Shure."
-    },
-    {
-      "id": "mat-006",
-      "name": "Projector Panasonic PT-RZ970",
-      "category": "Vídeo",
-      "stock": 2,
-      "location": "Magatzem 2 - Equipament delicat",
-      "notes": "10.000 lúmens, làser. Llogat habitualment, comprovar disponibilitat."
-    },
-    {
-      "id": "mat-007",
-      "name": "Pantalla de projecció 4x3m (retro)",
+      "id": "mat-new-V-01",
+      "name": "Mesa de mescles de vídeo Blackmagic ATEM (Nova)",
       "category": "Vídeo",
       "stock": 1,
-      "location": "Magatzem 2 - Material voluminós",
-      "notes": "Tela de retroprojecció. Muntatge amb truss."
+      "location": "Control de Vídeo",
+      "notes": "Nou switcher de vídeo per a esdeveniments petits."
     },
     {
-      "id": "mat-008",
-      "name": "Pota d'escenari 2x1m",
-      "category": "Estructures",
-      "stock": 20,
-      "location": "Pati - Zona de tarimes",
-      "notes": "Marca Rosco. Potes regulables de 80 a 120cm."
+      "id": "mat-new-E-01",
+      "name": "Teler de tisora 12m (Nou)",
+      "category": "Maquinària",
+      "stock": 2,
+      "location": "Pati - Maquinària",
+      "notes": "Nova plataforma elevadora."
     },
     {
-      "id": "mat-009",
-      "name": "Truss Prolyte H30V - Tram 2m",
-      "category": "Estructures",
-      "stock": 15,
-      "location": "Magatzem 1 - Zona Truss",
-      "notes": "Revisar unió de cargols."
+      "id": "mat-new-C-01",
+      "name": "Gelosines de colors (Nou)",
+      "category": "Consumibles",
+      "stock": 5,
+      "location": "Consumibles - Calaix C",
+      "notes": "Paquet de 100 gelatines de colors variats."
     }
   ]
 }
