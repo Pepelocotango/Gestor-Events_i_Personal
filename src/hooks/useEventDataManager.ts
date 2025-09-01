@@ -323,7 +323,7 @@ export const useEventDataManager = (
               const conflictingEvent = eventFrames.find(ef => ef.id === conflict.eventFrameId);
               return `"${conflictingEvent?.name}" el ${formatDateDMY(currentDateStr)}`;
           }).join(", ");
-          return { success: true, warningMessage: `DUPLICATE_CONFLICT:Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
+          return { success: false, message: `DUPLICATE_CONFLICT:Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
         }
       }
     }
@@ -399,7 +399,7 @@ export const useEventDataManager = (
         }
 
         if (conflictMessage) {
-            return { success: true, warningMessage: `DUPLICATE_CONFLICT:${conflictMessage}` };
+            return { success: false, message: `DUPLICATE_CONFLICT:${conflictMessage}` };
         }
     }
     
