@@ -1,5 +1,5 @@
 
-## DEVELOPING.md v0.5.2
+## DEVELOPING.md V1.0.0
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
