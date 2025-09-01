@@ -14,7 +14,7 @@ const createDefaultTechSheetForMigration = (eventFrame: EventFrame): TechSheetDa
     showTime: '',
     showDuration: '',
     technicalProviders: [],
-    generalNotes: `Notes generals per a ${eventFrame.name}`,
+    generalNotes: '',
     parking: { status: 'unset', details: '' },
     preAssembly: { status: 'unset', details: '' },
     schedule: { status: 'unset', details: '', data: [] },
@@ -93,7 +93,7 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
             roles: (p.roles || []).map((r: any) => ({ ...r, printNotes: r.printNotes ?? true }))
         })),
 
-        generalNotes: oldData.generalNotes || `Notes generals per a ${eventFrame.name}`,
+        generalNotes: oldData.generalNotes || '',
         parking: {
             status: fromStringToStatus(oldData.parkingInfo),
             details: extractDetails(oldData.parkingInfo),

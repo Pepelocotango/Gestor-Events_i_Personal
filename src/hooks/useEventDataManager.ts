@@ -16,7 +16,7 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
     showTime: '',
     showDuration: '',
     technicalProviders: [],
-    generalNotes: `Notes generals per a ${eventFrame.name}`,
+    generalNotes: '',
     parking: { status: 'unset', details: '' },
     preAssembly: { status: 'unset', details: '' },
     schedule: { status: 'unset', details: '', data: [] },

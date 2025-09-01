@@ -410,9 +410,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} tooltipText="La data o rang de dates de l'esdeveniment. Sincronitzat des del 'Event Frame'."/>
         <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} type="time" tooltipText="Hora d'inici de la funció o acte principal."/>
         <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} placeholder="XX min" tooltipText="Durada aproximada de l'espectacle en minuts."/>
+
+        {eventFrame.generalNotes && (
+            <div className="col-span-full">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de l'Esdeveniment (No editable)</label>
+                <div className="mt-1 p-2 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                    {eventFrame.generalNotes}
+                </div>
+            </div>
+        )}
+
         <div className="col-span-full">
             <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de la Fitxa Tècnica</label>
                 <Tooltip text="Marca aquesta casella per incloure les notes generals en exportar la fitxa a PDF.">
                     <div className="flex items-center gap-2">
                         <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
@@ -421,7 +431,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                 </Tooltip>
             </div>
             <Tooltip text="Afegeix aquí qualsevol nota general o comentari rellevant per a tota la fitxa.">
-                <textarea id="generalNotes" name="generalNotes" value={formData.generalNotes || ''} onChange={handleChange} rows={3} className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                <textarea
+                    id="generalNotes"
+                    name="generalNotes"
+                    value={formData.generalNotes || ''}
+                    onChange={handleChange}
+                    rows={3}
+                    className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Es prega indicar si hi haurà consuming i les seves característiques.&#10;Es prega indicar si cal pre-muntatge i les seves característiques.&#10;Es prega comunicar qualsevol modificació sobre la present fitxa."
+                />
             </Tooltip>
         </div>
         <div className="col-span-full -mb-3">
