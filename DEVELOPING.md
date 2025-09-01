@@ -400,11 +400,13 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
 
--  **Actualització Intel·ligent des d'Assignacions:** El botó **`⟳ Actualitza des d'assignacions`** executa una sincronització intel·ligent per evitar duplicats i respectar les entrades manuals.
-     1.  **Identifica Assignacions Confirmades:** Obté una llista de tot el personal amb assignacions en estat `Sí` o `Mixt` (amb algun dia `Sí`). Aquesta és la "font de la veritat".
-     2.  **Preserva Entrades Manuals:** Analitza els proveïdors existents a la fitxa i separa aquells que han estat afegits manualment (marcats amb la propietat `isManual: true`) i que no corresponen a una assignació confirmada. Aquests es mantenen intactes.
-     3.  **Neteja i Reconstrueix:** Elimina totes les entrades anteriors que provenien d'assignacions i les reconstrueix de zero a partir de la llista actual de personal confirmat.
-     4.  **Unifica:** Combina les entrades manuals preservades amb les noves entrades generades a partir de les assignacions i desa el resultat final.
+-  **Actualització Manual des d'Assignacions:** El botó **`⟳ Actualitza des d'assignacions`** a la secció "Personal Tècnic" permet a l'usuari sincronitzar manualment el personal confirmat des de les assignacions de l'esdeveniment.
+    -   **Lògica de Sincronització:**
+        1.  **Identificació de Personal Confirmat:** El sistema filtra les assignacions de l'esdeveniment per trobar aquelles amb estat `Sí` o `Mixt` (que tinguin almenys un dia confirmat).
+        2.  **Preservació d'Entrades Manuals:** Per no perdre la feina de l'usuari, el sistema identifica i conserva qualsevol proveïdor de personal que hagi estat afegit manualment a la fitxa (marcat amb `isManual: true`).
+        3.  **Reconstrucció:** Es reconstrueix la llista de personal tècnic a partir de les assignacions confirmades.
+        4.  **Gestió d'Esdeveniments de Diversos Dies:** Si una assignació és de tipus `Mixt`, la lògica afegeix automàticament a les notes del rol els dies específics en què la persona està confirmada (p. ex., "Dies: 01/01/2024, 03/01/2024"), proporcionant claredat a la fitxa tècnica.
+        5.  **Actualització Final:** La llista final de personal tècnic, que combina les entrades manuals preservades i les reconstruïdes, s'actualitza a l'estat del formulari.
 
 
 
@@ -442,16 +444,29 @@ La funció implementa una lògica granular per garantir un càlcul d'estoc prec�
 
 Aquesta lògica, similar al control d'estoc, preveu que una persona sigui assignada a dos llocs alhora.
 
-#### Flux de Validació (`addAssignment` i `updateAssignment`)
+#### Flux de Validació amb Confirmació de l'Usuari
 
-1.  **Recopilació d'Assignacions:** Abans de crear o actualitzar una assignació, el sistema recopila totes les altres assignacions de la persona implicada (`personGroupId`) de tots els esdeveniments.
-2.  **Iteració per Dies:** Itera sobre cada dia del rang de dates de la nova assignació (o de la que s'està modificant).
-3.  **Comprovació de Conflictes:** Per a cada dia, comprova si existeix alguna altra assignació per a aquesta persona en aquest dia concret que tingui un estat de `Sí`, `Pendent` o `Mixt` amb un `Sí` per a aquest dia.
-4.  **Generació d'Advertència:**
-    -   Si es troba un conflicte, l'operació **no es bloqueja**.
-    -   En lloc d'això, es genera un missatge d'advertència detallat (`warningMessage`) que especifica a quin altre esdeveniment i en quina data es produeix el conflicte.
-    -   La funció retorna `{ success: true, warningMessage: "..." }`.
-5.  **Presentació a l'Usuari:** El component `MainDisplay` rep aquest `warningMessage` i el mostra en un diàleg modal (`conflictDialog`), informant l'usuari del conflicte perquè pugui prendre una decisió informada, però sense impedir-li crear l'assignació si és necessari (p. ex., si són tasques compatibles).
+Per oferir més flexibilitat, el sistema ja no bloqueja les assignacions duplicades, sinó que demana confirmació a l'usuari.
+
+1.  **Detecció de Conflictes (`useEventDataManager.ts`):**
+    -   Les funcions `addAssignment` i `updateAssignment` contenen la lògica per detectar si una persona ja té una altra assignació en el mateix període.
+    -   Aquestes funcions accepten un paràmetre opcional `force: boolean`. La comprovació de conflictes només s'executa si `force` és `false`.
+
+2.  **Senyalització del Conflicte:**
+    -   Si es detecta un conflicte, la funció **no retorna un error**, sinó un objecte d'èxit (`success: true`) amb un `warningMessage` especial que comença amb el prefix `DUPLICATE_CONFLICT:`.
+
+3.  **Gestió al Formulari (`AssignmentFormModal.tsx`):**
+    -   El component que gestiona el formulari d'assignacions (`AssignmentFormModal`) crida a `addAssignment` o `updateAssignment` amb `force: false` per defecte.
+    -   Analitza la resposta:
+        -   Si el `warningMessage` rebut comença amb `DUPLICATE_CONFLICT:`, sap que s'ha trobat un conflicte.
+        -   En aquest cas, crida a la funció `openModal` per mostrar un diàleg de confirmació específic (`ConfirmDuplicateModal`).
+
+4.  **Confirmació de l'Usuari (`ConfirmDuplicateModal.tsx`):**
+    -   Aquest modal mostra el missatge de conflicte (sense el prefix) i pregunta a l'usuari si vol continuar.
+    -   Si l'usuari fa clic a "Confirmar Duplicat", s'executa una funció de `callback` que torna a cridar la funció `handleSubmit` del formulari, però aquest cop passant el paràmetre `force: true`.
+
+5.  **Execució Forçada:**
+    -   La segona crida a `addAssignment` o `updateAssignment` amb `force: true` fa que la lògica de detecció de conflictes se salti, i l'assignació es desa directament, permetent la duplicació de manera controlada.
 
 
 ---
