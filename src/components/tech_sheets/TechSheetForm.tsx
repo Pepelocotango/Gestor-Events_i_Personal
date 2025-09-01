@@ -438,7 +438,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                     onChange={handleChange}
                     rows={3}
                     className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Es prega indicar si hi haurà consuming i les seves característiques.&#10;Es prega indicar si cal pre-muntatge i les seves característiques.&#10;Es prega comunicar qualsevol modificació sobre la present fitxa."
+                    placeholder="Aquí les .... Notes generals de la fitxa tàcnica, ( amb selector de impresió si/no)"
                 />
             </Tooltip>
         </div>
