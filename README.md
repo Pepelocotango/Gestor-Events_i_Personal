@@ -153,4 +153,4 @@ Aquest projecte està sota la llicència MIT.
 
 ## Desenvolupament
 
-Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](developing.md) per obtenir informació sobre com configurar l'entorn i entendre els canvis recents.
+Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](DEVELOPING.md) per obtenir informació sobre com configurar l'entorn i entendre els canvis recents.
