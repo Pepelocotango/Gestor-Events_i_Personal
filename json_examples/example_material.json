@@ -1,32 +1,44 @@
 {
   "materialItems": [
-    { "id": "mat-L-001", "name": "Focus PC 1kW Robert Juliat", "category": "Il·luminació", "stock": 24, "location": "Magatzem 1 - Prestatge A3", "notes": "Inclou garres i portafiltres." },
-    { "id": "mat-L-002", "name": "Focus Retall ETC Source Four 25-50", "category": "Il·luminació", "stock": 16, "location": "Magatzem 1 - Prestatge A4", "notes": "Disponibles 8 lents de 19º i 8 de 36º." },
-    { "id": "mat-L-003", "name": "Focus LED PAR (RGBW)", "category": "Il·luminació", "stock": 48, "location": "Magatzem 1 - Prestatge B1", "notes": "Apte per a exteriors (IP65)." },
-    { "id": "mat-L-004", "name": "Cap mòbil Martin MAC Aura", "category": "Il·luminació", "stock": 12, "location": "Magatzem 2 - Robòtica", "notes": "Tipus Wash. Flightcase de 4 unitats." },
-    { "id": "mat-L-005", "name": "Taula de control GrandMA2 Light", "category": "Il·luminació", "stock": 2, "location": "Control Central", "notes": "Inclou flightcase i llum de sobretaula." },
-    { "id": "mat-L-006", "name": "Cegadora 4x100W halògena", "category": "Il·luminació", "stock": 8, "location": "Magatzem 1 - Prestatge C2", "notes": "Connectors schuko." },
-    { "id": "mat-S-001", "name": "Taula de so Yamaha CL5", "category": "So", "stock": 2, "location": "Control Central", "notes": "Inclou flightcase i doghouse. Requereix 2 persones." },
-    { "id": "mat-S-002", "name": "Altaveu Meyer Sound UPA-1P", "category": "So", "stock": 12, "location": "Magatzem So - Prestatge A1", "notes": "Altaveu autoamplificat. Inclou funda." },
-    { "id": "mat-S-003", "name": "Subwoofer Meyer Sound USW-1P", "category": "So", "stock": 6, "location": "Magatzem So - Prestatge A2", "notes": "Subwoofer autoamplificat. Inclou funda." },
-    { "id": "mat-S-004", "name": "Micròfon Shure SM58", "category": "So", "stock": 20, "location": "Calaix de micros A", "notes": "Micròfon dinàmic per a veu. Inclou pinça." },
-    { "id": "mat-S-005", "name": "Micròfon de diadema DPA 4066", "category": "So", "stock": 8, "location": "Calaix de micros B", "notes": "Color beige. Connector Mini-XLR per a petaca Shure." },
-    { "id": "mat-S-006", "name": "Sistema In-Ear Shure PSM1000", "category": "So", "stock": 4, "location": "Rack de Ràdios", "notes": "Sistema complet amb transmissor i 4 petacas receptores." },
-    { "id": "mat-V-001", "name": "Projector Panasonic PT-RZ12K", "category": "Vídeo", "stock": 2, "location": "Magatzem 2 - Equip delicat", "notes": "12.000 lúmens, làser. Llogat habitualment." },
-    { "id": "mat-V-002", "name": "Pantalla de projecció 6x4m (frontal)", "category": "Vídeo", "stock": 1, "location": "Magatzem 2 - Material voluminós", "notes": "Muntatge amb truss. Inclou faldons negres." },
-    { "id": "mat-V-003", "name": "Ordinador portàtil MacBook Pro M2", "category": "Vídeo", "stock": 3, "location": "Oficina Tècnica", "notes": "Amb licències de Resolume, QLab i ProPresenter." },
-    { "id": "mat-V-004", "name": "Càmera Blackmagic Studio Camera 4K", "category": "Vídeo", "stock": 4, "location": "Magatzem 2 - Càmeres", "notes": "Inclou trípode i òptica bàsica." },
-    { "id": "mat-E-001", "name": "Pota d'escenari 2x1m", "category": "Estructures", "stock": 40, "location": "Pati - Zona de tarimes", "notes": "Marca Rosco. Potes regulables de 80 a 120cm." },
-    { "id": "mat-E-002", "name": "Grada mòbil (mòdul 10 persones)", "category": "Estructures", "stock": 10, "location": "Pati - Grades", "notes": "Mòduls de 2.5m d'ample." },
-    { "id": "mat-E-003", "name": "Truss Prolyte H30V - Tram 2m", "category": "Estructures", "stock": 30, "location": "Magatzem 1 - Zona Truss", "notes": "Revisar unió de cargols." },
-    { "id": "mat-E-004", "name": "Motor de cadena 1T (24m)", "category": "Maquinària", "stock": 8, "location": "Magatzem 1 - Motors", "notes": "Marca CM Lodestar. Control a 8 canals disponible." },
-    { "id": "mat-C-001", "name": "Rotllo de cinta americana (negra)", "category": "Consumibles", "stock": 50, "location": "Consumibles - Calaix A", "notes": "Marca TESA." },
-    { "id": "mat-C-002", "name": "Bridas de plàstic (negres, 20cm)", "category": "Consumibles", "stock": 2, "location": "Consumibles - Calaix B", "notes": "Stock en bosses de 100 unitats." },
-    { "id": "mat-P-001", "name": "Tarima de fusta 2x1m", "category": "Plataformes", "stock": 30, "location": "Pati - Zona de tarimes", "notes": "Superfície antilliscant." },
-    { "id": "mat-T-001", "name": "Cortina de fons negra (10x6m)", "category": "Telons", "stock": 2, "location": "Magatzem Textil", "notes": "Cotó ignífug. Ullals cada 25cm." },
-    { "id": "mat-EL-001", "name": "Quadre elèctric 63A trifàsic", "category": "Elèctric", "stock": 2, "location": "Magatzem Elèctric", "notes": "Sortides a CETAC 32A, 16A i Schuko." },
-    { "id": "mat-TR-001", "name": "Furgoneta Mercedes Sprinter", "category": "Transport", "stock": 1, "location": "Pàrquing", "notes": "Capacitat de 12m³. Requereix carnet B." },
-    { "id": "mat-O-001", "name": "Tanca de seguretat (tipus 'heavy')", "category": "Altres", "stock": 100, "location": "Pati Exterior", "notes": "Panells de 2.2m d'ample." },
-    { "id": "mat-O-002", "name": "Extintor de CO2 (5kg)", "category": "Altres", "stock": 10, "location": "Punt de Seguretat", "notes": "Revisar data de caducitat abans de cada ús." }
+    {
+      "id": "mat-L-001",
+      "name": "Focus PC 1kW Robert Juliat",
+      "category": "Il·luminació",
+      "stock": 24,
+      "location": "Magatzem 1 - Prestatge A3",
+      "notes": "Nota actualitzada per al merge. Inclou garres i portafiltres."
+    },
+    {
+      "id": "mat-S-004",
+      "name": "Micròfon Shure SM58",
+      "category": "So",
+      "stock": 20,
+      "location": "Calaix de micros A",
+      "notes": "Micròfon dinàmic per a veu. Inclou pinça."
+    },
+    {
+      "id": "mat-new-V-01",
+      "name": "Mesa de mescles de vídeo Blackmagic ATEM (Nova)",
+      "category": "Vídeo",
+      "stock": 1,
+      "location": "Control de Vídeo",
+      "notes": "Nou switcher de vídeo per a esdeveniments petits."
+    },
+    {
+      "id": "mat-new-E-01",
+      "name": "Teler de tisora 12m (Nou)",
+      "category": "Maquinària",
+      "stock": 2,
+      "location": "Pati - Maquinària",
+      "notes": "Nova plataforma elevadora."
+    },
+    {
+      "id": "mat-new-C-01",
+      "name": "Gelosines de colors (Nou)",
+      "category": "Consumibles",
+      "stock": 5,
+      "location": "Consumibles - Calaix C",
+      "notes": "Paquet de 100 gelatines de colors variats."
+    }
   ]
 }
