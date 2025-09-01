@@ -438,7 +438,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
                     onChange={handleChange}
                     rows={3}
                     className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Aquí les .... Notes generals de la fitxa tàcnica, ( amb selector de impresió si/no)"
+                    placeholder=".... Aquí les notes generals de la fitxa tècnica, ( amb selector de impresió si/no)"
                 />
             </Tooltip>
         </div>
