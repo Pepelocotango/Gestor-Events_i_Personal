@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem, ModalType, ModalData, SyncProgressState } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem, ModalType, ModalData, SyncProgressState, NeedItem } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
@@ -220,12 +220,15 @@ export const useEventDataManager = (
         const efEnd = new Date(ef.endDate);
 
         if (currentDate >= efStart && currentDate <= efEnd) {
-          const needsLists: (keyof TechSheetData)[] = ['lightingNeeds', 'soundNeeds', 'videoNeeds', 'machineryNeeds'];
-          needsLists.forEach(listKey => {
-            const needs = ef.techSheet?.[listKey];
-            if (Array.isArray(needs)) {
-              needs.forEach(need => {
-                if (typeof need === 'object' && need !== null && 'materialItemId' in need && 'quantity' in need && need.materialItemId === materialId) {
+          const needsSections: (keyof TechSheetData)[] = [
+            'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
+            'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
+          ];
+          needsSections.forEach(sectionKey => {
+            const section = ef.techSheet?.[sectionKey];
+            if (section && section.status === 'yes' && section.data && Array.isArray(section.data.needs)) {
+              section.data.needs.forEach((need: NeedItem) => {
+                if (need.materialItemId === materialId) {
                   dailyCommittedStock += Number(need.quantity) || 0;
                 }
               });
