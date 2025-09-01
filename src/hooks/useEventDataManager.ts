@@ -323,7 +323,8 @@ export const useEventDataManager = (
               const conflictingEvent = eventFrames.find(ef => ef.id === conflict.eventFrameId);
               return `"${conflictingEvent?.name}" el ${formatDateDMY(currentDateStr)}`;
           }).join(", ");
-          return { success: false, message: `DUPLICATE_CONFLICT:Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
+          // Return success true, but with a special warning message
+          return { success: true, warningMessage: `DUPLICATE_CONFLICT:Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
         }
       }
     }
@@ -350,6 +351,8 @@ export const useEventDataManager = (
     } else {
       finalAssignment.dailyStatuses = undefined;
     }
+
+    let warningMessage: string | undefined = undefined;
 
     if (!force) {
         const allOtherAssignments = eventFrames.flatMap(ef =>
@@ -397,9 +400,8 @@ export const useEventDataManager = (
                 conflictMessage = checkDateRange(new Date(finalAssignment.startDate), new Date(finalAssignment.endDate), finalAssignment.dailyStatuses || finalAssignment.status);
             }
         }
-
         if (conflictMessage) {
-            return { success: false, message: `DUPLICATE_CONFLICT:${conflictMessage}` };
+          warningMessage = `DUPLICATE_CONFLICT:${conflictMessage}`;
         }
     }
     
@@ -409,7 +411,7 @@ export const useEventDataManager = (
         : ef_loc
     ));
     markUnsaved();
-    return { success: true };
+    return { success: true, warningMessage: warningMessage };
   }, [eventFrames, markUnsaved]);
 
   const deleteAssignment = useCallback((eventFrameId: string, assignmentId: string) => {

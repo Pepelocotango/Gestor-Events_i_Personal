@@ -167,7 +167,10 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
     if (result.success) {
       setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
       if (result.warningMessage && newDailyStatus !== AssignmentStatus.No) {
-        setConflictDialog({ message: result.warningMessage, personName: person?.name || 'Desconeguda' });
+        const message = result.warningMessage.startsWith('DUPLICATE_CONFLICT:')
+          ? result.warningMessage.replace('DUPLICATE_CONFLICT:', '')
+          : result.warningMessage;
+        setConflictDialog({ message, personName: person?.name || 'Desconeguda' });
       }
     } else if (result.message) {
       setToastMessage(result.message, 'error');

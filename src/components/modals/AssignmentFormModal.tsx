@@ -69,15 +69,17 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
 
     const handleResult = (result: { success: boolean; message?: string; warningMessage?: string }, isUpdate: boolean) => {
       if (result.success) {
-        showToast(isUpdate ? "Assignació actualitzada." : "Assignació afegida.", 'success');
-        if (!isUpdate && setExpandedEventFrameId) setExpandedEventFrameId(eventFrame.id);
-        onClose();
-      } else if (result.message && result.message.startsWith('DUPLICATE_CONFLICT:')) {
-        openModal('confirmDuplicate', {
-          message: result.message.replace('DUPLICATE_CONFLICT:', ''),
-          onConfirm: () => handleSubmit(e, true),
-          onCancel: onClose,
-        });
+        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+          openModal('confirmDuplicate', {
+            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            onConfirm: () => handleSubmit(e, true),
+          });
+        } else {
+          if (result.warningMessage) showToast(result.warningMessage, 'warning');
+          showToast(isUpdate ? "Assignació actualitzada." : "Assignació afegida.", 'success');
+          if (!isUpdate && setExpandedEventFrameId) setExpandedEventFrameId(eventFrame.id);
+          onClose();
+        }
       } else if (result.message) {
         showToast(`Error: ${result.message}`, 'error');
       }
