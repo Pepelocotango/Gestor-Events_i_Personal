@@ -143,7 +143,7 @@ Per facilitar la depuració, l'aplicació implementa un sistema de logging robus
 -   **Creació de Logs:** A cada inici, es crea un nou fitxer de log a `LOGS_DIR` amb el format `app-<timestamp>.log`.
 -   **Redirecció de Consola:** Totes les crides a `console.log`, `console.warn` i `console.error` des del procés principal són interceptades i redirigides a la funció `logToFile`, que les escriu al fitxer de log de la sessió actual i les mostra simultàniament a la terminal.
 -   **Logs del Frontend:** Els missatges de log generats al frontend (a través del servei `logger.ts`) s'envien al backend mitjançant el canal IPC `log-message` i s'escriuen al mateix fitxer, prefixats amb `[FRONTEND]`.
--   **Rotació Automàtica:** La funció `rotateLogs` s'executa a l'inici per garantir que només es conservin els 19 fitxers de log més recents, evitant l'acumulació excessiva d'arxius.
+-   **Rotació Automàtica:** La funció `rotateLogs` s'executa a l'inici per garantir que només es conservin els 20 fitxers de log més recents, evitant l'acumulació excessiva d'arxius.
 
 #### Còpies de Seguretat (Backups)
 
@@ -221,10 +221,6 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
 
 -   **Interacció amb UI Nativa:**
     -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu, rebent les dades i la configuració del diàleg des de React.
-
--   **Gestió de la Sessió de la UI:**
-    -   `get-session-data`: Recupera dades de la sessió desades (com l'estat de les seccions col·lapsables) per restaurar la UI.
-    -   `save-session-data`: Desa una clau i valor específics a l'arxiu de sessió de la UI.
 
     ---
 
@@ -654,9 +650,7 @@ Tots els workflows s'activen manualment (`workflow_dispatch`) i segueixen un pat
 1.  **Checkout:** Descarreguen el codi font del repositori.
 2.  **Setup Node.js:** Configuren l'entorn amb la versió de Node.js especificada.
 3.  **Install Dependencies:** Executen `npm install` per instal·lar totes les dependències.
-4.  **Create Credential Files:** Aquest és un pas crucial. El contingut dels fitxers de credencials s'emmagatzema com a **Secrets de GitHub**. L'acció llegeix aquests secrets i crea els fitxers a l'entorn de compilació, permetent que s'incloguin de manera segura a l'aplicació empaquetada sense que estiguin exposats al codi font:
-    -   `google-credentials.json` es crea a partir del secret `GOOGLE_CREDENTIALS_JSON`.
-    -   `service-account.json` es crea a partir del secret `SERVICE_ACCOUNT_JSON`.
+4.  **Create `google-credentials.json`:** Aquest és un pas crucial. El contingut del fitxer de credencials s'emmagatzema com un **Secret de GitHub** (`GOOGLE_CREDENTIALS_JSON`). L'acció llegeix aquest secret i crea el fitxer `google-credentials.json` a l'entorn de compilació. Això permet que les credencials s'incloguin de manera segura a l'aplicació empaquetada sense que estiguin exposades al codi font.
 5.  **Build Application:** Executen l'script `npm run build:electron` amb les banderes corresponents a cada sistema operatiu (`--linux`, `--win`, `--mac`).
 6.  **Upload Artifact:** Empaqueten els binaris generats (`.AppImage`, `.dmg`, `.exe`) com a artefactes de la build, que es poden descarregar des de la pàgina de l'acció a GitHub.
 

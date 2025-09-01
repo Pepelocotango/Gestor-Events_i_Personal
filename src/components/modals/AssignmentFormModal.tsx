@@ -63,8 +63,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent, force = false) => {
-    e.preventDefault();
+  const performSubmit = (force = false) => {
     if (!validate()) return;
 
     const handleResult = (result: { success: boolean; message?: string; warningMessage?: string }, isUpdate: boolean) => {
@@ -72,7 +71,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
         if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
           openModal('confirmDuplicate', {
             message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
-            onConfirm: () => handleSubmit(e, true),
+            onConfirm: () => performSubmit(true),
           });
         } else {
           if (result.warningMessage) showToast(result.warningMessage, 'warning');
@@ -106,6 +105,11 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
       const result = addAssignment(eventFrame.id, assignmentData, force);
       handleResult(result, false);
     }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    performSubmit(false);
   };
 
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
