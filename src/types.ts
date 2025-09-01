@@ -97,11 +97,9 @@ export interface TechSheetData {
   logistics?: ConditionalSection; // To group logistics fields
 
   // Logistics fields (will be inside logistics object in the future)
-  dressingRooms?: string;
-  actorsNumber?: number | string;
-  actors?: string;
-  companyTechniciansNumber?: number | string;
-  companyTechnicians?: string;
+  dressingRooms?: ConditionalSection<{ details: string }>;
+  actorsInfo?: ConditionalSection<{ number: number | string; names: string }>;
+  techniciansInfo?: ConditionalSection<{ number: number | string; names: string }>;
 
   // Technical Needs
   lighting?: ConditionalSection<{ needs: NeedItem[] }>;

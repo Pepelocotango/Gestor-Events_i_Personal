@@ -329,18 +329,27 @@ export const exportTechSheetToPdf = async (
     }
 
     // --- Logística ---
-    y = checkPageBreak(y);
-    const logisticsBody = [
-        ['Camerinos', sane(formData.dressingRooms), ''],
-        ['Actors', sane(formData.actorsNumber), sane(formData.actors)],
-        ['Tècnics/Prod. Cia', sane(formData.companyTechniciansNumber), sane(formData.companyTechnicians)]
-    ];
-    autoTable(pdf, {
-        head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
-        body: [['Ítem', 'Quantitat', 'Notes'], ...logisticsBody],
-        startY: y, theme: 'grid',
-    });
-    y = (pdf as any).lastAutoTable.finalY + 8;
+    const logisticsBody: any[][] = [];
+    if (formData.dressingRooms?.status === 'yes') {
+        logisticsBody.push(['Camerinos', sane(formData.dressingRooms.details), '']);
+    }
+    if (formData.actorsInfo?.status === 'yes') {
+        logisticsBody.push(['Actors', sane(formData.actorsInfo.data?.number), sane(formData.actorsInfo.data?.names)]);
+    }
+    if (formData.techniciansInfo?.status === 'yes') {
+        logisticsBody.push(['Tècnics/Prod. Cia', sane(formData.techniciansInfo.data?.number), sane(formData.techniciansInfo.data?.names)]);
+    }
+
+    if (logisticsBody.length > 0) {
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
+            body: [['Ítem', 'Quantitat/Detalls', 'Noms/Notes'], ...logisticsBody],
+            startY: y, theme: 'grid',
+            columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
+    }
 
     // --- Necessitats Tècniques ---
     const needsBody: any[][] = [];
