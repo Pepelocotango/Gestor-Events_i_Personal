@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEventData } from '../../contexts/EventDataContext';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus } from '../../types';
+import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -15,7 +15,7 @@ interface TechSheetFormProps {
 }
 
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
-  const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability } = useEventData();
+  const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability, openModal } = useEventData();
 
   const getInitialFormData = (): TechSheetData => {
     return eventFrame.techSheet!;
@@ -283,6 +283,63 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
     exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
   };
 
+  const handleConfirmUpdateFromAssignments = (selectedChanges?: any[]) => {
+    if (!selectedChanges) return;
+    const toAdd = selectedChanges.filter(c => c.type === 'add').map(c => c.data);
+    const toRemoveIds = new Set(selectedChanges.filter(c => c.type === 'remove').map(c => c.data.id));
+
+    setFormData(prev => {
+      let newProviders = [...(prev.technicalProviders || [])];
+
+      // Remove roles
+      newProviders = newProviders.map(p => ({
+        ...p,
+        roles: p.roles.filter(r => !toRemoveIds.has(r.id)),
+      })).filter(p => p.roles.length > 0 || p.isManual);
+
+      // Add roles
+      toAdd.forEach(assignment => {
+        const personGroupId = assignment.personGroupId;
+        let provider = newProviders.find(p => p.personGroupId === personGroupId);
+
+        if (!provider) {
+          provider = {
+            id: generateLocalId(),
+            personGroupId,
+            roles: [],
+            isManual: false,
+          };
+          newProviders.push(provider);
+        }
+
+        let notes = assignment.notes || '';
+        if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
+          const confirmedDays = Object.entries(assignment.dailyStatuses)
+            .filter(([, status]) => status === AssignmentStatus.Yes)
+            .map(([date]) => formatDateDMY(date));
+
+          if (confirmedDays.length > 0) {
+            const daysString = `Dies: ${confirmedDays.join(', ')}`;
+            notes = notes ? `${notes}\n${daysString}` : daysString;
+          }
+        }
+
+        provider.roles.push({
+          id: generateLocalId(),
+          assignmentId: assignment.id,
+          role: '',
+          quantity: 1,
+          notes: notes,
+        });
+      });
+
+      return { ...prev, technicalProviders: newProviders };
+    });
+
+    markAsDirty();
+    showToast(`${selectedChanges.length} canvis aplicats des de les assignacions.`, 'success');
+  };
+
   const renderNeedsSection = (title: string, fieldName: TechSheetNeedsKey) => (
     <ConditionalFormControl
       label={`${title}:`}
@@ -380,9 +437,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         onRemoveRole={handleRemoveRole}
         getPersonGroupById={getPersonGroupById}
         showToast={showToast}
-        addOrUpdateTechSheet={addOrUpdateTechSheet}
-        setFormData={setFormData}
-        formData={formData}
+        openModal={openModal}
+        onConfirmUpdate={handleConfirmUpdateFromAssignments}
       />
 
       {/* Pre-assembly */}

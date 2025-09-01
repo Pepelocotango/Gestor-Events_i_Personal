@@ -28,6 +28,7 @@ const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplac
 const SelectSyncCalendarModal = lazy(() => import('./components/modals/SelectSyncCalendarModal'));
 const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalendarModal'));
 const ConfirmDuplicateModal = lazy(() => import('./components/modals/ConfirmDuplicateModal'));
+const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/UpdateFromAssignmentsModal'));
 
 interface ToastState {
   id: string;
@@ -603,6 +604,15 @@ const App: React.FC = () => {
                   onConfirm={modalState.data!.onConfirm!}
                   message={modalState.data!.message!}
                 />;
+      case 'updateFromAssignments':
+        return <UpdateFromAssignmentsModal
+                  onClose={closeModal}
+                  onConfirm={modalState.data!.onConfirm!}
+                  toAdd={modalState.data!.toAdd || []}
+                  toRemove={modalState.data!.toRemove || []}
+                  toKeep={modalState.data!.toKeep || []}
+                  getPersonGroupById={eventDataManagerHookResult.getPersonGroupById}
+                />;
       default:
         return null;
     }
@@ -621,6 +631,7 @@ const App: React.FC = () => {
       case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
       case 'createAppCalendar': return "Crear Nou Calendari de l'App";
       case 'confirmDuplicate': return "Conflicte d'Assignació";
+      case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
       
       case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':

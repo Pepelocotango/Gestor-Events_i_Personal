@@ -230,9 +230,14 @@ export type ModalType =
   | 'createAppCalendar'
   | 'confirmDataRepair'
   | 'confirmDuplicate'
+  | 'updateFromAssignments'
   | null;
 
 export interface ModalData {
+    toAdd?: Assignment[];
+    toRemove?: (TechSheetRoleItem & { personGroupId: string; })[];
+    toKeep?: (TechSheetRoleItem & { personGroupId: string; })[];
+    getPersonGroupById?: (id: string) => PersonGroup | undefined;
     message?: string;
     eventFrameToEdit?: EventFrame;
     eventFrame?: EventFrame;
@@ -244,7 +249,7 @@ export interface ModalData {
     startDate?: string;
     endDate?: string;
     itemType?: string;
-    onConfirm?: () => void;
+    onConfirm?: (selectedChanges?: any[]) => void;
     onCancel?: () => void;
     onConfirmSpecial?: (inputValue?: string) => void;
     confirmButtonText?: string;
