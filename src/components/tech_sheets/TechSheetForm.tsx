@@ -538,30 +538,92 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       </TechSheetSection>
 
       {/* Logistics */}
-      <TechSheetSection title="Logística" layout="grid-3">
-        <TechSheetField id="dressingRooms" label="CAMERINOS:" value={formData.dressingRooms || ''} onChange={handleChange} placeholder="2 camerinos individuals, camerino ràpid....." tooltipText="Especifica les necessitats de camerinos: quantitat, tipus (individuals, col·lectius), i qualsevol requeriment especial."/>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ACTORS:</label>
-          <Tooltip text="Nombre total d'actors o artistes que participen.">
-            <input type="number" name="actorsNumber" value={formData.actorsNumber || ''} onChange={handleChange} className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" min="0" />
-          </Tooltip>
-          {Number(formData.actorsNumber) > 0 && (
-            <Tooltip text="Llista els noms dels actors o artistes.">
-              <textarea className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} placeholder="Detalls notes Artistes, noms..." name="actors" value={formData.actors || ''} onChange={handleChange} />
-            </Tooltip>
-          )}
-        </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">TÈCNICS/PRODUCCIÓ CIA:</label>
-          <Tooltip text="Nombre total de personal tècnic o de producció de la companyia.">
-            <input type="number" name="companyTechniciansNumber" value={formData.companyTechniciansNumber || ''} onChange={handleChange} className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" min="0" />
-          </Tooltip>
-          {Number(formData.companyTechniciansNumber) > 0 && (
-            <Tooltip text="Llista els noms del personal tècnic o de producció de la companyia.">
-              <textarea className="mt-2 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} placeholder="Detalls notes dels tècnics/producció, noms..." name="companyTechnicians" value={formData.companyTechnicians || ''} onChange={handleChange} />
-            </Tooltip>
-          )}
-        </div>
+      <TechSheetSection title="Logística" layout="single-column">
+        <ConditionalFormControl
+          label="CAMERINOS:"
+          status={formData.dressingRooms?.status || 'unset'}
+          onStatusChange={(status) => handleConditionalChange('dressingRooms', { status, details: formData.dressingRooms?.details || '' })}
+          tooltipText="Indica si es necessiten camerinos."
+        >
+          <TechSheetField
+            id="dressingRoomsDetails"
+            label="Detalls dels camerinos:"
+            value={formData.dressingRooms?.details || ''}
+            onChange={(e) => handleConditionalChange('dressingRooms', { details: e.target.value })}
+            as="textarea"
+            rows={2}
+            placeholder="Especifica les necessitats de camerinos: quantitat, tipus (individuals, col·lectius), i qualsevol requeriment especial."
+            tooltipText="Descriu les necessitats específiques dels camerinos."
+          />
+        </ConditionalFormControl>
+
+        <ConditionalFormControl
+          label="ACTORS:"
+          status={formData.actorsInfo?.status || 'unset'}
+          onStatusChange={(status) => handleConditionalChange('actorsInfo', { status, data: formData.actorsInfo?.data || { number: 0, names: '' } })}
+          tooltipText="Indica si hi ha actors o artistes."
+        >
+          <div className="grid grid-cols-4 gap-4">
+            <div className="col-span-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nº:</label>
+              <Tooltip text="Nombre total d'actors o artistes que participen.">
+                <input
+                  type="number"
+                  value={formData.actorsInfo?.data?.number || ''}
+                  onChange={(e) => handleConditionalChange('actorsInfo', { data: { ...(formData.actorsInfo?.data || { number: 0, names: '' }), number: e.target.value } })}
+                  className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  min="0"
+                />
+              </Tooltip>
+            </div>
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Noms / Notes:</label>
+              <Tooltip text="Llista els noms dels actors o artistes i qualsevol nota rellevant.">
+                <textarea
+                  value={formData.actorsInfo?.data?.names || ''}
+                  onChange={(e) => handleConditionalChange('actorsInfo', { data: { ...(formData.actorsInfo?.data || { number: 0, names: '' }), names: e.target.value } })}
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  rows={2}
+                  placeholder="Detalls, notes, noms..."
+                />
+              </Tooltip>
+            </div>
+          </div>
+        </ConditionalFormControl>
+
+        <ConditionalFormControl
+          label="TÈCNICS/PRODUCCIÓ CIA:"
+          status={formData.techniciansInfo?.status || 'unset'}
+          onStatusChange={(status) => handleConditionalChange('techniciansInfo', { status, data: formData.techniciansInfo?.data || { number: 0, names: '' } })}
+          tooltipText="Indica si hi ha personal tècnic o de producció de la companyia."
+        >
+          <div className="grid grid-cols-4 gap-4">
+            <div className="col-span-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nº:</label>
+              <Tooltip text="Nombre total de personal tècnic o de producció de la companyia.">
+                <input
+                  type="number"
+                  value={formData.techniciansInfo?.data?.number || ''}
+                  onChange={(e) => handleConditionalChange('techniciansInfo', { data: { ...(formData.techniciansInfo?.data || { number: 0, names: '' }), number: e.target.value } })}
+                  className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  min="0"
+                />
+              </Tooltip>
+            </div>
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Noms / Notes:</label>
+              <Tooltip text="Llista els noms del personal i qualsevol nota rellevant.">
+                <textarea
+                  value={formData.techniciansInfo?.data?.names || ''}
+                  onChange={(e) => handleConditionalChange('techniciansInfo', { data: { ...(formData.techniciansInfo?.data || { number: 0, names: '' }), names: e.target.value } })}
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  rows={2}
+                  placeholder="Detalls, notes, noms..."
+                />
+              </Tooltip>
+            </div>
+          </div>
+        </ConditionalFormControl>
       </TechSheetSection>
 
       {/* Technical Needs */}
