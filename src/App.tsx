@@ -14,6 +14,7 @@ const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
 const SyncProgressOverlay = lazy(() => import('./components/ui/SyncProgressOverlay'));
+import CustomMenuBar from './components/ui/CustomMenuBar';
 
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
@@ -675,8 +676,9 @@ const App: React.FC = () => {
     <EventDataProvider value={contextValue}>
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm p-2">
-            <div className="container mx-auto">
+          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+            <CustomMenuBar />
+            <div className="container mx-auto p-2">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   ref={controlsRef}

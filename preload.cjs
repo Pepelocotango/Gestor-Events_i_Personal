@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createNewAppCalendar: (suffix) => ipcRenderer.invoke('create-new-app-calendar', suffix),
   getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),
   performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
+  triggerMenuAction: (action) => ipcRenderer.send('trigger-menu-action', action),
 
   // Menu actions
   onMenuAction: (callback) => {
