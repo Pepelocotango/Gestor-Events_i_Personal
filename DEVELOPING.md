@@ -1,5 +1,5 @@
 
-## DEVELOPING.md v0.5.2
+## DEVELOPING.md V1.0.0
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
@@ -197,7 +197,32 @@ Per evitar la pèrdua de dades no desades, l'aplicació implementa un flux de ta
 
 El procés principal inclou un gestor `process.on('uncaughtException')` com a última línia de defensa. Si es produeix un error no controlat, s'escriu al fitxer de log, es mostra un diàleg d'error a l'usuari i es tanca l'aplicació de manera forçada per evitar un estat inconsistent.
 
-### 3.3. API Interna: Gestors d'IPC (Inter-Process Communication)
+### 3.3. Menú d'Aplicació Personalitzat (Custom Menu Bar)
+
+Per solucionar un bug de renderitzat del menú natiu d'Electron en configuracions de múltiples pantalles a Linux, s'ha reemplaçat el menú natiu per un component de menú personalitzat construït amb React.
+
+#### Arquitectura de la Solució
+
+1.  **Desactivació del Menú Natiu (`main.cjs`):**
+    -   A la configuració de `BrowserWindow`, s'ha afegit la propietat `autoHideMenuBar: true`. Això amaga la barra de menú per defecte, però encara permet accedir-hi prement la tecla `Alt`.
+    -   Les línies `Menu.buildFromTemplate(template)` i `Menu.setApplicationMenu(menu)` han estat comentades per desactivar completament la creació del menú natiu.
+
+2.  **Component de React (`src/components/ui/CustomMenuBar.tsx`):**
+    -   S'ha creat un nou component de React que replica visualment i funcionalment l'estructura del menú anterior.
+    -   Aquest component gestiona el seu propi estat per controlar la visibilitat dels menús desplegables.
+
+3.  **Comunicació Frontend -> Backend (`trigger-menu-action`):**
+    -   Quan un usuari fa clic a un element del menú, el component de React crida a la funció `window.electronAPI.triggerMenuAction(action)`, passant una cadena que identifica l'acció (p. ex., `'save-all'`, `'reload'`).
+    -   Aquesta funció està exposada de manera segura a través de `preload.cjs`.
+
+4.  **Gestor d'Accions Centralitzat (`main.cjs`):**
+    -   S'ha implementat un nou listener `ipcMain.on('trigger-menu-action', ...)` que actua com un enrutador per a totes les accions del menú.
+    -   **Accions del Procés Principal:** Les accions que requereixen accés a les API d'Electron o Node.js (com obrir diàlegs de fitxers, gestionar el zoom de la finestra o tancar l'aplicació) són gestionades directament dins d'aquest listener.
+    -   **Accions del Procés de Renderitzat:** Les accions que afecten l'estat de la UI (com canviar de tema, desar dades o obrir modals) es redirigeixen al procés de renderitzat a través del canal IPC existent `'menu-action'`, on són gestionades pel listener corresponent a `App.tsx`.
+
+Aquest enfocament no només soluciona el bug original, sinó que també proporciona un control total sobre l'aparença i el comportament del menú, permetent una integració més profunda amb el disseny de l'aplicació.
+
+### 3.4. API Interna: Gestors d'IPC (Inter-Process Communication)
 
 La comunicació entre el frontend i el backend es realitza exclusivament a través de canals IPC. `main.cjs` defineix diversos gestors (`ipcMain.handle` i `ipcMain.on`) que conformen l'API interna de l'aplicació.
 
@@ -224,7 +249,7 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
 
     ---
 
-### 3.4. Integració amb Serveis Externs: Google Calendar API
+### 3.5. Integració amb Serveis Externs: Google Calendar API
 
 Aquesta secció ha estat refactoritzada per suportar múltiples calendaris. Per a una descripció detallada del nou flux, vegeu la secció **5.1. Flux de Sincronització amb Google Calendar (Multi-Calendari)**.
 
@@ -400,11 +425,12 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
 
--  **Actualització Intel·ligent des d'Assignacions:** El botó **`⟳ Actualitza des d'assignacions`** executa una sincronització intel·ligent per evitar duplicats i respectar les entrades manuals.
-     1.  **Identifica Assignacions Confirmades:** Obté una llista de tot el personal amb assignacions en estat `Sí` o `Mixt` (amb algun dia `Sí`). Aquesta és la "font de la veritat".
-     2.  **Preserva Entrades Manuals:** Analitza els proveïdors existents a la fitxa i separa aquells que han estat afegits manualment (marcats amb la propietat `isManual: true`) i que no corresponen a una assignació confirmada. Aquests es mantenen intactes.
-     3.  **Neteja i Reconstrueix:** Elimina totes les entrades anteriors que provenien d'assignacions i les reconstrueix de zero a partir de la llista actual de personal confirmat.
-     4.  **Unifica:** Combina les entrades manuals preservades amb les noves entrades generades a partir de les assignacions i desa el resultat final.
+-  **Actualització Interactiva des d'Assignacions:** Per donar un control més gran a l'usuari, el botó **`⟳ Actualitza des d'assignacions`** ja no modifica directament la fitxa, sinó que obre un diàleg de confirmació.
+    1.  **Càlcul de Canvis:** En fer clic, la lògica a `TechnicalPersonnelSection.tsx` compara el personal actual de la fitxa amb les assignacions confirmades i genera tres llistes: personal per afegir, personal per eliminar i personal per mantenir.
+    2.  **Modal de Previsualització (`UpdateFromAssignmentsModal`):** Aquestes llistes s'envien a un nou modal que mostra cada canvi proposat (addicions en verd, eliminacions en vermell) amb una casella de selecció.
+    3.  **Confirmació de l'Usuari:** L'usuari pot seleccionar quins canvis vol aplicar. Pot acceptar totes les suggestions, cap, o una combinació.
+    4.  **Aplicació Selectiva:** Un cop confirmat, el modal retorna només els canvis seleccionats a `TechSheetForm.tsx`, que els aplica a l'estat, garantint que no es perdi cap entrada manual ni s'apliquin canvis no desitjats.
+    5.  **Gestió d'Esdeveniments de Diversos Dies:** La lògica d'afegir nous rols des del modal inclou la funcionalitat de detallar els dies específics per a assignacions de tipus `Mixt`.
 
 
 
@@ -442,16 +468,29 @@ La funció implementa una lògica granular per garantir un càlcul d'estoc prec�
 
 Aquesta lògica, similar al control d'estoc, preveu que una persona sigui assignada a dos llocs alhora.
 
-#### Flux de Validació (`addAssignment` i `updateAssignment`)
+#### Flux de Validació amb Confirmació de l'Usuari
 
-1.  **Recopilació d'Assignacions:** Abans de crear o actualitzar una assignació, el sistema recopila totes les altres assignacions de la persona implicada (`personGroupId`) de tots els esdeveniments.
-2.  **Iteració per Dies:** Itera sobre cada dia del rang de dates de la nova assignació (o de la que s'està modificant).
-3.  **Comprovació de Conflictes:** Per a cada dia, comprova si existeix alguna altra assignació per a aquesta persona en aquest dia concret que tingui un estat de `Sí`, `Pendent` o `Mixt` amb un `Sí` per a aquest dia.
-4.  **Generació d'Advertència:**
-    -   Si es troba un conflicte, l'operació **no es bloqueja**.
-    -   En lloc d'això, es genera un missatge d'advertència detallat (`warningMessage`) que especifica a quin altre esdeveniment i en quina data es produeix el conflicte.
-    -   La funció retorna `{ success: true, warningMessage: "..." }`.
-5.  **Presentació a l'Usuari:** El component `MainDisplay` rep aquest `warningMessage` i el mostra en un diàleg modal (`conflictDialog`), informant l'usuari del conflicte perquè pugui prendre una decisió informada, però sense impedir-li crear l'assignació si és necessari (p. ex., si són tasques compatibles).
+Per oferir més flexibilitat, el sistema ja no bloqueja les assignacions duplicades, sinó que demana confirmació a l'usuari. Aquest flux es va implementar com a solució a un error de l'entorn de compilació que impedia utilitzar tipus de retorn més complexos.
+
+1.  **Detecció de Conflictes (`useEventDataManager.ts`):**
+    -   Les funcions `addAssignment` i `updateAssignment` contenen la lògica per detectar si una persona ja té una altra assignació en el mateix període.
+    -   Aquestes funcions accepten un paràmetre opcional `force: boolean`. La comprovació de conflictes només s'executa si `force` és `false`.
+
+2.  **Senyalització del Conflicte (Workaround):**
+    -   Si es detecta un conflicte, la funció retorna un objecte `{ success: false }` amb un `message` que conté un prefix especial: `DUPLICATE_CONFLICT:`.
+    -   Aquest mètode de prefixar el missatge es va adoptar com a solució alternativa robusta davant d'errors del compilador de TypeScript que impedien la correcta resolució de tipus més complexos.
+
+3.  **Gestió al Formulari (`AssignmentFormModal.tsx`):**
+    -   El component `AssignmentFormModal` crida a `addAssignment` o `updateAssignment` amb `force: false` inicialment.
+    -   En rebre una resposta amb `success: false`, comprova si el `message` comença amb el prefix `DUPLICATE_CONFLICT:`.
+    -   Si és així, invoca `openModal` per mostrar el diàleg `ConfirmDuplicateModal`.
+
+4.  **Confirmació de l'Usuari (`ConfirmDuplicateModal.tsx`):**
+    -   Aquest modal mostra el missatge de conflicte (sense el prefix) i pregunta a l'usuari si vol procedir.
+    -   En confirmar, s'executa una funció de `callback` que torna a cridar `handleSubmit` al formulari, aquest cop amb el paràmetre `force: true`.
+
+5.  **Execució Forçada:**
+    -   La segona crida a `addAssignment` o `updateAssignment`, ara amb `force: true`, omet la comprovació de conflictes i desa l'assignació duplicada.
 
 
 ---
@@ -702,6 +741,35 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 ---
 
+### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
+
+Per garantir la màxima robustesa i evitar pèrdues de dades o bloquejos de l'aplicació a causa de fitxers de dades corruptes o amb formats antics, s'ha implementat un pipeline de càrrega de dades de diversos passos. Aquest sistema prioritza una experiència d'usuari ràpida per a dades vàlides (el "camí feliç") mentre proporciona una xarxa de seguretat per a dades que requereixen correccions.
+
+#### El Pipeline de Processament de Dades
+
+La lògica central resideix a la funció `loadData` del hook `useEventDataManager.ts` i segueix aquesta seqüència:
+
+1.  **Migració (Sempre):**
+    -   **Objectiu:** Assegurar que les dades, independentment de la seva versió original, tinguin sempre l'estructura de dades més recent definida a `types.ts`.
+    -   **Implementació:** La funció itera sobre cada `eventFrame` i passa el seu `techSheet` a la funció `migrateTechSheetData` (`src/utils/techSheetMigration.ts`). Aquesta funció comprova si la fitxa ja té el format nou; si no, la transforma, afegint els camps nous amb valors per defecte i reestructurant els antics.
+    -   **Tolerància a Errors:** La migració està dins d'un bloc `try...catch`. Si falla per qualsevol motiu (p. ex., un format de dades completament inesperat), es registra l'error i es genera una fitxa tècnica per defecte, evitant que l'aplicació es bloquegi.
+
+2.  **Validació (Sempre):**
+    -   **Objectiu:** Comprovar la integritat referencial de les dades ja migrades.
+    -   **Implementació:** Les dades migradas es passen a la funció `validateData` (`src/utils/dataIntegrity.ts`). Aquesta funció comprova, per exemple, que cada `assignment` apunti a un `eventFrameId` i a un `personGroupId` que realment existeixin a les llistes corresponents.
+    -   **Resultat:** Retorna un objecte `{ isValid: boolean, errors: ValidationError[] }`.
+
+3.  **Decisió i Rutes Condicionals:**
+    -   **Cas A: Dades Vàlides (isValid: true)**
+        -   **Acció:** S'executa la funció `_applyDataToState`, que carrega les dades directament a l'estat de React.
+        -   **Feedback:** Es mostra un missatge d'èxit simple i ràpid a l'usuari. El procés acaba aquí.
+    -   **Cas B: Dades Invàlides (isValid: false)**
+        -   **Reparació:** Les dades i l'informe d'errors es passen a la funció `repairData` (`src/utils/dataIntegrity.ts`). Aquesta funció elimina els elements trencats (p. ex., les assignacions invàlides) i retorna les dades netes i un array de missatges explicant les correccions (`fixes`).
+        -   **Confirmació de l'Usuari:** S'obre el modal `ConfirmRepairModal.tsx`, mostrant la llista de `fixes` a l'usuari.
+        -   **Decisió Final:** L'usuari pot triar entre carregar la versió reparada o cancel·lar l'operació. Les dades només es carreguen si l'usuari dona el seu consentiment explícit.
+
+Aquest sistema garanteix que l'aplicació sigui extremadament resilient a errors de dades, alhora que manté una experiència fluida per a la majoria d'usuaris les dades dels quals són correctes.
+
 ### 9. Solució de Bug de Renderitzat del Calendari
 
 S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de *repaint/reflow* del navegador que FullCalendar no gestiona automàticament.
@@ -710,3 +778,45 @@ La solució implementada força el calendari a recalcular les seves dimensions i
 
 -   **`src/components/MainDisplay.tsx`**: Utilitza `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que internament crida a `calendarApi.updateSize()`.
 -   **`src/App.tsx`**: Crea una referència (`useRef`) al component `MainDisplay` i utilitza un `useEffect` que, en detectar un canvi a `toastState`, crida a la funció `handleResize` del component fill.
+
+### 5.10. Barra de Progrés en Temps Real per a Tasques Asíncrones
+
+Per millorar l'experiència d'usuari durant operacions llargues i asíncrones com la sincronització amb Google Calendar, s'ha implementat un sistema de feedback en temps real que substitueix els spinners de càrrega genèrics per una barra de progrés informativa.
+
+#### Objectiu
+
+L'objectiu és proporcionar a l'usuari informació clara i detallada sobre l'estat d'una tasca de llarga durada, incloent:
+- El progrés general mitjançant una barra visual.
+- El pas concret que s'està executant (`Pas X de Y`).
+- Un missatge descriptiu de l'acció actual (p. ex., "Eliminant esdeveniment: 'Reunió Antiga'").
+
+Això redueix la incertesa i ofereix una experiència més transparent.
+
+#### Arquitectura de Comunicació
+
+La funcionalitat es basa en una comunicació unidireccional contínua des del backend (procés principal) cap al frontend (procés de renderitzat) mentre la tasca està en execució.
+
+1.  **Backend (`main.cjs`): L'Emissor**
+    -   El gestor IPC que executa la tasca llarga (p. ex., `sync-with-google`) és el responsable de calcular el progrés i emetre els esdeveniments.
+    -   **Càlcul Inicial:** Abans d'iniciar el bucle de la tasca, calcula el nombre total de passos (p. ex., esdeveniments a eliminar + esdeveniments a crear).
+    -   **Emissió de Progrés:** Dins del bucle, a cada iteració, envia un missatge al frontend a través d'un canal IPC dedicat (`'sync-progress'`) utilitzant `mainWindow.webContents.send()`. El missatge conté un objecte amb l'estat actual: `{ current, total, message }`.
+
+2.  **Pont Segur (`preload.cjs`): El Canalitzador**
+    -   Per mantenir la seguretat del `contextBridge`, el canal `'sync-progress'` no s'exposa directament.
+    -   En canvi, s'exposa una funció específica `onSyncProgress(callback)` a l'objecte `window.electronAPI`.
+    -   Aquesta funció permet al frontend subscriure's de manera segura als missatges enviats pel canal `'sync-progress'`.
+    -   Crucialment, retorna una **funció de neteja** que elimina el listener (`ipcRenderer.removeListener`), permetent una gestió correcta del cicle de vida i evitant fuites de memòria al frontend.
+
+3.  **Frontend (`useEventDataManager.ts`): El Receptor i Gestor d'Estat**
+    -   Un `useState` (`syncProgress`) emmagatzema l'estat actual de la barra de progrés (`{ current, total, message, visible }`).
+    -   Un `useEffect` s'encarrega de la subscripció:
+        -   Crida a `window.electronAPI.onSyncProgress()` passant-li una funció de callback (`handleSyncProgress`).
+        -   Aquesta callback actualitza l'estat `syncProgress` cada vegada que rep un missatge del backend.
+        -   La funció de neteja retornada per `onSyncProgress` s'utilitza en la funció de retorn del `useEffect` per cancel·lar la subscripció quan el component es desmunta.
+    -   La funció que inicia la tasca (p. ex., `executeSync`) s'encarrega d'activar la visibilitat de la barra de progrés (`visible: true`) al començament i de desactivar-la (`visible: false`) quan la tasca principal (la `Promise` de `syncWithGoogle`) es completa.
+
+4.  **UI (`SyncProgressOverlay.tsx`): El Visualitzador**
+    -   És un component de React simple que rep l'objecte `syncProgress` com a propietat.
+    -   Renderitza la barra de progrés, els textos i els comptadors basant-se en les dades rebudes.
+    -   La barra de progrés s'actualitza visualment calculant el percentatge (`(current / total) * 100`).
+    -   El component només es renderitza si la propietat `visible` de l'estat `syncProgress` és `true`.

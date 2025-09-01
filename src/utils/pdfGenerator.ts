@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment } from '../types';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 
@@ -93,7 +93,7 @@ export const exportSummariesToPdf = async (
             }
 
             const statusDetail = a.isMixedStatusAssignment
-                ? `Mixt (${getStatusSummaryText(a.assignmentObject)})` // <<< CORREGIT: Eliminat el segon paràmetre 'true'
+                ? `Mixt (${getStatusSummaryText(a.assignmentObject)})`
                 : a.assignmentStatus;
 
             return [
@@ -239,33 +239,42 @@ export const exportTechSheetToPdf = async (
 ) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    let y = 15; // Posició Y inicial
+    let y = 15;
 
-    
-    // --- DEFINICIÓ D'ESTILS ---
-    // Funció d'ajuda per sanejar dades: converteix null/undefined/''/-- a un guió
     const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
     const headStyles: Partial<Styles> = { fillColor: [64, 64, 64], textColor: [255, 255, 255], fontStyle: 'bold' };
-    const labelStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold' };
+    const labelStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold', cellWidth: 50 };
     const subHeadStyles: Partial<Styles> = { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' };
 
-    // --- Taula 1: Capçalera Principal ---
-    autoTable(pdf, {
-      body: [
-        [{ content: 'FITXA DE BOLO', colSpan: 2, styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }],
+    const checkPageBreak = (currentY: number): number => {
+        if (currentY > 260) {
+            pdf.addPage();
+            return 15;
+        }
+        return currentY;
+    };
+
+    // --- Header ---
+    const headerBody = [
+        [{ content: 'FITXA DE BOLO', colSpan: 2, styles: { halign: 'center' as 'center', fontSize: 16, fontStyle: 'bold' as 'bold' } }],
         [{ content: 'NOM DEL BOLO:', styles: labelStyles }, sane(formData.eventName)],
         [{ content: 'LLOC:', styles: labelStyles }, sane(formData.location)],
         [{ content: 'DATA:', styles: labelStyles }, sane(formData.date)],
         [{ content: 'HORA:', styles: labelStyles }, sane(formData.showTime)],
         [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
-        [{ content: 'PÀRQUING:', styles: labelStyles }, sane(formData.parkingInfo)],
-      ],
-      theme: 'grid',
-      startY: y,
-    });
-    y = (pdf as any).lastAutoTable.finalY + 5;
+    ];
+    if (formData.showGeneralNotesInPdf && sane(formData.generalNotes) !== '-') {
+        headerBody.push([{ content: 'NOTES GENERALS:', styles: labelStyles }, sane(formData.generalNotes)]);
+    }
+    if (formData.parking?.status === 'yes') {
+        headerBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, sane(formData.parking.details) !== '-' ? `SI: ${sane(formData.parking.details)}` : 'SI']);
+    } else if (formData.parking?.status === 'no') {
+        headerBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, 'NO']);
+    }
+    autoTable(pdf, { body: headerBody, theme: 'grid', startY: y });
+    y = (pdf as any).lastAutoTable.finalY + 8;
 
-    // --- Taula 2: Personal Tècnic ---
+    // --- Personal Tècnic ---
     const personnelBody: any[][] = [];
     if (formData.technicalProviders && formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
@@ -273,132 +282,159 @@ export const exportTechSheetToPdf = async (
         if (provider.roles && provider.roles.length > 0) {
           provider.roles.forEach(role => {
             if (sane(role.role) !== '-' || sane(role.quantity) !== '-') {
-                personnelBody.push([
-                  sane(role.quantity),
-                  sane(role.role),
-                  sane(person?.name),
-                  sane(role.notes)
-                ]);
+                const row = [sane(role.quantity), sane(role.role), sane(person?.name)];
+                if (role.printNotes && sane(role.notes) !== '-') {
+                    row.push(sane(role.notes));
+                }
+                personnelBody.push(row);
             }
           });
         }
       });
     }
-
     if (personnelBody.length > 0) {
+        y = checkPageBreak(y);
         autoTable(pdf, {
             head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
-            body: personnelBody,
+            body: [['Qt.', 'Càrrec', 'Empresa/Tècnic', 'Notes'], ...personnelBody],
+            startY: y, theme: 'grid',
+            headStyles: { ...headStyles, halign: 'center' as 'center' },
+            columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
+    }
+
+    // --- Premuntatge ---
+    if (formData.preAssembly?.status === 'yes') {
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'PREMUNTATGE', styles: headStyles }]],
+            body: [[sane(formData.preAssembly.details)]],
             startY: y, theme: 'grid',
         });
-        y = (pdf as any).lastAutoTable.finalY + 5;
+        y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Taula 3: Horaris ---
-    const scheduleBody: any[][] = [];
-    if (sane(formData.preAssemblySchedule) !== '-' && formData.preAssemblySchedule !== 'NO') {
-        scheduleBody.push([{ content: 'Premuntatge:', styles: labelStyles }, sane(formData.preAssemblySchedule)]);
-    }
-    if (formData.assemblySchedule && formData.assemblySchedule.length > 0) {
-        const validSchedules = formData.assemblySchedule.filter(item => item.time || item.description);
-        if (validSchedules.length > 0) {
-          scheduleBody.push([{ content: 'Horaris Detallats', colSpan: 2, styles: subHeadStyles }]);
-          validSchedules.forEach(item => scheduleBody.push([sane(item.time), sane(item.description)]));
-        }
-    }
-    if (scheduleBody.length > 0) {
+    // --- Horaris ---
+    if (formData.schedule?.status === 'yes' && formData.schedule.data && formData.schedule.data.length > 0) {
+        y = checkPageBreak(y);
+        const scheduleBody = formData.schedule.data.map(item => [sane(item.date), sane(item.time), sane(item.description)]);
         autoTable(pdf, {
-            head: [[{ content: 'PREMUNTATGE I HORARIS', colSpan: 2, styles: headStyles }]],
-            body: scheduleBody,
-            startY: y, theme: 'grid', columnStyles: { 0: { cellWidth: 40 } },
+            head: [[{ content: 'HORARIS', colSpan: 3, styles: headStyles }]],
+            body: [['Data', 'Hora', 'Descripció'], ...scheduleBody],
+            startY: y, theme: 'grid',
+            columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 30 } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 5;
+        y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Taula 4: Logística ---
-    const logisticsBody = [];
-    if(sane(formData.dressingRooms) !== '-') logisticsBody.push([{ content: 'Camerinos:', styles: labelStyles }, sane(formData.dressingRooms)]);
-    if(sane(`${formData.actorsNumber || ''} ${formData.actors || ''}`.trim()) !== '-') logisticsBody.push([{ content: 'Actors:', styles: labelStyles }, sane(`${formData.actorsNumber || ''} ${formData.actors || ''}`.trim())]);
-    if(sane(`${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`.trim()) !== '-') logisticsBody.push([{ content: 'Tècnics/Producció Cia:', styles: labelStyles }, sane(`${formData.companyTechniciansNumber || ''} ${formData.companyTechnicians || ''}`.trim())]);
-    
+    // --- Logística ---
+    const logisticsBody: any[][] = [];
+    if (formData.dressingRooms?.status === 'yes') {
+        logisticsBody.push(['Camerinos', sane(formData.dressingRooms.details), '']);
+    }
+    if (formData.actorsInfo?.status === 'yes') {
+        logisticsBody.push(['Actors', sane(formData.actorsInfo.data?.number), sane(formData.actorsInfo.data?.names)]);
+    }
+    if (formData.techniciansInfo?.status === 'yes') {
+        logisticsBody.push(['Tècnics/Prod. Cia', sane(formData.techniciansInfo.data?.number), sane(formData.techniciansInfo.data?.names)]);
+    }
+
     if (logisticsBody.length > 0) {
-      autoTable(pdf, {
-          head: [[{ content: 'LOGÍSTICA', colSpan: 2, styles: headStyles }]],
-          body: logisticsBody,
-          startY: y, theme: 'grid',
-      });
-      y = (pdf as any).lastAutoTable.finalY + 5;
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
+            body: [['Ítem', 'Quantitat/Detalls', 'Noms/Notes'], ...logisticsBody],
+            startY: y, theme: 'grid',
+            columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Taula 5: Necessitats Tècniques ---
+    // --- Necessitats Tècniques ---
     const needsBody: any[][] = [];
-    const addNeedsToBody = (title: string, needs: any[]) => {
-      if (needs && needs.length > 0) {
-          const validNeeds = needs.filter(n => sane(n.description) !== '-' || sane(n.quantity) !== '-');
-          if (validNeeds.length > 0) {
-              if (title) needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
-              validNeeds.forEach(n => {
-                  needsBody.push([
-                      { content: sane(n.quantity), styles: { halign: 'right' } },
-                      sane(n.description),
-                      sane(n.origin)
-                  ]);
-              });
-          }
-      }
+    const addNeedsToBody = (title: string, section: TechSheetData[keyof TechSheetData]) => {
+        const needsSection = section as { status: 'yes' | 'no' | 'unset', details?: string, data?: { needs: NeedItem[] } };
+        if (!needsSection || needsSection.status !== 'yes') return;
+
+        const hasDetails = sane(needsSection.details) !== '-';
+        const validNeeds = (needsSection.data?.needs || []).filter((n: NeedItem) => sane(n.description) !== '-' || sane(n.quantity) !== '-');
+
+        if (hasDetails || validNeeds.length > 0) {
+            needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
+            if (hasDetails) needsBody.push([{ content: needsSection.details!, colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
+            validNeeds.forEach((n: NeedItem) => {
+                needsBody.push([ { content: sane(n.quantity), styles: { halign: 'right' as 'right' } }, sane(n.description), sane(n.origin) ]);
+            });
+        }
     };
 
-    addNeedsToBody('Il·luminació', formData.lightingNeeds);
-    addNeedsToBody('So', formData.soundNeeds);
-    const hasVideoDetails = sane(formData.videoDetails) !== '-' && formData.videoDetails !== 'NO';
-    const hasVideoNeeds = formData.videoNeeds && formData.videoNeeds.filter(n => sane(n.description) !== '-' || sane(n.quantity) !== '-').length > 0;
-    if (hasVideoDetails || hasVideoNeeds) {
-        needsBody.push([{ content: 'Vídeo', colSpan: 3, styles: subHeadStyles }]);
-        if (hasVideoDetails) {
-            needsBody.push([{ content: sane(formData.videoDetails), colSpan: 3 }]);
-        }
-        if (hasVideoNeeds) addNeedsToBody('', formData.videoNeeds);
-    }
-    addNeedsToBody('Maquinària', formData.machineryNeeds);
+    addNeedsToBody('Il·luminació', formData.lighting);
+    addNeedsToBody('So', formData.sound);
+    addNeedsToBody('Vídeo', formData.video);
+    addNeedsToBody('Maquinària', formData.machinery);
+    addNeedsToBody('Lloguers', formData.rentals);
+    addNeedsToBody("Material d'Altres Equipaments", formData.otherEquipment);
+    addNeedsToBody('Infraestructures Elèctriques', formData.electrical);
+    addNeedsToBody('Estructures', formData.structures);
+    addNeedsToBody('Tarimes', formData.platforms);
+    addNeedsToBody('Consumibles', formData.consumables);
+    addNeedsToBody('Cortinatges', formData.curtains);
+    addNeedsToBody('Transport', formData.transport);
 
     if (needsBody.length > 0) {
-      autoTable(pdf, {
-          head: [['Qt.', 'Descripció', 'Origen']],
-          body: needsBody,
-          startY: y, theme: 'grid',
-          headStyles: { ...headStyles, fillColor: [100, 100, 100] },
-          columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
-      });
-      y = (pdf as any).lastAutoTable.finalY + 5;
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
+            body: [['Qt.', 'Descripció', 'Origen'], ...needsBody],
+            startY: y, theme: 'grid',
+            columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Taula 6: Altres Detalls ---
+    // --- Altres Detalls ---
     const otherDetailsBody = [];
     if (sane(formData.controlLocation) !== '-') otherDetailsBody.push([{ content: 'Control a:', styles: labelStyles }, sane(formData.controlLocation)]);
-    if (sane(formData.otherEquipment) !== '-' && formData.otherEquipment !== 'NO') otherDetailsBody.push([{ content: "Material d'altres equipaments:", styles: labelStyles }, sane(formData.otherEquipment)]);
-    if (sane(formData.rentals) !== '-' && formData.rentals !== 'NO') otherDetailsBody.push([{ content: 'Lloguers:', styles: labelStyles }, sane(formData.rentals)]);
     if (sane(formData.blueprints) !== '-') otherDetailsBody.push([{ content: 'Plànols:', styles: labelStyles }, sane(formData.blueprints)]);
-    
     if (otherDetailsBody.length > 0) {
+      y = checkPageBreak(y);
       autoTable(pdf, {
           head: [[{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }]],
           body: otherDetailsBody,
-          startY: y, theme: 'grid', columnStyles: { 0: { cellWidth: 60 } },
+          startY: y, theme: 'grid',
       });
-      y = (pdf as any).lastAutoTable.finalY + 5;
+      y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Taula 7: Contacte i Observacions ---
-    const contactBody = [];
-    if (sane(formData.companyContact) !== '-') contactBody.push([{ content: 'Contacte Companyia:', styles: labelStyles }, sane(formData.companyContact)]);
-    if (sane(formData.observations) !== '-') contactBody.push([{ content: 'Observacions:', styles: labelStyles }, sane(formData.observations)]);
-    
+    // --- Contacte i Observacions ---
+    const contactBody: any[][] = [];
+    if (formData.contacts && formData.contacts.length > 0) {
+        formData.contacts.forEach(contact => {
+            if (Object.values(contact).some(val => sane(val) !== '-')) {
+                const contactInfo = `Email: ${sane(contact.email)}\nTel: ${sane(contact.phone)}`;
+                contactBody.push([sane(contact.name), sane(contact.role), contactInfo]);
+            }
+        });
+    }
     if (contactBody.length > 0) {
-      autoTable(pdf, {
-          head: [[{ content: 'CONTACTE I OBSERVACIONS', colSpan: 2, styles: headStyles }]],
-          body: contactBody,
-          startY: y, theme: 'grid', styles: { overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 60 } },
-      });
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'CONTACTES COMPANYIA', colSpan: 3, styles: headStyles }]],
+            body: [['Nom', 'Càrrec', 'Contacte'], ...contactBody],
+            startY: y, theme: 'grid',
+            columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 50 }, 2: { cellWidth: 'auto' } },
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
+    }
+
+    if (sane(formData.observations) !== '-') {
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'OBSERVACIONS', styles: headStyles }]],
+            body: [[sane(formData.observations)]],
+            startY: y, theme: 'grid',
+        });
     }
 
     const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
@@ -407,6 +443,7 @@ export const exportTechSheetToPdf = async (
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
 };
+
 // --- EXPORTACIÓ DE LLISTA D'ESDEVENIMENTS ---
 export const exportEventListToPdf = async (
   eventFrames: EventFrame[],
@@ -424,10 +461,9 @@ export const exportEventListToPdf = async (
         ? ef.assignments.map((a: Assignment) => {
             const person = peopleGroups.find(p => p.id === a.personGroupId);
             const personLine = `${person ? person.name : 'N/A'} ${getStatusSummaryText(a)}`;
-            // Afegeix les notes de l'assignació si existeixen
             const notesLine = a.notes ? `  └ Nota: ${a.notes}` : '';
             return [personLine, notesLine].filter(Boolean).join('\n');
-          }).join('\n\n') // Doble salt de línia entre persones
+          }).join('\n\n')
         : 'Sense assignacions';
 
       const statusText = ef.personnelComplete ? 'Complet' : 'Incomplet';
@@ -438,7 +474,7 @@ export const exportEventListToPdf = async (
         formatDateRangeDMY(ef.startDate, ef.endDate),
         personnelText,
         statusText,
-        ef.generalNotes || '-' // Afegim la nova columna
+        ef.generalNotes || '-'
       ];
     });
 
@@ -450,12 +486,9 @@ export const exportEventListToPdf = async (
       styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
       headStyles: { fillColor: [75, 85, 99], textColor: 255, fontStyle: 'bold' },
       columnStyles: {
-        3: { cellWidth: 85 }, // Més amplada per a personal i notes
-        5: { cellWidth: 60 }  // Amplada per a les notes generals
+        3: { cellWidth: 85 },
+        5: { cellWidth: 60 }
       },
-
-
-      
       didDrawPage: (_data: any) => {
         addFooter(pdf, pageCount);
         if (_data.pageNumber > 1) {

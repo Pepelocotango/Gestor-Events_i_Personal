@@ -163,11 +163,14 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
        .reduce((acc, date) => { acc[date] = assign.status; return acc; }, {} as { [date: string]: AssignmentStatus });
         newDailyStatuses[dateYYYYMMDD] = newDailyStatus;
     const newAssignmentData = { ...assign, status: AssignmentStatus.Mixed, dailyStatuses: newDailyStatuses };
-    const result = updateAssignment(newAssignmentData, { changedDate: dateYYYYMMDD });
+    const result = updateAssignment(newAssignmentData, false, { changedDate: dateYYYYMMDD });
     if (result.success) {
       setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
       if (result.warningMessage && newDailyStatus !== AssignmentStatus.No) {
-        setConflictDialog({ message: result.warningMessage, personName: person?.name || 'Desconeguda' });
+        const message = result.warningMessage.startsWith('DUPLICATE_CONFLICT:')
+          ? result.warningMessage.replace('DUPLICATE_CONFLICT:', '')
+          : result.warningMessage;
+        setConflictDialog({ message, personName: person?.name || 'Desconeguda' });
       }
     } else if (result.message) {
       setToastMessage(result.message, 'error');

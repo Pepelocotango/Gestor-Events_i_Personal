@@ -1,54 +1,47 @@
 {
   "peopleGroups": [
     {
-      "id": "person-3",
-      "name": "Carles Vidal Exemple",
-      "role": "Ajudant de Producció",
-      "tel1": "600555666",
-      "tel2": "",
-      "email": "exemplecarles.vidal@email.com",
-      "web": "",
-      "notes": "Estudiant en pràctiques. Molt proactiu."
-    },
-    {
-      "id": "person-4",
-      "name": "Equip de Muntatge Pro",
-      "role": "Proveïdor Extern",
-      "tel1": "937891234",
-      "tel2": "600777888",
-      "email": "exemplecontacte@muntatgepro.com",
-      "web": "https://exemplemuntatgepro.com",
-      "notes": "Especialistes en estructures i escenaris. Cal avisar amb 2 setmanes d'antelació."
-    },
-    {
-      "id": "person-1",
-      "name": "Joan Soler Exemple",
-      "role": "Tècnic de So Principal",
+      "id": "person-01",
+      "name": "Joan Garcia",
+      "role": "Cap Tècnic / Regidor",
       "tel1": "600111222",
       "tel2": "931112233",
-      "email": "joan.solerexemple@tecnicsevent.com",
-      "web": "https://www.exemplejoansoler.cat",
-      "notes": "Expert en consoles digitals Yamaha. Requereix cafè."
+      "email": "joan.garcia@tecnicsevent.com",
+      "web": "https://www.joangarcia.cat",
+      "notes": "Aquesta és una nota actualitzada per provar el merge."
     },
     {
-      "id": "person-2",
-      "name": "Maria Exemple Puig",
-      "role": "Coordinadora de Logística",
-      "tel1": "600333444",
-      "tel2": "",
-      "email": "mariaexemple.puig@logisticafest.es",
-      "web": "",
-      "notes": "Responsable de voluntaris i acreditacions."
+      "id": "company-03",
+      "name": "Càtering L'Àpat",
+      "role": "Proveïdor Càtering",
+      "tel1": "935554433",
+      "email": "reserves@cateringlapat.cat",
+      "web": "https://www.cateringlapat.cat",
+      "notes": "Ofereixen menús per a equips tècnics i artistes. Opcions vegetarianes i sense gluten disponibles."
     },
     {
-      "id": "mbqhi5b18zbi24cf5jb",
-      "name": "Nom personaA",
-      "role": "RolA",
-      "tel1": "telèfon 123456 A",
-      "tel2": "telèfon2 123456 A",
-      "email": "correuA@mail.com",
-      "web": "",
-      "notes": "notes A"
+      "id": "person-new-01",
+      "name": "Anna Roca (Nova)",
+      "role": "Dissenyadora de Llums",
+      "tel1": "611223344",
+      "email": "anna.roca@email.com",
+      "notes": "Nova incorporació a l'equip, especialista en Chamsys."
+    },
+    {
+      "id": "person-new-02",
+      "name": "Pau Vidal (Nou)",
+      "role": "Tècnic de Maquinària",
+      "tel1": "622334455",
+      "email": "pau.vidal@email.com",
+      "notes": "Nou maquinista amb experiència en grans festivals."
+    },
+    {
+      "id": "company-new-01",
+      "name": "Transport Ràpid SL (Nou)",
+      "role": "Proveïdor Transport",
+      "tel1": "939876543",
+      "email": "info@transportrapid.com",
+      "notes": "Nova empresa de transport per a material voluminós."
     }
   ]
 }

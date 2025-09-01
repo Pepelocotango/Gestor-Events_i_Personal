@@ -13,6 +13,8 @@ const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
+const SyncProgressOverlay = lazy(() => import('./components/ui/SyncProgressOverlay'));
+import CustomMenuBar from './components/ui/CustomMenuBar';
 
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
@@ -21,11 +23,13 @@ const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFor
 const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFormModal'));
 
 const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteModal'));
+const ConfirmDuplicateModal = lazy(() => import('./components/modals/ConfirmDuplicateModal'));
 const EventFrameDetailsModal = lazy(() => import('./components/modals/EventFrameDetailsModal'));
 const GoogleSettingsModal = lazy(() => import('./components/modals/GoogleSettingsModal'));
 const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplaceModal'));
 const SelectSyncCalendarModal = lazy(() => import('./components/modals/SelectSyncCalendarModal'));
 const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalendarModal'));
+const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/UpdateFromAssignmentsModal'));
 
 interface ToastState {
   id: string;
@@ -82,7 +86,8 @@ const App: React.FC = () => {
     setHasUnsavedChanges, 
     hasUnsavedChanges, 
     syncWithGoogle,
-    isSyncing
+    isSyncing,
+    syncProgress
   } = eventDataManagerHookResult;
 
   // <<<< NOU REF PER A GESTIONAR L'ESTAT DELS CANVIS SENSE DESAR >>>>
@@ -98,17 +103,16 @@ const App: React.FC = () => {
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
 
   useEffect(() => {
-    if (isSyncing) {
+    // This effect can be simplified or removed if syncProgress.visible covers all cases
+    if (isSyncing && !syncProgress.visible) {
       setLoadingOverlayMessage('Sincronitzant amb Google Calendar...');
       setIsLoadingOverlayVisible(true);
-    } else {
-      // Només amaguem l'overlay si no hi ha un altre missatge de càrrega actiu
-      if (loadingOverlayMessage === 'Sincronitzant amb Google Calendar...') {
-        setIsLoadingOverlayVisible(false);
-        setLoadingOverlayMessage('');
-      }
+    } else if (!isSyncing && !syncProgress.visible) {
+      setIsLoadingOverlayVisible(false);
+      setLoadingOverlayMessage('');
     }
-  }, [isSyncing]);
+  }, [isSyncing, syncProgress.visible]);
+
 
   useEffect(() => {
     let cleanupShowLoading: (() => void) | undefined;
@@ -595,6 +599,26 @@ const App: React.FC = () => {
             }}
           />
         );
+      case 'updateFromAssignments':
+        return <UpdateFromAssignmentsModal
+                  onClose={closeModal}
+                  onConfirm={modalState.data!.onConfirm!}
+                  toAdd={modalState.data!.toAdd || []}
+                  toRemove={modalState.data!.toRemove || []}
+                  toUpdate={modalState.data!.toUpdate || []}
+                  getPersonGroupById={eventDataManagerHookResult.getPersonGroupById}
+                />;
+      case 'confirmDuplicate':
+        return <ConfirmDuplicateModal
+                  onClose={closeModal}
+                  onConfirm={() => {
+                    if (modalState.data?.onConfirm) {
+                      (modalState.data.onConfirm as () => void)();
+                    }
+                    closeModal();
+                  }}
+                  message={modalState.data?.message || ''}
+                />;
       default:
         return null;
     }
@@ -612,12 +636,14 @@ const App: React.FC = () => {
       case 'editAssignment': return `Editar Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
       case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
       case 'createAppCalendar': return "Crear Nou Calendari de l'App";
+      case 'confirmDuplicate': return "Conflicte d'Assignació Detectat";
       
       case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
         return "Confirmar Eliminació";
+      case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
       default: return "Diàleg";
     }
   };
@@ -650,8 +676,9 @@ const App: React.FC = () => {
     <EventDataProvider value={contextValue}>
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm p-2">
-            <div className="container mx-auto">
+          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+            <CustomMenuBar />
+            <div className="container mx-auto p-2">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   ref={controlsRef}
@@ -702,8 +729,8 @@ const App: React.FC = () => {
 
 
           <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
-            © {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal v0.5.2. Evolució Gestió Integral d'Esdeveniments v10.1.
-
+            <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.0.0. Llicència MIT (codi lliure). </span>
+            <span>Si vols col·laborar, pots fer-ho al <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">projecte de GitHub</a> o amb una aportació a <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>.</span>
           </footer>
 
           <Modal
@@ -719,8 +746,12 @@ const App: React.FC = () => {
 
           {toastState && <Toast toast={toastState} />}
 
-          {isLoadingOverlayVisible && (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9999]" aria-live="assertive" role="alert">
+          <Suspense fallback={<div></div>}>
+            <SyncProgressOverlay progress={syncProgress} />
+          </Suspense>
+
+          {isLoadingOverlayVisible && !syncProgress.visible && (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
               <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

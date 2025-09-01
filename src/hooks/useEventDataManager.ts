@@ -1,35 +1,52 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem, ModalType, ModalData } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, EventDataManagerReturn, AssignmentStatus, ShowToastFunction, TechSheetData, MaterialItem, ModalType, ModalData, SyncProgressState, NeedItem } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
+import { migrateTechSheetData } from '../utils/techSheetMigration';
+import { validateData, repairData } from '../utils/dataIntegrity';
 import logger from '../utils/logger';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
-const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): TechSheetData => ({
-  eventName: eventFrame.name,
-  location: eventFrame.place || '',
-  date: formatDateDMY(eventFrame.startDate),
-  showTime: '',
-  showDuration: '',
-  parkingInfo: '',
-  technicalProviders: [],
-  preAssemblySchedule: '',
-  assemblySchedule: [],
-  dressingRooms: '',
-  actors: '',
-  companyTechnicians: '',
-  lightingNeeds: [],
-  soundNeeds: [],
-  videoNeeds: [],
-  videoDetails: '',
-  machineryNeeds: [],
-  controlLocation: '',
-  otherEquipment: '',
-  rentals: '',
-  blueprints: '',
-  companyContact: '',
-  observations: '',
-});
+const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): TechSheetData => {
+  const defaultConditional = () => ({ status: 'unset' as const, details: '', needs: [] });
+  return {
+    eventName: eventFrame.name,
+    location: eventFrame.place || '',
+    date: formatDateDMY(eventFrame.startDate),
+    showTime: '',
+    showDuration: '',
+    technicalProviders: [],
+    generalNotes: '',
+    parking: { status: 'unset', details: '' },
+    preAssembly: { status: 'unset', details: '' },
+    schedule: { status: 'unset', details: '', data: [] },
+    dressingRooms: { status: 'unset', details: '' },
+    actorsInfo: { status: 'unset', details: '', data: { number: 0, names: '' } },
+    techniciansInfo: { status: 'unset', details: '', data: { number: 0, names: '' } },
+    lighting: defaultConditional(),
+    sound: defaultConditional(),
+    video: defaultConditional(),
+    machinery: defaultConditional(),
+    rentals: defaultConditional(),
+    otherEquipment: defaultConditional(),
+    electrical: defaultConditional(),
+    structures: defaultConditional(),
+    platforms: defaultConditional(),
+    consumables: defaultConditional(),
+    curtains: defaultConditional(),
+    transport: defaultConditional(),
+    controlLocation: '',
+    blueprints: '',
+    contacts: [],
+    observations: '',
+    showLogistics: true,
+    showPreAssembly: true,
+    showSchedule: true,
+    showNeeds: true,
+    showOther: true,
+    showGeneralNotesInPdf: true,
+  };
+};
 
 type AssignmentOperationResult = { success: boolean; message?: string; warningMessage?: string };
 
@@ -44,6 +61,12 @@ export const useEventDataManager = (
   const [googleEvents, setGoogleEvents] = useState<any[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState<SyncProgressState>({
+    current: 0,
+    total: 0,
+    message: '',
+    visible: false,
+  });
   
   const eventFramesRef = useRef(eventFrames);
   const peopleGroupsRef = useRef(peopleGroups);
@@ -63,11 +86,11 @@ export const useEventDataManager = (
       if (result.success && result.events) {
         setGoogleEvents(result.events);
       } else if (result.message) {
-        console.error("Error refrescant esdeveniments de Google:", result.message);
+        logger.error("Error refrescant esdeveniments de Google:", { message: result.message });
         showToast(result.message, 'error');
       }
     } else {
-      console.warn("La funció 'getGoogleEvents' no està disponible fora d'Electron.");
+      logger.warn("La funció 'getGoogleEvents' no està disponible fora d'Electron.");
     }
   }, [showToast]);
 
@@ -116,8 +139,8 @@ export const useEventDataManager = (
  const deleteEventFrame = useCallback((eventFrameId: string) => {
     logger.info('[ACTION] deleteEventFrame', { id: eventFrameId });
     setEventFrames(prev => prev.filter(ef => ef.id !== eventFrameId));
-markUnsaved();
-}, [markUnsaved]);
+    markUnsaved();
+  }, [markUnsaved]);
 
   const getEventFrameById = useCallback((eventFrameId: string): EventFrame | undefined => {
     return eventFrames.find(ef => ef.id === eventFrameId);
@@ -195,12 +218,15 @@ markUnsaved();
         const efEnd = new Date(ef.endDate);
 
         if (currentDate >= efStart && currentDate <= efEnd) {
-          const needsLists: (keyof TechSheetData)[] = ['lightingNeeds', 'soundNeeds', 'videoNeeds', 'machineryNeeds'];
-          needsLists.forEach(listKey => {
-            const needs = ef.techSheet?.[listKey];
-            if (Array.isArray(needs)) {
-              needs.forEach(need => {
-                if (typeof need === 'object' && need !== null && 'materialItemId' in need && 'quantity' in need && need.materialItemId === materialId) {
+          const needsSections: (keyof TechSheetData)[] = [
+            'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
+            'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
+          ];
+          needsSections.forEach(sectionKey => {
+            const section = ef.techSheet?.[sectionKey];
+            if (section && section.status === 'yes' && section.data && Array.isArray(section.data.needs)) {
+              section.data.needs.forEach((need: NeedItem) => {
+                if (need.materialItemId === materialId) {
                   dailyCommittedStock += Number(need.quantity) || 0;
                 }
               });
@@ -268,12 +294,12 @@ markUnsaved();
     return peopleGroups.find(pg => pg.id === personGroupId);
   }, [peopleGroups]);
 
-  const addAssignment = useCallback((eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>): AssignmentOperationResult => {
-    logger.info('[ACTION] addAssignment', { eventFrameId: eventFrameId, personGroupId: newAssignmentData.personGroupId });
+  const addAssignment = useCallback((eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>, force = false): AssignmentOperationResult => {
+    logger.info('[ACTION] addAssignment', { eventFrameId: eventFrameId, personGroupId: newAssignmentData.personGroupId, force });
     const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
     if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
 
-    if (newAssignmentData.status === AssignmentStatus.Yes || newAssignmentData.status === AssignmentStatus.Pending) {
+    if (!force && (newAssignmentData.status === AssignmentStatus.Yes || newAssignmentData.status === AssignmentStatus.Pending)) {
       const allOtherAssignments = eventFrames.flatMap(ef => ef.assignments.filter(a => a.personGroupId === newAssignmentData.personGroupId));
       
       const newStartDate = new Date(newAssignmentData.startDate);
@@ -298,7 +324,8 @@ markUnsaved();
               const conflictingEvent = eventFrames.find(ef => ef.id === conflict.eventFrameId);
               return `"${conflictingEvent?.name}" el ${formatDateDMY(currentDateStr)}`;
           }).join(", ");
-          return { success: true, warningMessage: `Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
+          // Return success true, but with a special warning message
+          return { success: true, warningMessage: `DUPLICATE_CONFLICT:Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
         }
       }
     }
@@ -317,8 +344,8 @@ markUnsaved();
     return { success: true };
   }, [eventFrames, markUnsaved]);
 
-  const updateAssignment = useCallback((updatedAssignment: Assignment, context?: { changedDate?: string }): AssignmentOperationResult => {
-    logger.info('[ACTION] updateAssignment', { id: updatedAssignment.id, eventFrameId: updatedAssignment.eventFrameId });
+  const updateAssignment = useCallback((updatedAssignment: Assignment, force = false, context?: { changedDate?: string }): AssignmentOperationResult => {
+    logger.info('[ACTION] updateAssignment', { id: updatedAssignment.id, eventFrameId: updatedAssignment.eventFrameId, force });
     let finalAssignment = { ...updatedAssignment };
     if (finalAssignment.status === AssignmentStatus.Mixed) {
       if (!finalAssignment.dailyStatuses) finalAssignment.dailyStatuses = {};
@@ -326,49 +353,56 @@ markUnsaved();
       finalAssignment.dailyStatuses = undefined;
     }
 
-    const allOtherAssignments = eventFrames.flatMap(ef => 
-        ef.assignments.filter(a => a.personGroupId === finalAssignment.personGroupId && a.id !== finalAssignment.id)
-    );
+    let warningMessage: string | undefined = undefined;
 
-    const checkDateRange = (start: Date, end: Date, statusToCheck: AssignmentStatus | { [date: string]: AssignmentStatus }) => {
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const currentDateStr = d.toISOString().split('T')[0];
-            
-            let currentDayStatus: AssignmentStatus | undefined;
-            if (typeof statusToCheck === 'string') {
-                currentDayStatus = statusToCheck;
-            } else {
-                currentDayStatus = statusToCheck[currentDateStr];
+    if (!force) {
+        const allOtherAssignments = eventFrames.flatMap(ef =>
+            ef.assignments.filter(a => a.personGroupId === finalAssignment.personGroupId && a.id !== finalAssignment.id)
+        );
+
+        const checkDateRange = (start: Date, end: Date, statusToCheck: AssignmentStatus | { [date: string]: AssignmentStatus }) => {
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const currentDateStr = d.toISOString().split('T')[0];
+
+                let currentDayStatus: AssignmentStatus | undefined;
+                if (typeof statusToCheck === 'string') {
+                    currentDayStatus = statusToCheck;
+                } else {
+                    currentDayStatus = statusToCheck[currentDateStr];
+                }
+
+                if (!currentDayStatus || currentDayStatus === AssignmentStatus.No) continue;
+
+                const conflictingAssignments = allOtherAssignments.filter(existing => {
+                    const existingStart = new Date(existing.startDate);
+                    const existingEnd = new Date(existing.endDate);
+                    if (d < existingStart || d > existingEnd) return false;
+
+                    if (existing.status === AssignmentStatus.Yes || existing.status === AssignmentStatus.Pending) return true;
+                    if (existing.status === AssignmentStatus.Mixed && existing.dailyStatuses?.[currentDateStr] && existing.dailyStatuses[currentDateStr] !== AssignmentStatus.No) return true;
+
+                    return false;
+                });
+
+                if (conflictingAssignments.length > 0) {
+                    const conflictDetails = conflictingAssignments.map(conflict => `"${eventFrames.find(ef => ef.id === conflict.eventFrameId)?.name}" el ${formatDateDMY(currentDateStr)}`).join(", ");
+                    return `Conflicte detectat: La persona ja està assignada a ${conflictDetails}.`;
+                }
             }
+            return null;
+        };
 
-            if (!currentDayStatus || currentDayStatus === AssignmentStatus.No) continue;
-
-            const conflictingAssignments = allOtherAssignments.filter(existing => {
-                const existingStart = new Date(existing.startDate);
-                const existingEnd = new Date(existing.endDate);
-                if (d < existingStart || d > existingEnd) return false;
-
-                if (existing.status === AssignmentStatus.Yes || existing.status === AssignmentStatus.Pending) return true;
-                if (existing.status === AssignmentStatus.Mixed && existing.dailyStatuses?.[currentDateStr] && existing.dailyStatuses[currentDateStr] !== AssignmentStatus.No) return true;
-
-                return false;
-            });
-            
-            if (conflictingAssignments.length > 0) {
-                const conflictDetails = conflictingAssignments.map(conflict => `"${eventFrames.find(ef => ef.id === conflict.eventFrameId)?.name}" el ${formatDateDMY(currentDateStr)}`).join(", ");
-                return `Conflicte detectat: La persona ja està assignada a ${conflictDetails}.`;
+        let conflictMessage: string | null = null;
+        if (finalAssignment.status !== AssignmentStatus.No) {
+            if (context?.changedDate) {
+                const specificDate = new Date(context.changedDate);
+                conflictMessage = checkDateRange(specificDate, specificDate, finalAssignment.dailyStatuses || finalAssignment.status);
+            } else {
+                conflictMessage = checkDateRange(new Date(finalAssignment.startDate), new Date(finalAssignment.endDate), finalAssignment.dailyStatuses || finalAssignment.status);
             }
         }
-        return null;
-    };
-    
-    let warningMessage: string | null = null;
-    if (finalAssignment.status !== AssignmentStatus.No) {
-        if (context?.changedDate) {
-            const specificDate = new Date(context.changedDate);
-            warningMessage = checkDateRange(specificDate, specificDate, finalAssignment.dailyStatuses || finalAssignment.status);
-        } else {
-            warningMessage = checkDateRange(new Date(finalAssignment.startDate), new Date(finalAssignment.endDate), finalAssignment.dailyStatuses || finalAssignment.status);
+        if (conflictMessage) {
+          warningMessage = `DUPLICATE_CONFLICT:${conflictMessage}`;
         }
     }
     
@@ -378,7 +412,7 @@ markUnsaved();
         : ef_loc
     ));
     markUnsaved();
-    return { success: true, warningMessage: warningMessage || undefined };
+    return { success: true, warningMessage: warningMessage };
   }, [eventFrames, markUnsaved]);
 
   const deleteAssignment = useCallback((eventFrameId: string, assignmentId: string) => {
@@ -396,42 +430,28 @@ markUnsaved();
     return eventFrame?.assignments.find(a => a.id === assignmentId);
   }, [eventFrames]);
 
-  const validateMigratedData = useCallback((data: AppData): boolean => {
-    const errors: string[] = [];
-    const isValidDate = (dateString: string): boolean => {
-      const date = new Date(dateString);
-      return date instanceof Date && !isNaN(date.getTime());
-    };
+  const _applyDataToState = useCallback((data: AppData) => {
+    const loadedEventFrames: EventFrame[] = (data.eventFrames || []).map((efExport: EventFrameForExport) => {
+      const techSheet = efExport.techSheet || createDefaultTechSheet(efExport);
 
-    if (data.peopleGroups.some(p => typeof p.id !== 'string')) errors.push('Alguns IDs de grups de persones no són strings.');
-    if (data.eventFrames.some(e => typeof e.id !== 'string')) errors.push('Alguns IDs de marcs d\'esdeveniments no són strings.');
-    if (data.assignments.some(a => typeof a.id !== 'string')) errors.push('Alguns IDs d\'assignacions no són strings.');
+      const assignments = (data.assignments || []).filter(a => a.eventFrameId === efExport.id);
 
-    data.assignments.forEach(a => {
-      if (!data.eventFrames.some(e => e.id === a.eventFrameId)) errors.push(`L'assignació ${a.id} fa referència a un esdeveniment que no existeix: ${a.eventFrameId}`);
-      if (!data.peopleGroups.some(p => p.id === a.personGroupId)) errors.push(`L'assignació ${a.id} fa referència a una persona que no existeix: ${a.personGroupId}`);
+      return {
+        ...efExport,
+        assignments: assignments.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
+        personnelComplete: efExport.personnelComplete || false,
+        techSheet: techSheet,
+      };
     });
 
-    data.eventFrames.forEach(e => {
-      if (!isValidDate(e.startDate)) errors.push(`L'esdeveniment ${e.id} té una data d'inici invàlida: ${e.startDate}`);
-      if (!isValidDate(e.endDate)) errors.push(`L'esdeveniment ${e.id} té una data de finalització invàlida: ${e.endDate}`);
-    });
-
-    data.assignments.forEach(a => {
-      if (!isValidDate(a.startDate)) errors.push(`L'assignació ${a.id} té una data d'inici invàlida: ${a.startDate}`);
-      if (!isValidDate(a.endDate)) errors.push(`L'assignació ${a.id} té una data de finalització invàlida: ${a.endDate}`);
-    });
-
-    if (errors.length > 0) {
-      logger.error("Errors de validació de dades:", errors);
-      showToast(`Errors de validació de dades: ${errors.join(', ')}`, 'error');
-      return false;
-    }
-
-    return true;
-  }, [showToast]);
+    setEventFrames(loadedEventFrames.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)));
+    setPeopleGroups((data.peopleGroups || []).sort((a,b) => a.name.localeCompare(b.name)));
+    setMaterialItems((data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)));
+    setHasUnsavedChanges(false);
+  }, []);
 
   const loadData = useCallback(async (data: AppData | null) => {
+    logger.info("Iniciant la càrrega de dades...");
     const electronAPI = window.electronAPI;
     if (data?.googleConfig && electronAPI) {
       try {
@@ -440,7 +460,7 @@ markUnsaved();
         window.dispatchEvent(new CustomEvent('googleConfigChanged'));
         await refreshGoogleEvents();
       } catch (error) {
-        console.error("Error desant la configuració de Google del fitxer:", error);
+        logger.error("Error desant la configuració de Google del fitxer:", { error });
         showToast("No s'ha pogut actualitzar la configuració de Google del fitxer.", 'error');
       }
     }
@@ -452,54 +472,41 @@ markUnsaved();
       return;
     }
 
-    if (!validateMigratedData(data)) {
-      showToast("Les dades carregades no són vàlides i no es poden carregar.", "error");
-      return;
-    }
+    logger.info("Pas 1: Migrant dades a l'últim format...");
+    const migratedData: AppData = {
+      ...data,
+      eventFrames: data.eventFrames.map(ef => ({
+        ...ef,
+        techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame),
+      })),
+    };
 
-    const loadedEventFrames: EventFrame[] = (data.eventFrames || []).map((efExport: EventFrameForExport) => {
-      const defaultTechSheet = createDefaultTechSheet(efExport);
-      const finalTechSheet = { ...defaultTechSheet, ...efExport.techSheet };
+    logger.info("Pas 2: Validant la integritat de les dades...");
+    const validationResult = validateData(migratedData);
 
-      return {
-        ...efExport,
-        assignments: [],
-        personnelComplete: efExport.personnelComplete || false,
-        techSheet: finalTechSheet,
-      };
-    });
+    if (validationResult.isValid) {
+      logger.info("Pas 3 (Resultat): Les dades són vàlides. Carregant directament.");
+      _applyDataToState(migratedData);
+      showToast("Dades carregades amb èxit.", 'success');
+    } else {
+      logger.warn("Pas 3 (Resultat): S'han trobat errors. Iniciant reparació...", { count: validationResult.errors.length });
+      const { repairedData, fixes } = repairData(migratedData, validationResult.errors);
 
-    if (data.assignments && data.assignments.length > 0) {
-      data.assignments.forEach(assignmentFromFile => {
-        const targetFrame = loadedEventFrames.find(ef => ef.id === assignmentFromFile.eventFrameId);
-        if (targetFrame) {
-          const assignmentWithDefaults: Partial<Assignment> = { ...assignmentFromFile };
-          
-          const oldAssignment = assignmentFromFile as any;
-          if (oldAssignment.isMixedStatus === true && assignmentWithDefaults.status !== AssignmentStatus.Mixed) {
-            assignmentWithDefaults.status = AssignmentStatus.Mixed;
-          }
-          delete oldAssignment.isMixedStatus;
-
-          if (assignmentWithDefaults.status !== AssignmentStatus.Mixed) {
-            assignmentWithDefaults.dailyStatuses = undefined;
-          }
-
-          targetFrame.assignments.push(assignmentWithDefaults as Assignment);
-        } else {
-          console.warn(`L'assignació amb ID ${assignmentFromFile.id} fa referència a un eventFrameId (${assignmentFromFile.eventFrameId}) que no existeix. S'ometrà.`);
-        }
+      openModal('confirmDataRepair', {
+        onConfirm: () => {
+          logger.info("L'usuari ha confirmat la reparació. Carregant dades reparades.");
+          _applyDataToState(repairedData);
+          showToast("Dades reparades i carregades amb èxit.", 'success');
+          closeModal();
+        },
+        onCancel: () => {
+          logger.info("L'usuari ha cancel·lat la càrrega de dades reparades.");
+          closeModal();
+        },
+        fixes,
       });
     }
-
-    loadedEventFrames.forEach(ef => {
-      ef.assignments.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-    });
-
-    setEventFrames(loadedEventFrames.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)));
-    setPeopleGroups((data.peopleGroups || []).sort((a,b) => a.name.localeCompare(b.name)));
-    setMaterialItems((data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)));
-  }, [refreshGoogleEvents, showToast]);
+  }, [refreshGoogleEvents, showToast, openModal, closeModal, _applyDataToState]);
 
   const exportData = useCallback(async (): Promise<AppData> => {
     const allAssignmentsList: Assignment[] = eventFramesRef.current.flatMap(ef => ef.assignments);
@@ -518,7 +525,7 @@ markUnsaved();
           };
         }
       } catch (error) {
-        console.error("Error carregant la configuració de Google durant l'exportació:", error);
+        logger.error("Error carregant la configuració de Google durant l'exportació:", { error });
         showToast("No s'ha pogut carregar la configuració de Google per desar-la.", 'error');
       }
     }
@@ -544,6 +551,7 @@ markUnsaved();
     logger.info(`[ACTION] Executant sincronització amb Google per a ${targetCalendarId}`);
     closeModal();
     setIsSyncing(true);
+    setSyncProgress({ current: 0, total: 0, message: 'Iniciant sincronització...', visible: true });
 
     const electronAPI = window.electronAPI;
     if (electronAPI) {
@@ -565,7 +573,26 @@ markUnsaved();
       showToast("L'API d'Electron no està disponible.", 'error');
     }
     setIsSyncing(false);
+    setSyncProgress(prev => ({ ...prev, visible: false }));
   }, [exportData, loadData, refreshGoogleEvents, showToast, closeModal]);
+
+  useEffect(() => {
+    const electronAPI = window.electronAPI;
+    if (electronAPI?.onSyncProgress) {
+      const handleSyncProgress = (progress: Omit<SyncProgressState, 'visible'>) => {
+        setSyncProgress({
+          ...progress,
+          visible: true,
+        });
+      };
+
+      const cleanup = electronAPI.onSyncProgress(handleSyncProgress);
+
+      return () => {
+        cleanup();
+      };
+    }
+  }, []);
 
   const syncWithGoogle = useCallback(async () => {
     logger.info('[ACTION] Iniciant flux de sincronització amb Google...');
@@ -628,6 +655,7 @@ markUnsaved();
     refreshGoogleEvents,
     syncWithGoogle,
     isSyncing,
+    syncProgress,
     addOrUpdateTechSheet,
     materialItems,
     addMaterialItem,
