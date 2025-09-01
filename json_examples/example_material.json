@@ -1,0 +1,44 @@
+{
+  "materialItems": [
+    {
+      "id": "mat-L-001",
+      "name": "Focus PC 1kW Robert Juliat",
+      "category": "Il·luminació",
+      "stock": 24,
+      "location": "Magatzem 1 - Prestatge A3",
+      "notes": "Nota actualitzada per al merge. Inclou garres i portafiltres."
+    },
+    {
+      "id": "mat-S-004",
+      "name": "Micròfon Shure SM58",
+      "category": "So",
+      "stock": 20,
+      "location": "Calaix de micros A",
+      "notes": "Micròfon dinàmic per a veu. Inclou pinça."
+    },
+    {
+      "id": "mat-new-V-01",
+      "name": "Mesa de mescles de vídeo Blackmagic ATEM (Nova)",
+      "category": "Vídeo",
+      "stock": 1,
+      "location": "Control de Vídeo",
+      "notes": "Nou switcher de vídeo per a esdeveniments petits."
+    },
+    {
+      "id": "mat-new-E-01",
+      "name": "Teler de tisora 12m (Nou)",
+      "category": "Maquinària",
+      "stock": 2,
+      "location": "Pati - Maquinària",
+      "notes": "Nova plataforma elevadora."
+    },
+    {
+      "id": "mat-new-C-01",
+      "name": "Gelosines de colors (Nou)",
+      "category": "Consumibles",
+      "stock": 5,
+      "location": "Consumibles - Calaix C",
+      "notes": "Paquet de 100 gelatines de colors variats."
+    }
+  ]
+}
