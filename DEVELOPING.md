@@ -400,13 +400,12 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
 
--  **Actualització Manual des d'Assignacions:** El botó **`⟳ Actualitza des d'assignacions`** a la secció "Personal Tècnic" permet a l'usuari sincronitzar manualment el personal confirmat des de les assignacions de l'esdeveniment.
-    -   **Lògica de Sincronització:**
-        1.  **Identificació de Personal Confirmat:** El sistema filtra les assignacions de l'esdeveniment per trobar aquelles amb estat `Sí` o `Mixt` (que tinguin almenys un dia confirmat).
-        2.  **Preservació d'Entrades Manuals:** Per no perdre la feina de l'usuari, el sistema identifica i conserva qualsevol proveïdor de personal que hagi estat afegit manualment a la fitxa (marcat amb `isManual: true`).
-        3.  **Reconstrucció:** Es reconstrueix la llista de personal tècnic a partir de les assignacions confirmades.
-        4.  **Gestió d'Esdeveniments de Diversos Dies:** Si una assignació és de tipus `Mixt`, la lògica afegeix automàticament a les notes del rol els dies específics en què la persona està confirmada (p. ex., "Dies: 01/01/2024, 03/01/2024"), proporcionant claredat a la fitxa tècnica.
-        5.  **Actualització Final:** La llista final de personal tècnic, que combina les entrades manuals preservades i les reconstruïdes, s'actualitza a l'estat del formulari.
+-  **Actualització Interactiva des d'Assignacions:** Per donar un control més gran a l'usuari, el botó **`⟳ Actualitza des d'assignacions`** ja no modifica directament la fitxa, sinó que obre un diàleg de confirmació.
+    1.  **Càlcul de Canvis:** En fer clic, la lògica a `TechnicalPersonnelSection.tsx` compara el personal actual de la fitxa amb les assignacions confirmades i genera tres llistes: personal per afegir, personal per eliminar i personal per mantenir.
+    2.  **Modal de Previsualització (`UpdateFromAssignmentsModal`):** Aquestes llistes s'envien a un nou modal que mostra cada canvi proposat (addicions en verd, eliminacions en vermell) amb una casella de selecció.
+    3.  **Confirmació de l'Usuari:** L'usuari pot seleccionar quins canvis vol aplicar. Pot acceptar totes les suggestions, cap, o una combinació.
+    4.  **Aplicació Selectiva:** Un cop confirmat, el modal retorna només els canvis seleccionats a `TechSheetForm.tsx`, que els aplica a l'estat, garantint que no es perdi cap entrada manual ni s'apliquin canvis no desitjats.
+    5.  **Gestió d'Esdeveniments de Diversos Dies:** La lògica d'afegir nous rols des del modal inclou la funcionalitat de detallar els dies específics per a assignacions de tipus `Mixt`.
 
 
 
@@ -446,27 +445,27 @@ Aquesta lògica, similar al control d'estoc, preveu que una persona sigui assign
 
 #### Flux de Validació amb Confirmació de l'Usuari
 
-Per oferir més flexibilitat, el sistema ja no bloqueja les assignacions duplicades, sinó que demana confirmació a l'usuari.
+Per oferir més flexibilitat, el sistema ja no bloqueja les assignacions duplicades, sinó que demana confirmació a l'usuari. Aquest flux es va implementar com a solució a un error de l'entorn de compilació que impedia utilitzar tipus de retorn més complexos.
 
 1.  **Detecció de Conflictes (`useEventDataManager.ts`):**
     -   Les funcions `addAssignment` i `updateAssignment` contenen la lògica per detectar si una persona ja té una altra assignació en el mateix període.
     -   Aquestes funcions accepten un paràmetre opcional `force: boolean`. La comprovació de conflictes només s'executa si `force` és `false`.
 
-2.  **Senyalització del Conflicte:**
-    -   Si es detecta un conflicte, la funció **no retorna un error**, sinó un objecte d'èxit (`success: true`) amb un `warningMessage` especial que comença amb el prefix `DUPLICATE_CONFLICT:`.
+2.  **Senyalització del Conflicte (Workaround):**
+    -   Si es detecta un conflicte, la funció retorna un objecte `{ success: false }` amb un `message` que conté un prefix especial: `DUPLICATE_CONFLICT:`.
+    -   Aquest mètode de prefixar el missatge es va adoptar com a solució alternativa robusta davant d'errors del compilador de TypeScript que impedien la correcta resolució de tipus més complexos.
 
 3.  **Gestió al Formulari (`AssignmentFormModal.tsx`):**
-    -   El component que gestiona el formulari d'assignacions (`AssignmentFormModal`) crida a `addAssignment` o `updateAssignment` amb `force: false` per defecte.
-    -   Analitza la resposta:
-        -   Si el `warningMessage` rebut comença amb `DUPLICATE_CONFLICT:`, sap que s'ha trobat un conflicte.
-        -   En aquest cas, crida a la funció `openModal` per mostrar un diàleg de confirmació específic (`ConfirmDuplicateModal`).
+    -   El component `AssignmentFormModal` crida a `addAssignment` o `updateAssignment` amb `force: false` inicialment.
+    -   En rebre una resposta amb `success: false`, comprova si el `message` comença amb el prefix `DUPLICATE_CONFLICT:`.
+    -   Si és així, invoca `openModal` per mostrar el diàleg `ConfirmDuplicateModal`.
 
 4.  **Confirmació de l'Usuari (`ConfirmDuplicateModal.tsx`):**
-    -   Aquest modal mostra el missatge de conflicte (sense el prefix) i pregunta a l'usuari si vol continuar.
-    -   Si l'usuari fa clic a "Confirmar Duplicat", s'executa una funció de `callback` que torna a cridar la funció `handleSubmit` del formulari, però aquest cop passant el paràmetre `force: true`.
+    -   Aquest modal mostra el missatge de conflicte (sense el prefix) i pregunta a l'usuari si vol procedir.
+    -   En confirmar, s'executa una funció de `callback` que torna a cridar `handleSubmit` al formulari, aquest cop amb el paràmetre `force: true`.
 
 5.  **Execució Forçada:**
-    -   La segona crida a `addAssignment` o `updateAssignment` amb `force: true` fa que la lògica de detecció de conflictes se salti, i l'assignació es desa directament, permetent la duplicació de manera controlada.
+    -   La segona crida a `addAssignment` o `updateAssignment`, ara amb `force: true`, omet la comprovació de conflictes i desa l'assignació duplicada.
 
 
 ---
