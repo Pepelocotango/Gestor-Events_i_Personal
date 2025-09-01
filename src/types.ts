@@ -229,9 +229,11 @@ export type ModalType =
   | 'selectSyncCalendar'
   | 'createAppCalendar'
   | 'confirmDataRepair'
+  | 'confirmDuplicate'
   | null;
 
 export interface ModalData {
+    message?: string;
     eventFrameToEdit?: EventFrame;
     eventFrame?: EventFrame;
     assignmentToEdit?: Assignment;
@@ -262,6 +264,11 @@ export interface ModalState {
   data?: ModalData | null;
 }
 
+export type AssignmentOperationResult = {
+  success: boolean;
+  message?: string;
+  warningMessage?: string;
+};
 
 export interface SyncProgressState {
   current: number;
@@ -283,8 +290,8 @@ export interface EventDataConteImplicits {
   updatePersonGroup: (personGroup: PersonGroup) => void;
   deletePersonGroup: (personGroupId: string) => void;
   getPersonGroupById: (personGroupId: string) => PersonGroup | undefined;
-  addAssignment: (eventFrameId: string, assignment: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>) => { success: boolean; message?: string; warningMessage?: string };
-  updateAssignment: (assignment: Assignment, context?: { changedDate?: string }) => { success: boolean; message?: string; warningMessage?: string };
+  addAssignment: (eventFrameId: string, assignment: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>, force?: boolean) => AssignmentOperationResult;
+  updateAssignment: (assignment: Assignment, force?: boolean, context?: { changedDate?: string }) => AssignmentOperationResult;
   deleteAssignment: (eventFrameId: string, assignmentId: string) => void;  getAssignmentById: (eventFrameId: string, assignmentId: string) => Assignment | undefined;
   loadData: (data: AppData | null) => Promise<void>;
   exportData: () => Promise<AppData>;

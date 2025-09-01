@@ -293,12 +293,12 @@ export const useEventDataManager = (
     return peopleGroups.find(pg => pg.id === personGroupId);
   }, [peopleGroups]);
 
-  const addAssignment = useCallback((eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>): AssignmentOperationResult => {
-    logger.info('[ACTION] addAssignment', { eventFrameId: eventFrameId, personGroupId: newAssignmentData.personGroupId });
+  const addAssignment = useCallback((eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>, force = false): AssignmentOperationResult => {
+    logger.info('[ACTION] addAssignment', { eventFrameId: eventFrameId, personGroupId: newAssignmentData.personGroupId, force });
     const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
     if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
 
-    if (newAssignmentData.status === AssignmentStatus.Yes || newAssignmentData.status === AssignmentStatus.Pending) {
+    if (!force && (newAssignmentData.status === AssignmentStatus.Yes || newAssignmentData.status === AssignmentStatus.Pending)) {
       const allOtherAssignments = eventFrames.flatMap(ef => ef.assignments.filter(a => a.personGroupId === newAssignmentData.personGroupId));
       
       const newStartDate = new Date(newAssignmentData.startDate);
@@ -323,7 +323,7 @@ export const useEventDataManager = (
               const conflictingEvent = eventFrames.find(ef => ef.id === conflict.eventFrameId);
               return `"${conflictingEvent?.name}" el ${formatDateDMY(currentDateStr)}`;
           }).join(", ");
-          return { success: true, warningMessage: `Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
+          return { success: true, warningMessage: `DUPLICATE_CONFLICT:Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
         }
       }
     }
@@ -342,8 +342,8 @@ export const useEventDataManager = (
     return { success: true };
   }, [eventFrames, markUnsaved]);
 
-  const updateAssignment = useCallback((updatedAssignment: Assignment, context?: { changedDate?: string }): AssignmentOperationResult => {
-    logger.info('[ACTION] updateAssignment', { id: updatedAssignment.id, eventFrameId: updatedAssignment.eventFrameId });
+  const updateAssignment = useCallback((updatedAssignment: Assignment, force = false, context?: { changedDate?: string }): AssignmentOperationResult => {
+    logger.info('[ACTION] updateAssignment', { id: updatedAssignment.id, eventFrameId: updatedAssignment.eventFrameId, force });
     let finalAssignment = { ...updatedAssignment };
     if (finalAssignment.status === AssignmentStatus.Mixed) {
       if (!finalAssignment.dailyStatuses) finalAssignment.dailyStatuses = {};
@@ -351,49 +351,55 @@ export const useEventDataManager = (
       finalAssignment.dailyStatuses = undefined;
     }
 
-    const allOtherAssignments = eventFrames.flatMap(ef => 
-        ef.assignments.filter(a => a.personGroupId === finalAssignment.personGroupId && a.id !== finalAssignment.id)
-    );
+    if (!force) {
+        const allOtherAssignments = eventFrames.flatMap(ef =>
+            ef.assignments.filter(a => a.personGroupId === finalAssignment.personGroupId && a.id !== finalAssignment.id)
+        );
 
-    const checkDateRange = (start: Date, end: Date, statusToCheck: AssignmentStatus | { [date: string]: AssignmentStatus }) => {
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const currentDateStr = d.toISOString().split('T')[0];
-            
-            let currentDayStatus: AssignmentStatus | undefined;
-            if (typeof statusToCheck === 'string') {
-                currentDayStatus = statusToCheck;
-            } else {
-                currentDayStatus = statusToCheck[currentDateStr];
+        const checkDateRange = (start: Date, end: Date, statusToCheck: AssignmentStatus | { [date: string]: AssignmentStatus }) => {
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const currentDateStr = d.toISOString().split('T')[0];
+
+                let currentDayStatus: AssignmentStatus | undefined;
+                if (typeof statusToCheck === 'string') {
+                    currentDayStatus = statusToCheck;
+                } else {
+                    currentDayStatus = statusToCheck[currentDateStr];
+                }
+
+                if (!currentDayStatus || currentDayStatus === AssignmentStatus.No) continue;
+
+                const conflictingAssignments = allOtherAssignments.filter(existing => {
+                    const existingStart = new Date(existing.startDate);
+                    const existingEnd = new Date(existing.endDate);
+                    if (d < existingStart || d > existingEnd) return false;
+
+                    if (existing.status === AssignmentStatus.Yes || existing.status === AssignmentStatus.Pending) return true;
+                    if (existing.status === AssignmentStatus.Mixed && existing.dailyStatuses?.[currentDateStr] && existing.dailyStatuses[currentDateStr] !== AssignmentStatus.No) return true;
+
+                    return false;
+                });
+
+                if (conflictingAssignments.length > 0) {
+                    const conflictDetails = conflictingAssignments.map(conflict => `"${eventFrames.find(ef => ef.id === conflict.eventFrameId)?.name}" el ${formatDateDMY(currentDateStr)}`).join(", ");
+                    return `Conflicte detectat: La persona ja està assignada a ${conflictDetails}.`;
+                }
             }
+            return null;
+        };
 
-            if (!currentDayStatus || currentDayStatus === AssignmentStatus.No) continue;
-
-            const conflictingAssignments = allOtherAssignments.filter(existing => {
-                const existingStart = new Date(existing.startDate);
-                const existingEnd = new Date(existing.endDate);
-                if (d < existingStart || d > existingEnd) return false;
-
-                if (existing.status === AssignmentStatus.Yes || existing.status === AssignmentStatus.Pending) return true;
-                if (existing.status === AssignmentStatus.Mixed && existing.dailyStatuses?.[currentDateStr] && existing.dailyStatuses[currentDateStr] !== AssignmentStatus.No) return true;
-
-                return false;
-            });
-            
-            if (conflictingAssignments.length > 0) {
-                const conflictDetails = conflictingAssignments.map(conflict => `"${eventFrames.find(ef => ef.id === conflict.eventFrameId)?.name}" el ${formatDateDMY(currentDateStr)}`).join(", ");
-                return `Conflicte detectat: La persona ja està assignada a ${conflictDetails}.`;
+        let conflictMessage: string | null = null;
+        if (finalAssignment.status !== AssignmentStatus.No) {
+            if (context?.changedDate) {
+                const specificDate = new Date(context.changedDate);
+                conflictMessage = checkDateRange(specificDate, specificDate, finalAssignment.dailyStatuses || finalAssignment.status);
+            } else {
+                conflictMessage = checkDateRange(new Date(finalAssignment.startDate), new Date(finalAssignment.endDate), finalAssignment.dailyStatuses || finalAssignment.status);
             }
         }
-        return null;
-    };
-    
-    let warningMessage: string | null = null;
-    if (finalAssignment.status !== AssignmentStatus.No) {
-        if (context?.changedDate) {
-            const specificDate = new Date(context.changedDate);
-            warningMessage = checkDateRange(specificDate, specificDate, finalAssignment.dailyStatuses || finalAssignment.status);
-        } else {
-            warningMessage = checkDateRange(new Date(finalAssignment.startDate), new Date(finalAssignment.endDate), finalAssignment.dailyStatuses || finalAssignment.status);
+
+        if (conflictMessage) {
+            return { success: true, warningMessage: `DUPLICATE_CONFLICT:${conflictMessage}` };
         }
     }
     
@@ -403,7 +409,7 @@ export const useEventDataManager = (
         : ef_loc
     ));
     markUnsaved();
-    return { success: true, warningMessage: warningMessage || undefined };
+    return { success: true };
   }, [eventFrames, markUnsaved]);
 
   const deleteAssignment = useCallback((eventFrameId: string, assignmentId: string) => {

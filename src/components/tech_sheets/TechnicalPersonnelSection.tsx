@@ -4,7 +4,6 @@ import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
 import Tooltip from '../ui/Tooltip';
-import { formatDateDMY } from '../../utils/dateFormat';
 
 interface TechnicalPersonnelSectionProps {
   technicalProviders: TechSheetProvider[];
@@ -78,24 +77,12 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                   providersFromAssignments.push(provider);
                 }
 
-                let notes = assignment.notes || '';
-                if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
-                  const confirmedDays = Object.entries(assignment.dailyStatuses)
-                    .filter(([_, status]) => status === AssignmentStatus.Yes)
-                    .map(([date, _]) => formatDateDMY(date));
-
-                  if (confirmedDays.length > 0) {
-                    const daysString = `Dies: ${confirmedDays.join(', ')}`;
-                    notes = notes ? `${notes}\n${daysString}` : daysString;
-                  }
-                }
-
                 provider.roles.push({
                   id: generateLocalId(),
                   assignmentId: assignment.id,
                   role: '',
                   quantity: 1,
-                  notes: notes,
+                  notes: assignment.notes || '',
                 });
                 newRolesCount++;
               });

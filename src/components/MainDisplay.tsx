@@ -163,7 +163,7 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
        .reduce((acc, date) => { acc[date] = assign.status; return acc; }, {} as { [date: string]: AssignmentStatus });
         newDailyStatuses[dateYYYYMMDD] = newDailyStatus;
     const newAssignmentData = { ...assign, status: AssignmentStatus.Mixed, dailyStatuses: newDailyStatuses };
-    const result = updateAssignment(newAssignmentData, { changedDate: dateYYYYMMDD });
+    const result = updateAssignment(newAssignmentData, false, { changedDate: dateYYYYMMDD });
     if (result.success) {
       setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
       if (result.warningMessage && newDailyStatus !== AssignmentStatus.No) {
