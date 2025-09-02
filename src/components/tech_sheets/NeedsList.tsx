@@ -79,7 +79,8 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 label=""
                 value={need.origin}
                 onChange={e => onListChange(listName, index, 'origin', e.target.value)}
-                placeholder="CIA / TÀG"
+                placeholder="Propi/Teatre/CIA/lloguer...."
+                readOnly={!!selectedMaterial}
               />
             </div>
             <div className="w-auto flex-shrink-0 pt-2">
