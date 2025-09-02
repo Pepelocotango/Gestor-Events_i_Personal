@@ -1,5 +1,22 @@
+---------------------
+
+Necessitats Tècniques -> Origen : ARREGLAR PLACEHOLDER!
 
 
+REVISAR SECCIONS NECESSITATS TÈCNIQUES NOMS
+
+REVISAR "Actors" per nom més genèri@s 
+
+REVISAR exportacions PDF fitxes tècniques, valors generals, específics de cada camp....
+
+### millorar sortides pdf
+
+millorar visualment molt més atractiu les fitxes de bolo sortida pdf
+fer un brainstorm d'aixó
+
+millorar i implementar sortides existents csv a pdf també.
+
+----------------------------
 
 ### 📝 **Pla d'Acció Recomanat (Tasques Pendents)**
 
@@ -14,9 +31,9 @@ millores aplicades en stocks i assignacions
 
 ### modals ( finestres) més grans
 
-### afegir als builders de github actions .yml incloure en els comprimits el readme, developing, llicència i carpeta exemples json. s'ha provat no funciona.
+### afegir als builders de github actions .yml incloure en els comprimits el readme, developing, llicència i carpeta exemples json. s'ha provat no funciona. delble zip
 
-### millorar exemples json de tot
+
 
 
 
@@ -45,12 +62,7 @@ millores aplicades en stocks i assignacions
 nova "pagina"
 
 
-### millorar sortides pdf
 
-millorar visualment molt més atractiu les fitxes de bolo sortida pdf
-fer un brainstorm d'aixó
-
-millorar i implementar sortides existents csv a pdf també.
 
 
 
