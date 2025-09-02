@@ -133,6 +133,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         if (field === 'description') {
             const matchedItem = materialItems.find(item => item.name === value);
             currentItem.materialItemId = matchedItem ? matchedItem.id : null;
+            currentItem.origin = matchedItem ? matchedItem.location : '';
         }
 
         newNeeds[index] = currentItem;

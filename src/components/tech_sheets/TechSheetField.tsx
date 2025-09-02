@@ -14,6 +14,7 @@ interface TechSheetFieldProps {
   required?: boolean;
   suggestions?: string[];
   disabled?: boolean;
+  readOnly?: boolean;
   infoText?: string;
   className?: string;
   tooltipText?: string;
@@ -32,14 +33,16 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   required = false,
   suggestions,
   disabled = false,
+  readOnly = false,
   infoText,
   className = '',
   tooltipText,
 }) => {
   const baseClasses = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
   const disabledClasses = "disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed";
+  const readOnlyClasses = "read-only:bg-gray-100 dark:read-only:bg-gray-500";
 
-  const finalClassName = `${baseClasses} ${disabledClasses} ${className}`.trim();
+  const finalClassName = `${baseClasses} ${disabledClasses} ${readOnlyClasses} ${className}`.trim();
 
   const datalistId = suggestions ? `${id}-suggestions` : undefined;
 
@@ -57,6 +60,7 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
           className={finalClassName}
           required={required}
           disabled={disabled}
+          readOnly={readOnly}
         />
       ) : (
         <input
@@ -71,6 +75,7 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
           required={required}
           list={datalistId}
           disabled={disabled}
+          readOnly={readOnly}
         />
       )}
     </div>
