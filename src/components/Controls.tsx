@@ -3,6 +3,7 @@ import { useEventData } from '../contexts/EventDataContext';
 import { PersonGroup, ModalType, ShowToastFunction } from '../types';
 import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon } from '../constants';
+import { ArrowUturnLeftIcon, ArrowUturnRightIcon } from '@heroicons/react/24/outline';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 import Tooltip from './ui/Tooltip';
 
@@ -33,7 +34,7 @@ const Controls = forwardRef<any, ControlsProps>(({
     setCurrentDataPath
 }, ref) => {
 
-  const { loadData, exportData, setHasUnsavedChanges } = useEventData();
+  const { loadData, exportData, setHasUnsavedChanges, undo, redo, canUndo, canRedo } = useEventData();
   const [isExpanded, setIsExpanded] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const peopleFileInputRef = useRef<HTMLInputElement>(null);
@@ -317,6 +318,22 @@ const Controls = forwardRef<any, ControlsProps>(({
                     <SaveIcon /> Guardar Tot
                 </button>
               </Tooltip>
+
+              <div className="border-l border-gray-300 dark:border-gray-600 h-6 mx-1"></div>
+
+              <Tooltip text="Desfer (Ctrl+Z)">
+                <button onClick={undo} disabled={!canUndo} className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <ArrowUturnLeftIcon className="w-5 h-5" />
+                </button>
+              </Tooltip>
+              <Tooltip text="Refer (Ctrl+Y)">
+                <button onClick={redo} disabled={!canRedo} className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <ArrowUturnRightIcon className="w-5 h-5" />
+                </button>
+              </Tooltip>
+
+              <div className="border-l border-gray-300 dark:border-gray-600 h-6 mx-1"></div>
+
               <Tooltip text="Afegir material des d'un fitxer JSON">
                 <button onClick={triggerLoadMaterialFile} className="flex items-center justify-center gap-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <LoadIcon /> Carregar Material
