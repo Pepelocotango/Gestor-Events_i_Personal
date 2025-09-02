@@ -296,7 +296,7 @@ export const exportTechSheetToPdf = async (
         y = checkPageBreak(y);
         autoTable(pdf, {
             head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
-            body: [['Qt.', 'Càrrec', 'Empresa/Tècnic', 'Notes'], ...personnelBody],
+            body: [['Qt.', 'Càrrec', 'Proveïdor/a o Empresa', 'Notes'], ...personnelBody],
             startY: y, theme: 'grid',
             headStyles: { ...headStyles, halign: 'center' as 'center' },
             columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }

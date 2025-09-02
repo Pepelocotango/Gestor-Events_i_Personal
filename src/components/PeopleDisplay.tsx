@@ -17,7 +17,7 @@ const PeopleDisplay: React.FC = () => {
   const [email, setEmail] = useState('');
   const [web, setWeb] = useState('');
   const [notes, setNotes] = useState('');
-  const [editingPerson, setEditingPerson] = useState<PersonGroup | null>(null);
+  const [editingContact, setEditingContact] = useState<PersonGroup | null>(null);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [search, setSearch] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -33,7 +33,7 @@ const PeopleDisplay: React.FC = () => {
 
   const [sortConfig, setSortConfig] = useState<{ key: keyof PersonGroup, direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
 
-  const filteredPeopleGroups = peopleGroups.filter(pg => {
+  const filteredContacts = peopleGroups.filter(pg => {
     if (!search.trim()) return true;
     const s = normalize(search);
     return [pg.name, pg.role, pg.email, pg.tel1, pg.tel2]
@@ -42,8 +42,8 @@ const PeopleDisplay: React.FC = () => {
       .some(val => val.includes(s));
   });
 
-  const sortedPeopleGroups = useMemo(() => {
-    const sortableItems = [...filteredPeopleGroups];
+  const sortedContacts = useMemo(() => {
+    const sortableItems = [...filteredContacts];
     sortableItems.sort((a, b) => {
       const valA = a[sortConfig.key];
       const valB = b[sortConfig.key];
@@ -56,7 +56,7 @@ const PeopleDisplay: React.FC = () => {
       return sortConfig.direction === 'ascending' ? comparison : -comparison;
     });
     return sortableItems;
-  }, [filteredPeopleGroups, sortConfig]);
+  }, [filteredContacts, sortConfig]);
 
   const requestSort = (key: keyof PersonGroup) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -76,12 +76,12 @@ const PeopleDisplay: React.FC = () => {
     setEmail('');
     setWeb('');
     setNotes('');
-    setEditingPerson(null);
+    setEditingContact(null);
     setErrors({});
   };
 
   const handleEdit = (person: PersonGroup) => {
-    setEditingPerson(person);
+    setEditingContact(person);
     setName(person.name);
     setRole(person.role || '');
     setTel1(person.tel1 || '');
@@ -97,9 +97,9 @@ const PeopleDisplay: React.FC = () => {
     if (!name.trim()) newErrors.name = "El nom és obligatori.";
     const isDuplicate = peopleGroups.some(pg =>
         pg.name.trim().toLowerCase() === name.trim().toLowerCase() &&
-        (!editingPerson || pg.id !== editingPerson.id)
+        (!editingContact || pg.id !== editingContact.id)
     );
-    if (isDuplicate) newErrors.name = "Ja existeix una persona/grup amb aquest nom.";
+    if (isDuplicate) newErrors.name = "Ja existeix un contacte amb aquest nom.";
 
     if (email && !email.includes('@')) {
       newErrors.email = "El format del correu electrònic no és vàlid.";
@@ -126,18 +126,18 @@ const PeopleDisplay: React.FC = () => {
         notes: notes.trim()
     };
     
-    if (editingPerson) {
-      updatePersonGroup({ ...editingPerson, ...personData });
-      showToast("Persona/grup actualitzat.", 'success');
+    if (editingContact) {
+      updatePersonGroup({ ...editingContact, ...personData });
+      showToast("Contacte actualitzat.", 'success');
     } else {
       addPersonGroup(personData);
-      showToast("Persona/grup afegit.", 'success');
+      showToast("Contacte afegit.", 'success');
     }
     resetForm();
   };
 
-  const handleDeletePerson = (person: PersonGroup) => {
-    setEditingPerson(person);
+  const handleDeleteContact = (person: PersonGroup) => {
+    setEditingContact(person);
     setShowDeleteModal(true);
   };
 
@@ -145,10 +145,10 @@ const PeopleDisplay: React.FC = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmActualDeletePerson = () => {
-    if (editingPerson) {
-      deletePersonGroupContext(editingPerson.id);
-      showToast(`"${editingPerson.name}" eliminat/da.`, 'success');
+  const confirmActualDeleteContact = () => {
+    if (editingContact) {
+      deletePersonGroupContext(editingContact.id);
+      showToast(`"${editingContact.name}" eliminat/da.`, 'success');
       setShowDeleteModal(false);
       resetForm();
     }
@@ -156,7 +156,7 @@ const PeopleDisplay: React.FC = () => {
 
   const exportPeopleToCSV = async () => {
     const header = ['Nom', 'Rol', 'Telèfon 1', 'Telèfon 2', 'Email', 'Web', 'Notes'];
-    const rows = filteredPeopleGroups.map(p => [
+    const rows = filteredContacts.map(p => [
       p.name,
       p.role,
       p.tel1,
@@ -171,7 +171,7 @@ const PeopleDisplay: React.FC = () => {
       .join('\n');
 
     const today = new Date().toISOString().slice(0, 10);
-    const filename = `llista_persones_${today}.csv`;
+    const filename = `llista_contactes_${today}.csv`;
 
     if (window.electronAPI?.showSaveDialog) {
       const result = await window.electronAPI.showSaveDialog({
@@ -192,25 +192,25 @@ const PeopleDisplay: React.FC = () => {
   };
 
   const exportToPdf = async () => {
-    await exportPeopleToPdf(filteredPeopleGroups, showToast);
+    await exportPeopleToPdf(filteredContacts, showToast);
   };
 
   return (
     <div className="space-y-4">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Gestor de Persones i Grups</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Gestor de Contactes</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Columna del formulari */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
                 <form onSubmit={handleSubmit} className="space-y-3" aria-labelledby="people-group-form-title">
                     <div className="flex items-center justify-between mb-2">
-                        <h4 id="people-group-form-title" className="text-lg font-medium text-gray-800 dark:text-gray-200">{editingPerson ? 'Editar Persona/Grup' : 'Afegir Nova Persona/Grup'}</h4>
-                        {editingPerson && (
-                            <Tooltip text="Eliminar aquesta persona/grup">
+                        <h4 id="people-group-form-title" className="text-lg font-medium text-gray-800 dark:text-gray-200">{editingContact ? 'Editar Contacte' : 'Afegir Nou Contacte'}</h4>
+                        {editingContact && (
+                            <Tooltip text="Eliminar aquest contacte">
                                 <button
                                 type="button"
                                 onClick={handleDeleteFromEdit}
-                                aria-label="Eliminar aquesta persona/grup"
+                                aria-label="Eliminar aquest contacte"
                                 className="ml-2 p-2 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-700 dark:hover:bg-red-800 text-red-600 dark:text-red-200 transition-colors"
                                 >
                                 <TrashIcon className="w-4 h-4" />
@@ -221,7 +221,7 @@ const PeopleDisplay: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2 gap-y-2">
                         <div>
                             <label htmlFor="pg-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom</label>
-                            <Tooltip text="Nom de la persona o grup. Aquest camp és obligatori i ha de ser únic.">
+                            <Tooltip text="Nom del contacte. Aquest camp és obligatori i ha de ser únic.">
                               <input type="text" id="pg-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required aria-required="true" />
                             </Tooltip>
                             {errors.name && <p className="text-red-500 text-xs mt-1" role="alert">{errors.name}</p>}
@@ -253,7 +253,7 @@ const PeopleDisplay: React.FC = () => {
                         </div>
                         <div>
                             <label htmlFor="pg-web" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Pàgina Web (Opcional)</label>
-                            <Tooltip text="Pàgina web de la persona o grup">
+                            <Tooltip text="Pàgina web del contacte">
                               <input type="url" id="pg-web" value={web} onChange={e => setWeb(e.target.value)} className={commonInputClass} placeholder="https://exemple.com"/>
                             </Tooltip>
                             {errors.web && <p className="text-red-500 text-xs mt-1" role="alert">{errors.web}</p>}
@@ -266,13 +266,13 @@ const PeopleDisplay: React.FC = () => {
                         </Tooltip>
                     </div>
                     <div className="flex justify-end space-x-2 pt-2">
-                        {editingPerson && (
+                        {editingContact && (
                             <Tooltip text="Cancel·lar els canvis i netejar el formulari">
                                 <button type="button" onClick={resetForm} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar Edició</button>
                             </Tooltip>
                         )}
-                        <Tooltip text={editingPerson ? 'Desar els canvis' : 'Afegir la nova persona/grup'}>
-                            <button type="submit" className="px-2 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{editingPerson ? 'Actualitzar' : 'Afegir'}</button>
+                        <Tooltip text={editingContact ? 'Desar els canvis' : 'Afegir el nou contacte'}>
+                            <button type="submit" className="px-2 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{editingContact ? 'Actualitzar' : 'Afegir'}</button>
                         </Tooltip>
                     </div>
                 </form>
@@ -281,7 +281,7 @@ const PeopleDisplay: React.FC = () => {
             {/* Columna de la llista */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
                 <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Llista de Persones/Grups</h4>
+                    <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Llista de Contactes</h4>
                     <div className="flex items-center gap-2">
                         <Tooltip text="Exportar a CSV">
                             <button type="button" onClick={exportPeopleToCSV} className="p-1 rounded-md bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700/60">
@@ -306,7 +306,7 @@ const PeopleDisplay: React.FC = () => {
                       placeholder="Cerca per nom, rol, email, tel..."
                       value={search}
                       onChange={e => setSearch(e.target.value)}
-                      aria-label="Cercar persona o grup"
+                      aria-label="Cercar contacte"
                       />
                     </Tooltip>
                 </div>
@@ -323,11 +323,11 @@ const PeopleDisplay: React.FC = () => {
                       </button>
                     </Tooltip>
                 </div>
-                {sortedPeopleGroups.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400">No hi ha persones o grups que coincideixin amb la cerca.</p>
+                {sortedContacts.length === 0 ? (
+                    <p className="text-gray-500 dark:text-gray-400">No hi ha contactes que coincideixin amb la cerca.</p>
                 ) : (
-                    <ul className="space-y-1 max-h-[55vh] overflow-y-auto" aria-label="Llista de persones i grups existents">
-                    {sortedPeopleGroups.map((p: PersonGroup) => (
+                    <ul className="space-y-1 max-h-[55vh] overflow-y-auto" aria-label="Llista de contactes existents">
+                    {sortedContacts.map((p: PersonGroup) => (
                         <li key={p.id} className="p-2 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                         <div className="flex justify-between items-start">
                             <div className="flex-grow">
@@ -339,7 +339,7 @@ const PeopleDisplay: React.FC = () => {
                                     <button onClick={() => handleEdit(p)} className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors" aria-label={`Editar ${p.name}`}><EditIcon className="w-4 h-4"/></button>
                                 </Tooltip>
                                 <Tooltip text={`Eliminar ${p.name}`}>
-                                    <button onClick={() => handleDeletePerson(p)} className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors" aria-label={`Eliminar ${p.name}`}><TrashIcon className="w-4 h-4"/></button>
+                                    <button onClick={() => handleDeleteContact(p)} className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors" aria-label={`Eliminar ${p.name}`}><TrashIcon className="w-4 h-4"/></button>
                                 </Tooltip>
                             </div>
                         </div>
@@ -360,10 +360,10 @@ const PeopleDisplay: React.FC = () => {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm w-full">
                     <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">Confirmar Eliminació</h3>
-                    <p className="mb-4 text-gray-700 dark:text-gray-300">Segur que vols eliminar <span className="font-bold">{editingPerson?.name}</span>? Aquesta acció no es pot desfer.</p>
+                    <p className="mb-4 text-gray-700 dark:text-gray-300">Segur que vols eliminar a <span className="font-bold">{editingContact?.name}</span>? Aquesta acció no es pot desfer.</p>
                     <div className="flex justify-end gap-2">
                     <button onClick={() => setShowDeleteModal(false)} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
-                    <button onClick={confirmActualDeletePerson} className="px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">Eliminar</button>
+                    <button onClick={confirmActualDeleteContact} className="px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">Eliminar</button>
                     </div>
                 </div>
             </div>
