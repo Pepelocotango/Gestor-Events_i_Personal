@@ -541,14 +541,14 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       {/* Logistics */}
       <TechSheetSection title="Logística" layout="single-column">
         <ConditionalFormControl
-          label="CAMERINOS:"
+          label="CAMERINOS / SALES DE PREPARACIÓ:"
           status={formData.dressingRooms?.status || 'unset'}
           onStatusChange={(status) => handleConditionalChange('dressingRooms', { status, details: formData.dressingRooms?.details || '' })}
           tooltipText="Indica si es necessiten camerinos."
         >
           <TechSheetField
             id="dressingRoomsDetails"
-            label="Detalls dels camerinos:"
+            label="Detalls dels camerinos / sales:"
             value={formData.dressingRooms?.details || ''}
             onChange={(e) => handleConditionalChange('dressingRooms', { details: e.target.value })}
             as="textarea"
@@ -559,7 +559,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         </ConditionalFormControl>
 
         <ConditionalFormControl
-          label="ACTORS:"
+          label="INTÈRPRETS / PONENTS:"
           status={formData.actorsInfo?.status || 'unset'}
           onStatusChange={(status) => handleConditionalChange('actorsInfo', { status, data: formData.actorsInfo?.data || { number: 0, names: '' } })}
           tooltipText="Indica si hi ha actors o artistes."
@@ -593,7 +593,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         </ConditionalFormControl>
 
         <ConditionalFormControl
-          label="TÈCNICS/PRODUCCIÓ CIA:"
+          label="PERSONAL TÈCNIC/PRODUCCIÓ (CLIENT / ARTISTA / GRUP):"
           status={formData.techniciansInfo?.status || 'unset'}
           onStatusChange={(status) => handleConditionalChange('techniciansInfo', { status, data: formData.techniciansInfo?.data || { number: 0, names: '' } })}
           tooltipText="Indica si hi ha personal tècnic o de producció de la companyia."
@@ -652,7 +652,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
       {/* Contacts & Observations */}
       <TechSheetSection title="Contacte i Observacions">
         <div className="col-span-full space-y-3">
-          <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">CONTACTES DE LA COMPANYIA:</h4>
+          <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">CONTACTES (CLIENT / ARTISTA / GRUP):</h4>
           {(formData.contacts || []).map((contact, index) => (
             <div key={contact.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-center p-2 border rounded-md dark:border-gray-600">
               <div className="col-span-3"><TechSheetField id={`contact-name-${index}`} label="Nom" value={contact.name} onChange={(e) => handleContactChange(index, 'name', e.target.value)} placeholder="Nom del contacte" tooltipText="Nom i cognoms del contacte."/></div>

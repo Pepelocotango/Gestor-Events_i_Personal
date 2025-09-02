@@ -325,7 +325,7 @@ export const useEventDataManager = (
               return `"${conflictingEvent?.name}" el ${formatDateDMY(currentDateStr)}`;
           }).join(", ");
           // Return success true, but with a special warning message
-          return { success: true, warningMessage: `DUPLICATE_CONFLICT:Conflicte detectat: La persona ja està assignada a ${conflictDetails}.` };
+          return { success: true, warningMessage: `DUPLICATE_CONFLICT:Conflicte detectat: Aquest contacte ja té una assignació a ${conflictDetails}.` };
         }
       }
     }
@@ -386,7 +386,7 @@ export const useEventDataManager = (
 
                 if (conflictingAssignments.length > 0) {
                     const conflictDetails = conflictingAssignments.map(conflict => `"${eventFrames.find(ef => ef.id === conflict.eventFrameId)?.name}" el ${formatDateDMY(currentDateStr)}`).join(", ");
-                    return `Conflicte detectat: La persona ja està assignada a ${conflictDetails}.`;
+                    return `Conflicte detectat: Aquest contacte ja té una assignació a ${conflictDetails}.`;
                 }
             }
             return null;
