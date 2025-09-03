@@ -87,8 +87,8 @@ Per a macOS, la distribució es fa a través d'un fitxer `.dmg`:
 *   Per instal·lar l'aplicació, simplement **arrossega la icona de l'aplicació a la drecera de la carpeta d'Aplicacions** que apareix a la mateixa finestra.
 *   Ja pots executar l'aplicació des de la teva carpeta d'Aplicacions o mitjançant Launchpad.
 
-> **Nota:** La primera vegada que obris l'aplicació, com que no està descarregada des de l'App Store, macOS podria mostrar un avís de seguretat.
-Per obrir-la, fes clic dret sobre la icona de l'aplicació, selecciona "Obrir" i confirma l'acció al diàleg que apareixerà.
+> **Nota IMPORTANT!:** La primera vegada que obris l'aplicació, com que no està descarregada des de l'App Store, macOS podria mostrar un avís de seguretat.
+Per obrir-la, CTRL+clic o fes clic dret sobre la icona de l'aplicació, selecciona "Obrir" i confirma l'acció al diàleg que apareixerà.
 Si el pas anterior no funciona, prova de anar a preferències de sistema i donar-li permís d'execució a la App. ( gràcies Isaac!)
 
 #### 🐧 **Linux**

@@ -1,13 +1,55 @@
 ---------------------
-Perque funciona diferent el guardat automàtic a les fitxes de bolo i a les altres llocs?
+## PROBLEMA GOOGLE CREDENTIALS A MAC:
+Conclusió del Problema:
+L'aplicació compilada per a Linux funciona perquè el fitxer google-credentials.json està correctament empaquetat a dins.
+L'aplicació compilada per a macOS falla amb l'error AUTH ERROR: googleAuthClient no inicialitzat perquè el fitxer google-credentials.json no hi és, i la funció loadGoogleCredentials() falla silenciosament, tal com vam diagnosticar a la sessió anterior.
+Solució Estratègica:
+La solució és senzilla i directa: hem de corregir l'ordre de les passes al fitxer build-macos12.yml perquè sigui idèntic al del workflow de Linux. Hem de crear els fitxers de credencials abans de cridar l'script de compilació.
 
-al premer en links mail iniciar servidor correu per defecte
 
-REVISAR CANVIS QUE DESAPAREIXEN AL ANAR MOLT RÀPID A ESCRIURE!!
+## reset en desfer/refer al carregar dades!
 
-Necessitats Tècniques -> Origen : ARREGLAR PLACEHOLDER!
 
-REVISAR AUTOGUARDAT - > a quin fitxer es guarda al ./config o el que tenim obert de usuari?
+
+## PROBLEMA DE DESAT AUTOMATIC MODALS LLISTA: (s'ha posat missatges toast a 2seg.POTSER JA NO CAL FER RES!!)
+Diagnòstic del Problema (La Causa Arrel):
+Estat Intern del Modal: El formulari per crear/editar un marc d'esdeveniment (EventFrameFormModal.tsx) gestiona el seu propi estat. Quan s'obre, inicialitza variables com name, place, startDate, etc., amb useState. Aquest estat viu i mor amb el component.
+El Component Pare (App.tsx): App.tsx és el responsable de renderitzar tot, incloent-hi els modals i les notificacions "toast".
+L'Esdeveniment Extern: A l'aplicació, les notificacions "toast" desapareixen automàticament després d'uns segons. Quan un toast desapareix, actualitza una variable d'estat a App.tsx per ocultar-se.
+La Condició de Cursa:
+Realitzes una acció (p. ex., carregar dades) que mostra un toast: "Dades carregades correctament".
+Immediatament, obres el modal per crear un nou marc i comences a escriure ràpid.
+Mentre estàs escrivint, el temporitzador del toast expira.
+El toast actualitza l'estat a App.tsx, provocant que App.tsx es torni a renderitzar completament.
+En re-renderitzar-se, App.tsx torna a executar la funció renderModalContent(). Això destrueix la instància antiga del teu formulari modal i en crea una de completament nova.
+La nova instància del modal executa el seu useState de nou, inicialitzant tots els camps a buit (o als valors per defecte), fent que sembli que "s'han esborrat".
+Per què no passa a les Fitxes de Bolo?
+La teva observació és clau. A les Fitxes de Bolo (TechSheetForm.tsx), l'estratègia de "Desat Continu" fa que els canvis es propaguin ràpidament a l'estat central. Però, més important, el component TechSheetForm no es renderitza dins d'un condicional a App.tsx, sinó que forma part d'una ruta de react-router-dom. El seu cicle de vida és molt més estable i no es veu afectat de la mateixa manera per re-renderitzacions globals menors.
+Solució Estratègica (El Patró Correcte):
+La solució és un patró estàndard a React anomenat "Lifting State Up" (Pujar l'Estat). L'estat del formulari del modal no ha de viure dins del propi modal, sinó al component pare que el gestiona (App.tsx).
+Crearem una nova variable d'estat a App.tsx per emmagatzemar les dades del formulari del modal que estigui obert.
+Quan s'obri el modal, App.tsx inicialitzarà aquest estat.
+App.tsx passarà els valors d'aquest estat i les funcions per modificar-lo (setters) al component modal com a props.
+El modal es convertirà en un "component controlat", que simplement mostra les dades que rep i notifica al pare quan canvien, en lloc de gestionar el seu propi estat.
+D'aquesta manera, si App.tsx es re-renderitza per qualsevol motiu, conservarà les dades del formulari al seu propi estat i les tornarà a passar al modal, evitant que es perdin.
+
+
+
+## Perque funciona diferent el guardat automàtic a les fitxes de bolo i a les altres llocs?
+(Fitxes de Bolo): Sistema d'Estat a Dos Nivells**
+    1.  **Estat Intern (`TechSheetForm.tsx`):** Un estat local (`useState`) es modifica a cada pulsació de tecla per a una UI optimista i reactiva.
+    2.  **Sincronització amb Temporitzador (Debouncing):** Després d'una pausa, l'estat local complet del formulari es "commita" (s'envia) en bloc a l'estat global de l'aplicació (`useEventDataManager`). Aquesta acció única és la que es registra per al Desfer/Refer.
+
+ (Altres Llocs): Modificació Directa de l'Estat Global**
+    1.  **Estat Global Únic:** Les accions (crear esdeveniment, editar persona) modifiquen directament l'únic estat central (`useEventDataManager`). No hi ha un estat intermedi al component.
+    2.  **Desat Explícit (Sessió):** L'estat es manté en memòria (`hasUnsavedChanges = true`), i la persistència real al disc només es produeix quan l'usuari ho demana explícitament (desa o surt).
+
+
+
+
+
+## al premer en links mail iniciar servidor correu per defecte
+
 
 REVISAR SECCIONS NECESSITATS TÈCNIQUES NOMS
 
