@@ -27,6 +27,21 @@ FILES_TO_EXCLUDE = [
     os.path.basename(__file__),
 ]
 
+# NOU: Llista d'extensions a excloure de la concatenació (insensible a majúscules/minúscules)
+EXTENSIONS_TO_EXCLUDE = [
+    # Imatges
+    '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.svg', '.ico', '.webp',
+    # Vídeos
+    '.mp4', '.mov', '.avi', '.mkv', '.webm',
+    # Fonts
+    '.woff', '.woff2', '.ttf', '.eot', '.otf',
+    # Documents i binaris
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+    '.zip', '.rar', '.7z', '.gz', '.tar',
+    '.exe', '.dll', '.so', '.dylib', '.pyc',
+]
+
+
 def get_git_info():
     """Obté informació del repositori Git actual."""
     try:
@@ -82,7 +97,7 @@ def arbre_simple_a_fitxer(directori_a_escanejar, fitxer_sortida_obj):
     directori_base_norm = os.path.normpath(directori_a_escanejar)
     directorios_a_excluir = []
     if os.path.abspath(directori_a_escanejar) == os.path.abspath(os.path.join(os.path.dirname(__file__), '..')):
-        directorios_a_excluir = ['0_CONTEXT_i_eines']
+        directorios_a_excluir = ['0_CONTEXT_i_eines', 'imatges i recursos']
     directorios_especials = ['node_modules', '.git']
     
     for arrel, dirs, fitxers in os.walk(directori_a_escanejar, topdown=True):
@@ -167,6 +182,9 @@ def concatena_projecte(directori_arrel, fitxer_sortida):
     print(f"Branca: {branch}")
     
     files_to_exclude_set = set(FILES_TO_EXCLUDE)
+    # MODIFICAT: Crea un set amb les extensions a excloure en minúscules per a una cerca eficient
+    extensions_to_exclude_set = set(ext.lower() for ext in EXTENSIONS_TO_EXCLUDE)
+
     with open(fitxer_sortida, "w", encoding="utf-8") as outfile:
         # Escriu informació del projecte a l'inici del fitxer
         outfile.write(f"=== PROJECTE CONCATENAT ===\n")
@@ -178,8 +196,15 @@ def concatena_projecte(directori_arrel, fitxer_sortida):
         print("Processant fitxers de configuració de l'arrel...")
         for file_name in ROOT_FILES_TO_INCLUDE:
             file_path = os.path.join(directori_arrel, file_name)
+            
+            # MODIFICAT: Afegeix comprovació d'extensió
+            file_ext = os.path.splitext(file_name)[1].lower()
             if file_name in files_to_exclude_set:
                 continue
+            if file_ext in extensions_to_exclude_set:
+                print(f"  -> Ometent (extensió): {file_name}")
+                continue
+
             if os.path.exists(file_path) and os.path.isfile(file_path):
                 print(f"  -> Afegint: {file_name}")
                 write_file_content(outfile, file_path, project_name, branch, directori_arrel)
@@ -196,9 +221,16 @@ def concatena_projecte(directori_arrel, fitxer_sortida):
                 dirs[:] = [d for d in dirs if d not in DIRECTORIES_TO_EXCLUDE]
                 files.sort()
                 for file in files:
+                    file_path = os.path.join(root, file)
+                    
+                    # MODIFICAT: Comprovació d'exclusió per nom de fitxer O per extensió
+                    file_ext = os.path.splitext(file)[1].lower()
                     if file in files_to_exclude_set:
                         continue
-                    file_path = os.path.join(root, file)
+                    if file_ext in extensions_to_exclude_set:
+                        print(f"  -> Ometent (extensió): {file_path}")
+                        continue
+                    
                     print(f"  -> Afegint: {file_path}")
                     write_file_content(outfile, file_path, project_name, branch, directori_arrel)
     

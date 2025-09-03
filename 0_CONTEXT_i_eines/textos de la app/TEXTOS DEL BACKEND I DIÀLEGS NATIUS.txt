@@ -1,0 +1,72 @@
+# ====================================================================
+# === ARXIU 5: TEXTOS DEL BACKEND I DIÀLEGS NATIUS
+# ====================================================================
+# Aquest fitxer conté tots els textos que l'usuari veu però que
+# són generats directament pel procés principal d'Electron (main.cjs),
+# com ara diàlegs del sistema operatiu i missatges del flux
+# d'autenticació.
+# ====================================================================
+
+
+# --------------------------------------------------------------------
+# --- DIÀLEGS DE CÀRREGA I DESAT DE FITXERS ---
+# --------------------------------------------------------------------
+
+# Títols de les finestres de diàleg per obrir fitxers
+Carregar Fitxer de Dades Complet
+Carregar Fitxer de Material
+Carregar Fitxer de Persones
+
+# Títols de les finestres de diàleg per desar fitxers (generats dinàmicament)
+Desar {tipus_dades} a JSON
+Desar PDF
+Desar CSV
+
+# --------------------------------------------------------------------
+# --- DIÀLEGS DE CONFIRMACIÓ I ERROR ---
+# --------------------------------------------------------------------
+
+# Diàleg de confirmació en sortir de l'aplicació
+Títol: Confirmar sortida
+Missatge: Estàs segur que vols sortir?
+Botons: Sí, sortir | No, cancel·lar
+
+# Diàleg de confirmació per a la sincronització amb Google
+Títol: Confirmar Sincronització
+Missatge: Estàs a punt de sobreescriure el calendari "{nom_calendari}" a Google Calendar.
+Detall: Totes les dades d'aquest calendari a Google s'esborraran i se substituiran per les dades actuals de l'aplicació. Qualsevol canvi que hagis fet directament a Google es perdrà. Aquesta acció és irreversible. Vols continuar?
+Botons: Sí, sincronitzar | Cancel·lar
+
+# Diàlegs d'error generals
+Títol: Error de Càrrega
+Missatge: No s'ha pogut llegir el fitxer.\n{missatge_error}
+
+Títol: Error de Desenvolupament
+Missatge: No s'ha pogut carregar {url_desenvolupament}: {missatge_error}
+
+Títol: Error de Càrrega
+Missatge: No s'ha pogut carregar l'aplicació: {missatge_error}
+
+Títol: Error guardant dades
+Missatge: No s'han pogut guardar les dades a {ruta_fitxer}\nError: {missatge_error}
+
+Títol: Error d'Autenticació del Compte de Servei
+Missatge: No s'ha pogut autenticar amb el compte de servei de Google. Comprova la validesa del teu fitxer "service-account.json" i la configuració a Google Cloud Console.\n\nError: {missatge_error}
+
+Títol: Avís de Desconnexió
+Missatge: No s'ha pogut eliminar el calendari "{nom_calendari}". Potser hauràs d'esborrar-lo manualment des de Google Calendar.
+
+# Diàleg d'error per excepció no controlada
+Títol: Error Inesperat
+Missatge: S'ha produït un error no controlat: {missatge_error}\n\nL'aplicació es tancarà.
+
+# --------------------------------------------------------------------
+# --- FLUX D'AUTENTICACIÓ DE GOOGLE (pàgina del navegador) ---
+# --------------------------------------------------------------------
+
+# Aquests textos apareixen breument a la pestanya del navegador que s'obre per a l'autenticació.
+Error: Petició invàlida (CSRF detectat)
+Esperant codi...
+Autenticació completada!
+Pots tancar aquesta pestanya.
+Error d'autenticació

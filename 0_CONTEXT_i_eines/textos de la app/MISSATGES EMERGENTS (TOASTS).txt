@@ -1,0 +1,148 @@
+# ====================================================================
+# === ARXIU 3: MISSATGES EMERGENTS (TOASTS)
+# ====================================================================
+# Aquest fitxer conté tots els missatges dinàmics que es mostren
+# a l'usuari a través de notificacions emergents (toasts).
+# ====================================================================
+
+
+# --------------------------------------------------------------------
+# --- App.tsx (Missatges Generals de l'Aplicació) ---
+# --------------------------------------------------------------------
+
+# Càrrega inicial de dades
+Dades de l'aplicació carregades automàticament.
+No s'han trobat dades anteriors de l'aplicació per carregar (Electron). Començant buit.
+Error carregant dades (Electron): {missatge_error}
+
+# Connexió amb Google
+Connectat a Google Calendar amb èxit!
+Error d'autenticació: {missatge_error}
+Obrint el navegador per autenticar-se amb Google...
+No s'ha pogut iniciar l'autenticació.
+Aquesta funcionalitat només està disponible a l'aplicació d'escriptori.
+
+# Reset de l'aplicació
+L'aplicació s'ha restablert a l'estat de fàbrica.
+Error durant el reset de fàbrica.
+Error greu durant el reset de fàbrica: {missatge_error}
+La funcionalitat de reset no està disponible.
+
+# --------------------------------------------------------------------
+# --- Controls.tsx (Accions de Desar/Carregar) ---
+# --------------------------------------------------------------------
+
+# Càrrega de fitxers
+Error: El contingut del fitxer està buit.
+Totes les dades carregades correctament.
+Dades antigues migrades i carregades correctament.
+Error en la migració de dades: {errors}
+Error: El format del fitxer JSON no és vàlid.
+Error en processar les dades: {missatge_error}
+Error: El fitxer de persones està buit.
+Error: El format del fitxer JSON de persones no és vàlid.
+Error en carregar les dades de persones: {missatge_error}
+Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.
+Error en processar el fitxer de material: {missatge_error}
+
+# Desat de fitxers
+Dades de {tipus_dades} desades correctament.
+Dades de l'aplicació desades correctament.
+Error en desar les dades: {missatge_error}
+CSV desat amb èxit!
+Error en desar el CSV: {missatge_error}
+
+# --------------------------------------------------------------------
+# --- MainDisplay.tsx i SummaryReports.tsx (Exportacions) ---
+# --------------------------------------------------------------------
+
+No hi ha dades a la vista actual per exportar.
+Vista actual exportada a CSV.
+Resum "{nom_resum}" exportat a CSV.
+No hi ha dades per exportar en aquest resum.
+
+# --------------------------------------------------------------------
+# --- EventDataManager.ts (Lògica Central) ---
+# --------------------------------------------------------------------
+
+# Càrrega i reparació de dades
+Configuració de Google carregada des del fitxer.
+No s'ha pogut actualitzar la configuració de Google del fitxer.
+Dades carregades amb èxit.
+Dades reparades i carregades amb èxit.
+
+# Sincronització amb Google
+Sincronització completada.
+El calendari seleccionat no existeix.
+Hi ha hagut un error durant la sincronització.
+L'API d'Electron no està disponible.
+Si us plau, selecciona un calendari actiu per sincronitzar.
+La sincronització només està disponible a l'aplicació d'escriptori.
+No hi ha calendaris de l'app per sincronitzar. Si us plau, crea'n un a la configuració.
+
+# Fusió de Dades
+Totes les persones del fitxer ja existeixen.
+{numero} noves persones afegides.
+La llista de persones ha estat reemplaçada.
+Tots els articles del fitxer ja existeixen a l'inventari.
+{numero} nous articles de material afegits a l'inventari.
+L'inventari de material ha estat reemplaçat.
+Error desant la configuració de Google durant l'exportació: {missatge_error}
+No s'ha pogut carregar la configuració de Google per desar-la.
+
+# --------------------------------------------------------------------
+# --- Modals (Accions Específiques) ---
+# --------------------------------------------------------------------
+
+# EventFrameFormModal.tsx
+Marc d'esdeveniment actualitzat.
+Marc d'esdeveniment afegit.
+
+# AssignmentFormModal.tsx
+Assignació actualitzada.
+Assignació afegida.
+Error: {missatge_error}
+{missatge_avís} (Avís de conflicte)
+
+# PeopleDisplay.tsx
+Persona/grup actualitzat.
+Persona/grup afegit.
+"{nom_persona}" eliminat/da.
+
+# MaterialDisplay.tsx
+Material actualitzat.
+Nou material afegit.
+Material eliminat.
+
+# GoogleSettingsModal.tsx
+Configuració desada.
+No s'ha pogut desar la configuració.
+Compte de Google desconnectat correctament.
+Hi ha hagut un error durant la desconnexió.
+La configuració de Google ha canviat, actualitzant...
+ID del calendari copiat!
+Nou calendari creat i seleccionat com a actiu.
+No s'ha pogut crear el calendari.
+Calendari eliminat correctament.
+Hi ha hagut un error durant l'eliminació.
+
+# TechSheetForm.tsx
+Canvis desats manualment.
+Canvis desats automàticament.
+No hi ha canvis per desar.
+Desant canvis pendents abans d'exportar...
+No s'ha seleccionat cap canvi per aplicar.
+{numero} canvi(s) aplicat(s) des de les assignacions.
+
+# ConfirmDeleteModal.tsx
+El camp no pot estar buit.
+{tipus_item} eliminat/da correctament.
+
+# --------------------------------------------------------------------
+# --- pdfGenerator.ts (Exportacions a PDF) ---
+# --------------------------------------------------------------------
+
+PDF desat amb èxit!
+Error en desar el PDF: {missatge_error}
+Resum exportat a PDF amb èxit!
+Error generant PDF: {missatge_error}

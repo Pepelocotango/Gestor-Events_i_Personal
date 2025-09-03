@@ -1,7 +1,11 @@
 ---------------------
+al premer en links mail iniciar servidor correu per defecte
+
+REVISAR CANVIS QUE DESAPAREIXEN AL ANAR MOLT RÀPID A ESCRIURE!!
 
 Necessitats Tècniques -> Origen : ARREGLAR PLACEHOLDER!
 
+REVISAR AUTOGUARDAT - > a quin fitxer es guarda al ./config o el que tenim obert de usuari?
 
 REVISAR SECCIONS NECESSITATS TÈCNIQUES NOMS
 
