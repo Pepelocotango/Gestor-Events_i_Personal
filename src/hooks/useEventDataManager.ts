@@ -96,7 +96,7 @@ export const useEventDataManager = (
     history.current.push(currentState);
     future.current = [];
 
-    if (history.current.length > 50) {
+    if (history.current.length > 10) {
         history.current.shift();
     }
 
