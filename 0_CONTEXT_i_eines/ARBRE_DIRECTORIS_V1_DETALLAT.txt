@@ -5,9 +5,28 @@ enllaç a Gestor-Events_i_Personal/
 │       ├── build-macos12.yml     # Script per compilar la versió per a macOS (DMG).
 │       └── build-win10.yml       # Script per compilar la versió per a Windows (EXE).
 ├── 0_CONTEXT_i_eines/            # Carpeta amb arxius de context i eines per al desenvolupament.
-│   ├── 0000 arbre i projecte all V2.py # Script per generar l'arbre de directoris.
-│   └── FER FER .MD               # Document amb tasques pendents.
-│   └── initial prompt.txt        # Prompt inicial per a la IA.
+│   ├── 0000 arbre i projecte all V3.py # Script que genera un arbre de directoris bàsic i un fitxer concatenat del projecte. (No s'usa per a aquest fitxer).
+│   ├── ARBRE_DIRECTORIS_V1_DETALLAT.txt # Aquest fitxer. La font de veritat manual de l'estructura del projecte.
+│   ├── FER FER .MD               # Document de planificació: tasques pendents, idees i full de ruta de futures funcionalitats.
+│   ├── generar diffs exemple.txt # Exemples de comandes de git per generar 'diffs' entre branques.
+│   ├── imatges i recursos/       # Imatges i altres recursos per a la documentació i la UI.
+│   │   ├── animacio.gif          # GIF animat de demostració.
+│   │   ├── en_construcció_GV.png # Imatge de "en construcció".
+│   │   ├── img2/                 # Subcarpeta amb més imatges.
+│   │   ├── person-fill-add.svg   # Icona SVG.
+│   │   ├── screenshot1mac.jpeg   # Captura de pantalla de l'aplicació a macOS.
+│   │   └── videoenconstruccio.mp4# Vídeo de "en construcció".
+│   ├── inital_promt_humà_IAStudio_Jules.txt # Prompt mestre que defineix el flux de treball i rols de la col·laboració humà-IA.
+│   ├── initial prompt.txt        # Prompt inicial per a la IA (versió antiga o diferent).
+│   └── textos de la app/         # Conté textos de la UI de l'aplicació, separats per vistes.
+│       ├── MISSATGES EMERGENTS (TOASTS).txt
+│       ├── TEXTOS DE LA VISTA "CALENDARI I LLISTA".txt
+│       ├── TEXTOS DE LA VISTA "FITXES DE BOLO".txt
+│       ├── TEXTOS DE LA VISTA "MATERIAL".txt
+│       ├── TEXTOS DE LA VISTA "PERSONES".txt
+│       ├── TEXTOS DEL BACKEND I DIÀLEGS NATIUS.txt
+│       ├── TEXTOS GENERALS DE L'APLICACIÓ.txt
+│       └── TOOLTIPS I PLACEHOLDERS.txt
 ├── build/                        # Carpeta de sortida per als fitxers de producció.
 │   └── icons/                    # Icones per a la compilació.
 │       └── icon.png              # Icona principal.
@@ -15,13 +34,6 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── example_all.json          # JSON amb dades completes.
 │   ├── example_material.json     # JSON amb dades de material.
 │   └── example_person.json       # JSON amb dades de contactes.
-├── imatges i recursos/           # Imatges i altres recursos per a la documentació i la UI.
-│   ├── animacio.gif              # GIF animat de demostració.
-│   ├── en_construcció_GV.png     # Imatge de "en construcció".
-│   ├── img2/                     # Subcarpeta amb més imatges.
-│   ├── person-fill-add.svg       # Icona SVG.
-│   ├── screenshot1mac.jpeg       # Captura de pantalla de l'aplicació a macOS.
-│   └── videoenconstruccio.mp4    # Vídeo de "en construcció".
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
 │   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
 ├── src/
@@ -94,6 +106,7 @@ enllaç a Gestor-Events_i_Personal/
 ├── main.cjs                      # !! EL CERVELL DEL BACKEND !! Procés principal d'Electron. Gestiona finestres, fitxers i API externes.
 ├── metadata.json                 # Metadades del projecte.
 ├── package.json                  # Fitxer de configuració del projecte: dependències, scripts i metadades.
+├── package-lock.json             # Fitxer generat automàticament que bloqueja les versions de les dependències.
 ├── postcss.config.cjs            # Fitxer de configuració per a PostCSS (usat per Tailwind).
 ├── preload.cjs                   # Pont de seguretat d'Electron que exposa funcions del backend al frontend de manera segura.
 ├── tailwind.config.cjs           # Fitxer de configuració per al framework de CSS Tailwind.
