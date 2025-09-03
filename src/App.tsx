@@ -376,6 +376,12 @@ const App: React.FC = () => {
     if (window.electronAPI) {
       const cleanup = window.electronAPI.onMenuAction((action) => {
         switch (action) {
+          case 'undo':
+            if (canUndo) undo();
+            break;
+          case 'redo':
+            if (canRedo) redo();
+            break;
           case 'save-all':
             controlsRef.current?.handleSaveData('all');
             break;
@@ -407,7 +413,7 @@ const App: React.FC = () => {
 
       return cleanup;
     }
-  }, [syncWithGoogle, openModal, toggleTheme]);
+  }, [syncWithGoogle, openModal, toggleTheme, undo, redo, canUndo, canRedo]);
 
   useEffect(() => {
     if (window.electronAPI?.onFileDataLoaded) {
@@ -704,7 +710,7 @@ const App: React.FC = () => {
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
           <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
-            <CustomMenuBar />
+            <CustomMenuBar canUndo={canUndo} canRedo={canRedo} />
             <div className="container mx-auto p-2">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
