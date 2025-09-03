@@ -1,5 +1,7 @@
 ---------------------
 
+revisar mode clar, no tan clar
+
 Necessitats Tècniques -> Origen : ARREGLAR PLACEHOLDER!
 
 
