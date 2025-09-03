@@ -1,4 +1,6 @@
 ---------------------
+Perque funciona diferent el guardat automàtic a les fitxes de bolo i a les altres llocs?
+
 al premer en links mail iniciar servidor correu per defecte
 
 REVISAR CANVIS QUE DESAPAREIXEN AL ANAR MOLT RÀPID A ESCRIURE!!
@@ -35,7 +37,7 @@ millores aplicades en stocks i assignacions
 
 ### modals ( finestres) més grans
 
-### afegir als builders de github actions .yml incloure en els comprimits el readme, developing, llicència i carpeta exemples json. s'ha provat no funciona. delble zip
+### afegir als builders de github actions .yml incloure en els comprimits el readme, developing, llicència i carpeta exemples json. s'ha provat no funciona. resultat doble zip
 
 
 
