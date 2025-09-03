@@ -87,8 +87,35 @@ const App: React.FC = () => {
     hasUnsavedChanges, 
     syncWithGoogle,
     isSyncing,
-    syncProgress
+    syncProgress,
+    undo,
+    redo,
+    canUndo,
+    canRedo
   } = eventDataManagerHookResult;
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+        const target = event.target as HTMLElement;
+        // No activar dreceres si s'està escrivint en un input, textarea, o contentEditable
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+            return;
+        }
+
+        if (event.ctrlKey) {
+            if (event.key.toLowerCase() === 'z') {
+                event.preventDefault();
+                if (canUndo) undo();
+            } else if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
+                event.preventDefault();
+                if (canRedo) redo();
+            }
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo, canUndo, canRedo]);
 
   // <<<< NOU REF PER A GESTIONAR L'ESTAT DELS CANVIS SENSE DESAR >>>>
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);

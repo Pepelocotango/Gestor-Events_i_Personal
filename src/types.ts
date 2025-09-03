@@ -317,6 +317,10 @@ export interface EventDataConteImplicits {
   replacePeopleGroups: (newPeople: PersonGroup[]) => void;
   replaceMaterialItems: (newItems: MaterialItem[]) => void;
   executeSync: (targetCalendarId: string) => Promise<void>;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export type EventDataManagerReturn = Omit<EventDataConteImplicits, 'openModal' | 'showToast'>;

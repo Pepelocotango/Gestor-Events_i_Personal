@@ -72,9 +72,37 @@ export const useEventDataManager = (
   const peopleGroupsRef = useRef(peopleGroups);
   const materialItemsRef = useRef(materialItems);
 
+  // Undo/Redo state
+  const history = useRef<AppData[]>([]);
+  const future = useRef<AppData[]>([]);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  const isRestoringState = useRef(false);
+
   useEffect(() => { eventFramesRef.current = eventFrames; }, [eventFrames]);
   useEffect(() => { peopleGroupsRef.current = peopleGroups; }, [peopleGroups]);
   useEffect(() => { materialItemsRef.current = materialItems; }, [materialItems]);
+
+  const saveStateToHistory = useCallback(() => {
+    if (isRestoringState.current) return;
+
+    const currentState: AppData = {
+        eventFrames: eventFramesRef.current.map(({ assignments, ...rest }) => rest),
+        assignments: eventFramesRef.current.flatMap(ef => ef.assignments),
+        peopleGroups: peopleGroupsRef.current,
+        materialItems: materialItemsRef.current,
+    };
+
+    history.current.push(currentState);
+    future.current = [];
+
+    if (history.current.length > 10) {
+        history.current.shift();
+    }
+
+    setCanUndo(true);
+    setCanRedo(false);
+  }, []);
 
   const markUnsaved = useCallback(() => {
     setHasUnsavedChanges(true);
@@ -95,6 +123,7 @@ export const useEventDataManager = (
   }, [showToast]);
 
   const addEventFrame = useCallback((newEventFrameData: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>): EventFrame => {
+    saveStateToHistory();
     logger.info('[ACTION] addEventFrame', { name: newEventFrameData.name });
     const newEventFrame: EventFrame = {
       ...newEventFrameData,
@@ -106,9 +135,10 @@ export const useEventDataManager = (
     setEventFrames(prev => [...prev, newEventFrame].sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)));
     markUnsaved();
     return newEventFrame;
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
   
   const updateEventFrame = useCallback((updatedEventFrame: EventFrame) => {
+    saveStateToHistory();
     logger.info('[ACTION] updateEventFrame', { id: updatedEventFrame.id, name: updatedEventFrame.name });
 
     let finalUpdatedEventFrame = { ...updatedEventFrame };
@@ -121,9 +151,10 @@ export const useEventDataManager = (
       .sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name))
     );
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
   
   const addOrUpdateTechSheet = useCallback((eventFrameId: string, techSheetData: TechSheetData) => {
+    saveStateToHistory();
     setEventFrames(prevFrames => 
       prevFrames.map(ef => {
         if (ef.id === eventFrameId) {
@@ -133,20 +164,22 @@ export const useEventDataManager = (
       })
     );
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
 
  const deleteEventFrame = useCallback((eventFrameId: string) => {
+    saveStateToHistory();
     logger.info('[ACTION] deleteEventFrame', { id: eventFrameId });
     setEventFrames(prev => prev.filter(ef => ef.id !== eventFrameId));
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const getEventFrameById = useCallback((eventFrameId: string): EventFrame | undefined => {
     return eventFrames.find(ef => ef.id === eventFrameId);
   }, [eventFrames]);
 
   const addPersonGroup = useCallback((newPersonGroupData: Omit<PersonGroup, 'id'>) => {
+    saveStateToHistory();
     logger.info('[ACTION] addPersonGroup', { name: newPersonGroupData.name });
     const newPersonGroup: PersonGroup = {
         id: generateId(),
@@ -160,17 +193,19 @@ export const useEventDataManager = (
     };
     setPeopleGroups(prev => [...prev, newPersonGroup].sort((a,b) => a.name.localeCompare(b.name)));
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const updatePersonGroup = useCallback((updatedPersonGroup: PersonGroup) => {
+    saveStateToHistory();
     logger.info('[ACTION] updatePersonGroup', { id: updatedPersonGroup.id, name: updatedPersonGroup.name });
     setPeopleGroups(prev => prev.map(pg => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg)
       .sort((a,b) => a.name.localeCompare(b.name))
     );
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const deletePersonGroup = useCallback((personGroupId: string) => {
+    saveStateToHistory();
     logger.info('[ACTION] deletePersonGroup', { id: personGroupId });
     setPeopleGroups(prev => prev.filter(pg => pg.id !== personGroupId));
     setEventFrames(prevFrames => prevFrames.map(ef => ({
@@ -178,26 +213,29 @@ export const useEventDataManager = (
       assignments: ef.assignments.filter(a => a.personGroupId !== personGroupId)
     })));
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const addMaterialItem = useCallback((newItemData: Omit<MaterialItem, 'id'>) => {
+    saveStateToHistory();
     logger.info('[ACTION] addMaterialItem', { name: newItemData.name });
     const newItem: MaterialItem = { ...newItemData, id: generateId() };
     setMaterialItems(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const updateMaterialItem = useCallback((updatedItem: MaterialItem) => {
+    saveStateToHistory();
     logger.info('[ACTION] updateMaterialItem', { id: updatedItem.id, name: updatedItem.name });
     setMaterialItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const deleteMaterialItem = useCallback((itemId: string) => {
+    saveStateToHistory();
     logger.info('[ACTION] deleteMaterialItem', { id: itemId });
     setMaterialItems(prev => prev.filter(item => item.id !== itemId));
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const getMaterialAvailability = useCallback((materialId: string, startDate: string, endDate: string, currentEventFrameId: string): { available: number, total: number } => {
     const materialItem = materialItemsRef.current.find(item => item.id === materialId);
@@ -256,10 +294,11 @@ export const useEventDataManager = (
       return;
     }
     
+    saveStateToHistory();
     setMaterialItems(prev => [...prev, ...itemsToAdd].sort((a,b) => a.name.localeCompare(b.name)));
     markUnsaved();
     showToast(`${itemsToAdd.length} nous articles de material afegits a l'inventari.`, 'success');
-  }, [markUnsaved, showToast]);
+  }, [markUnsaved, showToast, saveStateToHistory]);
 
   const mergePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
     logger.info('[ACTION] mergePeopleGroups', { count: newPeople.length });
@@ -271,30 +310,34 @@ export const useEventDataManager = (
       return;
     }
 
+    saveStateToHistory();
     setPeopleGroups(prev => [...prev, ...peopleToAdd].sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
     showToast(`${peopleToAdd.length} noves persones afegides.`, 'success');
-  }, [markUnsaved, showToast]);
+  }, [markUnsaved, showToast, saveStateToHistory]);
 
   const replacePeopleGroups = useCallback((newPeople: PersonGroup[]) => {
+    saveStateToHistory();
     logger.info('[ACTION] replacePeopleGroups', { count: newPeople.length });
     setPeopleGroups(newPeople.sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
     showToast("La llista de persones ha estat reemplaçada.", 'success');
-  }, [markUnsaved, showToast]);
+  }, [markUnsaved, showToast, saveStateToHistory]);
 
   const replaceMaterialItems = useCallback((newItems: MaterialItem[]) => {
+    saveStateToHistory();
     logger.info('[ACTION] replaceMaterialItems', { count: newItems.length });
     setMaterialItems(newItems.sort((a, b) => a.name.localeCompare(b.name)));
     markUnsaved();
     showToast("L'inventari de material ha estat reemplaçat.", 'success');
-  }, [markUnsaved, showToast]);
+  }, [markUnsaved, showToast, saveStateToHistory]);
 
   const getPersonGroupById = useCallback((personGroupId: string): PersonGroup | undefined => {
     return peopleGroups.find(pg => pg.id === personGroupId);
   }, [peopleGroups]);
 
   const addAssignment = useCallback((eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>, force = false): AssignmentOperationResult => {
+    saveStateToHistory();
     logger.info('[ACTION] addAssignment', { eventFrameId: eventFrameId, personGroupId: newAssignmentData.personGroupId, force });
     const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
     if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
@@ -342,9 +385,10 @@ export const useEventDataManager = (
     ));
     markUnsaved();
     return { success: true };
-  }, [eventFrames, markUnsaved]);
+  }, [eventFrames, markUnsaved, saveStateToHistory]);
 
   const updateAssignment = useCallback((updatedAssignment: Assignment, force = false, context?: { changedDate?: string }): AssignmentOperationResult => {
+    saveStateToHistory();
     logger.info('[ACTION] updateAssignment', { id: updatedAssignment.id, eventFrameId: updatedAssignment.eventFrameId, force });
     let finalAssignment = { ...updatedAssignment };
     if (finalAssignment.status === AssignmentStatus.Mixed) {
@@ -413,9 +457,10 @@ export const useEventDataManager = (
     ));
     markUnsaved();
     return { success: true, warningMessage: warningMessage };
-  }, [eventFrames, markUnsaved]);
+  }, [eventFrames, markUnsaved, saveStateToHistory]);
 
   const deleteAssignment = useCallback((eventFrameId: string, assignmentId: string) => {
+    saveStateToHistory();
     logger.info('[ACTION] deleteAssignment', { id: assignmentId, eventFrameId: eventFrameId });
     setEventFrames(prev => prev.map(ef =>
       ef.id === eventFrameId
@@ -423,7 +468,7 @@ export const useEventDataManager = (
         : ef
     ));
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const getAssignmentById = useCallback((eventFrameId: string, assignmentId: string): Assignment | undefined => {
     const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
@@ -449,6 +494,52 @@ export const useEventDataManager = (
     setMaterialItems((data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)));
     setHasUnsavedChanges(false);
   }, []);
+
+  const undo = useCallback(() => {
+    if (history.current.length > 0) {
+        isRestoringState.current = true;
+
+        const currentState: AppData = {
+            eventFrames: eventFramesRef.current.map(({ assignments, ...rest }) => rest),
+            assignments: eventFramesRef.current.flatMap(ef => ef.assignments),
+            peopleGroups: peopleGroupsRef.current,
+            materialItems: materialItemsRef.current,
+        };
+        future.current.push(currentState);
+
+        const previousState = history.current.pop()!;
+        _applyDataToState(previousState);
+
+        setCanUndo(history.current.length > 0);
+        setCanRedo(true);
+        setHasUnsavedChanges(true); // An undo is a change
+
+        setTimeout(() => { isRestoringState.current = false; }, 0);
+    }
+  }, [_applyDataToState]);
+
+  const redo = useCallback(() => {
+    if (future.current.length > 0) {
+        isRestoringState.current = true;
+
+        const currentState: AppData = {
+            eventFrames: eventFramesRef.current.map(({ assignments, ...rest }) => rest),
+            assignments: eventFramesRef.current.flatMap(ef => ef.assignments),
+            peopleGroups: peopleGroupsRef.current,
+            materialItems: materialItemsRef.current,
+        };
+        history.current.push(currentState);
+
+        const nextState = future.current.pop()!;
+        _applyDataToState(nextState);
+
+        setCanUndo(true);
+        setCanRedo(future.current.length > 0);
+        setHasUnsavedChanges(true); // A redo is a change
+
+        setTimeout(() => { isRestoringState.current = false; }, 0);
+    }
+  }, [_applyDataToState]);
 
   const loadData = useCallback(async (data: AppData | null) => {
     logger.info("Iniciant la càrrega de dades...");
@@ -540,10 +631,11 @@ export const useEventDataManager = (
    }, [showToast]);
 
   const setPersonnelComplete = useCallback((eventFrameId: string, complete: boolean) => {
+    saveStateToHistory();
     logger.info('[ACTION] setPersonnelComplete', { eventFrameId, complete });
     setEventFrames(prev => prev.map(ef => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef));
     markUnsaved();
-  }, [markUnsaved]);
+  }, [markUnsaved, saveStateToHistory]);
 
   const syncWithGoogleRef = useRef<() => Promise<void>>();
 
@@ -667,5 +759,9 @@ export const useEventDataManager = (
     replacePeopleGroups,
     replaceMaterialItems,
     executeSync,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   };
 };
