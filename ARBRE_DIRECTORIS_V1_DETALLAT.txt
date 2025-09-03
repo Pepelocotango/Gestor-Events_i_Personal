@@ -4,7 +4,30 @@ enllaç a Gestor-Events_i_Personal/
 │       ├── build-linuxv20-04.yml # Script per compilar la versió per a Linux (AppImage).
 │       ├── build-macos12.yml     # Script per compilar la versió per a macOS (DMG).
 │       └── build-win10.yml       # Script per compilar la versió per a Windows (EXE).
+├── 0_CONTEXT_i_eines/            # Carpeta amb arxius de context i eines per al desenvolupament.
+│   ├── 0000 arbre i projecte all V2.py # Script per generar l'arbre de directoris.
+│   └── FER FER .MD               # Document amb tasques pendents.
+│   └── initial prompt.txt        # Prompt inicial per a la IA.
+├── build/                        # Carpeta de sortida per als fitxers de producció.
+│   └── icons/                    # Icones per a la compilació.
+│       └── icon.png              # Icona principal.
+├── examples json/                # Exemples de fitxers JSON per a proves.
+│   ├── example_all.json          # JSON amb dades completes.
+│   ├── example_material.json     # JSON amb dades de material.
+│   └── example_person.json       # JSON amb dades de contactes.
+├── imatges i recursos/           # Imatges i altres recursos per a la documentació i la UI.
+│   ├── animacio.gif              # GIF animat de demostració.
+│   ├── en_construcció_GV.png     # Imatge de "en construcció".
+│   ├── img2/                     # Subcarpeta amb més imatges.
+│   ├── person-fill-add.svg       # Icona SVG.
+│   ├── screenshot1mac.jpeg       # Captura de pantalla de l'aplicació a macOS.
+│   └── videoenconstruccio.mp4    # Vídeo de "en construcció".
+├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
+│   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
 ├── src/
+│   ├── assets/                   # Actius (imatges, etc.) que són importats directament pel codi font.
+│   │   └── splash/               # Imatges per a l'animació de la pantalla de benvinguda.
+│   │       └── frame_*.png       # Seqüència d'imatges per a l'animació.
 │   ├── components/               # Carpeta principal dels components de React que formen la UI.
 │   │   ├── modals/               # Sub-carpeta per a tots els diàlegs modals de l'aplicació.
 │   │   │   ├── AssignmentFormModal.tsx         # Formulari per crear/editar una assignació.
@@ -29,6 +52,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │       ├── CollapsibleSection.tsx          # Component de secció genèrica que es pot expandir/col·lapsar.
 │   │       ├── CustomMenuBar.tsx               # Barra de menú personalitzada en React que substitueix la nativa.
 │   │       ├── Modal.tsx                       # Component base per a tots els diàlegs modals.
+│   │       ├── SplashScreen.tsx                # Component que mostra una animació en iniciar l'app.
 │   │       ├── SyncProgressOverlay.tsx         # Overlay amb la barra de progrés per a la sincronització.
 │   │       └── Tooltip.tsx                     # Component per a missatges d'ajuda emergents (usa Portals).
 │   │   ├── AssignmentCard.tsx      # Renderitza una assignació individual dins d'un esdeveniment.
@@ -38,7 +62,8 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material.
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces.
-│   │   └── SummaryReports.tsx      # Component que genera els resums de dades.
+│   │   ├── SummaryReports.tsx      # Component que genera els resums de dades.
+│   │   └── TechSheetsDisplay.tsx   # Nova vista per a la gestió de les Fitxes de Bolo.
 │   ├── contexts/
 │   │   └── EventDataContext.tsx  # Defineix el Context de React per proveir l'estat global a tota l'app.
 │   ├── hooks/
@@ -56,15 +81,20 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── App.tsx                   # Component arrel de React. Gestiona l'enrutament, modals i estat de la UI.
 │   ├── calendar-styles.d.ts      # Definició de tipus per a la importació de fitxers CSS a TypeScript.
 │   ├── constants.tsx             # Emmagatzema constants i icones SVG reutilitzables.
+│   ├── images.d.ts               # Permet la importació de fitxers d'imatge (.png) a TypeScript.
 │   ├── index.css                 # Fitxer principal d'estils CSS i configuració de Tailwind.
 │   ├── index.tsx                 # Punt d'entrada de React que renderitza l'App al DOM.
 │   └── types.ts                  # !! FITXER CRÍTIC !! Defineix totes les interfícies de TypeScript. La font de veritat de les estructures de dades.
+├── .gitattributes                # Fitxer per definir atributs per a rutes de git.
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
 ├── DEVELOPING.md                 # Documentació tècnica detallada de l'arquitectura i funcionalitats per a desenvolupadors.
+├── LICENSE                       # Fitxer de llicència del projecte.
 ├── README.md                     # Documentació principal del projecte: funcionalitats, instal·lació i ús.
 ├── index.html                    # El punt d'entrada HTML on es munta l'aplicació de React.
 ├── main.cjs                      # !! EL CERVELL DEL BACKEND !! Procés principal d'Electron. Gestiona finestres, fitxers i API externes.
+├── metadata.json                 # Metadades del projecte.
 ├── package.json                  # Fitxer de configuració del projecte: dependències, scripts i metadades.
+├── postcss.config.cjs            # Fitxer de configuració per a PostCSS (usat per Tailwind).
 ├── preload.cjs                   # Pont de seguretat d'Electron que exposa funcions del backend al frontend de manera segura.
 ├── tailwind.config.cjs           # Fitxer de configuració per al framework de CSS Tailwind.
 ├── tsconfig.json                 # Fitxer de configuració del compilador de TypeScript.
