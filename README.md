@@ -1,4 +1,4 @@
-
+![Captura de pantalla del gestor d'events i personal](imatges%20i%20recursos/en_construcció_GV.png)
 ### NOVA BRANCA DESENVOLUPAMENT --> DEV
  CHECKPOINT_V1.0.0
 ### `README.md`**
