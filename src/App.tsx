@@ -15,6 +15,7 @@ const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
 const SyncProgressOverlay = lazy(() => import('./components/ui/SyncProgressOverlay'));
 import CustomMenuBar from './components/ui/CustomMenuBar';
+import SplashScreen from './components/ui/SplashScreen';
 
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
@@ -41,6 +42,7 @@ interface ToastState {
 const App: React.FC = () => {
   
     // --- 1. DECLARACIONS D'ESTAT (useState) ---
+  const [showSplash, setShowSplash] = useState(true);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const [modalState, setModalState] = useState<ModalState>({ type: null, data: null });
   const [toastState, setToastState] = useState<ToastState | null>(null);
@@ -80,6 +82,11 @@ const App: React.FC = () => {
   // --- 3. INICIALITZACIÓ DEL HOOK DE DADES ---
   const eventDataManagerHookResult = useEventDataManager(showToast, openModal, closeModal);
   
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 3500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { 
     loadData: loadDataFromManager, 
     exportData: exportDataFromManager, 
@@ -709,6 +716,7 @@ const App: React.FC = () => {
     <EventDataProvider value={contextValue}>
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+          {showSplash && <SplashScreen />}
           <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
             <CustomMenuBar canUndo={canUndo} canRedo={canRedo} />
             <div className="container mx-auto p-2">
