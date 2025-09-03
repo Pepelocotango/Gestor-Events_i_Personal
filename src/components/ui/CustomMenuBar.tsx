@@ -6,10 +6,17 @@ interface MenuItem {
   action?: string;
   separator?: boolean;
   submenu?: MenuItem[];
-  role?: string; // For view actions
+  role?: string;
+  accelerator?: string;
+  disabled?: boolean;
 }
 
-const CustomMenuBar: React.FC = () => {
+interface CustomMenuBarProps {
+  canUndo: boolean;
+  canRedo: boolean;
+}
+
+const CustomMenuBar: React.FC<CustomMenuBarProps> = ({ canUndo, canRedo }) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -73,6 +80,19 @@ const CustomMenuBar: React.FC = () => {
       ],
     },
     {
+      label: 'Edita',
+      items: [
+        { label: 'Desfer', action: 'undo', accelerator: 'Ctrl+Z', disabled: !canUndo },
+        { label: 'Refer', action: 'redo', accelerator: 'Ctrl+Y', disabled: !canRedo },
+        { separator: true },
+        { label: 'Tallar', role: 'cut', accelerator: 'Ctrl+X' },
+        { label: 'Copiar', role: 'copy', accelerator: 'Ctrl+C' },
+        { label: 'Enganxar', role: 'paste', accelerator: 'Ctrl+V' },
+        { separator: true },
+        { label: 'Seleccionar tot', role: 'selectAll', accelerator: 'Ctrl+A' },
+      ],
+    },
+    {
       label: 'Veure',
       items: [
         { label: 'Recarregar', role: 'reload' },
@@ -106,9 +126,11 @@ const CustomMenuBar: React.FC = () => {
                    <button
                       key={subItem.label}
                       onClick={() => handleAction(subItem.action, subItem.role)}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      disabled={subItem.disabled}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
                     >
-                      {subItem.label}
+                      <span>{subItem.label}</span>
+                      {subItem.accelerator && <span className="text-xs text-gray-500 dark:text-gray-400">{subItem.accelerator}</span>}
                     </button>
                 ))}
               </div>
@@ -119,9 +141,11 @@ const CustomMenuBar: React.FC = () => {
           <button
             key={item.label}
             onClick={() => handleAction(item.action, item.role)}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+            disabled={item.disabled}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
           >
-            {item.label}
+            <span>{item.label}</span>
+            {item.accelerator && <span className="text-xs text-gray-500 dark:text-gray-400">{item.accelerator}</span>}
           </button>
         );
       })}
