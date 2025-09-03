@@ -83,7 +83,7 @@ const App: React.FC = () => {
   const eventDataManagerHookResult = useEventDataManager(showToast, openModal, closeModal);
   
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 3500);
+    const timer = setTimeout(() => setShowSplash(false), 12500);
     return () => clearTimeout(timer);
   }, []);
 

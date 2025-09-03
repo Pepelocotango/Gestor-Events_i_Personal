@@ -23,7 +23,7 @@ const SplashScreen = () => {
 
     const fadeOutTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 3000);
+    }, 8000);
 
     return () => {
       clearInterval(animationInterval);
@@ -33,7 +33,7 @@ const SplashScreen = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-[4000ms] ${
         isFadingOut ? 'opacity-0' : 'opacity-100'
       }`}
     >
