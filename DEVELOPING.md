@@ -862,3 +862,31 @@ La funcionalitat és accessible per a l'usuari a través de tres mètodes consis
 3.  **Menú de l'Aplicació (`CustomMenuBar.tsx`):**
     -   S'ha afegit un nou menú "Edita" a la barra de menú superior.
     -   Conté les opcions "Desfer" i "Refer", que també estan lligades a l'estat `canUndo`/`canRedo` per activar-se o desactivar-se dinàmicament.
+
+### 5.12. Pantalla d'Inici Animada (Splash Screen)
+
+Per millorar l'experiència inicial de l'usuari, s'ha afegit una pantalla d'inici animada (splash screen) que es mostra mentre l'aplicació carrega les dades inicials. Aquesta funcionalitat és configurable per l'usuari.
+
+#### Implementació
+
+1.  **Component `SplashScreen.tsx` (`src/components/ui/`):**
+    *   És un component de React dedicat que gestiona la lògica de l'animació.
+    *   Utilitza un array d'imatges PNG (amb fons transparent) per crear una animació frame a frame mitjançant `setInterval`.
+    *   Un `setTimeout` controla la durada total de la visibilitat. Un cop transcorregut el temps, s'activa un estat `isFadingOut` que, mitjançant classes de CSS, provoca una transició d'opacitat per a una desaparició suau.
+
+2.  **Configuració Persistent (`session.json`):**
+    *   La preferència de l'usuari per mostrar o no l'animació es desa al fitxer `session.json` sota la clau `splashScreenEnabled` (un valor booleà).
+    *   Per defecte, si la clau no existeix, es considera `true`.
+    *   La lectura i escriptura d'aquesta preferència es gestiona a través dels canals IPC `get-session-data` and `save-session-data` implementats a `main.cjs`.
+
+3.  **Càrrega Condicional (`App.tsx`):**
+    *   A l'inici de l'aplicació, `App.tsx` utilitza un `useEffect` per cridar a `window.electronAPI.getSessionData()` i obtenir la preferència de l'usuari.
+    *   S'utilitzen dos estats per evitar flaixos visuals (`flickering`):
+        *   `splashConfigLoaded`: Un booleà que només es posa a `true` un cop s'ha llegit la configuració de la sessió.
+        *   `splashScreenEnabled`: Emmagatzema la preferència de l'usuari.
+    *   El component `<SplashScreen />` només es renderitza si totes les condicions són certes: `splashConfigLoaded && splashScreenEnabled && showSplash`.
+
+4.  **Control de l'Usuari (`CustomMenuBar.tsx`):**
+    *   S'ha afegit una nova opció al menú "Veure" anomenada "Mostrar Animació d'Inici".
+    *   Aquesta opció funciona com un "checkbox", mostrant una marca de verificació (`✓`) si la funcionalitat està activada.
+    *   En fer-hi clic, s'executa la funció `handleToggleSplashScreen` (passada des de `App.tsx`), que actualitza l'estat local i crida a `window.electronAPI.saveSessionData()` per desar la nova preferència de manera persistent.

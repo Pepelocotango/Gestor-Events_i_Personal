@@ -432,7 +432,7 @@ export interface ElectronAPI {
   onFileDataLoaded: (callback: (data: { type: string; content: string; fileName: string }) => void) => () => void;
   triggerMenuAction: (action: string) => void;
   getSessionData: () => Promise<any>;
-  saveSessionData: (key: string, value: any) => Promise<void>;
+  saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;
   log: (message: string, data?: any) => void;
 }
 

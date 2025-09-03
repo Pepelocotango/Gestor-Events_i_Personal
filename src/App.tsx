@@ -15,6 +15,7 @@ const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
 const SyncProgressOverlay = lazy(() => import('./components/ui/SyncProgressOverlay'));
 import CustomMenuBar from './components/ui/CustomMenuBar';
+import SplashScreen from './components/ui/SplashScreen';
 
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
@@ -41,6 +42,9 @@ interface ToastState {
 const App: React.FC = () => {
   
     // --- 1. DECLARACIONS D'ESTAT (useState) ---
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
+  const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const [modalState, setModalState] = useState<ModalState>({ type: null, data: null });
   const [toastState, setToastState] = useState<ToastState | null>(null);
@@ -80,6 +84,11 @@ const App: React.FC = () => {
   // --- 3. INICIALITZACIÓ DEL HOOK DE DADES ---
   const eventDataManagerHookResult = useEventDataManager(showToast, openModal, closeModal);
   
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 12500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { 
     loadData: loadDataFromManager, 
     exportData: exportDataFromManager, 
@@ -282,10 +291,19 @@ const App: React.FC = () => {
             setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
           }
         }
+        if (window.electronAPI?.getSessionData) {
+            const sessionData = await window.electronAPI.getSessionData();
+            // Per defecte és true si no està definit
+            setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
+            setSplashConfigLoaded(true);
+        } else {
+            setSplashConfigLoaded(true); // En navegador, simplement permetem que continuï
+        }
       } else {
         console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
         loadDataFromManager(null);
         setHasUnsavedChanges(false); // Comencem "nets"
+        setSplashConfigLoaded(true);
       }
       setInitialLoadAttempted(true);
     };
@@ -705,12 +723,26 @@ const App: React.FC = () => {
     }
   }
 
+  const handleToggleSplashScreen = async () => {
+    const newValue = !splashScreenEnabled;
+    setSplashScreenEnabled(newValue);
+    if (window.electronAPI?.saveSessionData) {
+      await window.electronAPI.saveSessionData('splashScreenEnabled', newValue);
+    }
+  };
+
   return (
     <EventDataProvider value={contextValue}>
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+          {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
           <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
-            <CustomMenuBar canUndo={canUndo} canRedo={canRedo} />
+            <CustomMenuBar
+              canUndo={canUndo}
+              canRedo={canRedo}
+              splashScreenEnabled={splashScreenEnabled}
+              onToggleSplashScreen={handleToggleSplashScreen}
+            />
             <div className="container mx-auto p-2">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
