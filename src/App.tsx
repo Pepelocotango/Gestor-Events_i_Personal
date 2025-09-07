@@ -68,7 +68,7 @@ const App: React.FC = () => {
     const id = `${Date.now()}-${Math.random()}`;
     setToastState({ id, message, type: type || 'success', persistent });
     if (!persistent) {
-      setTimeout(() => clearToastMessage(id), 20000);
+      setTimeout(() => clearToastMessage(id), 2000);
     }
   }, []);
 
@@ -748,7 +748,6 @@ const App: React.FC = () => {
                     <MainDisplay
                       ref={mainDisplayRef}
                       openModal={openModalFromStore}
-                      peopleGroups={eventDataManagerHookResult.peopleGroups}
                       setToastMessage={showToast}
                       currentFilterHighlight={currentFilterHighlight}
                       setCurrentFilterHighlight={setCurrentFilterHighlight}

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ModalType, ModalData } from '../types';
+import { ModalType, ModalData, AssignmentStatus } from '../types';
 
 // Aquest tipus defineix les dades que es poden editar en un formulari de modal
 type ModalFormData = { [key: string]: any };
@@ -29,13 +29,50 @@ const initialState: ModalState = {
 export const useModalStore = create<ModalState & ModalActions>((set) => ({
   ...initialState,
 
-  openModal: (type, data = {}, formData = {}) => {
-    // La lògica de preparació del formData ara recau en qui crida a `openModal`.
-    // Si no es proporciona un formData, s'utilitza un objecte buit.
+  openModal: (type, data = {}) => {
+    let initialFormData: ModalFormData = {};
+    const today = new Date().toISOString().split('T')[0];
+
+    switch (type) {
+      case 'addEventFrame':
+        initialFormData = {
+          name: '',
+          place: '',
+          startDate: (data as any)?.startDate || today,
+          endDate: (data as any)?.endDate || today,
+          generalNotes: '',
+        };
+        break;
+      case 'editEventFrame':
+        if (data?.eventFrameToEdit) {
+          initialFormData = { ...data.eventFrameToEdit };
+        }
+        break;
+      case 'addAssignment':
+        if (data?.eventFrame) {
+          initialFormData = {
+            personGroupId: '', // Default value, component will handle selection
+            startDate: data.eventFrame.startDate,
+            endDate: data.eventFrame.endDate,
+            status: AssignmentStatus.Pending,
+            notes: '',
+          };
+        }
+        break;
+      case 'editAssignment':
+        if (data?.assignmentToEdit) {
+          initialFormData = { ...data.assignmentToEdit };
+        }
+        break;
+      default:
+        initialFormData = {};
+        break;
+    }
+
     set({
       type,
       data,
-      formData,
+      formData: initialFormData,
       isOpen: true,
     });
   },

@@ -9,7 +9,7 @@ import Tooltip from './ui/Tooltip';
 interface ControlsProps {
   theme: string;
   toggleTheme: () => void;
-  onOpenModal: (type: ModalType, data?: any, initialFormData?: any) => void;
+  onOpenModal: (type: ModalType, data?: any) => void;
   peopleGroups: PersonGroup[];
   showToast: ShowToastFunction;
   hasUnsavedChanges: boolean;
