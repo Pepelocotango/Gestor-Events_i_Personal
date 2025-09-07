@@ -1,13 +1,16 @@
 ---------------------
-## PROBLEMA GOOGLE CREDENTIALS A MAC:
+## COMPROVAR SOLUCIO 
+# PROBLEMA GOOGLE CREDENTIALS A MAC:
 Conclusió del Problema:
 L'aplicació compilada per a Linux funciona perquè el fitxer google-credentials.json està correctament empaquetat a dins.
 L'aplicació compilada per a macOS falla amb l'error AUTH ERROR: googleAuthClient no inicialitzat perquè el fitxer google-credentials.json no hi és, i la funció loadGoogleCredentials() falla silenciosament, tal com vam diagnosticar a la sessió anterior.
 Solució Estratègica:
 La solució és senzilla i directa: hem de corregir l'ordre de les passes al fitxer build-macos12.yml perquè sigui idèntic al del workflow de Linux. Hem de crear els fitxers de credencials abans de cridar l'script de compilació.
-
+-----------------------------------------------
 
 ## reset en desfer/refer al carregar dades!
+
+-----------------------------------------------
 
 
 
@@ -33,7 +36,7 @@ App.tsx passarà els valors d'aquest estat i les funcions per modificar-lo (sett
 El modal es convertirà en un "component controlat", que simplement mostra les dades que rep i notifica al pare quan canvien, en lloc de gestionar el seu propi estat.
 D'aquesta manera, si App.tsx es re-renderitza per qualsevol motiu, conservarà les dades del formulari al seu propi estat i les tornarà a passar al modal, evitant que es perdin.
 
-
+---------------------------------------------------------
 
 ## Perque funciona diferent el guardat automàtic a les fitxes de bolo i a les altres llocs?
 (Fitxes de Bolo): Sistema d'Estat a Dos Nivells**
@@ -45,7 +48,7 @@ D'aquesta manera, si App.tsx es re-renderitza per qualsevol motiu, conservarà l
     2.  **Desat Explícit (Sessió):** L'estat es manté en memòria (`hasUnsavedChanges = true`), i la persistència real al disc només es produeix quan l'usuari ho demana explícitament (desa o surt).
 
 
-
+--------------------------------------------------------
 
 
 ## al premer en links mail iniciar servidor correu per defecte
