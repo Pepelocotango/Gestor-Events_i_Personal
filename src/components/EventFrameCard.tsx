@@ -7,15 +7,18 @@ import { formatDateRangeDMY } from '@/utils/dateFormat';
 import AssignmentCard from './AssignmentCard';
 import Tooltip from './ui/Tooltip';
 
+import { PersonGroup } from '@/types';
+
 interface EventFrameCardProps {
   eventFrame: EventFrame;
   isExpanded: boolean;
   expandedDailyViewAssignmentIds: Set<string>;
   filters: { person: string; status: AssignmentStatus | ''; };
+  peopleGroups: PersonGroup[];
   onToggleExpand: (id: string) => void;
   onToggleDailyView: (id: string) => void;
   onUpdateEventFrame: (eventFrame: EventFrame) => void;
-  onOpenModal: (type: ModalType, data?: ModalData) => void;
+  onOpenModal: (type: ModalType, data?: ModalData, initialFormData?: any) => void;
   onGeneralStatusChange: (eventFrameId: string, assignmentId: string, newStatus: AssignmentStatus) => void;
   onDailyStatusChange: (eventFrameId: string, assignment: Assignment, date: string, newStatus: AssignmentStatus) => void;
   onEditAssignment: (eventFrameId: string, assignmentId: string) => void;
@@ -24,7 +27,7 @@ interface EventFrameCardProps {
 }
 
 const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
-  eventFrame, isExpanded, expandedDailyViewAssignmentIds, filters, onToggleExpand,
+  eventFrame, isExpanded, expandedDailyViewAssignmentIds, filters, peopleGroups, onToggleExpand,
   onToggleDailyView, onUpdateEventFrame, onOpenModal, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
 }, ref) => {
@@ -96,7 +99,18 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text="Afegir una nova assignació de personal">
-              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('addAssignment', { eventFrame }); }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
+              <button onClick={(e) => {
+                e.stopPropagation();
+                skipNextCollapse.current = true;
+                const initialFormData = {
+                  personGroupId: peopleGroups[0]?.id || '',
+                  startDate: eventFrame.startDate,
+                  endDate: eventFrame.endDate,
+                  status: AssignmentStatus.Pending,
+                  notes: '',
+                };
+                onOpenModal('addAssignment', { eventFrame }, initialFormData);
+              }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
               <button onClick={(e) => { e.stopPropagation(); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">

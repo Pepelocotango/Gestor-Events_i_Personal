@@ -890,3 +890,13 @@ Per millorar l'experiència inicial de l'usuari, s'ha afegit una pantalla d'inic
     *   S'ha afegit una nova opció al menú "Veure" anomenada "Mostrar Animació d'Inici".
     *   Aquesta opció funciona com un "checkbox", mostrant una marca de verificació (`✓`) si la funcionalitat està activada.
     *   En fer-hi clic, s'executa la funció `handleToggleSplashScreen` (passada des de `App.tsx`), que actualitza l'estat local i crida a `window.electronAPI.saveSessionData()` per desar la nova preferència de manera persistent.
+
+### 5.13 Gestió d'Estat de Modals amb Zustand
+
+Per solucionar un problema de pèrdua de dades en formularis de modals (causat per re-renderitzacions del component pare `App.tsx`), s'ha adoptat un patró de gestió d'estat global utilitzant la llibreria `Zustand`.
+
+**Arquitectura:**
+
+1.  **Store Centralitzat (`src/stores/modalStore.ts`):** Un *store* de Zustand actua com a font única de veritat per a l'estat dels modals. Gestiona quin modal està obert, les dades inicials amb què es va obrir, i l'estat actual del formulari que l'usuari està editant.
+2.  **Components Controlats:** Els modals amb formularis (`EventFrameFormModal`, `AssignmentFormModal`, etc.) ja no gestionen el seu propi estat intern amb `useState`. En canvi, es connecten al *store* de Zustand, llegeixen l'estat del formulari des d'allà, i utilitzen les accions del *store* per actualitzar-lo a cada canvi.
+3.  **Flux de Dades Robust:** Aquest enfocament desacobla l'estat del formulari del cicle de vida del component `App.tsx`. Encara que `App.tsx` es re-renderitzi, l'estat al *store* de Zustand persisteix, garantint que no es perdi cap dada introduïda per l'usuari.

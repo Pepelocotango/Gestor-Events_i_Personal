@@ -80,6 +80,8 @@ enllaç a Gestor-Events_i_Personal/
 │   │   └── EventDataContext.tsx  # Defineix el Context de React per proveir l'estat global a tota l'app.
 │   ├── hooks/
 │   │   └── useEventDataManager.ts # !! EL CERVELL DEL FRONTEND !! Hook que centralitza tot l'estat i la lògica de negoci.
+│   ├── stores/                 # Gestors d'estat global (Zustand).
+│   │   └── modalStore.ts       # Store centralitzat per a l'estat i la lògica dels modals.
 │   ├── utils/
 │   │   ├── csvUtils.ts           # Funcions per a la generació i escapat de fitxers CSV.
 │   │   ├── dataIntegrity.ts      # Lògica per validar i reparar dades carregades des d'un fitxer.

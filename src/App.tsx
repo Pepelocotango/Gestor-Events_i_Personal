@@ -6,8 +6,9 @@ import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ModalState, ModalType, InitialEventFrameData, ModalData, EventDataConteImplicits, EventFrame, SummaryRow, Assignment, AssignmentStatus, ShowToastFunction, PersonGroup, MaterialItem } from './types';
+import { EventDataConteImplicits, EventFrame, SummaryRow, Assignment, AssignmentStatus, ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { formatDateDMY } from './utils/dateFormat';
+import { useModalStore } from './stores/modalStore';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
@@ -46,7 +47,7 @@ const App: React.FC = () => {
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
-  const [modalState, setModalState] = useState<ModalState>({ type: null, data: null });
+  const { isOpen, type, data, closeModal, openModal: openModalFromStore } = useModalStore();
   const [toastState, setToastState] = useState<ToastState | null>(null);
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
   const [currentFilterHighlight, setCurrentFilterHighlight] = useState<string>('');
@@ -71,18 +72,8 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const openModal = useCallback((type: ModalType, data?: ModalData | InitialEventFrameData) => {
-    logger.info('[UI] Obrint modal', { type, data });
-    setModalState({ type, data: data as ModalData | null });
-  }, []);
-
-  const closeModal = () => {
-    logger.info('[UI] Tancant modal.');
-    setModalState({ type: null, data: null });
-  };
-
   // --- 3. INICIALITZACIÓ DEL HOOK DE DADES ---
-  const eventDataManagerHookResult = useEventDataManager(showToast, openModal, closeModal);
+  const eventDataManagerHookResult = useEventDataManager(showToast, openModalFromStore, closeModal);
   
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 12500);
@@ -133,7 +124,7 @@ const App: React.FC = () => {
   }, [hasUnsavedChanges]);
   
   // --- INICI DELS ALTRES EFECTES I FUNCIONS ---
-  logger.info('App.tsx - RE-RENDER', { modalType: modalState.type, modalData: modalState.data });
+  logger.info('App.tsx - RE-RENDER', { modalType: type, modalData: data });
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
@@ -190,7 +181,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const body = document.body;
-    if (modalState.type !== null) {
+    if (isOpen) {
       body.style.overflow = 'hidden';
     } else {
       body.style.overflow = 'auto';
@@ -198,7 +189,7 @@ const App: React.FC = () => {
     return () => {
       body.style.overflow = 'auto';
     };
-  }, [modalState.type]);
+  }, [isOpen]);
   
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -258,9 +249,9 @@ const App: React.FC = () => {
 
   const contextValue = useMemo((): EventDataConteImplicits => ({
     ...eventDataManagerHookResult,
-    openModal,
+    openModal: openModalFromStore,
     showToast, // <<< LÍNIA AFEGIDA
-  }), [eventDataManagerHookResult, openModal, showToast]);
+  }), [eventDataManagerHookResult, openModalFromStore, showToast]);
 
   useEffect(() => {
     const attemptInitialLoad = async () => {
@@ -416,7 +407,7 @@ const App: React.FC = () => {
             syncWithGoogle();
             break;
           case 'config-google':
-            openModal('googleSettings');
+            openModalFromStore('googleSettings');
             break;
           case 'connect-google':
             controlsRef.current?.handleConnectGoogle();
@@ -431,7 +422,7 @@ const App: React.FC = () => {
 
       return cleanup;
     }
-  }, [syncWithGoogle, openModal, toggleTheme, undo, redo, canUndo, canRedo]);
+  }, [syncWithGoogle, openModalFromStore, toggleTheme, undo, redo, canUndo, canRedo]);
 
   useEffect(() => {
     if (window.electronAPI?.onFileDataLoaded) {
@@ -551,55 +542,38 @@ const App: React.FC = () => {
 
 
   const renderModalContent = () => {
-    if (!modalState.type) return null;
-    switch (modalState.type) {
+    if (!type) return null;
+    switch (type) {
       case 'addEventFrame':
-        return <EventFrameFormModal
-                  onClose={closeModal}
-                  showToast={showToast}
-                  initialData={modalState.data ? { startDate: modalState.data.startDate, endDate: modalState.data.endDate } : undefined}
-                />;
+        return <EventFrameFormModal onClose={closeModal} showToast={showToast} />;
       case 'editEventFrame':
-        return <EventFrameFormModal
-                  onClose={closeModal}
-                  eventFrameToEdit={modalState.data!.eventFrameToEdit}
-                  showToast={showToast}
-                />;
+        return <EventFrameFormModal onClose={closeModal} showToast={showToast} eventFrameToEdit={data!.eventFrameToEdit} />;
       case 'addAssignment':
-        return <AssignmentFormModal
-                onClose={closeModal}
-                eventFrame={modalState.data!.eventFrame!}
-                showToast={showToast}
-                setExpandedEventFrameId={setFilterToShowEventFrameId} />;
+        return <AssignmentFormModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} setExpandedEventFrameId={setFilterToShowEventFrameId} />;
       case 'editAssignment':
-        return <AssignmentFormModal
-                onClose={closeModal}
-                eventFrame={modalState.data!.eventFrame!}
-                assignmentToEdit={modalState.data!.assignmentToEdit}
-                showToast={showToast}
-                setExpandedEventFrameId={setFilterToShowEventFrameId} />;
+        return <AssignmentFormModal onClose={closeModal} eventFrame={data!.eventFrame!} assignmentToEdit={data!.assignmentToEdit} showToast={showToast} setExpandedEventFrameId={setFilterToShowEventFrameId} />;
       
       case 'eventFrameDetails':
-        return <EventFrameDetailsModal onClose={closeModal} eventFrame={modalState.data!.eventFrame!} showToast={showToast} onShowOnList={handleShowOnList}/>;
+        return <EventFrameDetailsModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} onShowOnList={handleShowOnList}/>;
       case 'confirmHardReset':
         return <ConfirmDeleteModal
                   onClose={closeModal}
-                  itemType={modalState.data!.itemType!}
-                  itemName={modalState.data!.itemName!}
-                  onConfirm={modalState.data!.onConfirmSpecial!}
+                  itemType={data!.itemType!}
+                  itemName={data!.itemName!}
+                  onConfirm={data!.onConfirmSpecial!}
                   showToast={showToast}
-                  titleOverride={modalState.data!.titleOverride}
-                  confirmButtonText={modalState.data!.confirmButtonText}
-                  cancelButtonText={modalState.data!.cancelButtonText}
-                  requiresInput={modalState.data!.requiresInput}
+                  titleOverride={data!.titleOverride}
+                  confirmButtonText={data!.confirmButtonText}
+                  cancelButtonText={data!.cancelButtonText}
+                  requiresInput={data!.requiresInput}
                 />;
       case 'confirmDeleteEventFrame':
         return <ConfirmDeleteModal
                   onClose={closeModal}
                   itemType="Marc d'Esdeveniment"
-                  itemName={modalState.data!.itemName!}
+                  itemName={data!.itemName!}
                   onConfirm={() => {
-                    eventDataManagerHookResult.deleteEventFrame(modalState.data!.itemId!);
+                    eventDataManagerHookResult.deleteEventFrame(data!.itemId!);
                   }}
                   showToast={showToast}
                 />;
@@ -608,9 +582,9 @@ const App: React.FC = () => {
         return <ConfirmDeleteModal
                   onClose={closeModal}
                   itemType="Assignació"
-                  itemName={modalState.data!.itemName!}
+                  itemName={data!.itemName!}
                   onConfirm={() => {
-                    eventDataManagerHookResult.deleteAssignment(modalState.data!.eventFrameId!, modalState.data!.assignmentId!);
+                    eventDataManagerHookResult.deleteAssignment(data!.eventFrameId!, data!.assignmentId!);
                   }}
                   showToast={showToast}
                 />;
@@ -622,29 +596,29 @@ const App: React.FC = () => {
       case 'selectSyncCalendar':
         return <SelectSyncCalendarModal
                   onClose={closeModal}
-                  onConfirm={modalState.data!.onConfirmSync!}
-                  managedCalendars={modalState.data!.managedCalendars!}
-                  activeCalendarId={modalState.data!.activeCalendarId!}
+                  onConfirm={data!.onConfirmSync!}
+                  managedCalendars={data!.managedCalendars!}
+                  activeCalendarId={data!.activeCalendarId!}
                 />;
       case 'mergeOrReplace':
         return (
           <MergeOrReplaceModal
             isOpen={true}
             onClose={closeModal}
-            itemType={modalState.data!.itemType!}
+            itemType={data!.itemType!}
             onMerge={() => {
-              if (modalState.data?.itemType === 'persones' && modalState.data.newData) {
-                contextValue.mergePeopleGroups(modalState.data.newData as PersonGroup[]);
-              } else if (modalState.data?.itemType === 'material' && modalState.data.newData) {
-                contextValue.addMaterialItemsFromFile(modalState.data.newData as MaterialItem[]);
+              if (data?.itemType === 'persones' && data.newData) {
+                contextValue.mergePeopleGroups(data.newData as PersonGroup[]);
+              } else if (data?.itemType === 'material' && data.newData) {
+                contextValue.addMaterialItemsFromFile(data.newData as MaterialItem[]);
               }
               closeModal();
             }}
             onReplace={() => {
-              if (modalState.data?.itemType === 'persones' && modalState.data.newData) {
-                contextValue.replacePeopleGroups(modalState.data.newData as PersonGroup[]);
-              } else if (modalState.data?.itemType === 'material' && modalState.data.newData) {
-                contextValue.replaceMaterialItems(modalState.data.newData as MaterialItem[]);
+              if (data?.itemType === 'persones' && data.newData) {
+                contextValue.replacePeopleGroups(data.newData as PersonGroup[]);
+              } else if (data?.itemType === 'material' && data.newData) {
+                contextValue.replaceMaterialItems(data.newData as MaterialItem[]);
               }
               closeModal();
             }}
@@ -653,22 +627,22 @@ const App: React.FC = () => {
       case 'updateFromAssignments':
         return <UpdateFromAssignmentsModal
                   onClose={closeModal}
-                  onConfirm={modalState.data!.onConfirm!}
-                  toAdd={modalState.data!.toAdd || []}
-                  toRemove={modalState.data!.toRemove || []}
-                  toUpdate={modalState.data!.toUpdate || []}
+                  onConfirm={data!.onConfirm!}
+                  toAdd={data!.toAdd || []}
+                  toRemove={data!.toRemove || []}
+                  toUpdate={data!.toUpdate || []}
                   getPersonGroupById={eventDataManagerHookResult.getPersonGroupById}
                 />;
       case 'confirmDuplicate':
         return <ConfirmDuplicateModal
                   onClose={closeModal}
                   onConfirm={() => {
-                    if (modalState.data?.onConfirm) {
-                      (modalState.data.onConfirm as () => void)();
+                    if (data?.onConfirm) {
+                      (data.onConfirm as () => void)();
                     }
                     closeModal();
                   }}
-                  message={modalState.data?.message || ''}
+                  message={data?.message || ''}
                 />;
       default:
         return null;
@@ -676,20 +650,20 @@ const App: React.FC = () => {
   };
 
   const getModalTitle = (): string => {
-    if (!modalState.type) return '';
-    if (modalState.type === 'confirmDeleteEventFrame' && modalState.data?.titleOverride) {
-        return modalState.data.titleOverride;
+    if (!type) return '';
+    if (type === 'confirmDeleteEventFrame' && data?.titleOverride) {
+        return data.titleOverride;
     }
-    switch (modalState.type) {
+    switch (type) {
       case 'addEventFrame': return "Afegir Nou Marc d'Esdeveniment";
       case 'editEventFrame': return "Editar Marc d'Esdeveniment";
-      case 'addAssignment': return `Nova Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
-      case 'editAssignment': return `Editar Assignació per a: ${modalState.data?.eventFrame?.name || ''}`;
+      case 'addAssignment': return `Nova Assignació per a: ${data?.eventFrame?.name || ''}`;
+      case 'editAssignment': return `Editar Assignació per a: ${data?.eventFrame?.name || ''}`;
       case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
       case 'createAppCalendar': return "Crear Nou Calendari de l'App";
       case 'confirmDuplicate': return "Conflicte d'Assignació Detectat";
       
-      case 'eventFrameDetails': return `Detalls de: ${modalState.data?.eventFrame?.name || ''}`;
+      case 'eventFrameDetails': return `Detalls de: ${data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
@@ -700,8 +674,8 @@ const App: React.FC = () => {
   };
 
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
-    if (!modalState.type) return 'xl';
-    switch (modalState.type) {
+    if (!type) return 'xl';
+    switch (type) {
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':
@@ -749,7 +723,7 @@ const App: React.FC = () => {
                   ref={controlsRef}
                   theme={theme}
                   toggleTheme={toggleTheme}
-                  onOpenModal={openModal}
+                  onOpenModal={openModalFromStore}
                   peopleGroups={eventDataManagerHookResult.peopleGroups}
                   showToast={showToast}
                   hasUnsavedChanges={hasUnsavedChanges}
@@ -773,7 +747,8 @@ const App: React.FC = () => {
                   element={
                     <MainDisplay
                       ref={mainDisplayRef}
-                      openModal={openModal}
+                      openModal={openModalFromStore}
+                      peopleGroups={eventDataManagerHookResult.peopleGroups}
                       setToastMessage={showToast}
                       currentFilterHighlight={currentFilterHighlight}
                       setCurrentFilterHighlight={setCurrentFilterHighlight}
@@ -799,7 +774,7 @@ const App: React.FC = () => {
           </footer>
 
           <Modal
-            isOpen={modalState.type !== null}
+            isOpen={isOpen}
             onClose={closeModal}
             title={getModalTitle()}
             size={getModalSize()}
