@@ -78,7 +78,7 @@ interface EventDataActions {
     updateAssignment: (assignment: Assignment, force?: boolean, context?: { changedDate?: string }) => AssignmentOperationResult;
     deleteAssignment: (eventFrameId: string, assignmentId: string) => void;
     getAssignmentById: (eventFrameId: string, assignmentId: string) => Assignment | undefined;
-    loadData: (data: AppData | null, showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void) => Promise<void>;
+    loadData: (data: AppData | null, showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void) => Promise<{ status: 'ok' | 'needs_confirmation'; fixes?: string[] }>;
     exportData: () => Promise<AppData>;
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
     setHasUnsavedChanges: (value: boolean) => void;
@@ -207,15 +207,20 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 showToast("No s'ha pogut actualitzar la configuració de Google del fitxer.", 'error');
             }
         }
-        if (!data) { set(initialState); return; }
+        if (!data) {
+            set(initialState);
+            return { status: 'ok' };
+        }
         const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map(ef => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
         const validationResult = validateData(migratedData);
         if (validationResult.isValid) {
             _applyDataToState(migratedData);
             showToast("Dades carregades amb èxit.", 'success');
+            return { status: 'ok' };
         } else {
             const { repairedData, fixes } = repairData(migratedData, validationResult.errors);
             set({ dataRepairInfo: { repairedData, fixes } });
+            return { status: 'needs_confirmation', fixes };
         }
     },
     exportData: async () => {
