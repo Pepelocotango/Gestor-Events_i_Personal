@@ -31,6 +31,8 @@ const MergeOrReplaceModal = lazy(() => import('./components/modals/MergeOrReplac
 const SelectSyncCalendarModal = lazy(() => import('./components/modals/SelectSyncCalendarModal'));
 const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalendarModal'));
 const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/UpdateFromAssignmentsModal'));
+const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairModal'));
+
 
 interface ToastState {
   id: string;
@@ -51,7 +53,6 @@ const App: React.FC = () => {
     exportData: exportDataFromManager,
     setHasUnsavedChanges,
     hasUnsavedChanges,
-    syncWithGoogle,
     isSyncing,
     undo,
     redo,
@@ -64,7 +65,12 @@ const App: React.FC = () => {
     addMaterialItemsFromFile,
     replacePeopleGroups,
     replaceMaterialItems,
+    _applyDataToState,
+    clearDataRepairInfo
   } = useEventDataStore.getState();
+
+  const dataRepairInfo = useEventDataStore(state => state.dataRepairInfo);
+
 
   const [toastState, setToastState] = useState<ToastState | null>(null);
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
@@ -86,6 +92,25 @@ const App: React.FC = () => {
       setTimeout(() => clearToastMessage(id), 2000);
     }
   }, []);
+
+  useEffect(() => {
+    if (dataRepairInfo) {
+      openModalFromStore('confirmDataRepair', {
+        onConfirm: () => {
+          _applyDataToState(dataRepairInfo.repairedData);
+          showToast("Dades reparades i carregades.", 'success');
+          closeModal();
+          clearDataRepairInfo();
+        },
+        onCancel: () => {
+          closeModal();
+          clearDataRepairInfo();
+        },
+        fixes: dataRepairInfo.fixes,
+      });
+    }
+  }, [dataRepairInfo, openModalFromStore, _applyDataToState, showToast, closeModal, clearDataRepairInfo]);
+
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 12500);
@@ -246,11 +271,6 @@ const App: React.FC = () => {
           logger.info("[Startup] App.tsx: Dades rebudes del backend. Cridant a loadDataFromManager.");
           loadDataFromManager(data, showToast);
           setHasUnsavedChanges(false);
-          if (data) {
-            showToast('Dades de l\'aplicació carregades automàticament.', 'info');
-          } else {
-            showToast('No s\'han trobat dades anteriors de l\'aplicació per carregar (Electron). Començant buit.', 'info');
-          }
         } catch (error) {
           console.error('Error carregant dades de l\'aplicació via Electron:', error);
           showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
@@ -358,7 +378,23 @@ const App: React.FC = () => {
             controlsRef.current?.handleSaveData('material');
             break;
           case 'sync-google':
-            syncWithGoogle();
+            const handleSync = async () => {
+              if (!window.electronAPI?.loadGoogleConfig) return;
+              const config = await window.electronAPI.loadGoogleConfig();
+              if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
+                  openModalFromStore('googleSettings');
+                  return;
+              }
+              openModalFromStore('selectSyncCalendar', {
+                  managedCalendars: config.managedAppCalendars,
+                  activeCalendarId: config.activeAppCalendarId,
+                  onConfirmSync: (targetCalendarId: string) => {
+                      closeModal();
+                      useEventDataStore.getState().executeSync(targetCalendarId);
+                  }
+              });
+            };
+            handleSync();
             break;
           case 'config-google':
             openModalFromStore('googleSettings');
@@ -376,7 +412,7 @@ const App: React.FC = () => {
 
       return cleanup;
     }
-  }, [syncWithGoogle, openModalFromStore, toggleTheme, undo, redo, canUndo, canRedo]);
+  }, [openModalFromStore, closeModal, undo, redo, canUndo, canRedo]);
 
   useEffect(() => {
     if (window.electronAPI?.onFileDataLoaded) {
@@ -420,6 +456,13 @@ const App: React.FC = () => {
                   cancelButtonText={data!.cancelButtonText}
                   requiresInput={data!.requiresInput}
                 />;
+      case 'confirmDataRepair':
+          return <ConfirmRepairModal
+                    isOpen={true}
+                    onClose={data!.onCancel!}
+                    onConfirm={data!.onConfirm!}
+                    fixes={data!.fixes!}
+                  />;
       case 'confirmDeleteEventFrame':
         return <ConfirmDeleteModal
                   onClose={closeModal}
@@ -515,6 +558,7 @@ const App: React.FC = () => {
       case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
       case 'createAppCalendar': return "Crear Nou Calendari de l'App";
       case 'confirmDuplicate': return "Conflicte d'Assignació Detectat";
+      case 'confirmDataRepair': return "Reparació de Dades";
       
       case 'eventFrameDetails': return `Detalls de: ${data?.eventFrame?.name || ''}`;
       case 'confirmHardReset':
@@ -538,6 +582,7 @@ const App: React.FC = () => {
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmHardReset':
+      case 'confirmDataRepair':
         return 'xl';
       case 'googleSettings':
         return '2xl';

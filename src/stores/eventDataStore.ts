@@ -4,7 +4,6 @@ import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import logger from '../utils/logger';
-import { useModalStore } from './modalStore';
 import { loggingMiddleware } from './loggingMiddleware';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -63,6 +62,7 @@ interface EventDataState {
     canUndo: boolean;
     canRedo: boolean;
     isRestoringState: boolean;
+    dataRepairInfo: { fixes: any[], repairedData: AppData } | null;
 }
 
 interface EventDataActions {
@@ -98,6 +98,7 @@ interface EventDataActions {
     redo: () => void;
     _applyDataToState: (data: AppData) => void;
     saveStateToHistory: () => void;
+    clearDataRepairInfo: () => void;
 }
 
 const initialState: EventDataState = {
@@ -113,12 +114,15 @@ const initialState: EventDataState = {
     canUndo: false,
     canRedo: false,
     isRestoringState: false,
+    dataRepairInfo: null,
 };
 
 export const useEventDataStore = create<EventDataState & EventDataActions>()(
   loggingMiddleware(
     (set, get) => ({
     ...initialState,
+
+    clearDataRepairInfo: () => set({ dataRepairInfo: null }),
 
     // UTILS
     setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
@@ -191,13 +195,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
     loadData: async (data, showToast) => {
         const { _applyDataToState, refreshGoogleEvents } = get();
-        logger.info("Iniciant la càrrega de dades...", {
-          hasData: !!data,
-          eventFramesCount: data?.eventFrames?.length || 0,
-          peopleGroupsCount: data?.peopleGroups?.length || 0,
-          materialItemsCount: data?.materialItems?.length || 0,
-          assignmentsCount: data?.assignments?.length || 0,
-        });
+        logger.info("Iniciant la càrrega de dades...", { hasData: !!data });
         if (data?.googleConfig && window.electronAPI) {
             try {
                 await window.electronAPI.saveGoogleConfig(data.googleConfig);
@@ -217,11 +215,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             showToast("Dades carregades amb èxit.", 'success');
         } else {
             const { repairedData, fixes } = repairData(migratedData, validationResult.errors);
-            useModalStore.getState().openModal('confirmDataRepair', {
-                onConfirm: () => { _applyDataToState(repairedData); showToast("Dades reparades i carregades.", 'success'); useModalStore.getState().closeModal(); },
-                onCancel: () => useModalStore.getState().closeModal(),
-                fixes,
-            });
+            set({ dataRepairInfo: { repairedData, fixes } });
         }
     },
     exportData: async () => {
@@ -386,22 +380,12 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         }
     },
     syncWithGoogle: async () => {
-        const { executeSync } = get();
-        if (!window.electronAPI?.loadGoogleConfig) return;
-        const config = await window.electronAPI.loadGoogleConfig();
-        if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
-            useModalStore.getState().openModal('googleSettings');
-            return;
-        }
-        useModalStore.getState().openModal('selectSyncCalendar', {
-            managedCalendars: config.managedAppCalendars,
-            activeCalendarId: config.activeAppCalendarId,
-            onConfirmSync: (targetCalendarId: string) => executeSync(targetCalendarId)
-        });
+        // This action will now be orchestrated from the UI
+        // It's kept here for potential future use or direct calls if needed
+        logger.info("syncWithGoogle action called. Orchestration should happen in UI.");
     },
     executeSync: async (targetCalendarId) => {
-        const { exportData, loadData, refreshGoogleEvents, syncWithGoogle } = get();
-        useModalStore.getState().closeModal();
+        const { exportData, loadData, refreshGoogleEvents } = get();
         set({ isSyncing: true, syncProgress: { current: 0, total: 0, message: 'Iniciant...', visible: true } });
         if (window.electronAPI) {
             const localData = await exportData();
@@ -410,8 +394,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 loadData(result.data, (msg, type) => console.log(`[TOAST] ${type}: ${msg}`)); // Placeholder for toast
                 await refreshGoogleEvents((msg, type) => console.log(`[TOAST] ${type}: ${msg}`));
             } else if (result.code === 'CALENDAR_NOT_FOUND') {
+                // This case should also be handled in the UI
                 await refreshGoogleEvents((msg, type) => console.log(`[TOAST] ${type}: ${msg}`));
-                syncWithGoogle();
             }
         }
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
