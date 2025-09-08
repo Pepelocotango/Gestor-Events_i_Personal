@@ -34,14 +34,9 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
       } else {
         setIsEditingMixed(false);
       }
-    } else {
-      // For new assignments, ensure personGroupId is initialized if not already set
-      if (!formData.personGroupId && peopleGroups.length > 0) {
-        setFormData(prev => ({ ...prev, personGroupId: peopleGroups[0].id }));
-      }
     }
     setErrors({});
-  }, [assignmentToEdit, peopleGroups, setFormData, formData.personGroupId]);
+  }, [assignmentToEdit, setFormData]);
 
   const validate = (): boolean => {
     const newErrors: {[key: string]: string} = {};
