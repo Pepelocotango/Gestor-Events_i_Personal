@@ -2,10 +2,9 @@ import React, { useState, useRef, useEffect, useMemo, forwardRef, useImperativeH
 import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../types';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
-import logger from '../utils/logger';
 import Tooltip from './ui/Tooltip';
 
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
+import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -25,8 +24,7 @@ interface MainDisplayProps {
   setCurrentFilterHighlight: (filter: string) => void;
   filterToShowEventFrameId: string | null;
   setFilterToShowEventFrameId: (id: string | null) => void;
-  setCurrentlyDisplayedFrames: (frames: EventFrame[]) => void;
-  onExportCurrentViewToCsv: () => void;
+  onExportCurrentViewToCsv: (frames: EventFrame[]) => void;
   setFilterUIPerson: (personId: string) => void;
 }
 
@@ -61,13 +59,12 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
   );
 };
 
-const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps>(({
+const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResize: () => void; }, MainDisplayProps>(({
     setToastMessage,
     currentFilterHighlight,
     setCurrentFilterHighlight,
     filterToShowEventFrameId,
     setFilterToShowEventFrameId,
-    setCurrentlyDisplayedFrames,
     onExportCurrentViewToCsv,
     setFilterUIPerson
 }, ref) => {
@@ -78,6 +75,7 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
   const googleEvents = useEventDataStore(state => state.googleEvents);
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const [conflictDialog, setConflictDialog] = useState<{ message: string; personName: string | null } | null>(null);
+  const [currentlyDisplayedFrames, setCurrentlyDisplayedFrames] = useState<EventFrame[]>([]);
 
   const handleExportListToPdf = () => {
     if (filteredAndSortedEventFrames.length === 0) {
@@ -95,6 +93,9 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
           calendarApi.updateSize();
         }, 50);
       }
+    },
+    exportCurrentViewToCsv: () => {
+      onExportCurrentViewToCsv(currentlyDisplayedFrames);
     }
   }));
 
@@ -292,7 +293,8 @@ useEffect(() => {
 
   }, [filteredAndSortedEventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame]);
 
-  useEffect(() => { setCurrentlyDisplayedFrames(filteredAndSortedEventFrames); }, [filteredAndSortedEventFrames, setCurrentlyDisplayedFrames]);  useEffect(() => { setFilterUIPerson(localFilterUIPerson); }, [localFilterUIPerson, setFilterUIPerson]);
+  useEffect(() => { setCurrentlyDisplayedFrames(filteredAndSortedEventFrames); }, [filteredAndSortedEventFrames]);
+  useEffect(() => { setFilterUIPerson(localFilterUIPerson); }, [localFilterUIPerson, setFilterUIPerson]);
 
   const handleEditAssignment = (eventFrameId: string, assignmentId: string) => {
     setExpandedEventFrameIds(prev => new Set(prev).add(eventFrameId));
@@ -382,11 +384,6 @@ useEffect(() => {
                 {filterDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-0.5"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
             </div>
             <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Lloc</label><Tooltip text="Filtrar per lloc de l'esdeveniment"><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></Tooltip></div>            <div className="flex items-center gap-1">
-              <Tooltip text="Exportar la vista actual a CSV">
-                <button onClick={() => { logger.info('[UI] Iniciant exportació de vista actual a CSV.'); onExportCurrentViewToCsv(); }} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white shadow-sm">
-                    <CsvIcon className="w-4 h-4" />
-                </button>
-              </Tooltip>
               <Tooltip text="Exportar la vista actual a PDF">
                 <button onClick={handleExportListToPdf} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white shadow-sm">
                     <PdfIcon className="w-4 h-4" />

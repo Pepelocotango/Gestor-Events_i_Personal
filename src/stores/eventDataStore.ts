@@ -191,7 +191,14 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
     loadData: async (data, showToast) => {
         const { _applyDataToState, refreshGoogleEvents } = get();
-        logger.info("Iniciant la càrrega de dades...");
+        logger.info("Iniciant la càrrega de dades...", {
+          hasData: !!data,
+          eventFramesCount: data?.eventFrames?.length || 0,
+          peopleGroupsCount: data?.peopleGroups?.length || 0,
+          assignmentsCount: data?.assignments?.length || 0,
+          materialItemsCount: data?.materialItems?.length || 0,
+          hasGoogleConfig: !!data?.googleConfig
+        });
         if (data?.googleConfig && window.electronAPI) {
             try {
                 await window.electronAPI.saveGoogleConfig(data.googleConfig);

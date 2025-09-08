@@ -72,11 +72,10 @@ const App: React.FC = () => {
   const [currentFilterHighlight, setCurrentFilterHighlight] = useState<string>('');
   const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
   const [filterToShowEventFrameId, setFilterToShowEventFrameId] = useState<string | null>(null);
-  const [currentlyDisplayedFrames, setCurrentlyDisplayedFrames] = useState<EventFrame[]>([]);
   const [filterUIPerson, setFilterUIPerson] = useState<string>('');
 
   const controlsRef = useRef<any>(null);
-  const mainDisplayRef = useRef<{ handleResize: () => void }>(null);
+  const mainDisplayRef = useRef<{ exportCurrentViewToCsv: () => void; handleResize: () => void; }>(null);
 
   // --- 2. FUNCIONS D'AJUDA (useCallback) ---
   const clearToastMessage = (toastId: string) => {
@@ -366,7 +365,7 @@ const App: React.FC = () => {
     return stringData;
   };
 
-  const generateCsvFileName = () => {
+  const generateCsvFileName = (currentlyDisplayedFrames: EventFrame[]) => {
     const date = new Date();
     const formattedDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
 
@@ -456,7 +455,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleExportCurrentViewToCsv = () => {
+  const handleExportCurrentViewToCsv = (currentlyDisplayedFrames: EventFrame[]) => {
     const dataToExport: SummaryRow[] = [];
 
     currentlyDisplayedFrames.forEach(ef => {
@@ -543,7 +542,7 @@ const App: React.FC = () => {
       headers.map(header => escapeCsvCell(row[header])).join(',')
     );
     const csvContent = [headerString, ...rows].join('\n');
-    const fileName = generateCsvFileName();
+    const fileName = generateCsvFileName(currentlyDisplayedFrames);
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -737,6 +736,7 @@ const App: React.FC = () => {
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   ref={controlsRef}
+                  mainDisplayRef={mainDisplayRef}
                   theme={theme}
                   toggleTheme={toggleTheme}
                   showToast={showToast}
@@ -763,7 +763,6 @@ const App: React.FC = () => {
                       setCurrentFilterHighlight={setCurrentFilterHighlight}
                       filterToShowEventFrameId={filterToShowEventFrameId}
                       setFilterToShowEventFrameId={setFilterToShowEventFrameId}
-                      setCurrentlyDisplayedFrames={setCurrentlyDisplayedFrames}
                       onExportCurrentViewToCsv={handleExportCurrentViewToCsv}
                       setFilterUIPerson={setFilterUIPerson}
                     />
