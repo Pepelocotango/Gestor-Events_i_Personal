@@ -1,17 +1,33 @@
 import { StateCreator } from 'zustand';
 import logger from '../utils/logger';
 
-export const loggingMiddleware = <T>(
+export const loggingMiddleware = <T extends object>(
   f: StateCreator<T>,
   name: string
 ): StateCreator<T> => (set, get, api) => {
   return f(
     (args) => {
-      logger.info(`[ZUSTAND] ${name} - Acció...`);
       const oldState = get();
+
+      logger.info(`[ZUSTAND] ${name} - Acció`, {
+        args,
+        prevState: oldState,
+      });
+
       set(args);
+
       const newState = get();
-      logger.info(`[ZUSTAND] ${name} - Estat actualitzat`, { oldState, newState });
+      try {
+        const newStateSize = JSON.stringify(newState).length;
+        // Si l'estat és molt gran (ex: > 50KB), no el registris sencer
+        if (newStateSize > 50000) {
+          logger.info(`[ZUSTAND] ${name} - Estat actualitzat (mida > 50KB, omès)`);
+        } else {
+          logger.info(`[ZUSTAND] ${name} - Estat actualitzat`, { newState });
+        }
+      } catch (e) {
+          logger.warn(`[ZUSTAND] ${name} - No s'ha pogut serialitzar el nou estat per comprovar la mida.`);
+      }
     },
     get,
     api
