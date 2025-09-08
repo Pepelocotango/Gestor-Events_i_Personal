@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
-import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../types';
+import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction, SummaryRow } from '../types';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
@@ -17,6 +17,7 @@ import Modal from './ui/Modal';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
 import { exportEventListToPdf } from '../utils/pdfGenerator';
 import EventFrameCard from './EventFrameCard';
+import { escapeCsvCell } from '../utils/csvUtils';
 
 interface MainDisplayProps {
   setToastMessage: ShowToastFunction;
@@ -24,8 +25,7 @@ interface MainDisplayProps {
   setCurrentFilterHighlight: (filter: string) => void;
   filterToShowEventFrameId: string | null;
   setFilterToShowEventFrameId: (id: string | null) => void;
-  onExportCurrentViewToCsv: (frames: EventFrame[]) => void;
-  setFilterUIPerson: (personId: string) => void;
+  onExportCurrentViewToCsv: (csvContent: string, fileName: string) => void;
 }
 
 interface CollapsibleSectionProps {
@@ -65,8 +65,7 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     setCurrentFilterHighlight,
     filterToShowEventFrameId,
     setFilterToShowEventFrameId,
-    onExportCurrentViewToCsv,
-    setFilterUIPerson
+    onExportCurrentViewToCsv
 }, ref) => {
   const calendarRef = useRef<FullCalendar>(null);
   const { openModal } = useModalStore.getState();
@@ -85,7 +84,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
   const eventFrameRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // State for *manually* expanded items
   const [manualExpandedFrameIds, setManualExpandedFrameIds] = useState<Set<string>>(new Set());
   const [manualExpandedDailyView, setManualExpandedDailyView] = useState<Set<string>>(new Set());
 
@@ -117,7 +115,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
 
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
-  // DERIVED state for what is actually expanded
   const expandedEventFrameIds = useMemo(() =>
     isAnyFilterActive
       ? new Set(filteredAndSortedEventFrames.map(ef => ef.id))
@@ -127,7 +124,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
 
   const expandedDailyViewAssignmentIds = useMemo(() => {
     if (!isAnyFilterActive) return manualExpandedDailyView;
-
     const newExpandedAssignments = new Set<string>();
     filteredAndSortedEventFrames.forEach(ef => {
       if (localFilterUIPerson || filterStatus) {
@@ -161,6 +157,61 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     });
   };
 
+  const generateAndExportCsv = () => {
+    const dataToExport: SummaryRow[] = [];
+    filteredAndSortedEventFrames.forEach(ef => {
+      if (ef.assignments.length > 0) {
+        ef.assignments.forEach(a => {
+          const person = getPersonGroupById(a.personGroupId);
+          if (!localFilterUIPerson || a.personGroupId === localFilterUIPerson) {
+            dataToExport.push({
+              id: ef.id + "_" + a.id, primaryGrouping: ef.name, secondaryGrouping: person?.name || 'N/A',
+              eventFrameName: ef.name, eventFramePlace: ef.place, eventFrameStartDate: formatDateDMY(ef.startDate),
+              eventFrameEndDate: formatDateDMY(ef.endDate), assignmentPersonName: person?.name || 'N/A',
+              assignmentStartDate: formatDateDMY(a.startDate), assignmentEndDate: formatDateDMY(a.endDate),
+              assignmentStatus: a.status, assignmentNotes: a.notes, eventFrameGeneralNotes: ef.generalNotes,
+              assignmentObject: a,
+            });
+          }
+        });
+      } else {
+        if (!localFilterUIPerson) {
+          dataToExport.push({
+            id: ef.id, primaryGrouping: ef.name, secondaryGrouping: "Sense assignacions",
+            eventFrameName: ef.name, eventFramePlace: ef.place, eventFrameStartDate: formatDateDMY(ef.startDate),
+            eventFrameEndDate: formatDateDMY(ef.endDate), assignmentPersonName: 'N/A',
+            assignmentStartDate: 'N/A', assignmentEndDate: 'N/A', assignmentStatus: '',
+            assignmentNotes: '', eventFrameGeneralNotes: ef.generalNotes,
+            assignmentObject: { id: `placeholder-${ef.id}`, personGroupId: '', eventFrameId: ef.id, startDate: '', endDate: '', status: AssignmentStatus.Pending, notes: '' },
+          });
+        }
+      }
+    });
+
+    if (dataToExport.length === 0) {
+      onExportCurrentViewToCsv('', ''); // Signal to parent that there's nothing to export
+      return;
+    }
+
+    const headers: (keyof SummaryRow)[] = ["primaryGrouping", "secondaryGrouping", "eventFrameName", "eventFramePlace", "eventFrameStartDate", "eventFrameEndDate", "assignmentPersonName", "assignmentStartDate", "assignmentEndDate", "assignmentStatus", "assignmentNotes", "eventFrameGeneralNotes"];
+    const headerDisplayNames: { [key in keyof SummaryRow]?: string } = {
+      primaryGrouping: "Agrupació Principal (Nom Esdeveniment Marc)", secondaryGrouping: "Agrupació Secundària (Persona/Grup o 'Sense assignacions')",
+      eventFrameName: "Nom Esdeveniment Marc", eventFramePlace: "Lloc Esdeveniment Marc", eventFrameStartDate: "Inici Esdeveniment Marc",
+      eventFrameEndDate: "Fi Esdeveniment Marc", assignmentPersonName: "Persona Assignada", assignmentStartDate: "Inici Assignació",
+      assignmentEndDate: "Fi Assignació", assignmentStatus: "Estat Assignació", assignmentNotes: "Notes Assignació", eventFrameGeneralNotes: "Notes Generals Marc"
+    };
+    const headerString = headers.map(h => escapeCsvCell(headerDisplayNames[h] || h)).join(',');
+    const rows = dataToExport.map(row => headers.map(header => escapeCsvCell(row[header])).join(','));
+    const csvContent = [headerString, ...rows].join('\n');
+
+    const date = new Date();
+    const formattedDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
+    const personName = localFilterUIPerson ? getPersonGroupById(localFilterUIPerson)?.name?.replace(/[^a-zA-Z0-9]/g, '_') || "persona_filtrada" : "totes";
+    const fileName = `llista_vista_actual_${personName}_${formattedDate}.csv`;
+
+    onExportCurrentViewToCsv(csvContent, fileName);
+  };
+
   const handleExportListToPdf = () => {
     if (filteredAndSortedEventFrames.length === 0) {
       setToastMessage("No hi ha dades a la vista actual per exportar.", 'info');
@@ -173,41 +224,27 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     handleResize: () => {
       if (calendarRef.current) {
         const calendarApi = calendarRef.current.getApi();
-        setTimeout(() => {
-          calendarApi.updateSize();
-        }, 50);
+        setTimeout(() => { calendarApi.updateSize(); }, 50);
       }
     },
-    exportCurrentViewToCsv: () => {
-      onExportCurrentViewToCsv(filteredAndSortedEventFrames);
-    }
+    exportCurrentViewToCsv: generateAndExportCsv,
   }));
 
   const calendarEvents = useMemo(() => {
     const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
-    
     const localEventsForCalendar = eventFrames.map(ef => ({
-      id: ef.id,
-      title: ef.name,
-      start: ef.startDate,
-      end: addDaysISO(ef.endDate, 1),
-      allDay: true,
+      id: ef.id, title: ef.name, start: ef.startDate, end: addDaysISO(ef.endDate, 1), allDay: true,
       className: ef.personnelComplete ? 'event-complete' : 'event-incomplete',
       extendedProps: { type: 'local', googleEventId: ef.googleEventId } 
     }));
-    
     const filteredGoogleEventsForCalendar = googleEvents
       .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
       .map(gEvent => ({
-        ...gEvent,
-        backgroundColor: gEvent.backgroundColor,
-        borderColor: gEvent.borderColor,
+        ...gEvent, backgroundColor: gEvent.backgroundColor, borderColor: gEvent.borderColor,
         extendedProps: { ...gEvent.extendedProps, type: 'google' }
       }));
-
     return [...localEventsForCalendar, ...filteredGoogleEventsForCalendar];
   }, [eventFrames, googleEvents]);
-
 
   const handleGeneralStatusChange = (eventFrameId: string, assignmentId: string, newStatus: AssignmentStatus) => {
     const assignment = getAssignmentById(eventFrameId, assignmentId);
@@ -269,7 +306,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
         }
         setTimeout(() => {
             if (element) {
-                // When showing a specific event, we manually expand it
                 setManualExpandedFrameIds(prev => new Set(prev).add(filterToShowEventFrameId));
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 element.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400', 'transition-all', 'duration-1000', 'ease-in-out', 'rounded-lg');
@@ -294,7 +330,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 element.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400', 'transition-all', 'duration-1000', 'ease-in-out', 'rounded-lg');
-                // When highlighting, we manually expand it
                 if (!manualExpandedFrameIds.has(currentFilterHighlight)) {
                     setManualExpandedFrameIds(prev => new Set(prev).add(currentFilterHighlight));
                 }
@@ -306,8 +341,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
         }, 200);
     }
   }, [currentFilterHighlight, setCurrentFilterHighlight, manualExpandedFrameIds]);
-
-  useEffect(() => { setFilterUIPerson(localFilterUIPerson); }, [localFilterUIPerson, setFilterUIPerson]);
 
   const handleEditAssignment = (eventFrameId: string, assignmentId: string) => {
     setManualExpandedFrameIds(prev => new Set(prev).add(eventFrameId));

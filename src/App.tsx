@@ -5,7 +5,6 @@ import logger from './utils/logger';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
 import { EventFrame, SummaryRow, Assignment, AssignmentStatus, ShowToastFunction, PersonGroup, MaterialItem } from './types';
-import { formatDateDMY } from './utils/dateFormat';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -42,42 +41,40 @@ interface ToastState {
 
 const App: React.FC = () => {
   
-    // --- 1. DECLARACIONS D'ESTAT (useState) ---
   const [showSplash, setShowSplash] = useState(true);
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const { isOpen, type, data, closeModal, openModal: openModalFromStore } = useModalStore();
-  const loadDataFromManager = useEventDataStore(state => state.loadData);
-  const exportDataFromManager = useEventDataStore(state => state.exportData);
-  const setHasUnsavedChanges = useEventDataStore(state => state.setHasUnsavedChanges);
-  const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
-  const syncWithGoogle = useEventDataStore(state => state.syncWithGoogle);
-  const isSyncing = useEventDataStore(state => state.isSyncing);
-  const syncProgress = useEventDataStore(state => state.syncProgress);
-  const undo = useEventDataStore(state => state.undo);
-  const redo = useEventDataStore(state => state.redo);
-  const canUndo = useEventDataStore(state => state.canUndo);
-  const canRedo = useEventDataStore(state => state.canRedo);
-  const getPersonGroupById = useEventDataStore(state => state.getPersonGroupById);
-  const deleteEventFrame = useEventDataStore(state => state.deleteEventFrame);
-  const deleteAssignment = useEventDataStore(state => state.deleteAssignment);
-  const mergePeopleGroups = useEventDataStore(state => state.mergePeopleGroups);
-  const addMaterialItemsFromFile = useEventDataStore(state => state.addMaterialItemsFromFile);
-  const replacePeopleGroups = useEventDataStore(state => state.replacePeopleGroups);
-  const replaceMaterialItems = useEventDataStore(state => state.replaceMaterialItems);
+  const {
+    loadData: loadDataFromManager,
+    exportData: exportDataFromManager,
+    setHasUnsavedChanges,
+    hasUnsavedChanges,
+    syncWithGoogle,
+    isSyncing,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    getPersonGroupById,
+    deleteEventFrame,
+    deleteAssignment,
+    mergePeopleGroups,
+    addMaterialItemsFromFile,
+    replacePeopleGroups,
+    replaceMaterialItems,
+  } = useEventDataStore.getState();
 
   const [toastState, setToastState] = useState<ToastState | null>(null);
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
   const [currentFilterHighlight, setCurrentFilterHighlight] = useState<string>('');
   const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
   const [filterToShowEventFrameId, setFilterToShowEventFrameId] = useState<string | null>(null);
-  const [filterUIPerson, setFilterUIPerson] = useState<string>('');
 
   const controlsRef = useRef<any>(null);
   const mainDisplayRef = useRef<{ exportCurrentViewToCsv: () => void; handleResize: () => void; }>(null);
 
-  // --- 2. FUNCIONS D'AJUDA (useCallback) ---
   const clearToastMessage = (toastId: string) => {
     setToastState(prevState => (prevState?.id === toastId ? null : prevState));
   };
@@ -98,11 +95,9 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
         const target = event.target as HTMLElement;
-        // No activar dreceres si s'està escrivint en un input, textarea, o contentEditable
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
             return;
         }
-
         if (event.ctrlKey) {
             if (event.key.toLowerCase() === 'z') {
                 event.preventDefault();
@@ -113,47 +108,29 @@ const App: React.FC = () => {
             }
         }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo, canUndo, canRedo]);
 
-  // <<<< NOU REF PER A GESTIONAR L'ESTAT DELS CANVIS SENSE DESAR >>>>
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   useEffect(() => {
     hasUnsavedChangesRef.current = hasUnsavedChanges;
   }, [hasUnsavedChanges]);
   
-  // --- INICI DELS ALTRES EFECTES I FUNCIONS ---
   logger.info('App.tsx - Component renderitzat.');
-
-  useEffect(() => {
-    const safeData = data ? { ...data } : null;
-    if (safeData) {
-        // Replace functions with a placeholder to avoid IPC cloning errors
-        for (const key in safeData) {
-            if (typeof (safeData as any)[key] === 'function') {
-                (safeData as any)[key] = '[Function]';
-            }
-        }
-    }
-    logger.info('App.tsx - Canvi a modalStore detectat.', { modalType: type, modalData: safeData });
-  }, [type, data]);
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
 
   useEffect(() => {
-    // This effect can be simplified or removed if syncProgress.visible covers all cases
-    if (isSyncing && !syncProgress.visible) {
+    if (isSyncing && !useEventDataStore.getState().syncProgress.visible) {
       setLoadingOverlayMessage('Sincronitzant amb Google Calendar...');
       setIsLoadingOverlayVisible(true);
-    } else if (!isSyncing && !syncProgress.visible) {
+    } else if (!isSyncing && !useEventDataStore.getState().syncProgress.visible) {
       setIsLoadingOverlayVisible(false);
       setLoadingOverlayMessage('');
     }
-  }, [isSyncing, syncProgress.visible]);
-
+  }, [isSyncing]);
 
   useEffect(() => {
     let cleanupShowLoading: (() => void) | undefined;
@@ -253,8 +230,6 @@ const App: React.FC = () => {
     );
   };
 
-  
-
   const handleShowOnList = (eventFrameId: string) => {
       setFilterToShowEventFrameId(eventFrameId);
       setCurrentFilterHighlight(eventFrameId);
@@ -270,7 +245,7 @@ const App: React.FC = () => {
           const data = await window.electronAPI.loadAppData();
           logger.info("[Startup] App.tsx: Dades rebudes del backend. Cridant a loadDataFromManager.");
           loadDataFromManager(data, showToast);
-          setHasUnsavedChanges(false); // Important: la càrrega inicial no són "canvis no desats"
+          setHasUnsavedChanges(false);
           if (data) {
             showToast('Dades de l\'aplicació carregades automàticament.', 'info');
           } else {
@@ -280,9 +255,8 @@ const App: React.FC = () => {
           console.error('Error carregant dades de l\'aplicació via Electron:', error);
           showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
           loadDataFromManager(null, showToast);
-          setHasUnsavedChanges(false); // Fins i tot si hi ha error, comencem "nets"
+          setHasUnsavedChanges(false);
         }
-        // Després de carregar dades, obtenim la ruta per defecte
         if (window.electronAPI?.getDefaultDataPath) {
           try {
             const path = await window.electronAPI.getDefaultDataPath();
@@ -293,16 +267,15 @@ const App: React.FC = () => {
         }
         if (window.electronAPI?.getSessionData) {
             const sessionData = await window.electronAPI.getSessionData();
-            // Per defecte és true si no està definit
             setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
             setSplashConfigLoaded(true);
         } else {
-            setSplashConfigLoaded(true); // En navegador, simplement permetem que continuï
+            setSplashConfigLoaded(true);
         }
       } else {
         console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
         loadDataFromManager(null, showToast);
-        setHasUnsavedChanges(false); // Comencem "nets"
+        setHasUnsavedChanges(false);
         setSplashConfigLoaded(true);
       }
       setInitialLoadAttempted(true);
@@ -315,13 +288,12 @@ const App: React.FC = () => {
     }
   }, [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges]);
 
-  // <<< USEEFFECT CORREGIT PER AL TANCAMENT >>>
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
       const handleQuit = async () => {
         logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
         try {
-          if (hasUnsavedChangesRef.current) { // Utilitza la referència
+          if (hasUnsavedChangesRef.current) {
             const dataToSave = await exportDataFromManager();
             logger.info("Renderer: Desant dades abans de sortir...");
             await window.electronAPI?.saveAppData?.(dataToSave);
@@ -334,11 +306,9 @@ const App: React.FC = () => {
           window.electronAPI?.sendQuitConfirmedByRenderer?.();
         }
       };
-      
-      // Registrem el listener només un cop
       window.electronAPI.onConfirmQuit(handleQuit);
     }
-  }, [exportDataFromManager]); // Array de dependències estable
+  }, [exportDataFromManager]);
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listeners per a l\'autenticació de Google.');
@@ -356,37 +326,6 @@ const App: React.FC = () => {
       };
     }
   }, [showToast]);
-  const escapeCsvCell = (cellData: string | number | undefined | null): string => {
-    if (cellData === undefined || cellData === null) return '';
-    const stringData = String(cellData);
-    if (stringData.includes(',') || stringData.includes('"') || stringData.includes('\n')) {
-      return `"${stringData.replace(/"/g, '""')}"`;
-    }
-    return stringData;
-  };
-
-  const generateCsvFileName = (currentlyDisplayedFrames: EventFrame[]) => {
-    const date = new Date();
-    const formattedDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
-
-    const eventName = filterToShowEventFrameId
-      ? currentlyDisplayedFrames.find(ef => ef.id === filterToShowEventFrameId)?.name || "tots"
-      : "tots";
-
-    const personName = filterUIPerson
-      ? getPersonGroupById(filterUIPerson)?.name || "tots"
-      : "tots";
-
-    const status = "tots els estats";
-
-    const location = currentlyDisplayedFrames.length === 1
-      ? currentlyDisplayedFrames[0].place || "tots"
-      : "tots";
-
-    const textFilter = filterUIPerson ? `filtre_${filterUIPerson.replace(/[^a-zA-Z0-9]/g, '_')}` : "sense_filtre";
-
-    return `llista_${eventName}-${personName}-${status}-${textFilter}-${formattedDate}-${location}.csv`;
-  };
 
   useEffect(() => {
     if (toastState) {
@@ -455,94 +394,11 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleExportCurrentViewToCsv = (currentlyDisplayedFrames: EventFrame[]) => {
-    const dataToExport: SummaryRow[] = [];
-
-    currentlyDisplayedFrames.forEach(ef => {
-      if (ef.assignments.length > 0) {
-        ef.assignments.forEach(a => {
-          const person = getPersonGroupById(a.personGroupId);
-          if (!filterUIPerson || a.personGroupId === filterUIPerson) {
-            dataToExport.push({
-              id: ef.id + "_" + a.id,
-              primaryGrouping: ef.name,
-              secondaryGrouping: person?.name || 'N/A',
-              eventFrameName: ef.name,
-              eventFramePlace: ef.place,
-              eventFrameStartDate: formatDateDMY(ef.startDate),
-              eventFrameEndDate: formatDateDMY(ef.endDate),
-              assignmentPersonName: person?.name || 'N/A',
-              assignmentStartDate: formatDateDMY(a.startDate),
-              assignmentEndDate: formatDateDMY(a.endDate),
-              assignmentStatus: a.status,
-              assignmentNotes: a.notes,
-              eventFrameGeneralNotes: ef.generalNotes,
-              assignmentObject: a,
-            });
-          }
-        });
-      } else {
-        if (!filterUIPerson) {
-          const placeholderAssignment: Assignment = {
-              id: `placeholder-no-assignment-${ef.id}`,
-              personGroupId: '',
-              eventFrameId: ef.id,
-              startDate: '',
-              endDate: '',
-              status: AssignmentStatus.Pending,
-              notes: '',
-          };
-          dataToExport.push({
-            id: ef.id,
-            primaryGrouping: ef.name,
-            secondaryGrouping: "Sense assignacions",
-            eventFrameName: ef.name,
-            eventFramePlace: ef.place,
-            eventFrameStartDate: formatDateDMY(ef.startDate),
-            eventFrameEndDate: formatDateDMY(ef.endDate),
-            assignmentPersonName: 'N/A',
-            assignmentStartDate: 'N/A',
-            assignmentEndDate: 'N/A',
-            assignmentStatus: '',
-            assignmentNotes: '',
-            eventFrameGeneralNotes: ef.generalNotes,
-            assignmentObject: placeholderAssignment
-          });
-        }
-      }
-    });
-
-    if (dataToExport.length === 0) {
+  const handleExportCurrentViewToCsv = (csvContent: string, fileName: string) => {
+    if (!csvContent) {
       showToast("No hi ha dades a la vista actual per exportar.", 'info');
       return;
     }
-
-    const headers: (keyof SummaryRow)[] = [
-      "primaryGrouping", "secondaryGrouping", "eventFrameName", "eventFramePlace",
-      "eventFrameStartDate", "eventFrameEndDate", "assignmentPersonName",
-      "assignmentStartDate", "assignmentEndDate", "assignmentStatus",
-      "assignmentNotes", "eventFrameGeneralNotes"
-    ];
-    const headerDisplayNames: { [key in keyof SummaryRow]?: string } = {
-      primaryGrouping: "Agrupació Principal (Nom Esdeveniment Marc)",
-      secondaryGrouping: "Agrupació Secundària (Persona/Grup o 'Sense assignacions')",
-      eventFrameName: "Nom Esdeveniment Marc",
-      eventFramePlace: "Lloc Esdeveniment Marc",
-      eventFrameStartDate: "Inici Esdeveniment Marc",
-      eventFrameEndDate: "Fi Esdeveniment Marc",
-      assignmentPersonName: "Persona Assignada",
-      assignmentStartDate: "Inici Assignació",
-      assignmentEndDate: "Fi Assignació",
-      assignmentStatus: "Estat Assignació",
-      assignmentNotes: "Notes Assignació",
-      eventFrameGeneralNotes: "Notes Generals Marc"
-    };
-    const headerString = headers.map(h => escapeCsvCell(headerDisplayNames[h] || h)).join(',');
-    const rows = dataToExport.map(row =>
-      headers.map(header => escapeCsvCell(row[header])).join(',')
-    );
-    const csvContent = [headerString, ...rows].join('\n');
-    const fileName = generateCsvFileName(currentlyDisplayedFrames);
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -554,7 +410,6 @@ const App: React.FC = () => {
     URL.revokeObjectURL(url);
     showToast("Vista actual exportada a CSV.", 'success');
   };
-
 
   const renderModalContent = () => {
     if (!type) return null;
@@ -764,7 +619,6 @@ const App: React.FC = () => {
                       filterToShowEventFrameId={filterToShowEventFrameId}
                       setFilterToShowEventFrameId={setFilterToShowEventFrameId}
                       onExportCurrentViewToCsv={handleExportCurrentViewToCsv}
-                      setFilterUIPerson={setFilterUIPerson}
                     />
                   }
                 />
@@ -774,7 +628,6 @@ const App: React.FC = () => {
               </Routes>
             </Suspense>
           </main>
-
 
           <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
             <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.0.0. Llicència MIT (codi lliure). </span>
@@ -795,10 +648,10 @@ const App: React.FC = () => {
           {toastState && <Toast toast={toastState} />}
 
           <Suspense fallback={<div></div>}>
-            <SyncProgressOverlay progress={useEventDataStore(state => state.syncProgress)} />
+            <SyncProgressOverlay progress={useEventDataStore.getState().syncProgress} />
           </Suspense>
 
-          {isLoadingOverlayVisible && !useEventDataStore(state => state.syncProgress).visible && (
+          {isLoadingOverlayVisible && !useEventDataStore.getState().syncProgress.visible && (
             <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
               <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
