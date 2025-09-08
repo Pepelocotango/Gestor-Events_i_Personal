@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { ModalType, ModalData, AssignmentStatus } from '../types';
 import { loggingMiddleware } from './loggingMiddleware';
+import { devtools } from 'zustand/middleware';
 
 // Aquest tipus defineix les dades que es poden editar en un formulari de modal
 type ModalFormData = { [key: string]: any };
@@ -28,68 +29,30 @@ const initialState: ModalState = {
 };
 
 export const useModalStore = create<ModalState & ModalActions>()(
-  loggingMiddleware(
-    (set) => ({
-      ...initialState,
+  devtools(
+    loggingMiddleware(
+      (set) => ({
+        ...initialState,
 
-      openModal: (type, data = {}) => {
-    let initialFormData: ModalFormData = {};
-    const today = new Date().toISOString().split('T')[0];
+        openModal: (type, data = {}, initialFormData = {}) => {
+          set((state) => ({
+            ...state,
+            type,
+            data,
+            formData: initialFormData,
+            isOpen: true,
+          }));
+        },
 
-    switch (type) {
-      case 'addEventFrame':
-        initialFormData = {
-          name: '',
-          place: '',
-          startDate: (data as any)?.startDate || today,
-          endDate: (data as any)?.endDate || today,
-          generalNotes: '',
-        };
-        break;
-      case 'editEventFrame':
-        if (data?.eventFrameToEdit) {
-          initialFormData = { ...data.eventFrameToEdit };
-        }
-        break;
-      case 'addAssignment':
-        if (data?.eventFrame) {
-          initialFormData = {
-            personGroupId: (data as any)?.personGroupId || '', // Default provided by caller
-            startDate: data.eventFrame.startDate,
-            endDate: data.eventFrame.endDate,
-            status: AssignmentStatus.Pending,
-            notes: '',
-          };
-        }
-        break;
-      case 'editAssignment':
-        if (data?.assignmentToEdit) {
-          initialFormData = { ...data.assignmentToEdit };
-        }
-        break;
-      default:
-        initialFormData = {};
-        break;
-    }
+        closeModal: () => set(initialState),
 
-    set({
-      type,
-      data,
-      formData: initialFormData,
-      isOpen: true,
-    });
-  },
-
-  closeModal: () => {
-    set(initialState);
-  },
-
-  setFormData: (updater) => {
-    set(state => ({
-      formData: typeof updater === 'function' ? updater(state.formData) : updater
-    }));
-  },
-    }),
+        setFormData: (updater) => {
+          set((state) => ({
+            ...state,
+            formData: typeof updater === 'function' ? updater(state.formData) : updater,
+          }));
+        },
+      })),
     'modalStore'
   )
 );
