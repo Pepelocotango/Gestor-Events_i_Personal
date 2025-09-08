@@ -45,6 +45,10 @@ function logToFile(...args) {
 console.log = logToFile;
 console.error = logToFile;
 console.warn = logToFile;
+
+console.log('**************************************************');
+console.log('*** INICIANT PROCÉS PRINCIPAL DE L\'APLICACIÓ ***');
+console.log('**************************************************');
 console.log('Sessió Electron iniciada. Tots els logs d\'aquesta sessió s\'emmagatzemen a:', sessionLogFile);
 
 const APP_ID = 'com.gestorevents.app';
@@ -368,10 +372,15 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
 }
 
 async function createWindow() {
+  console.log('[Startup] Iniciant createWindow...');
   ensureDirectoriesExist();
+  console.log('[Startup] Directoris assegurats.');
   loadGoogleCredentials(); 
+  console.log('[Startup] Credencials de Google carregades (si existeixen).');
   await loadServiceAccountCredentials();
+  console.log('[Startup] Credencials del compte de servei carregades (si existeixen).');
   const sessionData = loadSessionData();
+  console.log('[Startup] Dades de la sessió anterior carregades.');
 
   mainWindow = new BrowserWindow({
     width: sessionData.width || 1200,
@@ -447,6 +456,7 @@ async function createWindow() {
 
   // const menu = Menu.buildFromTemplate(template);
   // Menu.setApplicationMenu(menu);
+  console.log('[Startup] Menú de l\'aplicació configurat (actualment desactivat en favor de la UI).');
 
   // >>> CANVI PRINCIPAL EN LA LÒGICA DE TANCAMENT <<<
   mainWindow.on('close', (event) => {
@@ -523,6 +533,7 @@ ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
   }, 500); // Un petit temps de marge per si de cas
 });
 
+console.log('[Startup] Configurant gestors de IPC...');
 ipcMain.on('log-message', (event, message, data) => {
   logToFile(`[FRONTEND] ${message}`, data);
 });
@@ -1251,7 +1262,10 @@ ipcMain.handle('delete-app-calendar', async (event, calendarIdToDelete) => {
   return { success: true, message: 'El calendari ha estat eliminat correctament.', data: { managedAppCalendars: config.managedAppCalendars, activeAppCalendarId: config.activeAppCalendarId } };
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  console.log('[Startup] App està llesta, cridant a createWindow...');
+  createWindow();
+});
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {

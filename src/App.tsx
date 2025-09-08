@@ -47,26 +47,24 @@ const App: React.FC = () => {
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const { isOpen, type, data, closeModal, openModal: openModalFromStore } = useModalStore();
-  const {
-    loadData: loadDataFromManager,
-    exportData: exportDataFromManager,
-    setHasUnsavedChanges,
-    hasUnsavedChanges,
-    syncWithGoogle,
-    isSyncing,
-    syncProgress,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-    getPersonGroupById,
-    deleteEventFrame,
-    deleteAssignment,
-    mergePeopleGroups,
-    addMaterialItemsFromFile,
-    replacePeopleGroups,
-    replaceMaterialItems
-  } = useEventDataStore.getState();
+  const loadDataFromManager = useEventDataStore(state => state.loadData);
+  const exportDataFromManager = useEventDataStore(state => state.exportData);
+  const setHasUnsavedChanges = useEventDataStore(state => state.setHasUnsavedChanges);
+  const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
+  const syncWithGoogle = useEventDataStore(state => state.syncWithGoogle);
+  const isSyncing = useEventDataStore(state => state.isSyncing);
+  const syncProgress = useEventDataStore(state => state.syncProgress);
+  const undo = useEventDataStore(state => state.undo);
+  const redo = useEventDataStore(state => state.redo);
+  const canUndo = useEventDataStore(state => state.canUndo);
+  const canRedo = useEventDataStore(state => state.canRedo);
+  const getPersonGroupById = useEventDataStore(state => state.getPersonGroupById);
+  const deleteEventFrame = useEventDataStore(state => state.deleteEventFrame);
+  const deleteAssignment = useEventDataStore(state => state.deleteAssignment);
+  const mergePeopleGroups = useEventDataStore(state => state.mergePeopleGroups);
+  const addMaterialItemsFromFile = useEventDataStore(state => state.addMaterialItemsFromFile);
+  const replacePeopleGroups = useEventDataStore(state => state.replacePeopleGroups);
+  const replaceMaterialItems = useEventDataStore(state => state.replaceMaterialItems);
 
   const [toastState, setToastState] = useState<ToastState | null>(null);
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
@@ -127,6 +125,8 @@ const App: React.FC = () => {
   }, [hasUnsavedChanges]);
   
   // --- INICI DELS ALTRES EFECTES I FUNCIONS ---
+  logger.info('App.tsx - Component renderitzat.');
+
   useEffect(() => {
     const safeData = data ? { ...data } : null;
     if (safeData) {
@@ -137,7 +137,7 @@ const App: React.FC = () => {
             }
         }
     }
-    logger.info('App.tsx - RE-RENDER', { modalType: type, modalData: safeData });
+    logger.info('App.tsx - Canvi a modalStore detectat.', { modalType: type, modalData: safeData });
   }, [type, data]);
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
@@ -263,11 +263,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const attemptInitialLoad = async () => {
-      logger.info('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
+      logger.info('[Startup] App.tsx: Executant useEffect d\'inicialització de dades.');
       if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
         try {
-          logger.info("Intentant carregar dades de l'aplicació via Electron...");
+          logger.info("[Startup] App.tsx: Cridant a window.electronAPI.loadAppData().");
           const data = await window.electronAPI.loadAppData();
+          logger.info("[Startup] App.tsx: Dades rebudes del backend. Cridant a loadDataFromManager.");
           loadDataFromManager(data, showToast);
           setHasUnsavedChanges(false); // Important: la càrrega inicial no són "canvis no desats"
           if (data) {
@@ -305,9 +306,11 @@ const App: React.FC = () => {
         setSplashConfigLoaded(true);
       }
       setInitialLoadAttempted(true);
+      logger.info('[Startup] App.tsx: Marcat initialLoadAttempted com a true.');
     };
 
     if (!initialLoadAttempted) {
+      logger.info('[Startup] App.tsx: Primer render, cridant a attemptInitialLoad.');
       attemptInitialLoad();
     }
   }, [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges]);
@@ -338,12 +341,14 @@ const App: React.FC = () => {
   }, [exportDataFromManager]); // Array de dependències estable
 
   useEffect(() => {
+    logger.info('[Startup] App.tsx: Configurant listeners per a l\'autenticació de Google.');
     if (window.electronAPI) {
       const onSuccess = () => showToast('Connectat a Google Calendar amb èxit!', 'success');
       const onError = (message: string) => showToast(`Error d'autenticació: ${message}`, 'error');
       window.electronAPI.onGoogleAuthSuccess(onSuccess);
       window.electronAPI.onGoogleAuthError(onError);
       return () => {
+        logger.info('[Cleanup] App.tsx: Netejant listeners d\'autenticació de Google.');
         if (ipcRenderer) {
           ipcRenderer.removeListener('google-auth-success', onSuccess);
           ipcRenderer.removeListener('google-auth-error', onError);
@@ -390,8 +395,10 @@ const App: React.FC = () => {
   }, [toastState]);
 
   useEffect(() => {
+    logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
     if (window.electronAPI) {
       const cleanup = window.electronAPI.onMenuAction((action) => {
+        logger.info(`[Menu] Acció rebuda: ${action}`);
         switch (action) {
           case 'undo':
             if (canUndo) undo();

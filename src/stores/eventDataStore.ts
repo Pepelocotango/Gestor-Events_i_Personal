@@ -188,7 +188,6 @@ export const useEventDataStore = create<EventDataState & EventDataActions>((set,
     },
     loadData: async (data, showToast) => {
         const { _applyDataToState, refreshGoogleEvents } = get();
-        const { openModal, closeModal } = useModalStore.getState();
         logger.info("Iniciant la càrrega de dades...");
         if (data?.googleConfig && window.electronAPI) {
             try {
@@ -209,9 +208,9 @@ export const useEventDataStore = create<EventDataState & EventDataActions>((set,
             showToast("Dades carregades amb èxit.", 'success');
         } else {
             const { repairedData, fixes } = repairData(migratedData, validationResult.errors);
-            openModal('confirmDataRepair', {
-                onConfirm: () => { _applyDataToState(repairedData); showToast("Dades reparades i carregades.", 'success'); closeModal(); },
-                onCancel: () => closeModal(),
+            useModalStore.getState().openModal('confirmDataRepair', {
+                onConfirm: () => { _applyDataToState(repairedData); showToast("Dades reparades i carregades.", 'success'); useModalStore.getState().closeModal(); },
+                onCancel: () => useModalStore.getState().closeModal(),
                 fixes,
             });
         }
@@ -393,8 +392,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>((set,
     },
     executeSync: async (targetCalendarId) => {
         const { exportData, loadData, refreshGoogleEvents, syncWithGoogle } = get();
-        const { closeModal } = useModalStore.getState();
-        closeModal();
+        useModalStore.getState().closeModal();
         set({ isSyncing: true, syncProgress: { current: 0, total: 0, message: 'Iniciant...', visible: true } });
         if (window.electronAPI) {
             const localData = await exportData();
