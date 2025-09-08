@@ -8,6 +8,7 @@ import { EventFrame, SummaryRow, Assignment, AssignmentStatus, ShowToastFunction
 import { formatDateDMY } from './utils/dateFormat';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
@@ -722,9 +723,10 @@ const App: React.FC = () => {
 
   return (
       <HashRouter>
-        <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
-          <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+        <ErrorBoundary>
+          <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+            {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
+            <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
             <CustomMenuBar
               canUndo={canUndo}
               canRedo={canRedo}
@@ -806,7 +808,8 @@ const App: React.FC = () => {
               <p className="text-white text-lg">{loadingOverlayMessage || "Processant..."}</p>
             </div>
           )}
-        </div>
+          </div>
+        </ErrorBoundary>
       </HashRouter>
   );
 };
