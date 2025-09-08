@@ -22,7 +22,7 @@ function rotateLogs() {
 const sessionLogFile = path.join(LOGS_DIR, `app-${Date.now()}.log`);
 rotateLogs();
 function logToFile(...args) {
-  const filteredArgs = args.filter(arg => arg !== undefined); // Línia clau: filtrem els undefined
+  const filteredArgs = args.filter(arg => arg !== undefined);
 
   const formattedArgs = filteredArgs.map(arg => {
     if (typeof arg === 'object' && arg !== null) {
@@ -31,8 +31,8 @@ function logToFile(...args) {
           if (key.startsWith('_')) return undefined;
           return value;
         }, 2);
-      } catch {
-        return '[Objecte no serialitzable]';
+      } catch (e) {
+        return `[Objecte no serialitzable: ${e.message}. Claus: ${Object.keys(arg).join(', ')}]`;
       }
     }
     return String(arg);
@@ -105,13 +105,19 @@ const createLoadFileClickHandler = (type, options) => async () => {
     const filePath = result.filePaths[0];
     const content = fs.readFileSync(filePath, 'utf8');
     mainWindow.webContents.send('file-data-loaded', {
+      success: true,
       type,
       content,
       fileName: path.basename(filePath)
     });
   } catch (error) {
     console.error(`Error en carregar el fitxer (${type}):`, error);
-    dialog.showErrorBox('Error de Càrrega', `No s'ha pogut llegir el fitxer.\n${error.message}`);
+    dialog.showErrorBox('Error de Càrrega', `No s'ha pogut llegir el fitxer.\\n${error.message}`);
+    mainWindow.webContents.send('file-data-loaded', {
+      success: false,
+      type,
+      message: error.message
+    });
   }
 };
 
@@ -225,8 +231,7 @@ function loadSessionData() {
 
 async function saveDataWithErrorHandling(filePath, data) {
   if (!filePath) {
-    console.error("filePath no està definit.");
-    return false;
+    throw new Error("filePath no està definit.");
   }
   try {
     const dirPath = path.dirname(filePath);
@@ -237,8 +242,8 @@ async function saveDataWithErrorHandling(filePath, data) {
     return true;
   } catch (error) {
     console.error(`Error guardant a ${filePath}:`, error);
-    dialog.showMessageBoxSync({ type: 'error', title: 'Error guardant dades', message: `No s'han pogut guardar les dades a ${filePath}\nError: ${error.message}` });
-    return false;
+    dialog.showMessageBoxSync({ type: 'error', title: 'Error guardant dades', message: `No s'han pogut guardar les dades a ${filePath}\\nError: ${error.message}` });
+    throw error;
   }
 }
 
@@ -559,11 +564,15 @@ ipcMain.handle('load-app-data', async () => {
   return null;
 });
 
-ipcMain.handle('save-app-data', (event, data) => {
+ipcMain.handle('save-app-data', async (event, data) => {
   console.log("[IPC_IN] Rebut 'save-app-data'.");
-  const success = saveDataWithErrorHandling(DATA_FILE, data);
-  console.log(`Resultat de 'save-app-data': ${success ? 'ÈXIT' : 'FALLADA'}`);
-  return success;
+  try {
+    await saveDataWithErrorHandling(DATA_FILE, data);
+    return { success: true };
+  } catch (error) {
+    console.error('Error en save-app-data IPC handler:', error);
+    return { success: false, message: error.message };
+  }
 });
 
 ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }) => {
@@ -1086,61 +1095,57 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
 
 ipcMain.handle('google-disconnect', async () => {
   console.log("[IPC_IN] Rebut 'google-disconnect'.");
+  try {
+    const config = loadGoogleConfigFromFile();
 
-  const config = loadGoogleConfigFromFile();
-
-  if (config?.managedAppCalendars?.length > 0 && googleServiceAccountClient) {
-    const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
-    console.log(`Eliminant ${config.managedAppCalendars.length} calendaris de l'app de Google...`);
-    for (const cal of config.managedAppCalendars) {
-      try {
-        console.log(`  -> Eliminant ${cal.name} (${cal.id})`);
-        await calendar.calendars.delete({ calendarId: cal.id });
-      } catch (err) {
-        if (err.code === 404 || err.code === 410) {
-          console.warn(`El calendari ${cal.name} (${cal.id}) no s'ha trobat (potser ja estava eliminat).`);
-        } else {
-          console.error(`Error eliminant el calendari ${cal.name}:`, err.message);
-          dialog.showMessageBox(mainWindow, {
-            type: 'warning',
-            title: 'Avís de Desconnexió',
-            message: `No s'ha pogut eliminar el calendari "${cal.name}". Potser hauràs d'esborrar-lo manualment des de Google Calendar.`,
-          });
+    if (config?.managedAppCalendars?.length > 0 && googleServiceAccountClient) {
+      const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
+      console.log(`Eliminant ${config.managedAppCalendars.length} calendaris de l'app de Google...`);
+      for (const cal of config.managedAppCalendars) {
+        try {
+          console.log(`  -> Eliminant ${cal.name} (${cal.id})`);
+          await calendar.calendars.delete({ calendarId: cal.id });
+        } catch (err) {
+          if (err.code === 404 || err.code === 410) {
+            console.warn(`El calendari ${cal.name} (${cal.id}) no s'ha trobat (potser ja estava eliminat).`);
+          } else {
+            console.error(`Error eliminant el calendari ${cal.name}:`, err.message);
+            dialog.showMessageBox(mainWindow, {
+              type: 'warning',
+              title: 'Avís de Desconnexió',
+              message: `No s'ha pogut eliminar el calendari "${cal.name}". Potser hauràs d'esborrar-lo manualment des de Google Calendar.`,
+            });
+          }
         }
       }
+    } else {
+      console.log("No hi ha calendaris gestionats per eliminar, o el client de servei no està disponible.");
     }
-  } else {
-    console.log("No hi ha calendaris gestionats per eliminar, o el client de servei no està disponible.");
-  }
 
-  if (googleAuthClient && googleAuthClient.credentials.access_token) {
-    try {
-      await googleAuthClient.revokeCredentials();
-      console.log("Tokens de l'usuari revocats correctament.");
-    } catch (err) {
-      console.error("Error revocant els tokens de l'usuari:", err.message);
+    if (googleAuthClient && googleAuthClient.credentials.access_token) {
+        await googleAuthClient.revokeCredentials();
+        console.log("Tokens de l'usuari revocats correctament.");
     }
-  }
 
-  const eliminarFitxer = (filePath, fileName) => {
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath);
-        console.log(`Fitxer local eliminat: ${fileName}`);
-      } catch (err) {
-        console.error(`Error eliminant el fitxer ${fileName}:`, err.message);
+    const eliminarFitxer = (filePath, fileName) => {
+      if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`Fitxer local eliminat: ${fileName}`);
       }
+    };
+
+    eliminarFitxer(GOOGLE_TOKENS_PATH, 'google-tokens.json');
+    eliminarFitxer(GOOGLE_CONFIG_PATH, 'google-config.json');
+
+    if (googleAuthClient) {
+      googleAuthClient.setCredentials(null);
     }
-  };
 
-  eliminarFitxer(GOOGLE_TOKENS_PATH, 'google-tokens.json');
-  eliminarFitxer(GOOGLE_CONFIG_PATH, 'google-config.json');
-
-  if (googleAuthClient) {
-    googleAuthClient.setCredentials(null);
+    return { success: true, message: 'Desconnexió de Google completada.' };
+  } catch (err) {
+    console.error("Error durant la desconnexió de Google:", err.message);
+    return { success: false, message: `S'ha produït un error durant la desconnexió: ${err.message}` };
   }
-
-  return { success: true, message: 'Desconnexió de Google completada.' };
 });
 
 ipcMain.handle('create-new-app-calendar', async (event, suffix) => {

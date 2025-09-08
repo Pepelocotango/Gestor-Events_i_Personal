@@ -63,8 +63,12 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     setFilterToShowEventFrameId,
 }, ref) => {
   const calendarRef = useRef<FullCalendar>(null);
-  const { openModal } = useModalStore.getState();
-  const { getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventDataStore.getState();
+  const openModal = useModalStore(state => state.openModal);
+  const getPersonGroupById = useEventDataStore(state => state.getPersonGroupById);
+  const getEventFrameById = useEventDataStore(state => state.getEventFrameById);
+  const getAssignmentById = useEventDataStore(state => state.getAssignmentById);
+  const updateAssignment = useEventDataStore(state => state.updateAssignment);
+  const updateEventFrame = useEventDataStore(state => state.updateEventFrame);
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const googleEvents = useEventDataStore(state => state.googleEvents);
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
@@ -106,7 +110,7 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
       ? new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
       : new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
     );
-  }, [eventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame, getPersonGroupById, sortOrder]);
+  }, [eventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame, peopleGroups, sortOrder]);
 
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 

@@ -405,10 +405,18 @@ export interface ShowSaveDialogResult {
   message?: string;
 }
 
+export interface FileLoadedData {
+  success: boolean;
+  type: string;
+  content?: string;
+  fileName?: string;
+  message?: string;
+}
+
 export interface ElectronAPI {
   showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
   loadAppData: () => Promise<any>;
-  saveAppData: (data: AppData) => Promise<boolean>;
+  saveAppData: (data: AppData) => Promise<{ success: boolean; message?: string }>;
   loadGoogleConfig: () => Promise<GoogleConfig | null>;
   onConfirmQuit: (callback: () => void) => void;
   sendQuitConfirmedByRenderer: () => void;
@@ -425,12 +433,8 @@ export interface ElectronAPI {
   createNewAppCalendar: (suffix: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
   getDefaultDataPath: () => Promise<string>;
   performHardReset: () => Promise<{ success: boolean; message?: string }>;
-  onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
-  onDevModeQuitAfterReset: (callback: () => void) => () => void;
-  showLoadingOverlay: (callback: (message: string) => void) => () => void;
-  hideLoadingOverlay: (callback: () => void) => () => void;
   onMenuAction: (callback: (action: string) => void) => () => void;
-  onFileDataLoaded: (callback: (data: { type: string; content: string; fileName: string }) => void) => () => void;
+  onFileDataLoaded: (callback: (data: FileLoadedData) => void) => () => void;
   triggerMenuAction: (action: string) => void;
   getSessionData: () => Promise<any>;
   saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;

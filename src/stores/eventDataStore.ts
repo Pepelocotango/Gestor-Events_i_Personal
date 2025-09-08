@@ -229,7 +229,9 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 googleConfigForExport = { userEmail: fullConfig.userEmail, activeAppCalendarId: fullConfig.activeAppCalendarId, managedAppCalendars: fullConfig.managedAppCalendars };
             }
         }
-        return { peopleGroups, eventFrames: eventFramesForExport, materialItems, assignments: allAssignmentsList, googleConfig: googleConfigForExport };
+        const dataToExport = { peopleGroups, eventFrames: eventFramesForExport, materialItems, assignments: allAssignmentsList, googleConfig: googleConfigForExport };
+        // Assegurem que l'objecte és totalment serialitzable abans de passar-lo per IPC
+        return JSON.parse(JSON.stringify(dataToExport));
     },
 
     // EVENT FRAMES

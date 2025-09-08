@@ -157,43 +157,6 @@ const App: React.FC = () => {
     }
   }, [isSyncing]);
 
-  useEffect(() => {
-    let cleanupShowLoading: (() => void) | undefined;
-    let cleanupHideLoading: (() => void) | undefined;
-    let cleanupAppWillRelaunch: (() => void) | undefined;
-    let cleanupDevModeQuit: (() => void) | undefined;
-
-    if (window.electronAPI) {
-      if (window.electronAPI.showLoadingOverlay) {
-        cleanupShowLoading = window.electronAPI.showLoadingOverlay((message: string) => {
-          setLoadingOverlayMessage(message);
-          setIsLoadingOverlayVisible(true);
-        });
-      }
-      if (window.electronAPI.hideLoadingOverlay) {
-        cleanupHideLoading = window.electronAPI.hideLoadingOverlay(() => {
-          setIsLoadingOverlayVisible(false);
-          setLoadingOverlayMessage('');
-        });
-      }
-      if (window.electronAPI.onAppWillRelaunchAfterReset) {
-        cleanupAppWillRelaunch = window.electronAPI.onAppWillRelaunchAfterReset(() => {
-          showToast(`Reset completat:\nL'aplicació es reiniciarà.`, 'info', true);
-        });
-      }
-      if (window.electronAPI.onDevModeQuitAfterReset) {
-        cleanupDevModeQuit = window.electronAPI.onDevModeQuitAfterReset(() => {
-          showToast("Reset completat en mode desenvolupament. Si us plau, tanca i reinicia l'aplicació manualment.", 'warning', true);
-        });
-      }
-    }
-    return () => {
-      cleanupShowLoading?.();
-      cleanupHideLoading?.();
-      cleanupAppWillRelaunch?.();
-      cleanupDevModeQuit?.();
-    };
-  }, [showToast]);
 
   useEffect(() => {
     const body = document.body;
