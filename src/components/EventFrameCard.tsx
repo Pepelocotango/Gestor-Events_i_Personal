@@ -28,8 +28,11 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
 }, ref) => {
-  const { getPersonGroupById } = useEventDataStore.getState();
-  const { openModal } = useModalStore.getState();
+  const { getPersonGroupById, peopleGroups } = useEventDataStore(state => ({
+    getPersonGroupById: state.getPersonGroupById,
+    peopleGroups: state.peopleGroups,
+  }));
+  const openModal = useModalStore(state => state.openModal);
   const skipNextCollapse = useRef(false);
 
   const filteredAssignments = eventFrame.assignments
@@ -97,7 +100,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; openModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text="Afegir una nova assignació de personal">
-              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; openModal('addAssignment', { eventFrame }); }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
+              <button onClick={(e) => {
+                e.stopPropagation();
+                skipNextCollapse.current = true;
+                const defaultPersonGroupId = peopleGroups.length > 0 ? peopleGroups[0].id : '';
+                openModal('addAssignment', { eventFrame, personGroupId: defaultPersonGroupId });
+              }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
               <button onClick={(e) => { e.stopPropagation(); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">

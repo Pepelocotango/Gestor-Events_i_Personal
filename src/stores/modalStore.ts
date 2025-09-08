@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { ModalType, ModalData, AssignmentStatus } from '../types';
-import { useEventDataStore } from './eventDataStore';
 
 // Aquest tipus defineix les dades que es poden editar en un formulari de modal
 type ModalFormData = { [key: string]: any };
@@ -51,9 +50,8 @@ export const useModalStore = create<ModalState & ModalActions>((set) => ({
         break;
       case 'addAssignment':
         if (data?.eventFrame) {
-          const peopleGroups = useEventDataStore.getState().peopleGroups;
           initialFormData = {
-            personGroupId: peopleGroups.length > 0 ? peopleGroups[0].id : '',
+            personGroupId: (data as any)?.personGroupId || '', // Default provided by caller
             startDate: data.eventFrame.startDate,
             endDate: data.eventFrame.endDate,
             status: AssignmentStatus.Pending,

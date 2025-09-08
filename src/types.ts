@@ -240,6 +240,7 @@ export interface ModalData {
     eventFrameToEdit?: EventFrame;
     eventFrame?: EventFrame;
     assignmentToEdit?: Assignment;
+    personGroupId?: string;
     itemName?: string;
     itemId?: string;
     eventFrameId?: string;
