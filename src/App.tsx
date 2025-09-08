@@ -127,7 +127,18 @@ const App: React.FC = () => {
   }, [hasUnsavedChanges]);
   
   // --- INICI DELS ALTRES EFECTES I FUNCIONS ---
-  logger.info('App.tsx - RE-RENDER', { modalType: type, modalData: data });
+  useEffect(() => {
+    const safeData = data ? { ...data } : null;
+    if (safeData) {
+        // Replace functions with a placeholder to avoid IPC cloning errors
+        for (const key in safeData) {
+            if (typeof (safeData as any)[key] === 'function') {
+                (safeData as any)[key] = '[Function]';
+            }
+        }
+    }
+    logger.info('App.tsx - RE-RENDER', { modalType: type, modalData: safeData });
+  }, [type, data]);
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
