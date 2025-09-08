@@ -65,9 +65,7 @@ const App: React.FC = () => {
     mergePeopleGroups,
     addMaterialItemsFromFile,
     replacePeopleGroups,
-    replaceMaterialItems,
-    _applyDataToState,
-    clearDataRepairInfo
+    replaceMaterialItems
   } = useEventDataStore.getState();
 
   const [toastState, setToastState] = useState<ToastState | null>(null);
@@ -288,18 +286,21 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const attemptInitialLoad = async () => {
+      const { loadData, _applyDataToState, clearDataRepairInfo, setHasUnsavedChanges } = useEventDataStore.getState();
+      const { openModal, closeModal } = useModalStore.getState();
+
       logger.info('[Startup] App.tsx: Executant useEffect d\'inicialització de dades.');
       if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
         try {
           logger.info("[Startup] App.tsx: Cridant a window.electronAPI.loadAppData().");
           const data = await window.electronAPI.loadAppData();
           logger.info("[Startup] App.tsx: Dades rebudes del backend. Cridant a loadDataFromManager.");
-          const result = await loadDataFromManager(data, showToast);
+          const result = await loadData(data, showToast);
 
           if (result.status === 'needs_confirmation') {
             const dataRepairInfo = useEventDataStore.getState().dataRepairInfo;
             if (dataRepairInfo) {
-                openModalFromStore('confirmDataRepair', {
+                openModal('confirmDataRepair', {
                     onConfirm: () => {
                         _applyDataToState(dataRepairInfo.repairedData);
                         showToast("Dades reparades i carregades.", 'success');
@@ -318,7 +319,7 @@ const App: React.FC = () => {
         } catch (error) {
           console.error('Error carregant dades de l\'aplicació via Electron:', error);
           showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
-          loadDataFromManager(null, showToast);
+          loadData(null, showToast);
           setHasUnsavedChanges(false);
         }
         if (window.electronAPI?.getDefaultDataPath) {
@@ -338,7 +339,7 @@ const App: React.FC = () => {
         }
       } else {
         console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
-        loadDataFromManager(null, showToast);
+        loadData(null, showToast);
         setHasUnsavedChanges(false);
         setSplashConfigLoaded(true);
       }
@@ -350,7 +351,7 @@ const App: React.FC = () => {
       logger.info('[Startup] App.tsx: Primer render, cridant a attemptInitialLoad.');
       attemptInitialLoad();
     }
-  }, [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges, openModalFromStore, _applyDataToState, closeModal, clearDataRepairInfo]);
+  }, []);
 
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
