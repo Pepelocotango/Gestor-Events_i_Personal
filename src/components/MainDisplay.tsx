@@ -83,9 +83,11 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
   const [filterUIEventFrame, setFilterUIEventFrame] = useState<string>('');
   const [filterPlace, setFilterPlace] = useState('');
   const eventFrameRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const listSectionRef = useRef<HTMLDivElement>(null);
-  const prevIsAnyFilterActive = useRef(false);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // State for *manually* expanded items
+  const [manualExpandedFrameIds, setManualExpandedFrameIds] = useState<Set<string>>(new Set());
+  const [manualExpandedDailyView, setManualExpandedDailyView] = useState<Set<string>>(new Set());
 
   const filteredAndSortedEventFrames = useMemo(() => {
     let frames = [...eventFrames];
@@ -113,6 +115,52 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     );
   }, [eventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame, getPersonGroupById, sortOrder]);
 
+  const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
+
+  // DERIVED state for what is actually expanded
+  const expandedEventFrameIds = useMemo(() =>
+    isAnyFilterActive
+      ? new Set(filteredAndSortedEventFrames.map(ef => ef.id))
+      : manualExpandedFrameIds,
+    [isAnyFilterActive, filteredAndSortedEventFrames, manualExpandedFrameIds]
+  );
+
+  const expandedDailyViewAssignmentIds = useMemo(() => {
+    if (!isAnyFilterActive) return manualExpandedDailyView;
+
+    const newExpandedAssignments = new Set<string>();
+    filteredAndSortedEventFrames.forEach(ef => {
+      if (localFilterUIPerson || filterStatus) {
+        ef.assignments.forEach(a => {
+          const personMatch = !localFilterUIPerson || a.personGroupId === localFilterUIPerson;
+          const statusMatch = !filterStatus || a.status === filterStatus || (a.status === AssignmentStatus.Mixed && a.dailyStatuses && Object.values(a.dailyStatuses).includes(filterStatus));
+          if (personMatch && statusMatch) {
+            newExpandedAssignments.add(a.id);
+          }
+        });
+      }
+    });
+    return newExpandedAssignments;
+  }, [isAnyFilterActive, filteredAndSortedEventFrames, localFilterUIPerson, filterStatus, manualExpandedDailyView]);
+
+  const handleToggleExpand = (id: string) => {
+    setManualExpandedFrameIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  const handleToggleDailyView = (id: string) => {
+    setManualExpandedDailyView(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
   const handleExportListToPdf = () => {
     if (filteredAndSortedEventFrames.length === 0) {
       setToastMessage("No hi ha dades a la vista actual per exportar.", 'info');
@@ -134,9 +182,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
       onExportCurrentViewToCsv(filteredAndSortedEventFrames);
     }
   }));
-
-  const [expandedEventFrameIds, setExpandedEventFrameIds] = useState<Set<string>>(new Set());
-  const [expandedDailyViewAssignmentIds, setExpandedDailyViewAssignmentIds] = useState<Set<string>>(new Set());
 
   const calendarEvents = useMemo(() => {
     const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
@@ -171,7 +216,7 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
         const result = updateAssignment({ ...assignment, status: newStatus, dailyStatuses: undefined });
         if (result.success) {
             setToastMessage(`Estat general de l'assignació actualitzat a ${newStatus}`, 'success');
-            setExpandedDailyViewAssignmentIds(prev => {
+            setManualExpandedDailyView(prev => {
                 const newSet = new Set(prev);
                 newSet.delete(assignmentId);
                 return newSet;
@@ -224,7 +269,8 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
         }
         setTimeout(() => {
             if (element) {
-                setExpandedEventFrameIds(prev => new Set(prev).add(filterToShowEventFrameId));
+                // When showing a specific event, we manually expand it
+                setManualExpandedFrameIds(prev => new Set(prev).add(filterToShowEventFrameId));
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 element.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400', 'transition-all', 'duration-1000', 'ease-in-out', 'rounded-lg');
                 setTimeout(() => {
@@ -248,8 +294,9 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 element.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400', 'transition-all', 'duration-1000', 'ease-in-out', 'rounded-lg');
-                if (!expandedEventFrameIds.has(currentFilterHighlight)) {
-                    setExpandedEventFrameIds(prev => new Set(prev).add(currentFilterHighlight));
+                // When highlighting, we manually expand it
+                if (!manualExpandedFrameIds.has(currentFilterHighlight)) {
+                    setManualExpandedFrameIds(prev => new Set(prev).add(currentFilterHighlight));
                 }
                 setTimeout(() => {
                     element.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400');
@@ -258,51 +305,20 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
             }
         }, 200);
     }
-  }, [currentFilterHighlight, setCurrentFilterHighlight, expandedEventFrameIds]);
-
-  useEffect(() => {
-    const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
-
-    if (isAnyFilterActive) {
-        const newExpandedFrames = new Set<string>();
-        const newExpandedAssignments = new Set<string>();
-
-        filteredAndSortedEventFrames.forEach(ef => {
-            newExpandedFrames.add(ef.id);
-            if(localFilterUIPerson || filterStatus) {
-                ef.assignments.forEach(a => {
-                    const personMatch = !localFilterUIPerson || a.personGroupId === localFilterUIPerson;
-                    const statusMatch = !filterStatus || a.status === filterStatus || (a.status === AssignmentStatus.Mixed && a.dailyStatuses && Object.values(a.dailyStatuses).includes(filterStatus));
-                    if (personMatch && statusMatch) {
-                        newExpandedAssignments.add(a.id);
-                    }
-                });
-            }
-        });
-        setExpandedEventFrameIds(newExpandedFrames);
-        setExpandedDailyViewAssignmentIds(newExpandedAssignments);
-    } else if (prevIsAnyFilterActive.current && !isAnyFilterActive) {
-        setExpandedEventFrameIds(new Set());
-        setExpandedDailyViewAssignmentIds(new Set());
-    }
-
-    prevIsAnyFilterActive.current = isAnyFilterActive;
-
-  }, [filteredAndSortedEventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame]);
+  }, [currentFilterHighlight, setCurrentFilterHighlight, manualExpandedFrameIds]);
 
   useEffect(() => { setFilterUIPerson(localFilterUIPerson); }, [localFilterUIPerson, setFilterUIPerson]);
 
   const handleEditAssignment = (eventFrameId: string, assignmentId: string) => {
-    setExpandedEventFrameIds(prev => new Set(prev).add(eventFrameId));
+    setManualExpandedFrameIds(prev => new Set(prev).add(eventFrameId));
     const eventFrame = getEventFrameById(eventFrameId);
     const assignment = getAssignmentById(eventFrameId, assignmentId);
     if (eventFrame && assignment) openModal('editAssignment', { eventFrame, assignmentToEdit: assignment });
   };
 
   const handleDeleteAssignment = (eventFrameId: string, assignmentId: string) => {
-    setExpandedEventFrameIds(prev => new Set(prev).add(eventFrameId));
+    setManualExpandedFrameIds(prev => new Set(prev).add(eventFrameId));
     const eventFrame = getEventFrameById(eventFrameId);
-
     const assignment = getAssignmentById(eventFrameId, assignmentId);
     const person = assignment ? getPersonGroupById(assignment.personGroupId) : null;
     if (eventFrame && assignment) {
@@ -366,7 +382,7 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
           </Tooltip>
         </div>
         
-        <div ref={listSectionRef} className="mb-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-1">
+        <div className="mb-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-1">
             <div className="flex-grow min-w-[180px]"><label htmlFor="filterText" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Cerca general</label><Tooltip text="Cerca per nom d'esdeveniment, lloc, notes o nom de persona assignada"><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Nom, lloc, persona..."/></Tooltip></div>
             <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIEventFrame" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Marc</label><Tooltip text="Filtrar per un marc d'esdeveniment específic"><select id="filterUIEventFrame" value={filterUIEventFrame} onChange={e => setFilterUIEventFrame(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></Tooltip></div>
             <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIPerson" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Persona</label><Tooltip text="Filtrar per persona o grup assignat"><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Totes --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Tooltip></div>
@@ -400,18 +416,8 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
             isExpanded={expandedEventFrameIds.has(ef.id)}
             expandedDailyViewAssignmentIds={expandedDailyViewAssignmentIds}
             filters={{ person: localFilterUIPerson, status: filterStatus }}
-            onToggleExpand={(id) => setExpandedEventFrameIds(prev => {
-                const newSet = new Set(prev);
-                if (newSet.has(id)) newSet.delete(id);
-                else newSet.add(id);
-                return newSet;
-            })}
-            onToggleDailyView={(id) => setExpandedDailyViewAssignmentIds(prev => {
-                const newSet = new Set(prev);
-                if (newSet.has(id)) newSet.delete(id);
-                else newSet.add(id);
-                return newSet;
-            })}
+            onToggleExpand={handleToggleExpand}
+            onToggleDailyView={handleToggleDailyView}
             onUpdateEventFrame={updateEventFrame}
             onGeneralStatusChange={handleGeneralStatusChange}
             onDailyStatusChange={handleDailyStatusChange}
