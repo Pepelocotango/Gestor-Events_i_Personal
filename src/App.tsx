@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
 import logger from './utils/logger';
-import { EventDataProvider } from './contexts/EventDataContext';
-import { useEventDataManager } from './hooks/useEventDataManager';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { EventDataConteImplicits, EventFrame, SummaryRow, Assignment, AssignmentStatus, ShowToastFunction, PersonGroup, MaterialItem } from './types';
+import { EventFrame, SummaryRow, Assignment, AssignmentStatus, ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { formatDateDMY } from './utils/dateFormat';
 import { useModalStore } from './stores/modalStore';
+import { useEventDataStore } from './stores/eventDataStore';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
@@ -48,6 +47,27 @@ const App: React.FC = () => {
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const { isOpen, type, data, closeModal, openModal: openModalFromStore } = useModalStore();
+  const {
+    loadData: loadDataFromManager,
+    exportData: exportDataFromManager,
+    setHasUnsavedChanges,
+    hasUnsavedChanges,
+    syncWithGoogle,
+    isSyncing,
+    syncProgress,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    getPersonGroupById,
+    deleteEventFrame,
+    deleteAssignment,
+    mergePeopleGroups,
+    addMaterialItemsFromFile,
+    replacePeopleGroups,
+    replaceMaterialItems
+  } = useEventDataStore.getState();
+
   const [toastState, setToastState] = useState<ToastState | null>(null);
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
   const [currentFilterHighlight, setCurrentFilterHighlight] = useState<string>('');
@@ -72,27 +92,10 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // --- 3. INICIALITZACIÓ DEL HOOK DE DADES ---
-  const eventDataManagerHookResult = useEventDataManager(showToast, openModalFromStore, closeModal);
-  
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 12500);
     return () => clearTimeout(timer);
   }, []);
-
-  const { 
-    loadData: loadDataFromManager, 
-    exportData: exportDataFromManager, 
-    setHasUnsavedChanges, 
-    hasUnsavedChanges, 
-    syncWithGoogle,
-    isSyncing,
-    syncProgress,
-    undo,
-    redo,
-    canUndo,
-    canRedo
-  } = eventDataManagerHookResult;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -247,12 +250,6 @@ const App: React.FC = () => {
       closeModal();
   };
 
-  const contextValue = useMemo((): EventDataConteImplicits => ({
-    ...eventDataManagerHookResult,
-    openModal: openModalFromStore,
-    showToast, // <<< LÍNIA AFEGIDA
-  }), [eventDataManagerHookResult, openModalFromStore, showToast]);
-
   useEffect(() => {
     const attemptInitialLoad = async () => {
       logger.info('App.tsx - useEffect [initialLoadAttempted, loadDataFromManager, showToast, setHasUnsavedChanges] executant-se.');
@@ -260,7 +257,7 @@ const App: React.FC = () => {
         try {
           logger.info("Intentant carregar dades de l'aplicació via Electron...");
           const data = await window.electronAPI.loadAppData();
-          loadDataFromManager(data);
+          loadDataFromManager(data, showToast);
           setHasUnsavedChanges(false); // Important: la càrrega inicial no són "canvis no desats"
           if (data) {
             showToast('Dades de l\'aplicació carregades automàticament.', 'info');
@@ -270,7 +267,7 @@ const App: React.FC = () => {
         } catch (error) {
           console.error('Error carregant dades de l\'aplicació via Electron:', error);
           showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
-          loadDataFromManager(null);
+          loadDataFromManager(null, showToast);
           setHasUnsavedChanges(false); // Fins i tot si hi ha error, comencem "nets"
         }
         // Després de carregar dades, obtenim la ruta per defecte
@@ -292,7 +289,7 @@ const App: React.FC = () => {
         }
       } else {
         console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
-        loadDataFromManager(null);
+        loadDataFromManager(null, showToast);
         setHasUnsavedChanges(false); // Comencem "nets"
         setSplashConfigLoaded(true);
       }
@@ -361,7 +358,7 @@ const App: React.FC = () => {
       : "tots";
 
     const personName = filterUIPerson
-      ? eventDataManagerHookResult.getPersonGroupById(filterUIPerson)?.name || "tots"
+      ? getPersonGroupById(filterUIPerson)?.name || "tots"
       : "tots";
 
     const status = "tots els estats";
@@ -446,7 +443,7 @@ const App: React.FC = () => {
     currentlyDisplayedFrames.forEach(ef => {
       if (ef.assignments.length > 0) {
         ef.assignments.forEach(a => {
-          const person = eventDataManagerHookResult.getPersonGroupById(a.personGroupId);
+          const person = getPersonGroupById(a.personGroupId);
           if (!filterUIPerson || a.personGroupId === filterUIPerson) {
             dataToExport.push({
               id: ef.id + "_" + a.id,
@@ -573,7 +570,7 @@ const App: React.FC = () => {
                   itemType="Marc d'Esdeveniment"
                   itemName={data!.itemName!}
                   onConfirm={() => {
-                    eventDataManagerHookResult.deleteEventFrame(data!.itemId!);
+                    deleteEventFrame(data!.itemId!);
                   }}
                   showToast={showToast}
                 />;
@@ -584,7 +581,7 @@ const App: React.FC = () => {
                   itemType="Assignació"
                   itemName={data!.itemName!}
                   onConfirm={() => {
-                    eventDataManagerHookResult.deleteAssignment(data!.eventFrameId!, data!.assignmentId!);
+                    deleteAssignment(data!.eventFrameId!, data!.assignmentId!);
                   }}
                   showToast={showToast}
                 />;
@@ -608,17 +605,17 @@ const App: React.FC = () => {
             itemType={data!.itemType!}
             onMerge={() => {
               if (data?.itemType === 'persones' && data.newData) {
-                contextValue.mergePeopleGroups(data.newData as PersonGroup[]);
+                mergePeopleGroups(data.newData as PersonGroup[], showToast);
               } else if (data?.itemType === 'material' && data.newData) {
-                contextValue.addMaterialItemsFromFile(data.newData as MaterialItem[]);
+                addMaterialItemsFromFile(data.newData as MaterialItem[], showToast);
               }
               closeModal();
             }}
             onReplace={() => {
               if (data?.itemType === 'persones' && data.newData) {
-                contextValue.replacePeopleGroups(data.newData as PersonGroup[]);
+                replacePeopleGroups(data.newData as PersonGroup[]);
               } else if (data?.itemType === 'material' && data.newData) {
-                contextValue.replaceMaterialItems(data.newData as MaterialItem[]);
+                replaceMaterialItems(data.newData as MaterialItem[]);
               }
               closeModal();
             }}
@@ -631,7 +628,7 @@ const App: React.FC = () => {
                   toAdd={data!.toAdd || []}
                   toRemove={data!.toRemove || []}
                   toUpdate={data!.toUpdate || []}
-                  getPersonGroupById={eventDataManagerHookResult.getPersonGroupById}
+                  getPersonGroupById={getPersonGroupById}
                 />;
       case 'confirmDuplicate':
         return <ConfirmDuplicateModal
@@ -706,7 +703,6 @@ const App: React.FC = () => {
   };
 
   return (
-    <EventDataProvider value={contextValue}>
       <HashRouter>
         <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
           {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
@@ -723,12 +719,7 @@ const App: React.FC = () => {
                   ref={controlsRef}
                   theme={theme}
                   toggleTheme={toggleTheme}
-                  onOpenModal={openModalFromStore}
-                  peopleGroups={eventDataManagerHookResult.peopleGroups}
                   showToast={showToast}
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  onSyncWithGoogle={syncWithGoogle}
-                  isSyncing={isSyncing}
                   currentDataPath={currentDataPath}
                   setCurrentDataPath={setCurrentDataPath}
                 />
@@ -747,7 +738,6 @@ const App: React.FC = () => {
                   element={
                     <MainDisplay
                       ref={mainDisplayRef}
-                      openModal={openModalFromStore}
                       setToastMessage={showToast}
                       currentFilterHighlight={currentFilterHighlight}
                       setCurrentFilterHighlight={setCurrentFilterHighlight}
@@ -759,9 +749,9 @@ const App: React.FC = () => {
                     />
                   }
                 />
-                <Route path="/tech-sheets" element={<TechSheetsDisplay />} />
-                <Route path="/people" element={<PeopleDisplay />} />
-                <Route path="/material" element={<MaterialDisplay />} />
+                <Route path="/tech-sheets" element={<TechSheetsDisplay showToast={showToast} />} />
+                <Route path="/people" element={<PeopleDisplay showToast={showToast} />} />
+                <Route path="/material" element={<MaterialDisplay showToast={showToast} />} />
               </Routes>
             </Suspense>
           </main>
@@ -786,10 +776,10 @@ const App: React.FC = () => {
           {toastState && <Toast toast={toastState} />}
 
           <Suspense fallback={<div></div>}>
-            <SyncProgressOverlay progress={syncProgress} />
+            <SyncProgressOverlay progress={useEventDataStore(state => state.syncProgress)} />
           </Suspense>
 
-          {isLoadingOverlayVisible && !syncProgress.visible && (
+          {isLoadingOverlayVisible && !useEventDataStore(state => state.syncProgress).visible && (
             <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
               <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -800,7 +790,6 @@ const App: React.FC = () => {
           )}
         </div>
       </HashRouter>
-    </EventDataProvider>
   );
 };
 

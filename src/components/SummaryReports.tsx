@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useEventData } from '../contexts/EventDataContext';
+import { useEventDataStore } from '../stores/eventDataStore';
 import { AssignmentStatus, SummaryRow, ShowToastFunction } from '../types';
 import { CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import { formatDateDMY, formatDateRangeDMY } from '../utils/dateFormat';
@@ -13,7 +13,12 @@ interface SummaryReportsProps {
 }
 
 const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
-  const { eventFrames, getPersonGroupById, showToast } = useEventData();
+  const { eventFrames, getPersonGroupById } = useEventDataStore.getState();
+  const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    // This is a placeholder. The actual implementation will be in the component that uses the store.
+    // A better approach would be to have a separate toast store or use a library.
+    console.log(`[TOAST] ${type?.toUpperCase()}: ${message}`);
+  };
 
   // --- LÒGICA DE DADES (sense canvis) ---
   const allAssignmentsSummary = useMemo((): SummaryRow[] => {

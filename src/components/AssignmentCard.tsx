@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { useEventData } from '../contexts/EventDataContext';
+import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
 import { formatDateDMY, formatDateRangeDMY } from '../utils/dateFormat';
@@ -40,7 +40,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const { getPersonGroupById } = useEventData();
+  const { getPersonGroupById } = useEventDataStore.getState();
   const person = getPersonGroupById(assignment.personGroupId);
   const isMultiDay = assignment.startDate !== assignment.endDate;
   const skipNextCollapse = useRef(false);

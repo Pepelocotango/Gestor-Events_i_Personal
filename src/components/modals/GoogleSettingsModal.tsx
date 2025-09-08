@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GoogleCalendar, GoogleConfig, ManagedAppCalendar, ShowToastFunction } from '@/types';
-import { useEventData } from '@/contexts/EventDataContext';
 import Tooltip from '../ui/Tooltip';
+import { useEventDataStore } from '@/stores/eventDataStore';
+import { useModalStore } from '@/stores/modalStore';
 
 interface GoogleSettingsModalProps {
   onClose: () => void;
@@ -9,7 +10,12 @@ interface GoogleSettingsModalProps {
 }
 
 const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, showToast }) => {
-  const { refreshGoogleEvents, openModal, executeSync, isSyncing } = useEventData();
+  const { refreshGoogleEvents, executeSync, isSyncing } = useEventDataStore(state => ({
+    refreshGoogleEvents: state.refreshGoogleEvents,
+    executeSync: state.executeSync,
+    isSyncing: state.isSyncing,
+  }));
+  const openModal = useModalStore(state => state.openModal);
 
   // State for external, read-only calendars
   const [externalCalendars, setExternalCalendars] = useState<GoogleCalendar[]>([]);
@@ -97,7 +103,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                   newSet.delete(calendar.id);
                   return newSet;
               });
-              await refreshGoogleEvents();
+              await refreshGoogleEvents(showToast);
             } else {
               showToast(result.message || 'Hi ha hagut un error durant l\'eliminació.', 'error');
             }
@@ -118,7 +124,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
       const result = await window.electronAPI.saveGoogleConfig(configToSave);
       if (result.success) {
         showToast('Configuració desada.', 'success');
-        await refreshGoogleEvents();
+        await refreshGoogleEvents(showToast);
         onClose();
       } else {
         showToast(result.message || 'No s\'ha pogut desar la configuració.', 'error');
@@ -142,7 +148,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
             const result = await window.electronAPI.googleDisconnect();
             if (result.success) {
               showToast('Compte de Google desconnectat correctament.', 'success');
-              await refreshGoogleEvents();
+              await refreshGoogleEvents(showToast);
               onClose();
             } else {
               showToast(result.message || 'Hi ha hagut un error durant la desconnexió.', 'error');

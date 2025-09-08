@@ -1,6 +1,7 @@
 import { useRef, forwardRef } from 'react';
-import { useEventData } from '@/contexts/EventDataContext';
-import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData } from '@/types';
+import { useModalStore } from '@/stores/modalStore';
+import { useEventDataStore } from '@/stores/eventDataStore';
+import { EventFrame, Assignment, AssignmentStatus } from '@/types';
 import { PersonAddIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, GoogleIcon } from '@/constants';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { formatDateRangeDMY } from '@/utils/dateFormat';
@@ -15,7 +16,6 @@ interface EventFrameCardProps {
   onToggleExpand: (id: string) => void;
   onToggleDailyView: (id: string) => void;
   onUpdateEventFrame: (eventFrame: EventFrame) => void;
-  onOpenModal: (type: ModalType, data?: ModalData) => void;
   onGeneralStatusChange: (eventFrameId: string, assignmentId: string, newStatus: AssignmentStatus) => void;
   onDailyStatusChange: (eventFrameId: string, assignment: Assignment, date: string, newStatus: AssignmentStatus) => void;
   onEditAssignment: (eventFrameId: string, assignmentId: string) => void;
@@ -25,10 +25,11 @@ interface EventFrameCardProps {
 
 const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   eventFrame, isExpanded, expandedDailyViewAssignmentIds, filters, onToggleExpand,
-  onToggleDailyView, onUpdateEventFrame, onOpenModal, onGeneralStatusChange,
+  onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
 }, ref) => {
-  const { getPersonGroupById } = useEventData();
+  const { getPersonGroupById } = useEventDataStore.getState();
+  const { openModal } = useModalStore.getState();
   const skipNextCollapse = useRef(false);
 
   const filteredAssignments = eventFrame.assignments
@@ -72,7 +73,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               onClick={(e) => {
                 e.stopPropagation();
                 skipNextCollapse.current = true;
-                onOpenModal('eventFrameDetails', { eventFrame });
+                openModal('eventFrameDetails', { eventFrame });
               }}
             >
               {eventFrame.googleEventId && (
@@ -90,13 +91,13 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
           </div>
           <div className="flex items-center space-x-0.5 sm:space-x-0.5 flex-wrap">
             <Tooltip text="Editar els detalls de l'esdeveniment">
-              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
+              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; openModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text="Eliminar l'esdeveniment">
-              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
+              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; openModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text="Afegir una nova assignació de personal">
-              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; onOpenModal('addAssignment', { eventFrame }); }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
+              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; openModal('addAssignment', { eventFrame }); }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
               <button onClick={(e) => { e.stopPropagation(); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">

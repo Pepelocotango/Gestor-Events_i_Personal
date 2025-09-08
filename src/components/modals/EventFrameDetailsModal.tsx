@@ -1,5 +1,6 @@
 import React from 'react';
-import { useEventData } from '../../contexts/EventDataContext';
+import { useEventDataStore } from '../../stores/eventDataStore';
+import { useModalStore } from '../../stores/modalStore';
 import { EventFrame, AssignmentStatus, ShowToastFunction } from '../../types';
 import { formatDateDMY, formatDateRangeDMY } from '../../utils/dateFormat';
 import { getStatusSummaryText } from '../../utils/statusUtils';
@@ -16,10 +17,11 @@ interface EventFrameDetailsModalProps extends CommonFormProps {
 }
 
 export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ onClose, eventFrame, onShowOnList }) => {
-  const { peopleGroups, openModal: contextOpenModal } = useEventData();
+  const { peopleGroups } = useEventDataStore.getState();
+  const { openModal } = useModalStore.getState();
 
   const handleDeleteClick = () => {
-    contextOpenModal('confirmDeleteEventFrame', {
+    openModal('confirmDeleteEventFrame', {
       itemType: "Marc d'Esdeveniment",
       itemName: eventFrame.name,
       itemId: eventFrame.id,
@@ -79,7 +81,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
         <div className="space-x-2">
           <Tooltip text="Obrir el formulari per editar els detalls d'aquest marc">
             <button
-              onClick={() => contextOpenModal('editEventFrame', { eventFrameToEdit: eventFrame })}
+                onClick={() => openModal('editEventFrame', { eventFrameToEdit: eventFrame })}
               className="px-4 py-2 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
             >
               Editar Marc

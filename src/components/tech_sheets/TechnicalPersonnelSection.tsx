@@ -1,10 +1,10 @@
-import React, { memo } from 'react';
-import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus } from '../../types';
+import React from 'react';
+import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
 import Tooltip from '../ui/Tooltip';
-import { ModalType, ModalData, Assignment } from '../../types';
+import { useModalStore } from '../../stores/modalStore';
 import { formatDateDMY } from '../../utils/dateFormat';
 
 interface TechnicalPersonnelSectionProps {
@@ -19,7 +19,6 @@ interface TechnicalPersonnelSectionProps {
   onRemoveRole: (providerIndex: number, roleIndex: number) => void;
   getPersonGroupById: (id: string) => PersonGroup | undefined;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
-  openModal: (type: ModalType, data?: ModalData) => void;
   onConfirmUpdate: (selectedChanges?: any[]) => void;
 }
 
@@ -35,9 +34,9 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onRemoveRole,
   getPersonGroupById,
   showToast,
-  openModal,
   onConfirmUpdate,
 }) => {
+  const openModal = useModalStore(state => state.openModal);
 
   return (
     <TechSheetSection title="Personal Tècnic"
@@ -194,4 +193,4 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   );
 };
 
-export default memo(TechnicalPersonnelSection);
+export default TechnicalPersonnelSection;

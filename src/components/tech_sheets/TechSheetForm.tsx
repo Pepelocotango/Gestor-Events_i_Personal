@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useEventData } from '../../contexts/EventDataContext';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus } from '../../types';
+import { useEventDataStore } from '../../stores/eventDataStore';
+import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -12,10 +12,11 @@ import ConditionalFormControl from './ConditionalFormControl';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
+  showToast: ShowToastFunction;
 }
 
-const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
-  const { peopleGroups, materialItems, addOrUpdateTechSheet, showToast, getPersonGroupById, getMaterialAvailability, openModal } = useEventData();
+const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) => {
+  const { peopleGroups, materialItems, addOrUpdateTechSheet, getPersonGroupById, getMaterialAvailability } = useEventDataStore.getState();
 
   const getInitialFormData = (): TechSheetData => {
     return eventFrame.techSheet!;
@@ -477,7 +478,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame }) => {
         onRemoveRole={handleRemoveRole}
         getPersonGroupById={getPersonGroupById}
         showToast={showToast}
-        openModal={openModal}
         onConfirmUpdate={handleConfirmUpdateFromAssignments}
       />
 

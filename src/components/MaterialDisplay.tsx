@@ -1,6 +1,6 @@
 import React, { useState, FormEvent, useMemo, useCallback, useEffect } from 'react';
-import { useEventData } from '../contexts/EventDataContext';
-import { MaterialItem } from '../types';
+import { useEventDataStore } from '../stores/eventDataStore';
+import { MaterialItem, ShowToastFunction } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
 import { exportMaterialToPdf } from '../utils/pdfGenerator';
 import CollapsibleSection from './ui/CollapsibleSection';
@@ -11,8 +11,13 @@ const SortArrow = ({ direction }: { direction: 'ascending' | 'descending' | null
   return <span>{direction === 'ascending' ? ' ↑' : ' ↓'}</span>;
 };
 
-const MaterialDisplay: React.FC = () => {
-  const { materialItems, addMaterialItem, updateMaterialItem, deleteMaterialItem, showToast } = useEventData();
+interface MaterialDisplayProps {
+  showToast: ShowToastFunction;
+}
+
+const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
+  const { addMaterialItem, updateMaterialItem, deleteMaterialItem } = useEventDataStore.getState();
+  const materialItems = useEventDataStore(state => state.materialItems);
   
   const [editingItem, setEditingItem] = useState<MaterialItem | null>(null);
   const [name, setName] = useState('');

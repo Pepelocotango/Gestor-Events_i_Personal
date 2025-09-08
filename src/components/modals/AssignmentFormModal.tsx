@@ -1,5 +1,5 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { useEventData } from '../../contexts/EventDataContext';
+import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../constants';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -15,8 +15,12 @@ interface AssignmentFormProps {
 }
 
 export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, eventFrame, assignmentToEdit, showToast, setExpandedEventFrameId }) => {
-  const { peopleGroups, addAssignment, updateAssignment, openModal } = useEventData();
-  const { formData, setFormData } = useModalStore();
+  const { peopleGroups, addAssignment, updateAssignment } = useEventDataStore(state => ({
+    peopleGroups: state.peopleGroups,
+    addAssignment: state.addAssignment,
+    updateAssignment: state.updateAssignment,
+  }));
+  const { formData, setFormData, openModal } = useModalStore();
   const { personGroupId, startDate, endDate, status, notes } = formData as Partial<Assignment>;
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isEditingMixed, setIsEditingMixed] = useState(false);

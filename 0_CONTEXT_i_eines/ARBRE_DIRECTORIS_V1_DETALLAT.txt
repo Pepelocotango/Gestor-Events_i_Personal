@@ -76,11 +76,8 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces.
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades.
 │   │   └── TechSheetsDisplay.tsx   # Nova vista per a la gestió de les Fitxes de Bolo.
-│   ├── contexts/
-│   │   └── EventDataContext.tsx  # Defineix el Context de React per proveir l'estat global a tota l'app.
-│   ├── hooks/
-│   │   └── useEventDataManager.ts # !! EL CERVELL DEL FRONTEND !! Hook que centralitza tot l'estat i la lògica de negoci.
 │   ├── stores/                 # Gestors d'estat global (Zustand).
+│   │   ├── eventDataStore.ts   # !! EL CERVELL DEL FRONTEND !! Store que centralitza tot l'estat i la lògica de negoci.
 │   │   └── modalStore.ts       # Store centralitzat per a l'estat i la lògica dels modals.
 │   ├── utils/
 │   │   ├── csvUtils.ts           # Funcions per a la generació i escapat de fitxers CSV.

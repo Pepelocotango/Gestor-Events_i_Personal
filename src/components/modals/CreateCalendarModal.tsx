@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShowToastFunction } from '@/types';
-import { useEventData } from '@/contexts/EventDataContext';
+import { useEventDataStore } from '@/stores/eventDataStore';
 import Tooltip from '../ui/Tooltip';
 
 interface CreateCalendarModalProps {
@@ -9,7 +9,7 @@ interface CreateCalendarModalProps {
 }
 
 const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, showToast }) => {
-  const { refreshGoogleEvents } = useEventData();
+  const { refreshGoogleEvents } = useEventDataStore.getState();
   const [suffix, setSuffix] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
@@ -24,7 +24,7 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, show
         const result = await window.electronAPI.createNewAppCalendar(suffix.trim());
         if (result.success) {
           showToast('Nou calendari creat i seleccionat com a actiu.', 'success');
-          await refreshGoogleEvents();
+          await refreshGoogleEvents(showToast);
           // Dispatch event to notify settings modal to refresh
           window.dispatchEvent(new CustomEvent('googleConfigChanged'));
           onClose();
