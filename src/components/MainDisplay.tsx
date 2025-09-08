@@ -75,7 +75,43 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
   const googleEvents = useEventDataStore(state => state.googleEvents);
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const [conflictDialog, setConflictDialog] = useState<{ message: string; personName: string | null } | null>(null);
-  const [currentlyDisplayedFrames, setCurrentlyDisplayedFrames] = useState<EventFrame[]>([]);
+
+  const [filterText, setFilterText] = useState('');
+  const [filterStatus, setFilterStatus] = useState<AssignmentStatus | ''>('');
+  const [filterDate, setFilterDate] = useState('');
+  const [localFilterUIPerson, setLocalFilterUIPerson] = useState<string>('');
+  const [filterUIEventFrame, setFilterUIEventFrame] = useState<string>('');
+  const [filterPlace, setFilterPlace] = useState('');
+  const eventFrameRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const listSectionRef = useRef<HTMLDivElement>(null);
+  const prevIsAnyFilterActive = useRef(false);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const filteredAndSortedEventFrames = useMemo(() => {
+    let frames = [...eventFrames];
+    if (filterUIEventFrame) frames = frames.filter(ef => ef.id === filterUIEventFrame);
+    if (filterPlace) {
+      const normPlace = filterPlace.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      frames = frames.filter(ef => ef.place && ef.place.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normPlace));
+    }
+    if (!filterUIEventFrame) {
+      if (filterText) {
+        const lowerFilterText = filterText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        frames = frames.filter(ef => {
+          const efFields = [ef.name, ef.place || '', ef.generalNotes || ''].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          const assignFields = ef.assignments.map(a => [getPersonGroupById(a.personGroupId)?.name || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          return efFields.includes(lowerFilterText) || assignFields.includes(lowerFilterText);
+        });
+      }
+      if (filterStatus) frames = frames.filter(ef => ef.assignments.some(a => a.status === filterStatus || (a.status === AssignmentStatus.Mixed && a.dailyStatuses && Object.values(a.dailyStatuses).includes(filterStatus))));
+      if (localFilterUIPerson) frames = frames.filter(ef => ef.assignments.some(a => a.personGroupId === localFilterUIPerson));
+      if (filterDate) frames = frames.filter(ef => new Date(ef.startDate) <= new Date(filterDate) && new Date(ef.endDate) >= new Date(filterDate));
+    }
+    return frames.sort((a,b) => sortOrder === 'asc'
+      ? new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      : new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+  }, [eventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame, getPersonGroupById, sortOrder]);
 
   const handleExportListToPdf = () => {
     if (filteredAndSortedEventFrames.length === 0) {
@@ -95,14 +131,13 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
       }
     },
     exportCurrentViewToCsv: () => {
-      onExportCurrentViewToCsv(currentlyDisplayedFrames);
+      onExportCurrentViewToCsv(filteredAndSortedEventFrames);
     }
   }));
 
   const [expandedEventFrameIds, setExpandedEventFrameIds] = useState<Set<string>>(new Set());
   const [expandedDailyViewAssignmentIds, setExpandedDailyViewAssignmentIds] = useState<Set<string>>(new Set());
 
-  // <<< NOU CÀLCUL D'ESDEVENIMENTS PER AL CALENDARI >>>
   const calendarEvents = useMemo(() => {
     const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
     
@@ -120,7 +155,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
       .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
       .map(gEvent => ({
         ...gEvent,
-        // Utilitzem el color que ve de l'API de Google
         backgroundColor: gEvent.backgroundColor,
         borderColor: gEvent.borderColor,
         extendedProps: { ...gEvent.extendedProps, type: 'google' }
@@ -181,16 +215,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     }
   };
 
-  const [filterText, setFilterText] = useState('');
-  const [filterStatus, setFilterStatus] = useState<AssignmentStatus | ''>('');
-  const [filterDate, setFilterDate] = useState('');
-  const [localFilterUIPerson, setLocalFilterUIPerson] = useState<string>('');
-  const [filterUIEventFrame, setFilterUIEventFrame] = useState<string>('');
-  const [filterPlace, setFilterPlace] = useState('');
-  const eventFrameRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const listSectionRef = useRef<HTMLDivElement>(null);
-  const prevIsAnyFilterActive = useRef(false);
-
   useEffect(() => {
     if (filterToShowEventFrameId && eventFrameRefs.current[filterToShowEventFrameId]) {
         const element = eventFrameRefs.current[filterToShowEventFrameId];
@@ -236,34 +260,7 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     }
   }, [currentFilterHighlight, setCurrentFilterHighlight, expandedEventFrameIds]);
 
-  // Estat per l'ordre de la llista
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const filteredAndSortedEventFrames = useMemo(() => {
-    let frames = [...eventFrames];
-    if (filterUIEventFrame) frames = frames.filter(ef => ef.id === filterUIEventFrame);
-    if (filterPlace) {
-      const normPlace = filterPlace.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      frames = frames.filter(ef => ef.place && ef.place.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normPlace));
-    }
-    if (!filterUIEventFrame) {
-      if (filterText) {
-        const lowerFilterText = filterText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        frames = frames.filter(ef => {
-          const efFields = [ef.name, ef.place || '', ef.generalNotes || ''].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          const assignFields = ef.assignments.map(a => [getPersonGroupById(a.personGroupId)?.name || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          return efFields.includes(lowerFilterText) || assignFields.includes(lowerFilterText);
-        });
-      }
-      if (filterStatus) frames = frames.filter(ef => ef.assignments.some(a => a.status === filterStatus || (a.status === AssignmentStatus.Mixed && a.dailyStatuses && Object.values(a.dailyStatuses).includes(filterStatus))));
-      if (localFilterUIPerson) frames = frames.filter(ef => ef.assignments.some(a => a.personGroupId === localFilterUIPerson));
-      if (filterDate) frames = frames.filter(ef => new Date(ef.startDate) <= new Date(filterDate) && new Date(ef.endDate) >= new Date(filterDate));
-    }
-    return frames.sort((a,b) => sortOrder === 'asc'
-      ? new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      : new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-    );
-  }, [eventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame, getPersonGroupById, sortOrder]);
-useEffect(() => {
+  useEffect(() => {
     const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
     if (isAnyFilterActive) {
@@ -293,7 +290,6 @@ useEffect(() => {
 
   }, [filteredAndSortedEventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame]);
 
-  useEffect(() => { setCurrentlyDisplayedFrames(filteredAndSortedEventFrames); }, [filteredAndSortedEventFrames]);
   useEffect(() => { setFilterUIPerson(localFilterUIPerson); }, [localFilterUIPerson, setFilterUIPerson]);
 
   const handleEditAssignment = (eventFrameId: string, assignmentId: string) => {
