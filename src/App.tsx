@@ -4,7 +4,7 @@ const { ipcRenderer } = window.require ? window.require('electron') : { ipcRende
 import logger from './utils/logger';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { EventFrame, SummaryRow, Assignment, AssignmentStatus, ShowToastFunction, PersonGroup, MaterialItem } from './types';
+import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
 import ErrorBoundary from './components/ErrorBoundary';
