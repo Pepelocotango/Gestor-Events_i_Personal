@@ -1,6 +1,7 @@
-import { ChangeEvent, useRef, useState } from 'react';
-import { useEventData } from '../contexts/EventDataContext';
-import { PersonGroup, ModalType, ShowToastFunction } from '../types';
+import { ChangeEvent, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import { useEventDataStore } from '../stores/eventDataStore';
+import { useModalStore } from '../stores/modalStore';
+import { PersonGroup, ShowToastFunction } from '../types';
 import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
@@ -9,31 +10,25 @@ import Tooltip from './ui/Tooltip';
 interface ControlsProps {
   theme: string;
   toggleTheme: () => void;
-  onOpenModal: (type: ModalType, data?: any, initialFormData?: any) => void;
-  peopleGroups: PersonGroup[];
   showToast: ShowToastFunction;
-  hasUnsavedChanges: boolean;
-  onSyncWithGoogle: () => void; 
-  isSyncing: boolean;
   currentDataPath: string;
   setCurrentDataPath: (path: string) => void;
-  }
-
-import { forwardRef, useImperativeHandle } from 'react';
+}
 
 const Controls = forwardRef<any, ControlsProps>(({
     theme,
     toggleTheme,
-    onOpenModal,
     showToast,
-    hasUnsavedChanges,
-    onSyncWithGoogle,
-    isSyncing,
     currentDataPath,
     setCurrentDataPath
 }, ref) => {
+  const {
+    loadData, exportData, setHasUnsavedChanges, undo, redo, canUndo, canRedo,
+    syncWithGoogle, isSyncing
+  } = useEventDataStore.getState();
+  const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
+  const { openModal } = useModalStore.getState();
 
-  const { loadData, exportData, setHasUnsavedChanges, undo, redo, canUndo, canRedo } = useEventData();
   const [isExpanded, setIsExpanded] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const peopleFileInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +44,7 @@ const Controls = forwardRef<any, ControlsProps>(({
       }
       const jsonData = JSON.parse(fileContent);
       if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
-        loadData(jsonData);
+        loadData(jsonData, showToast);
         showToast("Totes les dades carregades correctament.", 'success');
         setHasUnsavedChanges(true);
         setCurrentDataPath(fileName);
@@ -64,7 +59,7 @@ const Controls = forwardRef<any, ControlsProps>(({
           showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
           return;
         }
-        loadData(migratedData);
+        loadData(migratedData, showToast);
         showToast("Dades antigues migrades i carregades correctament.", 'success');
         setHasUnsavedChanges(true);
         setCurrentDataPath(fileName);
@@ -80,7 +75,7 @@ const Controls = forwardRef<any, ControlsProps>(({
     try {
       const jsonData = JSON.parse(fileContent);
       if (Array.isArray(jsonData.materialItems)) {
-        onOpenModal('mergeOrReplace', {
+        openModal('mergeOrReplace', {
           itemType: 'material',
           newData: jsonData.materialItems,
         });
@@ -129,7 +124,7 @@ const Controls = forwardRef<any, ControlsProps>(({
         return;
       }
 
-      onOpenModal('mergeOrReplace', {
+      openModal('mergeOrReplace', {
         itemType: 'persones',
         newData: newPeople,
       });
@@ -254,7 +249,7 @@ const Controls = forwardRef<any, ControlsProps>(({
   }));
 
   const handleRequestHardReset = () => {
-    onOpenModal('confirmHardReset', {
+    openModal('confirmHardReset', {
       titleOverride: "Confirmar Reset de Fàbrica",
       itemType: "Reset de Fàbrica",
       itemName: "Estàs segur que vols restablir l'aplicació? S'esborraran <b>TOTES</b> les dades locals de l'aplicació (esdeveniments, persones, assignacions) i la configuració de Google. <br><br><b>Aquesta acció és irreversible.</b>",
@@ -266,7 +261,7 @@ const Controls = forwardRef<any, ControlsProps>(({
             const result = await window.electronAPI.performHardReset();
               if (result.success) {
                 // El backend ha esborrat els fitxers, ara el frontend neteja el seu estat.
-                loadData(null);
+                loadData(null, showToast);
                 setHasUnsavedChanges(false);
                 showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success', true);
               } else {
@@ -384,7 +379,7 @@ const Controls = forwardRef<any, ControlsProps>(({
             <div className="flex items-center gap-1">
               <Tooltip text="Sincronitzar manualment amb Google Calendar">
                 <button
-                  onClick={onSyncWithGoogle}
+                  onClick={syncWithGoogle}
                   disabled={isSyncing}
                   className="flex items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm disabled:opacity-50 disabled:cursor-wait w-40"
                 >
@@ -405,7 +400,7 @@ const Controls = forwardRef<any, ControlsProps>(({
                 </button>
               </Tooltip>
               <Tooltip text="Configurar la connexió amb Google">
-                <button onClick={() => onOpenModal('googleSettings')} className="flex items-center justify-center gap-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
+                <button onClick={() => openModal('googleSettings')} className="flex items-center justify-center gap-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <GoogleIcon /> Configurar
                 </button>
               </Tooltip>

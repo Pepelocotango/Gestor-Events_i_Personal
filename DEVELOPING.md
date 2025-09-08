@@ -83,8 +83,8 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
 Per il·lustrar com col·laboren aquestes capes, analitzem el flux quan un usuari desa totes les dades:
 
 1.  **[Frontend]** L'usuari fa clic al botó "Guardar Tot" al component `Controls.tsx`.
-2.  **[Frontend]** S'activa la funció `handleSaveData('all')`, que crida a la funció `exportData()` del hook `useEventDataManager.ts`.
-3.  **[Frontend]** El hook `useEventDataManager` recopila totes les dades de l'estat actual de React (`eventFrames`, `peopleGroups`, etc.) i les retorna com un objecte `AppData`.
+2.  **[Frontend]** S'activa la funció `handleSaveData('all')`, que crida a la funció `exportData()` de l'store de Zustand (`useEventDataStore`).
+3.  **[Frontend]** L'store recopila totes les dades del seu estat actual (`eventFrames`, `peopleGroups`, etc.) i les retorna com un objecte `AppData`.
 4.  **[Frontend]** La funció `handleSaveData` crida a `window.electronAPI.showSaveDialog()` amb les dades serialitzades en format JSON.
 5.  **[Pont]** `preload.cjs` rep la crida i, de forma segura, envia una petició IPC (`ipcRenderer.invoke`) al backend a través del canal `'show-save-dialog'`.
 6.  **[Backend]** El gestor `ipcMain.handle('show-save-dialog', ...)` a `main.cjs` rep la petició.
@@ -190,7 +190,7 @@ Per evitar la pèrdua de dades no desades, l'aplicació implementa un flux de ta
     -   Mostra un diàleg de confirmació natiu a l'usuari.
     -   Si l'usuari cancel·la, el procés de tancament s'atura.
     -   Si l'usuari confirma, s'envia un senyal IPC (`'confirm-quit-signal'`) al frontend. **L'aplicació no es tanca encara.**
-3.  **Confirmació del Frontend:** L'aplicació espera una resposta del frontend. El hook `useEventDataManager.ts` escolta aquest senyal, desa les dades si hi ha canvis (`hasUnsavedChanges`), i finalment envia un senyal de tornada (`'quit-confirmed-by-renderer-signal'`).
+3.  **Confirmació del Frontend:** L'aplicació espera una resposta del frontend. El listener a `App.tsx` (que utilitza l'store `useEventDataStore`) escolta aquest senyal, desa les dades si hi ha canvis, i finalment envia un senyal de tornada (`'quit-confirmed-by-renderer-signal'`).
 4.  **Tancament Final:** Un cop el backend rep `quit-confirmed-by-renderer-signal`, executa les últimes tasques (crear backup, netejar backups antics) i finalment tanca l'aplicació amb `app.exit()`.
 
 #### Gestió d'Excepcions
@@ -259,47 +259,36 @@ Aquesta secció ha estat refactoritzada per suportar múltiples calendaris. Per 
 
 El frontend és una Single Page Application (SPA) construïda amb React i TypeScript. S'encarrega de tota la presentació visual i la interacció amb l'usuari. La seva arquitectura està dissenyada per ser reactiva, mantenible i fortament tipada.
 
-### 4.1. Gestió d'Estat Centralitzada: El Hook `useEventDataManager`
+### 4.1. Gestió d'Estat Centralitzada amb Zustand
 
-El fitxer **`src/hooks/useEventDataManager.ts`** és el component més important de la lògica del frontend. És un hook personalitzat de React que actua com una **"font única de veritat" (Single Source of Truth)** per a totes les dades de l'aplicació.
+Per millorar la mantenibilitat, el rendiment i desacoblar la lògica de l'estat de la interfície d'usuari, l'aplicació ha adoptat **Zustand** com a eina principal per a la gestió de l'estat global del frontend. Aquesta decisió arquitectònica substitueix l'antic sistema basat en `React.Context` i hooks personalitzats.
 
-#### Responsabilitats Clau
+#### Stores de Zustand (`src/stores/`)
 
-1.  **Centralització de l'Estat:**
-    -   Gestiona els estats principals de l'aplicació mitjançant `useState`:
-        -   `eventFrames`: L'array complet d'esdeveniments, incloent les seves assignacions niades.
-        -   `peopleGroups`: La llista de contactes (persones i proveïdors).
-        -   `materialItems`: L'inventari complet de material.
-        -   `googleEvents`: L'array d'esdeveniments obtinguts de Google Calendar (només per a visualització).
-        -   `hasUnsavedChanges`: Un booleà que controla si hi ha canvis pendents de desar.
-        -   `isSyncing`: Un booleà per controlar l'estat de la interfície durant la sincronització amb Google.
+L'estat global es divideix en *stores* modulars, cadascun amb una responsabilitat clara:
 
-2.  **Exposició de Funcions d'Acció (CRUD):**
-    -   Proporciona un conjunt de funcions, memoritzades amb `useCallback` per optimitzar el rendiment, per manipular l'estat de manera segura i consistent:
-        -   `addEventFrame`, `updateEventFrame`, `deleteEventFrame`.
-        -   `addPersonGroup`, `updatePersonGroup`, `deletePersonGroup`.
-        -   `addMaterialItem`, `updateMaterialItem`, `deleteMaterialItem`.
-        -   `addAssignment`, `updateAssignment`, `deleteAssignment`.
-        -   També inclou funcions de cerca com `getEventFrameById`, `getPersonGroupById`, etc.
+1.  **`eventDataStore.ts`**:
+    -   **Descripció:** És la **font única de veritat** per a totes les dades principals de l'aplicació (esdeveniments, contactes, material).
+    -   **Contingut:**
+        -   **Estat:** Emmagatzema els arrays de `eventFrames`, `peopleGroups`, `materialItems`, l'estat de `hasUnsavedChanges`, les piles de desfer/refer, etc.
+        -   **Accions:** Conté totes les funcions per manipular aquestes dades (CRUD: `addEventFrame`, `updateAssignment`, etc.), la lògica de negoci (detecció de conflictes, disponibilitat de material), i la interacció amb el backend per a la persistència de dades (`loadData`, `exportData`).
 
-3.  **Implementació de la Lògica de Negoci:**
-    -   **Detecció de Conflictes:** Les funcions `addAssignment` i `updateAssignment` contenen la lògica per comprovar si una persona ja està assignada a un altre esdeveniment en un rang de dates solapat. Si es detecta un conflicte, la funció retorna un `warningMessage` que es mostra a l'usuari sense impedir l'operació.
-    -   **Control d'Estoc:** La funció `getMaterialAvailability` calcula l'estoc disponible en temps real per a un ítem de material en un rang de dates específic, tenint en compte el material ja compromès en altres esdeveniments.
-    -   **Gestió d'Estats Mixts:** La lògica per calcular i actualitzar l'estat `Mixt` d'una assignació quan es modifiquen els estats diaris resideix aquí.
+2.  **`modalStore.ts`**:
+    -   **Descripció:** Gestiona exclusivament l'estat dels diàlegs modals, incloent l'estat dels formularis interns. Aquesta centralització soluciona un bug crític on les dades d'un formulari es perdien si un component pare es re-renderitzava.
+    -   **Contingut:**
+        -   **Estat:** Controla quin modal està obert (`type`), les dades amb què es va obrir (`data`), si és visible (`isOpen`), i l'estat del formulari intern (`formData`).
+        -   **Accions:** `openModal`, `closeModal`, `setFormData`. La funció `openModal` conté la lògica per inicialitzar correctament el `formData` segons el tipus de modal, assegurant que els formularis d'edició s'omplin amb les dades existents.
 
-4.  **Interacció amb el Backend:**
-    -   Orquestra les crides a les funcions exposades a `window.electronAPI` per a operacions que requereixen accés natiu. Exemples:
-        -   `syncWithGoogle`: Inicia el flux de sincronització, que ara obre un modal de selecció.
-        -   `executeSync`: Executa la sincronització real contra un calendari específic.
-        -   `refreshGoogleEvents`: Demana al backend la llista actualitzada d'esdeveniments de Google Calendar.
+#### Beneficis d'Aquesta Arquitectura
 
-5.  **Persistència de Dades:**
-    -   `loadData`: Rep un objecte `AppData` (normalment del backend) i hidrata tot l'estat del hook. Conté la lògica per reconstruir la relació entre marcs d'esdeveniments i assignacions, i per garantir la creació de fitxes tècniques per defecte en dades antigues.
-    -   `exportData`: Recopila tot l'estat actual i el transforma en un objecte `AppData` pla, llest per ser serialitzat a JSON.
-
-#### Context Global (`EventDataContext`)
-
-El resultat del hook `useEventDataManager` es proporciona a tota l'arbre de components de React a través de `src/contexts/EventDataContext.tsx`. Això permet que qualsevol component, a qualsevol nivell de profunditat, pugui accedir a les dades i a les funcions d'acció mitjançant el hook `useEventData()`, evitant el "prop drilling".
+-   **Desacoblament:** La lògica de l'estat resideix completament fora dels components de React, que ara esdevenen més simples i centrats en la presentació.
+-   **Rendiment Optimitzat:** Els components se subscriuen de manera selectiva només a les porcions (`slices`) de l'estat que necessiten. Si una part de l'estat que no els afecta canvia, el component no es torna a renderitzar innecessàriament.
+    ```javascript
+    // Un component que només necessita saber si hi ha canvis, no es re-renderitzarà si canvia la llista d'esdeveniments.
+    const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
+    ```
+-   **Accés Simplificat:** Qualsevol component, a qualsevol nivell de l'arbre, pot accedir a l'estat o a les accions sense necessitat de "prop drilling".
+-   **Integritat de Dades en Formularis:** L'estat dels formularis dels modals persisteix al `modalStore`, independentment del cicle de vida dels components que els envolten, eliminant la pèrdua de dades.
 
 ### 4.2. Model de Dades i Tipus (`src/types.ts`)
 
@@ -333,7 +322,7 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
     -   Aquest directori encapsula tota la complexitat de la fitxa de bolo. `TechSheetForm.tsx` actua com a component pare, orquestrant components fills especialitzats com `TechnicalPersonnelSection.tsx` i `NeedsList.tsx`. Aquesta modularitat permet aïllar la lògica i optimitzar el rendiment.
 
 -   **Modals (`src/components/modals/`):**
-    -   Cada modal té el seu propi component, gestionant el seu estat intern de formulari i cridant a les funcions del context (`useEventData`) en enviar-se.
+    -   Cada modal té el seu propi component. Gràcies a `modalStore`, ja no gestionen l'estat del formulari internament amb `useState`, sinó que llegeixen i escriuen directament a l'store global.
 
 -   **Components d'UI Genèrics (`src/components/ui/`):**
     -   Conté components reutilitzables i de presentació, com `Modal.tsx` i `CollapsibleSection.tsx`, que no tenen lògica de negoci pròpia.
@@ -382,7 +371,7 @@ El model híbrid es manté:
 #### Flux de Sincronització Explícita
 
 1.  **[UI]** L'usuari fa clic al botó principal "Sincronitzar" o al botó "Sincronitzar Ara" dins del modal de configuració.
-2.  **[Frontend]** S'activa la lògica a `useEventDataManager`:
+2.  **[Frontend]** S'activa la lògica a l'store `useEventDataStore` (cridada des d'un component):
     -   Si la sincronització es va iniciar des del botó principal, s'obre el modal `SelectSyncCalendarModal`, que mostra la llista de `managedAppCalendars` i permet a l'usuari triar una destinació. El calendari actiu (`activeAppCalendarId`) apareix preseleccionat.
     -   Si es va iniciar des de la configuració, se salta aquest pas i s'utilitza directament l'ID del calendari actiu.
 3.  **[Frontend]** S'invoca la funció `executeSync(targetCalendarId)` amb l'ID del calendari escollit.
@@ -436,13 +425,13 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
 
 ### 5.3. Control d'Estoc de Material en Temps Real
 
-Aquesta funcionalitat evita la sobre-assignació de material. La lògica principal resideix a `useEventDataManager.ts`.
+Aquesta funcionalitat evita la sobre-assignació de material. La lògica principal resideix a l'acció `getMaterialAvailability` dins de `useEventDataStore`.
 
 
 
  #### Flux de Càlcul (`getMaterialAvailability`)
 
-La funció implementa una lògica granular per garantir un càlcul d'estoc precís, especialment quan hi ha esdeveniments solapats en el temps. Utilitza `useRef` per accedir a l'estat actual de `eventFrames` i `materialItems` sense provocar re-renderitzats, garantint un càlcul eficient.
+La funció implementa una lògica granular per garantir un càlcul d'estoc precís. Per evitar re-renderitzats innecessaris durant el càlcul, accedeix a l'estat directament amb `get()` dins de l'store.
 
  1.  **Entrades:** La funció rep l'ID del material (`materialId`), les dates de l'esdeveniment actual (`startDate`, `endDate`) i l'ID de l'esdeveniment actual (`currentEventFrameId`).
  2.  **Obtenció de l'Ítem:** Busca l'ítem de material a `materialItemsRef.current` per obtenir el seu estoc total (`materialItem.stock`). Si no el troba, retorna 0.
@@ -472,8 +461,8 @@ Aquesta lògica, similar al control d'estoc, preveu que una persona sigui assign
 
 Per oferir més flexibilitat, el sistema ja no bloqueja les assignacions duplicades, sinó que demana confirmació a l'usuari. Aquest flux es va implementar com a solució a un error de l'entorn de compilació que impedia utilitzar tipus de retorn més complexos.
 
-1.  **Detecció de Conflictes (`useEventDataManager.ts`):**
-    -   Les funcions `addAssignment` i `updateAssignment` contenen la lògica per detectar si una persona ja té una altra assignació en el mateix període.
+1.  **Detecció de Conflictes (`useEventDataStore.ts`):**
+    -   Les accions `addAssignment` i `updateAssignment` de l'store contenen la lògica per detectar si una persona ja té una altra assignació en el mateix període.
     -   Aquestes funcions accepten un paràmetre opcional `force: boolean`. La comprovació de conflictes només s'executa si `force` és `false`.
 
 2.  **Senyalització del Conflicte (Workaround):**
@@ -503,8 +492,8 @@ L'aplicació ofereix múltiples opcions per externalitzar i internalitzar dades,
 
 -   **Backend (`main.cjs`):** Utilitza `dialog.showSaveDialog` i `fs.writeFileSync` per a la funcionalitat de desat. Aquesta interacció nativa permet a l'usuari triar la ubicació de l'arxiu de manera familiar.
 -   **Frontend (`Controls.tsx`):** Orquestra el procés.
-    -   **Guardar:** Crida a `exportData()` de `useEventDataManager` per obtenir l'estat actual i l'envia al backend.
-    -   **Carregar:** Utilitza un `<input type="file">` ocult que, en seleccionar un fitxer, el llegeix amb `FileReader` i envia el contingut a `loadData()` del hook.
+    -   **Guardar:** Crida a `exportData()` de `useEventDataStore` per obtenir l'estat actual i l'envia al backend.
+    -   **Carregar:** Utilitza un `<input type="file">` ocult que, en seleccionar un fitxer, el llegeix amb `FileReader` i envia el contingut a la funció `loadData()` de l'store.
 
 #### Càrrega Flexible: Fusió vs. Reemplaçament
 
@@ -513,7 +502,7 @@ L'aplicació ofereix múltiples opcions per externalitzar i internalitzar dades,
     2.  En lloc de processar les dades directament, crida a `openModal('mergeOrReplace', { ... })`, passant les dades noves (`newData`) al modal.
     3.  El modal `MergeOrReplaceModal.tsx` presenta a l'usuari les opcions.
     4.  Depenent del botó que es premi, s'executa una de les funcions del context: `mergePeopleGroups`, `replacePeopleGroups`, `addMaterialItemsFromFile` (per a fusió de material) o `replaceMaterialItems`.
--   **Lògica de Fusió (`useEventDataManager.ts`):** La fusió es realitza comparant els noms (en minúscules i sense accents) dels elements nous amb els existents per evitar duplicats. Només s'afegeixen els elements que no existeixen prèviament.
+-   **Lògica de Fusió (`useEventDataStore.ts`):** La fusió es realitza dins de les accions `mergePeopleGroups` i `addMaterialItemsFromFile` de l'store, comparant els noms per evitar duplicats.
 
 #### Exportació a PDF i CSV
 
@@ -747,7 +736,7 @@ Per garantir la màxima robustesa i evitar pèrdues de dades o bloquejos de l'ap
 
 #### El Pipeline de Processament de Dades
 
-La lògica central resideix a la funció `loadData` del hook `useEventDataManager.ts` i segueix aquesta seqüència:
+La lògica central resideix a l'acció `loadData` de l'store `useEventDataStore` i segueix aquesta seqüència:
 
 1.  **Migració (Sempre):**
     -   **Objectiu:** Assegurar que les dades, independentment de la seva versió original, tinguin sempre l'estructura de dades més recent definida a `types.ts`.
@@ -807,13 +796,11 @@ La funcionalitat es basa en una comunicació unidireccional contínua des del ba
     -   Aquesta funció permet al frontend subscriure's de manera segura als missatges enviats pel canal `'sync-progress'`.
     -   Crucialment, retorna una **funció de neteja** que elimina el listener (`ipcRenderer.removeListener`), permetent una gestió correcta del cicle de vida i evitant fuites de memòria al frontend.
 
-3.  **Frontend (`useEventDataManager.ts`): El Receptor i Gestor d'Estat**
-    -   Un `useState` (`syncProgress`) emmagatzema l'estat actual de la barra de progrés (`{ current, total, message, visible }`).
-    -   Un `useEffect` s'encarrega de la subscripció:
-        -   Crida a `window.electronAPI.onSyncProgress()` passant-li una funció de callback (`handleSyncProgress`).
-        -   Aquesta callback actualitza l'estat `syncProgress` cada vegada que rep un missatge del backend.
-        -   La funció de neteja retornada per `onSyncProgress` s'utilitza en la funció de retorn del `useEffect` per cancel·lar la subscripció quan el component es desmunta.
-    -   La funció que inicia la tasca (p. ex., `executeSync`) s'encarrega d'activar la visibilitat de la barra de progrés (`visible: true`) al començament i de desactivar-la (`visible: false`) quan la tasca principal (la `Promise` de `syncWithGoogle`) es completa.
+3.  **Frontend (`useEventDataStore.ts`): El Receptor i Gestor d'Estat**
+    -   L'estat `syncProgress` resideix a l'store.
+    -   Un `useEffect` a `App.tsx` s'encarrega de la subscripció als esdeveniments de progrés del backend.
+    -   Aquesta subscripció actualitza l'estat `syncProgress` dins de l'store de Zustand.
+    -   L'acció `executeSync` de l'store gestiona la visibilitat de la barra de progrés.
 
 4.  **UI (`SyncProgressOverlay.tsx`): El Visualitzador**
     -   És un component de React simple que rep l'objecte `syncProgress` com a propietat.
@@ -827,12 +814,10 @@ Per augmentar la seguretat i la confiança de l'usuari, s'ha implementat un sist
 
 #### Arquitectura de "State Snapshots"
 
-En lloc del "Command Pattern", que hauria requerit una refactorització massiva, s'ha optat per un enfocament de **"State Snapshots" (Instantànies d'Estat)**, que s'integra de manera neta amb el hook centralitzat `useEventDataManager`.
+En lloc del "Command Pattern", que hauria requerit una refactorització massiva, s'ha optat per un enfocament de **"State Snapshots" (Instantànies d'Estat)**, que s'integra de manera neta amb l'store `useEventDataStore`.
 
 1.  **Emmagatzematge de l'Historial:**
-    -   Dins de `useEventDataManager.ts`, s'utilitzen dues referències (`useRef`) per emmagatzemar les piles de l'historial sense provocar re-renderitzats innecessaris:
-        -   `history`: Una pila (`AppData[]`) que emmagatzema els estats anteriors.
-        -   `future`: Una pila (`AppData[]`) que emmagatzema els estats que han estat desfets, per a la funcionalitat de "Refer".
+    -   Dins de `useEventDataStore.ts`, les piles `history` i `future` són part de l'estat de Zustand.
     -   Per evitar un consum excessiu de memòria, la pila de l'historial està limitada a les últimes 10 accions.
 
 2.  **Captura d'Instantànies (`saveStateToHistory`):**
@@ -851,7 +836,7 @@ La funcionalitat és accessible per a l'usuari a través de tres mètodes consis
 
 1.  **Botons a la UI (`Controls.tsx`):**
     -   S'han afegit dos botons (Desfer i Refer) a la barra de controls principal.
-    -   L'estat `disabled` d'aquests botons està lligat a les variables `canUndo` i `canRedo` del hook `useEventDataManager`, que es basen en si les piles `history` i `future` estan buides.
+    -   L'estat `disabled` d'aquests botons se subscriu selectivament a les variables `canUndo` i `canRedo` de l'store, optimitzant les re-renderitzacions.
 
 2.  **Dreceres de Teclat (`App.tsx`):**
     -   Un `useEffect` global a `App.tsx` escolta els esdeveniments de teclat.

@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { useEventData } from '../../contexts/EventDataContext';
+import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, ShowToastFunction } from '../../types';
 import { formatDateDMY } from '../../utils/dateFormat';
 import Tooltip from '../ui/Tooltip';
@@ -13,8 +13,12 @@ interface EventFrameFormProps {
 }
 
 export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, eventFrameToEdit, showToast }) => {
-  const { addEventFrame, updateEventFrame, eventFrames, openModal } = useEventData();
-  const { formData, setFormData } = useModalStore();
+  const { addEventFrame, updateEventFrame, eventFrames } = useEventDataStore(state => ({
+    addEventFrame: state.addEventFrame,
+    updateEventFrame: state.updateEventFrame,
+    eventFrames: state.eventFrames,
+  }));
+  const { formData, setFormData, openModal } = useModalStore();
   const { name, place, startDate, endDate, generalNotes } = formData as Partial<EventFrame>;
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 

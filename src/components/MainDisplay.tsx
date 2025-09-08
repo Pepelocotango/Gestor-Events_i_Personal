@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
-import { EventFrame, Assignment, AssignmentStatus, ModalType, ModalData, ShowToastFunction, PersonGroup } from '../types';
-import { useEventData } from '../contexts/EventDataContext';
+import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../types';
+import { useEventDataStore } from '../stores/eventDataStore';
+import { useModalStore } from '../stores/modalStore';
 import logger from '../utils/logger';
 import Tooltip from './ui/Tooltip';
 
@@ -19,8 +20,6 @@ import { exportEventListToPdf } from '../utils/pdfGenerator';
 import EventFrameCard from './EventFrameCard';
 
 interface MainDisplayProps {
-  openModal: (type: ModalType, data?: ModalData, initialFormData?: any) => void;
-  peopleGroups: PersonGroup[];
   setToastMessage: ShowToastFunction;
   currentFilterHighlight: string;
   setCurrentFilterHighlight: (filter: string) => void;
@@ -63,8 +62,6 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
 };
 
 const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps>(({
-    openModal,
-    peopleGroups,
     setToastMessage,
     currentFilterHighlight,
     setCurrentFilterHighlight,
@@ -75,7 +72,11 @@ const MainDisplay = forwardRef<({ handleResize: () => void; }), MainDisplayProps
     setFilterUIPerson
 }, ref) => {
   const calendarRef = useRef<FullCalendar>(null);
-  const { eventFrames, googleEvents, getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventData();
+  const { openModal } = useModalStore.getState();
+  const { getPersonGroupById, getEventFrameById, getAssignmentById, updateAssignment, updateEventFrame } = useEventDataStore.getState();
+  const eventFrames = useEventDataStore(state => state.eventFrames);
+  const googleEvents = useEventDataStore(state => state.googleEvents);
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const [conflictDialog, setConflictDialog] = useState<{ message: string; personName: string | null } | null>(null);
 
   const handleExportListToPdf = () => {
@@ -297,9 +298,7 @@ useEffect(() => {
     setExpandedEventFrameIds(prev => new Set(prev).add(eventFrameId));
     const eventFrame = getEventFrameById(eventFrameId);
     const assignment = getAssignmentById(eventFrameId, assignmentId);
-    if (eventFrame && assignment) {
-      openModal('editAssignment', { eventFrame, assignmentToEdit: assignment }, { ...assignment });
-    }
+    if (eventFrame && assignment) openModal('editAssignment', { eventFrame, assignmentToEdit: assignment });
   };
 
   const handleDeleteAssignment = (eventFrameId: string, assignmentId: string) => {
@@ -355,16 +354,7 @@ useEffect(() => {
       <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} defaultOpen={true} id="event-list-section">
         <div className="mb-1 flex justify-start items-center gap-1">
           <Tooltip text="Crear un nou marc d'esdeveniment">
-            <button onClick={() => {
-              const today = new Date().toISOString().split('T')[0];
-              openModal('addEventFrame', {}, {
-                name: '',
-                place: '',
-                startDate: today,
-                endDate: today,
-                generalNotes: ''
-              });
-            }} className="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold flex items-center gap-1">
+            <button onClick={() => openModal('addEventFrame', {})} className="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold flex items-center gap-1">
               <PlusIcon className="w-4 h-4"/> Afegir Nou Marc
             </button>
           </Tooltip>
@@ -430,13 +420,11 @@ useEffect(() => {
                 return newSet;
             })}
             onUpdateEventFrame={updateEventFrame}
-            onOpenModal={openModal}
             onGeneralStatusChange={handleGeneralStatusChange}
             onDailyStatusChange={handleDailyStatusChange}
             onEditAssignment={handleEditAssignment}
             onDeleteAssignment={handleDeleteAssignment}
             setToastMessage={setToastMessage}
-            peopleGroups={peopleGroups}
           />
         ))}
       </CollapsibleSection>

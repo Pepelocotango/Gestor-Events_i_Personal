@@ -1,12 +1,16 @@
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
-import { useEventData } from '../contexts/EventDataContext';
-import { EventFrame } from '../types';
+import { useEventDataStore } from '../stores/eventDataStore';
+import { EventFrame, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 
-const TechSheetForm = lazy(() => import('./tech_sheets/TechSheetForm')); 
+const TechSheetForm = lazy(() => import('./tech_sheets/TechSheetForm'));
 
-const TechSheetsDisplay: React.FC = () => {
-  const { eventFrames } = useEventData();
+interface TechSheetsDisplayProps {
+  showToast: ShowToastFunction;
+}
+
+const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
+  const eventFrames = useEventDataStore(state => state.eventFrames);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
 
   useEffect(() => {
@@ -68,7 +72,8 @@ const TechSheetsDisplay: React.FC = () => {
         <Suspense fallback={<div className="text-center p-8">Carregant formulari...</div>}>
           <TechSheetForm 
             key={selectedEventFrame.id}
-            eventFrame={selectedEventFrame} 
+            eventFrame={selectedEventFrame}
+            showToast={showToast}
           />
         </Suspense>
       ) : (

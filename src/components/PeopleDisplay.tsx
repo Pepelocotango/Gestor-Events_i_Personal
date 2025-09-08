@@ -1,15 +1,19 @@
 import React, { useState, FormEvent, useMemo } from 'react';
 import { saveAs } from 'file-saver';
-import { useEventData } from '../contexts/EventDataContext';
-import { PersonGroup } from '../types';
+import { useEventDataStore } from '../stores/eventDataStore';
+import { PersonGroup, ShowToastFunction } from '../types';
 import { TrashIcon, EditIcon, CsvIcon, PdfIcon } from '../constants';
 import { exportPeopleToPdf } from '../utils/pdfGenerator';
 import { escapeCsvCell } from '../utils/csvUtils';
 import Tooltip from './ui/Tooltip';
 
+interface PeopleDisplayProps {
+  showToast: ShowToastFunction;
+}
 
-const PeopleDisplay: React.FC = () => {
-  const { peopleGroups, addPersonGroup, updatePersonGroup, deletePersonGroup: deletePersonGroupContext, showToast } = useEventData();
+const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
+  const { addPersonGroup, updatePersonGroup, deletePersonGroup: deletePersonGroupContext } = useEventDataStore.getState();
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [tel1, setTel1] = useState('');
