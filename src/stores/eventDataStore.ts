@@ -195,9 +195,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
           hasData: !!data,
           eventFramesCount: data?.eventFrames?.length || 0,
           peopleGroupsCount: data?.peopleGroups?.length || 0,
-          assignmentsCount: data?.assignments?.length || 0,
           materialItemsCount: data?.materialItems?.length || 0,
-          hasGoogleConfig: !!data?.googleConfig
+          assignmentsCount: data?.assignments?.length || 0,
         });
         if (data?.googleConfig && window.electronAPI) {
             try {
