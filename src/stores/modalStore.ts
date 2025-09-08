@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { ModalType, ModalData, AssignmentStatus } from '../types';
+import { loggingMiddleware } from './loggingMiddleware';
 
 // Aquest tipus defineix les dades que es poden editar en un formulari de modal
 type ModalFormData = { [key: string]: any };
@@ -26,10 +27,12 @@ const initialState: ModalState = {
   isOpen: false,
 };
 
-export const useModalStore = create<ModalState & ModalActions>((set) => ({
-  ...initialState,
+export const useModalStore = create<ModalState & ModalActions>()(
+  loggingMiddleware(
+    (set) => ({
+      ...initialState,
 
-  openModal: (type, data = {}) => {
+      openModal: (type, data = {}) => {
     let initialFormData: ModalFormData = {};
     const today = new Date().toISOString().split('T')[0];
 
@@ -86,4 +89,7 @@ export const useModalStore = create<ModalState & ModalActions>((set) => ({
       formData: typeof updater === 'function' ? updater(state.formData) : updater
     }));
   },
-}));
+    }),
+    'modalStore'
+  )
+);

@@ -5,6 +5,7 @@ import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import logger from '../utils/logger';
 import { useModalStore } from './modalStore';
+import { loggingMiddleware } from './loggingMiddleware';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -114,7 +115,9 @@ const initialState: EventDataState = {
     isRestoringState: false,
 };
 
-export const useEventDataStore = create<EventDataState & EventDataActions>((set, get) => ({
+export const useEventDataStore = create<EventDataState & EventDataActions>()(
+  loggingMiddleware(
+    (set, get) => ({
     ...initialState,
 
     // UTILS
@@ -407,4 +410,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>((set,
         }
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
     },
-}));
+    }),
+    'eventDataStore'
+  )
+);
