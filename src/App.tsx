@@ -394,23 +394,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleExportCurrentViewToCsv = (csvContent: string, fileName: string) => {
-    if (!csvContent) {
-      showToast("No hi ha dades a la vista actual per exportar.", 'info');
-      return;
-    }
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast("Vista actual exportada a CSV.", 'success');
-  };
-
   const renderModalContent = () => {
     if (!type) return null;
     switch (type) {
@@ -618,7 +601,6 @@ const App: React.FC = () => {
                       setCurrentFilterHighlight={setCurrentFilterHighlight}
                       filterToShowEventFrameId={filterToShowEventFrameId}
                       setFilterToShowEventFrameId={setFilterToShowEventFrameId}
-                      onExportCurrentViewToCsv={handleExportCurrentViewToCsv}
                     />
                   }
                 />

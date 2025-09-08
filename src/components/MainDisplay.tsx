@@ -3,7 +3,6 @@ import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction, SummaryRow
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
-
 import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -25,7 +24,6 @@ interface MainDisplayProps {
   setCurrentFilterHighlight: (filter: string) => void;
   filterToShowEventFrameId: string | null;
   setFilterToShowEventFrameId: (id: string | null) => void;
-  onExportCurrentViewToCsv: (csvContent: string, fileName: string) => void;
 }
 
 interface CollapsibleSectionProps {
@@ -40,9 +38,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const buttonId = id ? `${id}-button` : undefined;
   const contentId = id ? `${id}-content` : undefined;
-
   useEffect(() => { setIsOpen(defaultOpen); }, [defaultOpen]);
-
   return (
     <div className="mb-2 bg-white dark:bg-gray-800 shadow-md rounded-lg">
       <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
@@ -65,7 +61,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     setCurrentFilterHighlight,
     filterToShowEventFrameId,
     setFilterToShowEventFrameId,
-    onExportCurrentViewToCsv
 }, ref) => {
   const calendarRef = useRef<FullCalendar>(null);
   const { openModal } = useModalStore.getState();
@@ -189,7 +184,7 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     });
 
     if (dataToExport.length === 0) {
-      onExportCurrentViewToCsv('', ''); // Signal to parent that there's nothing to export
+      setToastMessage("No hi ha dades a la vista actual per exportar.", 'info');
       return;
     }
 
@@ -209,7 +204,16 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     const personName = localFilterUIPerson ? getPersonGroupById(localFilterUIPerson)?.name?.replace(/[^a-zA-Z0-9]/g, '_') || "persona_filtrada" : "totes";
     const fileName = `llista_vista_actual_${personName}_${formattedDate}.csv`;
 
-    onExportCurrentViewToCsv(csvContent, fileName);
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setToastMessage("Vista actual exportada a CSV.", 'success');
   };
 
   const handleExportListToPdf = () => {
