@@ -13,10 +13,9 @@ interface CommonFormProps {
 
 interface EventFrameDetailsModalProps extends CommonFormProps {
   eventFrame: EventFrame;
-  onShowOnList: (eventFrameId: string) => void;
 }
 
-export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ onClose, eventFrame, onShowOnList }) => {
+export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ onClose, eventFrame }) => {
   const { peopleGroups } = useEventDataStore.getState();
   const { openModal } = useModalStore.getState();
 
@@ -69,15 +68,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
           <p className="text-sm text-gray-500 dark:text-gray-400">No hi ha assignacions per aquest esdeveniment.</p>
         )}
       </div>
-      <div className="flex justify-between items-center pt-4 mt-4 border-t dark:border-gray-700">
-        <Tooltip text="Localitzar i ressaltar aquest esdeveniment a la llista principal">
-          <button
-            onClick={() => onShowOnList(eventFrame.id)}
-            className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-          >
-            Mostrar a la Llista
-          </button>
-        </Tooltip>
+      <div className="flex justify-end items-center pt-4 mt-4 border-t dark:border-gray-700">
         <div className="space-x-2">
           <Tooltip text="Obrir el formulari per editar els detalls d'aquest marc">
             <button

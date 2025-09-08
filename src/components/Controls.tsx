@@ -1,14 +1,13 @@
-import { ChangeEvent, useRef, useState, forwardRef, useImperativeHandle, RefObject } from 'react';
+import { ChangeEvent, useRef, useState } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { PersonGroup, ShowToastFunction } from '../types';
 import logger from '../utils/logger';
-import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, CsvIcon } from '../constants';
+import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 import Tooltip from './ui/Tooltip';
 
 interface ControlsProps {
-  mainDisplayRef: RefObject<{ exportCurrentViewToCsv: () => void }>;
   theme: string;
   toggleTheme: () => void;
   showToast: ShowToastFunction;
@@ -16,14 +15,13 @@ interface ControlsProps {
   setCurrentDataPath: (path: string) => void;
 }
 
-const Controls = forwardRef<any, ControlsProps>(({
-    mainDisplayRef,
+const Controls: React.FC<ControlsProps> = ({
     theme,
     toggleTheme,
     showToast,
     currentDataPath,
     setCurrentDataPath
-}, ref) => {
+}) => {
   const {
     loadData, exportData, setHasUnsavedChanges, undo, redo, canUndo, canRedo,
     syncWithGoogle, isSyncing
@@ -238,18 +236,6 @@ const Controls = forwardRef<any, ControlsProps>(({
     }
   };
 
-  useImperativeHandle(ref, () => ({
-    triggerLoadFile,
-    handleSaveData,
-    triggerLoadMaterialFile,
-    handleRequestHardReset,
-    triggerLoadPeopleFile,
-    handleConnectGoogle,
-    processAllData,
-    processMaterialData,
-    processPeopleData,
-  }));
-
   const handleRequestHardReset = () => {
     openModal('confirmHardReset', {
       titleOverride: "Confirmar Reset de Fàbrica",
@@ -312,11 +298,6 @@ const Controls = forwardRef<any, ControlsProps>(({
               <Tooltip text="Guardar totes les dades a un fitxer JSON">
                 <button onClick={() => handleSaveData('all')} className="flex items-center justify-center gap-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <SaveIcon /> Guardar Tot
-                </button>
-              </Tooltip>
-              <Tooltip text="Exportar la vista actual a CSV">
-                <button onClick={() => mainDisplayRef.current?.exportCurrentViewToCsv()} className="flex items-center justify-center gap-1 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
-                    <CsvIcon /> Exportar Vista
                 </button>
               </Tooltip>
 
@@ -426,6 +407,6 @@ const Controls = forwardRef<any, ControlsProps>(({
       )}
     </div>
   );
-});
+};
 
 export default Controls;

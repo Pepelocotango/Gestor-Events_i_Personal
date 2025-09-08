@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction, SummaryRow } from '../types';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
+import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon, CsvIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -20,10 +20,6 @@ import { escapeCsvCell } from '../utils/csvUtils';
 
 interface MainDisplayProps {
   setToastMessage: ShowToastFunction;
-  currentFilterHighlight: string;
-  setCurrentFilterHighlight: (filter: string) => void;
-  filterToShowEventFrameId: string | null;
-  setFilterToShowEventFrameId: (id: string | null) => void;
 }
 
 interface CollapsibleSectionProps {
@@ -55,13 +51,9 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
   );
 };
 
-const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResize: () => void; }, MainDisplayProps>(({
+const MainDisplay: React.FC<MainDisplayProps> = ({
     setToastMessage,
-    currentFilterHighlight,
-    setCurrentFilterHighlight,
-    filterToShowEventFrameId,
-    setFilterToShowEventFrameId,
-}, ref) => {
+}) => {
   const calendarRef = useRef<FullCalendar>(null);
   const openModal = useModalStore(state => state.openModal);
   const getPersonGroupById = useEventDataStore(state => state.getPersonGroupById);
@@ -80,7 +72,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
   const [localFilterUIPerson, setLocalFilterUIPerson] = useState<string>('');
   const [filterUIEventFrame, setFilterUIEventFrame] = useState<string>('');
   const [filterPlace, setFilterPlace] = useState('');
-  const eventFrameRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [manualExpandedFrameIds, setManualExpandedFrameIds] = useState<Set<string>>(new Set());
@@ -156,7 +147,7 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     });
   };
 
-  const generateAndExportCsv = () => {
+  const handleExportCurrentViewToCsv = () => {
     const dataToExport: SummaryRow[] = [];
     filteredAndSortedEventFrames.forEach(ef => {
       if (ef.assignments.length > 0) {
@@ -228,15 +219,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
     exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, setToastMessage);
   };
 
-  useImperativeHandle(ref, () => ({
-    handleResize: () => {
-      if (calendarRef.current) {
-        const calendarApi = calendarRef.current.getApi();
-        setTimeout(() => { calendarApi.updateSize(); }, 50);
-      }
-    },
-    exportCurrentViewToCsv: generateAndExportCsv,
-  }));
 
   const calendarEvents = useMemo(() => {
     const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
@@ -304,51 +286,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
       setToastMessage(result.message, 'error');
     }
   };
-
-  useEffect(() => {
-    if (filterToShowEventFrameId && eventFrameRefs.current[filterToShowEventFrameId]) {
-        const element = eventFrameRefs.current[filterToShowEventFrameId];
-        const listSectionButton = document.getElementById('event-list-section-button');
-        if (listSectionButton && listSectionButton.getAttribute('aria-expanded') === 'false') {
-            listSectionButton.click();
-        }
-        setTimeout(() => {
-            if (element) {
-                setManualExpandedFrameIds(prev => new Set(prev).add(filterToShowEventFrameId));
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                element.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400', 'transition-all', 'duration-1000', 'ease-in-out', 'rounded-lg');
-                setTimeout(() => {
-                    element.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400');
-                    setCurrentFilterHighlight('');
-                    setFilterToShowEventFrameId(null);
-                }, 3000);
-            }
-        }, 200);
-    }
-  }, [filterToShowEventFrameId, setCurrentFilterHighlight, setFilterToShowEventFrameId]);
-
-  useEffect(() => {
-    if (currentFilterHighlight && eventFrameRefs.current[currentFilterHighlight]) {
-        const element = eventFrameRefs.current[currentFilterHighlight];
-        const listSectionButton = document.getElementById('event-list-section-button');
-        if (listSectionButton && listSectionButton.getAttribute('aria-expanded') === 'false') {
-            listSectionButton.click();
-        }
-        setTimeout(() => {
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                element.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400', 'transition-all', 'duration-1000', 'ease-in-out', 'rounded-lg');
-                if (!manualExpandedFrameIds.has(currentFilterHighlight)) {
-                    setManualExpandedFrameIds(prev => new Set(prev).add(currentFilterHighlight));
-                }
-                setTimeout(() => {
-                    element.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400');
-                    setCurrentFilterHighlight('');
-                }, 3000);
-            }
-        }, 200);
-    }
-  }, [currentFilterHighlight, setCurrentFilterHighlight, manualExpandedFrameIds]);
 
   const handleEditAssignment = (eventFrameId: string, assignmentId: string) => {
     setManualExpandedFrameIds(prev => new Set(prev).add(eventFrameId));
@@ -442,8 +379,13 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
                     <PdfIcon className="w-4 h-4" />
                 </button>
               </Tooltip>
+              <Tooltip text="Exportar la vista actual a CSV">
+                <button onClick={handleExportCurrentViewToCsv} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-teal-500 hover:bg-teal-600 text-white shadow-sm">
+                    <CsvIcon className="w-4 h-4" />
+                </button>
+              </Tooltip>
               <Tooltip text="Netejar tots els filtres">
-                <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame(''); setFilterToShowEventFrameId(null);}} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
+                <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame('');}} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
               </Tooltip>
             </div>
         </div>
@@ -451,7 +393,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
         {filteredAndSortedEventFrames.length === 0 && <p className="text-center text-gray-500 dark:text-gray-400 py-4">No s'han trobat marcs d'esdeveniment.</p>}
         {filteredAndSortedEventFrames.map((ef: EventFrame) => (
           <EventFrameCard
-            ref={el => { if (el) eventFrameRefs.current[ef.id] = el; }}
             key={ef.id}
             eventFrame={ef}
             isExpanded={expandedEventFrameIds.has(ef.id)}
@@ -476,6 +417,6 @@ const MainDisplay = forwardRef<{ exportCurrentViewToCsv: () => void; handleResiz
       {conflictDialog && <Modal isOpen={true} onClose={() => setConflictDialog(null)} title="Conflicte detectat"><p>{conflictDialog.message}</p><p><strong>Persona:</strong> {conflictDialog.personName}</p><button onClick={() => setConflictDialog(null)} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Tanca</button></Modal>}
     </div>
   );
-});
+};
 
 export default MainDisplay;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, Suspense, lazy, useRef } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
 import logger from './utils/logger';
@@ -8,6 +8,7 @@ import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
 import ErrorBoundary from './components/ErrorBoundary';
+import { migrateData, validateMigratedData } from './utils/dataMigration';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
@@ -71,12 +72,7 @@ const App: React.FC = () => {
 
   const [toastState, setToastState] = useState<ToastState | null>(null);
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
-  const [currentFilterHighlight, setCurrentFilterHighlight] = useState<string>('');
   const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
-  const [filterToShowEventFrameId, setFilterToShowEventFrameId] = useState<string | null>(null);
-
-  const controlsRef = useRef<any>(null);
-  const mainDisplayRef = useRef<{ exportCurrentViewToCsv: () => void; handleResize: () => void; }>(null);
 
   const clearToastMessage = (toastId: string) => {
     setToastState(prevState => (prevState?.id === toastId ? null : prevState));
@@ -117,11 +113,6 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo, canUndo, canRedo]);
 
-  const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
-  useEffect(() => {
-    hasUnsavedChangesRef.current = hasUnsavedChanges;
-  }, [hasUnsavedChanges]);
-  
   logger.info('App.tsx - Component renderitzat.');
 
   const [isLoadingOverlayVisible, setIsLoadingOverlayVisible] = useState(false);
@@ -198,10 +189,101 @@ const App: React.FC = () => {
     );
   };
 
-  const handleShowOnList = (eventFrameId: string) => {
-      setFilterToShowEventFrameId(eventFrameId);
-      setCurrentFilterHighlight(eventFrameId);
-      closeModal();
+  const handleSaveData = async (type: 'all' | 'people' | 'material') => {
+    try {
+      let dataToSave: any;
+      let filename: string;
+      const fullData = await exportDataFromManager();
+
+      switch (type) {
+        case 'people':
+          dataToSave = { peopleGroups: fullData.peopleGroups };
+          filename = 'persones_grups_dades.json';
+          break;
+        case 'material':
+          dataToSave = { materialItems: fullData.materialItems };
+          filename = 'material_dades.json';
+          break;
+        case 'all':
+        default:
+          dataToSave = fullData;
+          filename = 'gestio_esdeveniments_dades.json';
+          break;
+      }
+      const jsonString = JSON.stringify(dataToSave, null, 2);
+
+      if (window.electronAPI?.showSaveDialog) {
+        const result = await window.electronAPI.showSaveDialog({
+          title: `Desar ${type} a JSON`,
+          defaultPath: filename,
+          filters: [{ name: 'JSON', extensions: ['json'] }],
+          data: jsonString,
+        });
+        if (result.success) {
+          if (type === 'all') setHasUnsavedChanges(false);
+          showToast(`Dades de ${type} desades correctament.`, 'success');
+        } else if (!result.canceled) {
+          showToast(`Error en desar les dades: ${result.message}`, 'error');
+        }
+      } else {
+        // Fallback for web version
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        if (type === 'all') setHasUnsavedChanges(false);
+        showToast(`Dades de ${type} desades correctament.`, 'success');
+      }
+    } catch (error) {
+      console.error(`Error saving ${type} data:`, error);
+      showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');
+    }
+  };
+
+  const handleRequestHardReset = () => {
+    openModalFromStore('confirmHardReset', {
+      titleOverride: "Confirmar Reset de Fàbrica",
+      itemType: "Reset de Fàbrica",
+      itemName: "Estàs segur que vols restablir l'aplicació? S'esborraran <b>TOTES</b> les dades locals de l'aplicació (esdeveniments, persones, assignacions) i la configuració de Google. <br><br><b>Aquesta acció és irreversible.</b>",
+      confirmButtonText: "Sí, Resetejar Ara",
+      cancelButtonText: "Cancel·lar",
+      onConfirmSpecial: async () => {
+        if (window.electronAPI?.performHardReset) {
+          try {
+            const result = await window.electronAPI.performHardReset();
+              if (result.success) {
+                loadDataFromManager(null, showToast);
+                setHasUnsavedChanges(false);
+                showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success', true);
+              } else {
+                showToast(result.message || "Error durant el reset de fàbrica.", 'error', true);
+              }
+          } catch (error) {
+            showToast(`Error greu durant el reset de fàbrica: ${(error as Error).message}`, 'error', true);
+          }
+        } else {
+          showToast("La funcionalitat de reset no està disponible.", 'error');
+        }
+      },
+    });
+  };
+
+  const handleConnectGoogle = async () => {
+    if (window.electronAPI) {
+      const result = await window.electronAPI.startGoogleAuth();
+      if (result.success) {
+        showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
+      } else {
+        showToast(result.message || 'No s\'ha pogut iniciar l\'autenticació.', 'error');
+      }
+    } else {
+      showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
+    }
   };
 
   useEffect(() => {
@@ -275,7 +357,7 @@ const App: React.FC = () => {
       const handleQuit = async () => {
         logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
         try {
-          if (hasUnsavedChangesRef.current) {
+          if (hasUnsavedChanges) {
             const dataToSave = await exportDataFromManager();
             logger.info("Renderer: Desant dades abans de sortir...");
             await window.electronAPI?.saveAppData?.(dataToSave);
@@ -290,7 +372,7 @@ const App: React.FC = () => {
       };
       window.electronAPI.onConfirmQuit(handleQuit);
     }
-  }, [exportDataFromManager]);
+  }, [exportDataFromManager, hasUnsavedChanges]);
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listeners per a l\'autenticació de Google.');
@@ -309,11 +391,89 @@ const App: React.FC = () => {
     }
   }, [showToast]);
 
-  useEffect(() => {
-    if (toastState) {
-      mainDisplayRef.current?.handleResize();
+  const processAllData = (fileContent: string, fileName: string) => {
+    try {
+      if (!fileContent) {
+        showToast("Error: El contingut del fitxer està buit.", 'error');
+        return;
+      }
+      const jsonData = JSON.parse(fileContent);
+      if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
+        loadDataFromManager(jsonData, showToast);
+        showToast("Totes les dades carregades correctament.", 'success');
+        setHasUnsavedChanges(true);
+        setCurrentDataPath(fileName);
+      } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
+        const migratedData = migrateData(
+          { people: jsonData.people || [] },
+          { eventFrames: jsonData.eventFrames || [] },
+          { assignments: jsonData.assignments || [] }
+        );
+        const validation = validateMigratedData(migratedData);
+        if (!validation.isValid) {
+          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
+          return;
+        }
+        loadDataFromManager(migratedData, showToast);
+        showToast("Dades antigues migrades i carregades correctament.", 'success');
+        setHasUnsavedChanges(true);
+        setCurrentDataPath(fileName);
+      } else {
+        showToast("Error: El format del fitxer JSON no és vàlid.", 'error');
+      }
+    } catch (error) {
+      showToast(`Error en processar les dades: ${(error as Error).message}`, 'error');
     }
-  }, [toastState]);
+  };
+
+  const processMaterialData = (fileContent: string) => {
+    try {
+      const jsonData = JSON.parse(fileContent);
+      if (Array.isArray(jsonData.materialItems)) {
+        openModalFromStore('mergeOrReplace', {
+          itemType: 'material',
+          newData: jsonData.materialItems,
+        });
+      } else {
+        showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
+      }
+    } catch (error) {
+      showToast(`Error en processar el fitxer de material: ${(error as Error).message}`, 'error');
+    }
+  };
+
+  const processPeopleData = (fileContent: string) => {
+    try {
+      if (!fileContent) {
+        showToast("Error: El fitxer de persones està buit.", 'error');
+        return;
+      }
+      const jsonData = JSON.parse(fileContent);
+      let newPeople: PersonGroup[] = [];
+      if (Array.isArray(jsonData.peopleGroups)) {
+        newPeople = jsonData.peopleGroups;
+      } else if (Array.isArray(jsonData.people)) {
+        const migratedData = migrateData({ people: jsonData.people });
+        const validation = validateMigratedData(migratedData);
+        if (!validation.isValid) {
+          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
+          return;
+        }
+        newPeople = migratedData.peopleGroups;
+      } else {
+        showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
+        return;
+      }
+
+      openModalFromStore('mergeOrReplace', {
+        itemType: 'persones',
+        newData: newPeople,
+      });
+
+    } catch (error) {
+      showToast(`Error en carregar les dades de persones: ${(error as Error).message}`, 'error');
+    }
+  };
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
@@ -328,16 +488,16 @@ const App: React.FC = () => {
             if (canRedo) redo();
             break;
           case 'save-all':
-            controlsRef.current?.handleSaveData('all');
+            handleSaveData('all');
             break;
           case 'hard-reset':
-            controlsRef.current?.handleRequestHardReset();
+            handleRequestHardReset();
             break;
           case 'save-people':
-            controlsRef.current?.handleSaveData('people');
+            handleSaveData('people');
             break;
           case 'save-material':
-            controlsRef.current?.handleSaveData('material');
+            handleSaveData('material');
             break;
           case 'sync-google':
             const handleSync = async () => {
@@ -362,7 +522,7 @@ const App: React.FC = () => {
             openModalFromStore('googleSettings');
             break;
           case 'connect-google':
-            controlsRef.current?.handleConnectGoogle();
+            handleConnectGoogle();
             break;
           case 'toggle-theme':
             toggleTheme();
@@ -374,18 +534,18 @@ const App: React.FC = () => {
 
       return cleanup;
     }
-  }, [openModalFromStore, closeModal, undo, redo, canUndo, canRedo]);
+  }, [openModalFromStore, closeModal, undo, redo, canUndo, canRedo, hasUnsavedChanges]);
 
   useEffect(() => {
     if (window.electronAPI?.onFileDataLoaded) {
       const cleanup = window.electronAPI.onFileDataLoaded((data) => {
         logger.info('[IPC] Dades de fitxer rebudes des del menú', { type: data.type, fileName: data.fileName });
         if (data.type === 'all') {
-          controlsRef.current?.processAllData(data.content, data.fileName);
+          processAllData(data.content, data.fileName);
         } else if (data.type === 'material') {
-          controlsRef.current?.processMaterialData(data.content);
+          processMaterialData(data.content);
         } else if (data.type === 'people') {
-          controlsRef.current?.processPeopleData(data.content);
+          processPeopleData(data.content);
         }
       });
       return cleanup;
@@ -400,12 +560,12 @@ const App: React.FC = () => {
       case 'editEventFrame':
         return <EventFrameFormModal onClose={closeModal} showToast={showToast} eventFrameToEdit={data!.eventFrameToEdit} />;
       case 'addAssignment':
-        return <AssignmentFormModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} setExpandedEventFrameId={setFilterToShowEventFrameId} />;
+        return <AssignmentFormModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} />;
       case 'editAssignment':
-        return <AssignmentFormModal onClose={closeModal} eventFrame={data!.eventFrame!} assignmentToEdit={data!.assignmentToEdit} showToast={showToast} setExpandedEventFrameId={setFilterToShowEventFrameId} />;
+        return <AssignmentFormModal onClose={closeModal} eventFrame={data!.eventFrame!} assignmentToEdit={data!.assignmentToEdit} showToast={showToast} />;
       
       case 'eventFrameDetails':
-        return <EventFrameDetailsModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} onShowOnList={handleShowOnList}/>;
+        return <EventFrameDetailsModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} />;
       case 'confirmHardReset':
         return <ConfirmDeleteModal
                   onClose={closeModal}
@@ -431,7 +591,7 @@ const App: React.FC = () => {
                   itemType="Marc d'Esdeveniment"
                   itemName={data!.itemName!}
                   onConfirm={() => {
-                    deleteEventFrame(data!.itemId!);
+                    if (data?.itemId) deleteEventFrame(data.itemId);
                   }}
                   showToast={showToast}
                 />;
@@ -442,7 +602,7 @@ const App: React.FC = () => {
                   itemType="Assignació"
                   itemName={data!.itemName!}
                   onConfirm={() => {
-                    deleteAssignment(data!.eventFrameId!, data!.assignmentId!);
+                    if (data?.eventFrameId && data?.assignmentId) deleteAssignment(data.eventFrameId, data.assignmentId);
                   }}
                   showToast={showToast}
                 />;
@@ -580,8 +740,6 @@ const App: React.FC = () => {
             <div className="container mx-auto p-2">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
-                  ref={controlsRef}
-                  mainDisplayRef={mainDisplayRef}
                   theme={theme}
                   toggleTheme={toggleTheme}
                   showToast={showToast}
@@ -602,12 +760,7 @@ const App: React.FC = () => {
                   path="/"
                   element={
                     <MainDisplay
-                      ref={mainDisplayRef}
                       setToastMessage={showToast}
-                      currentFilterHighlight={currentFilterHighlight}
-                      setCurrentFilterHighlight={setCurrentFilterHighlight}
-                      filterToShowEventFrameId={filterToShowEventFrameId}
-                      setFilterToShowEventFrameId={setFilterToShowEventFrameId}
                     />
                   }
                 />
