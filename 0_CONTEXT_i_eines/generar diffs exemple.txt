@@ -7,4 +7,4 @@ feature/undo-redo-functionality
 
 feature/animated-splash-screen
 
-git diff DEV..feature/zustand-modal-state > diff_per_arquitecte.txt
+git diff DEV..feature/animated-splash-screen > diff_per_arquitecte.txt
