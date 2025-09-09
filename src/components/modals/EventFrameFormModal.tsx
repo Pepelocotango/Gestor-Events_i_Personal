@@ -17,9 +17,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
   const eventFrames = useEventDataStore(state => state.eventFrames);
 
   const { setFormData, openModal } = useModalStore.getState();
-  const formData = useModalStore(state => state.formData);
-
-  const { name, place, startDate, endDate, generalNotes } = formData as Partial<EventFrame>;
+  const { name, place, startDate, endDate, generalNotes } = useModalStore(state => state.formData) as Partial<EventFrame>;
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   const [eventNameDatalistId] = useState(() => `event-name-datalist-${Math.random().toString(36).substring(2,9)}`);
