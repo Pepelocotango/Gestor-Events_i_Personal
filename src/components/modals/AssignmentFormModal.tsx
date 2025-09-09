@@ -19,8 +19,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
 
   const { setFormData, openModal } = useModalStore.getState();
-  const formData = useModalStore(state => state.formData);
-  const { personGroupId, startDate, endDate, status, notes } = formData as Partial<Assignment>;
+  const { personGroupId, startDate, endDate, status, notes } = useModalStore(state => state.formData) as Partial<Assignment>;
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isEditingMixed, setIsEditingMixed] = useState(false);
 
