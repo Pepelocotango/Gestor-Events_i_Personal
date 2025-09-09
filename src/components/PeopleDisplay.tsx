@@ -6,6 +6,7 @@ import { TrashIcon, EditIcon, CsvIcon, PdfIcon } from '../constants';
 import { exportPeopleToPdf } from '../utils/pdfGenerator';
 import { escapeCsvCell } from '../utils/csvUtils';
 import Tooltip from './ui/Tooltip';
+import AutosizeTextarea from './ui/AutosizeTextarea';
 
 interface PeopleDisplayProps {
   showToast: ShowToastFunction;
@@ -266,7 +267,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                     <div className="col-span-1 md:col-span-2">
                         <label htmlFor="pg-notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes (Opcional)</label>
                         <Tooltip text="Qualsevol informació addicional rellevant">
-                          <textarea id="pg-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={commonInputClass}></textarea>
+                          <AutosizeTextarea id="pg-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={`${commonInputClass} resize-none overflow-hidden`} />
                         </Tooltip>
                     </div>
                     <div className="flex justify-end space-x-2 pt-2">

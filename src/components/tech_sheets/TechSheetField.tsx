@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import Tooltip from '../ui/Tooltip';
+import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface TechSheetFieldProps {
   id: string;
@@ -29,7 +30,7 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   type = 'text',
   placeholder = '',
   as = 'input',
-  rows = 3,
+  rows = 1, // Default to 1 row for autosize to work correctly from a minimal height
   required = false,
   suggestions,
   disabled = false,
@@ -38,7 +39,7 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   className = '',
   tooltipText,
 }) => {
-  const baseClasses = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
+  const baseClasses = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm resize-none overflow-hidden";
   const disabledClasses = "disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed";
   const readOnlyClasses = "read-only:bg-gray-100 dark:read-only:bg-gray-500";
 
@@ -49,7 +50,7 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   const fieldContent = (
     <div className="flex-grow">
       {as === 'textarea' ? (
-        <textarea
+        <AutosizeTextarea
           id={id}
           name={id}
           value={value}

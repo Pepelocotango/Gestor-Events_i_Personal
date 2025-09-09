@@ -4,6 +4,7 @@ import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../constants';
 import { formatDateDMY } from '../../utils/dateFormat';
 import Tooltip from '../ui/Tooltip';
+import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { useModalStore } from '../../stores/modalStore';
 
 interface AssignmentFormProps {
@@ -199,7 +200,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
       </div>
       <div>
         <label htmlFor="as-notes" className="block text-sm font-medium">Notes (Opcional)</label>
-        <textarea id="as-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
+        <AutosizeTextarea id="as-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className={`${commonInputClass} resize-none overflow-hidden`} />
       </div>
       <div className="flex justify-end space-x-3 pt-4">
         <Tooltip text="Tancar el formulari sense desar canvis">

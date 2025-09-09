@@ -5,6 +5,7 @@ import { EventFrame, ShowToastFunction, InitialEventFrameData } from '../../type
 import { formatDateDMY } from '../../utils/dateFormat';
 import Tooltip from '../ui/Tooltip';
 import { useModalStore } from '../../stores/modalStore';
+import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface EventFrameFormProps {
   onClose: () => void;
@@ -150,7 +151,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
       <div>
         <label htmlFor="ef-generalNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals (Opcional)</label>
         <Tooltip text="Anotacions generals sobre l'esdeveniment">
-          <textarea id="ef-generalNotes" value={generalNotes} onChange={e => setGeneralNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
+          <AutosizeTextarea id="ef-generalNotes" value={generalNotes} onChange={e => setGeneralNotes(e.target.value)} rows={3} className={`${commonInputClass} resize-none overflow-hidden`} />
         </Tooltip>
       </div>
       <div className="flex justify-between items-center pt-2">

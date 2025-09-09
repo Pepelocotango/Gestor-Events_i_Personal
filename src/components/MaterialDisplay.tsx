@@ -5,6 +5,7 @@ import { TrashIcon, EditIcon, PdfIcon } from '../constants';
 import { exportMaterialToPdf } from '../utils/pdfGenerator';
 import CollapsibleSection from './ui/CollapsibleSection';
 import Tooltip from './ui/Tooltip';
+import AutosizeTextarea from './ui/AutosizeTextarea';
 
 const SortArrow = ({ direction }: { direction: 'ascending' | 'descending' | null }) => {
   if (!direction) return null;
@@ -252,7 +253,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
             <div>
               <label htmlFor="mat-notes" className="block text-sm font-medium">Notes</label>
               <Tooltip text="Anotacions addicionals sobre l'ítem (opcional)">
-                <textarea id="mat-notes" value={notes} onChange={e => setNotes(e.target.value)} className={commonInputClass} rows={3}></textarea>
+                <AutosizeTextarea id="mat-notes" value={notes} onChange={e => setNotes(e.target.value)} className={`${commonInputClass} resize-none overflow-hidden`} rows={3} />
               </Tooltip>
             </div>
             
