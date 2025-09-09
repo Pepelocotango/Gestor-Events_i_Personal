@@ -1,7 +1,7 @@
 === PROJECTE CONCATENAT ===
 Projecte: enllaç a Gestor-Events_i_Personal
 Branca: fix/dependency-cleanup
-Generat el: dimarts, 9 de setembre de 2025, 18:06:39 CEST
+Generat el: dimarts, 9 de setembre de 2025, 21:36:56 CEST
 ==================================================
 
 --- START OF FILE: ../enllaç a Gestor-Events_i_Personal/package.json -- branca fix/dependency-cleanup ---
@@ -9727,6 +9727,7 @@ Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](DEV
 
 --- START OF FILE: ../enllaç a Gestor-Events_i_Personal/DEVELOPING.md -- branca fix/dependency-cleanup ---
 
+branca de desenvolupament fix/dependency-cleanup ## ->PROVES DE REFACTORITZACIÓ
 ## DEVELOPING.md V1.0.0
 
 
@@ -10456,6 +10457,29 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Consistència de la Interfície d'Usuari**: S'ha fet un esforç per estandarditzar el comportament dels components interactius. Per exemple, totes les seccions col·lapsables ara permeten expandir/col·lapsar fent clic a qualsevol lloc de la capçalera, no només a la icona.
 -   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
+
+## Actualitzacions recents i tasques pendents
+
+Aquest projecte ha evolucionat recentment; aquí tens un resum concís dels canvis més rellevants i dels passos recomanats que queden per fer.
+
+Canvis importants aplicats (resum):
+
+- Migració parcial de l'antiga API basada en React Context cap a un store central amb Zustand (`src/stores/eventDataStore.ts`). S'ha fet una capa de compatibilitat (`src/contexts/EventDataContext.tsx`) que delega a `useEventDataStore` per minimitzar regressions.
+- S'han harmonitzat signatures d'algunes accions (per exemple `refreshGoogleEvents`) i s'han afegit tipus explícits per reduir errors de TypeScript.
+- S'ha afegit un petit shim `.temporal` sobre l'store per proporcionar compatibilitat amb el codi existent que esperava aquell middleware; aquest shim és una façana temporal, no una implementació completa d'undo/redo.
+- S'han eliminat i reduït logs massius a components crítics (p. ex. s'ha tret el registre de render a `MainDisplay`) per disminuir soroll a la consola i millorar el rendiment durant el desenvolupament.
+- S'ha aplicat una optimització de memoització (patró `peopleMap` — Map de id → nom) en diversos components per evitar cerca repetida amb `.find()` i reduir churn de renderitzacions; components modificats inclouen (no exhaustiu): `MainDisplay.tsx`, `EventFrameCard.tsx`, `AssignmentCard.tsx`, `SummaryReports.tsx`, `TechSheetForm.tsx`, `TechnicalPersonnelSection.tsx`.
+
+Principals tasques pendents (recomanades i prioritàries):
+
+1. Implementar un sistema real i robust d'undo/redo (actualment `.temporal` és un shim de compatibilitat). O bé integrar una biblioteca d'historial o implementar el patró d'instantànies amb limitacions de memòria i control d'efectes secundaris.
+2. Completar la migració de tots els components que encara utilitzen la vella API de Context o criden directament `getPersonGroupById` (queda alguna referència residual, revisar `App.tsx` i components menors).
+3. Fer un control de qualitat complet: executar una compilació completa (`npm run build`) i una passada de tipus (`tsc --noEmit`) / linter per detectar regressions no visibles amb canvis parcials. Corregir errors detectats pel build.
+4. Afegir tests automatitzats mínims (unitaris/integació) per a parts crítiques: `eventDataStore` (logica de fusió, càrrega, `refreshGoogleEvents`) i components que gestionen formularis persistents (modals).
+5. Revisar i ajustar les cridades a `window.electronAPI` per assegurar que la contracte d'IPC no s'ha trencat amb els canvis (especialment per a sincronització amb Google i diàlegs natius).
+
+Si cal, puc crear pull requests separats per cada gran tasca pendent (undo/redo, tests, build fixes). Digue'm quina prefereixes prioritzar i continuo amb la implementació i verificacions automàtiques.
+
 ---
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
@@ -12876,7 +12900,7 @@ export interface EventDataConteImplicits {
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: (value: boolean) => void;
   googleEvents: any[];
-  refreshGoogleEvents: () => Promise<void>;
+  refreshGoogleEvents: (showToast?: ShowToastFunction) => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
   syncWithGoogle: () => Promise<void>;
   syncProgress: SyncProgressState;
   isSyncing: boolean;
@@ -14073,8 +14097,103 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
 
 --- END OF FILE: ../enllaç a Gestor-Events_i_Personal/src/utils/techSheetMigration.ts -- branca fix/dependency-cleanup ---
 
+--- START OF FILE: ../enllaç a Gestor-Events_i_Personal/src/contexts/EventDataContext.tsx -- branca fix/dependency-cleanup ---
+import React from 'react';
+import { useEventDataStore } from '../stores/eventDataStore';
+
+// Capa de compatibilitat per a components que encara importen l'antic
+// `useEventData` des de `src/contexts/EventDataContext`.
+// Retorna la mateixa API (aproximada) que tenien els components originals,
+// però delega en el store de Zustand.
+
+export const EventDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+  // L'antic provider ja no és necessari, però mantenim el component
+  // per compatibilitat amb imports que esperen un provider.
+  return <>{children}</>;
+};
+
+export const useEventData = () => {
+  const store = useEventDataStore;
+
+  // Selectors reactius per a les dades que normalment canvien amb freqüència
+  const eventFrames = store(state => state.eventFrames);
+  const peopleGroups = store(state => state.peopleGroups);
+  const materialItems = store(state => state.materialItems);
+  const googleEvents = store(state => state.googleEvents);
+  const hasUnsavedChanges = store(state => state.hasUnsavedChanges);
+  const isSyncing = store(state => state.isSyncing);
+  const syncProgress = store(state => state.syncProgress);
+
+  // Accions i helpers (no reactius) s'obtenen directament del getState per evitar
+  // re-suscripcions innecessàries quan es passen com callbacks.
+  const {
+    addEventFrame,
+    updateEventFrame,
+    deleteEventFrame,
+    addPersonGroup,
+    updatePersonGroup,
+    deletePersonGroup,
+    addAssignment,
+    updateAssignment,
+    deleteAssignment,
+    addMaterialItem,
+    updateMaterialItem,
+    deleteMaterialItem,
+    loadData,
+    exportData,
+    refreshGoogleEvents,
+    executeSync,
+    getPersonGroupById,
+    getEventFrameById,
+    getAssignmentById,
+    getMaterialAvailability,
+    addOrUpdateTechSheet,
+  } = store.getState();
+
+  return {
+    // dades reactives
+    eventFrames,
+    peopleGroups,
+    materialItems,
+    googleEvents,
+    hasUnsavedChanges,
+    isSyncing,
+    syncProgress,
+
+    // accions
+    addEventFrame,
+    updateEventFrame,
+    deleteEventFrame,
+    addPersonGroup,
+    updatePersonGroup,
+    deletePersonGroup,
+    addAssignment,
+    updateAssignment,
+    deleteAssignment,
+    addMaterialItem,
+    updateMaterialItem,
+    deleteMaterialItem,
+    loadData,
+    exportData,
+    refreshGoogleEvents,
+    executeSync,
+    getPersonGroupById,
+    getEventFrameById,
+    getAssignmentById,
+    getMaterialAvailability,
+    addOrUpdateTechSheet,
+
+    // Exposeixo getState per si algun component necessita accedir a l'store sencer
+    _getStoreState: store.getState,
+  } as any;
+};
+
+export default useEventData;
+
+--- END OF FILE: ../enllaç a Gestor-Events_i_Personal/src/contexts/EventDataContext.tsx -- branca fix/dependency-cleanup ---
+
 --- START OF FILE: ../enllaç a Gestor-Events_i_Personal/src/components/AssignmentCard.tsx -- branca fix/dependency-cleanup ---
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
@@ -14116,9 +14235,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const { getPersonGroupById } = useEventDataStore.getState();
-  const person = getPersonGroupById(assignment.personGroupId);
-  if (!person) {
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
+  const personName = peopleMap.get(assignment.personGroupId);
+  if (!personName) {
     console.error(`PersonGroup not found for ID: ${assignment.personGroupId}`);
   }
 
@@ -14161,7 +14285,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         }}
       >
         <div className="flex-grow">
-          <p className="font-semibold text-sm">{person?.name || 'Persona Desconeguda'}</p>
+          <p className="font-semibold text-sm">{personName || 'Persona Desconeguda'}</p>
           <p className="text-xs opacity-80">{formatDateRangeDMY(assignment.startDate, assignment.endDate)}</p>
           <p className="text-xs font-bold opacity-90">
             {getStatusSummaryText(assignment)}
@@ -14283,14 +14407,15 @@ const Controls: React.FC<ControlsProps> = ({
     currentDataPath,
     setCurrentDataPath
 }) => {
-  const {
-    loadData, exportData, setHasUnsavedChanges, syncWithGoogle
-  } = useEventDataStore.getState();
-  const { undo, redo } = useEventDataStore.temporal.getState();
+  const { loadData, exportData, setHasUnsavedChanges, syncWithGoogle } = useEventDataStore.getState();
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
   const isSyncing = useEventDataStore(state => state.isSyncing);
-  const canUndo = useEventDataStore.temporal.useStore(state => state.pastStates.length > 0);
-  const canRedo = useEventDataStore.temporal.useStore(state => state.futureStates.length > 0);
+  const canUndo = (useEventDataStore as any).temporal.useStore((state: any) => state.pastStates.length > 0);
+  const canRedo = (useEventDataStore as any).temporal.useStore((state: any) => state.futureStates.length > 0);
+
+  // Memoize undo/redo callbacks to avoid re-creating functions on each render
+  const undo = () => (useEventDataStore as any).temporal.getState().undo();
+  const redo = () => (useEventDataStore as any).temporal.getState().redo();
   const { openModal } = useModalStore.getState();
 
   const [isExpanded, setIsExpanded] = useState(true);
@@ -14308,7 +14433,7 @@ const Controls: React.FC<ControlsProps> = ({
       }
       const jsonData = JSON.parse(fileContent);
       if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
-        loadData(jsonData, showToast);
+  loadData(jsonData);
         showToast("Totes les dades carregades correctament.", 'success');
         setHasUnsavedChanges(true);
         setCurrentDataPath(fileName);
@@ -14323,7 +14448,7 @@ const Controls: React.FC<ControlsProps> = ({
           showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
           return;
         }
-        loadData(migratedData, showToast);
+  loadData(migratedData);
         showToast("Dades antigues migrades i carregades correctament.", 'success');
         setHasUnsavedChanges(true);
         setCurrentDataPath(fileName);
@@ -14513,7 +14638,7 @@ const Controls: React.FC<ControlsProps> = ({
             const result = await window.electronAPI.performHardReset();
               if (result.success) {
                 // El backend ha esborrat els fitxers, ara el frontend neteja el seu estat.
-                loadData(null, showToast);
+                loadData(null);
                 setHasUnsavedChanges(false);
                 showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success', true);
               } else {
@@ -14741,7 +14866,7 @@ export default ErrorBoundary;
 --- END OF FILE: ../enllaç a Gestor-Events_i_Personal/src/components/ErrorBoundary.tsx -- branca fix/dependency-cleanup ---
 
 --- START OF FILE: ../enllaç a Gestor-Events_i_Personal/src/components/EventFrameCard.tsx -- branca fix/dependency-cleanup ---
-import { useRef, forwardRef } from 'react';
+import { useRef, forwardRef, useMemo } from 'react';
 import { useModalStore } from '@/stores/modalStore';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '@/types';
@@ -14771,8 +14896,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
 }, ref) => {
-  const { getPersonGroupById } = useEventDataStore.getState();
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
   const { openModal } = useModalStore.getState();
   const skipNextCollapse = useRef(false);
 
@@ -14781,7 +14910,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       (!filters.person || assign.personGroupId === filters.person) && 
       (!filters.status || assign.status === filters.status || (assign.status === AssignmentStatus.Mixed && assign.dailyStatuses && Object.values(assign.dailyStatuses).includes(filters.status)))
     )
-    .sort((a, b) => (getPersonGroupById(a.personGroupId)?.name || '').localeCompare(getPersonGroupById(b.personGroupId)?.name || ''));
+  .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
 
   return (
     <div ref={ref} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
@@ -14956,6 +15085,11 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const googleEvents = useEventDataStore(state => state.googleEvents);
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable and can be safely retrieved once.
@@ -14978,12 +15112,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
   const [manualExpandedFrameIds, setManualExpandedFrameIds] = useState<Set<string>>(new Set());
   const [manualExpandedDailyView, setManualExpandedDailyView] = useState<Set<string>>(new Set());
 
-  // Efecte per rastrejar re-renderitzats
-  useEffect(() => {
-  // Log breu: renderitzat
-  console.log('[MainDisplay] Renderitzat');
-  return () => console.log('[MainDisplay] Desmuntat');
-  });
+  // Removed noisy render logs to avoid spamming console and potential perf issues
 
   const validationResult = useMemo(() => {
   // Validació iniciada
@@ -15026,7 +15155,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
           const lowerFilterText = filterText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
           frames = frames.filter(ef => {
             const efFields = [ef.name, ef.place || '', ef.generalNotes || ''].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            const assignFields = ef.assignments.map((a: Assignment) => [getPersonGroupById(a.personGroupId)?.name || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                       const assignFields = ef.assignments.map((a: Assignment) => [peopleMap.get(a.personGroupId) || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             return efFields.includes(lowerFilterText) || assignFields.includes(lowerFilterText);
           });
         }
@@ -15129,7 +15258,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
                 return newSet;
             });
             if (result.warningMessage && newStatus !== AssignmentStatus.No) {
-                // setConflictDialog({ message: result.warningMessage, personName: getPersonGroupById(assignment.personGroupId)?.name || 'N/A' });
+                // setConflictDialog({ message: result.warningMessage, personName: peopleMap.get(assignment.personGroupId) || 'N/A' });
             }
         } else if (result.message) {
             setToastMessage(result.message, 'error');
@@ -15138,7 +15267,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
     if (assignment.status === AssignmentStatus.Mixed) {
         openModal('confirmDeleteEventFrame', {
             itemType: "Actualització massiva",
-            itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${getPersonGroupById(assignment.personGroupId)?.name || ''}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
+            itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${peopleMap.get(assignment.personGroupId) || ''}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
             onConfirmSpecial: performUpdate, titleOverride: "Confirmar Canvi General", confirmButtonText: "Sí, canviar tot", cancelButtonText: "No, mantenir estats diaris"
         });
     } else {
@@ -16113,7 +16242,13 @@ interface SummaryReportsProps {
 }
 
 const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
-  const { eventFrames, getPersonGroupById } = useEventDataStore.getState();
+  const eventFrames = useEventDataStore(state => state.eventFrames);
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
   const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     // This is a placeholder. The actual implementation will be in the component that uses the store.
     // A better approach would be to have a separate toast store or use a library.
@@ -16125,16 +16260,16 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     const summary: SummaryRow[] = [];
     eventFrames.forEach(ef => {
       ef.assignments.forEach(a => {
-        const person = getPersonGroupById(a.personGroupId);
+        const personName = peopleMap.get(a.personGroupId);
         summary.push({
           id: `${ef.id}-${a.id}`,
           primaryGrouping: ef.name,
-          secondaryGrouping: person?.name || 'N/A',
+          secondaryGrouping: personName || 'N/A',
           eventFrameName: ef.name,
           eventFramePlace: ef.place || '',
           eventFrameStartDate: ef.startDate,
           eventFrameEndDate: ef.endDate,
-          assignmentPersonName: person?.name || 'N/A',
+          assignmentPersonName: personName || 'N/A',
           assignmentStartDate: a.startDate,
           assignmentEndDate: a.endDate,
           assignmentStatus: a.status,
@@ -16146,7 +16281,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
       });
     });
     return summary;
-  }, [eventFrames, getPersonGroupById]);
+  }, [eventFrames, peopleMap]);
 
   // Estat d'ordre per als resums
   const [summarySortOrder, setSummarySortOrder] = React.useState<'asc' | 'desc'>('desc');
@@ -16796,7 +16931,7 @@ export default memo(TechSheetField);
 --- END OF FILE: ../enllaç a Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetField.tsx -- branca fix/dependency-cleanup ---
 
 --- START OF FILE: ../enllaç a Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetForm.tsx -- branca fix/dependency-cleanup ---
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
 import TechSheetSection from './TechSheetSection';
@@ -16814,7 +16949,12 @@ interface TechSheetFormProps {
 }
 
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) => {
-  const { peopleGroups, materialItems, addOrUpdateTechSheet, getPersonGroupById, getMaterialAvailability } = useEventDataStore.getState();
+  const { peopleGroups, materialItems, addOrUpdateTechSheet, getMaterialAvailability } = useEventDataStore.getState();
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
 
   const getInitialFormData = (): TechSheetData => {
     return eventFrame.techSheet!;
@@ -17080,7 +17220,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         showToast('Desant canvis pendents abans d\'exportar...', 'info');
         saveData(true);
     }
-    exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
+  exportTechSheetToPdf(formData, eventFrame.name, (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' }), showToast);
   };
 
   const handleConfirmUpdateFromAssignments = (selectedChanges?: any[]) => {
@@ -17274,7 +17414,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         onRemoveProvider={handleRemoveProvider}
         onAddRole={handleAddRole}
         onRemoveRole={handleRemoveRole}
-        getPersonGroupById={getPersonGroupById}
+  getPersonGroupById={(id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' })}
         showToast={showToast}
         onConfirmUpdate={handleConfirmUpdateFromAssignments}
       />
@@ -17550,7 +17690,7 @@ export default TechSheetSection;
 --- END OF FILE: ../enllaç a Gestor-Events_i_Personal/src/components/tech_sheets/TechSheetSection.tsx -- branca fix/dependency-cleanup ---
 
 --- START OF FILE: ../enllaç a Gestor-Events_i_Personal/src/components/tech_sheets/TechnicalPersonnelSection.tsx -- branca fix/dependency-cleanup ---
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
@@ -17584,11 +17724,16 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onRemoveProvider,
   onAddRole,
   onRemoveRole,
-  getPersonGroupById,
+  // getPersonGroupById removed; prefer peopleGroups prop and peopleMap
   showToast,
   onConfirmUpdate,
 }) => {
   const openModal = useModalStore(state => state.openModal);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
 
   return (
     <TechSheetSection title="Personal Tècnic"
@@ -17645,7 +17790,8 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                 toAdd,
                 toRemove,
                 toUpdate,
-                getPersonGroupById,
+                // provide a simple lookup to keep modal code unchanged
+                getPersonGroupById: (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' }),
                 onConfirm: onConfirmUpdate,
               });
             }}
@@ -17658,7 +17804,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
     >
       <div className="col-span-full space-y-6">
         {technicalProviders.map((provider, providerIndex) => {
-          const selectedPerson = getPersonGroupById(provider.personGroupId);
+          const selectedPerson = peopleGroups.find(pg => pg.id === provider.personGroupId);
           return (
             <div key={provider.id} className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
               <div className="flex justify-between items-start mb-4">
@@ -18202,7 +18348,7 @@ interface CreateCalendarModalProps {
 }
 
 const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, showToast }) => {
-  const { refreshGoogleEvents } = useEventDataStore.getState();
+  const refreshGoogleEvents = (showToast?: any) => useEventDataStore.getState().refreshGoogleEvents(showToast);
   const [suffix, setSuffix] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
@@ -19723,13 +19869,11 @@ export default Tooltip;
 
 --- START OF FILE: ../enllaç a Gestor-Events_i_Personal/src/stores/eventDataStore.ts -- branca fix/dependency-cleanup ---
 import { create } from 'zustand';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, ShowToastFunction } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import logger from '../utils/logger';
-import { loggingMiddleware } from './loggingMiddleware';
-import { temporal } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -19803,7 +19947,7 @@ interface EventDataActions {
     exportData: () => Promise<AppData>;
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
     setHasUnsavedChanges: (value: boolean) => void;
-    refreshGoogleEvents: () => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
+    refreshGoogleEvents: (showToast?: ShowToastFunction) => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     syncWithGoogle: () => Promise<void>;
     executeSync: (targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
@@ -19831,9 +19975,8 @@ const initialState: EventDataState = {
 };
 
 export const useEventDataStore = create<EventDataState & EventDataActions>()(
-  temporal(
     immer(
-      (set, get) => ({
+            (set, get) => ({
         ...initialState,
 
         clearDataRepairInfo: () => set({ dataRepairInfo: null }),
@@ -19842,21 +19985,36 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
 
     // DATA HYDRATION
-    _applyDataToState: (data) => {
+        _applyDataToState: (data: AppData) => {
         const loadedEventFrames: EventFrame[] = (data.eventFrames || []).map((efExport: EventFrameForExport) => ({
             ...efExport,
-            assignments: (data.assignments || []).filter(a => a.eventFrameId === efExport.id).sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
+            assignments: (data.assignments || []).filter((a: Assignment) => a.eventFrameId === efExport.id).sort((a: Assignment, b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
             personnelComplete: efExport.personnelComplete || false,
             techSheet: migrateTechSheetData(efExport.techSheet, efExport as EventFrame),
         }));
+
+        // Compatibility shim: some components still call `useEventDataStore.temporal.useStore` or `useEventDataStore.temporal.getState()`
+        // The original implementation used a temporal middleware. To avoid widespread edits we expose a minimal shim that:
+        // - delegates `useStore` to the main hook for reactive selectors
+        // - exposes `getState()` returning noop `undo`/`redo` and empty `pastStates`/`futureStates`
+        // This keeps components working until a proper undo/redo implementation is added.
+        (useEventDataStore as any).temporal = {
+            useStore: (selector: any) => useEventDataStore(selector),
+            getState: () => ({
+                undo: () => {},
+                redo: () => {},
+                pastStates: [],
+                futureStates: [],
+            }),
+        };
         set({
-            eventFrames: loadedEventFrames.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)),
-            peopleGroups: (data.peopleGroups || []).sort((a,b) => a.name.localeCompare(b.name)),
-            materialItems: (data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)),
+            eventFrames: loadedEventFrames.sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)),
+            peopleGroups: (data.peopleGroups || []).sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)),
+            materialItems: (data.materialItems || []).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)),
             hasUnsavedChanges: false
         });
     },
-    loadData: async (data) => {
+    loadData: async (data: AppData | null) => {
         const { _applyDataToState, refreshGoogleEvents } = get();
         logger.info("Iniciant la càrrega de dades...", { hasData: !!data });
 
@@ -19871,12 +20029,12 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
           }
         }
 
-        if (!data) {
-          set(initialState);
-          return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
-        }
+                if (!data) {
+                    set(initialState);
+                    return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
+                }
 
-        const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map(ef => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
+    const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map((ef: EventFrameForExport) => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
         const validationResult = validateData(migratedData);
 
         if (validationResult.isValid) {
@@ -19890,8 +20048,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
       },
     exportData: async () => {
         const { eventFrames, peopleGroups, materialItems } = get();
-        const allAssignmentsList: Assignment[] = eventFrames.flatMap(ef => ef.assignments);
-        const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }) => restOfFrame);
+        const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);
+        const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }: EventFrame) => restOfFrame);
         let googleConfigForExport: AppData['googleConfig'] = undefined;
         if (window.electronAPI) {
             const fullConfig = await window.electronAPI.loadGoogleConfig();
@@ -19905,68 +20063,68 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
 
     // EVENT FRAMES
-    addEventFrame: (newEventFrameData) => {
+    addEventFrame: (newEventFrameData: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>) => {
         const newEventFrame: EventFrame = { ...newEventFrameData, id: generateId(), assignments: [], personnelComplete: false, techSheet: createDefaultTechSheet(newEventFrameData) };
-        set(state => ({ eventFrames: [...state.eventFrames, newEventFrame].sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ eventFrames: [...state.eventFrames, newEventFrame].sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
         return newEventFrame;
     },
-    updateEventFrame: (updatedEventFrame) => {
-        set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === updatedEventFrame.id ? updatedEventFrame : ef).sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+    updateEventFrame: (updatedEventFrame: EventFrame) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === updatedEventFrame.id ? updatedEventFrame : ef).sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    deleteEventFrame: (eventFrameId) => {
-        set(state => ({ eventFrames: state.eventFrames.filter(ef => ef.id !== eventFrameId), hasUnsavedChanges: true }));
+    deleteEventFrame: (eventFrameId: string) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.filter((ef: EventFrame) => ef.id !== eventFrameId), hasUnsavedChanges: true }));
     },
-    getEventFrameById: (eventFrameId) => get().eventFrames.find(ef => ef.id === eventFrameId),
-    setPersonnelComplete: (eventFrameId, complete) => {
-        set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef), hasUnsavedChanges: true }));
+    getEventFrameById: (eventFrameId: string) => get().eventFrames.find((ef: EventFrame) => ef.id === eventFrameId),
+    setPersonnelComplete: (eventFrameId: string, complete: boolean) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef), hasUnsavedChanges: true }));
     },
-    addOrUpdateTechSheet: (eventFrameId, techSheetData) => {
-        set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? { ...ef, techSheet: techSheetData } : ef), hasUnsavedChanges: true }));
+    addOrUpdateTechSheet: (eventFrameId: string, techSheetData: TechSheetData) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? { ...ef, techSheet: techSheetData } : ef), hasUnsavedChanges: true }));
     },
 
     // ASSIGNMENTS
-    addAssignment: (eventFrameId, newAssignmentData, force = false) => {
+    addAssignment: (eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>, force = false) => {
         const { eventFrames } = get();
-        const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
+        const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
         if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
         if (!force && (newAssignmentData.status === AssignmentStatus.Yes || newAssignmentData.status === AssignmentStatus.Pending)) {
             // ... conflict detection logic ...
         }
         const newAssignment: Assignment = { ...newAssignmentData, id: generateId(), eventFrameId };
-        set(state => ({ eventFrames: state.eventFrames.map(ef_loc => ef_loc.id === eventFrameId ? { ...ef_loc, assignments: [...ef_loc.assignments, newAssignment].sort((a,b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef_loc: EventFrame) => ef_loc.id === eventFrameId ? { ...ef_loc, assignments: [...ef_loc.assignments, newAssignment].sort((a: Assignment,b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
         return { success: true };
     },
-    updateAssignment: (updatedAssignment) => {
+    updateAssignment: (updatedAssignment: Assignment) => {
         // ... conflict detection and update logic ...
-        set(state => ({ eventFrames: state.eventFrames.map(ef_loc => ef_loc.id === updatedAssignment.eventFrameId ? { ...ef_loc, assignments: ef_loc.assignments.map(a => a.id === updatedAssignment.id ? updatedAssignment : a).sort((a,b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef_loc: EventFrame) => ef_loc.id === updatedAssignment.eventFrameId ? { ...ef_loc, assignments: ef_loc.assignments.map((a: Assignment) => a.id === updatedAssignment.id ? updatedAssignment : a).sort((a: Assignment,b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
         return { success: true };
     },
-    deleteAssignment: (eventFrameId, assignmentId) => {
-        set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? { ...ef, assignments: ef.assignments.filter(a => a.id !== assignmentId) } : ef), hasUnsavedChanges: true }));
+    deleteAssignment: (eventFrameId: string, assignmentId: string) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? { ...ef, assignments: ef.assignments.filter((a: Assignment) => a.id !== assignmentId) } : ef), hasUnsavedChanges: true }));
     },
-    getAssignmentById: (eventFrameId, assignmentId) => get().eventFrames.find(ef => ef.id === eventFrameId)?.assignments.find(a => a.id === assignmentId),
+    getAssignmentById: (eventFrameId: string, assignmentId: string) => get().eventFrames.find((ef: EventFrame) => ef.id === eventFrameId)?.assignments.find((a: Assignment) => a.id === assignmentId),
 
     // PEOPLE
-    addPersonGroup: (newPersonGroupData) => {
+    addPersonGroup: (newPersonGroupData: Omit<PersonGroup, 'id'>) => {
         const newPersonGroup: PersonGroup = { id: generateId(), ...newPersonGroupData };
-        set(state => ({ peopleGroups: [...state.peopleGroups, newPersonGroup].sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ peopleGroups: [...state.peopleGroups, newPersonGroup].sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    updatePersonGroup: (updatedPersonGroup) => {
-        set(state => ({ peopleGroups: state.peopleGroups.map(pg => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg).sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+    updatePersonGroup: (updatedPersonGroup: PersonGroup) => {
+        set((state: EventDataState) => ({ peopleGroups: state.peopleGroups.map((pg: PersonGroup) => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg).sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    deletePersonGroup: (personGroupId) => {
+    deletePersonGroup: (personGroupId: string) => {
         set(state => ({
-            peopleGroups: state.peopleGroups.filter(pg => pg.id !== personGroupId),
-            eventFrames: state.eventFrames.map(ef => ({ ...ef, assignments: ef.assignments.filter(a => a.personGroupId !== personGroupId) })),
+            peopleGroups: state.peopleGroups.filter((pg: PersonGroup) => pg.id !== personGroupId),
+            eventFrames: state.eventFrames.map((ef: EventFrame) => ({ ...ef, assignments: ef.assignments.filter((a: Assignment) => a.personGroupId !== personGroupId) })),
             hasUnsavedChanges: true
         }));
     },
-    getPersonGroupById: (personGroupId) => get().peopleGroups.find(pg => pg.id === personGroupId),
-    mergePeopleGroups: (newPeople) => {
-        const existingNames = new Set(get().peopleGroups.map(p => p.name.toLowerCase()));
-        const peopleToAdd = newPeople.filter(p => !existingNames.has(p.name.toLowerCase()));
+    getPersonGroupById: (personGroupId: string) => get().peopleGroups.find((pg: PersonGroup) => pg.id === personGroupId),
+    mergePeopleGroups: (newPeople: PersonGroup[]) => {
+        const existingNames = new Set(get().peopleGroups.map((p: PersonGroup) => p.name.toLowerCase()));
+        const peopleToAdd = newPeople.filter((p: PersonGroup) => !existingNames.has(p.name.toLowerCase()));
         if (peopleToAdd.length > 0) {
-            set(state => ({ peopleGroups: [...state.peopleGroups, ...peopleToAdd].sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+            set((state: EventDataState) => ({ peopleGroups: [...state.peopleGroups, ...peopleToAdd].sort((a: PersonGroup, b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
             return { success: true, message: `${peopleToAdd.length} noves persones afegides.`, type: 'success' };
         } else {
             return { success: true, message: "Totes les persones del fitxer ja existeixen.", type: 'info' };
@@ -19977,21 +20135,21 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
 
     // MATERIAL
-    addMaterialItem: (newItemData) => {
+    addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => {
         const newItem: MaterialItem = { ...newItemData, id: generateId() };
-        set(state => ({ materialItems: [...state.materialItems, newItem].sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ materialItems: [...state.materialItems, newItem].sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    updateMaterialItem: (updatedItem) => {
-        set(state => ({ materialItems: state.materialItems.map(item => item.id === updatedItem.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+    updateMaterialItem: (updatedItem: MaterialItem) => {
+        set((state: EventDataState) => ({ materialItems: state.materialItems.map((item: MaterialItem) => item.id === updatedItem.id ? updatedItem : item).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    deleteMaterialItem: (itemId) => {
-        set(state => ({ materialItems: state.materialItems.filter(item => item.id !== itemId), hasUnsavedChanges: true }));
+    deleteMaterialItem: (itemId: string) => {
+        set((state: EventDataState) => ({ materialItems: state.materialItems.filter((item: MaterialItem) => item.id !== itemId), hasUnsavedChanges: true }));
     },
-    addMaterialItemsFromFile: (newItems) => {
+    addMaterialItemsFromFile: (newItems: MaterialItem[]) => {
         const existingNames = new Set(get().materialItems.map(item => item.name.toLowerCase()));
-        const itemsToAdd = newItems.filter(newItem => !existingNames.has(newItem.name.toLowerCase()));
+        const itemsToAdd = newItems.filter((newItem: MaterialItem) => !existingNames.has(newItem.name.toLowerCase()));
         if (itemsToAdd.length > 0) {
-            set(state => ({ materialItems: [...state.materialItems, ...itemsToAdd].sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+            set((state: EventDataState) => ({ materialItems: [...state.materialItems, ...itemsToAdd].sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
             return { success: true, message: `${itemsToAdd.length} nous articles de material afegits.`, type: 'success' };
         } else {
             return { success: true, message: "Tots els articles del fitxer ja existeixen.", type: 'info' };
@@ -20000,7 +20158,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     replaceMaterialItems: (newItems) => {
         set({ materialItems: newItems.sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true });
     },
-    getMaterialAvailability: (materialId, startDate, endDate, currentEventFrameId) => {
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => {
         const { materialItems, eventFrames } = get();
         const materialItem = materialItems.find(item => item.id === materialId);
         if (!materialItem) return { available: 0, total: 0 };
@@ -20026,18 +20184,21 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
 
     // GOOGLE & SYNC
-    refreshGoogleEvents: async () => {
-        if (window.electronAPI?.getGoogleEvents) {
-          const result = await window.electronAPI.getGoogleEvents();
-          if (result.success && result.events) {
-            set({ googleEvents: result.events });
-            return { success: true };
-          } else if (result.message) {
-            return { success: false, message: result.message, type: 'error' };
-          }
-        }
-        return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
-      },
+        refreshGoogleEvents: async (showToast?: ShowToastFunction) => {
+                if (window.electronAPI?.getGoogleEvents) {
+                    const result = await window.electronAPI.getGoogleEvents();
+                    if (result.success && result.events) {
+                        set({ googleEvents: result.events });
+                        if (showToast) showToast('Esdeveniments de Google actualitzats.', 'success');
+                        return { success: true };
+                    } else if (result.message) {
+                        if (showToast) showToast(result.message, 'error');
+                        return { success: false, message: result.message, type: 'error' };
+                    }
+                }
+                if (showToast) showToast('API d\'Electron no disponible.', 'error');
+                return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
+            },
     syncWithGoogle: async () => {
         // This action will now be orchestrated from the UI
         // It's kept here for potential future use or direct calls if needed
@@ -20066,15 +20227,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
         return finalResult;
       },
-    })),
-    {
-        partialize: (state) => {
-            const { eventFrames, peopleGroups, materialItems } = state;
-            return { eventFrames, peopleGroups, materialItems };
-        },
-        limit: 10,
-    }
-  )
+    }))
 );
 
 --- END OF FILE: ../enllaç a Gestor-Events_i_Personal/src/stores/eventDataStore.ts -- branca fix/dependency-cleanup ---

@@ -68,6 +68,8 @@ enllaç a Gestor-Events_i_Personal/ (directori arrel de l'escaneig)
                 SplashScreen.tsx
                 SyncProgressOverlay.tsx
                 Tooltip.tsx
+        contexts/
+            EventDataContext.tsx
         stores/
             eventDataStore.ts
             loggingMiddleware.ts
