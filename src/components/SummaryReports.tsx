@@ -14,7 +14,12 @@ interface SummaryReportsProps {
 
 const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
   const eventFrames = useEventDataStore(state => state.eventFrames);
-  const getPersonGroupById = useEventDataStore.getState().getPersonGroupById;
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
   const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     // This is a placeholder. The actual implementation will be in the component that uses the store.
     // A better approach would be to have a separate toast store or use a library.
@@ -26,16 +31,16 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     const summary: SummaryRow[] = [];
     eventFrames.forEach(ef => {
       ef.assignments.forEach(a => {
-        const person = getPersonGroupById(a.personGroupId);
+        const personName = peopleMap.get(a.personGroupId);
         summary.push({
           id: `${ef.id}-${a.id}`,
           primaryGrouping: ef.name,
-          secondaryGrouping: person?.name || 'N/A',
+          secondaryGrouping: personName || 'N/A',
           eventFrameName: ef.name,
           eventFramePlace: ef.place || '',
           eventFrameStartDate: ef.startDate,
           eventFrameEndDate: ef.endDate,
-          assignmentPersonName: person?.name || 'N/A',
+          assignmentPersonName: personName || 'N/A',
           assignmentStartDate: a.startDate,
           assignmentEndDate: a.endDate,
           assignmentStatus: a.status,
@@ -47,7 +52,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
       });
     });
     return summary;
-  }, [eventFrames, getPersonGroupById]);
+  }, [eventFrames, peopleMap]);
 
   // Estat d'ordre per als resums
   const [summarySortOrder, setSummarySortOrder] = React.useState<'asc' | 'desc'>('desc');
