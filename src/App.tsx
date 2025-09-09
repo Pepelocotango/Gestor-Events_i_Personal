@@ -59,6 +59,7 @@ const App: React.FC = () => {
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const canUndo = useEventDataStore(state => state.canUndo);
   const canRedo = useEventDataStore(state => state.canRedo);
+  const syncProgress = useEventDataStore(state => state.syncProgress);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable functions, so we can get them once with getState().
@@ -129,14 +130,14 @@ const App: React.FC = () => {
   const [loadingOverlayMessage, setLoadingOverlayMessage] = useState('');
 
   useEffect(() => {
-    if (isSyncing && !useEventDataStore.getState().syncProgress.visible) {
+    if (isSyncing && !syncProgress.visible) {
       setLoadingOverlayMessage('Sincronitzant amb Google Calendar...');
       setIsLoadingOverlayVisible(true);
-    } else if (!isSyncing && !useEventDataStore.getState().syncProgress.visible) {
+    } else if (!isSyncing && !syncProgress.visible) {
       setIsLoadingOverlayVisible(false);
       setLoadingOverlayMessage('');
     }
-  }, [isSyncing]);
+  }, [isSyncing, syncProgress.visible]);
 
 
   useEffect(() => {
@@ -804,10 +805,10 @@ const App: React.FC = () => {
           {toastState && <Toast toast={toastState} />}
 
           <Suspense fallback={<div></div>}>
-            <SyncProgressOverlay progress={useEventDataStore.getState().syncProgress} />
+            <SyncProgressOverlay progress={syncProgress} />
           </Suspense>
 
-          {isLoadingOverlayVisible && !useEventDataStore.getState().syncProgress.visible && (
+          {isLoadingOverlayVisible && !syncProgress.visible && (
             <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
               <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

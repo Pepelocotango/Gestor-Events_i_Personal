@@ -28,11 +28,9 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
 }, ref) => {
-  const { getPersonGroupById, peopleGroups } = useEventDataStore(state => ({
-    getPersonGroupById: state.getPersonGroupById,
-    peopleGroups: state.peopleGroups,
-  }));
-  const openModal = useModalStore(state => state.openModal);
+  const { getPersonGroupById } = useEventDataStore.getState();
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const { openModal } = useModalStore.getState();
   const skipNextCollapse = useRef(false);
 
   const filteredAssignments = eventFrame.assignments
