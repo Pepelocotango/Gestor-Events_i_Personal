@@ -4,8 +4,6 @@ import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import logger from '../utils/logger';
-import { loggingMiddleware } from './loggingMiddleware';
-import { temporal } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -107,9 +105,8 @@ const initialState: EventDataState = {
 };
 
 export const useEventDataStore = create<EventDataState & EventDataActions>()(
-  temporal(
     immer(
-      (set, get) => ({
+            (set, get) => ({
         ...initialState,
 
         clearDataRepairInfo: () => set({ dataRepairInfo: null }),
@@ -118,21 +115,36 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
 
     // DATA HYDRATION
-    _applyDataToState: (data) => {
+        _applyDataToState: (data: AppData) => {
         const loadedEventFrames: EventFrame[] = (data.eventFrames || []).map((efExport: EventFrameForExport) => ({
             ...efExport,
-            assignments: (data.assignments || []).filter(a => a.eventFrameId === efExport.id).sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
+            assignments: (data.assignments || []).filter((a: Assignment) => a.eventFrameId === efExport.id).sort((a: Assignment, b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
             personnelComplete: efExport.personnelComplete || false,
             techSheet: migrateTechSheetData(efExport.techSheet, efExport as EventFrame),
         }));
+
+        // Compatibility shim: some components still call `useEventDataStore.temporal.useStore` or `useEventDataStore.temporal.getState()`
+        // The original implementation used a temporal middleware. To avoid widespread edits we expose a minimal shim that:
+        // - delegates `useStore` to the main hook for reactive selectors
+        // - exposes `getState()` returning noop `undo`/`redo` and empty `pastStates`/`futureStates`
+        // This keeps components working until a proper undo/redo implementation is added.
+        (useEventDataStore as any).temporal = {
+            useStore: (selector: any) => useEventDataStore(selector),
+            getState: () => ({
+                undo: () => {},
+                redo: () => {},
+                pastStates: [],
+                futureStates: [],
+            }),
+        };
         set({
-            eventFrames: loadedEventFrames.sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)),
-            peopleGroups: (data.peopleGroups || []).sort((a,b) => a.name.localeCompare(b.name)),
-            materialItems: (data.materialItems || []).sort((a,b) => a.name.localeCompare(b.name)),
+            eventFrames: loadedEventFrames.sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)),
+            peopleGroups: (data.peopleGroups || []).sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)),
+            materialItems: (data.materialItems || []).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)),
             hasUnsavedChanges: false
         });
     },
-    loadData: async (data) => {
+    loadData: async (data: AppData | null) => {
         const { _applyDataToState, refreshGoogleEvents } = get();
         logger.info("Iniciant la càrrega de dades...", { hasData: !!data });
 
@@ -147,12 +159,12 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
           }
         }
 
-        if (!data) {
-          set(initialState);
-          return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
-        }
+                if (!data) {
+                    set(initialState);
+                    return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
+                }
 
-        const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map(ef => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
+    const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map((ef: EventFrameForExport) => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
         const validationResult = validateData(migratedData);
 
         if (validationResult.isValid) {
@@ -166,8 +178,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
       },
     exportData: async () => {
         const { eventFrames, peopleGroups, materialItems } = get();
-        const allAssignmentsList: Assignment[] = eventFrames.flatMap(ef => ef.assignments);
-        const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }) => restOfFrame);
+        const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);
+        const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }: EventFrame) => restOfFrame);
         let googleConfigForExport: AppData['googleConfig'] = undefined;
         if (window.electronAPI) {
             const fullConfig = await window.electronAPI.loadGoogleConfig();
@@ -181,68 +193,68 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
 
     // EVENT FRAMES
-    addEventFrame: (newEventFrameData) => {
+    addEventFrame: (newEventFrameData: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>) => {
         const newEventFrame: EventFrame = { ...newEventFrameData, id: generateId(), assignments: [], personnelComplete: false, techSheet: createDefaultTechSheet(newEventFrameData) };
-        set(state => ({ eventFrames: [...state.eventFrames, newEventFrame].sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ eventFrames: [...state.eventFrames, newEventFrame].sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
         return newEventFrame;
     },
-    updateEventFrame: (updatedEventFrame) => {
-        set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === updatedEventFrame.id ? updatedEventFrame : ef).sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+    updateEventFrame: (updatedEventFrame: EventFrame) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === updatedEventFrame.id ? updatedEventFrame : ef).sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    deleteEventFrame: (eventFrameId) => {
-        set(state => ({ eventFrames: state.eventFrames.filter(ef => ef.id !== eventFrameId), hasUnsavedChanges: true }));
+    deleteEventFrame: (eventFrameId: string) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.filter((ef: EventFrame) => ef.id !== eventFrameId), hasUnsavedChanges: true }));
     },
-    getEventFrameById: (eventFrameId) => get().eventFrames.find(ef => ef.id === eventFrameId),
-    setPersonnelComplete: (eventFrameId, complete) => {
-        set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef), hasUnsavedChanges: true }));
+    getEventFrameById: (eventFrameId: string) => get().eventFrames.find((ef: EventFrame) => ef.id === eventFrameId),
+    setPersonnelComplete: (eventFrameId: string, complete: boolean) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef), hasUnsavedChanges: true }));
     },
-    addOrUpdateTechSheet: (eventFrameId, techSheetData) => {
-        set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? { ...ef, techSheet: techSheetData } : ef), hasUnsavedChanges: true }));
+    addOrUpdateTechSheet: (eventFrameId: string, techSheetData: TechSheetData) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? { ...ef, techSheet: techSheetData } : ef), hasUnsavedChanges: true }));
     },
 
     // ASSIGNMENTS
-    addAssignment: (eventFrameId, newAssignmentData, force = false) => {
+    addAssignment: (eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>, force = false) => {
         const { eventFrames } = get();
-        const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
+        const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
         if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
         if (!force && (newAssignmentData.status === AssignmentStatus.Yes || newAssignmentData.status === AssignmentStatus.Pending)) {
             // ... conflict detection logic ...
         }
         const newAssignment: Assignment = { ...newAssignmentData, id: generateId(), eventFrameId };
-        set(state => ({ eventFrames: state.eventFrames.map(ef_loc => ef_loc.id === eventFrameId ? { ...ef_loc, assignments: [...ef_loc.assignments, newAssignment].sort((a,b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef_loc: EventFrame) => ef_loc.id === eventFrameId ? { ...ef_loc, assignments: [...ef_loc.assignments, newAssignment].sort((a: Assignment,b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
         return { success: true };
     },
-    updateAssignment: (updatedAssignment) => {
+    updateAssignment: (updatedAssignment: Assignment) => {
         // ... conflict detection and update logic ...
-        set(state => ({ eventFrames: state.eventFrames.map(ef_loc => ef_loc.id === updatedAssignment.eventFrameId ? { ...ef_loc, assignments: ef_loc.assignments.map(a => a.id === updatedAssignment.id ? updatedAssignment : a).sort((a,b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef_loc: EventFrame) => ef_loc.id === updatedAssignment.eventFrameId ? { ...ef_loc, assignments: ef_loc.assignments.map((a: Assignment) => a.id === updatedAssignment.id ? updatedAssignment : a).sort((a: Assignment,b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
         return { success: true };
     },
-    deleteAssignment: (eventFrameId, assignmentId) => {
-        set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? { ...ef, assignments: ef.assignments.filter(a => a.id !== assignmentId) } : ef), hasUnsavedChanges: true }));
+    deleteAssignment: (eventFrameId: string, assignmentId: string) => {
+        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? { ...ef, assignments: ef.assignments.filter((a: Assignment) => a.id !== assignmentId) } : ef), hasUnsavedChanges: true }));
     },
-    getAssignmentById: (eventFrameId, assignmentId) => get().eventFrames.find(ef => ef.id === eventFrameId)?.assignments.find(a => a.id === assignmentId),
+    getAssignmentById: (eventFrameId: string, assignmentId: string) => get().eventFrames.find((ef: EventFrame) => ef.id === eventFrameId)?.assignments.find((a: Assignment) => a.id === assignmentId),
 
     // PEOPLE
-    addPersonGroup: (newPersonGroupData) => {
+    addPersonGroup: (newPersonGroupData: Omit<PersonGroup, 'id'>) => {
         const newPersonGroup: PersonGroup = { id: generateId(), ...newPersonGroupData };
-        set(state => ({ peopleGroups: [...state.peopleGroups, newPersonGroup].sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ peopleGroups: [...state.peopleGroups, newPersonGroup].sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    updatePersonGroup: (updatedPersonGroup) => {
-        set(state => ({ peopleGroups: state.peopleGroups.map(pg => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg).sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+    updatePersonGroup: (updatedPersonGroup: PersonGroup) => {
+        set((state: EventDataState) => ({ peopleGroups: state.peopleGroups.map((pg: PersonGroup) => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg).sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    deletePersonGroup: (personGroupId) => {
+    deletePersonGroup: (personGroupId: string) => {
         set(state => ({
-            peopleGroups: state.peopleGroups.filter(pg => pg.id !== personGroupId),
-            eventFrames: state.eventFrames.map(ef => ({ ...ef, assignments: ef.assignments.filter(a => a.personGroupId !== personGroupId) })),
+            peopleGroups: state.peopleGroups.filter((pg: PersonGroup) => pg.id !== personGroupId),
+            eventFrames: state.eventFrames.map((ef: EventFrame) => ({ ...ef, assignments: ef.assignments.filter((a: Assignment) => a.personGroupId !== personGroupId) })),
             hasUnsavedChanges: true
         }));
     },
-    getPersonGroupById: (personGroupId) => get().peopleGroups.find(pg => pg.id === personGroupId),
-    mergePeopleGroups: (newPeople) => {
-        const existingNames = new Set(get().peopleGroups.map(p => p.name.toLowerCase()));
-        const peopleToAdd = newPeople.filter(p => !existingNames.has(p.name.toLowerCase()));
+    getPersonGroupById: (personGroupId: string) => get().peopleGroups.find((pg: PersonGroup) => pg.id === personGroupId),
+    mergePeopleGroups: (newPeople: PersonGroup[]) => {
+        const existingNames = new Set(get().peopleGroups.map((p: PersonGroup) => p.name.toLowerCase()));
+        const peopleToAdd = newPeople.filter((p: PersonGroup) => !existingNames.has(p.name.toLowerCase()));
         if (peopleToAdd.length > 0) {
-            set(state => ({ peopleGroups: [...state.peopleGroups, ...peopleToAdd].sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+            set((state: EventDataState) => ({ peopleGroups: [...state.peopleGroups, ...peopleToAdd].sort((a: PersonGroup, b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
             return { success: true, message: `${peopleToAdd.length} noves persones afegides.`, type: 'success' };
         } else {
             return { success: true, message: "Totes les persones del fitxer ja existeixen.", type: 'info' };
@@ -253,21 +265,21 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
 
     // MATERIAL
-    addMaterialItem: (newItemData) => {
+    addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => {
         const newItem: MaterialItem = { ...newItemData, id: generateId() };
-        set(state => ({ materialItems: [...state.materialItems, newItem].sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => ({ materialItems: [...state.materialItems, newItem].sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    updateMaterialItem: (updatedItem) => {
-        set(state => ({ materialItems: state.materialItems.map(item => item.id === updatedItem.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+    updateMaterialItem: (updatedItem: MaterialItem) => {
+        set((state: EventDataState) => ({ materialItems: state.materialItems.map((item: MaterialItem) => item.id === updatedItem.id ? updatedItem : item).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
-    deleteMaterialItem: (itemId) => {
-        set(state => ({ materialItems: state.materialItems.filter(item => item.id !== itemId), hasUnsavedChanges: true }));
+    deleteMaterialItem: (itemId: string) => {
+        set((state: EventDataState) => ({ materialItems: state.materialItems.filter((item: MaterialItem) => item.id !== itemId), hasUnsavedChanges: true }));
     },
-    addMaterialItemsFromFile: (newItems) => {
+    addMaterialItemsFromFile: (newItems: MaterialItem[]) => {
         const existingNames = new Set(get().materialItems.map(item => item.name.toLowerCase()));
-        const itemsToAdd = newItems.filter(newItem => !existingNames.has(newItem.name.toLowerCase()));
+        const itemsToAdd = newItems.filter((newItem: MaterialItem) => !existingNames.has(newItem.name.toLowerCase()));
         if (itemsToAdd.length > 0) {
-            set(state => ({ materialItems: [...state.materialItems, ...itemsToAdd].sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+            set((state: EventDataState) => ({ materialItems: [...state.materialItems, ...itemsToAdd].sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
             return { success: true, message: `${itemsToAdd.length} nous articles de material afegits.`, type: 'success' };
         } else {
             return { success: true, message: "Tots els articles del fitxer ja existeixen.", type: 'info' };
@@ -276,7 +288,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     replaceMaterialItems: (newItems) => {
         set({ materialItems: newItems.sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true });
     },
-    getMaterialAvailability: (materialId, startDate, endDate, currentEventFrameId) => {
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => {
         const { materialItems, eventFrames } = get();
         const materialItem = materialItems.find(item => item.id === materialId);
         if (!materialItem) return { available: 0, total: 0 };
@@ -345,13 +357,5 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
         return finalResult;
       },
-    })),
-    {
-        partialize: (state) => {
-            const { eventFrames, peopleGroups, materialItems } = state;
-            return { eventFrames, peopleGroups, materialItems };
-        },
-        limit: 10,
-    }
-  )
+    }))
 );
