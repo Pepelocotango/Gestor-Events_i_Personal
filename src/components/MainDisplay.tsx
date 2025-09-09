@@ -53,16 +53,21 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
 }) => {
   const calendarRef = useRef<FullCalendar>(null);
   const openModal = useModalStore(state => state.openModal);
+
+  // --- State from Zustand Store (Reactive) ---
+  const eventFrames = useEventDataStore(state => state.eventFrames);
+  const googleEvents = useEventDataStore(state => state.googleEvents);
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
+
+  // --- Actions from Zustand Store (Non-reactive) ---
+  // Actions are stable and can be safely retrieved once.
   const {
     getPersonGroupById,
     getEventFrameById,
     getAssignmentById,
     updateAssignment,
     updateEventFrame,
-    eventFrames,
-    googleEvents,
-    peopleGroups
-  } = useEventDataStore();
+  } = useEventDataStore.getState();
 
   const [filterText, setFilterText] = useState('');
   const [filterStatus, setFilterStatus] = useState<AssignmentStatus | ''>('');
