@@ -7,6 +7,7 @@ import Modal from './components/ui/Modal';
 import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
+import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { migrateData, validateMigratedData } from './utils/dataMigration';
 
@@ -58,8 +59,8 @@ const App: React.FC = () => {
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const syncProgress = useEventDataStore(state => state.syncProgress);
-  const canUndo = useEventDataStore.temporal.useStore(state => state.pastStates.length > 0);
-  const canRedo = useEventDataStore.temporal.useStore(state => state.futureStates.length > 0);
+  const canUndo = useStore(useEventDataStore.temporal, state => state.pastStates.length > 0);
+  const canRedo = useStore(useEventDataStore.temporal, state => state.futureStates.length > 0);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable functions, so we can get them once with getState().
@@ -267,7 +268,7 @@ const App: React.FC = () => {
           try {
             const result = await window.electronAPI.performHardReset();
               if (result.success) {
-                loadDataFromManager(null, showToast);
+                loadDataFromManager(null);
                 setHasUnsavedChanges(false);
                 showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success', true);
               } else {
@@ -506,8 +507,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
+    const { undo, redo } = useEventDataStore.temporal.getState();
+
     if (window.electronAPI) {
-      const { undo, redo } = useEventDataStore.temporal.getState();
       const cleanup = window.electronAPI.onMenuAction((action) => {
         logger.info(`[Menu] Acció rebuda: ${action}`);
         switch (action) {
@@ -564,7 +566,7 @@ const App: React.FC = () => {
 
       return cleanup;
     }
-  }, [openModalFromStore, closeModal, undo, redo, canUndo, canRedo, hasUnsavedChanges]);
+  }, [openModalFromStore, closeModal, canUndo, canRedo, hasUnsavedChanges]);
 
   useEffect(() => {
     if (window.electronAPI?.onFileDataLoaded) {

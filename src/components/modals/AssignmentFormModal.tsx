@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useEffect, FormEvent } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../constants';

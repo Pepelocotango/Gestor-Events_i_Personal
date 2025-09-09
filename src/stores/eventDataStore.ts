@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { temporal } from 'zundo';
 import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, ShowToastFunction } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
@@ -105,45 +106,32 @@ const initialState: EventDataState = {
 };
 
 export const useEventDataStore = create<EventDataState & EventDataActions>()(
-    immer(
-            (set, get) => ({
-        ...initialState,
+    temporal(
+        immer(
+                (set, get) => ({
+            ...initialState,
 
-        clearDataRepairInfo: () => set({ dataRepairInfo: null }),
+            clearDataRepairInfo: () => set({ dataRepairInfo: null }),
 
-    // UTILS
-    setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
+        // UTILS
+        setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
 
-    // DATA HYDRATION
-        _applyDataToState: (data: AppData) => {
-        const loadedEventFrames: EventFrame[] = (data.eventFrames || []).map((efExport: EventFrameForExport) => ({
-            ...efExport,
-            assignments: (data.assignments || []).filter((a: Assignment) => a.eventFrameId === efExport.id).sort((a: Assignment, b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
-            personnelComplete: efExport.personnelComplete || false,
-            techSheet: migrateTechSheetData(efExport.techSheet, efExport as EventFrame),
-        }));
+        // DATA HYDRATION
+            _applyDataToState: (data: AppData) => {
+            const loadedEventFrames: EventFrame[] = (data.eventFrames || []).map((efExport: EventFrameForExport) => ({
+                ...efExport,
+                assignments: (data.assignments || []).filter((a: Assignment) => a.eventFrameId === efExport.id).sort((a: Assignment, b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
+                personnelComplete: efExport.personnelComplete || false,
+                techSheet: migrateTechSheetData(efExport.techSheet, efExport as EventFrame),
+            }));
 
-        // Compatibility shim: some components still call `useEventDataStore.temporal.useStore` or `useEventDataStore.temporal.getState()`
-        // The original implementation used a temporal middleware. To avoid widespread edits we expose a minimal shim that:
-        // - delegates `useStore` to the main hook for reactive selectors
-        // - exposes `getState()` returning noop `undo`/`redo` and empty `pastStates`/`futureStates`
-        // This keeps components working until a proper undo/redo implementation is added.
-        (useEventDataStore as any).temporal = {
-            useStore: (selector: any) => useEventDataStore(selector),
-            getState: () => ({
-                undo: () => {},
-                redo: () => {},
-                pastStates: [],
-                futureStates: [],
-            }),
-        };
-        set({
-            eventFrames: loadedEventFrames.sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)),
-            peopleGroups: (data.peopleGroups || []).sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)),
-            materialItems: (data.materialItems || []).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)),
-            hasUnsavedChanges: false
-        });
-    },
+            set({
+                eventFrames: loadedEventFrames.sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)),
+                peopleGroups: (data.peopleGroups || []).sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)),
+                materialItems: (data.materialItems || []).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)),
+                hasUnsavedChanges: false
+            });
+        },
     loadData: async (data: AppData | null) => {
         const { _applyDataToState, refreshGoogleEvents } = get();
         logger.info("Iniciant la càrrega de dades...", { hasData: !!data });
@@ -357,5 +345,9 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
         return finalResult;
       },
-    }))
+    })),
+    {
+      limit: 20,
+    }
+  )
 );
