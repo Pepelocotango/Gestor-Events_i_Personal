@@ -308,9 +308,11 @@ const App: React.FC = () => {
           logger.info("[Startup] App.tsx: Cridant a window.electronAPI.loadAppData().");
           const data = await window.electronAPI.loadAppData();
           logger.info("[Startup] App.tsx: Dades rebudes del backend. Cridant a loadDataFromManager.");
-          const result = await loadData(data, showToast);
+          const result = await loadData(data);
 
-          if (result.status === 'needs_confirmation') {
+          if (result.status === 'ok' && result.message) {
+            showToast(result.message, result.type);
+          } else if (result.status === 'needs_confirmation') {
             const dataRepairInfo = useEventDataStore.getState().dataRepairInfo;
             if (dataRepairInfo) {
                 openModal('confirmDataRepair', {
@@ -327,12 +329,14 @@ const App: React.FC = () => {
                     fixes: result.fixes,
                 });
             }
+          } else if (result.status === 'error' && result.message) {
+            showToast(result.message, result.type);
           }
           setHasUnsavedChanges(false);
         } catch (error) {
           console.error('Error carregant dades de l\'aplicació via Electron:', error);
           showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
-          loadData(null, showToast);
+          await loadData(null);
           setHasUnsavedChanges(false);
         }
         if (window.electronAPI?.getDefaultDataPath) {
@@ -352,7 +356,7 @@ const App: React.FC = () => {
         }
       } else {
         console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
-        loadData(null, showToast);
+        await loadData(null);
         setHasUnsavedChanges(false);
         setSplashConfigLoaded(true);
       }
@@ -405,18 +409,18 @@ const App: React.FC = () => {
     }
   }, [showToast]);
 
-  const processAllData = (fileContent: string, fileName: string) => {
+  const processAllData = async (fileContent: string, fileName: string) => {
     try {
       if (!fileContent) {
         showToast("Error: El contingut del fitxer està buit.", 'error');
         return;
       }
       const jsonData = JSON.parse(fileContent);
+      let dataToLoad = null;
+      let isMigrated = false;
+
       if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
-        loadDataFromManager(jsonData, showToast);
-        showToast("Totes les dades carregades correctament.", 'success');
-        setHasUnsavedChanges(true);
-        setCurrentDataPath(fileName);
+        dataToLoad = jsonData;
       } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
         const migratedData = migrateData(
           { people: jsonData.people || [] },
@@ -428,12 +432,24 @@ const App: React.FC = () => {
           showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
           return;
         }
-        loadDataFromManager(migratedData, showToast);
-        showToast("Dades antigues migrades i carregades correctament.", 'success');
-        setHasUnsavedChanges(true);
-        setCurrentDataPath(fileName);
+        dataToLoad = migratedData;
+        isMigrated = true;
       } else {
         showToast("Error: El format del fitxer JSON no és vàlid.", 'error');
+        return;
+      }
+
+      if (dataToLoad) {
+        const result = await loadDataFromManager(dataToLoad);
+        if (result.status === 'ok') {
+          const message = isMigrated ? "Dades antigues migrades i carregades correctament." : "Totes les dades carregades correctament.";
+          showToast(message, 'success');
+          setHasUnsavedChanges(true);
+          setCurrentDataPath(fileName);
+        } else if (result.status === 'error') {
+          showToast(result.message || 'Error desconegut durant la càrrega.', result.type || 'error');
+        }
+        // El cas 'needs_confirmation' ja el gestiona el listener de l'efecte inicial, si s'escau
       }
     } catch (error) {
       showToast(`Error en processar les dades: ${(error as Error).message}`, 'error');
@@ -640,18 +656,24 @@ const App: React.FC = () => {
             onClose={closeModal}
             itemType={data!.itemType!}
             onMerge={() => {
+              let result;
               if (data?.itemType === 'persones' && data.newData) {
-                mergePeopleGroups(data.newData as PersonGroup[], showToast);
+                result = mergePeopleGroups(data.newData as PersonGroup[]);
               } else if (data?.itemType === 'material' && data.newData) {
-                addMaterialItemsFromFile(data.newData as MaterialItem[], showToast);
+                result = addMaterialItemsFromFile(data.newData as MaterialItem[]);
+              }
+              if (result) {
+                showToast(result.message, result.type);
               }
               closeModal();
             }}
             onReplace={() => {
               if (data?.itemType === 'persones' && data.newData) {
                 replacePeopleGroups(data.newData as PersonGroup[]);
+                showToast('Llista de persones reemplaçada.', 'success');
               } else if (data?.itemType === 'material' && data.newData) {
                 replaceMaterialItems(data.newData as MaterialItem[]);
+                showToast('Inventari de material reemplaçat.', 'success');
               }
               closeModal();
             }}

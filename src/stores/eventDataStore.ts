@@ -78,20 +78,20 @@ interface EventDataActions {
     updateAssignment: (assignment: Assignment, force?: boolean, context?: { changedDate?: string }) => AssignmentOperationResult;
     deleteAssignment: (eventFrameId: string, assignmentId: string) => void;
     getAssignmentById: (eventFrameId: string, assignmentId: string) => Assignment | undefined;
-    loadData: (data: AppData | null, showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void) => Promise<{ status: 'ok' | 'needs_confirmation'; fixes?: string[] }>;
+    loadData: (data: AppData | null) => Promise<{ status: 'ok' | 'needs_confirmation' | 'error'; fixes?: string[], message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     exportData: () => Promise<AppData>;
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
     setHasUnsavedChanges: (value: boolean) => void;
-    refreshGoogleEvents: (showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void) => Promise<void>;
+    refreshGoogleEvents: () => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     syncWithGoogle: () => Promise<void>;
-    executeSync: (targetCalendarId: string) => Promise<void>;
+    executeSync: (targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
     addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => void;
     updateMaterialItem: (updatedItem: MaterialItem) => void;
     deleteMaterialItem: (itemId: string) => void;
-    addMaterialItemsFromFile: (newItems: MaterialItem[], showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void) => void;
+    addMaterialItemsFromFile: (newItems: MaterialItem[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
     getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
-    mergePeopleGroups: (newPeople: PersonGroup[], showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void) => void;
+    mergePeopleGroups: (newPeople: PersonGroup[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
     replacePeopleGroups: (newPeople: PersonGroup[]) => void;
     replaceMaterialItems: (newItems: MaterialItem[]) => void;
     undo: () => void;
@@ -193,36 +193,38 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             hasUnsavedChanges: false
         });
     },
-    loadData: async (data, showToast) => {
+    loadData: async (data) => {
         const { _applyDataToState, refreshGoogleEvents } = get();
         logger.info("Iniciant la càrrega de dades...", { hasData: !!data });
+
         if (data?.googleConfig && window.electronAPI) {
-            try {
-                await window.electronAPI.saveGoogleConfig(data.googleConfig);
-                showToast("Configuració de Google carregada des del fitxer.", 'info');
-                window.dispatchEvent(new CustomEvent('googleConfigChanged'));
-                await refreshGoogleEvents(showToast);
-            } catch (error) {
-                logger.error("Error desant la configuració de Google del fitxer:", { error });
-                showToast("No s'ha pogut actualitzar la configuració de Google del fitxer.", 'error');
-            }
+          try {
+            await window.electronAPI.saveGoogleConfig(data.googleConfig);
+            window.dispatchEvent(new CustomEvent('googleConfigChanged'));
+            await refreshGoogleEvents();
+          } catch (error) {
+            logger.error("Error desant la configuració de Google del fitxer:", { error });
+            return { status: 'error', message: "No s'ha pogut actualitzar la configuració de Google del fitxer.", type: 'error' };
+          }
         }
+
         if (!data) {
-            set(initialState);
-            return { status: 'ok' };
+          set(initialState);
+          return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
         }
+
         const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map(ef => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
         const validationResult = validateData(migratedData);
+
         if (validationResult.isValid) {
-            _applyDataToState(migratedData);
-            showToast("Dades carregades amb èxit.", 'success');
-            return { status: 'ok' };
+          _applyDataToState(migratedData);
+          return { status: 'ok', message: "Dades carregades amb èxit.", type: 'success' };
         } else {
-            const { repairedData, fixes } = repairData(migratedData, validationResult.errors);
-            set({ dataRepairInfo: { repairedData, fixes } });
-            return { status: 'needs_confirmation', fixes };
+          const { repairedData, fixes } = repairData(migratedData, validationResult.errors);
+          set({ dataRepairInfo: { repairedData, fixes } });
+          return { status: 'needs_confirmation', fixes };
         }
-    },
+      },
     exportData: async () => {
         const { eventFrames, peopleGroups, materialItems } = get();
         const allAssignmentsList: Assignment[] = eventFrames.flatMap(ef => ef.assignments);
@@ -308,15 +310,15 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         }));
     },
     getPersonGroupById: (personGroupId) => get().peopleGroups.find(pg => pg.id === personGroupId),
-    mergePeopleGroups: (newPeople, showToast) => {
+    mergePeopleGroups: (newPeople) => {
         get().saveStateToHistory();
         const existingNames = new Set(get().peopleGroups.map(p => p.name.toLowerCase()));
         const peopleToAdd = newPeople.filter(p => !existingNames.has(p.name.toLowerCase()));
         if (peopleToAdd.length > 0) {
             set(state => ({ peopleGroups: [...state.peopleGroups, ...peopleToAdd].sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
-            showToast(`${peopleToAdd.length} noves persones afegides.`, 'success');
+            return { success: true, message: `${peopleToAdd.length} noves persones afegides.`, type: 'success' };
         } else {
-            showToast("Totes les persones del fitxer ja existeixen.", 'info');
+            return { success: true, message: "Totes les persones del fitxer ja existeixen.", type: 'info' };
         }
     },
     replacePeopleGroups: (newPeople) => {
@@ -338,15 +340,15 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         get().saveStateToHistory();
         set(state => ({ materialItems: state.materialItems.filter(item => item.id !== itemId), hasUnsavedChanges: true }));
     },
-    addMaterialItemsFromFile: (newItems, showToast) => {
+    addMaterialItemsFromFile: (newItems) => {
         get().saveStateToHistory();
         const existingNames = new Set(get().materialItems.map(item => item.name.toLowerCase()));
         const itemsToAdd = newItems.filter(newItem => !existingNames.has(newItem.name.toLowerCase()));
         if (itemsToAdd.length > 0) {
             set(state => ({ materialItems: [...state.materialItems, ...itemsToAdd].sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
-            showToast(`${itemsToAdd.length} nous articles de material afegits.`, 'success');
+            return { success: true, message: `${itemsToAdd.length} nous articles de material afegits.`, type: 'success' };
         } else {
-            showToast("Tots els articles del fitxer ja existeixen.", 'info');
+            return { success: true, message: "Tots els articles del fitxer ja existeixen.", type: 'info' };
         }
     },
     replaceMaterialItems: (newItems) => {
@@ -379,13 +381,18 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
 
     // GOOGLE & SYNC
-    refreshGoogleEvents: async (showToast) => {
+    refreshGoogleEvents: async () => {
         if (window.electronAPI?.getGoogleEvents) {
-            const result = await window.electronAPI.getGoogleEvents();
-            if (result.success && result.events) set({ googleEvents: result.events });
-            else if (result.message) showToast(result.message, 'error');
+          const result = await window.electronAPI.getGoogleEvents();
+          if (result.success && result.events) {
+            set({ googleEvents: result.events });
+            return { success: true };
+          } else if (result.message) {
+            return { success: false, message: result.message, type: 'error' };
+          }
         }
-    },
+        return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
+      },
     syncWithGoogle: async () => {
         // This action will now be orchestrated from the UI
         // It's kept here for potential future use or direct calls if needed
@@ -393,20 +400,27 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
     executeSync: async (targetCalendarId) => {
         const { exportData, loadData, refreshGoogleEvents } = get();
+        let finalResult: any = { success: false, message: 'La sincronització no es va completar.', type: 'error' };
+
         set({ isSyncing: true, syncProgress: { current: 0, total: 0, message: 'Iniciant...', visible: true } });
+
         if (window.electronAPI) {
-            const localData = await exportData();
-            const result = await window.electronAPI.syncWithGoogle({ localData, targetCalendarId });
-            if (result.success && result.data) {
-                loadData(result.data, (msg, type) => console.log(`[TOAST] ${type}: ${msg}`)); // Placeholder for toast
-                await refreshGoogleEvents((msg, type) => console.log(`[TOAST] ${type}: ${msg}`));
-            } else if (result.code === 'CALENDAR_NOT_FOUND') {
-                // This case should also be handled in the UI
-                await refreshGoogleEvents((msg, type) => console.log(`[TOAST] ${type}: ${msg}`));
-            }
+          const localData = await exportData();
+          const result = await window.electronAPI.syncWithGoogle({ localData, targetCalendarId });
+
+          if (result.success && result.data) {
+            await loadData(result.data);
+            await refreshGoogleEvents();
+            finalResult = { success: true, message: result.message || 'Sincronització completada.', type: 'success' };
+          } else {
+            await refreshGoogleEvents();
+            finalResult = { success: false, message: result.message || 'Error desconegut durant la sincronització.', type: 'error', code: result.code };
+          }
         }
+
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
-    },
+        return finalResult;
+      },
     }),
     'eventDataStore'
   )
