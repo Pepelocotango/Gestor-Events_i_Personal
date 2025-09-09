@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, ShowToastFunction } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
@@ -79,7 +79,7 @@ interface EventDataActions {
     exportData: () => Promise<AppData>;
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
     setHasUnsavedChanges: (value: boolean) => void;
-    refreshGoogleEvents: () => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
+    refreshGoogleEvents: (showToast?: ShowToastFunction) => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     syncWithGoogle: () => Promise<void>;
     executeSync: (targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
@@ -302,18 +302,21 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
 
     // GOOGLE & SYNC
-    refreshGoogleEvents: async () => {
-        if (window.electronAPI?.getGoogleEvents) {
-          const result = await window.electronAPI.getGoogleEvents();
-          if (result.success && result.events) {
-            set({ googleEvents: result.events });
-            return { success: true };
-          } else if (result.message) {
-            return { success: false, message: result.message, type: 'error' };
-          }
-        }
-        return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
-      },
+        refreshGoogleEvents: async (showToast?: ShowToastFunction) => {
+                if (window.electronAPI?.getGoogleEvents) {
+                    const result = await window.electronAPI.getGoogleEvents();
+                    if (result.success && result.events) {
+                        set({ googleEvents: result.events });
+                        if (showToast) showToast('Esdeveniments de Google actualitzats.', 'success');
+                        return { success: true };
+                    } else if (result.message) {
+                        if (showToast) showToast(result.message, 'error');
+                        return { success: false, message: result.message, type: 'error' };
+                    }
+                }
+                if (showToast) showToast('API d\'Electron no disponible.', 'error');
+                return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
+            },
     syncWithGoogle: async () => {
         // This action will now be orchestrated from the UI
         // It's kept here for potential future use or direct calls if needed

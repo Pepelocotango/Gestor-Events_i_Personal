@@ -13,7 +13,8 @@ interface SummaryReportsProps {
 }
 
 const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
-  const { eventFrames, getPersonGroupById } = useEventDataStore.getState();
+  const eventFrames = useEventDataStore(state => state.eventFrames);
+  const getPersonGroupById = useEventDataStore.getState().getPersonGroupById;
   const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     // This is a placeholder. The actual implementation will be in the component that uses the store.
     // A better approach would be to have a separate toast store or use a library.

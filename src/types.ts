@@ -303,7 +303,7 @@ export interface EventDataConteImplicits {
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: (value: boolean) => void;
   googleEvents: any[];
-  refreshGoogleEvents: () => Promise<void>;
+  refreshGoogleEvents: (showToast?: ShowToastFunction) => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
   syncWithGoogle: () => Promise<void>;
   syncProgress: SyncProgressState;
   isSyncing: boolean;
