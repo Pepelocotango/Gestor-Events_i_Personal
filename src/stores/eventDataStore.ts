@@ -106,12 +106,12 @@ const initialState: EventDataState = {
 };
 
 export const useEventDataStore = create<EventDataState & EventDataActions>()(
-    temporal(
-        immer(
-                (set, get) => ({
-            ...initialState,
+  temporal(
+    immer(
+      (set, get) => ({
+        ...initialState,
 
-            clearDataRepairInfo: () => set({ dataRepairInfo: null }),
+        clearDataRepairInfo: () => set({ dataRepairInfo: null }),
 
         // UTILS
         setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
@@ -347,6 +347,10 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
       },
     })),
     {
+      partialize: (state) => {
+        const { eventFrames, peopleGroups, materialItems } = state;
+        return { eventFrames, peopleGroups, materialItems };
+      },
       limit: 20,
     }
   )
