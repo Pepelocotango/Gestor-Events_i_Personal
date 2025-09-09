@@ -73,11 +73,13 @@ const App: React.FC = () => {
   const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
 
   const clearToastMessage = (toastId: string) => {
+    console.log(`[TOAST] Clear message with ID: ${toastId}`);
     setToastState(prevState => (prevState?.id === toastId ? null : prevState));
   };
   
   const showToast: ShowToastFunction = useCallback((message, type = 'success', persistent = false) => {
     const id = `${Date.now()}-${Math.random()}`;
+    console.log(`[TOAST] Show message: ${message}, Type: ${type}, Persistent: ${persistent}`);
     setToastState({ id, message, type: type || 'success', persistent });
     if (!persistent) {
       setTimeout(() => clearToastMessage(id), 2000);
@@ -541,13 +543,14 @@ const App: React.FC = () => {
     if (window.electronAPI?.onFileDataLoaded) {
       const cleanup = window.electronAPI.onFileDataLoaded((data) => {
         logger.info('[IPC] Dades de fitxer rebudes des del menú', { type: data.type, fileName: data.fileName });
-        if (data.type === 'all') {
-          processAllData(data.content, data.fileName);
-        } else if (data.type === 'material') {
-          processMaterialData(data.content);
-        } else if (data.type === 'people') {
-          processPeopleData(data.content);
-        }
+        const { content, fileName } = data;
+        if (typeof content === 'string' && typeof fileName === 'string') {
+            processAllData(content, fileName);
+            processMaterialData(content);
+            processPeopleData(content);
+          } else {
+            console.error('Data content or fileName is undefined or not a string.');
+          }
       });
       return cleanup;
     }

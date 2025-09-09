@@ -42,6 +42,16 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 }) => {
   const { getPersonGroupById } = useEventDataStore.getState();
   const person = getPersonGroupById(assignment.personGroupId);
+  if (!person) {
+    console.error(`PersonGroup not found for ID: ${assignment.personGroupId}`);
+  }
+
+  // Ensure assignment and eventFrame are valid
+  if (!assignment || !eventFrame) {
+    console.error('Invalid assignment or eventFrame passed to AssignmentCard:', { assignment, eventFrame });
+    return null;
+  }
+
   const isMultiDay = assignment.startDate !== assignment.endDate;
   const skipNextCollapse = useRef(false);
 

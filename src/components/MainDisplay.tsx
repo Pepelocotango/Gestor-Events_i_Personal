@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction, SummaryRow } from '../types';
+import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../types';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon, CsvIcon } from '../constants';
+import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -12,11 +12,8 @@ import interactionPlugin from '@fullcalendar/interaction';
 import multiMonthPlugin from '@fullcalendar/multimonth';
 import caLocale from '@fullcalendar/core/locales/ca';
 import SummaryReports from './SummaryReports';
-import Modal from './ui/Modal';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
-import { exportEventListToPdf } from '../utils/pdfGenerator';
 import EventFrameCard from './EventFrameCard';
-import { escapeCsvCell } from '../utils/csvUtils';
 
 interface MainDisplayProps {
   setToastMessage: ShowToastFunction;
@@ -56,15 +53,16 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
 }) => {
   const calendarRef = useRef<FullCalendar>(null);
   const openModal = useModalStore(state => state.openModal);
-  const getPersonGroupById = useEventDataStore(state => state.getPersonGroupById);
-  const getEventFrameById = useEventDataStore(state => state.getEventFrameById);
-  const getAssignmentById = useEventDataStore(state => state.getAssignmentById);
-  const updateAssignment = useEventDataStore(state => state.updateAssignment);
-  const updateEventFrame = useEventDataStore(state => state.updateEventFrame);
-  const eventFrames = useEventDataStore(state => state.eventFrames);
-  const googleEvents = useEventDataStore(state => state.googleEvents);
-  const peopleGroups = useEventDataStore(state => state.peopleGroups);
-  const [conflictDialog, setConflictDialog] = useState<{ message: string; personName: string | null } | null>(null);
+  const {
+    getPersonGroupById,
+    getEventFrameById,
+    getAssignmentById,
+    updateAssignment,
+    updateEventFrame,
+    eventFrames,
+    googleEvents,
+    peopleGroups
+  } = useEventDataStore();
 
   const [filterText, setFilterText] = useState('');
   const [filterStatus, setFilterStatus] = useState<AssignmentStatus | ''>('');
@@ -77,30 +75,75 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
   const [manualExpandedFrameIds, setManualExpandedFrameIds] = useState<Set<string>>(new Set());
   const [manualExpandedDailyView, setManualExpandedDailyView] = useState<Set<string>>(new Set());
 
+  // Efecte per rastrejar re-renderitzats
+  useEffect(() => {
+  // Log breu: renderitzat
+  console.log('[MainDisplay] Renderitzat');
+  return () => console.log('[MainDisplay] Desmuntat');
+  });
+
+  const validationResult = useMemo(() => {
+  // Validació iniciada
+
+    if (!eventFrames || !Array.isArray(eventFrames)) {
+      console.error('[MainDisplay] Error: eventFrames no és vàlid');
+      return { isValid: false, error: 'eventFrames no és vàlid.' };
+    }
+
+    if (!googleEvents || !Array.isArray(googleEvents)) {
+      console.error('[MainDisplay] Error: googleEvents no és vàlid');
+      return { isValid: false, error: 'googleEvents no és vàlid.' };
+    }
+
+    if (!peopleGroups || !Array.isArray(peopleGroups)) {
+      console.error('[MainDisplay] Error: peopleGroups no és vàlid');
+      return { isValid: false, error: 'peopleGroups no és vàlid.' };
+    }
+
+  // Dades carregades correctament
+    return { isValid: true, error: null };
+  }, [eventFrames, googleEvents, peopleGroups]);
+
+  if (!validationResult.isValid) {
+    return <p>Error: {validationResult.error}</p>;
+  }
+
   const filteredAndSortedEventFrames = useMemo(() => {
-    let frames = [...eventFrames];
-    if (filterUIEventFrame) frames = frames.filter(ef => ef.id === filterUIEventFrame);
-    if (filterPlace) {
-      const normPlace = filterPlace.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      frames = frames.filter(ef => ef.place && ef.place.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normPlace));
-    }
-    if (!filterUIEventFrame) {
-      if (filterText) {
-        const lowerFilterText = filterText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        frames = frames.filter(ef => {
-          const efFields = [ef.name, ef.place || '', ef.generalNotes || ''].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          const assignFields = ef.assignments.map(a => [getPersonGroupById(a.personGroupId)?.name || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          return efFields.includes(lowerFilterText) || assignFields.includes(lowerFilterText);
-        });
+  // Filtres aplicats
+    try {
+      let frames = [...eventFrames];
+      const totalInitial = frames.length;
+
+      if (filterUIEventFrame) frames = frames.filter(ef => ef.id === filterUIEventFrame);
+      if (filterPlace) {
+        const normPlace = filterPlace.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        frames = frames.filter(ef => ef.place && ef.place.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normPlace));
       }
-      if (filterStatus) frames = frames.filter(ef => ef.assignments.some(a => a.status === filterStatus || (a.status === AssignmentStatus.Mixed && a.dailyStatuses && Object.values(a.dailyStatuses).includes(filterStatus))));
-      if (localFilterUIPerson) frames = frames.filter(ef => ef.assignments.some(a => a.personGroupId === localFilterUIPerson));
-      if (filterDate) frames = frames.filter(ef => new Date(ef.startDate) <= new Date(filterDate) && new Date(ef.endDate) >= new Date(filterDate));
+      if (!filterUIEventFrame) {
+        if (filterText) {
+          const lowerFilterText = filterText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          frames = frames.filter(ef => {
+            const efFields = [ef.name, ef.place || '', ef.generalNotes || ''].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const assignFields = ef.assignments.map((a: Assignment) => [getPersonGroupById(a.personGroupId)?.name || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            return efFields.includes(lowerFilterText) || assignFields.includes(lowerFilterText);
+          });
+        }
+        if (filterStatus) frames = frames.filter(ef => ef.assignments.some((a: Assignment) => a.status === filterStatus || (a.status === AssignmentStatus.Mixed && a.dailyStatuses && Object.values(a.dailyStatuses).includes(filterStatus))));
+        if (localFilterUIPerson) frames = frames.filter(ef => ef.assignments.some(a => a.personGroupId === localFilterUIPerson));
+        if (filterDate) frames = frames.filter(ef => new Date(ef.startDate) <= new Date(filterDate) && new Date(ef.endDate) >= new Date(filterDate));
+      }
+
+      const sortedFrames = frames.sort((a,b) => sortOrder === 'asc'
+        ? new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        : new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      );
+
+  // Filtres: total inicial → final
+      return sortedFrames;
+    } catch (error) {
+      console.error('[MainDisplay] Error aplicant filtres:', error);
+      return [];
     }
-    return frames.sort((a,b) => sortOrder === 'asc'
-      ? new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      : new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-    );
   }, [eventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame, peopleGroups, sortOrder]);
 
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
@@ -147,93 +190,28 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
     });
   };
 
-  const handleExportCurrentViewToCsv = () => {
-    const dataToExport: SummaryRow[] = [];
-    filteredAndSortedEventFrames.forEach(ef => {
-      if (ef.assignments.length > 0) {
-        ef.assignments.forEach(a => {
-          const person = getPersonGroupById(a.personGroupId);
-          if (!localFilterUIPerson || a.personGroupId === localFilterUIPerson) {
-            dataToExport.push({
-              id: ef.id + "_" + a.id, primaryGrouping: ef.name, secondaryGrouping: person?.name || 'N/A',
-              eventFrameName: ef.name, eventFramePlace: ef.place, eventFrameStartDate: formatDateDMY(ef.startDate),
-              eventFrameEndDate: formatDateDMY(ef.endDate), assignmentPersonName: person?.name || 'N/A',
-              assignmentStartDate: formatDateDMY(a.startDate), assignmentEndDate: formatDateDMY(a.endDate),
-              assignmentStatus: a.status, assignmentNotes: a.notes, eventFrameGeneralNotes: ef.generalNotes,
-              assignmentObject: a,
-            });
-          }
-        });
-      } else {
-        if (!localFilterUIPerson) {
-          dataToExport.push({
-            id: ef.id, primaryGrouping: ef.name, secondaryGrouping: "Sense assignacions",
-            eventFrameName: ef.name, eventFramePlace: ef.place, eventFrameStartDate: formatDateDMY(ef.startDate),
-            eventFrameEndDate: formatDateDMY(ef.endDate), assignmentPersonName: 'N/A',
-            assignmentStartDate: 'N/A', assignmentEndDate: 'N/A', assignmentStatus: '',
-            assignmentNotes: '', eventFrameGeneralNotes: ef.generalNotes,
-            assignmentObject: { id: `placeholder-${ef.id}`, personGroupId: '', eventFrameId: ef.id, startDate: '', endDate: '', status: AssignmentStatus.Pending, notes: '' },
-          });
-        }
-      }
-    });
-
-    if (dataToExport.length === 0) {
-      setToastMessage("No hi ha dades a la vista actual per exportar.", 'info');
-      return;
-    }
-
-    const headers: (keyof SummaryRow)[] = ["primaryGrouping", "secondaryGrouping", "eventFrameName", "eventFramePlace", "eventFrameStartDate", "eventFrameEndDate", "assignmentPersonName", "assignmentStartDate", "assignmentEndDate", "assignmentStatus", "assignmentNotes", "eventFrameGeneralNotes"];
-    const headerDisplayNames: { [key in keyof SummaryRow]?: string } = {
-      primaryGrouping: "Agrupació Principal (Nom Esdeveniment Marc)", secondaryGrouping: "Agrupació Secundària (Persona/Grup o 'Sense assignacions')",
-      eventFrameName: "Nom Esdeveniment Marc", eventFramePlace: "Lloc Esdeveniment Marc", eventFrameStartDate: "Inici Esdeveniment Marc",
-      eventFrameEndDate: "Fi Esdeveniment Marc", assignmentPersonName: "Persona Assignada", assignmentStartDate: "Inici Assignació",
-      assignmentEndDate: "Fi Assignació", assignmentStatus: "Estat Assignació", assignmentNotes: "Notes Assignació", eventFrameGeneralNotes: "Notes Generals Marc"
-    };
-    const headerString = headers.map(h => escapeCsvCell(headerDisplayNames[h] || h)).join(',');
-    const rows = dataToExport.map(row => headers.map(header => escapeCsvCell(row[header])).join(','));
-    const csvContent = [headerString, ...rows].join('\n');
-
-    const date = new Date();
-    const formattedDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
-    const personName = localFilterUIPerson ? getPersonGroupById(localFilterUIPerson)?.name?.replace(/[^a-zA-Z0-9]/g, '_') || "persona_filtrada" : "totes";
-    const fileName = `llista_vista_actual_${personName}_${formattedDate}.csv`;
-
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    setToastMessage("Vista actual exportada a CSV.", 'success');
-  };
-
-  const handleExportListToPdf = () => {
-    if (filteredAndSortedEventFrames.length === 0) {
-      setToastMessage("No hi ha dades a la vista actual per exportar.", 'info');
-      return;
-    }
-    exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, setToastMessage);
-  };
-
-
   const calendarEvents = useMemo(() => {
-    const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
-    const localEventsForCalendar = eventFrames.map(ef => ({
-      id: ef.id, title: ef.name, start: ef.startDate, end: addDaysISO(ef.endDate, 1), allDay: true,
-      className: ef.personnelComplete ? 'event-complete' : 'event-incomplete',
-      extendedProps: { type: 'local', googleEventId: ef.googleEventId } 
-    }));
-    const filteredGoogleEventsForCalendar = googleEvents
-      .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
-      .map(gEvent => ({
-        ...gEvent, backgroundColor: gEvent.backgroundColor, borderColor: gEvent.borderColor,
-        extendedProps: { ...gEvent.extendedProps, type: 'google' }
+  // Actualitzant esdeveniments del calendari
+    try {
+      const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
+      const localEventsForCalendar = eventFrames.map(ef => ({
+        id: ef.id, title: ef.name, start: ef.startDate, end: addDaysISO(ef.endDate, 1), allDay: true,
+        className: ef.personnelComplete ? 'event-complete' : 'event-incomplete',
+        extendedProps: { type: 'local', googleEventId: ef.googleEventId } 
       }));
-    return [...localEventsForCalendar, ...filteredGoogleEventsForCalendar];
+      const filteredGoogleEventsForCalendar = googleEvents
+        .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
+        .map(gEvent => ({
+          ...gEvent, backgroundColor: gEvent.backgroundColor, borderColor: gEvent.borderColor,
+          extendedProps: { ...gEvent.extendedProps, type: 'google' }
+        }));
+      const events = [...localEventsForCalendar, ...filteredGoogleEventsForCalendar];
+  // Calendari actualitzat
+      return events;
+    } catch (error) {
+      console.error('[MainDisplay] Error actualitzant esdeveniments del calendari:', error);
+      return [];
+    }
   }, [eventFrames, googleEvents]);
 
   const handleGeneralStatusChange = (eventFrameId: string, assignmentId: string, newStatus: AssignmentStatus) => {
@@ -249,7 +227,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
                 return newSet;
             });
             if (result.warningMessage && newStatus !== AssignmentStatus.No) {
-                setConflictDialog({ message: result.warningMessage, personName: getPersonGroupById(assignment.personGroupId)?.name || 'N/A' });
+                // setConflictDialog({ message: result.warningMessage, personName: getPersonGroupById(assignment.personGroupId)?.name || 'N/A' });
             }
         } else if (result.message) {
             setToastMessage(result.message, 'error');
@@ -267,7 +245,6 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
   };
   
   const handleDailyStatusChange = (_efId: string, assign: Assignment, dateYYYYMMDD: string, newDailyStatus: AssignmentStatus) => {
-    const person = getPersonGroupById(assign.personGroupId);
     const newDailyStatuses = assign.dailyStatuses ? { ...assign.dailyStatuses } : 
         Array.from({ length: (new Date(assign.endDate).getTime() - new Date(assign.startDate).getTime()) / (1000 * 3600 * 24) + 1 }, (_, i) => addDaysISO(assign.startDate, i))
        .reduce((acc, date) => { acc[date] = assign.status; return acc; }, {} as { [date: string]: AssignmentStatus });
@@ -277,10 +254,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
     if (result.success) {
       setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
       if (result.warningMessage && newDailyStatus !== AssignmentStatus.No) {
-        const message = result.warningMessage.startsWith('DUPLICATE_CONFLICT:')
-          ? result.warningMessage.replace('DUPLICATE_CONFLICT:', '')
-          : result.warningMessage;
-        setConflictDialog({ message, personName: person?.name || 'Desconeguda' });
+        // setConflictDialog({ message: result.warningMessage, personName: person?.name || 'Desconeguda' });
       }
     } else if (result.message) {
       setToastMessage(result.message, 'error');
@@ -374,16 +348,6 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
                 {filterDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-0.5"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
             </div>
             <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Lloc</label><Tooltip text="Filtrar per lloc de l'esdeveniment"><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></Tooltip></div>            <div className="flex items-center gap-1">
-              <Tooltip text="Exportar la vista actual a PDF">
-                <button onClick={handleExportListToPdf} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white shadow-sm">
-                    <PdfIcon className="w-4 h-4" />
-                </button>
-              </Tooltip>
-              <Tooltip text="Exportar la vista actual a CSV">
-                <button onClick={handleExportCurrentViewToCsv} className="p-1.5 rounded-md text-sm font-medium flex items-center gap-1 bg-teal-500 hover:bg-teal-600 text-white shadow-sm">
-                    <CsvIcon className="w-4 h-4" />
-                </button>
-              </Tooltip>
               <Tooltip text="Netejar tots els filtres">
                 <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame('');}} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
               </Tooltip>
@@ -414,7 +378,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
          <SummaryReports setToastMessage={setToastMessage} />
       </CollapsibleSection>
 
-      {conflictDialog && <Modal isOpen={true} onClose={() => setConflictDialog(null)} title="Conflicte detectat"><p>{conflictDialog.message}</p><p><strong>Persona:</strong> {conflictDialog.personName}</p><button onClick={() => setConflictDialog(null)} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Tanca</button></Modal>}
+      {/* {conflictDialog && <Modal isOpen={true} onClose={() => setConflictDialog(null)} title="Conflicte detectat"><p>{conflictDialog.message}</p><p><strong>Persona:</strong> {conflictDialog.personName}</p><button onClick={() => setConflictDialog(null)} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Tanca</button></Modal>} */}
     </div>
   );
 };

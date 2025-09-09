@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ModalType, ModalData, AssignmentStatus } from '../types';
+import { ModalType, ModalData } from '../types';
 import { loggingMiddleware } from './loggingMiddleware';
 import { devtools } from 'zustand/middleware';
 
@@ -30,29 +30,41 @@ const initialState: ModalState = {
 
 export const useModalStore = create<ModalState & ModalActions>()(
   devtools(
-    loggingMiddleware(
-      (set) => ({
-        ...initialState,
+    (set) => ({
+      ...initialState,
 
-        openModal: (type, data = {}, initialFormData = {}) => {
-          set((state) => ({
+      openModal: (type, data = {}, initialFormData = {}) => {
+        set((state) => {
+          // Evita obrir el modal si ja està obert amb el mateix tipus i dades
+          if (state.isOpen && state.type === type && JSON.stringify(state.data) === JSON.stringify(data)) {
+            return state;
+          }
+          return {
             ...state,
             type,
             data,
             formData: initialFormData,
             isOpen: true,
-          }));
-        },
+          };
+        });
+      },
 
-        closeModal: () => set(initialState),
+      closeModal: () => set(initialState),
 
-        setFormData: (updater) => {
-          set((state) => ({
+      setFormData: (updater) => {
+        set((state) => {
+          const newFormData = typeof updater === 'function' ? updater(state.formData) : updater;
+          // Evita actualitzacions redundants
+          if (JSON.stringify(state.formData) === JSON.stringify(newFormData)) {
+            return state;
+          }
+          return {
             ...state,
-            formData: typeof updater === 'function' ? updater(state.formData) : updater,
-          }));
-        },
-      })),
-    'modalStore'
+            formData: newFormData,
+          };
+        });
+      },
+    }),
+    { name: 'modalStore' }
   )
 );

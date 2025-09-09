@@ -14,7 +14,7 @@ interface AssignmentFormProps {
   setExpandedEventFrameId?: (id: string) => void;
 }
 
-export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, eventFrame, assignmentToEdit, showToast, setExpandedEventFrameId }) => {
+export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ onClose, eventFrame, assignmentToEdit, showToast, setExpandedEventFrameId }) => {
   const { peopleGroups, addAssignment, updateAssignment } = useEventDataStore(state => ({
     peopleGroups: state.peopleGroups,
     addAssignment: state.addAssignment,
@@ -36,7 +36,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
       }
     }
     setErrors({});
-  }, [assignmentToEdit, setFormData]);
+  }, [assignmentToEdit]);
 
   const validate = (): boolean => {
     const newErrors: {[key: string]: string} = {};
@@ -107,6 +107,13 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
     performSubmit(false);
   };
 
+  const handleInputChange = (field: keyof Assignment, value: any) => {
+    setFormData(prev => {
+        if (prev[field] === value) return prev; // Avoid unnecessary updates
+        return { ...prev, [field]: value };
+    });
+};
+
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
 
   return (
@@ -122,7 +129,14 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
       <div>
         <label htmlFor="as-person" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Persona/Grup</label>
         <Tooltip text="Seleccionar la persona o grup a assignar">
-          <select id="as-person" value={personGroupId || ''} onChange={e => setFormData(prev => ({ ...prev, personGroupId: e.target.value }))} className={commonInputClass} required disabled={peopleGroups.length === 0}>
+          <select
+            id="as-person"
+            value={personGroupId || ''}
+            onChange={e => handleInputChange('personGroupId', e.target.value)}
+            className={commonInputClass}
+            required
+            disabled={peopleGroups.length === 0}
+          >
             {peopleGroups.length === 0 ? <option value="" disabled>No hi ha persones/grups</option> :
               <>
                 <option value="" disabled>Selecciona una persona o grup</option>
@@ -137,7 +151,14 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
         <div>
           <label htmlFor="as-startDate" className="block text-sm font-medium">Data d'Inici</label>
           <Tooltip text="Data d'inici de l'assignació">
-            <input type="date" id="as-startDate" value={startDate || ''} onChange={e => setFormData(prev => ({ ...prev, startDate: e.target.value }))} className={commonInputClass} required />
+            <input
+              type="date"
+              id="as-startDate"
+              value={startDate || ''}
+              onChange={e => handleInputChange('startDate', e.target.value)}
+              className={commonInputClass}
+              required
+            />
           </Tooltip>
           {startDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(startDate)}</p>}
           {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
@@ -145,7 +166,14 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
         <div>
           <label htmlFor="as-endDate" className="block text-sm font-medium">Data de Fi</label>
           <Tooltip text="Data de fi de l'assignació">
-            <input type="date" id="as-endDate" value={endDate || ''} onChange={e => setFormData(prev => ({ ...prev, endDate: e.target.value }))} className={commonInputClass} required />
+            <input
+              type="date"
+              id="as-endDate"
+              value={endDate || ''}
+              onChange={e => handleInputChange('endDate', e.target.value)}
+              className={commonInputClass}
+              required
+            />
           </Tooltip>
           {endDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(endDate)}</p>}
           {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
@@ -174,6 +202,17 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = ({ onClose, ev
       </div>
     </form>
   );
-};
+});
 
-export default AssignmentFormModal;
+// Add a custom comparison function to prevent re-renders unless props change significantly
+function areEqual(prevProps: AssignmentFormProps, nextProps: AssignmentFormProps) {
+    return (
+        prevProps.onClose === nextProps.onClose &&
+        prevProps.eventFrame.id === nextProps.eventFrame.id &&
+        prevProps.assignmentToEdit?.id === nextProps.assignmentToEdit?.id &&
+        prevProps.showToast === nextProps.showToast &&
+        prevProps.setExpandedEventFrameId === nextProps.setExpandedEventFrameId
+    );
+}
+
+export default React.memo(AssignmentFormModal, areEqual);
