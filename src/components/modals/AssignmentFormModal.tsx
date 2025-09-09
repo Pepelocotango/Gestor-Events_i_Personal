@@ -15,12 +15,11 @@ interface AssignmentFormProps {
 }
 
 export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ onClose, eventFrame, assignmentToEdit, showToast, setExpandedEventFrameId }) => {
-  const { peopleGroups, addAssignment, updateAssignment } = useEventDataStore(state => ({
-    peopleGroups: state.peopleGroups,
-    addAssignment: state.addAssignment,
-    updateAssignment: state.updateAssignment,
-  }));
-  const { formData, setFormData, openModal } = useModalStore();
+  const { addAssignment, updateAssignment } = useEventDataStore.getState();
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
+
+  const { setFormData, openModal } = useModalStore.getState();
+  const formData = useModalStore(state => state.formData);
   const { personGroupId, startDate, endDate, status, notes } = formData as Partial<Assignment>;
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isEditingMixed, setIsEditingMixed] = useState(false);

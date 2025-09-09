@@ -48,17 +48,27 @@ const App: React.FC = () => {
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
-  const { isOpen, type, data, closeModal, openModal: openModalFromStore } = useModalStore();
+  const { openModal: openModalFromStore, closeModal } = useModalStore.getState();
+  const isOpen = useModalStore(state => state.isOpen);
+  const type = useModalStore(state => state.type);
+  const data = useModalStore(state => state.data);
+
+  // --- State from Zustand Store (Reactive) ---
+  // Subscribe to only the pieces of state that cause re-renders.
+  const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
+  const isSyncing = useEventDataStore(state => state.isSyncing);
+  const canUndo = useEventDataStore(state => state.canUndo);
+  const canRedo = useEventDataStore(state => state.canRedo);
+
+  // --- Actions from Zustand Store (Non-reactive) ---
+  // Actions are stable functions, so we can get them once with getState().
+  // This avoids re-running useEffects that depend on them.
   const {
     loadData: loadDataFromManager,
     exportData: exportDataFromManager,
     setHasUnsavedChanges,
-    hasUnsavedChanges,
-    isSyncing,
     undo,
     redo,
-    canUndo,
-    canRedo,
     getPersonGroupById,
     deleteEventFrame,
     deleteAssignment,

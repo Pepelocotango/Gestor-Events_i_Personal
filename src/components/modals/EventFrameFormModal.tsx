@@ -13,12 +13,12 @@ interface EventFrameFormProps {
 }
 
 export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, eventFrameToEdit, showToast }) => {
-  const { addEventFrame, updateEventFrame, eventFrames } = useEventDataStore(state => ({
-    addEventFrame: state.addEventFrame,
-    updateEventFrame: state.updateEventFrame,
-    eventFrames: state.eventFrames,
-  }));
-  const { formData, setFormData, openModal } = useModalStore();
+  const { addEventFrame, updateEventFrame } = useEventDataStore.getState();
+  const eventFrames = useEventDataStore(state => state.eventFrames);
+
+  const { setFormData, openModal } = useModalStore.getState();
+  const formData = useModalStore(state => state.formData);
+
   const { name, place, startDate, endDate, generalNotes } = formData as Partial<EventFrame>;
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
