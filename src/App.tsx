@@ -403,7 +403,7 @@ const App: React.FC = () => {
         logger.info('[Cleanup] App.tsx: Netejant listeners d\'autenticació de Google.');
         if (ipcRenderer) {
           ipcRenderer.removeListener('google-auth-success', onSuccess);
-          ipcRenderer.removeListener('google-auth-error', onError);
+          ipcRenderer.removeListener('google-auth-error', onError as any);
         }
       };
     }
