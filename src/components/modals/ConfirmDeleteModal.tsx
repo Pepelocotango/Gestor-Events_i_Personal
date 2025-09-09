@@ -10,12 +10,13 @@ interface CommonFormProps {
 interface ConfirmDeleteProps extends CommonFormProps {
   itemType: string;
   itemName: string;
-  onConfirm: (inputValue?: string) => void;
+  onConfirm?: (inputValue?: string) => void;
   titleOverride?: string;
   confirmButtonText?: string;
   cancelButtonText?: string;
   onCloseModal?: () => void;
   requiresInput?: boolean;
+  suppressSuccessToast?: boolean;
 }
 
 export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
@@ -28,6 +29,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
   cancelButtonText = "Cancel·lar",
   onCloseModal,
   requiresInput = false,
+  suppressSuccessToast = false,
 }) => {
   const [inputValue, setInputValue] = useState('');
 
@@ -36,10 +38,14 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
       showToast('El camp no pot estar buit.', 'warning');
       return;
     }
-    onConfirm(inputValue);
-    if (itemType !== "Acció destructiva" && itemType !== "Actualització massiva" && itemType !== "Acció de Sincronització" && !requiresInput) {
+    if (onConfirm) {
+      onConfirm(inputValue);
+    }
+
+    if (!suppressSuccessToast) {
         showToast(`${itemType} eliminat/da correctament.`, 'success');
     }
+
     onClose();
   };
 

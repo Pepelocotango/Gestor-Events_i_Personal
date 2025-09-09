@@ -589,7 +589,7 @@ const App: React.FC = () => {
     if (!type) return null;
     switch (type) {
       case 'addEventFrame':
-        return <EventFrameFormModal onClose={closeModal} showToast={showToast} />;
+        return <EventFrameFormModal onClose={closeModal} showToast={showToast} initialData={data || undefined} />;
       case 'editEventFrame':
         return <EventFrameFormModal onClose={closeModal} showToast={showToast} eventFrameToEdit={data!.eventFrameToEdit} />;
       case 'addAssignment':
@@ -610,6 +610,7 @@ const App: React.FC = () => {
                   confirmButtonText={data!.confirmButtonText}
                   cancelButtonText={data!.cancelButtonText}
                   requiresInput={data!.requiresInput}
+                  suppressSuccessToast={data?.titleOverride?.includes('Google') || data?.titleOverride?.includes('Calendari')}
                 />;
       case 'confirmDataRepair':
           return <ConfirmRepairModal

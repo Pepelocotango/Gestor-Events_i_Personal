@@ -9,7 +9,7 @@ interface CreateCalendarModalProps {
 }
 
 const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, showToast }) => {
-  const refreshGoogleEvents = (showToast?: any) => useEventDataStore.getState().refreshGoogleEvents(showToast);
+  const { refreshGoogleEvents } = useEventDataStore.getState();
   const [suffix, setSuffix] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, ShowToastFunction, InitialEventFrameData } from '../../types';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -13,9 +14,10 @@ interface EventFrameFormProps {
 }
 
 export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, eventFrameToEdit, showToast, initialData }) => {
-  const { addEventFrame, updateEventFrame } = useEventDataStore.getState();
+  const { addEventFrame, updateEventFrame, setFilterUIEventFrame } = useEventDataStore.getState();
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const { openModal } = useModalStore.getState();
+  const navigate = useNavigate();
 
   const [name, setName] = useState('');
   const [place, setPlace] = useState('');
@@ -76,6 +78,14 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
       showToast("Marc d'esdeveniment afegit.", 'success');
     }
     onClose();
+  };
+
+  const handleNavigateToAssignments = () => {
+    if (eventFrameToEdit?.id) {
+      setFilterUIEventFrame(eventFrameToEdit.id);
+      navigate('/');
+      onClose();
+    }
   };
 
    const handleCreateAndAssign = () => {
@@ -143,24 +153,39 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
           <textarea id="ef-generalNotes" value={generalNotes} onChange={e => setGeneralNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
         </Tooltip>
       </div>
-      <div className="flex justify-end space-x-2 pt-2">
-        <Tooltip text="Tancar el formulari sense desar">
-          <button type="button" onClick={onClose} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
-        </Tooltip>
-        {!eventFrameToEdit?.id && (
-          <Tooltip text="Crear el marc i obrir directament el formulari d'assignació">
-            <button
-              type="button"
-              onClick={handleCreateAndAssign}
-              className="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
-            >
-              Crear i Assignar
-            </button>
+      <div className="flex justify-between items-center pt-2">
+        <div>
+          {eventFrameToEdit?.id && (
+            <Tooltip text="Anar a la llista i filtrar per aquest esdeveniment">
+              <button
+                type="button"
+                onClick={handleNavigateToAssignments}
+                className="px-3 py-1 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md"
+              >
+                Anar a Assignacions
+              </button>
+            </Tooltip>
+          )}
+        </div>
+        <div className="flex justify-end space-x-2">
+          <Tooltip text="Tancar el formulari sense desar">
+            <button type="button" onClick={onClose} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
           </Tooltip>
-        )}
-        <Tooltip text={eventFrameToEdit && eventFrameToEdit.id ? 'Desar els canvis del marc' : 'Crear el nou marc d\'esdeveniment'}>
-          <button type="submit" className="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{eventFrameToEdit && eventFrameToEdit.id ? 'Actualitzar' : 'Crear'}</button>
-        </Tooltip>
+          {!eventFrameToEdit?.id && (
+            <Tooltip text="Crear el marc i obrir directament el formulari d'assignació">
+              <button
+                type="button"
+                onClick={handleCreateAndAssign}
+                className="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+              >
+                Crear i Assignar
+              </button>
+            </Tooltip>
+          )}
+          <Tooltip text={eventFrameToEdit && eventFrameToEdit.id ? 'Desar els canvis del marc' : 'Crear el nou marc d\'esdeveniment'}>
+            <button type="submit" className="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{eventFrameToEdit && eventFrameToEdit.id ? 'Actualitzar' : 'Crear'}</button>
+          </Tooltip>
+        </div>
       </div>
     </form>
   );
