@@ -112,7 +112,6 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
   // Filtres aplicats
     try {
       let frames = [...eventFrames];
-      const totalInitial = frames.length;
 
       if (filterUIEventFrame) frames = frames.filter(ef => ef.id === filterUIEventFrame);
       if (filterPlace) {

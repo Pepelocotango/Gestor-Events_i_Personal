@@ -27,7 +27,6 @@
     "@fullcalendar/react": "^6.1.17",
     "@fullcalendar/timegrid": "^6.1.17",
     "@heroicons/react": "^2.2.0",
-    "@types/react-router-dom": "^5.3.3",
     "file-saver": "^2.0.5",
     "googleapis": "^150.0.1",
     "html2canvas": "^1.4.1",

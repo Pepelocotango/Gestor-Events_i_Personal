@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { ModalType, ModalData } from '../types';
-import { loggingMiddleware } from './loggingMiddleware';
 import { devtools } from 'zustand/middleware';
 
 // Aquest tipus defineix les dades que es poden editar en un formulari de modal
