@@ -205,17 +205,130 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         const { eventFrames } = get();
         const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
         if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
+
         if (!force && (newAssignmentData.status === AssignmentStatus.Yes || newAssignmentData.status === AssignmentStatus.Pending)) {
-            // ... conflict detection logic ...
+            const allOtherAssignments = get().eventFrames.flatMap(ef => ef.assignments.filter(a => a.personGroupId === newAssignmentData.personGroupId));
+            const newStartDate = new Date(newAssignmentData.startDate);
+            const newEndDate = new Date(newAssignmentData.endDate);
+
+            for (let d = new Date(newStartDate); d <= newEndDate; d.setDate(d.getDate() + 1)) {
+                const currentDateStr = d.toISOString().split('T')[0];
+                const conflictingAssignments = allOtherAssignments.filter(existing => {
+                    const existingStart = new Date(existing.startDate);
+                    const existingEnd = new Date(existing.endDate);
+                    if (d < existingStart || d > existingEnd) return false;
+
+                    if (existing.status === AssignmentStatus.Yes || existing.status === AssignmentStatus.Pending) return true;
+                    if (existing.status === AssignmentStatus.Mixed && existing.dailyStatuses?.[currentDateStr] && existing.dailyStatuses[currentDateStr] !== AssignmentStatus.No) return true;
+
+                    return false;
+                });
+
+                if (conflictingAssignments.length > 0) {
+                    const conflictDetails = conflictingAssignments.map(conflict => {
+                        const conflictingEvent = get().eventFrames.find(ef => ef.id === conflict.eventFrameId);
+                        return `"${conflictingEvent?.name}" el ${formatDateDMY(currentDateStr)}`;
+                    }).join(", ");
+                    return { success: true, warningMessage: `DUPLICATE_CONFLICT:Conflicte detectat: Aquest contacte ja té una assignació a ${conflictDetails}.` };
+                }
+            }
         }
+
         const newAssignment: Assignment = { ...newAssignmentData, id: generateId(), eventFrameId };
-        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef_loc: EventFrame) => ef_loc.id === eventFrameId ? { ...ef_loc, assignments: [...ef_loc.assignments, newAssignment].sort((a: Assignment,b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
+        set((state: EventDataState) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame) {
+                targetFrame.assignments.push(newAssignment);
+                targetFrame.assignments.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+            }
+            state.hasUnsavedChanges = true;
+        });
         return { success: true };
     },
-    updateAssignment: (updatedAssignment: Assignment) => {
-        // ... conflict detection and update logic ...
-        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef_loc: EventFrame) => ef_loc.id === updatedAssignment.eventFrameId ? { ...ef_loc, assignments: ef_loc.assignments.map((a: Assignment) => a.id === updatedAssignment.id ? updatedAssignment : a).sort((a: Assignment,b: Assignment) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
-        return { success: true };
+    updateAssignment: (updatedAssignment: Assignment, force = false, context?: { changedDate?: string }) => {
+        let finalAssignment = { ...updatedAssignment };
+
+        // Logic to recalculate main status from daily statuses
+        if (finalAssignment.status === AssignmentStatus.Mixed && finalAssignment.dailyStatuses) {
+            const dailyStatusValues = Object.values(finalAssignment.dailyStatuses);
+            if (dailyStatusValues.length > 0) {
+                const firstStatus = dailyStatusValues[0];
+                const allSame = dailyStatusValues.every(s => s === firstStatus);
+                if (allSame) {
+                    finalAssignment.status = firstStatus;
+                    finalAssignment.dailyStatuses = undefined;
+                }
+            }
+        } else if (finalAssignment.status !== AssignmentStatus.Mixed) {
+            finalAssignment.dailyStatuses = undefined;
+        }
+
+        let warningMessage: string | undefined = undefined;
+
+        if (!force) {
+            const allOtherAssignments = get().eventFrames.flatMap(ef =>
+                ef.assignments.filter(a => a.personGroupId === finalAssignment.personGroupId && a.id !== finalAssignment.id)
+            );
+
+            const checkDateRange = (start: Date, end: Date, statusToCheck: AssignmentStatus | { [date: string]: AssignmentStatus }) => {
+                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    const currentDateStr = d.toISOString().split('T')[0];
+                    let currentDayStatus: AssignmentStatus | undefined;
+
+                    if (typeof statusToCheck === 'string') {
+                        currentDayStatus = statusToCheck;
+                    } else {
+                        currentDayStatus = statusToCheck[currentDateStr];
+                    }
+
+                    if (!currentDayStatus || currentDayStatus === AssignmentStatus.No) continue;
+
+                    const conflictingAssignments = allOtherAssignments.filter(existing => {
+                        const existingStart = new Date(existing.startDate);
+                        const existingEnd = new Date(existing.endDate);
+                        if (d < existingStart || d > existingEnd) return false;
+
+                        if (existing.status === AssignmentStatus.Yes || existing.status === AssignmentStatus.Pending) return true;
+                        if (existing.status === AssignmentStatus.Mixed && existing.dailyStatuses?.[currentDateStr] && existing.dailyStatuses[currentDateStr] !== AssignmentStatus.No) return true;
+
+                        return false;
+                    });
+
+                    if (conflictingAssignments.length > 0) {
+                        const conflictDetails = conflictingAssignments.map(conflict => `"${get().eventFrames.find(ef => ef.id === conflict.eventFrameId)?.name}" el ${formatDateDMY(currentDateStr)}`).join(", ");
+                        return `Conflicte detectat: Aquest contacte ja té una assignació a ${conflictDetails}.`;
+                    }
+                }
+                return null;
+            };
+
+            let conflictMessage: string | null = null;
+            if (finalAssignment.status !== AssignmentStatus.No) {
+                if (context?.changedDate) {
+                    const specificDate = new Date(context.changedDate);
+                    conflictMessage = checkDateRange(specificDate, specificDate, finalAssignment.dailyStatuses || finalAssignment.status);
+                } else {
+                    conflictMessage = checkDateRange(new Date(finalAssignment.startDate), new Date(finalAssignment.endDate), finalAssignment.dailyStatuses || finalAssignment.status);
+                }
+            }
+            if (conflictMessage) {
+              warningMessage = `DUPLICATE_CONFLICT:${conflictMessage}`;
+            }
+        }
+
+        set(state => {
+            const eventFrame = state.eventFrames.find(ef => ef.id === finalAssignment.eventFrameId);
+            if (eventFrame) {
+                const assignmentIndex = eventFrame.assignments.findIndex(a => a.id === finalAssignment.id);
+                if (assignmentIndex !== -1) {
+                    eventFrame.assignments[assignmentIndex] = finalAssignment;
+                    eventFrame.assignments.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+                }
+            }
+            state.hasUnsavedChanges = true;
+        });
+
+        return { success: true, warningMessage };
     },
     deleteAssignment: (eventFrameId: string, assignmentId: string) => {
         set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? { ...ef, assignments: ef.assignments.filter((a: Assignment) => a.id !== assignmentId) } : ef), hasUnsavedChanges: true }));

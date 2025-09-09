@@ -1,4 +1,4 @@
-import React, { useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../constants';
@@ -17,28 +17,42 @@ interface AssignmentFormProps {
 export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ onClose, eventFrame, assignmentToEdit, showToast, setExpandedEventFrameId }) => {
   const { addAssignment, updateAssignment } = useEventDataStore.getState();
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const { openModal } = useModalStore.getState();
 
-  const { setFormData, openModal } = useModalStore.getState();
-  const {
-    personGroupId,
-    startDate,
-    endDate,
-    status,
-    notes,
-    errors = {},
-    isEditingMixed = false
-  } = useModalStore(state => state.formData) as Partial<Assignment> & { errors?: {[key: string]: string}, isEditingMixed?: boolean };
+  // Local state for the form
+  const [personGroupId, setPersonGroupId] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [status, setStatus] = useState<AssignmentStatus>(AssignmentStatus.Pending);
+  const [notes, setNotes] = useState('');
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isEditingMixed, setIsEditingMixed] = useState(false);
 
   useEffect(() => {
     if (assignmentToEdit) {
+      setPersonGroupId(assignmentToEdit.personGroupId);
+      setStartDate(assignmentToEdit.startDate);
+      setEndDate(assignmentToEdit.endDate);
+      setNotes(assignmentToEdit.notes || '');
+
       if (assignmentToEdit.status === AssignmentStatus.Mixed) {
-        setFormData(prev => ({ ...prev, isEditingMixed: true, status: AssignmentStatus.Pending }));
+        setIsEditingMixed(true);
+        setStatus(AssignmentStatus.Pending); // Default selector value
       } else {
-        setFormData(prev => ({ ...prev, isEditingMixed: false }));
+        setIsEditingMixed(false);
+        setStatus(assignmentToEdit.status);
       }
+    } else {
+      // Default values for a new assignment
+      setPersonGroupId(peopleGroups[0]?.id || '');
+      setStartDate(eventFrame.startDate);
+      setEndDate(eventFrame.endDate);
+      setStatus(AssignmentStatus.Pending);
+      setNotes('');
+      setIsEditingMixed(false);
     }
-    setFormData(prev => ({ ...prev, errors: {} }));
-  }, [assignmentToEdit, setFormData]);
+    setErrors({});
+  }, [assignmentToEdit, eventFrame, peopleGroups]);
 
   const validate = (): boolean => {
     const newErrors: {[key: string]: string} = {};
@@ -53,7 +67,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
     if (new Date(currentStartDate) < new Date(eventFrame.startDate) || new Date(currentEndDate) > new Date(eventFrame.endDate)) {
       newErrors.datesRange = `Les dates han d'estar dins del rang del marc (${formatDateDMY(eventFrame.startDate)} - ${formatDateDMY(eventFrame.endDate)}).`;
     }
-    setFormData(prev => ({ ...prev, errors: newErrors }));
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -109,13 +123,6 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
     performSubmit(false);
   };
 
-  const handleInputChange = (field: keyof Assignment, value: any) => {
-    setFormData(prev => {
-        if (prev[field] === value) return prev; // Avoid unnecessary updates
-        return { ...prev, [field]: value };
-    });
-};
-
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
 
   return (
@@ -133,8 +140,8 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
         <Tooltip text="Seleccionar la persona o grup a assignar">
           <select
             id="as-person"
-            value={personGroupId || ''}
-            onChange={e => handleInputChange('personGroupId', e.target.value)}
+            value={personGroupId}
+            onChange={e => setPersonGroupId(e.target.value)}
             className={commonInputClass}
             required
             disabled={peopleGroups.length === 0}
@@ -156,8 +163,8 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
             <input
               type="date"
               id="as-startDate"
-              value={startDate || ''}
-              onChange={e => handleInputChange('startDate', e.target.value)}
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
               className={commonInputClass}
               required
             />
@@ -171,8 +178,8 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
             <input
               type="date"
               id="as-endDate"
-              value={endDate || ''}
-              onChange={e => handleInputChange('endDate', e.target.value)}
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
               className={commonInputClass}
               required
             />
@@ -185,14 +192,14 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
       <div>
         <label htmlFor="as-status" className="block text-sm font-medium">Estat</label>
         <Tooltip text="Estat general de l'assignació">
-          <select id="as-status" value={status || AssignmentStatus.Pending} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value as AssignmentStatus }))} className={commonInputClass}>
+          <select id="as-status" value={status} onChange={e => setStatus(e.target.value as AssignmentStatus)} className={commonInputClass}>
             {ASSIGNMENT_STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
         </Tooltip>
       </div>
       <div>
         <label htmlFor="as-notes" className="block text-sm font-medium">Notes (Opcional)</label>
-        <textarea id="as-notes" value={notes || ''} onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))} rows={3} className={commonInputClass}></textarea>
+        <textarea id="as-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className={commonInputClass}></textarea>
       </div>
       <div className="flex justify-end space-x-3 pt-4">
         <Tooltip text="Tancar el formulari sense desar canvis">
