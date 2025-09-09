@@ -1,4 +1,4 @@
-import { useRef, forwardRef } from 'react';
+import { useRef, forwardRef, useMemo } from 'react';
 import { useModalStore } from '@/stores/modalStore';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '@/types';
@@ -28,8 +28,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
 }, ref) => {
-  const { getPersonGroupById } = useEventDataStore.getState();
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
   const { openModal } = useModalStore.getState();
   const skipNextCollapse = useRef(false);
 
@@ -38,7 +42,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       (!filters.person || assign.personGroupId === filters.person) && 
       (!filters.status || assign.status === filters.status || (assign.status === AssignmentStatus.Mixed && assign.dailyStatuses && Object.values(assign.dailyStatuses).includes(filters.status)))
     )
-    .sort((a, b) => (getPersonGroupById(a.personGroupId)?.name || '').localeCompare(getPersonGroupById(b.personGroupId)?.name || ''));
+  .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
 
   return (
     <div ref={ref} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>

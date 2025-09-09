@@ -80,12 +80,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
   const [manualExpandedFrameIds, setManualExpandedFrameIds] = useState<Set<string>>(new Set());
   const [manualExpandedDailyView, setManualExpandedDailyView] = useState<Set<string>>(new Set());
 
-  // Efecte per rastrejar re-renderitzats
-  useEffect(() => {
-  // Log breu: renderitzat
-  console.log('[MainDisplay] Renderitzat');
-  return () => console.log('[MainDisplay] Desmuntat');
-  });
+  // Removed noisy render logs to avoid spamming console and potential perf issues
 
   const validationResult = useMemo(() => {
   // Validació iniciada

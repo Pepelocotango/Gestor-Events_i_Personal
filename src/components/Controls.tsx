@@ -22,14 +22,15 @@ const Controls: React.FC<ControlsProps> = ({
     currentDataPath,
     setCurrentDataPath
 }) => {
-  const {
-    loadData, exportData, setHasUnsavedChanges, syncWithGoogle
-  } = useEventDataStore.getState();
-  const { undo, redo } = useEventDataStore.temporal.getState();
+  const { loadData, exportData, setHasUnsavedChanges, syncWithGoogle } = useEventDataStore.getState();
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
   const isSyncing = useEventDataStore(state => state.isSyncing);
-  const canUndo = useEventDataStore.temporal.useStore(state => state.pastStates.length > 0);
-  const canRedo = useEventDataStore.temporal.useStore(state => state.futureStates.length > 0);
+  const canUndo = (useEventDataStore as any).temporal.useStore((state: any) => state.pastStates.length > 0);
+  const canRedo = (useEventDataStore as any).temporal.useStore((state: any) => state.futureStates.length > 0);
+
+  // Memoize undo/redo callbacks to avoid re-creating functions on each render
+  const undo = () => (useEventDataStore as any).temporal.getState().undo();
+  const redo = () => (useEventDataStore as any).temporal.getState().redo();
   const { openModal } = useModalStore.getState();
 
   const [isExpanded, setIsExpanded] = useState(true);
@@ -47,7 +48,7 @@ const Controls: React.FC<ControlsProps> = ({
       }
       const jsonData = JSON.parse(fileContent);
       if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
-        loadData(jsonData, showToast);
+  loadData(jsonData);
         showToast("Totes les dades carregades correctament.", 'success');
         setHasUnsavedChanges(true);
         setCurrentDataPath(fileName);
@@ -62,7 +63,7 @@ const Controls: React.FC<ControlsProps> = ({
           showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
           return;
         }
-        loadData(migratedData, showToast);
+  loadData(migratedData);
         showToast("Dades antigues migrades i carregades correctament.", 'success');
         setHasUnsavedChanges(true);
         setCurrentDataPath(fileName);
@@ -252,7 +253,7 @@ const Controls: React.FC<ControlsProps> = ({
             const result = await window.electronAPI.performHardReset();
               if (result.success) {
                 // El backend ha esborrat els fitxers, ara el frontend neteja el seu estat.
-                loadData(null, showToast);
+                loadData(null);
                 setHasUnsavedChanges(false);
                 showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success', true);
               } else {
