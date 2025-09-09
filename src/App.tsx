@@ -59,7 +59,6 @@ const App: React.FC = () => {
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const canUndo = useEventDataStore(state => state.canUndo);
   const canRedo = useEventDataStore(state => state.canRedo);
-  const syncProgress = useEventDataStore(state => state.syncProgress);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable functions, so we can get them once with getState().
@@ -77,9 +76,6 @@ const App: React.FC = () => {
     addMaterialItemsFromFile,
     replacePeopleGroups,
     replaceMaterialItems,
-    executeSync,
-    _applyDataToState,
-    clearDataRepairInfo
   } = useEventDataStore.getState();
 
   const [toastState, setToastState] = useState<ToastState | null>(null);
