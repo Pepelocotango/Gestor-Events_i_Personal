@@ -17,8 +17,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
   const eventFrames = useEventDataStore(state => state.eventFrames);
 
   const { setFormData, openModal } = useModalStore.getState();
-  const { name, place, startDate, endDate, generalNotes } = useModalStore(state => state.formData) as Partial<EventFrame>;
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const { name, place, startDate, endDate, generalNotes, errors = {} } = useModalStore(state => state.formData) as Partial<EventFrame> & { errors?: {[key: string]: string} };
 
   const [eventNameDatalistId] = useState(() => `event-name-datalist-${Math.random().toString(36).substring(2,9)}`);
   const [locationDatalistId] = useState(() => `location-datalist-${Math.random().toString(36).substring(2,9)}`);
@@ -31,7 +30,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       newErrors.endDate = "La data de fi ha de ser posterior o igual a la data d'inici.";
     }
-    setErrors(newErrors);
+    setFormData(prev => ({ ...prev, errors: newErrors }));
     return Object.keys(newErrors).length === 0;
   }
 

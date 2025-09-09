@@ -19,22 +19,26 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
 
   const { setFormData, openModal } = useModalStore.getState();
-  const { personGroupId, startDate, endDate, status, notes } = useModalStore(state => state.formData) as Partial<Assignment>;
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
-  const [isEditingMixed, setIsEditingMixed] = useState(false);
+  const {
+    personGroupId,
+    startDate,
+    endDate,
+    status,
+    notes,
+    errors = {},
+    isEditingMixed = false
+  } = useModalStore(state => state.formData) as Partial<Assignment> & { errors?: {[key: string]: string}, isEditingMixed?: boolean };
 
   useEffect(() => {
     if (assignmentToEdit) {
       if (assignmentToEdit.status === AssignmentStatus.Mixed) {
-        setIsEditingMixed(true);
-        // Ensure status in formData is a valid selectable value, not 'Mixed'
-        setFormData(prev => ({ ...prev, status: AssignmentStatus.Pending }));
+        setFormData(prev => ({ ...prev, isEditingMixed: true, status: AssignmentStatus.Pending }));
       } else {
-        setIsEditingMixed(false);
+        setFormData(prev => ({ ...prev, isEditingMixed: false }));
       }
     }
-    setErrors({});
-  }, [assignmentToEdit]);
+    setFormData(prev => ({ ...prev, errors: {} }));
+  }, [assignmentToEdit, setFormData]);
 
   const validate = (): boolean => {
     const newErrors: {[key: string]: string} = {};
@@ -49,7 +53,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
     if (new Date(currentStartDate) < new Date(eventFrame.startDate) || new Date(currentEndDate) > new Date(eventFrame.endDate)) {
       newErrors.datesRange = `Les dates han d'estar dins del rang del marc (${formatDateDMY(eventFrame.startDate)} - ${formatDateDMY(eventFrame.endDate)}).`;
     }
-    setErrors(newErrors);
+    setFormData(prev => ({ ...prev, errors: newErrors }));
     return Object.keys(newErrors).length === 0;
   };
 
