@@ -48,12 +48,10 @@ const App: React.FC = () => {
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
-  const { isOpen, type, closeModal } = useModalStore(state => ({
-    isOpen: state.isOpen,
-    type: state.type,
-    closeModal: state.closeModal,
-  }));
-  const { openModal: openModalFromStore, data } = useModalStore();
+  const { openModal: openModalFromStore, closeModal } = useModalStore.getState();
+  const isOpen = useModalStore(state => state.isOpen);
+  const type = useModalStore(state => state.type);
+  const data = useModalStore(state => state.data);
 
   // --- State from Zustand Store (Reactive) ---
   // Subscribe to only the pieces of state that cause re-renders.
@@ -61,6 +59,7 @@ const App: React.FC = () => {
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const canUndo = useEventDataStore(state => state.canUndo);
   const canRedo = useEventDataStore(state => state.canRedo);
+  const syncProgress = useEventDataStore(state => state.syncProgress);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable functions, so we can get them once with getState().
@@ -77,7 +76,10 @@ const App: React.FC = () => {
     mergePeopleGroups,
     addMaterialItemsFromFile,
     replacePeopleGroups,
-    replaceMaterialItems
+    replaceMaterialItems,
+    executeSync,
+    _applyDataToState,
+    clearDataRepairInfo
   } = useEventDataStore.getState();
 
   const [toastState, setToastState] = useState<ToastState | null>(null);
