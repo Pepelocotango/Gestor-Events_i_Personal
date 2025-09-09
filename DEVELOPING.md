@@ -1,4 +1,5 @@
 
+branca de desenvolupament fix/dependency-cleanup ## ->PROVES DE REFACTORITZACIÓ
 ## DEVELOPING.md V1.0.0
 
 
@@ -728,6 +729,29 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Consistència de la Interfície d'Usuari**: S'ha fet un esforç per estandarditzar el comportament dels components interactius. Per exemple, totes les seccions col·lapsables ara permeten expandir/col·lapsar fent clic a qualsevol lloc de la capçalera, no només a la icona.
 -   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
+
+## Actualitzacions recents i tasques pendents
+
+Aquest projecte ha evolucionat recentment; aquí tens un resum concís dels canvis més rellevants i dels passos recomanats que queden per fer.
+
+Canvis importants aplicats (resum):
+
+- Migració parcial de l'antiga API basada en React Context cap a un store central amb Zustand (`src/stores/eventDataStore.ts`). S'ha fet una capa de compatibilitat (`src/contexts/EventDataContext.tsx`) que delega a `useEventDataStore` per minimitzar regressions.
+- S'han harmonitzat signatures d'algunes accions (per exemple `refreshGoogleEvents`) i s'han afegit tipus explícits per reduir errors de TypeScript.
+- S'ha afegit un petit shim `.temporal` sobre l'store per proporcionar compatibilitat amb el codi existent que esperava aquell middleware; aquest shim és una façana temporal, no una implementació completa d'undo/redo.
+- S'han eliminat i reduït logs massius a components crítics (p. ex. s'ha tret el registre de render a `MainDisplay`) per disminuir soroll a la consola i millorar el rendiment durant el desenvolupament.
+- S'ha aplicat una optimització de memoització (patró `peopleMap` — Map de id → nom) en diversos components per evitar cerca repetida amb `.find()` i reduir churn de renderitzacions; components modificats inclouen (no exhaustiu): `MainDisplay.tsx`, `EventFrameCard.tsx`, `AssignmentCard.tsx`, `SummaryReports.tsx`, `TechSheetForm.tsx`, `TechnicalPersonnelSection.tsx`.
+
+Principals tasques pendents (recomanades i prioritàries):
+
+1. Implementar un sistema real i robust d'undo/redo (actualment `.temporal` és un shim de compatibilitat). O bé integrar una biblioteca d'historial o implementar el patró d'instantànies amb limitacions de memòria i control d'efectes secundaris.
+2. Completar la migració de tots els components que encara utilitzen la vella API de Context o criden directament `getPersonGroupById` (queda alguna referència residual, revisar `App.tsx` i components menors).
+3. Fer un control de qualitat complet: executar una compilació completa (`npm run build`) i una passada de tipus (`tsc --noEmit`) / linter per detectar regressions no visibles amb canvis parcials. Corregir errors detectats pel build.
+4. Afegir tests automatitzats mínims (unitaris/integació) per a parts crítiques: `eventDataStore` (logica de fusió, càrrega, `refreshGoogleEvents`) i components que gestionen formularis persistents (modals).
+5. Revisar i ajustar les cridades a `window.electronAPI` per assegurar que la contracte d'IPC no s'ha trencat amb els canvis (especialment per a sincronització amb Google i diàlegs natius).
+
+Si cal, puc crear pull requests separats per cada gran tasca pendent (undo/redo, tests, build fixes). Digue'm quina prefereixes prioritzar i continuo amb la implementació i verificacions automàtiques.
+
 ---
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
