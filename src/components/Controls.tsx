@@ -23,12 +23,13 @@ const Controls: React.FC<ControlsProps> = ({
     setCurrentDataPath
 }) => {
   const {
-    loadData, exportData, setHasUnsavedChanges, undo, redo, syncWithGoogle
+    loadData, exportData, setHasUnsavedChanges, syncWithGoogle
   } = useEventDataStore.getState();
+  const { undo, redo } = useEventDataStore.temporal.getState();
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
-  const canUndo = useEventDataStore(state => state.canUndo);
-  const canRedo = useEventDataStore(state => state.canRedo);
   const isSyncing = useEventDataStore(state => state.isSyncing);
+  const canUndo = useEventDataStore.temporal.useStore(state => state.pastStates.length > 0);
+  const canRedo = useEventDataStore.temporal.useStore(state => state.futureStates.length > 0);
   const { openModal } = useModalStore.getState();
 
   const [isExpanded, setIsExpanded] = useState(true);

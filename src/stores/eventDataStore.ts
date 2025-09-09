@@ -5,6 +5,8 @@ import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import logger from '../utils/logger';
 import { loggingMiddleware } from './loggingMiddleware';
+import { temporal } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -57,11 +59,6 @@ interface EventDataState {
     hasUnsavedChanges: boolean;
     isSyncing: boolean;
     syncProgress: SyncProgressState;
-    history: AppData[];
-    future: AppData[];
-    canUndo: boolean;
-    canRedo: boolean;
-    isRestoringState: boolean;
     dataRepairInfo: { fixes: any[], repairedData: AppData } | null;
 }
 
@@ -94,10 +91,7 @@ interface EventDataActions {
     mergePeopleGroups: (newPeople: PersonGroup[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
     replacePeopleGroups: (newPeople: PersonGroup[]) => void;
     replaceMaterialItems: (newItems: MaterialItem[]) => void;
-    undo: () => void;
-    redo: () => void;
     _applyDataToState: (data: AppData) => void;
-    saveStateToHistory: () => void;
     clearDataRepairInfo: () => void;
 }
 
@@ -109,74 +103,19 @@ const initialState: EventDataState = {
     hasUnsavedChanges: false,
     isSyncing: false,
     syncProgress: { current: 0, total: 0, message: '', visible: false },
-    history: [],
-    future: [],
-    canUndo: false,
-    canRedo: false,
-    isRestoringState: false,
     dataRepairInfo: null,
 };
 
 export const useEventDataStore = create<EventDataState & EventDataActions>()(
-  loggingMiddleware(
-    (set, get) => ({
-    ...initialState,
+  temporal(
+    immer(
+      (set, get) => ({
+        ...initialState,
 
-    clearDataRepairInfo: () => set({ dataRepairInfo: null }),
+        clearDataRepairInfo: () => set({ dataRepairInfo: null }),
 
     // UTILS
     setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
-
-    // HISTORY (UNDO/REDO)
-    saveStateToHistory: () => {
-        if (get().isRestoringState) return;
-        const { eventFrames, peopleGroups, materialItems } = get();
-        const currentState: AppData = {
-            eventFrames: eventFrames.map(({ assignments, ...rest }) => rest),
-            assignments: eventFrames.flatMap(ef => ef.assignments),
-            peopleGroups,
-            materialItems,
-        };
-        const newHistory = [...get().history, currentState];
-        if (newHistory.length > 10) newHistory.shift();
-        set({ history: newHistory, future: [], canUndo: true, canRedo: false });
-    },
-    undo: () => {
-        const { history, eventFrames, peopleGroups, materialItems } = get();
-        if (history.length > 0) {
-            set({ isRestoringState: true });
-            const currentState: AppData = {
-                eventFrames: eventFrames.map(({ assignments, ...rest }) => rest),
-                assignments: eventFrames.flatMap(ef => ef.assignments),
-                peopleGroups,
-                materialItems,
-            };
-            const newFuture = [currentState, ...get().future];
-            const previousState = history[history.length - 1];
-            const newHistory = history.slice(0, history.length - 1);
-            get()._applyDataToState(previousState);
-            set({ history: newHistory, future: newFuture, canUndo: newHistory.length > 0, canRedo: true, hasUnsavedChanges: true });
-            setTimeout(() => set({ isRestoringState: false }), 0);
-        }
-    },
-    redo: () => {
-        const { future, eventFrames, peopleGroups, materialItems } = get();
-        if (future.length > 0) {
-            set({ isRestoringState: true });
-            const currentState: AppData = {
-                eventFrames: eventFrames.map(({ assignments, ...rest }) => rest),
-                assignments: eventFrames.flatMap(ef => ef.assignments),
-                peopleGroups,
-                materialItems,
-            };
-            const newHistory = [...get().history, currentState];
-            const nextState = future[0];
-            const newFuture = future.slice(1);
-            get()._applyDataToState(nextState);
-            set({ history: newHistory, future: newFuture, canUndo: true, canRedo: newFuture.length > 0, hasUnsavedChanges: true });
-            setTimeout(() => set({ isRestoringState: false }), 0);
-        }
-    },
 
     // DATA HYDRATION
     _applyDataToState: (data) => {
@@ -243,32 +182,26 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
     // EVENT FRAMES
     addEventFrame: (newEventFrameData) => {
-        get().saveStateToHistory();
         const newEventFrame: EventFrame = { ...newEventFrameData, id: generateId(), assignments: [], personnelComplete: false, techSheet: createDefaultTechSheet(newEventFrameData) };
         set(state => ({ eventFrames: [...state.eventFrames, newEventFrame].sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
         return newEventFrame;
     },
     updateEventFrame: (updatedEventFrame) => {
-        get().saveStateToHistory();
         set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === updatedEventFrame.id ? updatedEventFrame : ef).sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
     deleteEventFrame: (eventFrameId) => {
-        get().saveStateToHistory();
         set(state => ({ eventFrames: state.eventFrames.filter(ef => ef.id !== eventFrameId), hasUnsavedChanges: true }));
     },
     getEventFrameById: (eventFrameId) => get().eventFrames.find(ef => ef.id === eventFrameId),
     setPersonnelComplete: (eventFrameId, complete) => {
-        get().saveStateToHistory();
         set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef), hasUnsavedChanges: true }));
     },
     addOrUpdateTechSheet: (eventFrameId, techSheetData) => {
-        get().saveStateToHistory();
         set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? { ...ef, techSheet: techSheetData } : ef), hasUnsavedChanges: true }));
     },
 
     // ASSIGNMENTS
     addAssignment: (eventFrameId, newAssignmentData, force = false) => {
-        get().saveStateToHistory();
         const { eventFrames } = get();
         const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
         if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
@@ -280,29 +213,24 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return { success: true };
     },
     updateAssignment: (updatedAssignment) => {
-        get().saveStateToHistory();
         // ... conflict detection and update logic ...
         set(state => ({ eventFrames: state.eventFrames.map(ef_loc => ef_loc.id === updatedAssignment.eventFrameId ? { ...ef_loc, assignments: ef_loc.assignments.map(a => a.id === updatedAssignment.id ? updatedAssignment : a).sort((a,b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) } : ef_loc), hasUnsavedChanges: true }));
         return { success: true };
     },
     deleteAssignment: (eventFrameId, assignmentId) => {
-        get().saveStateToHistory();
         set(state => ({ eventFrames: state.eventFrames.map(ef => ef.id === eventFrameId ? { ...ef, assignments: ef.assignments.filter(a => a.id !== assignmentId) } : ef), hasUnsavedChanges: true }));
     },
     getAssignmentById: (eventFrameId, assignmentId) => get().eventFrames.find(ef => ef.id === eventFrameId)?.assignments.find(a => a.id === assignmentId),
 
     // PEOPLE
     addPersonGroup: (newPersonGroupData) => {
-        get().saveStateToHistory();
         const newPersonGroup: PersonGroup = { id: generateId(), ...newPersonGroupData };
         set(state => ({ peopleGroups: [...state.peopleGroups, newPersonGroup].sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
     updatePersonGroup: (updatedPersonGroup) => {
-        get().saveStateToHistory();
         set(state => ({ peopleGroups: state.peopleGroups.map(pg => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg).sort((a,b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
     deletePersonGroup: (personGroupId) => {
-        get().saveStateToHistory();
         set(state => ({
             peopleGroups: state.peopleGroups.filter(pg => pg.id !== personGroupId),
             eventFrames: state.eventFrames.map(ef => ({ ...ef, assignments: ef.assignments.filter(a => a.personGroupId !== personGroupId) })),
@@ -311,7 +239,6 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
     getPersonGroupById: (personGroupId) => get().peopleGroups.find(pg => pg.id === personGroupId),
     mergePeopleGroups: (newPeople) => {
-        get().saveStateToHistory();
         const existingNames = new Set(get().peopleGroups.map(p => p.name.toLowerCase()));
         const peopleToAdd = newPeople.filter(p => !existingNames.has(p.name.toLowerCase()));
         if (peopleToAdd.length > 0) {
@@ -322,26 +249,21 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         }
     },
     replacePeopleGroups: (newPeople) => {
-        get().saveStateToHistory();
         set({ peopleGroups: newPeople.sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true });
     },
 
     // MATERIAL
     addMaterialItem: (newItemData) => {
-        get().saveStateToHistory();
         const newItem: MaterialItem = { ...newItemData, id: generateId() };
         set(state => ({ materialItems: [...state.materialItems, newItem].sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
     updateMaterialItem: (updatedItem) => {
-        get().saveStateToHistory();
         set(state => ({ materialItems: state.materialItems.map(item => item.id === updatedItem.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
     },
     deleteMaterialItem: (itemId) => {
-        get().saveStateToHistory();
         set(state => ({ materialItems: state.materialItems.filter(item => item.id !== itemId), hasUnsavedChanges: true }));
     },
     addMaterialItemsFromFile: (newItems) => {
-        get().saveStateToHistory();
         const existingNames = new Set(get().materialItems.map(item => item.name.toLowerCase()));
         const itemsToAdd = newItems.filter(newItem => !existingNames.has(newItem.name.toLowerCase()));
         if (itemsToAdd.length > 0) {
@@ -352,7 +274,6 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         }
     },
     replaceMaterialItems: (newItems) => {
-        get().saveStateToHistory();
         set({ materialItems: newItems.sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true });
     },
     getMaterialAvailability: (materialId, startDate, endDate, currentEventFrameId) => {
@@ -421,7 +342,13 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
         return finalResult;
       },
-    }),
-    'eventDataStore'
+    })),
+    {
+        partialize: (state) => {
+            const { eventFrames, peopleGroups, materialItems } = state;
+            return { eventFrames, peopleGroups, materialItems };
+        },
+        limit: 10,
+    }
   )
 );

@@ -57,9 +57,9 @@ const App: React.FC = () => {
   // Subscribe to only the pieces of state that cause re-renders.
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
   const isSyncing = useEventDataStore(state => state.isSyncing);
-  const canUndo = useEventDataStore(state => state.canUndo);
-  const canRedo = useEventDataStore(state => state.canRedo);
   const syncProgress = useEventDataStore(state => state.syncProgress);
+  const canUndo = useEventDataStore.temporal.useStore(state => state.pastStates.length > 0);
+  const canRedo = useEventDataStore.temporal.useStore(state => state.futureStates.length > 0);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable functions, so we can get them once with getState().
@@ -68,8 +68,6 @@ const App: React.FC = () => {
     loadData: loadDataFromManager,
     exportData: exportDataFromManager,
     setHasUnsavedChanges,
-    undo,
-    redo,
     getPersonGroupById,
     deleteEventFrame,
     deleteAssignment,
@@ -105,6 +103,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const { undo, redo } = useEventDataStore.temporal.getState();
     const handleKeyDown = (event: KeyboardEvent) => {
         const target = event.target as HTMLElement;
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
@@ -113,16 +112,16 @@ const App: React.FC = () => {
         if (event.ctrlKey) {
             if (event.key.toLowerCase() === 'z') {
                 event.preventDefault();
-                if (canUndo) undo();
+                undo();
             } else if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
                 event.preventDefault();
-                if (canRedo) redo();
+                redo();
             }
         }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, canUndo, canRedo]);
+  }, []);
 
   logger.info('App.tsx - Component renderitzat.');
 
@@ -508,14 +507,15 @@ const App: React.FC = () => {
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
     if (window.electronAPI) {
+      const { undo, redo } = useEventDataStore.temporal.getState();
       const cleanup = window.electronAPI.onMenuAction((action) => {
         logger.info(`[Menu] Acció rebuda: ${action}`);
         switch (action) {
           case 'undo':
-            if (canUndo) undo();
+            undo();
             break;
           case 'redo':
-            if (canRedo) redo();
+            redo();
             break;
           case 'save-all':
             handleSaveData('all');
