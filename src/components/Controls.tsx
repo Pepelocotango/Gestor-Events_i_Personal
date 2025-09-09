@@ -1,4 +1,5 @@
 import { ChangeEvent, useRef, useState } from 'react';
+import { useStore } from 'zustand';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { PersonGroup, ShowToastFunction } from '../types';
@@ -25,12 +26,12 @@ const Controls: React.FC<ControlsProps> = ({
   const { loadData, exportData, setHasUnsavedChanges, syncWithGoogle } = useEventDataStore.getState();
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
   const isSyncing = useEventDataStore(state => state.isSyncing);
-  const canUndo = (useEventDataStore as any).temporal.useStore((state: any) => state.pastStates.length > 0);
-  const canRedo = (useEventDataStore as any).temporal.useStore((state: any) => state.futureStates.length > 0);
+  const canUndo = useStore(useEventDataStore.temporal, state => state.pastStates.length > 0);
+  const canRedo = useStore(useEventDataStore.temporal, state => state.futureStates.length > 0);
 
   // Memoize undo/redo callbacks to avoid re-creating functions on each render
-  const undo = () => (useEventDataStore as any).temporal.getState().undo();
-  const redo = () => (useEventDataStore as any).temporal.getState().redo();
+  const undo = () => useEventDataStore.temporal.getState().undo();
+  const redo = () => useEventDataStore.temporal.getState().redo();
   const { openModal } = useModalStore.getState();
 
   const [isExpanded, setIsExpanded] = useState(true);
