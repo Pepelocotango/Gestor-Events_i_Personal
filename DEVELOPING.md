@@ -84,15 +84,15 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
 Per il·lustrar com col·laboren aquestes capes, analitzem el flux quan un usuari desa totes les dades:
 
 1.  **[Frontend]** L'usuari fa clic al botó "Guardar Tot" al component `Controls.tsx`.
-2.  **[Frontend]** S'activa la funció `handleSaveData('all')`, que crida a la funció `exportData()` de l'store de Zustand (`useEventDataStore`).
-3.  **[Frontend]** L'store recopila totes les dades del seu estat actual (`eventFrames`, `peopleGroups`, etc.) i les retorna com un objecte `AppData`.
-4.  **[Frontend]** La funció `handleSaveData` crida a `window.electronAPI.showSaveDialog()` amb les dades serialitzades en format JSON.
+2.  **[Frontend]** S'activa una funció que crida a l'acció `exportData()` de l'store de Zustand (`useEventDataStore`).
+3.  **[Frontend - Zustand]** L'store recopila totes les dades del seu estat actual (`eventFrames`, `peopleGroups`, etc.) i les retorna com un objecte `AppData`.
+4.  **[Frontend]** La funció crida a `window.electronAPI.showSaveDialog()` amb les dades serialitzades en format JSON.
 5.  **[Pont]** `preload.cjs` rep la crida i, de forma segura, envia una petició IPC (`ipcRenderer.invoke`) al backend a través del canal `'show-save-dialog'`.
 6.  **[Backend]** El gestor `ipcMain.handle('show-save-dialog', ...)` a `main.cjs` rep la petició.
 7.  **[Backend]** Utilitzant el mòdul `dialog` d'Electron, obre una finestra de diàleg nativa del sistema operatiu perquè l'usuari triï on desar el fitxer.
 8.  **[Backend]** Un cop l'usuari confirma, utilitza el mòdul `fs` de Node.js per escriure les dades rebudes al disc.
 9.  **[Backend -> Pont -> Frontend]** El resultat de l'operació (èxit o error) es retorna a través de la `Promise` de `ipcRenderer.invoke`.
-10. **[Frontend]** El component `Controls.tsx` rep el resultat i mostra una notificació (toast) a l'usuari informant de l'èxit o el fracàs de l'operació.
+10. **[Frontend]** El component que va iniciar l'acció rep el resultat i mostra una notificació (toast) a l'usuari.
 
 Aquest flux demostra la clara separació de responsabilitats: el frontend gestiona la UI i l'estat, mentre que el backend s'encarrega de les operacions a nivell de sistema, garantint seguretat i un rendiment natiu.
 
@@ -258,40 +258,69 @@ Aquesta secció ha estat refactoritzada per suportar múltiples calendaris. Per 
 
 ## 4. Frontend: Gestió d'Estat i Lògica de la UI (React)
 
-El frontend és una Single Page Application (SPA) construïda amb React i TypeScript. S'encarrega de tota la presentació visual i la interacció amb l'usuari. La seva arquitectura està dissenyada per ser reactiva, mantenible i fortament tipada.
+El frontend és una Single Page Application (SPA) construïda amb React i TypeScript. La seva arquitectura ha estat refactoritzada per utilitzar **Zustand** com a eina principal per a la gestió de l'estat global.
 
 ### 4.1. Gestió d'Estat Centralitzada amb Zustand
 
-Per millorar la mantenibilitat, el rendiment i desacoblar la lògica de l'estat de la interfície d'usuari, l'aplicació ha adoptat **Zustand** com a eina principal per a la gestió de l'estat global del frontend. Aquesta decisió arquitectònica substitueix l'antic sistema basat en `React.Context` i hooks personalitzats.
+L'estat global del frontend es gestiona a través de *stores* de Zustand, la qual cosa desacobla la lògica de l'estat dels components de React i millora el rendiment.
 
 #### Stores de Zustand (`src/stores/`)
-
-L'estat global es divideix en *stores* modulars, cadascun amb una responsabilitat clara:
 
 1.  **`eventDataStore.ts`**:
     -   **Descripció:** És la **font única de veritat** per a totes les dades principals de l'aplicació (esdeveniments, contactes, material).
     -   **Contingut:**
-        -   **Estat:** Emmagatzema els arrays de `eventFrames`, `peopleGroups`, `materialItems`, l'estat de `hasUnsavedChanges`, les piles de desfer/refer, etc.
+        -   **Estat:** Emmagatzema els arrays de `eventFrames`, `peopleGroups`, `materialItems`, l'estat de `hasUnsavedChanges`, etc.
         -   **Accions:** Conté totes les funcions per manipular aquestes dades (CRUD: `addEventFrame`, `updateAssignment`, etc.), la lògica de negoci (detecció de conflictes, disponibilitat de material), i la interacció amb el backend per a la persistència de dades (`loadData`, `exportData`).
+    -   **Middleware:**
+        -   **`immer`**: Permet escriure lògica de mutació d'estat de manera més senzilla i segura, com si es mutés l'estat directament.
+        -   **`temporal` (de `zundo`)**: Envolta l'store per afegir automàticament la funcionalitat de desfer/refer (`undo`/`redo`) a totes les modificacions de l'estat.
 
 2.  **`modalStore.ts`**:
-    -   **Descripció:** Gestiona exclusivament l'estat dels diàlegs modals, incloent l'estat dels formularis interns. Aquesta centralització soluciona un bug crític on les dades d'un formulari es perdien si un component pare es re-renderitzava.
-    -   **Contingut:**
-        -   **Estat:** Controla quin modal està obert (`type`), les dades amb què es va obrir (`data`), si és visible (`isOpen`), i l'estat del formulari intern (`formData`).
-        -   **Accions:** `openModal`, `closeModal`, `setFormData`. La funció `openModal` conté la lògica per inicialitzar correctament el `formData` segons el tipus de modal, assegurant que els formularis d'edició s'omplin amb les dades existents.
+    -   **Descripció:** Gestiona exclusivament quin modal està obert (`type`), les dades inicials amb què es va obrir (`data`) i si és visible (`isOpen`).
+    -   **Important**: A diferència de versions anteriors, aquest store **ja no gestiona l'estat intern dels formularis**.
 
-#### Beneficis d'Aquesta Arquitectura
+#### Patró d'Ús de Zustand als Components
 
--   **Desacoblament:** La lògica de l'estat resideix completament fora dels components de React, que ara esdevenen més simples i centrats en la presentació.
--   **Rendiment Optimitzat:** Els components se subscriuen de manera selectiva només a les porcions (`slices`) de l'estat que necessiten. Si una part de l'estat que no els afecta canvia, el component no es torna a renderitzar innecessàriament.
-    ```javascript
-    // Un component que només necessita saber si hi ha canvis, no es re-renderitzarà si canvia la llista d'esdeveniments.
+-   **Accés a l'Estat (Reactiu):** Els components se subscriuen de manera selectiva només a les porcions (`slices`) de l'estat que necessiten per renderitzar-se. Això evita re-renderitzats innecessaris.
+    ```tsx
+    // Aquest component només es tornarà a renderitzar quan `hasUnsavedChanges` canviï.
     const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
     ```
--   **Accés Simplificat:** Qualsevol component, a qualsevol nivell de l'arbre, pot accedir a l'estat o a les accions sense necessitat de "prop drilling".
--   **Integritat de Dades en Formularis:** L'estat dels formularis dels modals persisteix al `modalStore`, independentment del cicle de vida dels components que els envolten, eliminant la pèrdua de dades.
 
-### 4.2. Model de Dades i Tipus (`src/types.ts`)
+-   **Accés a les Accions (No Reactiu):** Com que les funcions d'acció són estables, es poden obtenir directament de l'store amb `getState()` dins de gestors d'esdeveniments (`event handlers`) per evitar passar-les com a `props` o incloure-les a les dependències dels `useEffect`.
+    ```tsx
+    const handleAdd = () => {
+      const { addEventFrame } = useEventDataStore.getState();
+      addEventFrame({ /* ...dades... */ });
+    };
+    ```
+
+-   **Accés a l'Store Temporal (Desfer/Refer):** Per interactuar amb l'estat de l'historial (p. ex., per activar/desactivar botons), s'ha d'utilitzar un hook `useStore` específic importat de Zustand.
+    ```tsx
+    import { useStore } from 'zustand';
+
+    const canUndo = useStore(useEventDataStore.temporal, state => state.pastStates.length > 0);
+    const { undo } = useEventDataStore.temporal.getState();
+    ```
+
+### 4.2. Gestió de l'Estat dels Formularis (Modals)
+
+Per solucionar problemes de pèrdua de dades i complexitat, els formularis dins dels modals (`EventFrameFormModal`, `AssignmentFormModal`, etc.) ja no depenen d'un *store* global. En canvi, segueixen el patró estàndard de React:
+
+-   **Estat Local:** Cada modal amb un formulari utilitza `useState` localment per gestionar els valors dels seus camps.
+-   **Inicialització:** Un `useEffect` s'encarrega d'inicialitzar l'estat del formulari, ja sigui amb valors per defecte (per a una nova creació) o amb les dades de l'element que s'està editant (passades a través del `modalStore.data`).
+-   **Enviament:** Quan el formulari s'envia, l'estat local es recopila i es passa a l'acció corresponent de l'store `useEventDataStore` (p. ex., `addEventFrame` o `updateEventFrame`).
+
+Aquesta arquitectura fa que els components de formulari siguin autònoms, més fàcils de raonar i menys propensos a errors d'estat.
+
+### 4.3. Component Reutilitzable: `AutosizeTextarea`
+
+Per donar resposta a la necessitat que les àrees de text s'ajustin al seu contingut, s'ha creat un nou component a `src/components/ui/AutosizeTextarea.tsx`.
+
+-   **Funcionament:** El component embolcalla un `<textarea>` estàndard. Utilitza el hook `useLayoutEffect` per recalcular i ajustar l'alçada de l'element cada vegada que el seu valor canvia. `useLayoutEffect` es fa servir en lloc de `useEffect` per evitar un parpelleig visual, ja que el càlcul es realitza de manera síncrona després de les mutacions del DOM.
+-   **Integració:** Per aplicar aquest canvi de manera eficient, el component genèric `TechSheetField.tsx` ha estat modificat per renderitzar `AutosizeTextarea` quan se li passa la propietat `as="textarea"`. La resta de formularis de l'aplicació també han estat actualitzats per utilitzar aquest nou component.
+
+### 4.4. Model de Dades i Tipus (`src/types.ts`)
 
 Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les estructures de dades clau mitjançant interfícies de TypeScript.
 
@@ -729,30 +758,6 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Consistència de la Interfície d'Usuari**: S'ha fet un esforç per estandarditzar el comportament dels components interactius. Per exemple, totes les seccions col·lapsables ara permeten expandir/col·lapsar fent clic a qualsevol lloc de la capçalera, no només a la icona.
 -   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
-
-## Actualitzacions recents i tasques pendents
-
-Aquest projecte ha evolucionat recentment; aquí tens un resum concís dels canvis més rellevants i dels passos recomanats que queden per fer.
-
-Canvis importants aplicats (resum):
-
-- Migració parcial de l'antiga API basada en React Context cap a un store central amb Zustand (`src/stores/eventDataStore.ts`). S'ha fet una capa de compatibilitat (`src/contexts/EventDataContext.tsx`) que delega a `useEventDataStore` per minimitzar regressions.
-- S'han harmonitzat signatures d'algunes accions (per exemple `refreshGoogleEvents`) i s'han afegit tipus explícits per reduir errors de TypeScript.
-- S'ha afegit un petit shim `.temporal` sobre l'store per proporcionar compatibilitat amb el codi existent que esperava aquell middleware; aquest shim és una façana temporal, no una implementació completa d'undo/redo.
-- S'han eliminat i reduït logs massius a components crítics (p. ex. s'ha tret el registre de render a `MainDisplay`) per disminuir soroll a la consola i millorar el rendiment durant el desenvolupament.
-- S'ha aplicat una optimització de memoització (patró `peopleMap` — Map de id → nom) en diversos components per evitar cerca repetida amb `.find()` i reduir churn de renderitzacions; components modificats inclouen (no exhaustiu): `MainDisplay.tsx`, `EventFrameCard.tsx`, `AssignmentCard.tsx`, `SummaryReports.tsx`, `TechSheetForm.tsx`, `TechnicalPersonnelSection.tsx`.
-
-Principals tasques pendents (recomanades i prioritàries):
-
-1. Implementar un sistema real i robust d'undo/redo (actualment `.temporal` és un shim de compatibilitat). O bé integrar una biblioteca d'historial o implementar el patró d'instantànies amb limitacions de memòria i control d'efectes secundaris.
-2. Completar la migració de tots els components que encara utilitzen la vella API de Context o criden directament `getPersonGroupById` (queda alguna referència residual, revisar `App.tsx` i components menors).
-3. Fer un control de qualitat complet: executar una compilació completa (`npm run build`) i una passada de tipus (`tsc --noEmit`) / linter per detectar regressions no visibles amb canvis parcials. Corregir errors detectats pel build.
-4. Afegir tests automatitzats mínims (unitaris/integació) per a parts crítiques: `eventDataStore` (logica de fusió, càrrega, `refreshGoogleEvents`) i components que gestionen formularis persistents (modals).
-5. Revisar i ajustar les cridades a `window.electronAPI` per assegurar que la contracte d'IPC no s'ha trencat amb els canvis (especialment per a sincronització amb Google i diàlegs natius).
-
-Si cal, puc crear pull requests separats per cada gran tasca pendent (undo/redo, tests, build fixes). Digue'm quina prefereixes prioritzar i continuo amb la implementació i verificacions automàtiques.
-
----
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
 
