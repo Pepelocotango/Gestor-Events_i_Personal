@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
@@ -40,9 +40,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const { getPersonGroupById } = useEventDataStore.getState();
-  const person = getPersonGroupById(assignment.personGroupId);
-  if (!person) {
+  const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
+  const personName = peopleMap.get(assignment.personGroupId);
+  if (!personName) {
     console.error(`PersonGroup not found for ID: ${assignment.personGroupId}`);
   }
 
@@ -85,7 +90,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         }}
       >
         <div className="flex-grow">
-          <p className="font-semibold text-sm">{person?.name || 'Persona Desconeguda'}</p>
+          <p className="font-semibold text-sm">{personName || 'Persona Desconeguda'}</p>
           <p className="text-xs opacity-80">{formatDateRangeDMY(assignment.startDate, assignment.endDate)}</p>
           <p className="text-xs font-bold opacity-90">
             {getStatusSummaryText(assignment)}

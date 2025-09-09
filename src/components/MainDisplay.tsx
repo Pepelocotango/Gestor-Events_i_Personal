@@ -58,6 +58,11 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const googleEvents = useEventDataStore(state => state.googleEvents);
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable and can be safely retrieved once.
@@ -123,7 +128,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
           const lowerFilterText = filterText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
           frames = frames.filter(ef => {
             const efFields = [ef.name, ef.place || '', ef.generalNotes || ''].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            const assignFields = ef.assignments.map((a: Assignment) => [getPersonGroupById(a.personGroupId)?.name || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                       const assignFields = ef.assignments.map((a: Assignment) => [peopleMap.get(a.personGroupId) || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             return efFields.includes(lowerFilterText) || assignFields.includes(lowerFilterText);
           });
         }
@@ -226,7 +231,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
                 return newSet;
             });
             if (result.warningMessage && newStatus !== AssignmentStatus.No) {
-                // setConflictDialog({ message: result.warningMessage, personName: getPersonGroupById(assignment.personGroupId)?.name || 'N/A' });
+                // setConflictDialog({ message: result.warningMessage, personName: peopleMap.get(assignment.personGroupId) || 'N/A' });
             }
         } else if (result.message) {
             setToastMessage(result.message, 'error');
@@ -235,7 +240,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
     if (assignment.status === AssignmentStatus.Mixed) {
         openModal('confirmDeleteEventFrame', {
             itemType: "Actualització massiva",
-            itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${getPersonGroupById(assignment.personGroupId)?.name || ''}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
+            itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${peopleMap.get(assignment.personGroupId) || ''}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
             onConfirmSpecial: performUpdate, titleOverride: "Confirmar Canvi General", confirmButtonText: "Sí, canviar tot", cancelButtonText: "No, mantenir estats diaris"
         });
     } else {

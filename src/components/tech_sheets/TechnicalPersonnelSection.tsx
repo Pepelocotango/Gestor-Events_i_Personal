@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
@@ -32,11 +32,16 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onRemoveProvider,
   onAddRole,
   onRemoveRole,
-  getPersonGroupById,
+  // getPersonGroupById removed; prefer peopleGroups prop and peopleMap
   showToast,
   onConfirmUpdate,
 }) => {
   const openModal = useModalStore(state => state.openModal);
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
 
   return (
     <TechSheetSection title="Personal Tècnic"
@@ -93,7 +98,8 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                 toAdd,
                 toRemove,
                 toUpdate,
-                getPersonGroupById,
+                // provide a simple lookup to keep modal code unchanged
+                getPersonGroupById: (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' }),
                 onConfirm: onConfirmUpdate,
               });
             }}
@@ -106,7 +112,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
     >
       <div className="col-span-full space-y-6">
         {technicalProviders.map((provider, providerIndex) => {
-          const selectedPerson = getPersonGroupById(provider.personGroupId);
+          const selectedPerson = peopleGroups.find(pg => pg.id === provider.personGroupId);
           return (
             <div key={provider.id} className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
               <div className="flex justify-between items-start mb-4">

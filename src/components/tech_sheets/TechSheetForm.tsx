@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
 import TechSheetSection from './TechSheetSection';
@@ -16,7 +16,12 @@ interface TechSheetFormProps {
 }
 
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) => {
-  const { peopleGroups, materialItems, addOrUpdateTechSheet, getPersonGroupById, getMaterialAvailability } = useEventDataStore.getState();
+  const { peopleGroups, materialItems, addOrUpdateTechSheet, getMaterialAvailability } = useEventDataStore.getState();
+  const peopleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    peopleGroups.forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [peopleGroups]);
 
   const getInitialFormData = (): TechSheetData => {
     return eventFrame.techSheet!;
@@ -282,7 +287,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         showToast('Desant canvis pendents abans d\'exportar...', 'info');
         saveData(true);
     }
-    exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById, showToast);
+  exportTechSheetToPdf(formData, eventFrame.name, (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' }), showToast);
   };
 
   const handleConfirmUpdateFromAssignments = (selectedChanges?: any[]) => {
@@ -476,7 +481,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         onRemoveProvider={handleRemoveProvider}
         onAddRole={handleAddRole}
         onRemoveRole={handleRemoveRole}
-        getPersonGroupById={getPersonGroupById}
+  getPersonGroupById={(id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' })}
         showToast={showToast}
         onConfirmUpdate={handleConfirmUpdateFromAssignments}
       />
