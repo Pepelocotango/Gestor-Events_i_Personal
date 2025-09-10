@@ -68,7 +68,18 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
           <p className="text-sm text-gray-500 dark:text-gray-400">No hi ha assignacions per aquest esdeveniment.</p>
         )}
       </div>
-      <div className="flex justify-end items-center pt-4 mt-4 border-t dark:border-gray-700">
+      <div className="flex justify-between items-center pt-4 mt-4 border-t dark:border-gray-700">
+        <Tooltip text="Ressaltar aquest marc a la llista principal">
+          <button
+            onClick={() => {
+              useEventDataStore.getState().setHighlightedEventId(eventFrame.id);
+              onClose();
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Mostrar a la Llista
+          </button>
+        </Tooltip>
         <div className="space-x-2">
           <Tooltip text="Obrir el formulari per editar els detalls d'aquest marc">
             <button

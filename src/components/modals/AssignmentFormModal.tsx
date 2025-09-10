@@ -1,73 +1,72 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { EventFrame, Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
+import { Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../constants';
 import { formatDateDMY } from '../../utils/dateFormat';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { useModalStore } from '../../stores/modalStore';
 
-interface AssignmentFormProps {
+interface AssignmentFormModalProps {
   onClose: () => void;
   showToast: ShowToastFunction;
-  eventFrame: EventFrame;
-  assignmentToEdit?: Assignment;
   setExpandedEventFrameId?: (id: string) => void;
 }
 
-export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ onClose, eventFrame, assignmentToEdit, showToast, setExpandedEventFrameId }) => {
+export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClose, showToast, setExpandedEventFrameId }) => {
   const { addAssignment, updateAssignment } = useEventDataStore.getState();
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
-  const { openModal } = useModalStore.getState();
+  const { data, updateModalData, openModal } = useModalStore();
 
-  // Local state for the form
-  const [personGroupId, setPersonGroupId] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [status, setStatus] = useState<AssignmentStatus>(AssignmentStatus.Pending);
-  const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isEditingMixed, setIsEditingMixed] = useState(false);
+
+  if (!data || !data.eventFrame) {
+    console.error("AssignmentFormModal rendered without necessary eventFrame data from modal store.");
+    return null;
+  }
+
+  const isEditing = !!data.assignmentToEdit;
+  const formData = isEditing ? data.assignmentToEdit! : data;
+  const eventFrame = data.eventFrame!;
+
+  const [isEditingMixed, setIsEditingMixed] = useState(isEditing && formData.status === AssignmentStatus.Mixed);
 
   useEffect(() => {
-    if (assignmentToEdit) {
-      setPersonGroupId(assignmentToEdit.personGroupId);
-      setStartDate(assignmentToEdit.startDate);
-      setEndDate(assignmentToEdit.endDate);
-      setNotes(assignmentToEdit.notes || '');
-
-      if (assignmentToEdit.status === AssignmentStatus.Mixed) {
-        setIsEditingMixed(true);
-        setStatus(AssignmentStatus.Pending); // Default selector value
-      } else {
-        setIsEditingMixed(false);
-        setStatus(assignmentToEdit.status);
-      }
-    } else {
-      // Default values for a new assignment
-      setPersonGroupId(peopleGroups[0]?.id || '');
-      setStartDate(eventFrame.startDate);
-      setEndDate(eventFrame.endDate);
-      setStatus(AssignmentStatus.Pending);
-      setNotes('');
-      setIsEditingMixed(false);
-    }
+    // This effect now only resets errors when the modal context changes.
     setErrors({});
-  }, [assignmentToEdit, eventFrame, peopleGroups]);
+  }, [isEditing, data.assignmentToEdit?.id, data.eventFrame?.id]);
+
+  type EditableAssignmentFields = Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>;
+
+  const handleFieldChange = (field: keyof EditableAssignmentFields, value: any) => {
+    const newFormData = { ...formData, [field]: value };
+
+    if (field === 'status' && isEditingMixed) {
+        setIsEditingMixed(false);
+    }
+
+    if (isEditing) {
+      updateModalData({ assignmentToEdit: newFormData as Assignment });
+    } else {
+      updateModalData({ [field]: value });
+    }
+  };
 
   const validate = (): boolean => {
-    const newErrors: {[key: string]: string} = {};
-    if (!personGroupId) newErrors.personGroupId = "Cal seleccionar una persona o grup.";
-    const currentStartDate = startDate || eventFrame.startDate;
-    const currentEndDate = endDate || eventFrame.endDate;
-    if (!currentStartDate) newErrors.startDate = "La data d'inici és obligatòria.";
-    if (!currentEndDate) newErrors.endDate = "La data de fi és obligatòria.";
-    if (new Date(currentStartDate) > new Date(currentEndDate)) {
-      newErrors.endDate = "La data de fi ha de ser posterior o igual a la data d'inici.";
+    const newErrors: { [key: string]: string } = {};
+    if (!formData.personGroupId) newErrors.personGroupId = "Cal seleccionar una persona o grup.";
+    if (!formData.startDate) newErrors.startDate = "La data d'inici és obligatòria.";
+    if (!formData.endDate) newErrors.endDate = "La data de fi és obligatòria.";
+
+    if (formData.startDate && formData.endDate) {
+      if (new Date(formData.startDate) > new Date(formData.endDate)) {
+        newErrors.endDate = "La data de fi ha de ser posterior o igual a la data d'inici.";
+      }
+      if (new Date(formData.startDate) < new Date(eventFrame.startDate) || new Date(formData.endDate) > new Date(eventFrame.endDate)) {
+        newErrors.datesRange = `Les dates han d'estar dins del rang del marc (${formatDateDMY(eventFrame.startDate)} - ${formatDateDMY(eventFrame.endDate)}).`;
+      }
     }
-    if (new Date(currentStartDate) < new Date(eventFrame.startDate) || new Date(currentEndDate) > new Date(eventFrame.endDate)) {
-      newErrors.datesRange = `Les dates han d'estar dins del rang del marc (${formatDateDMY(eventFrame.startDate)} - ${formatDateDMY(eventFrame.endDate)}).`;
-    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -75,7 +74,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
   const performSubmit = (force = false) => {
     if (!validate()) return;
 
-    const handleResult = (result: { success: boolean; message?: string; warningMessage?: string }, isUpdate: boolean) => {
+    const handleResult = (result: { success: boolean; message?: string; warningMessage?: string }) => {
       if (result.success) {
         if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
           openModal('confirmDuplicate', {
@@ -84,8 +83,8 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
           });
         } else {
           if (result.warningMessage) showToast(result.warningMessage, 'warning');
-          showToast(isUpdate ? "Assignació actualitzada." : "Assignació afegida.", 'success');
-          if (!isUpdate && setExpandedEventFrameId) setExpandedEventFrameId(eventFrame.id);
+          showToast(isEditing ? "Assignació actualitzada." : "Assignació afegida.", 'success');
+          if (!isEditing && setExpandedEventFrameId) setExpandedEventFrameId(eventFrame.id);
           onClose();
         }
       } else if (result.message) {
@@ -93,29 +92,28 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
       }
     };
 
-    if (assignmentToEdit) {
-      const updatedData: Assignment = {
-        ...assignmentToEdit,
-        personGroupId: personGroupId!,
-        startDate: startDate!,
-        endDate: endDate!,
-        notes: notes!,
-        status: isEditingMixed ? AssignmentStatus.Mixed : status!,
-        dailyStatuses: isEditingMixed ? assignmentToEdit.dailyStatuses : undefined
-      };
-      
-      if (isEditingMixed && status !== AssignmentStatus.Pending) {
-        updatedData.status = status!;
-        updatedData.dailyStatuses = undefined;
-      }
-      
-      const result = updateAssignment(updatedData, force);
-      handleResult(result, true);
+    if (isEditing) {
+        let updatedData: Assignment = { ...formData } as Assignment;
 
+        if (isEditingMixed && formData.status !== AssignmentStatus.Pending) {
+          updatedData.status = formData.status!;
+          updatedData.dailyStatuses = undefined;
+        } else if (isEditingMixed) {
+          updatedData.status = AssignmentStatus.Mixed;
+        }
+
+        const result = updateAssignment(updatedData, force);
+        handleResult(result);
     } else {
-      const assignmentData = { personGroupId: personGroupId!, startDate: startDate!, endDate: endDate!, status: status!, notes: notes! };
+      const assignmentData = {
+          personGroupId: formData.personGroupId!,
+          startDate: formData.startDate!,
+          endDate: formData.endDate!,
+          status: formData.status!,
+          notes: formData.notes!
+      };
       const result = addAssignment(eventFrame.id, assignmentData, force);
-      handleResult(result, false);
+      handleResult(result);
     }
   };
 
@@ -126,9 +124,11 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
 
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
 
+  const statusValue = isEditingMixed ? AssignmentStatus.Pending : formData.status;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4" aria-labelledby="assignment-form-title">
-      <h2 id="assignment-form-title" className="sr-only">{assignmentToEdit ? 'Formulari Edició Assignació' : 'Formulari Nova Assignació'} per {eventFrame.name}</h2>
+      <h2 id="assignment-form-title" className="sr-only">{isEditing ? 'Formulari Edició Assignació' : 'Formulari Nova Assignació'} per {eventFrame.name}</h2>
       {isEditingMixed && (
         <div className="p-3 bg-blue-100 dark:bg-blue-900/50 border-l-4 border-blue-500 dark:border-blue-400 rounded">
           <p className="text-sm text-blue-800 dark:text-blue-200">
@@ -141,8 +141,8 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
         <Tooltip text="Seleccionar la persona o grup a assignar">
           <select
             id="as-person"
-            value={personGroupId}
-            onChange={e => setPersonGroupId(e.target.value)}
+            value={formData.personGroupId || ''}
+            onChange={e => handleFieldChange('personGroupId', e.target.value)}
             className={commonInputClass}
             required
             disabled={peopleGroups.length === 0}
@@ -164,13 +164,13 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
             <input
               type="date"
               id="as-startDate"
-              value={startDate}
-              onChange={e => setStartDate(e.target.value)}
+              value={formData.startDate || ''}
+              onChange={e => handleFieldChange('startDate', e.target.value)}
               className={commonInputClass}
               required
             />
           </Tooltip>
-          {startDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(startDate)}</p>}
+          {formData.startDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.startDate)}</p>}
           {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
         </div>
         <div>
@@ -179,13 +179,13 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
             <input
               type="date"
               id="as-endDate"
-              value={endDate}
-              onChange={e => setEndDate(e.target.value)}
+              value={formData.endDate || ''}
+              onChange={e => handleFieldChange('endDate', e.target.value)}
               className={commonInputClass}
               required
             />
           </Tooltip>
-          {endDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(endDate)}</p>}
+          {formData.endDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.endDate)}</p>}
           {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
         </div>
       </div>
@@ -193,36 +193,36 @@ export const AssignmentFormModal: React.FC<AssignmentFormProps> = React.memo(({ 
       <div>
         <label htmlFor="as-status" className="block text-sm font-medium">Estat</label>
         <Tooltip text="Estat general de l'assignació">
-          <select id="as-status" value={status} onChange={e => setStatus(e.target.value as AssignmentStatus)} className={commonInputClass}>
+          <select
+            id="as-status"
+            value={statusValue || ''}
+            onChange={e => handleFieldChange('status', e.target.value as AssignmentStatus)}
+            className={commonInputClass}
+          >
             {ASSIGNMENT_STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
         </Tooltip>
       </div>
       <div>
         <label htmlFor="as-notes" className="block text-sm font-medium">Notes (Opcional)</label>
-        <AutosizeTextarea id="as-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className={`${commonInputClass} resize-none overflow-hidden`} />
+        <AutosizeTextarea
+            id="as-notes"
+            value={formData.notes || ''}
+            onChange={e => handleFieldChange('notes', e.target.value)}
+            rows={3}
+            className={`${commonInputClass} resize-none overflow-hidden`}
+        />
       </div>
       <div className="flex justify-end space-x-3 pt-4">
         <Tooltip text="Tancar el formulari sense desar canvis">
           <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300">Cancel·lar</button>
         </Tooltip>
-        <Tooltip text={assignmentToEdit ? 'Desar els canvis de l\'assignació' : 'Crear la nova assignació'}>
-          <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md" disabled={peopleGroups.length === 0 && !assignmentToEdit}>{assignmentToEdit ? 'Actualitzar' : 'Crear'}</button>
+        <Tooltip text={isEditing ? 'Desar els canvis de l\'assignació' : 'Crear la nova assignació'}>
+          <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md" disabled={peopleGroups.length === 0 && !isEditing}>{isEditing ? 'Actualitzar' : 'Crear'}</button>
         </Tooltip>
       </div>
     </form>
   );
-});
+};
 
-// Add a custom comparison function to prevent re-renders unless props change significantly
-function areEqual(prevProps: AssignmentFormProps, nextProps: AssignmentFormProps) {
-    return (
-        prevProps.onClose === nextProps.onClose &&
-        prevProps.eventFrame.id === nextProps.eventFrame.id &&
-        prevProps.assignmentToEdit?.id === nextProps.assignmentToEdit?.id &&
-        prevProps.showToast === nextProps.showToast &&
-        prevProps.setExpandedEventFrameId === nextProps.setExpandedEventFrameId
-    );
-}
-
-export default React.memo(AssignmentFormModal, areEqual);
+export default AssignmentFormModal;

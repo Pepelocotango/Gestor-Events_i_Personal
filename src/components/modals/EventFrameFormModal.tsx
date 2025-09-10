@@ -1,65 +1,55 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { EventFrame, ShowToastFunction, InitialEventFrameData } from '../../types';
+import { EventFrame, ShowToastFunction, AssignmentStatus } from '../../types';
 import { formatDateDMY } from '../../utils/dateFormat';
 import Tooltip from '../ui/Tooltip';
 import { useModalStore } from '../../stores/modalStore';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 
-interface EventFrameFormProps {
+interface EventFrameFormModalProps {
   onClose: () => void;
   showToast: ShowToastFunction;
-  eventFrameToEdit?: Partial<EventFrame>;
-  initialData?: InitialEventFrameData;
 }
 
-export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, eventFrameToEdit, showToast, initialData }) => {
+export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClose, showToast }) => {
   const { addEventFrame, updateEventFrame, setFilterUIEventFrame } = useEventDataStore.getState();
   const eventFrames = useEventDataStore(state => state.eventFrames);
-  const { openModal } = useModalStore.getState();
+  const { data, updateModalData, openModal } = useModalStore();
   const navigate = useNavigate();
 
-  const [name, setName] = useState('');
-  const [place, setPlace] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [generalNotes, setGeneralNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
   const [eventNameDatalistId] = useState(() => `event-name-datalist-${Math.random().toString(36).substring(2, 9)}`);
   const [locationDatalistId] = useState(() => `location-datalist-${Math.random().toString(36).substring(2, 9)}`);
 
+  if (!data) {
+    return null; // Should not happen if modal is open
+  }
+
+  const isEditing = !!data.eventFrameToEdit;
+  const formData = isEditing ? data.eventFrameToEdit! : data;
+
   useEffect(() => {
-    if (eventFrameToEdit && eventFrameToEdit.id) {
-      setName(eventFrameToEdit.name || '');
-      setPlace(eventFrameToEdit.place || '');
-      setStartDate(eventFrameToEdit.startDate || new Date().toISOString().split('T')[0]);
-      setEndDate(eventFrameToEdit.endDate || new Date().toISOString().split('T')[0]);
-      setGeneralNotes(eventFrameToEdit.generalNotes || '');
-    } else if (initialData) {
-      setName('');
-      setPlace('');
-      setStartDate(initialData.startDate || new Date().toISOString().split('T')[0]);
-      setEndDate(initialData.endDate || initialData.startDate || new Date().toISOString().split('T')[0]);
-      setGeneralNotes('');
-    } else {
-      setName('');
-      setPlace('');
-      const today = new Date().toISOString().split('T')[0];
-      setStartDate(today);
-      setEndDate(today);
-      setGeneralNotes('');
-    }
     setErrors({});
-  }, [eventFrameToEdit, initialData]);
+  }, [isEditing, data.eventFrameToEdit?.id]);
+
+  type EditableEventFrameFields = Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet' | 'googleEventId' | 'googleCalendarId' | 'lastModified' | 'lastSync'>;
+
+  const handleFieldChange = (field: keyof EditableEventFrameFields, value: any) => {
+    const newFormData = { ...formData, [field]: value };
+    if (isEditing) {
+      updateModalData({ eventFrameToEdit: newFormData as EventFrame });
+    } else {
+      updateModalData({ [field]: value });
+    }
+  };
 
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
-    if (!name.trim()) newErrors.name = "El nom és obligatori.";
-    if (!startDate) newErrors.startDate = "La data d'inici és obligatòria.";
-    if (!endDate) newErrors.endDate = "La data de fi és obligatòria.";
-    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+    if (!formData.name?.trim()) newErrors.name = "El nom és obligatori.";
+    if (!formData.startDate) newErrors.startDate = "La data d'inici és obligatòria.";
+    if (!formData.endDate) newErrors.endDate = "La data de fi és obligatòria.";
+    if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
       newErrors.endDate = "La data de fi ha de ser posterior o igual a la data d'inici.";
     }
     setErrors(newErrors);
@@ -70,9 +60,9 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
     e.preventDefault();
     if (!validate()) return;
 
-    const eventData = { name: name!, place: place || '', startDate: startDate!, endDate: endDate!, generalNotes: generalNotes || '' };
-    if (eventFrameToEdit && eventFrameToEdit.id) { 
-      updateEventFrame({ ...eventFrameToEdit, ...eventData } as EventFrame); 
+    const eventData = { name: formData.name!, place: formData.place || '', startDate: formData.startDate!, endDate: formData.endDate!, generalNotes: formData.generalNotes || '' };
+    if (isEditing) {
+      updateEventFrame({ ...data.eventFrameToEdit, ...eventData } as EventFrame);
       showToast("Marc d'esdeveniment actualitzat.", 'success');
     } else {
       addEventFrame(eventData);
@@ -82,8 +72,8 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
   };
 
   const handleNavigateToAssignments = () => {
-    if (eventFrameToEdit?.id) {
-      setFilterUIEventFrame(eventFrameToEdit.id);
+    if (data.eventFrameToEdit?.id) {
+      setFilterUIEventFrame(data.eventFrameToEdit.id);
       navigate('/');
       onClose();
     }
@@ -91,16 +81,26 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
 
    const handleCreateAndAssign = () => {
     if (!validate()) return;
+    const peopleGroups = useEventDataStore.getState().peopleGroups;
 
-    if (eventFrameToEdit && eventFrameToEdit.id) {
+    if (isEditing) {
       onClose();
-      openModal('addAssignment', { eventFrame: eventFrameToEdit as EventFrame });
+      // Since it's already created, we can just open the assignment modal
+      openModal('addAssignment', { eventFrame: data.eventFrameToEdit as EventFrame });
     } else {
-      const eventData = { name: name!, place: place || '', startDate: startDate!, endDate: endDate!, generalNotes: generalNotes || '' };
+      const eventData = { name: formData.name!, place: formData.place || '', startDate: formData.startDate!, endDate: formData.endDate!, generalNotes: formData.generalNotes || '' };
       const newEventFrame: EventFrame = addEventFrame(eventData); 
       showToast("Marc d'esdeveniment afegit.", 'success');
       onClose(); 
-      openModal('addAssignment', { eventFrame: newEventFrame }); 
+      openModal('addAssignment', {
+        eventFrame: newEventFrame,
+        // Pre-fill assignment form as well
+        personGroupId: peopleGroups[0]?.id || '',
+        startDate: newEventFrame.startDate,
+        endDate: newEventFrame.endDate,
+        status: AssignmentStatus.Pending,
+        notes: '',
+      });
     }
   };
   const commonInputClass = "mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
@@ -110,11 +110,11 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3" aria-labelledby="event-frame-form-title" id="event-frame-form-modal-actual-form">
-      <h2 id="event-frame-form-title" className="sr-only">{eventFrameToEdit && eventFrameToEdit.id ? 'Formulari Edició Marc Esdeveniment' : 'Formulari Nou Marc Esdeveniment'}</h2>
+      <h2 id="event-frame-form-title" className="sr-only">{isEditing ? 'Formulari Edició Marc Esdeveniment' : 'Formulari Nou Marc Esdeveniment'}</h2>
       <div>
         <label htmlFor="ef-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom de l'Esdeveniment</label>
         <Tooltip text="Nom principal de l'esdeveniment">
-          <input type="text" id="ef-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required aria-required="true" list={eventNameDatalistId}/>
+          <input type="text" id="ef-name" value={formData.name || ''} onChange={e => handleFieldChange('name', e.target.value)} className={commonInputClass} required aria-required="true" list={eventNameDatalistId}/>
         </Tooltip>
         <datalist id={eventNameDatalistId}>
             {uniqueEventNames.map(n => <option key={n} value={n} />)}
@@ -124,7 +124,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
       <div>
         <label htmlFor="ef-place" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lloc (Opcional)</label>
         <Tooltip text="Ubicació o lloc de l'esdeveniment">
-          <input type="text" id="ef-place" value={place} onChange={e => setPlace(e.target.value)} className={commonInputClass} list={locationDatalistId} />
+          <input type="text" id="ef-place" value={formData.place || ''} onChange={e => handleFieldChange('place', e.target.value)} className={commonInputClass} list={locationDatalistId} />
         </Tooltip>
         <datalist id={locationDatalistId}>
             {uniqueLocations.map(loc => <option key={loc} value={loc} />)}
@@ -134,29 +134,29 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
         <div>
           <label htmlFor="ef-startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data d'Inici</label>
           <Tooltip text="Data d'inici del marc d'esdeveniment">
-            <input type="date" id="ef-startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
+            <input type="date" id="ef-startDate" value={formData.startDate || ''} onChange={e => handleFieldChange('startDate', e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
           </Tooltip>
-          {startDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(startDate)}</p>}
+          {formData.startDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.startDate)}</p>}
           {errors.startDate && <p className="text-red-500 text-xs mt-1" role="alert">{errors.startDate}</p>}
         </div>
         <div>
           <label htmlFor="ef-endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data de Fi</label>
           <Tooltip text="Data de fi del marc d'esdeveniment">
-            <input type="date" id="ef-endDate" value={endDate} onChange={e => setEndDate(e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
+            <input type="date" id="ef-endDate" value={formData.endDate || ''} onChange={e => handleFieldChange('endDate', e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
           </Tooltip>
-          {endDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(endDate)}</p>}
+          {formData.endDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.endDate)}</p>}
           {errors.endDate && <p className="text-red-500 text-xs mt-1" role="alert">{errors.endDate}</p>}
         </div>
       </div>
       <div>
         <label htmlFor="ef-generalNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals (Opcional)</label>
         <Tooltip text="Anotacions generals sobre l'esdeveniment">
-          <AutosizeTextarea id="ef-generalNotes" value={generalNotes} onChange={e => setGeneralNotes(e.target.value)} rows={3} className={`${commonInputClass} resize-none overflow-hidden`} />
+          <AutosizeTextarea id="ef-generalNotes" value={formData.generalNotes || ''} onChange={e => handleFieldChange('generalNotes', e.target.value)} rows={3} className={`${commonInputClass} resize-none overflow-hidden`} />
         </Tooltip>
       </div>
       <div className="flex justify-between items-center pt-2">
         <div>
-          {eventFrameToEdit?.id && (
+          {isEditing && (
             <Tooltip text="Anar a la llista i filtrar per aquest esdeveniment">
               <button
                 type="button"
@@ -172,7 +172,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
           <Tooltip text="Tancar el formulari sense desar">
             <button type="button" onClick={onClose} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
           </Tooltip>
-          {!eventFrameToEdit?.id && (
+          {!isEditing && (
             <Tooltip text="Crear el marc i obrir directament el formulari d'assignació">
               <button
                 type="button"
@@ -183,8 +183,8 @@ export const EventFrameFormModal: React.FC<EventFrameFormProps> = ({ onClose, ev
               </button>
             </Tooltip>
           )}
-          <Tooltip text={eventFrameToEdit && eventFrameToEdit.id ? 'Desar els canvis del marc' : 'Crear el nou marc d\'esdeveniment'}>
-            <button type="submit" className="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{eventFrameToEdit && eventFrameToEdit.id ? 'Actualitzar' : 'Crear'}</button>
+          <Tooltip text={isEditing ? 'Desar els canvis del marc' : 'Crear el nou marc d\'esdeveniment'}>
+            <button type="submit" className="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{isEditing ? 'Actualitzar' : 'Crear'}</button>
           </Tooltip>
         </div>
       </div>

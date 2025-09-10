@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useImperativeHandle } from 'react';
 import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../types';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
@@ -48,11 +48,20 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
   );
 };
 
-const MainDisplay: React.FC<MainDisplayProps> = ({
-    setToastMessage,
-}) => {
+const MainDisplay = React.forwardRef<
+  { resize: () => void },
+  MainDisplayProps
+>(({ setToastMessage }, ref) => {
   const calendarRef = useRef<FullCalendar>(null);
   const openModal = useModalStore(state => state.openModal);
+
+  useImperativeHandle(ref, () => ({
+    resize: () => {
+      if (calendarRef.current) {
+        calendarRef.current.getApi().updateSize();
+      }
+    },
+  }));
 
   // --- State from Zustand Store (Reactive) ---
   const eventFrames = useEventDataStore(state => state.eventFrames);
@@ -85,6 +94,29 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
 
   const [manualExpandedFrameIds, setManualExpandedFrameIds] = useState<Set<string>>(new Set());
   const [manualExpandedDailyView, setManualExpandedDailyView] = useState<Set<string>>(new Set());
+
+  const highlightedEventId = useEventDataStore(state => state.highlightedEventId);
+  const setHighlightedEventId = useEventDataStore(state => state.setHighlightedEventId);
+
+  useEffect(() => {
+    if (highlightedEventId) {
+      const element = document.getElementById(`event-card-${highlightedEventId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('highlight-event-frame');
+
+        const timer = setTimeout(() => {
+          element.classList.remove('highlight-event-frame');
+          setHighlightedEventId(null);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+      } else {
+        // If element is not in view (e.g., due to pagination or filtering), reset immediately
+        setHighlightedEventId(null);
+      }
+    }
+  }, [highlightedEventId, setHighlightedEventId]);
 
   // Removed noisy render logs to avoid spamming console and potential perf issues
 
@@ -309,7 +341,13 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
                 contentHeight="auto"
                 aspectRatio={1.5}
                 events={calendarEvents}
-                dateClick={(info) => openModal('addEventFrame', { startDate: info.dateStr })}
+                dateClick={(info) => openModal('addEventFrame', {
+                  name: '',
+                  place: '',
+                  startDate: info.dateStr,
+                  endDate: info.dateStr,
+                  generalNotes: '',
+                })}
                 eventClick={(info) => {
                 if (info.event.extendedProps.type === 'google') {
                 info.jsEvent.preventDefault();
@@ -325,7 +363,16 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
       <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} defaultOpen={true} id="event-list-section">
         <div className="mb-1 flex justify-start items-center gap-1">
           <Tooltip text="Crear un nou marc d'esdeveniment">
-            <button onClick={() => openModal('addEventFrame', {})} className="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold flex items-center gap-1">
+            <button onClick={() => {
+              const today = new Date().toISOString().split('T')[0];
+              openModal('addEventFrame', {
+                name: '',
+                place: '',
+                startDate: today,
+                endDate: today,
+                generalNotes: '',
+              });
+            }} className="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold flex items-center gap-1">
               <PlusIcon className="w-4 h-4"/> Afegir Nou Marc
             </button>
           </Tooltip>
@@ -386,6 +433,6 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
       {/* {conflictDialog && <Modal isOpen={true} onClose={() => setConflictDialog(null)} title="Conflicte detectat"><p>{conflictDialog.message}</p><p><strong>Persona:</strong> {conflictDialog.personName}</p><button onClick={() => setConflictDialog(null)} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Tanca</button></Modal>} */}
     </div>
   );
-};
+});
 
 export default MainDisplay;

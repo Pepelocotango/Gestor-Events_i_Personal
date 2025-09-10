@@ -4,8 +4,10 @@ import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { PersonGroup, ShowToastFunction } from '../types';
 import logger from '../utils/logger';
-import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '../constants';
+import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, DocumentArrowDownIcon } from '../constants';
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
+import { exportEventListToPdf } from '../utils/pdfGenerator';
+import { exportEventListToCsv } from '../utils/csvUtils';
 import Tooltip from './ui/Tooltip';
 
 interface ControlsProps {
@@ -365,6 +367,31 @@ const Controls: React.FC<ControlsProps> = ({
               <Tooltip text="Guardar només les dades de material">
                 <button onClick={() => handleSaveData('material')} className="flex items-center justify-center gap-1 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <SaveIcon /> Guardar Material
+                </button>
+              </Tooltip>
+
+              <div className="border-l border-gray-300 dark:border-gray-600 h-6 mx-1"></div>
+
+              <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
+                <button
+                  onClick={() => {
+                    const { eventFrames, peopleGroups } = useEventDataStore.getState();
+                    exportEventListToPdf(eventFrames, peopleGroups, showToast);
+                  }}
+                  className="flex items-center justify-center gap-1 bg-red-700 hover:bg-red-800 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" /> PDF
+                </button>
+              </Tooltip>
+              <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
+                <button
+                  onClick={() => {
+                    const { eventFrames, peopleGroups } = useEventDataStore.getState();
+                    exportEventListToCsv(eventFrames, peopleGroups, showToast);
+                  }}
+                  className="flex items-center justify-center gap-1 bg-green-700 hover:bg-green-800 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" /> CSV
                 </button>
               </Tooltip>
             </div>

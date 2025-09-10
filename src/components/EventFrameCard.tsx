@@ -45,7 +45,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
 
   return (
-    <div ref={ref} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
+    <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
       <div
         className="p-1 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
         onClick={(e) => {
@@ -106,7 +106,15 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                 e.stopPropagation();
                 skipNextCollapse.current = true;
                 const defaultPersonGroupId = peopleGroups.length > 0 ? peopleGroups[0].id : '';
-                openModal('addAssignment', { eventFrame, personGroupId: defaultPersonGroupId });
+                openModal('addAssignment', {
+                  eventFrame,
+                  personGroupId: defaultPersonGroupId,
+                  // Pre-fill form data for a new assignment
+                  startDate: eventFrame.startDate,
+                  endDate: eventFrame.endDate,
+                  status: AssignmentStatus.Pending,
+                  notes: '',
+                });
               }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>

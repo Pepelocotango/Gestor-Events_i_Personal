@@ -60,10 +60,12 @@ interface EventDataState {
     syncProgress: SyncProgressState;
     dataRepairInfo: { fixes: any[], repairedData: AppData } | null;
     filterUIEventFrame: string | null;
+    highlightedEventId: string | null;
 }
 
 interface EventDataActions {
     setFilterUIEventFrame: (id: string | null) => void;
+    setHighlightedEventId: (id: string | null) => void;
     addEventFrame: (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>) => EventFrame;
     updateEventFrame: (eventFrame: EventFrame) => void;
     deleteEventFrame: (eventFrameId: string) => void;
@@ -106,6 +108,7 @@ const initialState: EventDataState = {
     syncProgress: { current: 0, total: 0, message: '', visible: false },
     dataRepairInfo: null,
     filterUIEventFrame: null,
+    highlightedEventId: null,
 };
 
 export const useEventDataStore = create<EventDataState & EventDataActions>()(
@@ -119,6 +122,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         // UTILS
         setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
         setFilterUIEventFrame: (id: string | null) => set({ filterUIEventFrame: id }),
+        setHighlightedEventId: (id: string | null) => set({ highlightedEventId: id }),
 
         // DATA HYDRATION
             _applyDataToState: (data: AppData) => {

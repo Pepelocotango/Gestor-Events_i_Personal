@@ -13,6 +13,7 @@ interface ModalState {
 interface ModalActions {
   openModal: (type: ModalType, data?: ModalData) => void;
   closeModal: () => void;
+  updateModalData: (data: Partial<ModalData>) => void;
 }
 
 const initialState: ModalState = {
@@ -36,6 +37,10 @@ export const useModalStore = create<ModalState & ModalActions>()(
 
       closeModal: () => set(initialState),
 
+      updateModalData: (data) =>
+        set((state) => ({
+          data: state.data ? { ...state.data, ...data } : data,
+        })),
     }),
     { name: 'modalStore' }
   )

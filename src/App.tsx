@@ -43,7 +43,10 @@ interface ToastState {
   persistent?: boolean;
 }
 
+import { useRef } from 'react';
+
 const App: React.FC = () => {
+  const mainDisplayRef = useRef<{ resize: () => void }>(null);
   
   const [showSplash, setShowSplash] = useState(true);
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
@@ -95,6 +98,15 @@ const App: React.FC = () => {
       setTimeout(() => clearToastMessage(id), 2000);
     }
   }, []);
+
+  useEffect(() => {
+    if (toastState) {
+      // Give the UI a moment to render the toast before resizing
+      setTimeout(() => {
+        mainDisplayRef.current?.resize();
+      }, 100);
+    }
+  }, [toastState]);
 
 
 
@@ -589,13 +601,13 @@ const App: React.FC = () => {
     if (!type) return null;
     switch (type) {
       case 'addEventFrame':
-        return <EventFrameFormModal onClose={closeModal} showToast={showToast} initialData={data || undefined} />;
+        return <EventFrameFormModal onClose={closeModal} showToast={showToast} />;
       case 'editEventFrame':
-        return <EventFrameFormModal onClose={closeModal} showToast={showToast} eventFrameToEdit={data!.eventFrameToEdit} />;
+        return <EventFrameFormModal onClose={closeModal} showToast={showToast} />;
       case 'addAssignment':
-        return <AssignmentFormModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} />;
+        return <AssignmentFormModal onClose={closeModal} showToast={showToast} />;
       case 'editAssignment':
-        return <AssignmentFormModal onClose={closeModal} eventFrame={data!.eventFrame!} assignmentToEdit={data!.assignmentToEdit} showToast={showToast} />;
+        return <AssignmentFormModal onClose={closeModal} showToast={showToast} />;
       
       case 'eventFrameDetails':
         return <EventFrameDetailsModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} />;
@@ -800,6 +812,7 @@ const App: React.FC = () => {
                   path="/"
                   element={
                     <MainDisplay
+                      ref={mainDisplayRef}
                       setToastMessage={showToast}
                     />
                   }

@@ -247,6 +247,11 @@ export interface ModalData {
     assignmentId?: string;
     startDate?: string;
     endDate?: string;
+    status?: AssignmentStatus;
+    notes?: string;
+    name?: string;
+    place?: string;
+    generalNotes?: string;
     itemType?: string;
     onConfirm?: (selectedChanges?: any[]) => void;
     onCancel?: () => void;
