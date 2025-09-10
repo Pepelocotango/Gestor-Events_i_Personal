@@ -1,5 +1,5 @@
-
-## DEVELOPING.md V1.0.0
+branca --> DEV
+## DEVELOPING.md V1.0.0 
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
@@ -218,9 +218,9 @@ Per solucionar un bug de renderitzat del menú natiu d'Electron en configuracion
 4.  **Gestor d'Accions Centralitzat (`main.cjs`):**
     -   S'ha implementat un nou listener `ipcMain.on('trigger-menu-action', ...)` que actua com un enrutador per a totes les accions del menú.
     -   **Accions del Procés Principal:** Les accions que requereixen accés a les API d'Electron o Node.js (com obrir diàlegs de fitxers, gestionar el zoom de la finestra o tancar l'aplicació) són gestionades directament dins d'aquest listener.
-    -   **Accions del Procés de Renderitzat:** Les accions que afecten l'estat de la UI (com canviar de tema, desar dades, obrir modals, o executar desfer/refer) es redirigeixen al procés de renderitzat a través del canal IPC existent `'menu-action'`, on són gestionades pel listener corresponent a `App.tsx`.
+    -   **Accions del Procés de Renderitzat:** Les accions que afecten l'estat de la UI (com canviar de tema, desar dades o obrir modals) es redirigeixen al procés de renderitzat a través del canal IPC existent `'menu-action'`, on són gestionades pel listener corresponent a `App.tsx`.
 
-Aquest enfocament no només soluciona el bug original, sinó que també proporciona un control total sobre l'aparença i el comportament del menú, permetent una integració més profunda amb el disseny de l'aplicació. El menú "Edita" s'ha afegit seguint aquest mateix patró.
+Aquest enfocament no només soluciona el bug original, sinó que també proporciona un control total sobre l'aparença i el comportament del menú, permetent una integració més profunda amb el disseny de l'aplicació.
 
 ### 3.4. API Interna: Gestors d'IPC (Inter-Process Communication)
 
@@ -820,73 +820,3 @@ La funcionalitat es basa en una comunicació unidireccional contínua des del ba
     -   Renderitza la barra de progrés, els textos i els comptadors basant-se en les dades rebudes.
     -   La barra de progrés s'actualitza visualment calculant el percentatge (`(current / total) * 100`).
     -   El component només es renderitza si la propietat `visible` de l'estat `syncProgress` és `true`.
-
-### 5.11. Sistema de Desfer/Refer (Undo/Redo)
-
-Per augmentar la seguretat i la confiança de l'usuari, s'ha implementat un sistema global de Desfer/Refer que permet revertir qualsevol acció que modifiqui les dades de l'aplicació.
-
-#### Arquitectura de "State Snapshots"
-
-En lloc del "Command Pattern", que hauria requerit una refactorització massiva, s'ha optat per un enfocament de **"State Snapshots" (Instantànies d'Estat)**, que s'integra de manera neta amb el hook centralitzat `useEventDataManager`.
-
-1.  **Emmagatzematge de l'Historial:**
-    -   Dins de `useEventDataManager.ts`, s'utilitzen dues referències (`useRef`) per emmagatzemar les piles de l'historial sense provocar re-renderitzats innecessaris:
-        -   `history`: Una pila (`AppData[]`) que emmagatzema els estats anteriors.
-        -   `future`: Una pila (`AppData[]`) que emmagatzema els estats que han estat desfets, per a la funcionalitat de "Refer".
-    -   Per evitar un consum excessiu de memòria, la pila de l'historial està limitada a les últimes 10 accions.
-
-2.  **Captura d'Instantànies (`saveStateToHistory`):**
-    -   S'ha creat una funció `saveStateToHistory` que captura l'estat actual de les dades (`eventFrames`, `peopleGroups`, `materialItems`, etc.) i el desa com un objecte `AppData` a la pila `history`.
-    -   Aquesta funció s'invoca a l'inici de **cada funció que modifica l'estat** (p. ex., `addEventFrame`, `updateAssignment`, `deletePersonGroup`).
-    -   Qualsevol nova acció esborra la pila `future`, ja que invalida l'historial de "Refer".
-
-3.  **Lògica de Desfer/Refer:**
-    -   **`undo()`**: Agafa l'últim estat de la pila `history`, el restaura com a l'estat actual de l'aplicació (utilitzant `_applyDataToState`), i mou l'estat que hi havia just abans de desfer a la pila `future`.
-    -   **`redo()`**: Fa l'operació inversa, agafant l'estat de `future` i movent l'estat actual a `history`.
-    -   Un flag `isRestoringState` (`useRef`) s'utilitza per prevenir que `saveStateToHistory` es cridi durant una operació de desfer/refer, evitant bucles infinits.
-
-#### Integració a la Interfície d'Usuari
-
-La funcionalitat és accessible per a l'usuari a través de tres mètodes consistents:
-
-1.  **Botons a la UI (`Controls.tsx`):**
-    -   S'han afegit dos botons (Desfer i Refer) a la barra de controls principal.
-    -   L'estat `disabled` d'aquests botons està lligat a les variables `canUndo` i `canRedo` del hook `useEventDataManager`, que es basen en si les piles `history` i `future` estan buides.
-
-2.  **Dreceres de Teclat (`App.tsx`):**
-    -   Un `useEffect` global a `App.tsx` escolta els esdeveniments de teclat.
-    -   Activa `undo()` amb `Ctrl+Z`.
-    -   Activa `redo()` amb `Ctrl+Y` o `Ctrl+Shift+Z`.
-    -   La lògica comprova que l'usuari no estigui escrivint en un camp de text (`<input>`, `<textarea>`, etc.) abans d'activar la drecera.
-
-3.  **Menú de l'Aplicació (`CustomMenuBar.tsx`):**
-    -   S'ha afegit un nou menú "Edita" a la barra de menú superior.
-    -   Conté les opcions "Desfer" i "Refer", que també estan lligades a l'estat `canUndo`/`canRedo` per activar-se o desactivar-se dinàmicament.
-
-### 5.12. Pantalla d'Inici Animada (Splash Screen)
-
-Per millorar l'experiència inicial de l'usuari, s'ha afegit una pantalla d'inici animada (splash screen) que es mostra mentre l'aplicació carrega les dades inicials. Aquesta funcionalitat és configurable per l'usuari.
-
-#### Implementació
-
-1.  **Component `SplashScreen.tsx` (`src/components/ui/`):**
-    *   És un component de React dedicat que gestiona la lògica de l'animació.
-    *   Utilitza un array d'imatges PNG (amb fons transparent) per crear una animació frame a frame mitjançant `setInterval`.
-    *   Un `setTimeout` controla la durada total de la visibilitat. Un cop transcorregut el temps, s'activa un estat `isFadingOut` que, mitjançant classes de CSS, provoca una transició d'opacitat per a una desaparició suau.
-
-2.  **Configuració Persistent (`session.json`):**
-    *   La preferència de l'usuari per mostrar o no l'animació es desa al fitxer `session.json` sota la clau `splashScreenEnabled` (un valor booleà).
-    *   Per defecte, si la clau no existeix, es considera `true`.
-    *   La lectura i escriptura d'aquesta preferència es gestiona a través dels canals IPC `get-session-data` and `save-session-data` implementats a `main.cjs`.
-
-3.  **Càrrega Condicional (`App.tsx`):**
-    *   A l'inici de l'aplicació, `App.tsx` utilitza un `useEffect` per cridar a `window.electronAPI.getSessionData()` i obtenir la preferència de l'usuari.
-    *   S'utilitzen dos estats per evitar flaixos visuals (`flickering`):
-        *   `splashConfigLoaded`: Un booleà que només es posa a `true` un cop s'ha llegit la configuració de la sessió.
-        *   `splashScreenEnabled`: Emmagatzema la preferència de l'usuari.
-    *   El component `<SplashScreen />` només es renderitza si totes les condicions són certes: `splashConfigLoaded && splashScreenEnabled && showSplash`.
-
-4.  **Control de l'Usuari (`CustomMenuBar.tsx`):**
-    *   S'ha afegit una nova opció al menú "Veure" anomenada "Mostrar Animació d'Inici".
-    *   Aquesta opció funciona com un "checkbox", mostrant una marca de verificació (`✓`) si la funcionalitat està activada.
-    *   En fer-hi clic, s'executa la funció `handleToggleSplashScreen` (passada des de `App.tsx`), que actualitza l'estat local i crida a `window.electronAPI.saveSessionData()` per desar la nova preferència de manera persistent.
