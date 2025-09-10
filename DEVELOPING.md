@@ -1,5 +1,5 @@
 
-branca de desenvolupament fix/dependency-cleanup ## ->PROVES DE REFACTORITZACIÓ
+branca de desenvolupament feature/fix-regressions ## ->PROVES DE REFACTORITZACIÓ
 ## DEVELOPING.md V1.0.0
 
 
