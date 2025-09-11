@@ -4,6 +4,7 @@ import Tooltip from '../ui/Tooltip';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useGoogleConfigStore } from '@/stores/googleConfigStore';
+import logger from '@/utils/logger';
 
 interface GoogleSettingsModalProps {
   onClose: () => void;
@@ -35,6 +36,8 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
 =======
   } = useGoogleConfigStore();
 >>>>>>> parent of 32a3b62 (fix(google): Prevent render crash in GoogleSettingsModal and enhance logging)
+
+  logger.info('[GoogleSettingsModal Render] State:', storeState);
 
   useEffect(() => {
     fetchAndLoadConfig();
