@@ -144,7 +144,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
       <div className="p-4 border dark:border-gray-600 rounded-md min-h-[150px]">
         <h4 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Altres Calendaris de Google (només lectura)</h4>
         {loading && <p className="text-center text-gray-500">Carregant calendaris...</p>}
-        {error && <p className="text-center text-red-500">{error}</p>}
+        {error && <p className="text-center text-red-500">{typeof error === 'string' ? error : (error as Error)?.message || 'S\'ha produït un error desconegut'}</p>}
         {!loading && !error && externalCalendars.length > 0 && (
           <ul className="space-y-2 max-h-48 overflow-y-auto">
             {externalCalendars.map(cal => (
