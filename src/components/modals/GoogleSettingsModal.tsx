@@ -17,6 +17,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   }));
   const openModal = useModalStore(state => state.openModal);
 
+  const storeState = useGoogleConfigStore();
   const {
     externalCalendars,
     selectedIds,
@@ -30,7 +31,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
     saveConfig,
     deleteCalendar,
     disconnectGoogle,
-  } = useGoogleConfigStore();
+  } = storeState;
 
   useEffect(() => {
     fetchAndLoadConfig();
