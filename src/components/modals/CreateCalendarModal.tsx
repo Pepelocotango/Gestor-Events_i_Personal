@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShowToastFunction } from '@/types';
-import { useEventDataStore } from '@/stores/eventDataStore';
+import { useGoogleConfigStore } from '@/stores/googleConfigStore';
 import Tooltip from '../ui/Tooltip';
 
 interface CreateCalendarModalProps {
@@ -9,7 +9,7 @@ interface CreateCalendarModalProps {
 }
 
 const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, showToast }) => {
-  const { refreshGoogleEvents } = useEventDataStore.getState();
+  const { createNewCalendar } = useGoogleConfigStore();
   const [suffix, setSuffix] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
@@ -19,23 +19,18 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, show
       return;
     }
     setIsCreating(true);
-    if (window.electronAPI?.createNewAppCalendar) {
-      try {
-        const result = await window.electronAPI.createNewAppCalendar(suffix.trim());
+    try {
+      const result = await createNewCalendar(suffix.trim());
+      if (result) {
+        showToast(result.message, result.type);
         if (result.success) {
-          showToast('Nou calendari creat i seleccionat com a actiu.', 'success');
-          await refreshGoogleEvents(showToast);
-          // Dispatch event to notify settings modal to refresh
-          window.dispatchEvent(new CustomEvent('googleConfigChanged'));
           onClose();
-        } else {
-          showToast(result.message || 'No s\'ha pogut crear el calendari.', 'error');
         }
-      } catch (err) {
-        showToast((err as Error).message, 'error');
-      } finally {
-        setIsCreating(false);
       }
+    } catch (err) {
+      showToast((err as Error).message, 'error');
+    } finally {
+      setIsCreating(false);
     }
   };
 

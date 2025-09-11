@@ -52,7 +52,7 @@ const App: React.FC = () => {
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
-  const { openModal: openModalFromStore, closeModal } = useModalStore.getState();
+  const { openModal: openModalFromStore, closeModal, setToastHandler } = useModalStore.getState();
   const isOpen = useModalStore(state => state.isOpen);
   const type = useModalStore(state => state.type);
   const data = useModalStore(state => state.data);
@@ -98,6 +98,10 @@ const App: React.FC = () => {
       setTimeout(() => clearToastMessage(id), 2000);
     }
   }, []);
+
+  useEffect(() => {
+    setToastHandler(showToast);
+  }, [showToast, setToastHandler]);
 
   useEffect(() => {
     if (toastState) {
@@ -544,23 +548,8 @@ const App: React.FC = () => {
             handleSaveData('material');
             break;
           case 'sync-google':
-            const handleSync = async () => {
-              if (!window.electronAPI?.loadGoogleConfig) return;
-              const config = await window.electronAPI.loadGoogleConfig();
-              if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
-                  openModalFromStore('googleSettings');
-                  return;
-              }
-              openModalFromStore('selectSyncCalendar', {
-                  managedCalendars: config.managedAppCalendars,
-                  activeCalendarId: config.activeAppCalendarId,
-                  onConfirmSync: (targetCalendarId: string) => {
-                      closeModal();
-                      useEventDataStore.getState().executeSync(targetCalendarId);
-                  }
-              });
-            };
-            handleSync();
+            // The logic is now centralized in the eventDataStore.
+            useEventDataStore.getState().syncWithGoogle();
             break;
           case 'config-google':
             openModalFromStore('googleSettings');

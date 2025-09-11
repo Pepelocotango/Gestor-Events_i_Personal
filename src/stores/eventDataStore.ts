@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
+import { useModalStore } from './modalStore';
 import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, ShowToastFunction } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
@@ -439,9 +440,26 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
             },
     syncWithGoogle: async () => {
-        // This action will now be orchestrated from the UI
-        // It's kept here for potential future use or direct calls if needed
-        logger.info("syncWithGoogle action called. Orchestration should happen in UI.");
+        const { openModal, closeModal } = useModalStore.getState();
+        const { executeSync } = get();
+
+        if (window.electronAPI?.loadGoogleConfig) {
+            const config = await window.electronAPI.loadGoogleConfig();
+            if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
+                openModal('googleSettings');
+                return;
+            }
+            openModal('selectSyncCalendar', {
+                managedCalendars: config.managedAppCalendars,
+                activeCalendarId: config.activeAppCalendarId,
+                onConfirmSync: (targetCalendarId: string) => {
+                    closeModal();
+                    executeSync(targetCalendarId);
+                }
+            });
+        } else {
+            logger.warn("L'API d'Electron per a Google Config no està disponible.");
+        }
     },
     executeSync: async (targetCalendarId) => {
         const { exportData, loadData, refreshGoogleEvents } = get();

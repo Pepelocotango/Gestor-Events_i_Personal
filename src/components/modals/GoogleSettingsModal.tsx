@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { GoogleCalendar, GoogleConfig, ManagedAppCalendar, ShowToastFunction } from '@/types';
+import React, { useEffect } from 'react';
+import { ShowToastFunction } from '@/types';
 import Tooltip from '../ui/Tooltip';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { useModalStore } from '@/stores/modalStore';
+import { useGoogleConfigStore } from '@/stores/googleConfigStore';
 
 interface GoogleSettingsModalProps {
   onClose: () => void;
@@ -10,156 +11,44 @@ interface GoogleSettingsModalProps {
 }
 
 const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, showToast }) => {
-  const { refreshGoogleEvents, executeSync, isSyncing } = useEventDataStore(state => ({
-    refreshGoogleEvents: state.refreshGoogleEvents,
+  const { executeSync, isSyncing: isEventDataSyncing } = useEventDataStore(state => ({
     executeSync: state.executeSync,
     isSyncing: state.isSyncing,
   }));
   const openModal = useModalStore(state => state.openModal);
 
-  // State for external, read-only calendars
-  const [externalCalendars, setExternalCalendars] = useState<GoogleCalendar[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-  // State for app-managed calendars
-  const [managedCalendars, setManagedCalendars] = useState<ManagedAppCalendar[]>([]);
-  const [activeCalendarId, setActiveCalendarId] = useState<string | null>(null);
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchAndLoadConfig = useCallback(async () => {
-    if (window.electronAPI?.loadGoogleConfig && window.electronAPI?.getCalendarList) {
-      setLoading(true);
-      try {
-        const [configResult, calendarsResult] = await Promise.all([
-          window.electronAPI.loadGoogleConfig() as Promise<GoogleConfig | null>,
-          window.electronAPI.getCalendarList()
-        ]);
-
-        if (configResult) {
-          setSelectedIds(new Set(configResult.selectedCalendarIds || []));
-          setManagedCalendars(configResult.managedAppCalendars || []);
-          setActiveCalendarId(configResult.activeAppCalendarId || null);
-        }
-
-        if (calendarsResult.success) {
-          const managedIdsSet = new Set(configResult?.managedAppCalendars?.map(c => c.id) || []);
-          setExternalCalendars(calendarsResult.calendars?.filter(c => !managedIdsSet.has(c.id)) || []);
-        } else {
-          setError(calendarsResult.message || 'Error desconegut obtenint calendaris.');
-        }
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    }
-  }, []);
+  const {
+    externalCalendars,
+    selectedIds,
+    managedCalendars,
+    activeCalendarId,
+    loading,
+    error,
+    fetchAndLoadConfig,
+    toggleExternalCalendar,
+    setActiveCalendarId,
+    saveConfig,
+    deleteCalendar,
+    disconnectGoogle,
+  } = useGoogleConfigStore();
 
   useEffect(() => {
     fetchAndLoadConfig();
-
-    const handleConfigChange = () => {
-        showToast('La configuració de Google ha canviat, actualitzant...', 'info');
-        fetchAndLoadConfig();
-    };
-
-    window.addEventListener('googleConfigChanged', handleConfigChange);
-    return () => {
-        window.removeEventListener('googleConfigChanged', handleConfigChange);
-    };
-  }, [fetchAndLoadConfig, showToast]);
-
-  const handleToggleExternal = (calendarId: string) => {
-    setSelectedIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(calendarId)) newSet.delete(calendarId);
-      else newSet.add(calendarId);
-      return newSet;
-    });
-  };
+  }, [fetchAndLoadConfig]);
 
   const handleCreateNewCalendar = () => {
     openModal('createAppCalendar');
   };
 
-  const handleDeleteCalendar = (calendar: ManagedAppCalendar) => {
-    openModal('confirmHardReset', {
-      titleOverride: "Confirmar Eliminació de Calendari",
-      itemName: `Estàs segur que vols eliminar permanentment el calendari "${calendar.name}" del teu compte de Google i de l'aplicació? Aquesta acció no es pot desfer.`,
-      confirmButtonText: "Sí, Eliminar Calendari",
-      onConfirmSpecial: async () => {
-        if (window.electronAPI?.deleteAppCalendar) {
-          try {
-            const result = await window.electronAPI.deleteAppCalendar(calendar.id);
-            if (result.success && result.data) {
-              showToast(result.message || 'Calendari eliminat correctament.', 'success');
-              setManagedCalendars(result.data.managedAppCalendars);
-              setActiveCalendarId(result.data.activeAppCalendarId);
-              // Also remove from the general selection list
-              setSelectedIds(prev => {
-                  const newSet = new Set(prev);
-                  newSet.delete(calendar.id);
-                  return newSet;
-              });
-              await refreshGoogleEvents(showToast);
-            } else {
-              showToast(result.message || 'Hi ha hagut un error durant l\'eliminació.', 'error');
-            }
-          } catch (err) {
-            showToast((err as Error).message, 'error');
-          }
-        }
-      },
-    });
-  };
-
   const handleSaveAndClose = async () => {
-    if (window.electronAPI?.saveGoogleConfig) {
-      const configToSave: Partial<GoogleConfig> = {
-        selectedCalendarIds: Array.from(selectedIds),
-        activeAppCalendarId: activeCalendarId,
-      };
-      const result = await window.electronAPI.saveGoogleConfig(configToSave);
-      if (result.success) {
-        showToast('Configuració desada.', 'success');
-        await refreshGoogleEvents(showToast);
-        onClose();
-      } else {
-        showToast(result.message || 'No s\'ha pogut desar la configuració.', 'error');
-      }
+    const result = await saveConfig();
+    showToast(result.message, result.type);
+    if (result.success) {
+      onClose();
     }
   };
 
-  const handleDisconnect = () => {
-    openModal('confirmHardReset', {
-      titleOverride: "Confirmar Desconnexió de Google",
-      itemName: "Estàs segur que vols desconnectar el teu compte de Google? Aquesta acció és irreversible i farà el següent:<br><br>" +
-                "<ul class='list-disc list-inside text-left'>" +
-                "<li><b>Eliminarà TOTS</b> els calendaris gestionats per l'aplicació del teu compte de Google.</li>" +
-                "<li><b>Revocarà</b> l'accés de l'aplicació al teu compte.</li>" +
-                "<li><b>Esborrarà</b> tota la configuració local de Google.</li>" +
-                "</ul>",
-      confirmButtonText: "Sí, Desconnectar",
-      onConfirmSpecial: async () => {
-        if (window.electronAPI?.googleDisconnect) {
-          try {
-            const result = await window.electronAPI.googleDisconnect();
-            if (result.success) {
-              showToast('Compte de Google desconnectat correctament.', 'success');
-              await refreshGoogleEvents(showToast);
-              onClose();
-            } else {
-              showToast(result.message || 'Hi ha hagut un error durant la desconnexió.', 'error');
-            }
-          } catch (err) {
-            showToast((err as Error).message, 'error');
-          }
-        }
-      },
-    });
-  };
+  const isSyncing = isEventDataSyncing || loading;
 
   return (
     <div className="space-y-4">
@@ -208,7 +97,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                   </div>
                   <Tooltip text={`Eliminar el calendari '${cal.name}' de Google i de l'app`}>
                     <button
-                      onClick={() => handleDeleteCalendar(cal)}
+                      onClick={() => deleteCalendar(cal)}
                       className="ml-4 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
                     >
                       Eliminar
@@ -264,8 +153,8 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                   <input
                     type="checkbox"
                     id={cal.id}
-                    checked={selectedIds.has(cal.id)}
-                    onChange={() => handleToggleExternal(cal.id)}
+                    checked={selectedIds.includes(cal.id)}
+                    onChange={() => toggleExternalCalendar(cal.id)}
                     className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                     style={{ accentColor: cal.backgroundColor }}
                   />
@@ -286,7 +175,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
       <div className="flex justify-between items-center pt-4 border-t dark:border-gray-700">
         <Tooltip text={managedCalendars.length === 0 ? "No hi ha cap compte de Google connectat" : "Desconnecta el teu compte de Google i elimina les dades relacionades"}>
           <button
-            onClick={handleDisconnect}
+            onClick={disconnectGoogle}
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
             disabled={managedCalendars.length === 0 || isSyncing}
           >
