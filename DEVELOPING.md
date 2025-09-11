@@ -1,4 +1,3 @@
-
 branca de desenvolupament feature/fix-regressions ## ->PROVES DE REFACTORITZACIÓ
 ## DEVELOPING.md V1.0.0
 
@@ -285,6 +284,33 @@ L'estat global del frontend es gestiona a través de *stores* de Zustand, la qua
     -   **Descripció:** Gestiona quin modal està obert (`type`), les dades inicials amb què es va obrir (`data`) i si és visible (`isOpen`). També actua com un vehicle per a funcionalitats globals com les notificacions.
     -   **Contingut:**
         -   **`showToast`**: Manté una referència a la funció `showToast` creada a `App.tsx`. Això permet que altres stores (com `googleConfigStore`) puguin disparar notificacions a la UI de manera desacoblada.
+
+#### Middleware de Depuració (`loggingMiddleware.ts`)
+
+El projecte inclou un middleware de Zustand personalitzat a `src/stores/loggingMiddleware.ts` dissenyat per a la depuració.
+
+- **Funcionalitat:** Quan s'aplica a un store, aquest middleware registra automàticament cada acció que es crida, l'estat *abans* del canvi, i l'estat *després* del canvi. Això és extremadament útil durant el desenvolupament per traçar com i per què canvia l'estat.
+- **Ús:** Actualment, aquest middleware **no està actiu** a cap dels stores de producció per evitar sobrecarregar la consola. No obstant això, un desenvolupador pot activar-lo fàcilment per depurar un store específic.
+
+Per exemple, per activar-lo a `eventDataStore.ts`, s'hauria d'importar i embolcallar la definició de l'store:
+
+```typescript
+import { loggingMiddleware } from './loggingMiddleware';
+// ...
+
+export const useEventDataStore = create<...>()(
+  loggingMiddleware( // <-- Embolcallar amb el middleware
+    temporal(
+      immer(
+        (set, get) => ({
+          // ... contingut de l'store
+        })
+      )
+    ),
+    'eventDataStore' // <-- Nom per al logging
+  )
+);
+```
 
 #### Patró d'Ús de Zustand als Components
 
@@ -920,3 +946,24 @@ Per solucionar un problema de pèrdua de dades en formularis de modals (causat p
 1.  **Store Centralitzat (`src/stores/modalStore.ts`):** Un *store* de Zustand actua com a font única de veritat per a l'estat dels modals. Gestiona quin modal està obert, les dades inicials amb què es va obrir, i l'estat actual del formulari que l'usuari està editant.
 2.  **Components Controlats:** Els modals amb formularis (`EventFrameFormModal`, `AssignmentFormModal`, etc.) ja no gestionen el seu propi estat intern amb `useState`. En canvi, es connecten al *store* de Zustand, llegeixen l'estat del formulari des d'allà, i utilitzen les accions del *store* per actualitzar-lo a cada canvi.
 3.  **Flux de Dades Robust:** Aquest enfocament desacobla l'estat del formulari del cicle de vida del component `App.tsx`. Encara que `App.tsx` es re-renderitzi, l'estat al *store* de Zustand persisteix, garantint que no es perdi cap dada introduïda per l'usuari.
+
+## 9. Gestió d'Errors i Robustesa
+
+### 9.1. Gestió d'Errors de Renderitzat (`ErrorBoundary`)
+
+Per millorar la robustesa de l'aplicació, el component arrel `App.tsx` està embolicat amb un component `ErrorBoundary`.
+
+- **Propòsit:** Aquest component, basat en la funcionalitat estàndard de React, actua com una xarxa de seguretat. Si es produeix un error de JavaScript durant la fase de renderitzat de qualsevol component fill, l'error és capturat per l'ErrorBoundary en lloc de provocar que tota l'aplicació es bloquegi o mostri una pantalla blanca.
+- **Funcionament:** Quan es captura un error, l'ErrorBoundary renderitza una interfície d'usuari alternativa (fallback UI) que informa l'usuari de l'error i li ofereix l'opció de recarregar l'aplicació.
+- **Logging:** L'error i la traça de components (`componentStack`) es registren automàticament mitjançant el servei `logger`, la qual cosa facilita la depuració post-mortem a través dels fitxers de log.
+
+Aquesta és una decisió arquitectònica clau per garantir que un error en un component aïllat no afecti l'estabilitat general de l'aplicació.
+
+### 9.2. Solució de Bug de Renderitzat del Calendari
+
+S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de *repaint/reflow* del navegador que FullCalendar no gestiona automàticament.
+
+La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació canvia.
+
+-   **`src/components/MainDisplay.tsx`**: Utilitza `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que internament crida a `calendarApi.updateSize()`.
+-   **`src/App.tsx`**: Crea una referència (`useRef`) al component `MainDisplay` i utilitza un `useEffect` que, en detectar un canvi a `toastState`, crida a la funció `handleResize` del component fill.
