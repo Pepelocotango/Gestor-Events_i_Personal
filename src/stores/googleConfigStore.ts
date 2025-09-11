@@ -89,15 +89,15 @@ export const useGoogleConfigStore = create<GoogleConfigState & GoogleConfigActio
           window.electronAPI.getCalendarList()
         ]);
 
-        let managedIdsSet = new Set<string>();
-        if (configResult) {
-          managedIdsSet = new Set(configResult.managedAppCalendars?.map(c => c.id) || []);
-          set({
-            selectedIds: configResult.selectedCalendarIds || [],
-            managedCalendars: configResult.managedAppCalendars || [],
-            activeCalendarId: configResult.activeAppCalendarId || null,
-          });
-        }
+        // Defensively merge the loaded config with defaults
+        const newConfigState = {
+          selectedIds: configResult?.selectedCalendarIds || [],
+          managedCalendars: configResult?.managedAppCalendars || [],
+          activeCalendarId: configResult?.activeAppCalendarId || null,
+        };
+        set(newConfigState);
+
+        const managedIdsSet = new Set(newConfigState.managedCalendars.map(c => c.id));
 
         if (calendarsResult.success) {
           set({

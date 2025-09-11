@@ -18,6 +18,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   }));
   const openModal = useModalStore(state => state.openModal);
 
+  const storeState = useGoogleConfigStore();
   const {
     externalCalendars,
     selectedIds,
@@ -31,19 +32,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
     saveConfig,
     deleteCalendar,
     disconnectGoogle,
-<<<<<<< HEAD
   } = storeState;
-=======
-  } = useGoogleConfigStore();
->>>>>>> parent of 32a3b62 (fix(google): Prevent render crash in GoogleSettingsModal and enhance logging)
-
-  logger.info('[GoogleSettingsModal Render] State:', storeState);
-
-  logger.info('[GoogleSettingsModal Render] State:', storeState);
-
-  logger.info('[GoogleSettingsModal Render] State:', storeState);
-
-  logger.info('[GoogleSettingsModal Render] State:', storeState);
 
   logger.info('[GoogleSettingsModal Render] State:', storeState);
 

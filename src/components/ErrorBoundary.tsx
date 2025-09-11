@@ -20,8 +20,13 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error('[ERROR BOUNDARY] Error de renderitzat no controlat:', {
-      error: error.toString(),
+    // Log a more detailed error object for better diagnostics
+    logger.error('[ERROR BOUNDARY] Uncaught rendering error:', {
+      error: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      },
       componentStack: errorInfo.componentStack,
     });
   }
