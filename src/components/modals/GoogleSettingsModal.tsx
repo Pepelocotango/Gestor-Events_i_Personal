@@ -39,6 +39,8 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
 
   logger.info('[GoogleSettingsModal Render] State:', storeState);
 
+  logger.info('[GoogleSettingsModal Render] State:', storeState);
+
   useEffect(() => {
     fetchAndLoadConfig();
   }, []);
