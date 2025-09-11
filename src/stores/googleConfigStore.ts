@@ -22,6 +22,7 @@ interface ActionResult {
 }
 
 interface GoogleConfigActions {
+  startGoogleAuthFlow: () => Promise<void>; // <<< NOU
   fetchAndLoadConfig: () => Promise<void>;
   toggleExternalCalendar: (calendarId: string) => void;
   setActiveCalendarId: (calendarId: string | null) => void;
@@ -29,6 +30,7 @@ interface GoogleConfigActions {
   createNewCalendar: (suffix: string) => Promise<ActionResult | undefined>;
   deleteCalendar: (calendar: ManagedAppCalendar) => void;
   disconnectGoogle: () => void;
+  initialize: () => void; // <<< NOU
 }
 
 const initialState: GoogleConfigState = {
@@ -44,6 +46,36 @@ const initialState: GoogleConfigState = {
 export const useGoogleConfigStore = create<GoogleConfigState & GoogleConfigActions>()(
   immer((set, get) => ({
     ...initialState,
+
+    initialize: () => {
+      if (window.electronAPI?.onGoogleAuthSuccess) {
+        window.electronAPI.onGoogleAuthSuccess(() => {
+          logger.info("Rebut 'google-auth-success' a la store. Refrescant configuració.");
+          get().fetchAndLoadConfig();
+          useModalStore.getState().showToast('Connectat a Google Calendar amb èxit!', 'success');
+        });
+      }
+      if (window.electronAPI?.onGoogleAuthError) {
+        window.electronAPI.onGoogleAuthError((errorMessage) => {
+            logger.error("Rebut 'google-auth-error' a la store.", { errorMessage });
+            useModalStore.getState().showToast(`Error d'autenticació: ${errorMessage}`, 'error');
+        });
+      }
+    },
+
+    startGoogleAuthFlow: async () => {
+      logger.info('[UI] Iniciant flux d\'autenticació amb Google des de la store.');
+      if (window.electronAPI) {
+        const result = await window.electronAPI.startGoogleAuth();
+        if (result.success) {
+          useModalStore.getState().showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
+        } else {
+          useModalStore.getState().showToast(result.message || "No s'ha pogut iniciar l'autenticació.", 'error');
+        }
+      } else {
+        useModalStore.getState().showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      }
+    },
 
     fetchAndLoadConfig: async () => {
       if (!window.electronAPI?.loadGoogleConfig || !window.electronAPI?.getCalendarList) {

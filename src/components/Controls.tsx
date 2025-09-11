@@ -2,6 +2,7 @@ import { ChangeEvent, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
+import { useGoogleConfigStore } from '../stores/googleConfigStore';
 import { PersonGroup, ShowToastFunction } from '../types';
 import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, DocumentArrowDownIcon } from '../constants';
@@ -35,6 +36,7 @@ const Controls: React.FC<ControlsProps> = ({
   const undo = () => useEventDataStore.temporal.getState().undo();
   const redo = () => useEventDataStore.temporal.getState().redo();
   const { openModal } = useModalStore.getState();
+  const startGoogleAuthFlow = useGoogleConfigStore(state => state.startGoogleAuthFlow);
 
   const [isExpanded, setIsExpanded] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -229,20 +231,6 @@ const Controls: React.FC<ControlsProps> = ({
     }
   };
   // <<< NOU FLUX PER AL RESET >>>
-  const handleConnectGoogle = async () => {
-    logger.info('[UI] Iniciant flux d\'autenticació amb Google.');
-    if (window.electronAPI) {
-      const result = await window.electronAPI.startGoogleAuth();
-      if (result.success) {
-        showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
-      } else {
-        showToast(result.message || 'No s\'ha pogut iniciar l\'autenticació.', 'error');
-      }
-    } else {
-      showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
-    }
-  };
-
   const handleRequestHardReset = () => {
     openModal('confirmHardReset', {
       titleOverride: "Confirmar Reset de Fàbrica",
@@ -426,7 +414,7 @@ const Controls: React.FC<ControlsProps> = ({
               </Tooltip>
               <Tooltip text="Connectar amb Google Calendar">
                 <button
-                    onClick={handleConnectGoogle}
+                    onClick={startGoogleAuthFlow}
                     className="flex items-center justify-center gap-1 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-1 px-2 rounded-md transition-colors text-sm border border-gray-300"
                 >
                     <GoogleIcon />
