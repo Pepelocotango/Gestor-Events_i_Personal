@@ -275,9 +275,16 @@ L'estat global del frontend es gestiona a través de *stores* de Zustand, la qua
         -   **`immer`**: Permet escriure lògica de mutació d'estat de manera més senzilla i segura, com si es mutés l'estat directament.
         -   **`temporal` (de `zundo`)**: Envolta l'store per afegir automàticament la funcionalitat de desfer/refer (`undo`/`redo`) a totes les modificacions de l'estat.
 
-2.  **`modalStore.ts`**:
-    -   **Descripció:** Gestiona exclusivament quin modal està obert (`type`), les dades inicials amb què es va obrir (`data`) i si és visible (`isOpen`).
-    -   **Important**: A diferència de versions anteriors, aquest store **ja no gestiona l'estat intern dels formularis**.
+2.  **`googleConfigStore.ts`**:
+    -   **Descripció:** Gestiona tot l'estat i la lògica relacionats amb la configuració de Google Calendar.
+    -   **Contingut:**
+        -   **Estat:** Emmagatzema els `managedCalendars`, `externalCalendars`, `selectedIds`, `activeCalendarId`, i els estats de `loading` i `error`.
+        -   **Accions:** Centralitza tota la interacció amb el backend per a la configuració de Google, incloent `fetchAndLoadConfig`, `saveConfig`, `createNewCalendar`, `deleteCalendar` i `disconnectGoogle`.
+
+3.  **`modalStore.ts`**:
+    -   **Descripció:** Gestiona quin modal està obert (`type`), les dades inicials amb què es va obrir (`data`) i si és visible (`isOpen`). També actua com un vehicle per a funcionalitats globals com les notificacions.
+    -   **Contingut:**
+        -   **`showToast`**: Manté una referència a la funció `showToast` creada a `App.tsx`. Això permet que altres stores (com `googleConfigStore`) puguin disparar notificacions a la UI de manera desacoblada.
 
 #### Patró d'Ús de Zustand als Components
 
@@ -389,23 +396,22 @@ El model híbrid es manté:
 
 1.  **[UI]** L'usuari obre el modal de configuració de Google (`GoogleSettingsModal`) i fa clic a "+ Crear Nou".
 2.  **[Frontend]** S'obre un nou modal dedicat (`CreateCalendarModal`) que demana un sufix per al nou calendari.
-3.  **[Frontend]** En confirmar, es crida a `window.electronAPI.createNewAppCalendar(suffix)`.
-4.  **[Backend]** El gestor `createNewAppCalendar` a `main.cjs`:
-    a. Comprova que no existeixi ja un calendari gestionat amb el mateix nom per evitar duplicats a la configuració.
-    b. Invoca `findOrCreateAppCalendar` que, utilitzant el Compte de Servei, crea un nou calendari a Google Calendar amb el nom `Gestor d'Esdeveniments (App) - [Sufix]` o reutilitza un d'existent amb el mateix nom.
-    c. Afegeix el nou calendari (amb el seu ID, nom i sufix) a la llista `managedAppCalendars` de `google-config.json`.
-    d. Estableix aquest nou calendari com a `activeAppCalendarId`.
-    e. Desa el fitxer de configuració i retorna la nova llista de calendaris al frontend.
-5.  **[Frontend]** El modal de creació es tanca i notifica al modal de configuració (mitjançant un `CustomEvent`) que ha de refrescar la seva llista de calendaris.
+3.  **[Frontend]** En confirmar, el component crida a l'acció `createNewCalendar(suffix)` de l'store `useGoogleConfigStore`.
+4.  **[Frontend - Zustand]** L'acció de l'store crida a `window.electronAPI.createNewAppCalendar(suffix)`.
+5.  **[Backend]** El gestor `createNewAppCalendar` a `main.cjs` executa la mateixa lògica de creació i desat.
+6.  **[Frontend - Zustand]** Un cop rep la resposta del backend, l'store actualitza el seu estat (`managedCalendars`, `activeCalendarId`) i refresca la llista completa de calendaris.
+7.  **[Frontend]** Com que `GoogleSettingsModal` està subscrit a aquest store, es re-renderitza automàticament amb la nova llista de calendaris sense necessitat d'esdeveniments personalitzats. El modal de creació es tanca.
 
 #### Flux de Sincronització Explícita
 
 1.  **[UI]** L'usuari fa clic al botó principal "Sincronitzar" o al botó "Sincronitzar Ara" dins del modal de configuració.
-2.  **[Frontend]** S'activa la lògica a l'store `useEventDataStore` (cridada des d'un component):
-    -   Si la sincronització es va iniciar des del botó principal, s'obre el modal `SelectSyncCalendarModal`, que mostra la llista de `managedAppCalendars` i permet a l'usuari triar una destinació. El calendari actiu (`activeAppCalendarId`) apareix preseleccionat.
-    -   Si es va iniciar des de la configuració, se salta aquest pas i s'utilitza directament l'ID del calendari actiu.
-3.  **[Frontend]** S'invoca la funció `executeSync(targetCalendarId)` amb l'ID del calendari escollit.
-4.  **[Frontend]** Es crida a `window.electronAPI.syncWithGoogle({ localData, targetCalendarId })`.
+2.  **[Frontend]** Es crida a l'acció `syncWithGoogle()` de l'store `useEventDataStore`.
+3.  **[Frontend - Zustand]** L'acció `syncWithGoogle` conté la lògica d'orquestració:
+    -   Crida a `window.electronAPI.loadGoogleConfig()` per obtenir la configuració actual.
+    -   Si no hi ha calendaris gestionats, obre el modal de configuració (`googleSettings`) utilitzant `useModalStore`.
+    -   Si n'hi ha, obre el modal de selecció (`selectSyncCalendar`), passant-li la llista de calendaris i l'ID actiu.
+4.  **[Frontend]** Un cop l'usuari confirma el calendari al modal, s'invoca la funció `executeSync(targetCalendarId)` de l'store `useEventDataStore`.
+5.  **[Frontend - Zustand]** L'acció `executeSync` crida a `window.electronAPI.syncWithGoogle({ localData, targetCalendarId })`.
 5.  **[Backend]** El gestor `sync-with-google` a `main.cjs` executa la lògica:
     a. **Verificació i Autoreparació:** Comprova si `targetCalendarId` encara existeix a Google. Si rep un error `404 Not Found`, l'elimina de la llista `managedAppCalendars` a la configuració local i retorna un error `CALENDAR_NOT_FOUND` al frontend.
     b. **Confirmació de l'Usuari:** Mostra un diàleg advertint que l'operació sobreescriurà les dades.
