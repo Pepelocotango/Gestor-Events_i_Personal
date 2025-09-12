@@ -4,26 +4,27 @@ import { builtinModules } from 'module';
 import { fileURLToPath } from 'url';
 import react from '@vitejs/plugin-react';
 
+// Derive __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default defineConfig(() => {
+export default defineConfig(() => { // <<< CANVI CLAU AQUÍ: Eliminat el paràmetre ({ mode })
     return {
       plugins: [react()],
       base: './',
       define: {
-        'process.env.NODE_ENV': JSON.stringify('development'),
+        // No hi ha variables globals per definir
       },
       build: {
         outDir: 'dist',
         emptyOutDir: true,
         sourcemap: true,
-        minify: false, // <-- Canvi clau aquí
         rollupOptions: {
           external: [
             ...builtinModules,
             'electron'
           ],
+
         }
       },
       resolve: {
