@@ -38,7 +38,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
 
   useEffect(() => {
     fetchAndLoadConfig();
-  }, [fetchAndLoadConfig]);
+  }, []);
 
   const handleCreateNewCalendar = () => {
     openModal('createAppCalendar');
