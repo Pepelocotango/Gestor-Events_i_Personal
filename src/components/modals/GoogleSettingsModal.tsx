@@ -32,9 +32,6 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   const loading = useGoogleConfigStore(state => state.loading);
   const error = useGoogleConfigStore(state => state.error);
 
-  // Synchronous actions can be retrieved this way for simplicity.
-  const { toggleExternalCalendar, setActiveCalendarId } = useGoogleConfigStore.getState();
-
   logger.info('[GoogleSettingsModal Render]', { loading, error });
 
   useEffect(() => {
@@ -88,7 +85,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                         id={`cal-${cal.id}`}
                         name="activeCalendar"
                         checked={cal.id === activeCalendarId}
-                        onChange={() => setActiveCalendarId(cal.id)}
+                        onChange={() => useGoogleConfigStore.getState().setActiveCalendarId(cal.id)}
                         className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-500"
                       />
                     </Tooltip>
@@ -159,7 +156,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                     type="checkbox"
                     id={cal.id}
                     checked={selectedIds.includes(cal.id)}
-                    onChange={() => toggleExternalCalendar(cal.id)}
+                    onChange={() => useGoogleConfigStore.getState().toggleExternalCalendar(cal.id)}
                     className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                     style={{ accentColor: cal.backgroundColor }}
                   />

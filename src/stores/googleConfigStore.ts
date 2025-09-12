@@ -151,7 +151,9 @@ export const saveConfig = async (): Promise<ActionResult> => {
         };
         const result = await window.electronAPI.saveGoogleConfig(configToSave);
         if (result.success) {
-            await useEventDataStore.getState().refreshGoogleEvents();
+            setTimeout(() => {
+                useEventDataStore.getState().refreshGoogleEvents();
+            }, 0);
             return { success: true, message: 'Configuració desada.', type: 'success' };
         } else {
             return { success: false, message: result.message || "No s'ha pogut desar la configuració.", type: 'error' };
@@ -171,7 +173,9 @@ export const createNewCalendar = async (suffix: string): Promise<ActionResult | 
                 managedCalendars: result.data.managedAppCalendars,
                 activeCalendarId: result.data.activeAppCalendarId,
             });
-            await fetchAndLoadConfig();
+            setTimeout(() => {
+                fetchAndLoadConfig();
+            }, 0);
             return { success: true, message: result.message || 'Calendari creat correctament.', type: 'success' };
         } else {
             return { success: false, message: result.message || 'Error creant el calendari.', type: 'error' };
@@ -198,8 +202,10 @@ export const deleteCalendar = (calendar: ManagedAppCalendar) => {
                 managedCalendars: result.data.managedAppCalendars,
                 activeCalendarId: result.data.activeAppCalendarId,
             });
-            await fetchAndLoadConfig();
-            await useEventDataStore.getState().refreshGoogleEvents();
+            setTimeout(() => {
+                fetchAndLoadConfig();
+                useEventDataStore.getState().refreshGoogleEvents();
+            }, 0);
           } else {
             useModalStore.getState().showToast(result.message || "Hi ha hagut un error durant l'eliminació.", 'error');
           }
@@ -231,8 +237,10 @@ export const disconnectGoogle = () => {
             const result = await window.electronAPI.googleDisconnect();
             if (result.success) {
               useModalStore.getState().showToast('Compte de Google desconnectat correctament.', 'success');
-              await useEventDataStore.getState().refreshGoogleEvents();
-              fetchAndLoadConfig();
+              setTimeout(() => {
+                  useEventDataStore.getState().refreshGoogleEvents();
+                  fetchAndLoadConfig();
+              }, 0);
               closeModal();
             } else {
               useModalStore.getState().showToast(result.message || 'Hi ha hagut un error durant la desconnexió.', 'error');
