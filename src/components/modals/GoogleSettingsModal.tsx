@@ -12,15 +12,6 @@ import {
 } from '@/stores/googleConfigStore';
 import logger from '@/utils/logger';
 
-interface GoogleConfigState {
-  externalCalendars: GoogleCalendar[];
-  selectedIds: string[];
-  managedCalendars: ManagedAppCalendar[];
-  activeCalendarId: string | null;
-  loading: boolean;
-  error: string | null;
-}
-
 interface GoogleSettingsModalProps {
   onClose: () => void;
   showToast: ShowToastFunction;
@@ -33,31 +24,22 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   }));
   const openModal = useModalStore(state => state.openModal);
 
-  const {
-    externalCalendars,
-    selectedIds,
-    managedCalendars,
-    activeCalendarId,
-    loading,
-    error,
-  } = useGoogleConfigStore(
-    (state: GoogleConfigState) => ({
-      externalCalendars: state.externalCalendars,
-      selectedIds: state.selectedIds,
-      managedCalendars: state.managedCalendars,
-      activeCalendarId: state.activeCalendarId,
-      loading: state.loading,
-      error: state.error,
-    })
-  );
+  // Subscribe to each property individually to prevent re-renders from new object references.
+  const externalCalendars = useGoogleConfigStore(state => state.externalCalendars);
+  const selectedIds = useGoogleConfigStore(state => state.selectedIds);
+  const managedCalendars = useGoogleConfigStore(state => state.managedCalendars);
+  const activeCalendarId = useGoogleConfigStore(state => state.activeCalendarId);
+  const loading = useGoogleConfigStore(state => state.loading);
+  const error = useGoogleConfigStore(state => state.error);
 
+  // Synchronous actions can be retrieved this way for simplicity.
   const { toggleExternalCalendar, setActiveCalendarId } = useGoogleConfigStore.getState();
 
   logger.info('[GoogleSettingsModal Render]', { loading, error });
 
   useEffect(() => {
     fetchAndLoadConfig();
-  }, []);
+  }, []); // The empty dependency array is now safe and correct.
 
   const handleCreateNewCalendar = () => {
     openModal('createAppCalendar');
