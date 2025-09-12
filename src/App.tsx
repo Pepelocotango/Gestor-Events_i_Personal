@@ -7,7 +7,7 @@ import Modal from './components/ui/Modal';
 import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
-import { useGoogleConfigStore } from './stores/googleConfigStore';
+import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { migrateData, validateMigratedData } from './utils/dataMigration';
@@ -106,7 +106,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Inicialitza els listeners de la store de Google un sol cop
-    useGoogleConfigStore.getState().initialize();
+    initializeGoogleAuthListeners();
   }, []);
 
   useEffect(() => {

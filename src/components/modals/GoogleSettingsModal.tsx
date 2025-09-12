@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { shallow } from 'zustand/shallow';
-import { ShowToastFunction } from '@/types';
+import { ShowToastFunction, GoogleCalendar, ManagedAppCalendar } from '@/types';
 import Tooltip from '../ui/Tooltip';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { useModalStore } from '@/stores/modalStore';
@@ -12,6 +11,15 @@ import {
   disconnectGoogle,
 } from '@/stores/googleConfigStore';
 import logger from '@/utils/logger';
+
+interface GoogleConfigState {
+  externalCalendars: GoogleCalendar[];
+  selectedIds: string[];
+  managedCalendars: ManagedAppCalendar[];
+  activeCalendarId: string | null;
+  loading: boolean;
+  error: string | null;
+}
 
 interface GoogleSettingsModalProps {
   onClose: () => void;
@@ -25,8 +33,6 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   }));
   const openModal = useModalStore(state => state.openModal);
 
-  // Subscribe only to the data needed for rendering, using a selector.
-  // `shallow` prevents re-renders if the object structure is the same.
   const {
     externalCalendars,
     selectedIds,
@@ -35,24 +41,20 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
     loading,
     error,
   } = useGoogleConfigStore(
-    (state) => ({
+    (state: GoogleConfigState) => ({
       externalCalendars: state.externalCalendars,
       selectedIds: state.selectedIds,
       managedCalendars: state.managedCalendars,
       activeCalendarId: state.activeCalendarId,
       loading: state.loading,
       error: state.error,
-    }),
-    shallow
+    })
   );
 
-  // Get synchronous actions directly from the store. They have stable references.
   const { toggleExternalCalendar, setActiveCalendarId } = useGoogleConfigStore.getState();
 
   logger.info('[GoogleSettingsModal Render]', { loading, error });
 
-  // This useEffect now uses an imported action with a stable reference,
-  // so an empty dependency array is safe and correct. It will only run once.
   useEffect(() => {
     fetchAndLoadConfig();
   }, []);
@@ -94,7 +96,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
         {loading && <p className="text-center text-gray-500">Carregant...</p>}
         {!loading && managedCalendars.length > 0 && (
           <ul className="space-y-3 max-h-48 overflow-y-auto pr-2">
-            {managedCalendars.map(cal => (
+            {managedCalendars.map((cal: ManagedAppCalendar) => (
               <li key={cal.id} className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center flex-grow">
@@ -168,7 +170,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
         {error && <p className="text-center text-red-500">{typeof error === 'string' ? error : (error as Error)?.message || 'S\'ha produït un error desconegut'}</p>}
         {!loading && !error && externalCalendars.length > 0 && (
           <ul className="space-y-2 max-h-48 overflow-y-auto">
-            {externalCalendars.map(cal => (
+            {externalCalendars.map((cal: GoogleCalendar) => (
               <li key={cal.id} className="flex items-center">
                 <Tooltip text={`Mostrar/ocultar el calendari '${cal.summary}' a la vista principal`}>
                   <input

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShowToastFunction } from '@/types';
-import { useGoogleConfigStore } from '@/stores/googleConfigStore';
+import { createNewCalendar } from '@/stores/googleConfigStore';
 import Tooltip from '../ui/Tooltip';
 
 interface CreateCalendarModalProps {
@@ -9,7 +9,6 @@ interface CreateCalendarModalProps {
 }
 
 const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({ onClose, showToast }) => {
-  const { createNewCalendar } = useGoogleConfigStore();
   const [suffix, setSuffix] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 

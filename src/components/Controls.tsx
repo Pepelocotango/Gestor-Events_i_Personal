@@ -2,7 +2,7 @@ import { ChangeEvent, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
-import { useGoogleConfigStore } from '../stores/googleConfigStore';
+import { startGoogleAuthFlow } from '../stores/googleConfigStore';
 import { PersonGroup, ShowToastFunction } from '../types';
 import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, DocumentArrowDownIcon } from '../constants';
@@ -36,7 +36,6 @@ const Controls: React.FC<ControlsProps> = ({
   const undo = () => useEventDataStore.temporal.getState().undo();
   const redo = () => useEventDataStore.temporal.getState().redo();
   const { openModal } = useModalStore.getState();
-  const startGoogleAuthFlow = useGoogleConfigStore(state => state.startGoogleAuthFlow);
 
   const [isExpanded, setIsExpanded] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
