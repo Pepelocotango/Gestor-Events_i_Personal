@@ -1,9 +1,16 @@
 import React, { useEffect } from 'react';
+import { shallow } from 'zustand/shallow';
 import { ShowToastFunction } from '@/types';
 import Tooltip from '../ui/Tooltip';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { useModalStore } from '@/stores/modalStore';
-import { useGoogleConfigStore } from '@/stores/googleConfigStore';
+import {
+  useGoogleConfigStore,
+  fetchAndLoadConfig,
+  saveConfig,
+  deleteCalendar,
+  disconnectGoogle,
+} from '@/stores/googleConfigStore';
 import logger from '@/utils/logger';
 
 interface GoogleSettingsModalProps {
@@ -18,7 +25,8 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   }));
   const openModal = useModalStore(state => state.openModal);
 
-  const storeState = useGoogleConfigStore();
+  // Subscribe only to the data needed for rendering, using a selector.
+  // `shallow` prevents re-renders if the object structure is the same.
   const {
     externalCalendars,
     selectedIds,
@@ -26,16 +34,25 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
     activeCalendarId,
     loading,
     error,
-    fetchAndLoadConfig,
-    toggleExternalCalendar,
-    setActiveCalendarId,
-    saveConfig,
-    deleteCalendar,
-    disconnectGoogle,
-  } = storeState;
+  } = useGoogleConfigStore(
+    (state) => ({
+      externalCalendars: state.externalCalendars,
+      selectedIds: state.selectedIds,
+      managedCalendars: state.managedCalendars,
+      activeCalendarId: state.activeCalendarId,
+      loading: state.loading,
+      error: state.error,
+    }),
+    shallow
+  );
 
-  logger.info('[GoogleSettingsModal Render] State:', storeState);
+  // Get synchronous actions directly from the store. They have stable references.
+  const { toggleExternalCalendar, setActiveCalendarId } = useGoogleConfigStore.getState();
 
+  logger.info('[GoogleSettingsModal Render]', { loading, error });
+
+  // This useEffect now uses an imported action with a stable reference,
+  // so an empty dependency array is safe and correct. It will only run once.
   useEffect(() => {
     fetchAndLoadConfig();
   }, []);
