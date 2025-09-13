@@ -18,12 +18,12 @@ interface GoogleSettingsModalProps {
 }
 
 const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, showToast }) => {
+  // Correct subscription to useEventDataStore
   const executeSync = useEventDataStore(state => state.executeSync);
   const isEventDataSyncing = useEventDataStore(state => state.isSyncing);
   const openModal = useModalStore(state => state.openModal);
 
-  // Subscripció individual a cada 'slice' de l'estat.
-  // Això és el que trenca el bucle.
+  // Correct, individual subscriptions to useGoogleConfigStore to prevent render loops.
   const externalCalendars = useGoogleConfigStore(state => state.externalCalendars);
   const selectedIds = useGoogleConfigStore(state => state.selectedIds);
   const managedCalendars = useGoogleConfigStore(state => state.managedCalendars);
@@ -35,7 +35,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
 
   useEffect(() => {
     fetchAndLoadConfig();
-  }, []); // The empty dependency array is now safe and correct.
+  }, []); // This is now safe because the subscriptions above do not cause loops.
 
   const handleCreateNewCalendar = () => {
     openModal('createAppCalendar');
