@@ -18,10 +18,8 @@ interface GoogleSettingsModalProps {
 }
 
 const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, showToast }) => {
-  const { executeSync, isSyncing: isEventDataSyncing } = useEventDataStore(state => ({
-    executeSync: state.executeSync,
-    isSyncing: state.isSyncing,
-  }));
+  const executeSync = useEventDataStore(state => state.executeSync);
+  const isEventDataSyncing = useEventDataStore(state => state.isSyncing);
   const openModal = useModalStore(state => state.openModal);
 
   // Subscribe to each property individually to prevent re-renders from new object references.
