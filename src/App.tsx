@@ -4,7 +4,7 @@ const { ipcRenderer } = window.require ? window.require('electron') : { ipcRende
 import logger from './utils/logger';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
+import { ShowToastFunction, PersonGroup, MaterialItem, AppData } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
 import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
@@ -71,6 +71,7 @@ const App: React.FC = () => {
   // This avoids re-running useEffects that depend on them.
   const {
     loadData: loadDataFromManager,
+    loadGoogleConfigFromDataFile,
     exportData: exportDataFromManager,
     setHasUnsavedChanges,
     getPersonGroupById,
@@ -80,6 +81,8 @@ const App: React.FC = () => {
     addMaterialItemsFromFile,
     replacePeopleGroups,
     replaceMaterialItems,
+    _applyDataToState,
+    clearDataRepairInfo,
   } = useEventDataStore.getState();
 
   const [toastState, setToastState] = useState<ToastState | null>(null);
@@ -321,74 +324,87 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const attemptInitialLoad = async () => {
-      const { loadData, _applyDataToState, clearDataRepairInfo, setHasUnsavedChanges } = useEventDataStore.getState();
-      const { openModal, closeModal } = useModalStore.getState();
+        const { openModal, closeModal } = useModalStore.getState();
 
-      logger.info('[Startup] App.tsx: Executant useEffect d\'inicialització de dades.');
-      if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
-        try {
-          logger.info("[Startup] App.tsx: Cridant a window.electronAPI.loadAppData().");
-          const data = await window.electronAPI.loadAppData();
-          logger.info("[Startup] App.tsx: Dades rebudes del backend. Cridant a loadDataFromManager.");
-          const result = await loadData(data);
+        logger.info('[Startup] App.tsx: Executant useEffect d\'inicialització de dades.');
+        if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
+            let loadedData: AppData | null = null;
+            try {
+                logger.info("[Startup] App.tsx: Cridant a window.electronAPI.loadAppData().");
+                loadedData = await window.electronAPI.loadAppData();
 
-          if (result.status === 'ok' && result.message) {
-            showToast(result.message, result.type);
-          } else if (result.status === 'needs_confirmation') {
-            const dataRepairInfo = useEventDataStore.getState().dataRepairInfo;
-            if (dataRepairInfo) {
-                openModal('confirmDataRepair', {
-                    onConfirm: () => {
-                        _applyDataToState(dataRepairInfo.repairedData);
-                        showToast("Dades reparades i carregades.", 'success');
-                        closeModal();
-                        clearDataRepairInfo();
-                    },
-                    onCancel: () => {
-                        closeModal();
-                        clearDataRepairInfo();
-                    },
-                    fixes: result.fixes,
-                });
+                if (loadedData) {
+                    logger.info("[Startup] App.tsx: Dades rebudes. Cridant a loadData.");
+                    const result = await loadDataFromManager(loadedData);
+
+                    if (result.status === 'ok' && result.message) {
+                        showToast(result.message, result.type);
+                    } else if (result.status === 'needs_confirmation') {
+                        const dataRepairInfo = useEventDataStore.getState().dataRepairInfo;
+                        if (dataRepairInfo) {
+                            openModal('confirmDataRepair', {
+                                onConfirm: () => {
+                                    _applyDataToState(dataRepairInfo.repairedData);
+                                    showToast("Dades reparades i carregades.", 'success');
+                                    if (loadedData) loadGoogleConfigFromDataFile(loadedData); // Càrrega Google després de reparar
+                                    closeModal();
+                                    clearDataRepairInfo();
+                                },
+                                onCancel: () => {
+                                    closeModal();
+                                    clearDataRepairInfo();
+                                },
+                                fixes: result.fixes,
+                            });
+                        }
+                    } else if (result.status === 'error' && result.message) {
+                        showToast(result.message, result.type);
+                    }
+
+                    // Càrrega de Google només si la càrrega inicial no necessita confirmació
+                    if (result.status !== 'needs_confirmation') {
+                        await loadGoogleConfigFromDataFile(loadedData);
+                    }
+                } else {
+                    // Si no hi ha dades, neteja l'estat
+                    await loadDataFromManager(null);
+                }
+                setHasUnsavedChanges(false);
+            } catch (error) {
+                console.error('Error carregant dades de l\'aplicació via Electron:', error);
+                showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
+                await loadDataFromManager(null);
+                setHasUnsavedChanges(false);
             }
-          } else if (result.status === 'error' && result.message) {
-            showToast(result.message, result.type);
-          }
-          setHasUnsavedChanges(false);
-        } catch (error) {
-          console.error('Error carregant dades de l\'aplicació via Electron:', error);
-          showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
-          await loadData(null);
-          setHasUnsavedChanges(false);
-        }
-        if (window.electronAPI?.getDefaultDataPath) {
-          try {
-            const path = await window.electronAPI.getDefaultDataPath();
-            setCurrentDataPath(path);
-          } catch (e) {
-            setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
-          }
-        }
-        if (window.electronAPI?.getSessionData) {
-            const sessionData = await window.electronAPI.getSessionData();
-            setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
-            setSplashConfigLoaded(true);
+
+            if (window.electronAPI?.getDefaultDataPath) {
+                try {
+                    const path = await window.electronAPI.getDefaultDataPath();
+                    setCurrentDataPath(path);
+                } catch (e) {
+                    setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
+                }
+            }
+            if (window.electronAPI?.getSessionData) {
+                const sessionData = await window.electronAPI.getSessionData();
+                setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
+                setSplashConfigLoaded(true);
+            } else {
+                setSplashConfigLoaded(true);
+            }
         } else {
+            console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
+            await loadDataFromManager(null);
+            setHasUnsavedChanges(false);
             setSplashConfigLoaded(true);
         }
-      } else {
-        console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
-        await loadData(null);
-        setHasUnsavedChanges(false);
-        setSplashConfigLoaded(true);
-      }
-      setInitialLoadAttempted(true);
-      logger.info('[Startup] App.tsx: Marcat initialLoadAttempted com a true.');
+        setInitialLoadAttempted(true);
+        logger.info('[Startup] App.tsx: Marcat initialLoadAttempted com a true.');
     };
 
     if (!initialLoadAttempted) {
-      logger.info('[Startup] App.tsx: Primer render, cridant a attemptInitialLoad.');
-      attemptInitialLoad();
+        logger.info('[Startup] App.tsx: Primer render, cridant a attemptInitialLoad.');
+        attemptInitialLoad();
     }
   }, []);
 

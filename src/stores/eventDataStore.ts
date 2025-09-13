@@ -80,6 +80,7 @@ interface EventDataActions {
     deleteAssignment: (eventFrameId: string, assignmentId: string) => void;
     getAssignmentById: (eventFrameId: string, assignmentId: string) => Assignment | undefined;
     loadData: (data: AppData | null) => Promise<{ status: 'ok' | 'needs_confirmation' | 'error'; fixes?: string[], message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
+    loadGoogleConfigFromDataFile: (data: AppData) => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     exportData: () => Promise<AppData>;
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
     setHasUnsavedChanges: (value: boolean) => void;
@@ -142,26 +143,15 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             });
         },
     loadData: async (data: AppData | null) => {
-        const { _applyDataToState, refreshGoogleEvents } = get();
-        logger.info("Iniciant la càrrega de dades...", { hasData: !!data });
+        const { _applyDataToState } = get();
+        logger.info("Iniciant la càrrega de dades (sense Google)...", { hasData: !!data });
 
-        if (data?.googleConfig && window.electronAPI) {
-          try {
-            await window.electronAPI.saveGoogleConfig(data.googleConfig);
-            window.dispatchEvent(new CustomEvent('googleConfigChanged'));
-            await refreshGoogleEvents();
-          } catch (error) {
-            logger.error("Error desant la configuració de Google del fitxer:", { error });
-            return { status: 'error', message: "No s'ha pogut actualitzar la configuració de Google del fitxer.", type: 'error' };
-          }
+        if (!data) {
+            set(initialState);
+            return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
         }
 
-                if (!data) {
-                    set(initialState);
-                    return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
-                }
-
-    const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map((ef: EventFrameForExport) => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
+        const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map((ef: EventFrameForExport) => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
         const validationResult = validateData(migratedData);
 
         if (validationResult.isValid) {
@@ -173,6 +163,21 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
           return { status: 'needs_confirmation', fixes };
         }
       },
+    loadGoogleConfigFromDataFile: async (data: AppData) => {
+        const { refreshGoogleEvents } = get();
+        if (data?.googleConfig && window.electronAPI) {
+            try {
+                await window.electronAPI.saveGoogleConfig(data.googleConfig);
+                window.dispatchEvent(new CustomEvent('googleConfigChanged'));
+                await refreshGoogleEvents();
+                return { success: true, message: 'Configuració de Google carregada del fitxer.', type: 'success' };
+            } catch (error) {
+                logger.error("Error desant la configuració de Google del fitxer:", { error });
+                return { success: false, message: "No s'ha pogut actualitzar la configuració de Google del fitxer.", type: 'error' };
+            }
+        }
+        return { success: true, message: 'No hi havia configuració de Google per carregar.', type: 'info' };
+    },
     exportData: async () => {
         const { eventFrames, peopleGroups, materialItems } = get();
         const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);

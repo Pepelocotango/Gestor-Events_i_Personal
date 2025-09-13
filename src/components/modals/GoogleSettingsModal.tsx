@@ -25,6 +25,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   const openModal = useModalStore(state => state.openModal);
 
   // Subscribe to each property individually to prevent re-renders from new object references.
+  // This is the fix for the infinite render loop, ensuring the component only re-renders when specific values change.
   const externalCalendars = useGoogleConfigStore(state => state.externalCalendars);
   const selectedIds = useGoogleConfigStore(state => state.selectedIds);
   const managedCalendars = useGoogleConfigStore(state => state.managedCalendars);
