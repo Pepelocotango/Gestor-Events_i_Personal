@@ -168,7 +168,6 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         if (data?.googleConfig && window.electronAPI) {
             try {
                 await window.electronAPI.saveGoogleConfig(data.googleConfig);
-                window.dispatchEvent(new CustomEvent('googleConfigChanged'));
                 await refreshGoogleEvents();
                 return { success: true, message: 'Configuració de Google carregada del fitxer.', type: 'success' };
             } catch (error) {

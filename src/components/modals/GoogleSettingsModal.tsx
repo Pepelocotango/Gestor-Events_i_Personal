@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ShowToastFunction, GoogleCalendar, ManagedAppCalendar } from '@/types';
 import Tooltip from '../ui/Tooltip';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { useModalStore } from '@/stores/modalStore';
 import {
   useGoogleConfigStore,
-  fetchAndLoadConfig,
   saveConfig,
   deleteCalendar,
   disconnectGoogle,
@@ -32,10 +31,6 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   const error = useGoogleConfigStore(state => state.error);
 
   logger.info('[GoogleSettingsModal Render]', { loading, error });
-
-  useEffect(() => {
-    fetchAndLoadConfig();
-  }, []); // This is now safe because the subscriptions above do not cause loops.
 
   const handleCreateNewCalendar = () => {
     openModal('createAppCalendar');
