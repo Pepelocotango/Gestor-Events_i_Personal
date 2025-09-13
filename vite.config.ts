@@ -18,7 +18,7 @@ export default defineConfig(() => {
         outDir: 'dist',
         emptyOutDir: true,
         sourcemap: true,
-        minify: false, // <-- Canvi clau aquí
+        minify: false,
         rollupOptions: {
           external: [
             ...builtinModules,
