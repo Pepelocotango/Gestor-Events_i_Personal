@@ -829,168 +829,61 @@ La solució implementada força el calendari a recalcular les seves dimensions i
 -   **`src/components/MainDisplay.tsx`**: Utilitza `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que internament crida a `calendarApi.updateSize()`.
 -   **`src/App.tsx`**: Crea una referència (`useRef`) al component `MainDisplay` i utilitza un `useEffect` que, en detectar un canvi a `toastState`, crida a la funció `handleResize` del component fill.
 
-### 5.10. Barra de Progrés en Temps Real per a Tasques Asíncrones
+---
 
-Per millorar l'experiència d'usuari durant operacions llargues i asíncrones com la sincronització amb Google Calendar, s'ha implementat un sistema de feedback en temps real que substitueix els spinners de càrrega genèrics per una barra de progrés informativa.
+## 10. Restauració de Funcionalitats Post-Refactorització (Zustand)
 
-#### Objectiu
+Després de la migració de la gestió d'estat de React Context a Zustand, diverses funcionalitats clau es van perdre. Aquesta secció documenta la reimplementació d'aquestes característiques dins de la nova arquitectura, aprofitant les capacitats de Zustand per a una gestió d'estat més eficient i desacoblada.
 
-L'objectiu és proporcionar a l'usuari informació clara i detallada sobre l'estat d'una tasca de llarga durada, incloent:
-- El progrés general mitjançant una barra visual.
-- El pas concret que s'està executant (`Pas X de Y`).
-- Un missatge descriptiu de l'acció actual (p. ex., "Eliminant esdeveniment: 'Reunió Antiga'").
+### 10.1. Exportació de Vistes Filtrades (PDF/CSV)
 
-Això redueix la incertesa i ofereix una experiència més transparent.
+S'ha restaurat la capacitat d'exportar a PDF o CSV només els esdeveniments que coincideixen amb els filtres actius a la vista principal.
 
-#### Arquitectura de Comunicació
+-   **Lògica:** El component `MainDisplay.tsx` ja mantenia un estat (`currentlyDisplayedFrames`) que reflectia la llista d'esdeveniments visibles. La funcionalitat d'exportació, ubicada ara a `Controls.tsx`, utilitza un selector de Zustand per accedir a aquesta llista filtrada des de `useEventDataStore`.
+-   **Implementació:** Quan l'usuari clica a "Exportar a PDF/CSV", `Controls.tsx` obté la llista filtrada de l'store i la passa a les utilitats `pdfGenerator` o `csvUtils`. Si no hi ha cap filtre actiu, s'exporta la llista completa per defecte.
 
-La funcionalitat es basa en una comunicació unidireccional contínua des del backend (procés principal) cap al frontend (procés de renderitzat) mentre la tasca està en execució.
+### 10.2. Avís de Conflictes en Assignacions
 
-1.  **Backend (`main.cjs`): L'Emissor**
-    -   El gestor IPC que executa la tasca llarga (p. ex., `sync-with-google`) és el responsable de calcular el progrés i emetre els esdeveniments.
-    -   **Càlcul Inicial:** Abans d'iniciar el bucle de la tasca, calcula el nombre total de passos (p. ex., esdeveniments a eliminar + esdeveniments a crear).
-    -   **Emissió de Progrés:** Dins del bucle, a cada iteració, envia un missatge al frontend a través d'un canal IPC dedicat (`'sync-progress'`) utilitzant `mainWindow.webContents.send()`. El missatge conté un objecte amb l'estat actual: `{ current, total, message }`.
+S'ha reimplementat el diàleg modal que adverteix l'usuari quan intenta crear una assignació que se solapa en el temps amb una altra assignació existent per a la mateixa persona.
 
-2.  **Pont Segur (`preload.cjs`): El Canalitzador**
-    -   Per mantenir la seguretat del `contextBridge`, el canal `'sync-progress'` no s'exposa directament.
-    -   En canvi, s'exposa una funció específica `onSyncProgress(callback)` a l'objecte `window.electronAPI`.
-    -   Aquesta funció permet al frontend subscriure's de manera segura als missatges enviats pel canal `'sync-progress'`.
-    -   Crucialment, retorna una **funció de neteja** que elimina el listener (`ipcRenderer.removeListener`), permetent una gestió correcta del cicle de vida i evitant fuites de memòria al frontend.
+-   **Arquitectura:**
+    1.  **Detecció a l'Store:** La lògica de detecció de conflictes resideix a les accions `addAssignment` i `updateAssignment` de `useEventDataStore`.
+    2.  **Comunicació amb la UI:** En lloc de bloquejar l'acció, si es detecta un conflicte, l'acció de l'store retorna un indicador d'error.
+    3.  **Gestió al Modal:** El component `AssignmentFormModal.tsx` gestiona aquesta resposta. Si rep l'indicador de conflicte, utilitza el `useModalStore` per obrir un diàleg de confirmació (`ConfirmDuplicateModal`).
+    4.  **Confirmació de l'Usuari:** Si l'usuari decideix continuar, el formulari es torna a enviar amb un paràmetre `force: true` que omet la validació de conflictes a l'store.
 
-3.  **Frontend (`useEventDataStore.ts`): El Receptor i Gestor d'Estat**
-    -   L'estat `syncProgress` resideix a l'store.
-    -   Un `useEffect` a `App.tsx` s'encarrega de la subscripció als esdeveniments de progrés del backend.
-    -   Aquesta subscripció actualitza l'estat `syncProgress` dins de l'store de Zustand.
-    -   L'acció `executeSync` de l'store gestiona la visibilitat de la barra de progrés.
+### 10.3. Barra de Progrés Detallada per a la Sincronització
 
-4.  **UI (`SyncProgressOverlay.tsx`): El Visualitzador**
-    -   És un component de React simple que rep l'objecte `syncProgress` com a propietat.
-    -   Renderitza la barra de progrés, els textos i els comptadors basant-se en les dades rebudes.
-    -   La barra de progrés s'actualitza visualment calculant el percentatge (`(current / total) * 100`).
-    -   El component només es renderitza si la propietat `visible` de l'estat `syncProgress` és `true`.
+S'ha reintroduït la barra de progrés en temps real durant la sincronització amb Google Calendar, proporcionant un feedback molt més clar que un simple indicador de càrrega.
 
-### 5.11. Sistema de Desfer/Refer (Undo/Redo) amb Zundo
+-   **Comunicació Backend -> Frontend:** El procés principal d'Electron (`main.cjs`), durant la sincronització, envia actualitzacions de progrés contínues al frontend a través del canal IPC `'sync-progress'`. Cada actualització inclou l'estat actual (`{ current, total, message }`).
+-   **Gestió d'Estat amb Zustand:** Un `useEffect` a `App.tsx` escolta aquests esdeveniments (a través de l'API exposada a `preload.cjs`) i actualitza un estat `syncProgress` dins de `useEventDataStore`.
+-   **Visualització a la UI:** Un component `SyncProgressOverlay.tsx` se subscriu a aquest estat de l'store i es renderitza com una superposició, mostrant la barra de progrés i els missatges a l'usuari.
 
-Per augmentar la seguretat i la confiança de l'usuari, s'ha implementat un sistema global de Desfer/Refer que permet revertir la majoria d'accions que modifiquen les dades de l'aplicació. Aquest sistema es basa en la llibreria **`zundo`**, un middleware de Zustand que gestiona l'historial de l'estat de manera automàtica.
+### 10.4. Expansió Automàtica amb "Mostrar a la Llista"
 
-#### Arquitectura Basada en Middleware
+S'ha restaurat i millorat la funcionalitat que, en fer clic a "Mostrar a la Llista" des d'un esdeveniment del calendari, expandeix automàticament la secció principal de la llista i la targeta de l'esdeveniment corresponent.
 
-L'enfocament es basa a embolcallar l'store principal (`useEventDataStore`) amb el middleware `temporal` de `zundo`. Aquest middleware intercepta totes les modificacions de l'estat i desa automàticament "instantànies" (snapshots) de les dades abans de cada canvi, eliminant la necessitat de gestionar manualment un historial d'accions.
+-   **Implementació Refactoritzada:**
+    1.  **Estat Global:** L'estat de col·lapse de la llista principal (`isEventListCollapsed`) s'ha mogut a `useEventDataStore`.
+    2.  **Acció Centralitzada:** Es va crear una nova acció a l'store, `showAndExpandEvent(eventId)`.
+    3.  **Flux:** Quan es clica "Mostrar a la Llista", aquesta acció s'invoca. L'acció primer estableix `isEventListCollapsed` a `false` (per assegurar que la llista estigui oberta) i després actualitza l'estat per indicar quin `EventFrameCard` ha d'expandir-se.
+-   **Millora:** Aquest enfocament, basat en la gestió declarativa de l'estat, és més robust i fiable que la implementació anterior, que simulava un esdeveniment `.click()` al DOM.
 
-**Implementació a `eventDataStore.ts`:**
+### 10.5. Notificacions Toast per a Esdeveniments del Backend
 
-L'store s'inicialitza de la següent manera:
+S'ha restablert la capacitat del frontend per escoltar esdeveniments emesos pel procés principal i mostrar notificacions (toasts) a l'usuari.
 
-```typescript
-import { temporal } from 'zundo';
-import { immer } from 'zustand/middleware/immer';
+-   **Arquitectura:**
+    1.  **Canal IPC Genèric:** S'utilitza un canal IPC dedicat, `'show-toast'`, per a la comunicació. El backend pot enviar missatges a aquest canal quan necessita notificar l'usuari (p. ex., `onAppWillRelaunchAfterReset`).
+    2.  **Listener a `App.tsx`:** Un `useEffect` a `App.tsx` estableix un listener per a aquest canal a través de l'API de `preload`.
+    3.  **Visualització:** Quan es rep un missatge, el listener crida a la funció `showToast` (proporcionada per `react-hot-toast`), que renderitza la notificació a la UI.
+-   **Tipus Segurs:** S'han afegit les definicions de tipus corresponents a `src/types.ts` per garantir la seguretat de tipus en la comunicació entre processos.
 
-// ...
+### 10.6. Altres Millores i Correccions
 
-export const useEventDataStore = create<...>()(
-  temporal( // <-- El middleware 'temporal' de zundo embolcalla tot
-    immer( // <-- Immer s'usa a dins per a mutacions segures
-      (set, get) => ({
-        // ... definició de l'estat i les accions ...
-      })
-    ),
-    {
-      // Opcions de configuració per a zundo
-      partialize: (state) => {
-        // Només s'inclouen a l'historial les dades clau de l'usuari
-        const { eventFrames, peopleGroups, materialItems } = state;
-        return { eventFrames, peopleGroups, materialItems };
-      },
-      limit: 20, // Limita l'historial a les últimes 20 modificacions
-    }
-  )
-);
-```
+Durant el procés de restauració, es van realitzar diverses millores addicionals:
 
--   **`partialize`**: Aquesta opció clau permet seleccionar quines parts de l'estat es guardaran a l'historial. Això és crucial per a l'optimització, ja que evita desar estats transitoris de la UI (com `isSyncing` o `syncProgress`) a l'historial de desfer.
--   **`limit`**: Limita el nombre màxim d'estats a l'historial per controlar l'ús de memòria.
-
-#### Integració a la Interfície d'Usuari
-
-La llibreria `zundo` exposa un objecte `temporal` a l'store que conté l'estat de l'historial (`pastStates`, `futureStates`) i les funcions per manipular-lo (`undo`, `redo`). La UI interactua amb aquest objecte.
-
-1.  **Accés a les Accions i a l'Estat de l'Historial:**
-    -   Per invocar les accions, s'accedeix directament a través de l'estat del middleware: `useEventDataStore.temporal.getState().undo()`.
-    -   Per subscriure's de manera reactiva a l'estat (p. ex., per activar/desactivar botons), s'ha d'utilitzar el hook `useStore` de Zustand, apuntant a la part `temporal` de l'store.
-
-    ```tsx
-    // A App.tsx o Controls.tsx
-    import { useStore } from 'zustand';
-
-    // Subscripció reactiva per a la UI
-    const canUndo = useStore(useEventDataStore.temporal, state => state.pastStates.length > 0);
-    const canRedo = useStore(useEventDataStore.temporal, state => state.futureStates.length > 0);
-
-    // Obtenció de les funcions per invocar-les
-    const { undo, redo } = useEventDataStore.temporal.getState();
-    ```
-
-2.  **Integració a la UI:**
-    La funcionalitat és accessible a l'usuari a través de tres mètodes consistents, tots basant-se en les variables `canUndo`/`canRedo` i les funcions `undo`/`redo` obtingudes com s'ha mostrat a dalt:
-    -   **Botons a la UI (`Controls.tsx`):** Dos botons a la barra de controls principal que s'activen o desactiven segons `canUndo` i `canRedo`.
-    -   **Dreceres de Teclat (`App.tsx`):** Un `useEffect` global a `App.tsx` escolta `Ctrl+Z` per a desfer i `Ctrl+Y` per a refer.
-    -   **Menú de l'Aplicació (`CustomMenuBar.tsx`):** Un menú "Edita" amb les opcions "Desfer" i "Refer", que també s'activen/desactiven dinàmicament.
-
-### 5.12. Pantalla d'Inici Animada (Splash Screen)
-
-Per millorar l'experiència inicial de l'usuari, s'ha afegit una pantalla d'inici animada (splash screen) que es mostra mentre l'aplicació carrega les dades inicials. Aquesta funcionalitat és configurable per l'usuari.
-
-#### Implementació
-
-1.  **Component `SplashScreen.tsx` (`src/components/ui/`):**
-    *   És un component de React dedicat que gestiona la lògica de l'animació.
-    *   Utilitza un array d'imatges PNG (amb fons transparent) per crear una animació frame a frame mitjançant `setInterval`.
-    *   Un `setTimeout` controla la durada total de la visibilitat. Un cop transcorregut el temps, s'activa un estat `isFadingOut` que, mitjançant classes de CSS, provoca una transició d'opacitat per a una desaparició suau.
-
-2.  **Configuració Persistent (`session.json`):**
-    *   La preferència de l'usuari per mostrar o no l'animació es desa al fitxer `session.json` sota la clau `splashScreenEnabled` (un valor booleà).
-    *   Per defecte, si la clau no existeix, es considera `true`.
-    *   La lectura i escriptura d'aquesta preferència es gestiona a través dels canals IPC `get-session-data` and `save-session-data` implementats a `main.cjs`.
-
-3.  **Càrrega Condicional (`App.tsx`):**
-    *   A l'inici de l'aplicació, `App.tsx` utilitza un `useEffect` per cridar a `window.electronAPI.getSessionData()` i obtenir la preferència de l'usuari.
-    *   S'utilitzen dos estats per evitar flaixos visuals (`flickering`):
-        *   `splashConfigLoaded`: Un booleà que només es posa a `true` un cop s'ha llegit la configuració de la sessió.
-        *   `splashScreenEnabled`: Emmagatzema la preferència de l'usuari.
-    *   El component `<SplashScreen />` només es renderitza si totes les condicions són certes: `splashConfigLoaded && splashScreenEnabled && showSplash`.
-
-4.  **Control de l'Usuari (`CustomMenuBar.tsx`):**
-    *   S'ha afegit una nova opció al menú "Veure" anomenada "Mostrar Animació d'Inici".
-    *   Aquesta opció funciona com un "checkbox", mostrant una marca de verificació (`✓`) si la funcionalitat està activada.
-    *   En fer-hi clic, s'executa la funció `handleToggleSplashScreen` (passada des de `App.tsx`), que actualitza l'estat local i crida a `window.electronAPI.saveSessionData()` per desar la nova preferència de manera persistent.
-
-### 5.13 Gestió d'Estat de Modals amb Zustand
-
-Per solucionar un problema de pèrdua de dades en formularis de modals (causat per re-renderitzacions del component pare `App.tsx`), s'ha adoptat un patró de gestió d'estat global utilitzant la llibreria `Zustand`.
-
-**Arquitectura:**
-
-1.  **Store Centralitzat (`src/stores/modalStore.ts`):** Un *store* de Zustand actua com a font única de veritat per a l'estat dels modals. Gestiona quin modal està obert, les dades inicials amb què es va obrir, i l'estat actual del formulari que l'usuari està editant.
-2.  **Components Controlats:** Els modals amb formularis (`EventFrameFormModal`, `AssignmentFormModal`, etc.) ja no gestionen el seu propi estat intern amb `useState`. En canvi, es connecten al *store* de Zustand, llegeixen l'estat del formulari des d'allà, i utilitzen les accions del *store* per actualitzar-lo a cada canvi.
-3.  **Flux de Dades Robust:** Aquest enfocament desacobla l'estat del formulari del cicle de vida del component `App.tsx`. Encara que `App.tsx` es re-renderitzi, l'estat al *store* de Zustand persisteix, garantint que no es perdi cap dada introduïda per l'usuari.
-
-## 9. Gestió d'Errors i Robustesa
-
-### 9.1. Gestió d'Errors de Renderitzat (`ErrorBoundary`)
-
-Per millorar la robustesa de l'aplicació, el component arrel `App.tsx` està embolicat amb un component `ErrorBoundary`.
-
-- **Propòsit:** Aquest component, basat en la funcionalitat estàndard de React, actua com una xarxa de seguretat. Si es produeix un error de JavaScript durant la fase de renderitzat de qualsevol component fill, l'error és capturat per l'ErrorBoundary en lloc de provocar que tota l'aplicació es bloquegi o mostri una pantalla blanca.
-- **Funcionament:** Quan es captura un error, l'ErrorBoundary renderitza una interfície d'usuari alternativa (fallback UI) que informa l'usuari de l'error i li ofereix l'opció de recarregar l'aplicació.
-- **Logging:** L'error i la traça de components (`componentStack`) es registren automàticament mitjançant el servei `logger`, la qual cosa facilita la depuració post-mortem a través dels fitxers de log.
-
-Aquesta és una decisió arquitectònica clau per garantir que un error en un component aïllat no afecti l'estabilitat general de l'aplicació.
-
-### 9.2. Solució de Bug de Renderitzat del Calendari
-
-S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de *repaint/reflow* del navegador que FullCalendar no gestiona automàticament.
-
-La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació canvia.
-
--   **`src/components/MainDisplay.tsx`**: Utilitza `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que internament crida a `calendarApi.updateSize()`.
--   **`src/App.tsx`**: Crea una referència (`useRef`) al component `MainDisplay` i utilitza un `useEffect` que, en detectar un canvi a `toastState`, crida a la funció `handleResize` del component fill.
+-   **Ajust de Temporitzadors:** S'han ajustat els temps de visualització de la pantalla d'inici (splash screen) a 5 segons i de les notificacions toast a 8 segons, segons els requisits de l'usuari. Aquests canvis es van aplicar a `App.tsx`.
+-   **Correcció de la Build de Linux:** S'ha solucionat un error de compilació per a Linux causat per la manca de definicions de tipus per als nous listeners d'IPC.
+-   **Refactorització de Codi:** Es va refactoritzar la lògica d'enviament de formularis a `AssignmentFormModal.tsx` per reduir la duplicació de codi (principi DRY).
