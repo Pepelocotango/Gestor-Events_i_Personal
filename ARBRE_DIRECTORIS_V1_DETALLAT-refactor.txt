@@ -4,10 +4,6 @@ enllaç a Gestor-Events_i_Personal/
 │       ├── build-linuxv20-04.yml # Script per compilar la versió per a Linux (AppImage).
 │       ├── build-macos12.yml     # Script per compilar la versió per a macOS (DMG).
 │       └── build-win10.yml       # Script per compilar la versió per a Windows (EXE).
-├── CONTEXT/                      # Carpeta amb arxius de context per al desenvolupament.
-│   ├── 00_projecte_concatenat-branca DEV.txt # Fitxer de text amb el codi concatenat de la branca DEV.
-│   ├── ARBRE_DIRECTORIS_V1_DETALLAT-refactor.txt # Aquest fitxer. Descriu l'estructura del projecte.
-│   └── diff DEV..fix_google-calendar-regression.txt # Diff que mostra els canvis d'una refactorització important.
 ├── build/                        # Carpeta de sortida per als fitxers de producció.
 │   └── icons/                    # Icones per a la compilació.
 │       └── icon.png              # Icona principal.
