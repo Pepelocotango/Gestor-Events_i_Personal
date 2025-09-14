@@ -869,45 +869,72 @@ La funcionalitat es basa en una comunicació unidireccional contínua des del ba
     -   La barra de progrés s'actualitza visualment calculant el percentatge (`(current / total) * 100`).
     -   El component només es renderitza si la propietat `visible` de l'estat `syncProgress` és `true`.
 
-### 5.11. Sistema de Desfer/Refer (Undo/Redo)
+### 5.11. Sistema de Desfer/Refer (Undo/Redo) amb Zundo
 
-Per augmentar la seguretat i la confiança de l'usuari, s'ha implementat un sistema global de Desfer/Refer que permet revertir qualsevol acció que modifiqui les dades de l'aplicació.
+Per augmentar la seguretat i la confiança de l'usuari, s'ha implementat un sistema global de Desfer/Refer que permet revertir la majoria d'accions que modifiquen les dades de l'aplicació. Aquest sistema es basa en la llibreria **`zundo`**, un middleware de Zustand que gestiona l'historial de l'estat de manera automàtica.
 
-#### Arquitectura de "State Snapshots"
+#### Arquitectura Basada en Middleware
 
-En lloc del "Command Pattern", que hauria requerit una refactorització massiva, s'ha optat per un enfocament de **"State Snapshots" (Instantànies d'Estat)**, que s'integra de manera neta amb l'store `useEventDataStore`.
+L'enfocament es basa a embolcallar l'store principal (`useEventDataStore`) amb el middleware `temporal` de `zundo`. Aquest middleware intercepta totes les modificacions de l'estat i desa automàticament "instantànies" (snapshots) de les dades abans de cada canvi, eliminant la necessitat de gestionar manualment un historial d'accions.
 
-1.  **Emmagatzematge de l'Historial:**
-    -   Dins de `useEventDataStore.ts`, les piles `history` i `future` són part de l'estat de Zustand.
-    -   Per evitar un consum excessiu de memòria, la pila de l'historial està limitada a les últimes 10 accions.
+**Implementació a `eventDataStore.ts`:**
 
-2.  **Captura d'Instantànies (`saveStateToHistory`):**
-    -   S'ha creat una funció `saveStateToHistory` que captura l'estat actual de les dades (`eventFrames`, `peopleGroups`, `materialItems`, etc.) i el desa com un objecte `AppData` a la pila `history`.
-    -   Aquesta funció s'invoca a l'inici de **cada funció que modifica l'estat** (p. ex., `addEventFrame`, `updateAssignment`, `deletePersonGroup`).
-    -   Qualsevol nova acció esborra la pila `future`, ja que invalida l'historial de "Refer".
+L'store s'inicialitza de la següent manera:
 
-3.  **Lògica de Desfer/Refer:**
-    -   **`undo()`**: Agafa l'últim estat de la pila `history`, el restaura com a l'estat actual de l'aplicació (utilitzant `_applyDataToState`), i mou l'estat que hi havia just abans de desfer a la pila `future`.
-    -   **`redo()`**: Fa l'operació inversa, agafant l'estat de `future` i movent l'estat actual a `history`.
-    -   Un flag `isRestoringState` (`useRef`) s'utilitza per prevenir que `saveStateToHistory` es cridi durant una operació de desfer/refer, evitant bucles infinits.
+```typescript
+import { temporal } from 'zundo';
+import { immer } from 'zustand/middleware/immer';
+
+// ...
+
+export const useEventDataStore = create<...>()(
+  temporal( // <-- El middleware 'temporal' de zundo embolcalla tot
+    immer( // <-- Immer s'usa a dins per a mutacions segures
+      (set, get) => ({
+        // ... definició de l'estat i les accions ...
+      })
+    ),
+    {
+      // Opcions de configuració per a zundo
+      partialize: (state) => {
+        // Només s'inclouen a l'historial les dades clau de l'usuari
+        const { eventFrames, peopleGroups, materialItems } = state;
+        return { eventFrames, peopleGroups, materialItems };
+      },
+      limit: 20, // Limita l'historial a les últimes 20 modificacions
+    }
+  )
+);
+```
+
+-   **`partialize`**: Aquesta opció clau permet seleccionar quines parts de l'estat es guardaran a l'historial. Això és crucial per a l'optimització, ja que evita desar estats transitoris de la UI (com `isSyncing` o `syncProgress`) a l'historial de desfer.
+-   **`limit`**: Limita el nombre màxim d'estats a l'historial per controlar l'ús de memòria.
 
 #### Integració a la Interfície d'Usuari
 
-La funcionalitat és accessible per a l'usuari a través de tres mètodes consistents:
+La llibreria `zundo` exposa un objecte `temporal` a l'store que conté l'estat de l'historial (`pastStates`, `futureStates`) i les funcions per manipular-lo (`undo`, `redo`). La UI interactua amb aquest objecte.
 
-1.  **Botons a la UI (`Controls.tsx`):**
-    -   S'han afegit dos botons (Desfer i Refer) a la barra de controls principal.
-    -   L'estat `disabled` d'aquests botons se subscriu selectivament a les variables `canUndo` i `canRedo` de l'store, optimitzant les re-renderitzacions.
+1.  **Accés a les Accions i a l'Estat de l'Historial:**
+    -   Per invocar les accions, s'accedeix directament a través de l'estat del middleware: `useEventDataStore.temporal.getState().undo()`.
+    -   Per subscriure's de manera reactiva a l'estat (p. ex., per activar/desactivar botons), s'ha d'utilitzar el hook `useStore` de Zustand, apuntant a la part `temporal` de l'store.
 
-2.  **Dreceres de Teclat (`App.tsx`):**
-    -   Un `useEffect` global a `App.tsx` escolta els esdeveniments de teclat.
-    -   Activa `undo()` amb `Ctrl+Z`.
-    -   Activa `redo()` amb `Ctrl+Y` o `Ctrl+Shift+Z`.
-    -   La lògica comprova que l'usuari no estigui escrivint en un camp de text (`<input>`, `<textarea>`, etc.) abans d'activar la drecera.
+    ```tsx
+    // A App.tsx o Controls.tsx
+    import { useStore } from 'zustand';
 
-3.  **Menú de l'Aplicació (`CustomMenuBar.tsx`):**
-    -   S'ha afegit un nou menú "Edita" a la barra de menú superior.
-    -   Conté les opcions "Desfer" i "Refer", que també estan lligades a l'estat `canUndo`/`canRedo` per activar-se o desactivar-se dinàmicament.
+    // Subscripció reactiva per a la UI
+    const canUndo = useStore(useEventDataStore.temporal, state => state.pastStates.length > 0);
+    const canRedo = useStore(useEventDataStore.temporal, state => state.futureStates.length > 0);
+
+    // Obtenció de les funcions per invocar-les
+    const { undo, redo } = useEventDataStore.temporal.getState();
+    ```
+
+2.  **Integració a la UI:**
+    La funcionalitat és accessible a l'usuari a través de tres mètodes consistents, tots basant-se en les variables `canUndo`/`canRedo` i les funcions `undo`/`redo` obtingudes com s'ha mostrat a dalt:
+    -   **Botons a la UI (`Controls.tsx`):** Dos botons a la barra de controls principal que s'activen o desactiven segons `canUndo` i `canRedo`.
+    -   **Dreceres de Teclat (`App.tsx`):** Un `useEffect` global a `App.tsx` escolta `Ctrl+Z` per a desfer i `Ctrl+Y` per a refer.
+    -   **Menú de l'Aplicació (`CustomMenuBar.tsx`):** Un menú "Edita" amb les opcions "Desfer" i "Refer", que també s'activen/desactiven dinàmicament.
 
 ### 5.12. Pantalla d'Inici Animada (Splash Screen)
 
