@@ -1,0 +1,244 @@
+# ====================================================================
+# === ARXIU 4: TOOLTIPS I PLACEHOLDERS
+# ====================================================================
+# Aquest fitxer conté tots els textos d'ajuda contextual, incloent
+# tooltips (missatges en passar el ratolí) i placeholders
+# (text de suggeriment dins dels camps de formulari).
+# ====================================================================
+
+
+# --------------------------------------------------------------------
+# --- Controls.tsx ---
+# --------------------------------------------------------------------
+[tooltip] Mostra la ruta del fitxer de dades actualment en ús.
+[tooltip] Col·lapsar controls
+[tooltip] Expandir controls
+[tooltip] Carregar totes les dades des d'un fitxer JSON
+[tooltip] Guardar totes les dades a un fitxer JSON
+[tooltip] Afegir material des d'un fitxer JSON
+[tooltip] Començar de zero (esborra totes les dades actuals)
+[tooltip] Carregar només dades de persones
+[tooltip] Guardar només les dades de persones
+[tooltip] Guardar només les dades de material
+[tooltip] Canviar a tema clar
+[tooltip] Canviar a tema fosc
+[tooltip] Sincronitzar manualment amb Google Calendar
+[tooltip] Configurar la connexió amb Google
+[tooltip] Connectar amb Google Calendar
+
+# --------------------------------------------------------------------
+# --- MainDisplay.tsx ---
+# --------------------------------------------------------------------
+[tooltip] Col·lapsar secció {títol}
+[tooltip] Expandir secció {títol}
+[tooltip] Crear un nou marc d'esdeveniment
+[tooltip] Ordena per data ascendent
+[tooltip] Ordena per data descendent
+[tooltip] Cerca per nom d'esdeveniment, lloc, notes o nom de persona assignada
+[tooltip] Filtrar per un marc d'esdeveniment específic
+[tooltip] Filtrar per persona o grup assignat
+[tooltip] Filtrar per estat de l'assignació
+[tooltip] Mostrar només esdeveniments que estiguin actius en aquesta data
+[tooltip] Filtrar per lloc de l'esdeveniment
+[tooltip] Exportar la vista actual a CSV
+[tooltip] Exportar la vista actual a PDF
+[tooltip] Netejar tots els filtres
+[placeholder] Cerca general: Nom, lloc, persona...
+
+# --------------------------------------------------------------------
+# --- EventFrameCard.tsx ---
+# --------------------------------------------------------------------
+[tooltip] Marcar com a incomplet
+[tooltip] Marcar com a complet
+[tooltip] Aquest esdeveniment està sincronitzat amb Google Calendar
+[tooltip] Editar els detalls de l'esdeveniment
+[tooltip] Eliminar l'esdeveniment
+[tooltip] Afegir una nova assignació de personal
+[tooltip] Col·lapsar secció
+[tooltip] Expandir secció
+
+# --------------------------------------------------------------------
+# --- AssignmentCard.tsx ---
+# --------------------------------------------------------------------
+[tooltip] Ocultar vista diària
+[tooltip] Mostrar vista diària
+[tooltip] Marcar tot com a '{estat}'
+[tooltip] Editar assignació
+[tooltip] Eliminar assignació
+[tooltip] Marcar dia com a '{estat}'
+
+# --------------------------------------------------------------------
+# --- SummaryReports.tsx ---
+# --------------------------------------------------------------------
+[tooltip] Ordena per data ascendent
+[tooltip] Ordena per data descendent
+[tooltip] Exportar a CSV
+[tooltip] Exportar a PDF
+[tooltip] Exportar només "{grup}" a CSV
+[tooltip] Exportar només "{grup}" a PDF
+
+# --------------------------------------------------------------------
+# --- PeopleDisplay.tsx ---
+# --------------------------------------------------------------------
+[tooltip] Eliminar aquesta persona/grup
+[tooltip] Nom de la persona o grup. Aquest camp és obligatori i ha de ser únic.
+[tooltip] Rol o tipus de servei (p. ex. Tècnic de so, Proveïdor de llums)
+[tooltip] Primer telèfon de contacte
+[tooltip] Segon telèfon de contacte
+[tooltip] Adreça de correu electrònic
+[tooltip] Pàgina web de la persona o grup
+[tooltip] Qualsevol informació addicional rellevant
+[tooltip] Cancel·lar els canvis i netejar el formulari
+[tooltip] Desar els canvis
+[tooltip] Afegir la nova persona/grup
+[tooltip] Exportar a CSV
+[tooltip] Exportar a PDF
+[tooltip] Cercar per nom, rol, email o telèfon
+[tooltip] Ordenar per nom (A-Z / Z-A)
+[tooltip] Ordenar per rol (A-Z / Z-A)
+[tooltip] Editar {nom_persona}
+[tooltip] Eliminar {nom_persona}
+[placeholder] Cerca per nom, rol, email, tel...
+[placeholder] https://exemple.com
+
+# --------------------------------------------------------------------
+# --- MaterialDisplay.tsx ---
+# --------------------------------------------------------------------
+[tooltip] Nom de l'ítem de material
+[tooltip] Categoria a la que pertany l'ítem
+[tooltip] Quantitat total d'aquest ítem en inventari
+[tooltip] On es guarda aquest ítem (opcional)
+[tooltip] Anotacions addicionals sobre l'ítem (opcional)
+[tooltip] Descartar canvis i netejar el formulari
+[tooltip] Desar els canvis fets a l'ítem
+[tooltip] Afegir el nou ítem a l'inventari
+[tooltip] Cercar per nom, categoria o ubicació
+[tooltip] Exportar llista a PDF
+[tooltip] Agrupar per categoria i ordenar dins de cada grup
+[tooltip] Ordenar tota la llista per nom d'ítem
+[tooltip] Expandir o col·lapsar totes les categories
+[tooltip] Ordenar per nom
+[tooltip] Ordenar per estoc
+[tooltip] Ordenar per ubicació
+[tooltip] Editar {nom_item}
+[tooltip] Eliminar {nom_item}
+[placeholder] Cerca...
+
+# --------------------------------------------------------------------
+# --- Navigation.tsx ---
+# --------------------------------------------------------------------
+[tooltip] Anar a la vista principal del calendari i llista d'esdeveniments
+[tooltip] Anar a la gestió de fitxes tècniques (bolos)
+[tooltip] Anar a la gestió de persones i grups
+[tooltip] Anar a la gestió d'inventari de material
+
+# --------------------------------------------------------------------
+# --- Modals (diversos) ---
+# --------------------------------------------------------------------
+[tooltip] Tancar el formulari sense desar canvis (AssignmentFormModal)
+[tooltip] Desar els canvis de l'assignació (AssignmentFormModal)
+[tooltip] Crear la nova assignació (AssignmentFormModal)
+[tooltip] Seleccionar la persona o grup a assignar (AssignmentFormModal)
+[tooltip] Data d'inici de l'assignació (AssignmentFormModal)
+[tooltip] Data de fi de l'assignació (AssignmentFormModal)
+[tooltip] Estat general de l'assignació (AssignmentFormModal)
+[tooltip] Tancar aquest diàleg i cancel·lar l'acció (ConfirmDeleteModal)
+[tooltip] Confirmar i executar l'acció (ConfirmDeleteModal)
+[tooltip] Tancar aquest diàleg i cancel·lar l'acció (ConfirmDuplicateModal)
+[tooltip] Confirmar i crear l'assignació duplicada (ConfirmDuplicateModal)
+[tooltip] Localitzar i ressaltar aquest esdeveniment a la llista principal (EventFrameDetailsModal)
+[tooltip] Obrir el formulari per editar els detalls d'aquest marc (EventFrameDetailsModal)
+[tooltip] Eliminar aquest marc d'esdeveniment i totes les seves assignacions (EventFrameDetailsModal)
+[tooltip] Tancar aquesta finestra de detalls (EventFrameDetailsModal)
+[tooltip] Nom principal de l'esdeveniment (EventFrameFormModal)
+[tooltip] Ubicació o lloc de l'esdeveniment (EventFrameFormModal)
+[tooltip] Data d'inici del marc d'esdeveniment (EventFrameFormModal)
+[tooltip] Data de fi del marc d'esdeveniment (EventFrameFormModal)
+[tooltip] Anotacions generals sobre l'esdeveniment (EventFrameFormModal)
+[tooltip] Tancar el formulari sense desar (EventFrameFormModal)
+[tooltip] Crear el marc i obrir directament el formulari d'assignació (EventFrameFormModal)
+[tooltip] Obrir el diàleg per crear un nou calendari a Google gestionat per l'app (GoogleSettingsModal)
+[tooltip] Seleccionar com a calendari actiu per a la sincronització (GoogleSettingsModal)
+[tooltip] Eliminar el calendari '{nom_calendari}' de Google i de l'app (GoogleSettingsModal)
+[tooltip] Copiar l'ID del calendari al porta-retalls (GoogleSettingsModal)
+[tooltip] Mostrar/ocultar el calendari '{nom_calendari}' a la vista principal (GoogleSettingsModal)
+[tooltip] Desconnecta el teu compte de Google i elimina les dades relacionades (GoogleSettingsModal)
+[tooltip] No hi ha cap compte de Google connectat (GoogleSettingsModal)
+[tooltip] Forçar una sincronització manual ara (GoogleSettingsModal)
+[tooltip] Has de seleccionar un calendari actiu per poder sincronitzar (GoogleSettingsModal)
+[tooltip] Desar la configuració actual i tancar la finestra (GoogleSettingsModal)
+[tooltip] Tancar sense crear un nou calendari (CreateCalendarModal)
+[tooltip] Crear un nou calendari a Google Calendar amb el sufix especificat (CreateCalendarModal)
+[tooltip] Sufix que s'afegirà al nom del calendari. Ha de ser únic. (CreateCalendarModal)
+[tooltip] Tancar sense sincronitzar (SelectSyncCalendarModal)
+[tooltip] Has de seleccionar un calendari per poder sincronitzar (SelectSyncCalendarModal)
+[tooltip] Sobreescriurà les dades de '{nom_calendari}' amb les dades actuals de l'app (SelectSyncCalendarModal)
+[tooltip] Seleccionar el calendari '{nom_calendari}' com a destinació per a la sincronització (SelectSyncCalendarModal)
+[tooltip] Afegir les noves dades mantenint les existents. Si hi ha conflictes (mateix ID), es mantenen les dades antigues. (MergeOrReplaceModal)
+[tooltip] Esborrar totes les dades actuals d'aquest tipus i carregar només les noves. (MergeOrReplaceModal)
+[tooltip] Cancel·lar la càrrega de dades. (MergeOrReplaceModal)
+[tooltip] Tancar sense aplicar cap canvi (UpdateFromAssignmentsModal)
+[tooltip] Aplicar els canvis seleccionats a la fitxa tècnica (UpdateFromAssignmentsModal)
+[placeholder] dd/mm/yyyy (EventFrameFormModal)
+
+# --------------------------------------------------------------------
+# --- Fitxa de Bolo (TechSheetsDisplay.tsx i subcomponents) ---
+# --------------------------------------------------------------------
+[tooltip] Llista d'esdeveniments ordenats per data més recent (TechSheetsDisplay)
+[tooltip] Forçar el desat immediat de tots els canvis pendents (TechSheetForm)
+[tooltip] Generar i descarregar un PDF amb la fitxa tècnica actual (TechSheetForm)
+[tooltip] El nom de l'esdeveniment es sincronitza automàticament amb el nom del 'Event Frame'. (TechSheetForm)
+[tooltip] El lloc de l'esdeveniment. També es sincronitza des del 'Event Frame'. (TechSheetForm)
+[tooltip] La data o rang de dates de l'esdeveniment. Sincronitzat des del 'Event Frame'. (TechSheetForm)
+[tooltip] Hora d'inici de la funció o acte principal. (TechSheetForm)
+[tooltip] Durada aproximada de l'espectacle en minuts. (TechSheetForm)
+[tooltip] Marca aquesta casella per incloure les notes generals en exportar la fitxa a PDF. (TechSheetForm)
+[tooltip] Afegeix aquí qualsevol nota general o comentari rellevant per a tota la fitxa. (TechSheetForm)
+[tooltip] Indica si es necessita o no una zona de pàrquing reservada. (TechSheetForm)
+[tooltip] Especifica la ubicació, el nombre de places necessàries, i a qui contactar per a la gestió del pàrquing. (TechSheetForm)
+[tooltip] Afegeix personal confirmat de les assignacions a aquesta llista (TechnicalPersonnelSection)
+[tooltip] Eliminar aquest proveïdor i tots els seus rols associats (TechnicalPersonnelSection)
+[tooltip] Eliminar aquest rol (TechnicalPersonnelSection)
+[tooltip] Afegir un nou rol per a aquest proveïdor (TechnicalPersonnelSection)
+[tooltip] Afegir un nou proveïdor de personal manualment (TechnicalPersonnelSection)
+[tooltip] Incloure aquestes notes al PDF (TechnicalPersonnelSection)
+[tooltip] Indica si es realitzarà un premuntatge previ a l'esdeveniment. (TechSheetForm)
+[tooltip] Descriu les tasques de premuntatge, el personal necessari, i qualsevol altre detall logístic rellevant. (TechSheetForm)
+[tooltip] Activa aquesta secció per detallar la planificació horària de l'esdeveniment. (TechSheetForm)
+[tooltip] Data de l'activitat programada. (TechSheetForm)
+[tooltip] Hora d'inici de l'activitat. (TechSheetForm)
+[tooltip] Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so'). (TechSheetForm)
+[tooltip] Eliminar aquesta línia d'horari (TechSheetForm)
+[tooltip] Afegir una nova línia a la planificació d'horaris (TechSheetForm)
+[tooltip] Indica si es necessiten camerinos. (TechSheetForm)
+[tooltip] Descriu les necessitats específiques dels camerinos. (TechSheetForm)
+[tooltip] Indica si hi ha actors o artistes. (TechSheetForm)
+[tooltip] Nombre total d'actors o artistes que participen. (TechSheetForm)
+[tooltip] Llista els noms dels actors o artistes i qualsevol nota rellevant. (TechSheetForm)
+[tooltip] Indica si hi ha personal tècnic o de producció de la companyia. (TechSheetForm)
+[tooltip] Nombre total de personal tècnic o de producció de la companyia. (TechSheetForm)
+[tooltip] Llista els noms del personal i qualsevol nota rellevant. (TechSheetForm)
+[tooltip] Eliminar aquesta necessitat (NeedsList)
+[tooltip] Afegir una nova línia de necessitat de {titol}. (NeedsList)
+[tooltip] Ubicació del control tècnic (so, llums, etc.). Per exemple: 'Cabina fons platea'. (TechSheetForm)
+[tooltip] Enllaços o referències als plànols tècnics de l'esdeveniment (escenari, llums, etc.). (TechSheetForm)
+[tooltip] Nom i cognoms del contacte. (TechSheetForm)
+[tooltip] Càrrec o rol del contacte dins la companyia (p. ex., 'Director Tècnic', 'Producció'). (TechSheetForm)
+[tooltip] Correu electrònic del contacte. (TechSheetForm)
+[tooltip] Número de telèfon del contacte. (TechSheetForm)
+[tooltip] Eliminar contacte (TechSheetForm)
+[tooltip] Afegir un nou contacte (TechSheetForm)
+[tooltip] Espai per a qualsevol altra informació, observació o requeriment no cobert en les altres seccions. (TechSheetForm)
+[placeholder] XX min (TechSheetForm)
+[placeholder] .... Aquí les notes generals de la fitxa tècnica, ( amb selector de impresió si/no) (TechSheetForm)
+[placeholder] On, quantes places, metres lineals , contacte... (TechSheetForm)
+[placeholder] Descripció general del premuntatge... (TechSheetForm)
+[placeholder] Detalls, notes, noms... (TechSheetForm)
+[placeholder] XX (NeedsList)
+[placeholder] Propi/Teatre/CIA/lloguer.... (NeedsList)
+[placeholder] Cabina, Platea, a 20 metres del escenari, sota el garrofer... (TechSheetForm)
+[placeholder] Adjunts, link dels plànols, in situ.... (TechSheetForm)
+[placeholder] Nom del contacte (TechSheetForm)
+[placeholder] Regidor, tècnic@ de llums/so, Producció, conserge del poble.... (TechSheetForm)
+[placeholder] email@exemple.com (TechSheetForm)
+[placeholder] 600123456 (TechSheetForm)

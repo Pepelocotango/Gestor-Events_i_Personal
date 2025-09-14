@@ -1,0 +1,52 @@
+# ====================================================================
+# === ARXIU 2.4: TEXTOS DE LA VISTA "MATERIAL"
+# ====================================================================
+# Aquest fitxer conté tots els textos de la interfície de gestió
+# de l'inventari de material.
+# ====================================================================
+
+
+# --------------------------------------------------------------------
+# --- VISTA DE MATERIAL (MaterialDisplay.tsx) ---
+# --------------------------------------------------------------------
+
+# Títol principal
+Gestor de Material
+
+# --- Secció del Formulari ---
+Afegir Nou Material
+Editar Material
+
+# Etiquetes dels camps del formulari
+Nom
+Categoria
+Estoc
+Ubicació
+Notes
+
+# Botons del formulari
+Cancel·lar
+Actualitzar
+Afegir
+
+# --- Secció de la Llista ---
+Inventari
+
+# Controls de la llista
+Ordenar per:
+Categoria
+Nom d'Ítem
+Col·lapsar Tot
+Expandir Tot
+
+# Capçaleres de la llista (per a la vista agrupada)
+Nom
+Estoc
+Ubicació
+Accions
+
+# Text quan la llista està buida o no hi ha resultats
+No s'ha trobat material o l'inventari està buit.
+
+# Text del diàleg de confirmació d'eliminació (natiu del navegador)
+Segur que vols eliminar "{nom_item}"?
