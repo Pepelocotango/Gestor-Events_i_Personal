@@ -48,6 +48,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       <div
         className="p-1 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
         onClick={(e) => {
+          e.stopPropagation();
           // Only toggle expand if the click is not on an interactive element like a button.
           // Those elements have their own onClick handlers with e.stopPropagation().
           if ((e.target as HTMLElement).closest('button, input, select, a')) {

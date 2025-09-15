@@ -845,36 +845,26 @@ Després de la migració a Zustand, algunes interaccions de la UI es van haver d
 
 ### 10.1. Gestió d'Expansió de Targetes (Manual i Automàtica)
 
-S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment les targetes d'esdeveniments, combinant-ho amb l'expansió automàtica en aplicar filtres.
+S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment les targetes d'esdeveniments.
 
+-   **Gestió d'Esdeveniments de Clic (`EventFrameCard.tsx`):** La capçalera de la targeta gestiona els clics per evitar conflictes. Utilitza `e.stopPropagation()` en els botons interns per assegurar que només el clic a la capçalera activi l'expansió, cridant a la funció `onToggleExpand`.
 -   **Estat a l'Store (`eventDataStore.ts`):**
-    -   `manualExpandedFrameIds: Set<string>`: Un conjunt que emmagatzema els IDs de les targetes que l'usuari ha expandit manualment.
-    -   `setManualExpandedFrameIds()`: L'acció que permet modificar aquest conjunt.
+    -   `manualExpandedFrameIds: Set<string>`: Emmagatzema els IDs de les targetes que l'usuari ha expandit manualment.
+    -   `setManualExpandedFrameIds()`: L'acció per modificar aquest conjunt.
 -   **Lògica al Component (`MainDisplay.tsx`):**
-    -   La funció `handleToggleExpand` crida a l'acció `setManualExpandedFrameIds` per afegir o eliminar un ID del conjunt, registrant la interacció de l'usuari.
-    -   Un `useMemo` calcula el conjunt final d'IDs expandits:
-        -   Si hi ha **filtres actius**, es retorna un conjunt amb els IDs de tots els resultats filtrats (comportament automàtic).
-        -   Si **no hi ha filtres**, es retorna el conjunt `manualExpandedFrameIds` (comportament manual).
-    -   La propietat `isExpanded` de cada `EventFrameCard` es determina comprovant si el seu ID pertany a aquest conjunt final.
+    -   La funció `handleToggleExpand` crida a l'acció de l'store.
+    -   Un `useMemo` decideix quines targetes estan expandides: si hi ha filtres actius, s'expandeixen tots els resultats; si no, s'utilitza el conjunt manual.
 
-### 10.2. Funcionalitat "Mostrar a la Llista" i Ressaltat
+### 10.2. Funcionalitat "Mostrar a la Llista" i Ressaltat (Correcció de Condició de Cursa)
 
-S'ha restaurat l'acció que permet a l'usuari localitzar i ressaltar un esdeveniment a la llista principal des d'altres parts de l'aplicació, com el calendari.
+S'ha restaurat l'acció "Mostrar a la Llista" i s'ha corregit una condició de cursa que impedia que funcionés de manera fiable.
 
--   **Acció Centralitzada (`eventDataStore.ts`):**
-    -   S'ha creat l'acció `showAndHighlightEvent(eventId: string)`.
-    -   Aquesta acció actualitza simultàniament tres estats:
-        1.  `isEventListExpanded: true`: Assegura que la secció de la llista estigui visible.
-        2.  `manualExpandedFrameIds`: Afegeix l'ID de l'esdeveniment per garantir que la seva targeta estigui expandida.
-        3.  `highlightedEventId: eventId`: Emmagatzema l'ID de l'esdeveniment que s'ha de ressaltar.
--   **Activació (`EventFrameDetailsModal.tsx`):**
-    -   El botó "Mostrar a la Llista" del modal de detalls ara crida a `showAndHighlightEvent` i tanca el modal.
--   **Efecte Visual (`MainDisplay.tsx`):**
-    -   Un `useEffect` se subscriu als canvis de `highlightedEventId` **i també de `filteredAndSortedEventFrames`**. Aquesta doble dependència és crucial per solucionar una condició de cursa:
-        -   L'acció `showAndHighlightEvent` pot expandir la llista d'esdeveniments, la qual cosa provoca un nou renderitzat.
-        -   Afegint `filteredAndSortedEventFrames` a les dependències, s'assegura que l'efecte només s'executi *després* que React hagi renderitzat la llista i que l'element `event-card-<id>` existeixi al DOM.
-    -   Quan l'efecte s'executa, troba l'element, s'hi desplaça amb `scrollIntoView()`, i li afegeix la classe CSS `highlight-event-frame`.
-    -   Un `setTimeout` de 3 segons elimina la classe i neteja l'estat `highlightedEventId`, finalitzant l'efecte de ressaltat.
+-   **Acció Centralitzada (`eventDataStore.ts`):** L'acció `showAndHighlightEvent(eventId: string)` estableix l'estat per expandir la llista i ressaltar un element.
+-   **Activació (`EventFrameDetailsModal.tsx`):** El botó corresponent crida a l'acció anterior.
+-   **Efecte Visual Corregit (`MainDisplay.tsx`):**
+    -   S'ha corregit una **condició de cursa** (race condition). El `useEffect` que gestiona el ressaltat ara depèn de `highlightedEventId` i també de `filteredAndSortedEventFrames`.
+    -   **Explicació:** Això garanteix que l'efecte només s'executi després que React hagi renderitzat la llista d'esdeveniments (si estava col·lapsada). D'aquesta manera, quan `document.getElementById` busca la targeta, aquesta ja existeix al DOM.
+    -   L'efecte fa `scrollIntoView()`, afegeix una classe CSS per a l'animació, i la neteja després de 3 segons.
 
 ### 10.3. Exportació de Vistes Filtrades (PDF/CSV)
 

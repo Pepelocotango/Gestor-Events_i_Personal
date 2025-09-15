@@ -15,6 +15,7 @@ import SummaryReports from './SummaryReports';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
 import EventFrameCard from './EventFrameCard';
 import { selectFilteredEventFrames } from '../utils/selectors';
+import logger from '../utils/logger';
 
 interface MainDisplayProps {
   setToastMessage: ShowToastFunction;
@@ -118,7 +119,6 @@ const MainDisplay = React.forwardRef<
     setFilterUIEventFrame,
     clearAllFilters,
     setManualExpandedFrameIds,
-    setHighlightedEventId,
   } = useEventDataStore.getState();
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -180,27 +180,31 @@ const MainDisplay = React.forwardRef<
 
   useEffect(() => {
     if (highlightedEventId) {
+      logger.info(`[Highlight Effect] Effect triggered for ID: ${highlightedEventId}`);
       const element = document.getElementById(`event-card-${highlightedEventId}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.classList.add('highlight-event-frame');
 
-        const timer = setTimeout(() => {
-          element.classList.remove('highlight-event-frame');
-          setHighlightedEventId(null);
-        }, 3000);
-
-        return () => clearTimeout(timer);
-      } else {
-        // If element is not in view (e.g., due to pagination or filtering), reset immediately
-        setHighlightedEventId(null);
+      if (!element) {
+        logger.warn(`[Highlight Effect] Element with ID event-card-${highlightedEventId} not found in DOM.`);
+        return;
       }
+
+      logger.info(`[Highlight Effect] Element found. Scrolling and highlighting.`);
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('highlight-event-frame');
+
+      const timer = setTimeout(() => {
+        element.classList.remove('highlight-event-frame');
+        useEventDataStore.getState().setHighlightedEventId(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
     }
   }, [highlightedEventId, filteredAndSortedEventFrames]);
 
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
   const handleToggleExpand = (id: string) => {
+    logger.info(`[UI Interaction] Toggle manual expansion for EventFrame ID: ${id}`);
     // Explicitly call the store action
     useEventDataStore.getState().setManualExpandedFrameIds((prev) => {
       const newSet = new Set(prev);

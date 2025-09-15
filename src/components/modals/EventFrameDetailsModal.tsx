@@ -1,4 +1,5 @@
 import React from 'react';
+import logger from '../../utils/logger';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import { EventFrame, AssignmentStatus, ShowToastFunction } from '../../types';
@@ -72,6 +73,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
         <Tooltip text="Ressaltar aquest marc a la llista principal">
           <button
             onClick={() => {
+              logger.info(`[UI Interaction] "Mostrar a la Llista" clicked for EventFrame ID: ${eventFrame.id}`);
               useEventDataStore.getState().showAndHighlightEvent(eventFrame.id);
               onClose();
             }}
