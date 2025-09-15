@@ -9,6 +9,7 @@ import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon,
 import { migrateData, validateMigratedData } from '../utils/dataMigration';
 import { exportEventListToPdf } from '../utils/pdfGenerator';
 import { exportEventListToCsv } from '../utils/csvUtils';
+import { selectFilteredEventFrames } from '../utils/selectors';
 import Tooltip from './ui/Tooltip';
 
 interface ControlsProps {
@@ -362,8 +363,18 @@ const Controls: React.FC<ControlsProps> = ({
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
                 <button
                   onClick={() => {
-                    const { eventFrames, peopleGroups } = useEventDataStore.getState();
-                    exportEventListToPdf(eventFrames, peopleGroups, showToast);
+                    const state = useEventDataStore.getState();
+                    const filteredEventFrames = selectFilteredEventFrames({
+                      eventFrames: state.eventFrames,
+                      peopleGroups: state.peopleGroups,
+                      filterText: state.filterText,
+                      filterStatus: state.filterStatus,
+                      filterDate: state.filterDate,
+                      localFilterUIPerson: state.localFilterUIPerson,
+                      filterPlace: state.filterPlace,
+                      filterUIEventFrame: state.filterUIEventFrame
+                    });
+                    exportEventListToPdf(filteredEventFrames, state.peopleGroups, showToast);
                   }}
                   className="flex items-center justify-center gap-1 bg-red-700 hover:bg-red-800 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
@@ -373,8 +384,18 @@ const Controls: React.FC<ControlsProps> = ({
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
                 <button
                   onClick={() => {
-                    const { eventFrames, peopleGroups } = useEventDataStore.getState();
-                    exportEventListToCsv(eventFrames, peopleGroups, showToast);
+                    const state = useEventDataStore.getState();
+                    const filteredEventFrames = selectFilteredEventFrames({
+                      eventFrames: state.eventFrames,
+                      peopleGroups: state.peopleGroups,
+                      filterText: state.filterText,
+                      filterStatus: state.filterStatus,
+                      filterDate: state.filterDate,
+                      localFilterUIPerson: state.localFilterUIPerson,
+                      filterPlace: state.filterPlace,
+                      filterUIEventFrame: state.filterUIEventFrame
+                    });
+                    exportEventListToCsv(filteredEventFrames, state.peopleGroups, showToast);
                   }}
                   className="flex items-center justify-center gap-1 bg-green-700 hover:bg-green-800 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >

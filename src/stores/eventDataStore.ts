@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
 import { useModalStore } from './modalStore';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, ShowToastFunction } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
@@ -62,11 +62,30 @@ interface EventDataState {
     dataRepairInfo: { fixes: any[], repairedData: AppData } | null;
     filterUIEventFrame: string | null;
     highlightedEventId: string | null;
+    // Filtres centralitzats
+    filterText: string;
+    filterStatus: AssignmentStatus | '';
+    filterDate: string;
+    localFilterUIPerson: string;
+    filterPlace: string;
+    // Estats per a l'expansió automàtica
+    isEventListExpanded: boolean;
+    manualExpandedFrameIds: Set<string>;
 }
 
 interface EventDataActions {
     setFilterUIEventFrame: (id: string | null) => void;
     setHighlightedEventId: (id: string | null) => void;
+    // Accions per als filtres centralitzats
+    setFilterText: (text: string) => void;
+    setFilterStatus: (status: AssignmentStatus | '') => void;
+    setFilterDate: (date: string) => void;
+    setLocalFilterUIPerson: (personId: string) => void;
+    setFilterPlace: (place: string) => void;
+    clearAllFilters: () => void;
+    setSyncProgress: (progress: SyncProgressState) => void;
+    showAndHighlightEvent: (eventId: string) => void;
+    setManualExpandedFrameIds: (updater: (prev: Set<string>) => Set<string>) => void;
     addEventFrame: (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>) => EventFrame;
     updateEventFrame: (eventFrame: EventFrame) => void;
     deleteEventFrame: (eventFrameId: string) => void;
@@ -84,7 +103,7 @@ interface EventDataActions {
     exportData: () => Promise<AppData>;
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
     setHasUnsavedChanges: (value: boolean) => void;
-    refreshGoogleEvents: (showToast?: ShowToastFunction) => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
+    refreshGoogleEvents: () => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     syncWithGoogle: () => Promise<void>;
     executeSync: (targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
@@ -111,6 +130,15 @@ const initialState: EventDataState = {
     dataRepairInfo: null,
     filterUIEventFrame: null,
     highlightedEventId: null,
+    // Filtres centralitzats - valors inicials
+    filterText: '',
+    filterStatus: '',
+    filterDate: '',
+    localFilterUIPerson: '',
+    filterPlace: '',
+    // Estats per a l'expansió automàtica - valors inicials
+    isEventListExpanded: false,
+    manualExpandedFrameIds: new Set<string>(),
 };
 
 export const useEventDataStore = create<EventDataState & EventDataActions>()(
@@ -125,6 +153,35 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
         setFilterUIEventFrame: (id: string | null) => set({ filterUIEventFrame: id }),
         setHighlightedEventId: (id: string | null) => set({ highlightedEventId: id }),
+        
+        // FILTRES CENTRALITZATS
+        setFilterText: (text: string) => set({ filterText: text }),
+        setFilterStatus: (status: AssignmentStatus | '') => set({ filterStatus: status }),
+        setFilterDate: (date: string) => set({ filterDate: date }),
+        setLocalFilterUIPerson: (personId: string) => set({ localFilterUIPerson: personId }),
+        setFilterPlace: (place: string) => set({ filterPlace: place }),
+        clearAllFilters: () => set({ 
+            filterText: '', 
+            filterStatus: '', 
+            filterDate: '', 
+            localFilterUIPerson: '', 
+            filterPlace: '',
+            filterUIEventFrame: null,
+            highlightedEventId: null
+        }),
+        setSyncProgress: (progress: SyncProgressState) => set({ syncProgress: progress }),
+        showAndHighlightEvent: (eventId: string) => set((state) => {
+            const newManualExpandedFrameIds = new Set(state.manualExpandedFrameIds);
+            newManualExpandedFrameIds.add(eventId);
+            return {
+                isEventListExpanded: true,
+                manualExpandedFrameIds: newManualExpandedFrameIds,
+                highlightedEventId: eventId
+            };
+        }),
+        setManualExpandedFrameIds: (updater: (prev: Set<string>) => Set<string>) => set((state) => ({
+            manualExpandedFrameIds: updater(state.manualExpandedFrameIds)
+        })),
 
         // DATA HYDRATION
             _applyDataToState: (data: AppData) => {
@@ -428,19 +485,16 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     },
 
     // GOOGLE & SYNC
-        refreshGoogleEvents: async (showToast?: ShowToastFunction) => {
+        refreshGoogleEvents: async () => {
                 if (window.electronAPI?.getGoogleEvents) {
                     const result = await window.electronAPI.getGoogleEvents();
                     if (result.success && result.events) {
                         set({ googleEvents: result.events });
-                        if (showToast) showToast('Esdeveniments de Google actualitzats.', 'success');
                         return { success: true };
                     } else if (result.message) {
-                        if (showToast) showToast(result.message, 'error');
                         return { success: false, message: result.message, type: 'error' };
                     }
                 }
-                if (showToast) showToast('API d\'Electron no disponible.', 'error');
                 return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
             },
     syncWithGoogle: async () => {

@@ -11,6 +11,8 @@ import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { migrateData, validateMigratedData } from './utils/dataMigration';
+import { Toaster } from 'react-hot-toast';
+import { notificationService } from './utils/notificationService';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
@@ -37,13 +39,6 @@ const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/Update
 const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairModal'));
 
 
-interface ToastState {
-  id: string;
-  message: string;
-  type: 'success' | 'error' | 'info' | 'warning';
-  persistent?: boolean;
-}
-
 import { useRef } from 'react';
 
 const App: React.FC = () => {
@@ -53,7 +48,7 @@ const App: React.FC = () => {
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
-  const { openModal: openModalFromStore, closeModal, setToastHandler } = useModalStore.getState();
+  const { openModal: openModalFromStore, closeModal } = useModalStore.getState();
   const isOpen = useModalStore(state => state.isOpen);
   const type = useModalStore(state => state.type);
   const data = useModalStore(state => state.data);
@@ -85,41 +80,33 @@ const App: React.FC = () => {
     clearDataRepairInfo,
   } = useEventDataStore.getState();
 
-  const [toastState, setToastState] = useState<ToastState | null>(null);
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
   const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
 
-  const clearToastMessage = (toastId: string) => {
-    console.log(`[TOAST] Clear message with ID: ${toastId}`);
-    setToastState(prevState => (prevState?.id === toastId ? null : prevState));
-  };
-  
   const showToast: ShowToastFunction = useCallback((message, type = 'success', persistent = false) => {
-    const id = `${Date.now()}-${Math.random()}`;
-    console.log(`[TOAST] Show message: ${message}, Type: ${type}, Persistent: ${persistent}`);
-    setToastState({ id, message, type: type || 'success', persistent });
-    if (!persistent) {
-      setTimeout(() => clearToastMessage(id), 2000);
+    switch (type) {
+      case 'success':
+        notificationService.success(message);
+        break;
+      case 'error':
+        notificationService.error(message);
+        break;
+      case 'info':
+        notificationService.info(message);
+        break;
+      case 'warning':
+        notificationService.warning(message);
+        break;
+      default:
+        notificationService.success(message);
     }
   }, []);
-
-  useEffect(() => {
-    setToastHandler(showToast);
-  }, [showToast, setToastHandler]);
 
   useEffect(() => {
     // Inicialitza els listeners de la store de Google un sol cop
     initializeGoogleAuthListeners();
   }, []);
 
-  useEffect(() => {
-    if (toastState) {
-      // Give the UI a moment to render the toast before resizing
-      setTimeout(() => {
-        mainDisplayRef.current?.resize();
-      }, 100);
-    }
-  }, [toastState]);
 
 
 
@@ -191,39 +178,6 @@ const App: React.FC = () => {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
-  const Toast: React.FC<{ toast: ToastState }> = ({ toast }) => {
-    return (
-      <div
-        className={`toast toast-${toast.type}`}
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          right: '1rem',
-          zIndex: 1000,
-          backgroundColor: toast.type === 'success' ? '#4caf50' : toast.type === 'error' ? '#f44336' : '#2196f3',
-          color: 'white',
-          padding: '1rem',
-          borderRadius: '0.5rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <span>{toast.message}</span>
-        <button
-          onClick={() => clearToastMessage(toast.id)}
-          style={{
-            marginLeft: '1rem',
-            background: 'none',
-            border: 'none',
-            color: 'white',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-          }}
-        >
-          ×
-        </button>
-      </div>
-    );
-  };
 
   const handleSaveData = async (type: 'all' | 'people' | 'material') => {
     try {
@@ -443,6 +397,60 @@ const App: React.FC = () => {
           ipcRenderer.removeListener('google-auth-success', onSuccess);
           ipcRenderer.removeListener('google-auth-error', onError as any);
         }
+      };
+    }
+  }, [showToast]);
+
+  // Listener per al progrés de sincronització
+  useEffect(() => {
+    if (window.electronAPI?.onSyncProgress) {
+      const { setSyncProgress } = useEventDataStore.getState();
+      const cleanup = window.electronAPI.onSyncProgress((progress) => {
+        setSyncProgress({ ...progress, visible: true });
+      });
+      return cleanup;
+    }
+  }, []);
+
+  // Listeners per a notificacions del backend
+  useEffect(() => {
+    if (window.electronAPI) {
+      const cleanupFunctions: (() => void)[] = [];
+
+      // Listener per a l'aplicació que es reiniciarà després del reset
+      if (window.electronAPI.onAppWillRelaunchAfterReset) {
+        const cleanup = window.electronAPI.onAppWillRelaunchAfterReset(() => {
+          showToast('L\'aplicació es reiniciarà després del reset...', 'info', true);
+        });
+        cleanupFunctions.push(cleanup);
+      }
+
+      // Listener per a errors de sincronització
+      if (window.electronAPI.onSyncError) {
+        const cleanup = window.electronAPI.onSyncError((error: string) => {
+          showToast(`Error de sincronització: ${error}`, 'error');
+        });
+        cleanupFunctions.push(cleanup);
+      }
+
+      // Listener per a èxits de sincronització
+      if (window.electronAPI.onSyncSuccess) {
+        const cleanup = window.electronAPI.onSyncSuccess((message: string) => {
+          showToast(message || 'Sincronització completada', 'success');
+        });
+        cleanupFunctions.push(cleanup);
+      }
+
+      // Listener per a notificacions generals del backend
+      if (window.electronAPI.onBackendNotification) {
+        const cleanup = window.electronAPI.onBackendNotification((notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => {
+          showToast(notification.message, notification.type);
+        });
+        cleanupFunctions.push(cleanup);
+      }
+
+      return () => {
+        cleanupFunctions.forEach(cleanup => cleanup());
       };
     }
   }, [showToast]);
@@ -851,7 +859,30 @@ const App: React.FC = () => {
             </Suspense>
           </Modal>
 
-          {toastState && <Toast toast={toastState} />}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#4ade80',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                duration: 5000,
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
 
           <Suspense fallback={<div></div>}>
             <SyncProgressOverlay progress={syncProgress} />

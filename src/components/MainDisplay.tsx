@@ -14,6 +14,7 @@ import caLocale from '@fullcalendar/core/locales/ca';
 import SummaryReports from './SummaryReports';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
 import EventFrameCard from './EventFrameCard';
+import { selectFilteredEventFrames } from '../utils/selectors';
 
 interface MainDisplayProps {
   setToastMessage: ShowToastFunction;
@@ -72,6 +73,14 @@ const MainDisplay = React.forwardRef<
     peopleGroups.forEach(p => m.set(p.id, p.name));
     return m;
   }, [peopleGroups]);
+  
+  // Filtres centralitzats de l'store
+  const filterText = useEventDataStore(state => state.filterText);
+  const filterStatus = useEventDataStore(state => state.filterStatus);
+  const filterDate = useEventDataStore(state => state.filterDate);
+  const localFilterUIPerson = useEventDataStore(state => state.localFilterUIPerson);
+  const filterPlace = useEventDataStore(state => state.filterPlace);
+  const filterUIEventFrame = useEventDataStore(state => state.filterUIEventFrame);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable and can be safely retrieved once.
@@ -81,18 +90,21 @@ const MainDisplay = React.forwardRef<
     getAssignmentById,
     updateAssignment,
     updateEventFrame, // This is intentionally kept for the child component
+    setFilterText,
+    setFilterStatus,
+    setFilterDate,
+    setLocalFilterUIPerson,
+    setFilterPlace,
+    setFilterUIEventFrame,
+    clearAllFilters,
+    setManualExpandedFrameIds,
   } = useEventDataStore.getState();
 
-  const [filterText, setFilterText] = useState('');
-  const [filterStatus, setFilterStatus] = useState<AssignmentStatus | ''>('');
-  const [filterDate, setFilterDate] = useState('');
-  const [localFilterUIPerson, setLocalFilterUIPerson] = useState<string>('');
-  const filterUIEventFrame = useEventDataStore(state => state.filterUIEventFrame);
-  const setFilterUIEventFrame = useEventDataStore(state => state.setFilterUIEventFrame);
-  const [filterPlace, setFilterPlace] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const [manualExpandedFrameIds, setManualExpandedFrameIds] = useState<Set<string>>(new Set());
+  // Estats d'expansió centralitzats
+  const isEventListExpanded = useEventDataStore(state => state.isEventListExpanded);
+  const manualExpandedFrameIds = useEventDataStore(state => state.manualExpandedFrameIds);
   const [manualExpandedDailyView, setManualExpandedDailyView] = useState<Set<string>>(new Set());
 
   const highlightedEventId = useEventDataStore(state => state.highlightedEventId);
@@ -146,42 +158,25 @@ const MainDisplay = React.forwardRef<
     return <p>Error: {validationResult.error}</p>;
   }
 
+  const filteredEventFrames = useMemo(() => {
+    return selectFilteredEventFrames({
+      eventFrames,
+      peopleGroups,
+      filterText,
+      filterStatus,
+      filterDate,
+      localFilterUIPerson,
+      filterPlace,
+      filterUIEventFrame
+    });
+  }, [eventFrames, peopleGroups, filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame]);
+
   const filteredAndSortedEventFrames = useMemo(() => {
-  // Filtres aplicats
-    try {
-      let frames = [...eventFrames];
-
-      if (filterUIEventFrame) frames = frames.filter(ef => ef.id === filterUIEventFrame);
-      if (filterPlace) {
-        const normPlace = filterPlace.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        frames = frames.filter(ef => ef.place && ef.place.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normPlace));
-      }
-      if (!filterUIEventFrame) {
-        if (filterText) {
-          const lowerFilterText = filterText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          frames = frames.filter(ef => {
-            const efFields = [ef.name, ef.place || '', ef.generalNotes || ''].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                       const assignFields = ef.assignments.map((a: Assignment) => [peopleMap.get(a.personGroupId) || '', a.notes || ''].join(' ')).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            return efFields.includes(lowerFilterText) || assignFields.includes(lowerFilterText);
-          });
-        }
-        if (filterStatus) frames = frames.filter(ef => ef.assignments.some((a: Assignment) => a.status === filterStatus || (a.status === AssignmentStatus.Mixed && a.dailyStatuses && Object.values(a.dailyStatuses).includes(filterStatus))));
-        if (localFilterUIPerson) frames = frames.filter(ef => ef.assignments.some(a => a.personGroupId === localFilterUIPerson));
-        if (filterDate) frames = frames.filter(ef => new Date(ef.startDate) <= new Date(filterDate) && new Date(ef.endDate) >= new Date(filterDate));
-      }
-
-      const sortedFrames = frames.sort((a,b) => sortOrder === 'asc'
-        ? new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-        : new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-      );
-
-  // Filtres: total inicial → final
-      return sortedFrames;
-    } catch (error) {
-      console.error('[MainDisplay] Error aplicant filtres:', error);
-      return [];
-    }
-  }, [eventFrames, filterText, filterPlace, filterStatus, filterDate, localFilterUIPerson, filterUIEventFrame, peopleGroups, sortOrder]);
+    return filteredEventFrames.sort((a, b) => sortOrder === 'asc'
+      ? new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      : new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+  }, [filteredEventFrames, sortOrder]);
 
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
@@ -210,7 +205,7 @@ const MainDisplay = React.forwardRef<
   }, [isAnyFilterActive, filteredAndSortedEventFrames, localFilterUIPerson, filterStatus, manualExpandedDailyView]);
 
   const handleToggleExpand = (id: string) => {
-    setManualExpandedFrameIds(prev => {
+    setManualExpandedFrameIds((prev: Set<string>) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
       else newSet.add(id);
@@ -219,7 +214,7 @@ const MainDisplay = React.forwardRef<
   };
 
   const handleToggleDailyView = (id: string) => {
-    setManualExpandedDailyView(prev => {
+    setManualExpandedDailyView((prev: Set<string>) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
       else newSet.add(id);
@@ -360,7 +355,7 @@ const MainDisplay = React.forwardRef<
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} defaultOpen={true} id="event-list-section">
+      <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} defaultOpen={isEventListExpanded} id="event-list-section">
         <div className="mb-1 flex justify-start items-center gap-1">
           <Tooltip text="Crear un nou marc d'esdeveniment">
             <button onClick={() => {
@@ -401,7 +396,7 @@ const MainDisplay = React.forwardRef<
             </div>
             <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-gray-700 dark:text-gray-300">Lloc</label><Tooltip text="Filtrar per lloc de l'esdeveniment"><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></Tooltip></div>            <div className="flex items-center gap-1">
               <Tooltip text="Netejar tots els filtres">
-                <button onClick={() => {setFilterText(''); setFilterPlace(''); setFilterStatus(''); setFilterDate(''); setLocalFilterUIPerson(''); setFilterUIEventFrame(null);}} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
+                <button onClick={clearAllFilters} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 rounded-md shadow-sm border border-gray-300 dark:border-gray-600">Netejar</button>
               </Tooltip>
             </div>
         </div>
