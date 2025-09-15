@@ -86,6 +86,7 @@ interface EventDataActions {
     setSyncProgress: (progress: SyncProgressState) => void;
     showAndHighlightEvent: (eventId: string) => void;
     setManualExpandedFrameIds: (updater: (prev: Set<string>) => Set<string>) => void;
+    toggleEventListExpanded: () => void;
     addEventFrame: (eventFrame: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>) => EventFrame;
     updateEventFrame: (eventFrame: EventFrame) => void;
     deleteEventFrame: (eventFrameId: string) => void;
@@ -182,6 +183,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         setManualExpandedFrameIds: (updater: (prev: Set<string>) => Set<string>) => set((state) => ({
             manualExpandedFrameIds: updater(state.manualExpandedFrameIds)
         })),
+        toggleEventListExpanded: () => set((state) => ({ isEventListExpanded: !state.isEventListExpanded })),
 
         // DATA HYDRATION
             _applyDataToState: (data: AppData) => {

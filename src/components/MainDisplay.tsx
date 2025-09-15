@@ -26,17 +26,37 @@ interface CollapsibleSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   id?: string;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, children, defaultOpen = false, id }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, children, defaultOpen = false, id, isOpen: controlledIsOpen, onToggle }) => {
+  const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
+
+  const isControlled = typeof controlledIsOpen === 'boolean';
+  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+
+  const handleToggle = () => {
+    if (isControlled && onToggle) {
+      onToggle();
+    } else {
+      setInternalIsOpen(prev => !prev);
+    }
+  };
+
+  useEffect(() => {
+    if (!isControlled) {
+      setInternalIsOpen(defaultOpen);
+    }
+  }, [defaultOpen, isControlled]);
+
   const buttonId = id ? `${id}-button` : undefined;
   const contentId = id ? `${id}-content` : undefined;
-  useEffect(() => { setIsOpen(defaultOpen); }, [defaultOpen]);
+
   return (
     <div className="mb-2 bg-white dark:bg-gray-800 shadow-md rounded-lg">
       <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
-        <button id={buttonId} onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-1.5 text-left text-base font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
+        <button id={buttonId} onClick={handleToggle} className="w-full flex justify-between items-center p-1.5 text-left text-base font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
           <div className="flex items-center gap-1.5">
             {icon && <React.Fragment>{icon}</React.Fragment>}
             <span>{title}</span>
@@ -99,6 +119,7 @@ const MainDisplay = React.forwardRef<
     clearAllFilters,
     setManualExpandedFrameIds,
     setHighlightedEventId,
+    toggleEventListExpanded,
   } = useEventDataStore.getState();
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -361,7 +382,7 @@ const MainDisplay = React.forwardRef<
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} defaultOpen={isEventListExpanded} id="event-list-section">
+      <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} isOpen={isEventListExpanded} onToggle={toggleEventListExpanded} id="event-list-section">
         <div className="mb-1 flex justify-start items-center gap-1">
           <Tooltip text="Crear un nou marc d'esdeveniment">
             <button onClick={() => {

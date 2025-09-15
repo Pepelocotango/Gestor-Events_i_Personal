@@ -392,7 +392,11 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
     -   Cada modal té el seu propi component. La gestió de la seva visibilitat i de les dades amb què s'inicialitzen es controla a través del `modalStore`, tal com es descriu a la secció "Gestió de l'Estat dels Formularis".
 
 -   **Components d'UI Genèrics (`src/components/ui/`):**
-    -   Conté components reutilitzables i de presentació, com `Modal.tsx` i `CollapsibleSection.tsx`, que no tenen lògica de negoci pròpia.
+    -   Conté components reutilitzables i de presentació.
+    -   `Modal.tsx`: Component base per a totes les finestres modals.
+    -   `CollapsibleSection.tsx`: Un component clau per a l'organització de la UI. Ha estat dissenyat per funcionar de dues maneres:
+        -   **Mode no controlat (per defecte):** Gestiona el seu propi estat d'expansió internament amb `useState`.
+        -   **Mode controlat:** Si rep les propietats `isOpen` i `onToggle`, cedeix el control del seu estat a un component pare, permetent que l'estat d'expansió sigui gestionat per un store global com Zustand. Aquest patró s'utilitza per a la secció de la "Llista d'Esdeveniments".
 
 ### 4.4. Enrutament de l'Aplicació (`src/App.tsx`)
 
