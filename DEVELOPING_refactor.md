@@ -837,57 +837,55 @@ La solució implementada força el calendari a recalcular les seves dimensions i
 
 ## 10. Restauració de Funcionalitats Post-Refactorització (Zustand)
 
-Després de la migració de la gestió d'estat de React Context a Zustand, diverses funcionalitats clau es van perdre. Aquesta secció documenta la reimplementació d'aquestes característiques dins de la nova arquitectura, aprofitant les capacitats de Zustand per a una gestió d'estat més eficient i desacoblada.
+Després de la migració a Zustand, algunes interaccions de la UI es van haver de reconnectar. Aquesta secció documenta les solucions.
 
-### 10.1. Exportació de Vistes Filtrades (PDF/CSV)
+### 10.1. Gestió d'Expansió de Targetes (Manual i Automàtica)
+
+S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment les targetes d'esdeveniments, combinant-ho amb l'expansió automàtica en aplicar filtres.
+
+-   **Estat a l'Store (`eventDataStore.ts`):**
+    -   `manualExpandedFrameIds: Set<string>`: Un conjunt que emmagatzema els IDs de les targetes que l'usuari ha expandit manualment.
+    -   `setManualExpandedFrameIds()`: L'acció que permet modificar aquest conjunt.
+-   **Lògica al Component (`MainDisplay.tsx`):**
+    -   La funció `handleToggleExpand` crida a l'acció `setManualExpandedFrameIds` per afegir o eliminar un ID del conjunt, registrant la interacció de l'usuari.
+    -   Un `useMemo` calcula el conjunt final d'IDs expandits:
+        -   Si hi ha **filtres actius**, es retorna un conjunt amb els IDs de tots els resultats filtrats (comportament automàtic).
+        -   Si **no hi ha filtres**, es retorna el conjunt `manualExpandedFrameIds` (comportament manual).
+    -   La propietat `isExpanded` de cada `EventFrameCard` es determina comprovant si el seu ID pertany a aquest conjunt final.
+
+### 10.2. Funcionalitat "Mostrar a la Llista" i Ressaltat
+
+S'ha restaurat l'acció que permet a l'usuari localitzar i ressaltar un esdeveniment a la llista principal des d'altres parts de l'aplicació, com el calendari.
+
+-   **Acció Centralitzada (`eventDataStore.ts`):**
+    -   S'ha creat l'acció `showAndHighlightEvent(eventId: string)`.
+    -   Aquesta acció actualitza simultàniament tres estats:
+        1.  `isEventListExpanded: true`: Assegura que la secció de la llista estigui visible.
+        2.  `manualExpandedFrameIds`: Afegeix l'ID de l'esdeveniment per garantir que la seva targeta estigui expandida.
+        3.  `highlightedEventId: eventId`: Emmagatzema l'ID de l'esdeveniment que s'ha de ressaltar.
+-   **Activació (`EventFrameDetailsModal.tsx`):**
+    -   El botó "Mostrar a la Llista" del modal de detalls ara crida a `showAndHighlightEvent` i tanca el modal.
+-   **Efecte Visual (`MainDisplay.tsx`):**
+    -   Un `useEffect` se subscriu als canvis de `highlightedEventId`.
+    -   Quan l'estat canvia, l'efecte troba l'element del DOM (`event-card-<id>`), s'hi desplaça amb `scrollIntoView()`, i li afegeix la classe CSS `highlight-event-frame`.
+    -   Un `setTimeout` de 3 segons elimina la classe i neteja l'estat `highlightedEventId`, finalitzant l'efecte de ressaltat.
+
+### 10.3. Exportació de Vistes Filtrades (PDF/CSV)
 
 S'ha restaurat la capacitat d'exportar a PDF o CSV només els esdeveniments que coincideixen amb els filtres actius a la vista principal.
 
--   **Lògica:** El component `MainDisplay.tsx` ja mantenia un estat (`currentlyDisplayedFrames`) que reflectia la llista d'esdeveniments visibles. La funcionalitat d'exportació, ubicada ara a `Controls.tsx`, utilitza un selector de Zustand per accedir a aquesta llista filtrada des de `useEventDataStore`.
--   **Implementació:** Quan l'usuari clica a "Exportar a PDF/CSV", `Controls.tsx` obté la llista filtrada de l'store i la passa a les utilitats `pdfGenerator` o `csvUtils`. Si no hi ha cap filtre actiu, s'exporta la llista completa per defecte.
+-   **Lògica:** La funcionalitat d'exportació, ubicada a `Controls.tsx`, utilitza un selector (`selectFilteredEventFrames`) per accedir a la llista filtrada directament des de l'store `useEventDataStore`.
+-   **Implementació:** Quan l'usuari clica a "Exportar a PDF/CSV", `Controls.tsx` obté l'estat complet de l'store, el passa al selector per obtenir la llista filtrada, i finalment envia aquesta llista a les utilitats `pdfGenerator` o `csvUtils`. Si no hi ha cap filtre actiu, s'exporta la llista completa per defecte.
 
-### 10.2. Avís de Conflictes en Assignacions
+### 10.4. Avís de Conflictes en Assignacions
 
 S'ha reimplementat el diàleg modal que adverteix l'usuari quan intenta crear una assignació que se solapa en el temps amb una altra assignació existent per a la mateixa persona.
 
--   **Arquitectura:**
-    1.  **Detecció a l'Store:** La lògica de detecció de conflictes resideix a les accions `addAssignment` i `updateAssignment` de `useEventDataStore`.
-    2.  **Comunicació amb la UI:** En lloc de bloquejar l'acció, si es detecta un conflicte, l'acció de l'store retorna un indicador d'error.
-    3.  **Gestió al Modal:** El component `AssignmentFormModal.tsx` gestiona aquesta resposta. Si rep l'indicador de conflicte, utilitza el `useModalStore` per obrir un diàleg de confirmació (`ConfirmDuplicateModal`).
-    4.  **Confirmació de l'Usuari:** Si l'usuari decideix continuar, el formulari es torna a enviar amb un paràmetre `force: true` que omet la validació de conflictes a l'store.
+-   **Arquitectura:** La detecció de conflictes es realitza a l'store (`useEventDataStore`), i si se'n troba un, es comunica a la UI a través d'un missatge de retorn, que el component del formulari (`AssignmentFormModal.tsx`) utilitza per obrir un modal de confirmació (`ConfirmDuplicateModal`).
 
-### 10.3. Barra de Progrés Detallada per a la Sincronització
+### 10.5. Barra de Progrés Detallada per a la Sincronització
 
-S'ha reintroduït la barra de progrés en temps real durant la sincronització amb Google Calendar, proporcionant un feedback molt més clar que un simple indicador de càrrega.
+S'ha reintroduït la barra de progrés en temps real durant la sincronització amb Google Calendar.
 
--   **Comunicació Backend -> Frontend:** El procés principal d'Electron (`main.cjs`), durant la sincronització, envia actualitzacions de progrés contínues al frontend a través del canal IPC `'sync-progress'`. Cada actualització inclou l'estat actual (`{ current, total, message }`).
--   **Gestió d'Estat amb Zustand:** Un `useEffect` a `App.tsx` escolta aquests esdeveniments (a través de l'API exposada a `preload.cjs`) i actualitza un estat `syncProgress` dins de `useEventDataStore`.
--   **Visualització a la UI:** Un component `SyncProgressOverlay.tsx` se subscriu a aquest estat de l'store i es renderitza com una superposició, mostrant la barra de progrés i els missatges a l'usuari.
-
-### 10.4. Expansió Automàtica amb "Mostrar a la Llista"
-
-S'ha restaurat i millorat la funcionalitat que, en fer clic a "Mostrar a la Llista" des d'un esdeveniment del calendari, expandeix automàticament la secció principal de la llista i la targeta de l'esdeveniment corresponent.
-
--   **Implementació Refactoritzada:**
-    1.  **Estat Global:** L'estat de col·lapse de la llista principal (`isEventListCollapsed`) s'ha mogut a `useEventDataStore`.
-    2.  **Acció Centralitzada:** Es va crear una nova acció a l'store, `showAndExpandEvent(eventId)`.
-    3.  **Flux:** Quan es clica "Mostrar a la Llista", aquesta acció s'invoca. L'acció primer estableix `isEventListCollapsed` a `false` (per assegurar que la llista estigui oberta) i després actualitza l'estat per indicar quin `EventFrameCard` ha d'expandir-se.
--   **Millora:** Aquest enfocament, basat en la gestió declarativa de l'estat, és més robust i fiable que la implementació anterior, que simulava un esdeveniment `.click()` al DOM.
-
-### 10.5. Notificacions Toast per a Esdeveniments del Backend
-
-S'ha restablert la capacitat del frontend per escoltar esdeveniments emesos pel procés principal i mostrar notificacions (toasts) a l'usuari.
-
--   **Arquitectura:**
-    1.  **Canal IPC Genèric:** S'utilitza un canal IPC dedicat, `'show-toast'`, per a la comunicació. El backend pot enviar missatges a aquest canal quan necessita notificar l'usuari (p. ex., `onAppWillRelaunchAfterReset`).
-    2.  **Listener a `App.tsx`:** Un `useEffect` a `App.tsx` estableix un listener per a aquest canal a través de l'API de `preload`.
-    3.  **Visualització:** Quan es rep un missatge, el listener crida a la funció `showToast` (proporcionada per `react-hot-toast`), que renderitza la notificació a la UI.
--   **Tipus Segurs:** S'han afegit les definicions de tipus corresponents a `src/types.ts` per garantir la seguretat de tipus en la comunicació entre processos.
-
-### 10.6. Altres Millores i Correccions
-
-Durant el procés de restauració, es van realitzar diverses millores addicionals:
-
--   **Ajust de Temporitzadors:** S'han ajustat els temps de visualització de la pantalla d'inici (splash screen) a 5 segons i de les notificacions toast a 8 segons, segons els requisits de l'usuari. Aquests canvis es van aplicar a `App.tsx`.
--   **Correcció de la Build de Linux:** S'ha solucionat un error de compilació per a Linux causat per la manca de definicions de tipus per als nous listeners d'IPC.
--   **Refactorització de Codi:** Es va refactoritzar la lògica d'enviament de formularis a `AssignmentFormModal.tsx` per reduir la duplicació de codi (principi DRY).
+-   **Comunicació Backend -> Frontend:** El procés principal (`main.cjs`) envia actualitzacions de progrés a través del canal IPC `'sync-progress'`.
+-   **Gestió d'Estat amb Zustand:** Un `useEffect` a `App.tsx` escolta aquests esdeveniments i actualitza un estat `syncProgress` dins de `useEventDataStore`, que és consumit pel component `SyncProgressOverlay.tsx`.

@@ -98,6 +98,7 @@ const MainDisplay = React.forwardRef<
     setFilterUIEventFrame,
     clearAllFilters,
     setManualExpandedFrameIds,
+    setHighlightedEventId,
   } = useEventDataStore.getState();
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -108,7 +109,6 @@ const MainDisplay = React.forwardRef<
   const [manualExpandedDailyView, setManualExpandedDailyView] = useState<Set<string>>(new Set());
 
   const highlightedEventId = useEventDataStore(state => state.highlightedEventId);
-  const setHighlightedEventId = useEventDataStore(state => state.setHighlightedEventId);
 
   useEffect(() => {
     if (highlightedEventId) {
@@ -128,7 +128,7 @@ const MainDisplay = React.forwardRef<
         setHighlightedEventId(null);
       }
     }
-  }, [highlightedEventId, setHighlightedEventId]);
+  }, [highlightedEventId]);
 
   // Removed noisy render logs to avoid spamming console and potential perf issues
 
@@ -180,12 +180,27 @@ const MainDisplay = React.forwardRef<
 
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
-  const expandedEventFrameIds = useMemo(() =>
-    isAnyFilterActive
-      ? new Set(filteredAndSortedEventFrames.map(ef => ef.id))
-      : manualExpandedFrameIds,
-    [isAnyFilterActive, filteredAndSortedEventFrames, manualExpandedFrameIds]
-  );
+  const handleToggleExpand = (id: string) => {
+    // Explicitly call the store action
+    useEventDataStore.getState().setManualExpandedFrameIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const expandedEventFrameIds = useMemo(() => {
+    // When any filter is active, all visible cards are expanded by default to show context.
+    if (isAnyFilterActive) {
+      return new Set(filteredAndSortedEventFrames.map(ef => ef.id));
+    }
+    // When no filters are active, expansion is controlled manually by the user.
+    return manualExpandedFrameIds;
+  }, [isAnyFilterActive, filteredAndSortedEventFrames, manualExpandedFrameIds]);
 
   const expandedDailyViewAssignmentIds = useMemo(() => {
     if (!isAnyFilterActive) return manualExpandedDailyView;
@@ -203,15 +218,6 @@ const MainDisplay = React.forwardRef<
     });
     return newExpandedAssignments;
   }, [isAnyFilterActive, filteredAndSortedEventFrames, localFilterUIPerson, filterStatus, manualExpandedDailyView]);
-
-  const handleToggleExpand = (id: string) => {
-    setManualExpandedFrameIds((prev: Set<string>) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
-    });
-  };
 
   const handleToggleDailyView = (id: string) => {
     setManualExpandedDailyView((prev: Set<string>) => {
