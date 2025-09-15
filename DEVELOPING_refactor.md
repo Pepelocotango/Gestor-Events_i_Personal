@@ -870,8 +870,10 @@ S'ha restaurat l'acció que permet a l'usuari localitzar i ressaltar un esdeveni
 -   **Activació (`EventFrameDetailsModal.tsx`):**
     -   El botó "Mostrar a la Llista" del modal de detalls ara crida a `showAndHighlightEvent` i tanca el modal.
 -   **Efecte Visual (`MainDisplay.tsx`):**
-    -   Un `useEffect` se subscriu als canvis de `highlightedEventId`.
-    -   Quan l'estat canvia, l'efecte troba l'element del DOM (`event-card-<id>`), s'hi desplaça amb `scrollIntoView()`, i li afegeix la classe CSS `highlight-event-frame`.
+    -   Un `useEffect` se subscriu als canvis de `highlightedEventId` **i també de `filteredAndSortedEventFrames`**. Aquesta doble dependència és crucial per solucionar una condició de cursa:
+        -   L'acció `showAndHighlightEvent` pot expandir la llista d'esdeveniments, la qual cosa provoca un nou renderitzat.
+        -   Afegint `filteredAndSortedEventFrames` a les dependències, s'assegura que l'efecte només s'executi *després* que React hagi renderitzat la llista i que l'element `event-card-<id>` existeixi al DOM.
+    -   Quan l'efecte s'executa, troba l'element, s'hi desplaça amb `scrollIntoView()`, i li afegeix la classe CSS `highlight-event-frame`.
     -   Un `setTimeout` de 3 segons elimina la classe i neteja l'estat `highlightedEventId`, finalitzant l'efecte de ressaltat.
 
 ### 10.3. Exportació de Vistes Filtrades (PDF/CSV)

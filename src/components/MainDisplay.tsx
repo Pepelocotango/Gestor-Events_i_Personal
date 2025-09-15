@@ -130,26 +130,6 @@ const MainDisplay = React.forwardRef<
 
   const highlightedEventId = useEventDataStore(state => state.highlightedEventId);
 
-  useEffect(() => {
-    if (highlightedEventId) {
-      const element = document.getElementById(`event-card-${highlightedEventId}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.classList.add('highlight-event-frame');
-
-        const timer = setTimeout(() => {
-          element.classList.remove('highlight-event-frame');
-          setHighlightedEventId(null);
-        }, 3000);
-
-        return () => clearTimeout(timer);
-      } else {
-        // If element is not in view (e.g., due to pagination or filtering), reset immediately
-        setHighlightedEventId(null);
-      }
-    }
-  }, [highlightedEventId]);
-
   // Removed noisy render logs to avoid spamming console and potential perf issues
 
   const validationResult = useMemo(() => {
@@ -197,6 +177,26 @@ const MainDisplay = React.forwardRef<
       : new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
     );
   }, [filteredEventFrames, sortOrder]);
+
+  useEffect(() => {
+    if (highlightedEventId) {
+      const element = document.getElementById(`event-card-${highlightedEventId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('highlight-event-frame');
+
+        const timer = setTimeout(() => {
+          element.classList.remove('highlight-event-frame');
+          setHighlightedEventId(null);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+      } else {
+        // If element is not in view (e.g., due to pagination or filtering), reset immediately
+        setHighlightedEventId(null);
+      }
+    }
+  }, [highlightedEventId, filteredAndSortedEventFrames]);
 
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
