@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import { GoogleCalendar, ManagedAppCalendar, GoogleConfig } from '../types';
 import { useEventDataStore } from './eventDataStore';
 import { useModalStore } from './modalStore';
+import { notificationService } from '../utils/notificationService';
 import logger from '../utils/logger';
 
 // --- STATE AND TYPES ---
@@ -73,13 +74,13 @@ export const initializeGoogleAuthListeners = () => {
     window.electronAPI.onGoogleAuthSuccess(() => {
       logger.info("Rebut 'google-auth-success' a la store. Refrescant configuració.");
       fetchAndLoadConfig();
-      useModalStore.getState().showToast('Connectat a Google Calendar amb èxit!', 'success');
+      notificationService.success('Connectat a Google Calendar amb èxit!');
     });
   }
   if (window.electronAPI?.onGoogleAuthError) {
     window.electronAPI.onGoogleAuthError((errorMessage) => {
         logger.error("Rebut 'google-auth-error' a la store.", { errorMessage });
-        useModalStore.getState().showToast(`Error d'autenticació: ${errorMessage}`, 'error');
+        notificationService.error(`Error d'autenticació: ${errorMessage}`);
     });
   }
 };
@@ -92,12 +93,12 @@ export const startGoogleAuthFlow = async () => {
   if (window.electronAPI?.startGoogleAuth) {
     const result = await window.electronAPI.startGoogleAuth();
     if (result.success) {
-      useModalStore.getState().showToast('Obrint el navegador per autenticar-se amb Google...', 'info');
+      notificationService.info('Obrint el navegador per autenticar-se amb Google...');
     } else {
-      useModalStore.getState().showToast(result.message || "No s'ha pogut iniciar l'autenticació.", 'error');
+      notificationService.error(result.message || "No s'ha pogut iniciar l'autenticació.");
     }
   } else {
-    useModalStore.getState().showToast('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', 'warning');
+    notificationService.warning('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.');
   }
 };
 
@@ -197,7 +198,7 @@ export const deleteCalendar = (calendar: ManagedAppCalendar) => {
         try {
           const result = await window.electronAPI.deleteAppCalendar(calendar.id);
           if (result.success && result.data) {
-            useModalStore.getState().showToast(result.message || 'Calendari eliminat correctament.', 'success');
+            notificationService.success(result.message || 'Calendari eliminat correctament.');
             useGoogleConfigStore.setState({
                 managedCalendars: result.data.managedAppCalendars,
                 activeCalendarId: result.data.activeAppCalendarId,
@@ -207,10 +208,10 @@ export const deleteCalendar = (calendar: ManagedAppCalendar) => {
                 useEventDataStore.getState().refreshGoogleEvents();
             }, 0);
           } else {
-            useModalStore.getState().showToast(result.message || "Hi ha hagut un error durant l'eliminació.", 'error');
+            notificationService.error(result.message || "Hi ha hagut un error durant l'eliminació.");
           }
         } catch (err) {
-            useModalStore.getState().showToast((err as Error).message, 'error');
+            notificationService.error((err as Error).message);
         }
       }
     },
@@ -236,17 +237,17 @@ export const disconnectGoogle = () => {
           try {
             const result = await window.electronAPI.googleDisconnect();
             if (result.success) {
-              useModalStore.getState().showToast('Compte de Google desconnectat correctament.', 'success');
+              notificationService.success('Compte de Google desconnectat correctament.');
               setTimeout(() => {
                   useEventDataStore.getState().refreshGoogleEvents();
                   fetchAndLoadConfig();
               }, 0);
               closeModal();
             } else {
-              useModalStore.getState().showToast(result.message || 'Hi ha hagut un error durant la desconnexió.', 'error');
+              notificationService.error(result.message || 'Hi ha hagut un error durant la desconnexió.');
             }
           } catch (err) {
-            useModalStore.getState().showToast((err as Error).message, 'error');
+            notificationService.error((err as Error).message);
           }
         }
       },

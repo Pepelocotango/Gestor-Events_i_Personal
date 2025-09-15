@@ -83,7 +83,7 @@ const App: React.FC = () => {
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
   const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
 
-  const showToast: ShowToastFunction = useCallback((message, type = 'success', persistent = false) => {
+  const showToast: ShowToastFunction = useCallback((message, type = 'success') => {
     switch (type) {
       case 'success':
         notificationService.success(message);
@@ -249,12 +249,12 @@ const App: React.FC = () => {
               if (result.success) {
                 loadDataFromManager(null);
                 setHasUnsavedChanges(false);
-                showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success', true);
+                showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success');
               } else {
-                showToast(result.message || "Error durant el reset de fàbrica.", 'error', true);
+                showToast(result.message || "Error durant el reset de fàbrica.", 'error');
               }
           } catch (error) {
-            showToast(`Error greu durant el reset de fàbrica: ${(error as Error).message}`, 'error', true);
+            showToast(`Error greu durant el reset de fàbrica: ${(error as Error).message}`, 'error');
           }
         } else {
           showToast("La funcionalitat de reset no està disponible.", 'error');
@@ -420,7 +420,7 @@ const App: React.FC = () => {
       // Listener per a l'aplicació que es reiniciarà després del reset
       if (window.electronAPI.onAppWillRelaunchAfterReset) {
         const cleanup = window.electronAPI.onAppWillRelaunchAfterReset(() => {
-          showToast('L\'aplicació es reiniciarà després del reset...', 'info', true);
+          showToast('L\'aplicació es reiniciarà després del reset...', 'info');
         });
         cleanupFunctions.push(cleanup);
       }

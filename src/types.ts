@@ -207,8 +207,7 @@ export interface InitialEventFrameData {
 
 export type ShowToastFunction = (
   message: string,
-  type?: 'success' | 'error' | 'info' | 'warning',
-  persistent?: boolean
+  type?: 'success' | 'error' | 'info' | 'warning'
 ) => void;
 
 
@@ -433,6 +432,10 @@ export interface ElectronAPI {
   getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
   syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
   onSyncProgress: (callback: (progress: Omit<SyncProgressState, 'visible'>) => void) => () => void;
+  onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
+  onSyncError: (callback: (error: string) => void) => () => void;
+  onSyncSuccess: (callback: (message: string) => void) => () => void;
+  onBackendNotification: (callback: (notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void) => () => void;
   googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
   deleteAppCalendar: (calendarId: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
   createNewAppCalendar: (suffix: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;

@@ -246,13 +246,13 @@ const Controls: React.FC<ControlsProps> = ({
                 // El backend ha esborrat els fitxers, ara el frontend neteja el seu estat.
                 loadData(null);
                 setHasUnsavedChanges(false);
-                showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success', true);
+                showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success');
               } else {
-                showToast(result.message || "Error durant el reset de fàbrica.", 'error', true);
+                showToast(result.message || "Error durant el reset de fàbrica.", 'error');
               }
           } catch (error) {
             console.error("Error cridant performHardReset:", error);
-            showToast(`Error greu durant el reset de fàbrica: ${(error as Error).message}`, 'error', true);
+            showToast(`Error greu durant el reset de fàbrica: ${(error as Error).message}`, 'error');
           }
         } else {
           showToast("La funcionalitat de reset no està disponible.", 'error');
