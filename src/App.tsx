@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
 import logger from './utils/logger';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
@@ -386,17 +385,17 @@ const App: React.FC = () => {
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listeners per a l\'autenticació de Google.');
-    if (window.electronAPI) {
+    if (window.electronAPI?.onGoogleAuthSuccess && window.electronAPI?.onGoogleAuthError) {
       const onSuccess = () => showToast('Connectat a Google Calendar amb èxit!', 'success');
       const onError = (message: string) => showToast(`Error d'autenticació: ${message}`, 'error');
-      window.electronAPI.onGoogleAuthSuccess(onSuccess);
-      window.electronAPI.onGoogleAuthError(onError);
+
+      const cleanupSuccess = window.electronAPI.onGoogleAuthSuccess(onSuccess);
+      const cleanupError = window.electronAPI.onGoogleAuthError(onError);
+
       return () => {
         logger.info('[Cleanup] App.tsx: Netejant listeners d\'autenticació de Google.');
-        if (ipcRenderer) {
-          ipcRenderer.removeListener('google-auth-success', onSuccess);
-          ipcRenderer.removeListener('google-auth-error', onError as any);
-        }
+        cleanupSuccess();
+        cleanupError();
       };
     }
   }, [showToast]);
