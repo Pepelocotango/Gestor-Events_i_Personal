@@ -9,8 +9,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
    },
   sendQuitConfirmedByRenderer: () => ipcRenderer.send('quit-confirmed-by-renderer-signal'),
    startGoogleAuth: () => ipcRenderer.invoke('google-auth-start'),
-  onGoogleAuthSuccess: (callback) => ipcRenderer.on('google-auth-success', callback),
-  onGoogleAuthError: (callback) => ipcRenderer.on('google-auth-error', callback),
+  onGoogleAuthSuccess: (callback) => {
+    const handler = (_event, ...args) => callback(...args);
+    ipcRenderer.on('google-auth-success', handler);
+    return () => {
+      ipcRenderer.removeListener('google-auth-success', handler);
+    };
+  },
+  onGoogleAuthError: (callback) => {
+    const handler = (_event, ...args) => callback(...args);
+    ipcRenderer.on('google-auth-error', handler);
+    return () => {
+      ipcRenderer.removeListener('google-auth-error', handler);
+    };
+  },
   getCalendarList: () => ipcRenderer.invoke('google-get-calendar-list'),
   saveGoogleConfig: (config) => ipcRenderer.invoke('save-google-config', config),
   getGoogleEvents: () => ipcRenderer.invoke('get-google-events'),

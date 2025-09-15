@@ -412,8 +412,8 @@ export interface ElectronAPI {
   onConfirmQuit: (callback: () => void) => void;
   sendQuitConfirmedByRenderer: () => void;
   startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
-  onGoogleAuthSuccess: (callback: () => void) => void;
-  onGoogleAuthError: (callback: (errorMessage: string) => void) => void;
+  onGoogleAuthSuccess: (callback: () => void) => () => void;
+  onGoogleAuthError: (callback: (errorMessage: string) => void) => () => void;
   getCalendarList: () => Promise<{ success: boolean, calendars?: GoogleCalendar[], message?: string }>;
   saveGoogleConfig: (config: Partial<GoogleConfig>) => Promise<{ success: boolean, data?: GoogleConfig, message?: string }>;
   getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;

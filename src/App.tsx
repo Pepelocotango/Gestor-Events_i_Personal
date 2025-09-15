@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
 import logger from './utils/logger';
 import { EventDataProvider } from './contexts/EventDataContext';
 import { useEventDataManager } from './hooks/useEventDataManager';
@@ -342,13 +341,15 @@ const App: React.FC = () => {
     if (window.electronAPI) {
       const onSuccess = () => showToast('Connectat a Google Calendar amb èxit!', 'success');
       const onError = (message: string) => showToast(`Error d'autenticació: ${message}`, 'error');
-      window.electronAPI.onGoogleAuthSuccess(onSuccess);
-      window.electronAPI.onGoogleAuthError(onError);
+
+      // Ara, les funcions retornen la seva pròpia funció de neteja
+      const cleanupSuccess = window.electronAPI.onGoogleAuthSuccess(onSuccess);
+      const cleanupError = window.electronAPI.onGoogleAuthError(onError);
+
+      // La funció de retorn del useEffect simplement crida a les funcions de neteja
       return () => {
-        if (ipcRenderer) {
-          ipcRenderer.removeListener('google-auth-success', onSuccess);
-          ipcRenderer.removeListener('google-auth-error', onError);
-        }
+        cleanupSuccess();
+        cleanupError();
       };
     }
   }, [showToast]);
