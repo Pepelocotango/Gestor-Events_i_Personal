@@ -381,7 +381,7 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
     -   `MaterialDisplay.tsx`: La vista per a la gestió de l'inventari de material.
 
 -   **Components de Lògica de Negoci:**
-    -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. Gestiona el seu propi estat d'expansió i conté la lògica per renderitzar la llista de `AssignmentCard`. S'ha estandarditzat perquè tota la capçalera sigui clicable per expandir/col·lapsar.
+    -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. La seva capçalera està dissenyada per ser totalment clicable per expandir/col·lapsar el contingut. La lògica `onClick` de la capçalera comprova si el clic s'ha fet sobre un element interactiu (com un botó) per evitar l'expansió/col·lapse no desitjat, gestionant les interaccions de l'usuari de manera precisa. Conté la lògica per renderitzar la llista de `AssignmentCard`.
     -   `AssignmentCard.tsx`: Gestiona la presentació d'una única assignació. S'ha estandarditzat com `EventFrameCard` per permetre expandir/col·lapsar la vista diària fent clic a qualsevol lloc de la capçalera.
     -   `SummaryReports.tsx`: Calcula i renderitza les diferents vistes de resum de dades.
 

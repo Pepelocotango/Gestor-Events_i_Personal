@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useMemo } from 'react';
+import { forwardRef, useMemo } from 'react';
 import { useModalStore } from '@/stores/modalStore';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '@/types';
@@ -35,7 +35,6 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
     return m;
   }, [peopleGroups]);
   const { openModal } = useModalStore.getState();
-  const skipNextCollapse = useRef(false);
 
   const filteredAssignments = eventFrame.assignments
     .filter(assign => 
@@ -49,12 +48,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       <div
         className="p-1 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
         onClick={(e) => {
+          // Only toggle expand if the click is not on an interactive element like a button.
+          // Those elements have their own onClick handlers with e.stopPropagation().
           if ((e.target as HTMLElement).closest('button, input, select, a')) {
-            skipNextCollapse.current = true;
             return;
           }
-          if (!skipNextCollapse.current) onToggleExpand(eventFrame.id);
-          skipNextCollapse.current = false;
+          onToggleExpand(eventFrame.id);
         }}
       >
         <div className="flex flex-col sm:flex-row justify-between sm:items-center">
@@ -63,7 +62,6 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  skipNextCollapse.current = true;
                   onUpdateEventFrame({ ...eventFrame, personnelComplete: !eventFrame.personnelComplete });
                   setToastMessage(eventFrame.personnelComplete ? 'Marc marcat com a incomplet.' : 'Marc marcat com a complet.', 'success');
                 }}
@@ -77,7 +75,6 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               className="text-base font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5" // <<< Afegim classes flex
               onClick={(e) => {
                 e.stopPropagation();
-                skipNextCollapse.current = true;
                 openModal('eventFrameDetails', { eventFrame });
               }}
             >
@@ -96,15 +93,14 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
           </div>
           <div className="flex items-center space-x-0.5 sm:space-x-0.5 flex-wrap">
             <Tooltip text="Editar els detalls de l'esdeveniment">
-              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; openModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
+              <button onClick={(e) => { e.stopPropagation(); openModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text="Eliminar l'esdeveniment">
-              <button onClick={(e) => { e.stopPropagation(); skipNextCollapse.current = true; openModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
+              <button onClick={(e) => { e.stopPropagation(); openModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text="Afegir una nova assignació de personal">
               <button onClick={(e) => {
                 e.stopPropagation();
-                skipNextCollapse.current = true;
                 const defaultPersonGroupId = peopleGroups.length > 0 ? peopleGroups[0].id : '';
                 openModal('addAssignment', {
                   eventFrame,
