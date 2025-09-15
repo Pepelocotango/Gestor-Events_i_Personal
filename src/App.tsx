@@ -55,6 +55,13 @@ const App: React.FC = () => {
   // --- State from Zustand Store (Reactive) ---
   // Subscribe to only the pieces of state that cause re-renders.
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
+
+  // Ref to track the latest state of hasUnsavedChanges to avoid stale state in listeners.
+  const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
+
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const syncProgress = useEventDataStore(state => state.syncProgress);
   const canUndo = useStore(useEventDataStore.temporal, state => state.pastStates.length > 0);
@@ -366,7 +373,7 @@ const App: React.FC = () => {
       const handleQuit = async () => {
         logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
         try {
-          if (hasUnsavedChanges) {
+          if (hasUnsavedChangesRef.current) {
             const dataToSave = await exportDataFromManager();
             logger.info("Renderer: Desant dades abans de sortir...");
             await window.electronAPI?.saveAppData?.(dataToSave);
@@ -381,7 +388,7 @@ const App: React.FC = () => {
       };
       window.electronAPI.onConfirmQuit(handleQuit);
     }
-  }, [exportDataFromManager, hasUnsavedChanges]);
+  }, []);
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listeners per a l\'autenticació de Google.');

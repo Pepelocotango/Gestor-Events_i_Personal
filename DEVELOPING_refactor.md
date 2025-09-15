@@ -190,7 +190,10 @@ Per evitar la pèrdua de dades no desades, l'aplicació implementa un flux de ta
     -   Mostra un diàleg de confirmació natiu a l'usuari.
     -   Si l'usuari cancel·la, el procés de tancament s'atura.
     -   Si l'usuari confirma, s'envia un senyal IPC (`'confirm-quit-signal'`) al frontend. **L'aplicació no es tanca encara.**
-3.  **Confirmació del Frontend:** L'aplicació espera una resposta del frontend. El listener a `App.tsx` (que utilitza l'store `useEventDataStore`) escolta aquest senyal, desa les dades si hi ha canvis, i finalment envia un senyal de tornada (`'quit-confirmed-by-renderer-signal'`).
+3.  **Confirmació del Frontend:** L'aplicació espera una resposta del frontend. A `App.tsx`, un `useEffect` amb un array de dependències buit `[]` registra un listener per al senyal `'confirm-quit-signal'`.
+    -   **Solució a l'Estat Caduc (Stale State):** Per evitar un error comú de "stale state" (on el listener només veu l'estat inicial de `hasUnsavedChanges`), s'utilitza un `useRef` (`hasUnsavedChangesRef`). Un altre `useEffect` s'encarrega de mantenir aquest ref sincronitzat amb l'últim valor de `hasUnsavedChanges`.
+    -   **Lògica de Desat:** Quan el listener rep el senyal, comprova `hasUnsavedChangesRef.current`. Si és `true`, exporta les dades actuals i les envia al backend per ser desades.
+    -   **Senyal de Tornada:** Un cop les dades han estat desades (o si no hi havia canvis), el frontend envia un senyal de tornada (`'quit-confirmed-by-renderer-signal'`).
 4.  **Tancament Final:** Un cop el backend rep `quit-confirmed-by-renderer-signal`, executa les últimes tasques (crear backup, netejar backups antics) i finalment tanca l'aplicació amb `app.exit()`.
 
 #### Gestió d'Excepcions
