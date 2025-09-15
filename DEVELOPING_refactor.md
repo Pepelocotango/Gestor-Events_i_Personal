@@ -338,13 +338,14 @@ export const useEventDataStore = create<...>()(
 
 ### 4.2. Gestió de l'Estat dels Formularis (Modals)
 
-Per solucionar problemes de pèrdua de dades i complexitat, els formularis dins dels modals (`EventFrameFormModal`, `AssignmentFormModal`, etc.) ja no depenen d'un *store* global. En canvi, segueixen el patró estàndard de React:
+Per gestionar la complexitat de les dades que necessiten els formularis dins dels modals (com ara dades per a una edició o valors per defecte), l'aplicació utilitza un patró centralitzat a través del `modalStore`.
 
--   **Estat Local:** Cada modal amb un formulari utilitza `useState` localment per gestionar els valors dels seus camps.
--   **Inicialització:** Un `useEffect` s'encarrega d'inicialitzar l'estat del formulari, ja sigui amb valors per defecte (per a una nova creació) o amb les dades de l'element que s'està editant (passades a través del `modalStore.data`).
--   **Enviament:** Quan el formulari s'envia, l'estat local es recopila i es passa a l'acció corresponent de l'store `useEventDataStore` (p. ex., `addEventFrame` o `updateEventFrame`).
+-   **Estat al `modalStore`:** En lloc de gestionar l'estat del formulari localment amb `useState`, les dades del formulari en curs resideixen dins de la propietat `data` del `modalStore`. Això permet una inicialització senzilla i directa en obrir un modal.
+-   **Inicialització:** Quan s'obre un modal amb `openModal(type, initialData)`, les `initialData` (p. ex., un objecte `assignmentToEdit`) es col·loquen a `modalStore.data`. El component del formulari llegeix aquestes dades per popular els seus camps.
+-   **Actualització en Temps Real:** Cada canvi en un camp del formulari (`onChange`) crida a la funció `updateModalData` del `modalStore`. Això manté l'estat del formulari actualitzat a l'store a mesura que l'usuari escriu.
+-   **Enviament:** Quan el formulari s'envia (`onSubmit`), el component llegeix l'estat complet de `modalStore.data`, el valida, i crida a l'acció corresponent de l'store principal (`useEventDataStore`), com `addAssignment` o `updateAssignment`.
 
-Aquesta arquitectura fa que els components de formulari siguin autònoms, més fàcils de raonar i menys propensos a errors d'estat.
+Aquesta arquitectura centralitza la lògica de l'estat del formulari, fent-la accessible i desacoblant el component del formulari de la font de dades inicial.
 
 ### 4.3. Component Reutilitzable: `AutosizeTextarea`
 
@@ -385,7 +386,7 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
     -   Aquest directori encapsula tota la complexitat de la fitxa de bolo. `TechSheetForm.tsx` actua com a component pare, orquestrant components fills especialitzats com `TechnicalPersonnelSection.tsx` i `NeedsList.tsx`. Aquesta modularitat permet aïllar la lògica i optimitzar el rendiment.
 
 -   **Modals (`src/components/modals/`):**
-    -   Cada modal té el seu propi component. Gràcies a `modalStore`, ja no gestionen l'estat del formulari internament amb `useState`, sinó que llegeixen i escriuen directament a l'store global.
+    -   Cada modal té el seu propi component. La gestió de la seva visibilitat i de les dades amb què s'inicialitzen es controla a través del `modalStore`, tal com es descriu a la secció "Gestió de l'Estat dels Formularis".
 
 -   **Components d'UI Genèrics (`src/components/ui/`):**
     -   Conté components reutilitzables i de presentació, com `Modal.tsx` i `CollapsibleSection.tsx`, que no tenen lògica de negoci pròpia.
