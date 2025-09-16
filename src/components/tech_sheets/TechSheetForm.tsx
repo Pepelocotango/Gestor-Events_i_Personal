@@ -219,8 +219,12 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
   const handleProviderChange = useCallback((providerIndex: number, personGroupId: string) => {
     setFormData(prev => {
-      const newProviders = [...(prev.technicalProviders || [])];
-      newProviders[providerIndex].personGroupId = personGroupId;
+      const newProviders = (prev.technicalProviders || []).map((provider, index) => {
+        if (index === providerIndex) {
+          return { ...provider, personGroupId: personGroupId };
+        }
+        return provider;
+      });
       return { ...prev, technicalProviders: newProviders };
     });
     markAsDirty();
@@ -231,10 +235,18 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       ? value.split(': ')[1]
       : value;
     setFormData(prev => {
-      const newProviders = [...(prev.technicalProviders || [])];
-      const newRoles = [...newProviders[providerIndex].roles];
-      newRoles[roleIndex] = { ...newRoles[roleIndex], [field]: finalValue };
-      newProviders[providerIndex].roles = newRoles;
+      const newProviders = (prev.technicalProviders || []).map((provider, pIndex) => {
+        if (pIndex === providerIndex) {
+          const newRoles = provider.roles.map((role, rIndex) => {
+            if (rIndex === roleIndex) {
+              return { ...role, [field]: finalValue };
+            }
+            return role;
+          });
+          return { ...provider, roles: newRoles };
+        }
+        return provider;
+      });
       return { ...prev, technicalProviders: newProviders };
     });
     markAsDirty();
@@ -254,8 +266,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   const handleAddRole = useCallback((providerIndex: number) => {
     const newRole: TechSheetRoleItem = { id: generateLocalId(), role: '', quantity: 1, notes: '', printNotes: true };
     setFormData(prev => {
-      const newProviders = [...(prev.technicalProviders || [])];
-      newProviders[providerIndex].roles.push(newRole);
+      const newProviders = (prev.technicalProviders || []).map((provider, index) => {
+        if (index === providerIndex) {
+          return {
+            ...provider,
+            roles: [...provider.roles, newRole]
+          };
+        }
+        return provider;
+      });
       return { ...prev, technicalProviders: newProviders };
     });
     markAsDirty();
@@ -263,8 +282,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
   const handleRemoveRole = useCallback((providerIndex: number, roleIndex: number) => {
     setFormData(prev => {
-      const newProviders = [...(prev.technicalProviders || [])];
-      newProviders[providerIndex].roles = newProviders[providerIndex].roles.filter((_, i) => i !== roleIndex);
+      const newProviders = (prev.technicalProviders || []).map((provider, index) => {
+        if (index === providerIndex) {
+          return {
+            ...provider,
+            roles: provider.roles.filter((_, i) => i !== roleIndex)
+          };
+        }
+        return provider;
+      });
       return { ...prev, technicalProviders: newProviders };
     });
     markAsDirty();
@@ -301,61 +327,90 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     const toRemoveIds = new Set(selectedChanges.filter(c => c.type === 'remove').map(c => c.data.id));
 
     setFormData(prev => {
-      let newProviders = [...(prev.technicalProviders || [])];
+      const initialProviders = prev.technicalProviders || [];
 
-      // 1. Process removals
-      newProviders = newProviders.map(p => ({
-        ...p,
-        roles: p.roles.filter(r => !toRemoveIds.has(r.id)),
-      })).filter(p => p.roles.length > 0 || p.isManual);
+      // 1. Process removals immutably
+      const providersAfterRemoval = initialProviders
+        .map(p => ({
+          ...p,
+          roles: p.roles.filter(r => !toRemoveIds.has(r.id)),
+        }))
+        .filter(p => p.roles.length > 0 || p.isManual);
 
-      // 2. Process updates
-      toUpdate.forEach(update => {
-        const provider = newProviders.find(p => p.roles.some(r => r.id === update.currentRole.id));
-        if (provider) {
-          provider.roles = provider.roles.map(r =>
-            r.id === update.currentRole.id ? { ...r, notes: update.newNotes } : r
-          );
+      // 2. Process updates immutably
+      const providersAfterUpdate = providersAfterRemoval.map(p => {
+        const updatesForProvider = toUpdate.filter(update => p.roles.some(r => r.id === update.currentRole.id));
+        if (updatesForProvider.length === 0) {
+          return p;
         }
+        return {
+          ...p,
+          roles: p.roles.map(r => {
+            const relevantUpdate = toUpdate.find(u => u.currentRole.id === r.id);
+            return relevantUpdate ? { ...r, notes: relevantUpdate.newNotes } : r;
+          }),
+        };
       });
 
-      // 3. Process additions
+      // 3. Process additions immutably
+      let providersAfterAddition = [...providersAfterUpdate];
+      const newProvidersToAdd: TechSheetProvider[] = [];
+
       toAdd.forEach(assignment => {
         const personGroupId = assignment.personGroupId;
-        let provider = newProviders.find(p => p.personGroupId === personGroupId);
-
-        if (!provider) {
-          provider = {
-            id: generateLocalId(),
-            personGroupId,
-            roles: [],
-            isManual: false,
-          };
-          newProviders.push(provider);
-        }
 
         let notes = assignment.notes || '';
         if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
           const confirmedDays = Object.entries(assignment.dailyStatuses)
             .filter(([, status]) => status === AssignmentStatus.Yes)
             .map(([date]) => formatDateDMY(date));
-
           if (confirmedDays.length > 0) {
             const daysString = `Dies: ${confirmedDays.join(', ')}`;
             notes = notes ? `${notes}\n${daysString}` : daysString;
           }
         }
 
-        provider.roles.push({
+        const newRole: TechSheetRoleItem = {
           id: generateLocalId(),
           assignmentId: assignment.id,
           role: '',
           quantity: 1,
           notes: notes,
-        });
+          printNotes: true,
+        };
+
+        const existingProviderIndex = providersAfterAddition.findIndex(p => p.personGroupId === personGroupId);
+
+        if (existingProviderIndex !== -1) {
+          // Update existing provider immutably
+          providersAfterAddition = providersAfterAddition.map((p, index) => {
+            if (index === existingProviderIndex) {
+              return { ...p, roles: [...p.roles, newRole] };
+            }
+            return p;
+          });
+        } else {
+          // Check if it's already staged to be added
+          const stagedProviderIndex = newProvidersToAdd.findIndex(p => p.personGroupId === personGroupId);
+          if (stagedProviderIndex !== -1) {
+            newProvidersToAdd[stagedProviderIndex] = {
+              ...newProvidersToAdd[stagedProviderIndex],
+              roles: [...newProvidersToAdd[stagedProviderIndex].roles, newRole],
+            };
+          } else {
+            newProvidersToAdd.push({
+              id: generateLocalId(),
+              personGroupId,
+              roles: [newRole],
+              isManual: false,
+            });
+          }
+        }
       });
 
-      return { ...prev, technicalProviders: newProviders };
+      const finalProviders = [...providersAfterAddition, ...newProvidersToAdd];
+
+      return { ...prev, technicalProviders: finalProviders };
     });
 
     markAsDirty();
