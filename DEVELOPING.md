@@ -529,20 +529,19 @@ Aquesta lògica, similar al control d'estoc, preveu que una persona sigui assign
 
 #### Flux de Validació amb Confirmació de l'Usuari
 
-Per oferir més flexibilitat, el sistema ja no bloqueja les assignacions duplicades, sinó que demana confirmació a l'usuari. Aquest flux es va implementar com a solució a un error de l'entorn de compilació que impedia utilitzar tipus de retorn més complexos.
+Per oferir més flexibilitat, el sistema ja no bloqueja les assignacions duplicades, sinó que demana confirmació a l'usuari.
 
 1.  **Detecció de Conflictes (`useEventDataStore.ts`):**
     -   Les accions `addAssignment` i `updateAssignment` de l'store contenen la lògica per detectar si una persona ja té una altra assignació en el mateix període.
     -   Aquestes funcions accepten un paràmetre opcional `force: boolean`. La comprovació de conflictes només s'executa si `force` és `false`.
 
 2.  **Senyalització del Conflicte (Workaround):**
-    -   Si es detecta un conflicte, la funció retorna un objecte `{ success: false }` amb un `message` que conté un prefix especial: `DUPLICATE_CONFLICT:`.
+    -   Si es detecta un conflicte, la funció retorna un `warningMessage` que conté un prefix especial: `DUPLICATE_CONFLICT:`.
     -   Aquest mètode de prefixar el missatge es va adoptar com a solució alternativa robusta davant d'errors del compilador de TypeScript que impedien la correcta resolució de tipus més complexos.
 
-3.  **Gestió al Formulari (`AssignmentFormModal.tsx`):**
-    -   El component `AssignmentFormModal` crida a `addAssignment` o `updateAssignment` amb `force: false` inicialment.
-    -   En rebre una resposta amb `success: false`, comprova si el `message` comença amb el prefix `DUPLICATE_CONFLICT:`.
-    -   Si és així, invoca `openModal` per mostrar el diàleg `ConfirmDuplicateModal`.
+3.  **Gestió a la UI (`AssignmentFormModal.tsx` i `MainDisplay.tsx`):**
+    -   Els components que inicien una modificació d'assignació (`AssignmentFormModal` per a la creació/edició i `MainDisplay` per als canvis d'estat ràpids) criden a les accions de l'store amb `force: false` inicialment.
+    -   En rebre una resposta amb el prefix `DUPLICATE_CONFLICT:`, comproven el missatge i invoquen `openModal` per mostrar el diàleg `ConfirmDuplicateModal`, garantint un comportament consistent a tota l'aplicació.
 
 4.  **Confirmació de l'Usuari (`ConfirmDuplicateModal.tsx`):**
     -   Aquest modal mostra el missatge de conflicte (sense el prefix) i pregunta a l'usuari si vol procedir.
@@ -875,9 +874,13 @@ S'ha restaurat la capacitat d'exportar a PDF o CSV només els esdeveniments que 
 
 ### 10.4. Avís de Conflictes en Assignacions
 
-S'ha reimplementat el diàleg modal que adverteix l'usuari quan intenta crear una assignació que se solapa en el temps amb una altra assignació existent per a la mateixa persona.
+S'ha reimplementat i estandarditzat el diàleg modal que adverteix l'usuari quan intenta crear o modificar una assignació que se solapa en el temps amb una altra assignació existent per a la mateixa persona.
 
--   **Arquitectura:** La detecció de conflictes es realitza a l'store (`useEventDataStore`), i si se'n troba un, es comunica a la UI a través d'un missatge de retorn, que el component del formulari (`AssignmentFormModal.tsx`) utilitza per obrir un modal de confirmació (`ConfirmDuplicateModal`).
+-   **Arquitectura:** La detecció de conflictes es realitza a l'store (`useEventDataStore`). Si se'n troba un, es comunica a la UI a través d'un missatge de retorn amb un prefix especial.
+-   **Gestió a la UI:**
+    -   **`AssignmentFormModal.tsx`**: Gestiona els conflictes en crear o editar una assignació completa.
+    -   **`MainDisplay.tsx`**: S'ha corregit un error pel qual l'avís no apareixia en modificar l'estat d'una assignació directament des de la vista principal. Ara, els seus gestors també comproven el missatge de conflicte.
+    -   **Consistència:** Ambdós components utilitzen el mateix modal de confirmació (`ConfirmDuplicateModal`) per oferir una experiència d'usuari unificada.
 
 ### 10.5. Barra de Progrés Detallada per a la Sincronització
 

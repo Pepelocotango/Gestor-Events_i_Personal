@@ -40,6 +40,8 @@ const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairM
 
 import { useRef } from 'react';
 
+let globalInitialLoadAttempted = false;
+
 const App: React.FC = () => {
   const mainDisplayRef = useRef<{ resize: () => void }>(null);
   
@@ -87,7 +89,6 @@ const App: React.FC = () => {
   } = useEventDataStore.getState();
 
   const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
-  const [initialLoadAttempted, setInitialLoadAttempted] = useState<boolean>(false);
 
   const showToast: ShowToastFunction = useCallback((message, type = 'success') => {
     switch (type) {
@@ -358,11 +359,11 @@ const App: React.FC = () => {
             setHasUnsavedChanges(false);
             setSplashConfigLoaded(true);
         }
-        setInitialLoadAttempted(true);
+        globalInitialLoadAttempted = true;
         logger.info('[Startup] App.tsx: Marcat initialLoadAttempted com a true.');
     };
 
-    if (!initialLoadAttempted) {
+    if (!globalInitialLoadAttempted) {
         logger.info('[Startup] App.tsx: Primer render, cridant a attemptInitialLoad.');
         attemptInitialLoad();
     }

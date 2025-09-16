@@ -1,5 +1,4 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, ShowToastFunction, AssignmentStatus } from '../../types';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -13,10 +12,9 @@ interface EventFrameFormModalProps {
 }
 
 export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClose, showToast }) => {
-  const { addEventFrame, updateEventFrame, setFilterUIEventFrame } = useEventDataStore.getState();
+  const { addEventFrame, updateEventFrame, showAndHighlightEvent } = useEventDataStore.getState();
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const { data, updateModalData, openModal } = useModalStore();
-  const navigate = useNavigate();
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [eventNameDatalistId] = useState(() => `event-name-datalist-${Math.random().toString(36).substring(2, 9)}`);
@@ -69,14 +67,6 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
       showToast("Marc d'esdeveniment afegit.", 'success');
     }
     onClose();
-  };
-
-  const handleNavigateToAssignments = () => {
-    if (data.eventFrameToEdit?.id) {
-      setFilterUIEventFrame(data.eventFrameToEdit.id);
-      navigate('/');
-      onClose();
-    }
   };
 
    const handleCreateAndAssign = () => {
@@ -157,13 +147,18 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
       <div className="flex justify-between items-center pt-2">
         <div>
           {isEditing && (
-            <Tooltip text="Anar a la llista i filtrar per aquest esdeveniment">
+            <Tooltip text="Ressaltar aquest marc a la llista principal">
               <button
                 type="button"
-                onClick={handleNavigateToAssignments}
-                className="px-3 py-1 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md"
+                onClick={() => {
+                  if (data.eventFrameToEdit?.id) {
+                    showAndHighlightEvent(data.eventFrameToEdit.id);
+                  }
+                  // No tanquem el modal per evitar condicions de cursa
+                }}
+                className="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
               >
-                Anar a Assignacions
+                Mostrar a la llista
               </button>
             </Tooltip>
           )}

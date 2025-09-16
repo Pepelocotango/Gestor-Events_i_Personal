@@ -52,7 +52,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── Controls.tsx            # Barra de controls superior (desar, carregar, tema, etc.). [REFACTORITZAT: usa stores]
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.
 │   │   ├── EventFrameCard.tsx      # Renderitza una targeta per a un esdeveniment marc a la llista. [REFACTORITZAT: usa eventDataStore]
-│   │   ├── MainDisplay.tsx         # Vista principal amb el calendari i la llista d'esdeveniments. [REFACTORITZAT: usa stores]
+│   │   ├── MainDisplay.tsx         # Vista principal. Gestiona la detecció de conflictes en modificar estats. [REFACTORITZAT: usa stores]
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. [REFACTORITZAT: usa eventDataStore]
@@ -82,6 +82,7 @@ enllaç a Gestor-Events_i_Personal/
 │   └── types.ts                  # !! FITXER CRÍTIC !! Defineix totes les interfícies de TypeScript. La font de veritat de les estructures de dades.
 ├── .gitattributes                # Fitxer per definir atributs per a rutes de git.
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
+├── ANALYSIS_REPORT.md            # Informe d'anàlisi de l'estat de la refactorització del codi.
 ├── DEVELOPING.md                 # Documentació tècnica detallada de l'arquitectura i funcionalitats per a desenvolupadors.
 ├── LICENSE                       # Fitxer de llicència del projecte.
 ├── README.md                     # Documentació principal del projecte: funcionalitats, instal·lació i ús.
