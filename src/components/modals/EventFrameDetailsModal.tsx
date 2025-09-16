@@ -45,11 +45,12 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
           <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap p-2 bg-gray-50 dark:bg-gray-700/50 rounded">{eventFrame.generalNotes}</p>
         </div>
       )}
+
       <div>
         <h5 className="font-semibold text-gray-700 dark:text-gray-300">Assignacions ({eventFrame.assignments.length}):</h5>
         {eventFrame.assignments.length > 0 ? (
           <ul className="list-disc list-inside space-y-1 pl-2 text-sm max-h-60 overflow-y-auto">
-            {eventFrame.assignments
+            {[...eventFrame.assignments]
               .sort((a, b) => (peopleGroups.find(p => p.id === a.personGroupId)?.name || '').localeCompare(peopleGroups.find(p => p.id === b.personGroupId)?.name || ''))
               .map(assign => {
               const person = peopleGroups.find(p => p.id === assign.personGroupId);
@@ -69,6 +70,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
           <p className="text-sm text-gray-500 dark:text-gray-400">No hi ha assignacions per aquest esdeveniment.</p>
         )}
       </div>
+      
       <div className="flex justify-between items-center pt-4 mt-4 border-t dark:border-gray-700">
         <Tooltip text="Ressaltar aquest marc a la llista principal">
           <button
