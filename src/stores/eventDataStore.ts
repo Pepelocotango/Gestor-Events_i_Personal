@@ -171,23 +171,18 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             highlightedEventId: null
         }),
         setSyncProgress: (progress: SyncProgressState) => set({ syncProgress: progress }),
-        showAndHighlightEvent: (eventId: string) => {
-            logger.info(`[eventDataStore] showAndHighlightEvent called for ID: ${eventId}`);
-            const newManualExpandedFrameIds = new Set(get().manualExpandedFrameIds);
+        showAndHighlightEvent: (eventId: string) => set((state) => {
+            const newManualExpandedFrameIds = new Set(state.manualExpandedFrameIds);
             newManualExpandedFrameIds.add(eventId);
-            set({
+            return {
                 isEventListExpanded: true,
                 manualExpandedFrameIds: newManualExpandedFrameIds,
                 highlightedEventId: eventId
-            });
-            logger.info(`[eventDataStore] state updated for highlighting:`, { isEventListExpanded: true, highlightedEventId: eventId });
-        },
-        setManualExpandedFrameIds: (updater: (prev: Set<string>) => Set<string>) => {
-            const oldSet = get().manualExpandedFrameIds;
-            const newSet = updater(oldSet);
-            logger.info('[eventDataStore] setManualExpandedFrameIds called.', { from: Array.from(oldSet), to: Array.from(newSet) });
-            set({ manualExpandedFrameIds: newSet });
-        },
+            };
+        }),
+        setManualExpandedFrameIds: (updater: (prev: Set<string>) => Set<string>) => set((state) => ({
+            manualExpandedFrameIds: updater(state.manualExpandedFrameIds)
+        })),
         toggleEventListExpanded: () => set((state) => ({ isEventListExpanded: !state.isEventListExpanded })),
 
         // DATA HYDRATION

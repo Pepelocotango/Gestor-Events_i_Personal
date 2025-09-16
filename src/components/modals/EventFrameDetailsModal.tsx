@@ -1,5 +1,4 @@
 import React from 'react';
-import logger from '../../utils/logger';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import { EventFrame, AssignmentStatus, ShowToastFunction } from '../../types';
@@ -49,7 +48,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
         <h5 className="font-semibold text-gray-700 dark:text-gray-300">Assignacions ({eventFrame.assignments.length}):</h5>
         {eventFrame.assignments.length > 0 ? (
           <ul className="list-disc list-inside space-y-1 pl-2 text-sm max-h-60 overflow-y-auto">
-            {eventFrame.assignments
+            {[...eventFrame.assignments]
               .sort((a, b) => (peopleGroups.find(p => p.id === a.personGroupId)?.name || '').localeCompare(peopleGroups.find(p => p.id === b.personGroupId)?.name || ''))
               .map(assign => {
               const person = peopleGroups.find(p => p.id === assign.personGroupId);
@@ -73,7 +72,6 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
         <Tooltip text="Ressaltar aquest marc a la llista principal">
           <button
             onClick={() => {
-              logger.info(`[EventFrameDetailsModal] "Mostrar a la Llista" clicked for EventFrame ID: ${eventFrame.id}. Calling showAndHighlightEvent...`);
               useEventDataStore.getState().showAndHighlightEvent(eventFrame.id);
               // S'ha eliminat onClose() per solucionar la condició de cursa.
               // L'usuari tancarà el modal manualment.

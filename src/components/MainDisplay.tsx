@@ -15,7 +15,6 @@ import SummaryReports from './SummaryReports';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
 import EventFrameCard from './EventFrameCard';
 import { selectFilteredEventFrames } from '../utils/selectors';
-import logger from '../utils/logger';
 
 interface MainDisplayProps {
   setToastMessage: ShowToastFunction;
@@ -179,43 +178,27 @@ const MainDisplay = React.forwardRef<
   }, [filteredEventFrames, sortOrder]);
 
   useEffect(() => {
-    logger.info(`[MainDisplay] Highlight useEffect triggered. highlightedEventId: ${highlightedEventId}`);
     if (highlightedEventId) {
-      // Afegeix un petit retard per donar temps al DOM a actualitzar-se,
-      // especialment si la secció de la llista estava col·lapsada.
       const effectTimer = setTimeout(() => {
-        logger.info(`[MainDisplay] Highlight setTimeout running for ID: ${highlightedEventId}`);
         const element = document.getElementById(`event-card-${highlightedEventId}`);
-
         if (!element) {
-          logger.warn(`[MainDisplay] Highlight Effect: Element with ID event-card-${highlightedEventId} not found in DOM.`);
           return;
         }
-
-        logger.info(`[MainDisplay] Highlight Effect: Element found. Scrolling and highlighting.`);
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('highlight-event-frame');
-
         const highlightEndTimer = setTimeout(() => {
           element.classList.remove('highlight-event-frame');
           useEventDataStore.getState().setHighlightedEventId(null);
         }, 3000);
-
         return () => clearTimeout(highlightEndTimer);
-      }, 100); // 100ms de retard
-
+      }, 100);
       return () => clearTimeout(effectTimer);
     }
   }, [highlightedEventId, filteredAndSortedEventFrames]);
 
-  useEffect(() => {
-    logger.info(`[MainDisplay] manualExpandedFrameIds state changed:`, Array.from(manualExpandedFrameIds));
-  }, [manualExpandedFrameIds]);
-
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
   const handleToggleExpand = (id: string) => {
-    logger.info(`[MainDisplay] handleToggleExpand called for ID: ${id}`);
     setManualExpandedFrameIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
