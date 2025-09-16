@@ -1,4 +1,5 @@
 import { forwardRef, useMemo } from 'react';
+import logger from '@/utils/logger';
 import { useModalStore } from '@/stores/modalStore';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '@/types';
