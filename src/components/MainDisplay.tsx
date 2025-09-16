@@ -289,48 +289,66 @@ const MainDisplay = React.forwardRef<
   const handleGeneralStatusChange = (eventFrameId: string, assignmentId: string, newStatus: AssignmentStatus) => {
     const assignment = getAssignmentById(eventFrameId, assignmentId);
     if (!assignment) return;
-    const performUpdate = () => {
-        const result = updateAssignment({ ...assignment, status: newStatus, dailyStatuses: undefined });
+
+    const performUpdate = (force = false) => {
+        const result = updateAssignment({ ...assignment, status: newStatus, dailyStatuses: undefined }, force);
         if (result.success) {
-            setToastMessage(`Estat general de l'assignació actualitzat a ${newStatus}`, 'success');
-            setManualExpandedDailyView(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(assignmentId);
-                return newSet;
-            });
-            if (result.warningMessage && newStatus !== AssignmentStatus.No) {
-                // setConflictDialog({ message: result.warningMessage, personName: peopleMap.get(assignment.personGroupId) || 'N/A' });
+            if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+                openModal('confirmDuplicate', {
+                    message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+                    onConfirm: () => performUpdate(true),
+                });
+            } else {
+                setToastMessage(`Estat general de l'assignació actualitzat a ${newStatus}`, 'success');
+                setManualExpandedDailyView(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(assignmentId);
+                    return newSet;
+                });
             }
         } else if (result.message) {
             setToastMessage(result.message, 'error');
         }
     };
+
     if (assignment.status === AssignmentStatus.Mixed) {
         openModal('confirmDeleteEventFrame', {
             itemType: "Actualització massiva",
             itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${peopleMap.get(assignment.personGroupId) || ''}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
-            onConfirmSpecial: performUpdate, titleOverride: "Confirmar Canvi General", confirmButtonText: "Sí, canviar tot", cancelButtonText: "No, mantenir estats diaris"
+            onConfirmSpecial: () => performUpdate(false),
+            titleOverride: "Confirmar Canvi General",
+            confirmButtonText: "Sí, canviar tot",
+            cancelButtonText: "No, mantenir estats diaris"
         });
     } else {
-        performUpdate();
+        performUpdate(false);
     }
   };
   
   const handleDailyStatusChange = (_efId: string, assign: Assignment, dateYYYYMMDD: string, newDailyStatus: AssignmentStatus) => {
-    const newDailyStatuses = assign.dailyStatuses ? { ...assign.dailyStatuses } : 
-        Array.from({ length: (new Date(assign.endDate).getTime() - new Date(assign.startDate).getTime()) / (1000 * 3600 * 24) + 1 }, (_, i) => addDaysISO(assign.startDate, i))
-       .reduce((acc, date) => { acc[date] = assign.status; return acc; }, {} as { [date: string]: AssignmentStatus });
+    const performUpdate = (force = false) => {
+        const newDailyStatuses = assign.dailyStatuses ? { ...assign.dailyStatuses } :
+            Array.from({ length: (new Date(assign.endDate).getTime() - new Date(assign.startDate).getTime()) / (1000 * 3600 * 24) + 1 }, (_, i) => addDaysISO(assign.startDate, i))
+           .reduce((acc, date) => { acc[date] = assign.status; return acc; }, {} as { [date: string]: AssignmentStatus });
+
         newDailyStatuses[dateYYYYMMDD] = newDailyStatus;
-    const newAssignmentData = { ...assign, status: AssignmentStatus.Mixed, dailyStatuses: newDailyStatuses };
-    const result = updateAssignment(newAssignmentData, false, { changedDate: dateYYYYMMDD });
-    if (result.success) {
-      setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
-      if (result.warningMessage && newDailyStatus !== AssignmentStatus.No) {
-        // setConflictDialog({ message: result.warningMessage, personName: person?.name || 'Desconeguda' });
-      }
-    } else if (result.message) {
-      setToastMessage(result.message, 'error');
-    }
+        const newAssignmentData = { ...assign, status: AssignmentStatus.Mixed, dailyStatuses: newDailyStatuses };
+        const result = updateAssignment(newAssignmentData, force, { changedDate: dateYYYYMMDD });
+
+        if (result.success) {
+            if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+                openModal('confirmDuplicate', {
+                    message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+                    onConfirm: () => performUpdate(true),
+                });
+            } else {
+                setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
+            }
+        } else if (result.message) {
+          setToastMessage(result.message, 'error');
+        }
+    };
+    performUpdate(false);
   };
 
   const handleEditAssignment = (eventFrameId: string, assignmentId: string) => {
@@ -464,8 +482,6 @@ const MainDisplay = React.forwardRef<
       <CollapsibleSection title="Resums" icon={<ChartBarIcon />} defaultOpen={false} id="summary-section">
          <SummaryReports setToastMessage={setToastMessage} />
       </CollapsibleSection>
-
-      {/* {conflictDialog && <Modal isOpen={true} onClose={() => setConflictDialog(null)} title="Conflicte detectat"><p>{conflictDialog.message}</p><p><strong>Persona:</strong> {conflictDialog.personName}</p><button onClick={() => setConflictDialog(null)} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Tanca</button></Modal>} */}
     </div>
   );
 });
