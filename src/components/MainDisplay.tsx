@@ -102,6 +102,7 @@ const MainDisplay = React.forwardRef<
   const localFilterUIPerson = useEventDataStore(state => state.localFilterUIPerson);
   const filterPlace = useEventDataStore(state => state.filterPlace);
   const filterUIEventFrame = useEventDataStore(state => state.filterUIEventFrame);
+  const setManualExpandedFrameIds = useEventDataStore(state => state.setManualExpandedFrameIds);
 
   // --- Actions from Zustand Store (Non-reactive) ---
   // Actions are stable and can be safely retrieved once.
@@ -118,7 +119,6 @@ const MainDisplay = React.forwardRef<
     setFilterPlace,
     setFilterUIEventFrame,
     clearAllFilters,
-    setManualExpandedFrameIds,
   } = useEventDataStore.getState();
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -180,24 +180,30 @@ const MainDisplay = React.forwardRef<
 
   useEffect(() => {
     if (highlightedEventId) {
-      logger.info(`[Highlight Effect] Effect triggered for ID: ${highlightedEventId}`);
-      const element = document.getElementById(`event-card-${highlightedEventId}`);
+      // Afegeix un petit retard per donar temps al DOM a actualitzar-se,
+      // especialment si la secció de la llista estava col·lapsada.
+      const effectTimer = setTimeout(() => {
+        logger.info(`[Highlight Effect] Effect triggered for ID: ${highlightedEventId}`);
+        const element = document.getElementById(`event-card-${highlightedEventId}`);
 
-      if (!element) {
-        logger.warn(`[Highlight Effect] Element with ID event-card-${highlightedEventId} not found in DOM.`);
-        return;
-      }
+        if (!element) {
+          logger.warn(`[Highlight Effect] Element with ID event-card-${highlightedEventId} not found in DOM.`);
+          return;
+        }
 
-      logger.info(`[Highlight Effect] Element found. Scrolling and highlighting.`);
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      element.classList.add('highlight-event-frame');
+        logger.info(`[Highlight Effect] Element found. Scrolling and highlighting.`);
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('highlight-event-frame');
 
-      const timer = setTimeout(() => {
-        element.classList.remove('highlight-event-frame');
-        useEventDataStore.getState().setHighlightedEventId(null);
-      }, 3000);
+        const highlightEndTimer = setTimeout(() => {
+          element.classList.remove('highlight-event-frame');
+          useEventDataStore.getState().setHighlightedEventId(null);
+        }, 3000);
 
-      return () => clearTimeout(timer);
+        return () => clearTimeout(highlightEndTimer);
+      }, 100); // 100ms de retard
+
+      return () => clearTimeout(effectTimer);
     }
   }, [highlightedEventId, filteredAndSortedEventFrames]);
 
@@ -205,8 +211,7 @@ const MainDisplay = React.forwardRef<
 
   const handleToggleExpand = (id: string) => {
     logger.info(`[UI Interaction] Toggle manual expansion for EventFrame ID: ${id}`);
-    // Explicitly call the store action
-    useEventDataStore.getState().setManualExpandedFrameIds((prev) => {
+    setManualExpandedFrameIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
         newSet.delete(id);

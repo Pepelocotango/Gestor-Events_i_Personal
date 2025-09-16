@@ -847,7 +847,7 @@ Després de la migració a Zustand, algunes interaccions de la UI es van haver d
 
 S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment les targetes d'esdeveniments.
 
--   **Gestió d'Esdeveniments de Clic (`EventFrameCard.tsx`):** S'ha corregit un error en el gestor d'esdeveniments de la capçalera de la targeta. La lògica `onClick` ara comprova si l'objectiu del clic és exactament la capçalera (`e.target === e.currentTarget`). Això soluciona un bug que impedia l'expansió/col·lapse en determinades circumstàncies, assegurant que els clics en elements fills (com botons o el títol) no interfereixin amb l'acció de la capçalera.
+-   **Gestió d'Esdeveniments de Clic (`EventFrameCard.tsx`):** La capçalera de la targeta gestiona els clics per evitar conflictes. Utilitza `e.stopPropagation()` en els botons interns per assegurar que només el clic a la capçalera activi l'expansió, cridant a la funció `onToggleExpand`.
 -   **Estat a l'Store (`eventDataStore.ts`):**
     -   `manualExpandedFrameIds: Set<string>`: Emmagatzema els IDs de les targetes que l'usuari ha expandit manualment.
     -   `setManualExpandedFrameIds()`: L'acció per modificar aquest conjunt.
@@ -859,13 +859,12 @@ S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment le
 
 S'ha restaurat l'acció "Mostrar a la Llista" i s'ha corregit una condició de cursa que impedia que funcionés de manera fiable.
 
--   **Acció Centralitzada (`eventDataStore.ts`):** L'acció `showAndHighlightEvent(eventId: string)` estableix l'estat per expandir la llista i ressaltar l'element desitjat.
--   **Activació i Correcció de Cursa (`EventFrameDetailsModal.tsx`):**
-    -   El botó "Mostrar a la Llista" crida a l'acció de l'store.
-    -   S'ha corregit una **condició de cursa** eliminant la crida a `onClose()` immediatament després de l'acció. Això evita que el modal es tanqui abans que React pugui processar els canvis d'estat i renderitzar l'element a ressaltar, garantint que l'efecte visual es pugui aplicar de manera fiable. L'usuari tanca el modal manualment.
--   **Efecte Visual (`MainDisplay.tsx`):**
-    -   Un `useEffect` depèn de `highlightedEventId` i `filteredAndSortedEventFrames` per assegurar-se que l'element existeix al DOM abans d'intentar interactuar amb ell.
-    -   L'efecte fa `scrollIntoView()`, afegeix una classe CSS per a l'animació de ressaltat, i la neteja després de 3 segons.
+-   **Acció Centralitzada (`eventDataStore.ts`):** L'acció `showAndHighlightEvent(eventId: string)` estableix l'estat per expandir la llista i ressaltar un element.
+-   **Activació (`EventFrameDetailsModal.tsx`):** El botó corresponent crida a l'acció anterior.
+-   **Efecte Visual Corregit (`MainDisplay.tsx`):**
+    -   S'ha corregit una **condició de cursa** (race condition). El `useEffect` que gestiona el ressaltat ara depèn de `highlightedEventId` i també de `filteredAndSortedEventFrames`.
+    -   **Explicació:** Això garanteix que l'efecte només s'executi després que React hagi renderitzat la llista d'esdeveniments (si estava col·lapsada). D'aquesta manera, quan `document.getElementById` busca la targeta, aquesta ja existeix al DOM.
+    -   L'efecte fa `scrollIntoView()`, afegeix una classe CSS per a l'animació, i la neteja després de 3 segons.
 
 ### 10.3. Exportació de Vistes Filtrades (PDF/CSV)
 
