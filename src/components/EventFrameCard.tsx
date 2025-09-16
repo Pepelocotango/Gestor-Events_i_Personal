@@ -48,13 +48,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       <div
         className="p-1 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
         onClick={(e) => {
-          e.stopPropagation();
-          // Only toggle expand if the click is not on an interactive element like a button.
-          // Those elements have their own onClick handlers with e.stopPropagation().
-          if ((e.target as HTMLElement).closest('button, input, select, a')) {
-            return;
+          // Aquesta comprovació assegura que l'expansió només s'activa en fer clic
+          // directament a la capçalera, i no als seus botons o títol,
+          // que tenen els seus propis gestors d'esdeveniments amb e.stopPropagation().
+          if (e.target === e.currentTarget) {
+            onToggleExpand(eventFrame.id);
           }
-          onToggleExpand(eventFrame.id);
         }}
       >
         <div className="flex flex-col sm:flex-row justify-between sm:items-center">

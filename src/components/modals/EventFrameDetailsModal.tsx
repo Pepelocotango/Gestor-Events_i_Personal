@@ -75,7 +75,8 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
             onClick={() => {
               logger.info(`[UI Interaction] "Mostrar a la Llista" clicked for EventFrame ID: ${eventFrame.id}`);
               useEventDataStore.getState().showAndHighlightEvent(eventFrame.id);
-              onClose();
+              // S'ha eliminat onClose() per solucionar la condició de cursa.
+              // L'usuari tancarà el modal manualment.
             }}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
           >
