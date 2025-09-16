@@ -73,7 +73,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
         <Tooltip text="Ressaltar aquest marc a la llista principal">
           <button
             onClick={() => {
-              logger.info(`[UI Interaction] "Mostrar a la Llista" clicked for EventFrame ID: ${eventFrame.id}`);
+              logger.info(`[EventFrameDetailsModal] "Mostrar a la Llista" clicked for EventFrame ID: ${eventFrame.id}. Calling showAndHighlightEvent...`);
               useEventDataStore.getState().showAndHighlightEvent(eventFrame.id);
               // S'ha eliminat onClose() per solucionar la condició de cursa.
               // L'usuari tancarà el modal manualment.

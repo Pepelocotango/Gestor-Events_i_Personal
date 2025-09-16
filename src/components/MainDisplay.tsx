@@ -179,19 +179,20 @@ const MainDisplay = React.forwardRef<
   }, [filteredEventFrames, sortOrder]);
 
   useEffect(() => {
+    logger.info(`[MainDisplay] Highlight useEffect triggered. highlightedEventId: ${highlightedEventId}`);
     if (highlightedEventId) {
       // Afegeix un petit retard per donar temps al DOM a actualitzar-se,
       // especialment si la secció de la llista estava col·lapsada.
       const effectTimer = setTimeout(() => {
-        logger.info(`[Highlight Effect] Effect triggered for ID: ${highlightedEventId}`);
+        logger.info(`[MainDisplay] Highlight setTimeout running for ID: ${highlightedEventId}`);
         const element = document.getElementById(`event-card-${highlightedEventId}`);
 
         if (!element) {
-          logger.warn(`[Highlight Effect] Element with ID event-card-${highlightedEventId} not found in DOM.`);
+          logger.warn(`[MainDisplay] Highlight Effect: Element with ID event-card-${highlightedEventId} not found in DOM.`);
           return;
         }
 
-        logger.info(`[Highlight Effect] Element found. Scrolling and highlighting.`);
+        logger.info(`[MainDisplay] Highlight Effect: Element found. Scrolling and highlighting.`);
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('highlight-event-frame');
 
@@ -207,10 +208,14 @@ const MainDisplay = React.forwardRef<
     }
   }, [highlightedEventId, filteredAndSortedEventFrames]);
 
+  useEffect(() => {
+    logger.info(`[MainDisplay] manualExpandedFrameIds state changed:`, Array.from(manualExpandedFrameIds));
+  }, [manualExpandedFrameIds]);
+
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
   const handleToggleExpand = (id: string) => {
-    logger.info(`[UI Interaction] Toggle manual expansion for EventFrame ID: ${id}`);
+    logger.info(`[MainDisplay] handleToggleExpand called for ID: ${id}`);
     setManualExpandedFrameIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {

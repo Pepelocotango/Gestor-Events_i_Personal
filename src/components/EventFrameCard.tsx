@@ -28,6 +28,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
 }, ref) => {
+  logger.info(`[EventFrameCard] Render for ${eventFrame.name}. isExpanded: ${isExpanded}`);
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -115,7 +116,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
-              <button onClick={(e) => { e.stopPropagation(); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+              <button onClick={(e) => { e.stopPropagation(); logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
                 {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
               </button>
             </Tooltip>
