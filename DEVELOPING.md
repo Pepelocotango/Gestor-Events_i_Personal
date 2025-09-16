@@ -1,4 +1,4 @@
-branca de desenvolupament feature/fix-regressions ## ->PROVES DE REFACTORITZACIÓ
+branca de desenvolupament * REFAC_OK-PER-REVISAR16-9-25 ## ->PROVES DE REFACTORITZACIÓ
 ## DEVELOPING.md V1.0.0
 
 
