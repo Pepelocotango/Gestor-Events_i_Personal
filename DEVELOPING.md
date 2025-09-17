@@ -355,6 +355,7 @@ Aquesta arquitectura centralitza la lògica de l'estat del formulari, fent-la ac
 Per donar resposta a la necessitat que les àrees de text s'ajustin al seu contingut, s'ha creat un nou component a `src/components/ui/AutosizeTextarea.tsx`.
 
 -   **Funcionament:** El component embolcalla un `<textarea>` estàndard. Utilitza el hook `useLayoutEffect` per recalcular i ajustar l'alçada de l'element cada vegada que el seu valor canvia. `useLayoutEffect` es fa servir en lloc de `useEffect` per evitar un parpelleig visual, ja que el càlcul es realitza de manera síncrona després de les mutacions del DOM.
+-   **Gestió de `ref` (Ref Forwarding):** Per solucionar l'advertència de React "Function components cannot be given refs", el component està embolicat amb `React.forwardRef`. Això li permet rebre una `ref` d'un component pare (com el component `Tooltip`, que la necessita per posicionar-se) i passar-la directament a l'element `<textarea>` intern. La lògica de `useLayoutEffect` també ha estat actualitzada per utilitzar aquesta `ref` reenviada.
 -   **Integració:** Per aplicar aquest canvi de manera eficient, el component genèric `TechSheetField.tsx` ha estat modificat per renderitzar `AutosizeTextarea` quan se li passa la propietat `as="textarea"`. La resta de formularis de l'aplicació també han estat actualitzats per utilitzar aquest nou component.
 
 ### 4.4. Model de Dades i Tipus (`src/types.ts`)
