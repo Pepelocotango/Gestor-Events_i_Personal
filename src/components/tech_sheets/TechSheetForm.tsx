@@ -752,27 +752,32 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 </div>
 
                 <div className="space-y-2">
-                  {items.map((item, index) => (
-                    <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
-                       <div className="col-span-3">
-                        <TechSheetField id={`schedule-date-${item.id}`} label={index === 0 ? "Data" : ""} value={item.date} onChange={(e) => handleAssemblyScheduleChange(item.id, 'date', e.target.value)} type="date" tooltipText="Canviar la data mourà aquest ítem a una altra agrupació."/>
+                  {items.map((item, index) => {
+                    const isNewItem = date === 'Sense data';
+                    return (
+                      <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
+                        {isNewItem && (
+                          <div className="col-span-3">
+                            <TechSheetField id={`schedule-date-${item.id}`} label={index === 0 ? "Data" : ""} value={item.date} onChange={(e) => handleAssemblyScheduleChange(item.id, 'date', e.target.value)} type="date" tooltipText="Assigna una data per moure aquest ítem al seu grup."/>
+                          </div>
+                        )}
+                        <div className="col-span-2">
+                          <TechSheetField id={`schedule-time-${item.id}`} label={index === 0 ? "Hora Inici" : ""} value={item.time} onChange={(e) => handleAssemblyScheduleChange(item.id, 'time', e.target.value)} type="time" tooltipText="Hora d'inici de l'activitat."/>
+                        </div>
+                        <div className="col-span-2">
+                          <TechSheetField id={`schedule-time-end-${item.id}`} label={index === 0 ? "Hora Fi" : ""} value={item.timeEnd || ''} onChange={(e) => handleAssemblyScheduleChange(item.id, 'timeEnd', e.target.value)} type="time" tooltipText="Hora de finalització de l'activitat (opcional)."/>
+                        </div>
+                        <div className={isNewItem ? "col-span-4" : "col-span-7"}>
+                          <TechSheetField id={`schedule-desc-${item.id}`} label={index === 0 ? "Descripció" : ""} value={item.description} onChange={(e) => handleAssemblyScheduleChange(item.id, 'description', e.target.value)} as="textarea" rows={1} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
+                        </div>
+                        <div className="col-span-1 flex-shrink-0 self-center pt-5">
+                          <Tooltip text="Eliminar aquesta línia d'horari">
+                            <button type="button" onClick={() => handleRemoveAssemblyScheduleItem(item.id)} className="remove-item-button text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
+                          </Tooltip>
+                        </div>
                       </div>
-                      <div className="col-span-2">
-                        <TechSheetField id={`schedule-time-${item.id}`} label={index === 0 ? "Hora Inici" : ""} value={item.time} onChange={(e) => handleAssemblyScheduleChange(item.id, 'time', e.target.value)} type="time" tooltipText="Hora d'inici de l'activitat."/>
-                      </div>
-                      <div className="col-span-2">
-                        <TechSheetField id={`schedule-time-end-${item.id}`} label={index === 0 ? "Hora Fi" : ""} value={item.timeEnd || ''} onChange={(e) => handleAssemblyScheduleChange(item.id, 'timeEnd', e.target.value)} type="time" tooltipText="Hora de finalització de l'activitat (opcional)."/>
-                      </div>
-                      <div className="col-span-4">
-                        <TechSheetField id={`schedule-desc-${item.id}`} label={index === 0 ? "Descripció" : ""} value={item.description} onChange={(e) => handleAssemblyScheduleChange(item.id, 'description', e.target.value)} as="textarea" rows={1} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
-                      </div>
-                      <div className="col-span-1 flex-shrink-0 self-center pt-5">
-                        <Tooltip text="Eliminar aquesta línia d'horari">
-                          <button type="button" onClick={() => handleRemoveAssemblyScheduleItem(item.id)} className="remove-item-button text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
