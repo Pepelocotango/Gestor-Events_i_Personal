@@ -1,11 +1,11 @@
-import React, { useState, FormEvent, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { MaterialItem, ShowToastFunction } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
 import { exportMaterialToPdf } from '../utils/pdfGenerator';
 import CollapsibleSection from './ui/CollapsibleSection';
 import Tooltip from './ui/Tooltip';
-import AutosizeTextarea from './ui/AutosizeTextarea';
+import MaterialForm from './forms/MaterialForm';
 
 const SortArrow = ({ direction }: { direction: 'ascending' | 'descending' | null }) => {
   if (!direction) return null;
@@ -21,12 +21,6 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   const materialItems = useEventDataStore(state => state.materialItems);
   
   const [editingItem, setEditingItem] = useState<MaterialItem | null>(null);
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
-  const [stock, setStock] = useState(1);
-  const [location, setLocation] = useState('');
-  const [notes, setNotes] = useState('');
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [search, setSearch] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof MaterialItem; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
   const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
@@ -38,37 +32,13 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
 
   const resetForm = () => {
     setEditingItem(null);
-    setName('');
-    setCategory('');
-    setStock(1);
-    setLocation('');
-    setNotes('');
-    setErrors({});
   };
 
   const handleEdit = (item: MaterialItem) => {
     setEditingItem(item);
-    setName(item.name);
-    setCategory(item.category);
-    setStock(item.stock);
-    setLocation(item.location);
-    setNotes(item.notes || '');
   };
   
-  const validate = (): boolean => {
-    const newErrors: { [key: string]: string } = {};
-    if (!name.trim()) newErrors.name = "El nom és obligatori.";
-    if (!category.trim()) newErrors.category = "La categoria és obligatòria.";
-    if (stock < 0) newErrors.stock = "L'estoc no pot ser negatiu.";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-    
-    const itemData = { name, category, stock: Number(stock), location, notes };
+  const handleSubmit = (itemData: Omit<MaterialItem, 'id'>) => {
     if (editingItem) {
       updateMaterialItem({ ...editingItem, ...itemData });
       showToast('Material actualitzat.', 'success');
@@ -210,64 +180,17 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Columna del formulari */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">
-              {editingItem ? 'Editar Material' : 'Afegir Nou Material'}
-            </h4>
-            
-            <div>
-              <label htmlFor="mat-name" className="block text-sm font-medium">Nom</label>
-              <Tooltip text="Nom de l'ítem de material">
-                <input type="text" id="mat-name" value={name} onChange={e => setName(e.target.value)} className={commonInputClass} required />
-              </Tooltip>
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="mat-category" className="block text-sm font-medium">Categoria</label>
-              <Tooltip text="Categoria a la que pertany l'ítem">
-                <input type="text" id="mat-category" value={category} onChange={e => setCategory(e.target.value)} className={commonInputClass} list="category-suggestions" required />
-              </Tooltip>
-              <datalist id="category-suggestions">
-                {categories.map((cat: string) => <option key={cat} value={cat} />)}
-              </datalist>
-              {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="mat-stock" className="block text-sm font-medium">Estoc</label>
-                <Tooltip text="Quantitat total d'aquest ítem en inventari">
-                  <input type="number" id="mat-stock" value={stock} onChange={e => setStock(Number(e.target.value))} className={commonInputClass} min="0" required />
-                </Tooltip>
-                {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock}</p>}
-              </div>
-              <div>
-                <label htmlFor="mat-location" className="block text-sm font-medium">Ubicació</label>
-                <Tooltip text="On es guarda aquest ítem (opcional)">
-                  <input type="text" id="mat-location" value={location} onChange={e => setLocation(e.target.value)} className={commonInputClass} />
-                </Tooltip>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="mat-notes" className="block text-sm font-medium">Notes</label>
-              <Tooltip text="Anotacions addicionals sobre l'ítem (opcional)">
-                <AutosizeTextarea id="mat-notes" value={notes} onChange={e => setNotes(e.target.value)} className={`${commonInputClass} resize-none overflow-hidden`} rows={3} />
-              </Tooltip>
-            </div>
-            
-            <div className="flex justify-end space-x-2 pt-2">
-              {editingItem && (
-                <Tooltip text="Descartar canvis i netejar el formulari">
-                  <button type="button" onClick={resetForm} className="px-3 py-1.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 rounded-md">Cancel·lar</button>
-                </Tooltip>
-              )}
-              <Tooltip text={editingItem ? 'Desar els canvis fets a l\'ítem' : 'Afegir el nou ítem a l\'inventari'}>
-                <button type="submit" className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">{editingItem ? 'Actualitzar' : 'Afegir'}</button>
-              </Tooltip>
-            </div>
-          </form>
+          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+            {editingItem ? 'Editar Material' : 'Afegir Nou Material'}
+          </h4>
+          <MaterialForm
+            key={editingItem ? editingItem.id : 'new'}
+            initialData={editingItem || {}}
+            onSubmit={handleSubmit}
+            onCancel={editingItem ? resetForm : undefined}
+            submitButtonText={editingItem ? 'Actualitzar' : 'Afegir'}
+            categories={categories}
+          />
         </div>
 
         {/* Columna de la llista */}

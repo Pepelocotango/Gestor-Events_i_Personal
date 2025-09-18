@@ -26,6 +26,7 @@ const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
 
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
 const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFormModal'));
+const AddMaterialFromTechSheetModal = lazy(() => import('./components/modals/AddMaterialFromTechSheetModal'));
 
 const ConfirmDeleteModal = lazy(() => import('./components/modals/ConfirmDeleteModal'));
 const ConfirmDuplicateModal = lazy(() => import('./components/modals/ConfirmDuplicateModal'));
@@ -634,6 +635,8 @@ const App: React.FC = () => {
         return <AssignmentFormModal onClose={closeModal} showToast={showToast} />;
       case 'editAssignment':
         return <AssignmentFormModal onClose={closeModal} showToast={showToast} />;
+      case 'addMaterialFromTechSheet':
+        return <AddMaterialFromTechSheetModal />;
       
       case 'eventFrameDetails':
         return <EventFrameDetailsModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} />;
@@ -755,6 +758,7 @@ const App: React.FC = () => {
       case 'editEventFrame': return "Editar Marc d'Esdeveniment";
       case 'addAssignment': return `Nova Assignació per a: ${data?.eventFrame?.name || ''}`;
       case 'editAssignment': return `Editar Assignació per a: ${data?.eventFrame?.name || ''}`;
+      case 'addMaterialFromTechSheet': return "Afegir Material a l'Inventari";
       case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
       case 'createAppCalendar': return "Crear Nou Calendari de l'App";
       case 'confirmDuplicate': return "Conflicte d'Assignació Detectat";
