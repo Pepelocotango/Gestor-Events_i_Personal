@@ -337,24 +337,33 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
   const handleAddAssemblyScheduleItem = (date?: string) => {
     const newDate = date !== undefined ? date : '';
-
     const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: newDate, time: '', timeEnd: '', description: '' };
 
     setFormData(prev => {
-      const newSchedule = [...(prev.schedule?.data || []), newItem];
-      newSchedule.sort((a, b) => {
-        const dateA = a.date || '';
-        const dateB = b.date || '';
-        if (dateA < dateB) return -1;
-        if (dateA > dateB) return 1;
+      const scheduleData = prev.schedule?.data || [];
+      let newSchedule = [...scheduleData];
 
-        const timeA = a.time || '';
-        const timeB = b.time || '';
-        if (timeA < timeB) return -1;
-        if (timeA > timeB) return 1;
+      if (date) {
+        // If a date is provided, add the new item to the end of that day's group
+        let lastIndexForDate = -1;
+        for (let i = newSchedule.length - 1; i >= 0; i--) {
+          if (newSchedule[i].date === date) {
+            lastIndexForDate = i;
+            break;
+          }
+        }
 
-        return 0;
-      });
+        if (lastIndexForDate !== -1) {
+          newSchedule.splice(lastIndexForDate + 1, 0, newItem);
+        } else {
+          // This case should not happen if the button is only shown for existing dates, but as a fallback:
+          newSchedule.push(newItem);
+        }
+      } else {
+        // If no date is provided, add it to the end (it will be in the "Sense data" group)
+        newSchedule.push(newItem);
+      }
+
       return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
     });
     markAsDirty();
