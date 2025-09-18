@@ -59,6 +59,7 @@ interface EventDataState {
     googleEvents: any[];
     hasUnsavedChanges: boolean;
     isSyncing: boolean;
+    isUpdatingMaterial: boolean;
     syncProgress: SyncProgressState;
     dataRepairInfo: { fixes: any[], repairedData: AppData } | null;
     filterUIEventFrame: string | null;
@@ -119,6 +120,7 @@ interface EventDataActions {
     replaceMaterialItems: (newItems: MaterialItem[]) => void;
     _applyDataToState: (data: AppData) => void;
     clearDataRepairInfo: () => void;
+    setIsUpdatingMaterial: (isUpdating: boolean) => void;
 }
 
 const initialState: EventDataState = {
@@ -128,6 +130,7 @@ const initialState: EventDataState = {
     googleEvents: [],
     hasUnsavedChanges: false,
     isSyncing: false,
+    isUpdatingMaterial: false,
     syncProgress: { current: 0, total: 0, message: '', visible: false },
     dataRepairInfo: null,
     filterUIEventFrame: null,
@@ -148,6 +151,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     immer(
       (set, get) => ({
         ...initialState,
+
+        setIsUpdatingMaterial: (isUpdating: boolean) => set({ isUpdatingMaterial: isUpdating }),
 
         clearDataRepairInfo: () => set({ dataRepairInfo: null }),
 
@@ -451,7 +456,41 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return newItem;
     },
     updateMaterialItem: (updatedItem: MaterialItem) => {
-        set((state: EventDataState) => ({ materialItems: state.materialItems.map((item: MaterialItem) => item.id === updatedItem.id ? updatedItem : item).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        const { setIsUpdatingMaterial } = get();
+        try {
+            setIsUpdatingMaterial(true);
+            set(state => {
+                // 1. Actualitzar l'ítem mestre
+                state.materialItems = state.materialItems.map(item =>
+                    item.id === updatedItem.id ? updatedItem : item
+                ).sort((a, b) => a.name.localeCompare(b.name));
+
+                // 2. Propagar canvis a tota l'app
+                const needsKeys: (keyof TechSheetData)[] = [
+                    'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
+                    'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
+                ];
+
+                state.eventFrames.forEach(eventFrame => {
+                    if (!eventFrame.techSheet) return;
+
+                    needsKeys.forEach(key => {
+                        const section = eventFrame.techSheet![key];
+                        if (section && typeof section === 'object' && 'status' in section && section.status === 'yes' && 'data' in section && section.data && Array.isArray(section.data.needs)) {
+                            section.data.needs.forEach((needItem: NeedItem) => {
+                                if (needItem.materialItemId === updatedItem.id) {
+                                    needItem.description = updatedItem.name;
+                                    needItem.origin = updatedItem.location;
+                                }
+                            });
+                        }
+                    });
+                });
+                state.hasUnsavedChanges = true;
+            });
+        } finally {
+            setIsUpdatingMaterial(false);
+        }
     },
     deleteMaterialItem: (itemId: string) => {
         set((state: EventDataState) => ({ materialItems: state.materialItems.filter((item: MaterialItem) => item.id !== itemId), hasUnsavedChanges: true }));

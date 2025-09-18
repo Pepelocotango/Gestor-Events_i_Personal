@@ -190,6 +190,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
             onCancel={editingItem ? resetForm : undefined}
             submitButtonText={editingItem ? 'Actualitzar' : 'Afegir'}
             categories={categories}
+            materialItems={materialItems}
           />
         </div>
 
