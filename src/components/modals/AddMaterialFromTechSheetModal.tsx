@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import { MaterialItem } from '../../types';
@@ -6,17 +6,33 @@ import { MaterialItem } from '../../types';
 const AddMaterialFromTechSheetModal: React.FC = () => {
   const { addMaterialItem } = useEventDataStore.getState();
   const { closeModal, data: modalData } = useModalStore();
-  const { name, onAdd } = modalData as { name: string; onAdd: (newItem: MaterialItem) => void; };
+
+  const name = modalData?.name;
+  const onAdd = modalData?.onAdd;
 
   const [category, setCategory] = useState('');
   const [stock, setStock] = useState(1);
   const [location, setLocation] = useState('');
+
+  useEffect(() => {
+    // If the modal is opened without the required data, close it as a safeguard.
+    if (!name || typeof onAdd !== 'function') {
+      console.warn('AddMaterialFromTechSheetModal opened with invalid data, closing.');
+      closeModal();
+    }
+  }, [name, onAdd, closeModal]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!category || !location) {
       alert('La categoria i l\'origen són obligatoris.');
       return;
+    }
+
+    // Safeguard against undefined name/onAdd, even though useEffect should prevent this.
+    if (!name || !onAdd) {
+        closeModal();
+        return;
     }
 
     const newItemData: Omit<MaterialItem, 'id'> = {
@@ -35,6 +51,11 @@ const AddMaterialFromTechSheetModal: React.FC = () => {
 
     closeModal();
   };
+
+  // Render nothing if the data is not valid, useEffect will handle closing it.
+  if (!name || typeof onAdd !== 'function') {
+    return null;
+  }
 
   return (
     <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md mx-auto">

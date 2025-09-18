@@ -313,7 +313,7 @@ export const exportTechSheetToPdf = async (
         y = checkPageBreak(y);
         autoTable(pdf, {
             head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
-            body: [['Qt.', 'Càrrec', 'Proveïdor/a o Empresa', 'Notes'], ...personnelBody],
+            body: personnelBody,
             startY: y, theme: 'grid', pageBreak: 'avoid',
             headStyles: { ...headStyles, halign: 'center' as 'center' },
             columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
@@ -341,7 +341,7 @@ export const exportTechSheetToPdf = async (
         });
         autoTable(pdf, {
             head: [[{ content: 'HORARIS', colSpan: 3, styles: headStyles }]],
-            body: [['Data', 'Hores', 'Descripció'], ...scheduleBody],
+            body: scheduleBody,
             startY: y, theme: 'grid', pageBreak: 'avoid',
             columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 30 } },
         });
@@ -364,7 +364,7 @@ export const exportTechSheetToPdf = async (
         y = checkPageBreak(y);
         autoTable(pdf, {
             head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
-            body: [['Ítem', 'Quantitat/Detalls', 'Noms/Notes'], ...logisticsBody],
+            body: logisticsBody,
             startY: y, theme: 'grid', pageBreak: 'avoid',
             columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
         });
@@ -406,7 +406,7 @@ export const exportTechSheetToPdf = async (
         y = checkPageBreak(y);
         autoTable(pdf, {
             head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
-            body: [['Qt.', 'Descripció', 'Origen'], ...needsBody],
+            body: needsBody,
             startY: y, theme: 'grid', pageBreak: 'avoid',
             columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
         });
@@ -441,7 +441,7 @@ export const exportTechSheetToPdf = async (
         y = checkPageBreak(y);
         autoTable(pdf, {
             head: [[{ content: 'CONTACTES COMPANYIA', colSpan: 3, styles: headStyles }]],
-            body: [['Nom', 'Càrrec', 'Contacte'], ...contactBody],
+            body: contactBody,
             startY: y, theme: 'grid', pageBreak: 'avoid',
             columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 50 }, 2: { cellWidth: 'auto' } },
         });

@@ -259,27 +259,43 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     markAsDirty();
   }, []);
 
-  const handleAssemblyScheduleChange = (index: number, field: keyof AssemblyScheduleItem, value: string) => {
+  const handleAssemblyScheduleChange = (id: string, field: keyof AssemblyScheduleItem, value: string) => {
     setFormData(prev => {
-        const newSchedule = [...(prev.schedule?.data || [])];
-        newSchedule[index] = { ...newSchedule[index], [field]: value };
-        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
+      const newSchedule = [...(prev.schedule?.data || [])];
+      const index = newSchedule.findIndex(item => item.id === id);
+      if (index === -1) return prev;
+
+      const updatedItem = { ...newSchedule[index], [field]: value };
+      newSchedule[index] = updatedItem;
+
+      // Si la data canvia, reordenem per mantenir les dates agrupades
+      if (field === 'date') {
+        newSchedule.sort((a, b) => a.date.localeCompare(b.date));
+      }
+
+      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
     });
     markAsDirty();
   };
 
-  const handleAddAssemblyScheduleItem = () => {
-    const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: eventFrame.startDate, time: '', timeEnd: '', description: '' };
+  const handleAddAssemblyScheduleItem = (date?: string) => {
+    const newDate = date || (formData.schedule?.data && formData.schedule.data.length > 0
+      ? formData.schedule.data[formData.schedule.data.length - 1].date
+      : eventFrame.startDate);
+
+    const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: newDate, time: '', timeEnd: '', description: '' };
+
     setFormData(prev => {
-        const newSchedule = [...(prev.schedule?.data || []), newItem];
-        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
+      const newSchedule = [...(prev.schedule?.data || []), newItem];
+      newSchedule.sort((a, b) => a.date.localeCompare(b.date));
+      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
     });
     markAsDirty();
   };
 
-  const handleRemoveAssemblyScheduleItem = (index: number) => {
+  const handleRemoveAssemblyScheduleItem = (id: string) => {
     setFormData(prev => {
-        const newSchedule = (prev.schedule?.data || []).filter((_, i) => i !== index);
+        const newSchedule = (prev.schedule?.data || []).filter(item => item.id !== id);
         return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
     });
     markAsDirty();
@@ -633,6 +649,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         title="Personal Tècnic"
         isOpen={expandedSections.personnel}
         onToggle={() => handleToggleSection('personnel')}
+        layout="single-column"
       >
         <TechnicalPersonnelSection
           technicalProviders={formData.technicalProviders || []}
@@ -687,31 +704,55 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
           onStatusChange={(status) => handleConditionalChange('schedule', { status })}
           tooltipText="Activa aquesta secció per detallar la planificació horària de l'esdeveniment."
         >
-          <div className="col-span-full space-y-2 mt-4">
-            {(formData.schedule?.data || []).map((item, index) => (
-              <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
-                <div className="col-span-3">
-                  <TechSheetField id={`schedule-date-${index}`} label="Data" value={item.date} onChange={(e) => handleAssemblyScheduleChange(index, 'date', e.target.value)} type="date" tooltipText="Data de l'activitat programada."/>
-                </div>
-                <div className="col-span-2">
-                  <TechSheetField id={`schedule-time-${index}`} label="Hora Inici" value={item.time} onChange={(e) => handleAssemblyScheduleChange(index, 'time', e.target.value)} type="time" tooltipText="Hora d'inici de l'activitat."/>
-                </div>
-                <div className="col-span-2">
-                  <TechSheetField id={`schedule-time-end-${index}`} label="Hora Fi" value={item.timeEnd || ''} onChange={(e) => handleAssemblyScheduleChange(index, 'timeEnd', e.target.value)} type="time" tooltipText="Hora de finalització de l'activitat (opcional)."/>
-                </div>
-                <div className="col-span-4">
-                  <TechSheetField id={`schedule-desc-${index}`} label="Descripció" value={item.description} onChange={(e) => handleAssemblyScheduleChange(index, 'description', e.target.value)} as="textarea" rows={1} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
-                </div>
-                <div className="col-span-1 flex-shrink-0 pt-7">
-                  <Tooltip text="Eliminar aquesta línia d'horari">
-                    <button type="button" onClick={() => handleRemoveAssemblyScheduleItem(index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
+          <div className="col-span-full space-y-4 mt-4">
+            {Object.entries(
+              (formData.schedule?.data || []).reduce((acc, item) => {
+                const date = item.date || 'Sense data';
+                if (!acc[date]) {
+                  acc[date] = [];
+                }
+                acc[date].push(item);
+                return acc;
+              }, {} as Record<string, AssemblyScheduleItem[]>)
+            ).map(([date, items]) => (
+              <div key={date} className="p-3 border rounded-md bg-gray-50 dark:bg-gray-700/50">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200">
+                    Data: {formatDateDMY(date)}
+                  </h4>
+                  <Tooltip text={`Afegir una nova línia d'horari per al ${formatDateDMY(date)}`}>
+                    <button type="button" onClick={() => handleAddAssemblyScheduleItem(date)} className="add-item-button px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">+ Afegir Horari</button>
                   </Tooltip>
+                </div>
+
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
+                       <div className="col-span-3">
+                        <TechSheetField id={`schedule-date-${item.id}`} label="Data" value={item.date} onChange={(e) => handleAssemblyScheduleChange(item.id, 'date', e.target.value)} type="date" tooltipText="Canviar la data mourà aquest ítem a una altra agrupació."/>
+                      </div>
+                      <div className="col-span-2">
+                        <TechSheetField id={`schedule-time-${item.id}`} label="Hora Inici" value={item.time} onChange={(e) => handleAssemblyScheduleChange(item.id, 'time', e.target.value)} type="time" tooltipText="Hora d'inici de l'activitat."/>
+                      </div>
+                      <div className="col-span-2">
+                        <TechSheetField id={`schedule-time-end-${item.id}`} label="Hora Fi" value={item.timeEnd || ''} onChange={(e) => handleAssemblyScheduleChange(item.id, 'timeEnd', e.target.value)} type="time" tooltipText="Hora de finalització de l'activitat (opcional)."/>
+                      </div>
+                      <div className="col-span-4">
+                        <TechSheetField id={`schedule-desc-${item.id}`} label="Descripció" value={item.description} onChange={(e) => handleAssemblyScheduleChange(item.id, 'description', e.target.value)} as="textarea" rows={1} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
+                      </div>
+                      <div className="col-span-1 flex-shrink-0 pt-7">
+                        <Tooltip text="Eliminar aquesta línia d'horari">
+                          <button type="button" onClick={() => handleRemoveAssemblyScheduleItem(item.id)} className="remove-item-button text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
-            <div className="mt-2 no-print">
-              <Tooltip text="Afegir una nova línia a la planificació d'horaris">
-                <button type="button" onClick={handleAddAssemblyScheduleItem} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Ítem Horari</button>
+            <div className="mt-4 no-print">
+              <Tooltip text="Afegir una nova línia d'horari (per a una nova data)">
+                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Ítem Horari (Nova Data)</button>
               </Tooltip>
             </div>
           </div>
