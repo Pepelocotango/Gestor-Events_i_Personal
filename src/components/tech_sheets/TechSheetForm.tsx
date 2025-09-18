@@ -9,6 +9,7 @@ import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';
 import ConditionalFormControl from './ConditionalFormControl';
+import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
@@ -158,6 +159,50 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
       const updatedSection = { ...section, data: { ...section.data, needs: sortedNeeds } };
       return { ...prev, [listName]: updatedSection };
+    });
+    markAsDirty();
+  };
+
+  const handleMoveAssemblyScheduleItemUp = (id: string) => {
+    setFormData(prev => {
+      const scheduleData = prev.schedule?.data;
+      if (!scheduleData) return prev;
+
+      const index = scheduleData.findIndex(item => item.id === id);
+      if (index === 0) return prev;
+
+      const currentItem = scheduleData[index];
+      const previousItem = scheduleData[index - 1];
+
+      if (previousItem && previousItem.date === currentItem.date) {
+        const newSchedule = [...scheduleData];
+        [newSchedule[index - 1], newSchedule[index]] = [newSchedule[index], newSchedule[index - 1]];
+        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
+      }
+      return prev;
+    });
+    markAsDirty();
+  };
+
+  const handleMoveAssemblyScheduleItemDown = (id: string) => {
+    setFormData(prev => {
+      const scheduleData = prev.schedule?.data;
+      if (!scheduleData) return prev;
+
+      const index = scheduleData.findIndex(item => item.id === id);
+      if (index === -1 || index === scheduleData.length - 1) return prev;
+
+      const currentItem = scheduleData[index];
+      // Since the array is sorted, the next item's date determines if we can move down.
+      const nextItem = scheduleData[index + 1];
+
+      if (nextItem && nextItem.date === currentItem.date) {
+        const newSchedule = [...scheduleData];
+        [newSchedule[index + 1], newSchedule[index]] = [newSchedule[index], newSchedule[index + 1]];
+        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
+      }
+
+      return prev;
     });
     markAsDirty();
   };
@@ -634,7 +679,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 </Tooltip>
             </div>
             <Tooltip text="Afegeix aquí qualsevol nota general o comentari rellevant per a tota la fitxa.">
-                <textarea
+                <AutosizeTextarea
                     id="generalNotes"
                     name="generalNotes"
                     value={formData.generalNotes || ''}
@@ -750,6 +795,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 </div>
 
                 <div className="space-y-2">
+                  {/* The .map function iterates over `items`, which is an array of schedule entries grouped by a specific day. */}
+                  {/* Therefore, `index` refers to the item's position *within its day group*, not the overall schedule array. */}
+                  {/* This makes the `disabled` logic for the move buttons correct. */}
                   {items.map((item, index) => {
                     const isNewItem = date === 'Sense data';
                     return (
@@ -768,7 +816,27 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                         <div className={isNewItem ? "col-span-4" : "col-span-7"}>
                           <TechSheetField id={`schedule-desc-${item.id}`} label={index === 0 ? "Descripció" : ""} value={item.description} onChange={(e) => handleAssemblyScheduleChange(item.id, 'description', e.target.value)} as="textarea" rows={1} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
                         </div>
-                        <div className="col-span-1 flex-shrink-0 self-center pt-5">
+                        <div className="col-span-1 flex-shrink-0 self-center pt-5 flex items-center justify-center space-x-1">
+                          <Tooltip text="Moure amunt">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveAssemblyScheduleItemUp(item.id)}
+                              disabled={index === 0}
+                              className="text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              &#x25B2;
+                            </button>
+                          </Tooltip>
+                          <Tooltip text="Moure avall">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveAssemblyScheduleItemDown(item.id)}
+                              disabled={index === items.length - 1}
+                              className="text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              &#x25BC;
+                            </button>
+                          </Tooltip>
                           <Tooltip text="Eliminar aquesta línia d'horari">
                             <button type="button" onClick={() => handleRemoveAssemblyScheduleItem(item.id)} className="remove-item-button text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
                           </Tooltip>
@@ -835,7 +903,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
             <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Noms / Notes:</label>
               <Tooltip text="Llista els noms dels actors o artistes i qualsevol nota rellevant.">
-                <textarea
+                <AutosizeTextarea
                   value={formData.actorsInfo?.data?.names || ''}
                   onChange={(e) => handleConditionalChange('actorsInfo', { data: { ...(formData.actorsInfo?.data || { number: 0, names: '' }), names: e.target.value } })}
                   className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -869,7 +937,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
             <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Noms / Notes:</label>
               <Tooltip text="Llista els noms del personal i qualsevol nota rellevant.">
-                <textarea
+                <AutosizeTextarea
                   value={formData.techniciansInfo?.data?.names || ''}
                   onChange={(e) => handleConditionalChange('techniciansInfo', { data: { ...(formData.techniciansInfo?.data || { number: 0, names: '' }), names: e.target.value } })}
                   className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
