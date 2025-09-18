@@ -528,6 +528,15 @@ La funció implementa una lògica granular per garantir un càlcul d'estoc prec�
 -   Mostra el resultat com a text informatiu (`infoText`) al component `TechSheetField`.
 -   Aplica una classe CSS d'error al camp de quantitat si `need.quantity > availability.available`.
 
+#### Propagació de Canvis i Font de Veritat
+
+Per garantir la consistència de les dades a tota l'aplicació, s'ha implementat un sistema de propagació de canvis des de l'inventari mestre:
+
+-   **Edició Centralitzada:** Qualsevol propietat d'un ítem de material es pot editar ara des de la vista de "Material".
+-   **Bloqueig de UI:** En desar un canvi, la UI es bloqueja temporalment per garantir que l'operació sigui atòmica.
+-   **Propagació Automàtica:** L'acció `updateMaterialItem` a `eventDataStore` no només actualitza l'ítem a la llista `materialItems`, sinó que també itera sobre tots els `eventFrames` i les seves `techSheet`. Si troba una necessitat (`NeedItem`) que utilitza el material modificat (comparant `materialItemId`), actualitza automàticament les seves propietats derivades (com `description` i `origin`).
+-   **Font de Veritat:** Per reforçar aquest concepte, a `NeedsList.tsx`, els camps "Descripció" i "Origen" d'una necessitat es tornen de només lectura (`readOnly`) si estan vinculats a un ítem de l'inventari, evitant edicions manuals que podrien crear inconsistències.
+
 ### 5.4. Detecció de Conflictes d'Assignació
 
 Aquesta lògica, similar al control d'estoc, preveu que una persona sigui assignada a dos llocs alhora.

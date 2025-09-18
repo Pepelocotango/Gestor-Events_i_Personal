@@ -94,6 +94,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                   onChange={e => onListChange(listName, index, 'description', e.target.value)}
                   suggestions={materialSuggestions}
                   infoText={availabilityInfo}
+                  readOnly={!!selectedMaterial}
                 />
                 {selectedMaterial && selectedMaterial.notes && (
                   <p className="no-print text-xs italic text-gray-500 dark:text-gray-400 mt-1">

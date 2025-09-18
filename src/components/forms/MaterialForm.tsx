@@ -9,7 +9,8 @@ export interface MaterialFormProps {
   onSubmit: (data: Omit<MaterialItem, 'id'>) => void;
   onCancel?: () => void;
   submitButtonText?: string;
-  categories?: string[]; // Llista de categories per a l'autocompletat
+  categories?: string[];
+  materialItems?: MaterialItem[]; // Llista completa per a la validació
 }
 
 const MaterialForm: React.FC<MaterialFormProps> = ({
@@ -18,6 +19,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   onCancel,
   submitButtonText = 'Desar',
   categories = [],
+  materialItems = [],
 }) => {
   // Estats interns per als camps del formulari
   const [name, setName] = useState('');
@@ -50,7 +52,17 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   // Funció de validació
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
-    if (!name.trim()) newErrors.name = "El nom és obligatori.";
+    if (!name.trim()) {
+        newErrors.name = "El nom és obligatori.";
+    } else {
+        const isDuplicate = materialItems.some(item =>
+            item.name.toLowerCase() === name.trim().toLowerCase() &&
+            item.id !== initialData?.id
+        );
+        if (isDuplicate) {
+            newErrors.name = "Ja existeix un material amb aquest nom.";
+        }
+    }
     if (!category.trim()) newErrors.category = "La categoria és obligatòria.";
     if (stock < 0) newErrors.stock = "L'estoc no pot ser negatiu.";
     setErrors(newErrors);
@@ -84,8 +96,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
             onChange={e => setName(e.target.value)}
             className={commonInputClass}
             required
-            // Si el nom ve de initialData (des de la fitxa tècnica), no es pot editar
-            disabled={!!initialData?.name}
           />
         </Tooltip>
         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
