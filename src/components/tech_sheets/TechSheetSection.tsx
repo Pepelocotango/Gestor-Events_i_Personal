@@ -10,10 +10,32 @@ interface TechSheetSectionProps {
   headerActions?: React.ReactNode;
   layout?: 'single-column' | 'grid-2' | 'grid-3' | 'grid-4';
   isPrintHidden?: boolean;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
-const TechSheetSection: React.FC<TechSheetSectionProps> = ({ title, children, defaultOpen = true, headerActions, layout = 'grid-3', isPrintHidden = false }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+const TechSheetSection: React.FC<TechSheetSectionProps> = ({
+  title,
+  children,
+  defaultOpen = true,
+  headerActions,
+  layout = 'grid-3',
+  isPrintHidden = false,
+  isOpen: controlledIsOpen,
+  onToggle
+}) => {
+  const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
+
+  const isControlled = controlledIsOpen !== undefined;
+  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+
+  const handleToggle = () => {
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalIsOpen(prev => !prev);
+    }
+  };
 
   let gridClasses = 'p-2 grid gap-4 ';
   switch (layout) {
@@ -41,7 +63,7 @@ const TechSheetSection: React.FC<TechSheetSectionProps> = ({ title, children, de
         <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
           <button
             type="button"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={handleToggle}
             className="flex-1 flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-700/50 rounded-t-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             aria-expanded={isOpen}
           >

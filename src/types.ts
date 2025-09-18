@@ -43,6 +43,7 @@ export interface AssemblyScheduleItem {
   id: string;
   date: string;
   time: string;
+  timeEnd?: string;
   description: string;
 }
 
@@ -228,6 +229,7 @@ export type ModalType =
   | 'confirmDataRepair'
   | 'confirmDuplicate'
   | 'updateFromAssignments'
+  | 'addMaterialFromTechSheet'
   | null;
 
 export interface ModalData {
@@ -265,6 +267,7 @@ export interface ModalData {
     activeCalendarId?: string | null;
     onConfirmSync?: (targetCalendarId: string) => void;
     fixes?: string[];
+    onAdd?: (newItem: MaterialItem) => void;
 }
 
 export interface ModalState {
@@ -313,7 +316,7 @@ export interface EventDataConteImplicits {
   isSyncing: boolean;
   addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
   materialItems: MaterialItem[];
-  addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => void;
+  addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => MaterialItem | undefined;
   updateMaterialItem: (updatedItem: MaterialItem) => void;
   deleteMaterialItem: (itemId: string) => void;
   addMaterialItemsFromFile: (newItems: MaterialItem[]) => void;

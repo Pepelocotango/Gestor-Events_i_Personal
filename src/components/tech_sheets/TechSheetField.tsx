@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useRef } from 'react';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 
@@ -46,11 +46,13 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   const finalClassName = `${baseClasses} ${disabledClasses} ${readOnlyClasses} ${className}`.trim();
 
   const datalistId = suggestions ? `${id}-suggestions` : undefined;
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const fieldContent = (
     <div className="flex-grow">
       {as === 'textarea' ? (
         <AutosizeTextarea
+          ref={textareaRef}
           id={id}
           name={id}
           value={value}

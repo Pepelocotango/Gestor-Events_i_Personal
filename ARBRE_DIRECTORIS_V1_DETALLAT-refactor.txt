@@ -21,7 +21,10 @@ enllaç a Gestor-Events_i_Personal/
 │   │   └── splash/               # Imatges per a l'animació de la pantalla de benvinguda.
 │   │       └── frame_*.png       # Seqüència d'imatges per a l'animació.
 │   ├── components/               # Carpeta principal dels components de React que formen la UI.
+│   │   ├── forms/                # Components reutilitzables de formularis.
+│   │   │   └── MaterialForm.tsx  # Formulari reutilitzable per crear/editar ítems de material.
 │   │   ├── modals/               # Sub-carpeta per a tots els diàlegs modals de l'aplicació.
+│   │   │   ├── AddMaterialFromTechSheetModal.tsx # Permet afegir un ítem a l'inventari des de la fitxa de bolo. [REFACTORITZAT: usa MaterialForm]
 │   │   │   ├── AssignmentFormModal.tsx         # Formulari per crear/editar una assignació. [REFACTORITZAT: usa modalStore]
 │   │   │   ├── ConfirmDeleteModal.tsx          # Modal genèric per a confirmacions d'eliminació.
 │   │   │   ├── ConfirmDuplicateModal.tsx       # Avís de conflicte en crear una assignació duplicada.
@@ -53,7 +56,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.
 │   │   ├── EventFrameCard.tsx      # Renderitza una targeta per a un esdeveniment marc a la llista. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── MainDisplay.tsx         # Vista principal. Gestiona la detecció de conflictes en modificar estats. [REFACTORITZAT: usa stores]
-│   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa eventDataStore]
+│   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa MaterialForm]
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades. [REFACTORITZAT: usa eventDataStore]

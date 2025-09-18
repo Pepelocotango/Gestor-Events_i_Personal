@@ -379,7 +379,11 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
     -   `MainDisplay.tsx`: La vista per defecte, que conté el calendari i la llista d'esdeveniments. També implementa la **lògica d'expansió automàtica** de la llista en aplicar filtres per millorar la usabilitat.
     -   `TechSheetsDisplay.tsx`: La vista per gestionar les fitxes de bolo.
     -   `PeopleDisplay.tsx`: La vista per a la gestió de la llibreta d'adreces.
-    -   `MaterialDisplay.tsx`: La vista per a la gestió de l'inventari de material.
+-   **`MaterialDisplay.tsx`**: La vista per a la gestió de l'inventari de material. Ha estat **refactoritzada** per utilitzar el component `MaterialForm`.
+
+-   **Components de Formularis Reutilitzables (`src/components/forms/`):**
+    -   Aquest directori conté components de formulari dissenyats per ser reutilitzats en diferents parts de l'aplicació (p. ex., en vistes principals i en modals).
+    -   `MaterialForm.tsx`: Un component controlat que encapsula la UI i la lògica de validació per crear i editar ítems de material. Rep `props` com `initialData`, `onSubmit` i `onCancel` per desacoblar-lo de la gestió de l'estat.
 
 -   **Components de Lògica de Negoci:**
     -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. La seva capçalera està dissenyada per ser totalment clicable per expandir/col·lapsar el contingut. La lògica `onClick` de la capçalera comprova si el clic s'ha fet sobre un element interactiu (com un botó) per evitar l'expansió/col·lapse no desitjat, gestionant les interaccions de l'usuari de manera precisa. Conté la lògica per renderitzar la llista de `AssignmentCard`.
