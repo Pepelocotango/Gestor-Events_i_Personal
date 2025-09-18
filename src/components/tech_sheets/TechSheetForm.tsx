@@ -291,9 +291,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   };
 
   const handleAddAssemblyScheduleItem = (date?: string) => {
-    const newDate = date || (formData.schedule?.data && formData.schedule.data.length > 0
-      ? formData.schedule.data[formData.schedule.data.length - 1].date
-      : eventFrame.startDate);
+    const newDate = date !== undefined ? date : '';
 
     const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: newDate, time: '', timeEnd: '', description: '' };
 
