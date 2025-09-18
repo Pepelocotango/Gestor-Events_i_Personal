@@ -481,9 +481,11 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   **Botó de Desat Manual:** S'ha afegit un botó "Desar Canvis" que s'activa només quan hi ha canvis pendents. Això dona a l'usuari control explícit per forçar un desat immediat si ho desitja.
     -   **Desat de Seguretat:** Com a mesura final de seguretat, una funció de neteja en un `useEffect` garanteix que qualsevol canvi pendent es desi automàticament si l'usuari canvia d'esdeveniment o navega fora de la pàgina, evitant qualsevol pèrdua de dades.
 
--   **Gestió de Llistes Dinàmiques:**
-    -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
-    -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
+-   **Gestió de Llistes Dinàmiques (Horaris):**
+    -   La secció d'horaris ha estat refactoritzada per millorar la usabilitat. Ara, els ítems es **reagrupen visualment per data**.
+    -   Cada grup de data mostra una capçalera amb la data i permet afegir múltiples línies d'hora (inici/fi) i descripció per a aquell dia específic, creant sub-seccions.
+    -   Aquesta agrupació es fa al renderitzat, sense modificar l'estructura de dades base (que segueix sent un array pla), la qual cosa simplifica la gestió de l'estat.
+    -   Les funcions `handleAssemblyScheduleChange` i `handleRemoveAssemblyScheduleItem` han estat adaptades per operar amb l'ID de l'ítem en lloc del seu índex, la qual cosa permet una manipulació més robusta de l'array després de l'ordenació i agrupació.
 
 -  **Actualització Interactiva des d'Assignacions:** Per donar un control més gran a l'usuari, el botó **`⟳ Actualitza des d'assignacions`** ja no modifica directament la fitxa, sinó que obre un diàleg de confirmació.
     1.  **Càlcul de Canvis:** En fer clic, la lògica a `TechnicalPersonnelSection.tsx` compara el personal actual de la fitxa amb les assignacions confirmades i genera tres llistes: personal per afegir, personal per eliminar i personal per mantenir.
@@ -491,6 +493,11 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     3.  **Confirmació de l'Usuari:** L'usuari pot seleccionar quins canvis vol aplicar. Pot acceptar totes les suggestions, cap, o una combinació.
     4.  **Aplicació Selectiva:** Un cop confirmat, el modal retorna només els canvis seleccionats a `TechSheetForm.tsx`, que els aplica a l'estat, garantint que no es perdi cap entrada manual ni s'apliquin canvis no desitjats.
     5.  **Gestió d'Esdeveniments de Diversos Dies:** La lògica d'afegir nous rols des del modal inclou la funcionalitat de detallar els dies específics per a assignacions de tipus `Mixt`.
+
+#### Millores d'UI i Qualitat de Vida
+
+-   **Disseny de Seccions Flexibles:** La secció de "Personal Tècnic" s'ha ajustat per ocupar tot l'ample disponible, millorant la distribució de l'espai en pantalles grans.
+-   **Correcció de Bugs en Modals:** S'ha solucionat un error en el modal "Afegir Material a l'Inventari", que podia aparèixer buit si s'obria en condicions incorrectes. S'han afegit validacions per assegurar que el modal només es renderitzi amb les dades necessàries, tancant-se automàticament en cas contrari.
 
 
 
@@ -587,6 +594,7 @@ La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha esta
 -   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
 -   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
 -   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (p. ex., canviant de 'SI' a 'NO'), les dades associades s'esborren de l'estat, assegurant que el PDF reflecteixi sempre la informació visible.
+-   **Neteja de PDF:** Per millorar la llegibilitat dels documents exportats, s'han eliminat les capçaleres de les taules a les seccions principals de la Fitxa de Bolo (`Personal Tècnic`, `Horaris`, `Logística`, etc.), deixant només el títol de la secció.
 ---------
 
 

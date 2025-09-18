@@ -71,7 +71,9 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── dateFormat.ts         # Utilitats per a la conversió i format de dates.
 │   │   ├── dateRangeFormatter.ts # Utilitat per crear rangs de dates compactes (ex: 14/05-16/05).
 │   │   ├── logger.ts             # Client de logging del frontend que envia missatges al backend.
+│   │   ├── notificationService.ts # Servei per gestionar les notificacions (toasts).
 │   │   ├── pdfGenerator.ts       # Tota la lògica per crear els diferents documents PDF.
+│   │   ├── selectors.ts          # Lògica per a selectors de dades complexes (memoized).
 │   │   ├── statusUtils.ts        # Funcions per gestionar i mostrar els estats de les assignacions.
 │   │   └── techSheetMigration.ts # Lògica específica per migrar l'estructura de les fitxes de bolo.
 │   ├── App.tsx                   # Component arrel de React. Gestiona l'enrutament, modals i estat de la UI. [REFACTORITZAT: usa stores de Zustand]
