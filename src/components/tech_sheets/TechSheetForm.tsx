@@ -163,6 +163,34 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     markAsDirty();
   };
 
+  const handleSortScheduleByTime = (date: string) => {
+    setFormData(prev => {
+      const scheduleData = prev.schedule?.data || [];
+      const newSchedule = [...scheduleData];
+
+      // Find the indices of the items for the given date
+      const startIndex = newSchedule.findIndex(item => item.date === date);
+      if (startIndex === -1) return prev; // No items for this date
+
+      let endIndex = startIndex;
+      for (let i = startIndex + 1; i < newSchedule.length; i++) {
+        if (newSchedule[i].date === date) {
+          endIndex = i;
+        } else {
+          break;
+        }
+      }
+
+      // Extract the day's items, sort them by time, and splice them back in
+      const dayItems = newSchedule.slice(startIndex, endIndex + 1);
+      dayItems.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+      newSchedule.splice(startIndex, dayItems.length, ...dayItems);
+
+      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
+    });
+    markAsDirty();
+  };
+
   const handleMoveAssemblyScheduleItemUp = (id: string) => {
     setFormData(prev => {
       const scheduleData = prev.schedule?.data;
@@ -313,8 +341,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       const updatedItem = { ...newSchedule[index], [field]: value };
       newSchedule[index] = updatedItem;
 
-      // If the date or time changes, re-sort
-      if (field === 'date' || field === 'time') {
+      // If the date changes, re-sort the entire schedule to maintain chronological order of days
+      if (field === 'date') {
         newSchedule.sort((a, b) => {
           const dateA = a.date || '';
           const dateB = b.date || '';
@@ -797,9 +825,16 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                     {date === 'Sense data' ? 'Elements nous - Assignar data' : `Data: ${formatDateDMY(date)}`}
                   </h4>
                   {date !== 'Sense data' && (
-                    <Tooltip text={`Afegir una nova línia d'horari per al ${formatDateDMY(date)}`}>
-                      <button type="button" onClick={() => handleAddAssemblyScheduleItem(date)} className="add-item-button px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">+ Afegir Horari</button>
-                    </Tooltip>
+                    <div className="flex items-center gap-2">
+                      {items.length > 1 && (
+                        <Tooltip text="Ordenar les entrades d'aquest dia per hora">
+                          <button type="button" onClick={() => handleSortScheduleByTime(date)} className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 no-print">Ordenar per Hora</button>
+                        </Tooltip>
+                      )}
+                      <Tooltip text={`Afegir una nova línia d'horari per al ${formatDateDMY(date)}`}>
+                        <button type="button" onClick={() => handleAddAssemblyScheduleItem(date)} className="add-item-button px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">+ Afegir Horari</button>
+                      </Tooltip>
+                    </div>
                   )}
                 </div>
 
