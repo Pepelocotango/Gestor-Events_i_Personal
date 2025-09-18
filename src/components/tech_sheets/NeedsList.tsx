@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import TechSheetField from './TechSheetField';
 import { MaterialItem } from '../../types';
 import Tooltip from '../ui/Tooltip';
+import { useModalStore } from '../../stores/modalStore';
 
 interface NeedsListProps {
   needs: any[];
@@ -13,6 +14,10 @@ interface NeedsListProps {
   onRemoveListItem: (listName: string, index: number) => void;
   onAddListItem: (listName: string) => void;
   getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string) => { available: number; total: number };
+  onMoveItemUp: (listName: string, index: number) => void;
+  onMoveItemDown: (listName: string, index: number) => void;
+  onSortByOrigin: (listName: string) => void;
+  originSuggestions: string[];
 }
 
 const NeedsList: React.FC<NeedsListProps> = ({
@@ -25,18 +30,35 @@ const NeedsList: React.FC<NeedsListProps> = ({
   onRemoveListItem,
   onAddListItem,
   getMaterialAvailability,
+  onMoveItemUp,
+  onMoveItemDown,
+  onSortByOrigin,
+  originSuggestions,
 }) => {
+  const { openModal } = useModalStore();
   const materialSuggestions = React.useMemo(() => materialItems.map(item => item.name), [materialItems]);
 
   return (
     <>
-      <h4 className="col-span-full text-md font-semibold text-gray-700 dark:text-gray-300 mt-3 -mb-2">{title}:</h4>
+      <div className="col-span-full flex justify-between items-center mt-3 -mb-2">
+        <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">{title}:</h4>
+        {needs.length > 1 && (
+          <Tooltip text="Ordena la llista de necessitats alfabèticament per origen.">
+            <button
+              onClick={() => onSortByOrigin(listName)}
+              className="text-xs bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 no-print"
+            >
+              Ordenar per Origen
+            </button>
+          </Tooltip>
+        )}
+      </div>
       {needs.length > 0 && (
-        <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
+        <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 mt-2 -mb-2">
           <div className="w-1/6">Quant.</div>
-          <div className="w-2/5">Descripció</div>
-          <div className="w-2/5">Origen</div>
-          <div className="w-auto flex-shrink-0"></div>
+          <div className="flex-grow">Descripció</div>
+          <div className="w-1/4">Origen</div>
+          <div className="w-24 flex-shrink-0 text-center">Accions</div>
         </div>
       )}
       {needs.map((need, index) => {
@@ -63,17 +85,44 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}
               />
             </div>
-            <div className="w-2/5">
-              <TechSheetField
-                id={`${listName}-desc-${index}`}
-                label=""
-                value={need.description}
-                onChange={e => onListChange(listName, index, 'description', e.target.value)}
-                suggestions={materialSuggestions}
-                infoText={availabilityInfo}
-              />
+            <div className="flex-grow flex items-start gap-1">
+              <div className='flex-grow'>
+                <TechSheetField
+                  id={`${listName}-desc-${index}`}
+                  label=""
+                  value={need.description}
+                  onChange={e => onListChange(listName, index, 'description', e.target.value)}
+                  suggestions={materialSuggestions}
+                  infoText={availabilityInfo}
+                />
+                {selectedMaterial && selectedMaterial.notes && (
+                  <p className="no-print text-xs italic text-gray-500 dark:text-gray-400 mt-1">
+                    <strong>Nota:</strong> {selectedMaterial.notes}
+                  </p>
+                )}
+              </div>
+              {need.description && !selectedMaterial && (
+                <div className="pt-2">
+                  <Tooltip text="Crear nou ítem a l'inventari amb aquest nom">
+                    <button
+                      type="button"
+                      onClick={() => openModal('addMaterialFromTechSheet', {
+                        name: need.description,
+                        onAdd: (newItem: MaterialItem) => {
+                          onListChange(listName, index, 'description', newItem.name);
+                          onListChange(listName, index, 'materialItemId', newItem.id);
+                          onListChange(listName, index, 'origin', newItem.location);
+                        }
+                      })}
+                      className="text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full w-7 h-7 flex items-center justify-center text-2xl font-bold no-print"
+                    >
+                      +
+                    </button>
+                  </Tooltip>
+                </div>
+              )}
             </div>
-            <div className="w-2/5">
+            <div className="w-1/4">
               <TechSheetField
                 id={`${listName}-origin-${index}`}
                 label=""
@@ -81,15 +130,38 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 onChange={e => onListChange(listName, index, 'origin', e.target.value)}
                 placeholder="Propi/Teatre/CIA/lloguer...."
                 readOnly={!!selectedMaterial}
+                suggestions={originSuggestions}
               />
             </div>
-            <div className="w-auto flex-shrink-0 pt-2">
+            <div className="w-24 flex-shrink-0 pt-2 flex items-center justify-center">
+              <Tooltip text="Moure amunt">
+                <button
+                  type="button"
+                  onClick={() => onMoveItemUp(listName, index)}
+                  disabled={index === 0}
+                  className="text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  &#x25B2;
+                </button>
+              </Tooltip>
+              <Tooltip text="Moure avall">
+                <button
+                  type="button"
+                  onClick={() => onMoveItemDown(listName, index)}
+                  disabled={index === needs.length - 1}
+                  className="text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  &#x25BC;
+                </button>
+              </Tooltip>
               <Tooltip text="Eliminar aquesta necessitat">
                 <button
                   type="button"
                   onClick={() => onRemoveListItem(listName, index)}
-                  className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print"
-                >×</button>
+                  className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print"
+                >
+                  &times;
+                </button>
               </Tooltip>
             </div>
           </div>

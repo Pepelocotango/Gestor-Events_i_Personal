@@ -263,16 +263,33 @@ export const exportTechSheetToPdf = async (
         [{ content: 'HORA:', styles: labelStyles }, sane(formData.showTime)],
         [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
     ];
-    if (formData.showGeneralNotesInPdf && sane(formData.generalNotes) !== '-') {
-        headerBody.push([{ content: 'NOTES GENERALS:', styles: labelStyles }, sane(formData.generalNotes)]);
-    }
-    if (formData.parking?.status === 'yes') {
-        headerBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, sane(formData.parking.details) !== '-' ? `SI: ${sane(formData.parking.details)}` : 'SI']);
-    } else if (formData.parking?.status === 'no') {
-        headerBody.push([{ content: 'PÀRQUING:', styles: labelStyles }, 'NO']);
-    }
-    autoTable(pdf, { body: headerBody, theme: 'grid', startY: y });
+    autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, pageBreak: 'avoid' });
     y = (pdf as any).lastAutoTable.finalY + 8;
+
+    // --- General Notes ---
+    if (formData.showGeneralNotesInPdf && sane(formData.generalNotes) !== '-') {
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'NOTES GENERALS DE LA FITXA', styles: headStyles }]],
+            body: [[sane(formData.generalNotes)]],
+            startY: y, theme: 'grid', pageBreak: 'avoid'
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
+    }
+
+    // --- Parking ---
+    if (formData.parking?.status === 'yes' || formData.parking?.status === 'no') {
+        y = checkPageBreak(y);
+        const parkingDetails = formData.parking.status === 'yes'
+            ? (sane(formData.parking.details) !== '-' ? sane(formData.parking.details) : 'SI')
+            : 'NO';
+        autoTable(pdf, {
+            head: [[{ content: 'PÀRQUING', styles: headStyles }]],
+            body: [[parkingDetails]],
+            startY: y, theme: 'grid', pageBreak: 'avoid'
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
+    }
 
     // --- Personal Tècnic ---
     const personnelBody: any[][] = [];
@@ -297,7 +314,7 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
             body: [['Qt.', 'Càrrec', 'Proveïdor/a o Empresa', 'Notes'], ...personnelBody],
-            startY: y, theme: 'grid',
+            startY: y, theme: 'grid', pageBreak: 'avoid',
             headStyles: { ...headStyles, halign: 'center' as 'center' },
             columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
         });
@@ -310,7 +327,7 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'PREMUNTATGE', styles: headStyles }]],
             body: [[sane(formData.preAssembly.details)]],
-            startY: y, theme: 'grid',
+            startY: y, theme: 'grid', pageBreak: 'avoid',
         });
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
@@ -318,11 +335,14 @@ export const exportTechSheetToPdf = async (
     // --- Horaris ---
     if (formData.schedule?.status === 'yes' && formData.schedule.data && formData.schedule.data.length > 0) {
         y = checkPageBreak(y);
-        const scheduleBody = formData.schedule.data.map(item => [sane(item.date), sane(item.time), sane(item.description)]);
+        const scheduleBody = formData.schedule.data.map(item => {
+            const timeRange = [sane(item.time), sane(item.timeEnd)].filter(t => t !== '-').join(' - ');
+            return [formatDateDMY(sane(item.date)), timeRange, sane(item.description)];
+        });
         autoTable(pdf, {
             head: [[{ content: 'HORARIS', colSpan: 3, styles: headStyles }]],
-            body: [['Data', 'Hora', 'Descripció'], ...scheduleBody],
-            startY: y, theme: 'grid',
+            body: [['Data', 'Hores', 'Descripció'], ...scheduleBody],
+            startY: y, theme: 'grid', pageBreak: 'avoid',
             columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 30 } },
         });
         y = (pdf as any).lastAutoTable.finalY + 8;
@@ -331,7 +351,7 @@ export const exportTechSheetToPdf = async (
     // --- Logística ---
     const logisticsBody: any[][] = [];
     if (formData.dressingRooms?.status === 'yes') {
-        logisticsBody.push(['Camerinos', sane(formData.dressingRooms.details), '']);
+        logisticsBody.push(['Camerinos', sane(formData.dressingRooms.details) !== '-' ? sane(formData.dressingRooms.details) : 'SI', '']);
     }
     if (formData.actorsInfo?.status === 'yes') {
         logisticsBody.push(['Actors', sane(formData.actorsInfo.data?.number), sane(formData.actorsInfo.data?.names)]);
@@ -345,7 +365,7 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
             body: [['Ítem', 'Quantitat/Detalls', 'Noms/Notes'], ...logisticsBody],
-            startY: y, theme: 'grid',
+            startY: y, theme: 'grid', pageBreak: 'avoid',
             columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
         });
         y = (pdf as any).lastAutoTable.finalY + 8;
@@ -387,7 +407,7 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
             body: [['Qt.', 'Descripció', 'Origen'], ...needsBody],
-            startY: y, theme: 'grid',
+            startY: y, theme: 'grid', pageBreak: 'avoid',
             columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
         });
         y = (pdf as any).lastAutoTable.finalY + 8;
@@ -402,7 +422,7 @@ export const exportTechSheetToPdf = async (
       autoTable(pdf, {
           head: [[{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }]],
           body: otherDetailsBody,
-          startY: y, theme: 'grid',
+          startY: y, theme: 'grid', pageBreak: 'avoid',
       });
       y = (pdf as any).lastAutoTable.finalY + 8;
     }
@@ -422,7 +442,7 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'CONTACTES COMPANYIA', colSpan: 3, styles: headStyles }]],
             body: [['Nom', 'Càrrec', 'Contacte'], ...contactBody],
-            startY: y, theme: 'grid',
+            startY: y, theme: 'grid', pageBreak: 'avoid',
             columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 50 }, 2: { cellWidth: 'auto' } },
         });
         y = (pdf as any).lastAutoTable.finalY + 8;
@@ -433,7 +453,7 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'OBSERVACIONS', styles: headStyles }]],
             body: [[sane(formData.observations)]],
-            startY: y, theme: 'grid',
+            startY: y, theme: 'grid', pageBreak: 'avoid',
         });
     }
 

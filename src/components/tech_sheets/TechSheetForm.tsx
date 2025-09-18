@@ -28,9 +28,51 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   };
 
   const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
+
+  const originSuggestions = useMemo(() => {
+    const suggestions = new Set<string>();
+    materialItems.forEach(item => {
+      if (item.location) suggestions.add(item.location);
+    });
+    const needsSections: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
+    needsSections.forEach(sectionName => {
+      const section = formData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+      section?.data?.needs?.forEach(need => {
+        if (need.origin) suggestions.add(need.origin);
+      });
+    });
+    return Array.from(suggestions).sort();
+  }, [materialItems, formData]);
   const formDataRef = useRef(formData);
   const isDirtyRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const sectionKeys = useMemo(() => [
+    'general', 'personnel', 'preAssembly', 'schedule', 'logistics',
+    'technicalNeeds', 'otherDetails', 'contactsObservations'
+  ], []);
+
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+    sectionKeys.forEach(key => { initialState[key] = true; });
+    return initialState;
+  });
+
+  const handleToggleSection = (sectionKey: string) => {
+    setExpandedSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
+  };
+
+  const expandAll = () => {
+    const allExpanded: Record<string, boolean> = {};
+    sectionKeys.forEach(key => { allExpanded[key] = true; });
+    setExpandedSections(allExpanded);
+  };
+
+  const collapseAll = () => {
+    const allCollapsed: Record<string, boolean> = {};
+    sectionKeys.forEach(key => { allCollapsed[key] = false; });
+    setExpandedSections(allCollapsed);
+  };
 
   useEffect(() => {
     formDataRef.current = formData;
@@ -105,6 +147,21 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     markAsDirty();
   };
 
+  const handleSortNeedsByOrigin = (listName: TechSheetNeedsKey) => {
+    setFormData(prev => {
+      const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+      if (!section || !section.data || !section.data.needs) return prev;
+
+      const sortedNeeds = [...section.data.needs].sort((a, b) =>
+        a.origin.localeCompare(b.origin, undefined, { sensitivity: 'base' })
+      );
+
+      const updatedSection = { ...section, data: { ...section.data, needs: sortedNeeds } };
+      return { ...prev, [listName]: updatedSection };
+    });
+    markAsDirty();
+  };
+
   const handleConditionalChange = (
     fieldName: keyof TechSheetData,
     fieldValue: Partial<ConditionalSection<any> | { status: ConditionalStatus }>
@@ -160,6 +217,37 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     markAsDirty();
   }, []);
 
+  const handleMoveNeedItemUp = (listName: TechSheetNeedsKey, index: number) => {
+    if (index === 0) return;
+    setFormData(prev => {
+      const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+      if (!section || !section.data || !section.data.needs) return prev;
+
+      const newNeeds = [...section.data.needs];
+      [newNeeds[index - 1], newNeeds[index]] = [newNeeds[index], newNeeds[index - 1]];
+
+      const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+      return { ...prev, [listName]: updatedSection };
+    });
+    markAsDirty();
+  };
+
+  const handleMoveNeedItemDown = (listName: TechSheetNeedsKey, index: number) => {
+    setFormData(prev => {
+      const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+      if (!section || !section.data || !section.data.needs) return prev;
+
+      const newNeeds = [...section.data.needs];
+      if (index >= newNeeds.length - 1) return prev;
+
+      [newNeeds[index + 1], newNeeds[index]] = [newNeeds[index], newNeeds[index + 1]];
+
+      const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+      return { ...prev, [listName]: updatedSection };
+    });
+    markAsDirty();
+  };
+
   const handleAddNeedsListItem = useCallback((sectionName: TechSheetNeedsKey) => {
     const newItem: NeedItem = { id: generateLocalId(), quantity: 1, description: '', origin: '' };
     setFormData(prev => {
@@ -181,7 +269,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   };
 
   const handleAddAssemblyScheduleItem = () => {
-    const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: '', time: '', description: '' };
+    const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: eventFrame.startDate, time: '', timeEnd: '', description: '' };
     setFormData(prev => {
         const newSchedule = [...(prev.schedule?.data || []), newItem];
         return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
@@ -438,6 +526,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         onListChange={handleNeedsListChange as any}
         onRemoveListItem={handleRemoveNeedsListItem as any}
         onAddListItem={handleAddNeedsListItem as any}
+        onMoveItemUp={handleMoveNeedItemUp as any}
+        onMoveItemDown={handleMoveNeedItemDown as any}
+        onSortByOrigin={handleSortNeedsByOrigin as any}
+        originSuggestions={originSuggestions}
         materialItems={materialItems}
         eventFrame={eventFrame}
         getMaterialAvailability={getMaterialAvailability}
@@ -453,6 +545,12 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
           Fitxa de Bolo: <span className="text-blue-600 dark:text-blue-400">{eventFrame.name}</span>
         </h2>
         <div className="flex items-center gap-2">
+            <Tooltip text="Expandir totes les seccions del formulari">
+                <button onClick={expandAll} className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 no-print">Expandir Totes</button>
+            </Tooltip>
+            <Tooltip text="Col·lapsar totes les seccions del formulari">
+                <button onClick={collapseAll} className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 no-print">Col·lapsar Totes</button>
+            </Tooltip>
             <Tooltip text="Forçar el desat immediat de tots els canvis pendents">
               <button onClick={handleManualSave} className="save-changes-button px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print">Desar Canvis</button>
             </Tooltip>
@@ -466,7 +564,12 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       </div>
 
       {/* General Info */}
-      <TechSheetSection title="Informació General" layout="grid-2">
+      <TechSheetSection
+        title="Informació General"
+        layout="grid-2"
+        isOpen={expandedSections.general}
+        onToggle={() => handleToggleSection('general')}
+      >
         <TechSheetField id="eventName" label="NOM DEL ESDEVENIMENT:" value={formData.eventName} onChange={handleChange} required tooltipText="El nom de l'esdeveniment es sincronitza automàticament amb el nom del 'Event Frame'."/>
         <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} tooltipText="El lloc de l'esdeveniment. També es sincronitza des del 'Event Frame'."/>
         <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} tooltipText="La data o rang de dates de l'esdeveniment. Sincronitzat des del 'Event Frame'."/>
@@ -526,23 +629,33 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       </TechSheetSection>
 
       {/* Personnel */}
-      <TechnicalPersonnelSection
-        technicalProviders={formData.technicalProviders || []}
-        peopleGroups={peopleGroups}
-        eventFrame={eventFrame}
-        onProviderChange={handleProviderChange}
-        onRoleChange={handleRoleChange}
-        onAddProvider={handleAddProvider}
-        onRemoveProvider={handleRemoveProvider}
-        onAddRole={handleAddRole}
-        onRemoveRole={handleRemoveRole}
-  getPersonGroupById={(id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' })}
-        showToast={showToast}
-        onConfirmUpdate={handleConfirmUpdateFromAssignments}
-      />
+      <TechSheetSection
+        title="Personal Tècnic"
+        isOpen={expandedSections.personnel}
+        onToggle={() => handleToggleSection('personnel')}
+      >
+        <TechnicalPersonnelSection
+          technicalProviders={formData.technicalProviders || []}
+          peopleGroups={peopleGroups}
+          eventFrame={eventFrame}
+          onProviderChange={handleProviderChange}
+          onRoleChange={handleRoleChange}
+          onAddProvider={handleAddProvider}
+          onRemoveProvider={handleRemoveProvider}
+          onAddRole={handleAddRole}
+          onRemoveRole={handleRemoveRole}
+          getPersonGroupById={(id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' })}
+          showToast={showToast}
+          onConfirmUpdate={handleConfirmUpdateFromAssignments}
+        />
+      </TechSheetSection>
 
       {/* Pre-assembly */}
-      <TechSheetSection title="Premuntatge">
+      <TechSheetSection
+        title="Premuntatge"
+        isOpen={expandedSections.preAssembly}
+        onToggle={() => handleToggleSection('preAssembly')}
+      >
         <ConditionalFormControl
           label="PREMUNTATGE:"
           status={formData.preAssembly?.status || 'unset'}
@@ -563,7 +676,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       </TechSheetSection>
 
       {/* Schedule */}
-      <TechSheetSection title="Horaris">
+      <TechSheetSection
+        title="Horaris"
+        isOpen={expandedSections.schedule}
+        onToggle={() => handleToggleSection('schedule')}
+      >
         <ConditionalFormControl
           label="HORARIS:"
           status={formData.schedule?.status || 'unset'}
@@ -574,13 +691,16 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
             {(formData.schedule?.data || []).map((item, index) => (
               <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
                 <div className="col-span-3">
-                  <TechSheetField id={`schedule-date-${index}`} label={`Data ${index + 1}`} value={item.date} onChange={(e) => handleAssemblyScheduleChange(index, 'date', e.target.value)} type="date" tooltipText="Data de l'activitat programada."/>
+                  <TechSheetField id={`schedule-date-${index}`} label="Data" value={item.date} onChange={(e) => handleAssemblyScheduleChange(index, 'date', e.target.value)} type="date" tooltipText="Data de l'activitat programada."/>
                 </div>
                 <div className="col-span-2">
-                  <TechSheetField id={`schedule-time-${index}`} label={`Hora ${index + 1}`} value={item.time} onChange={(e) => handleAssemblyScheduleChange(index, 'time', e.target.value)} type="time" tooltipText="Hora d'inici de l'activitat."/>
+                  <TechSheetField id={`schedule-time-${index}`} label="Hora Inici" value={item.time} onChange={(e) => handleAssemblyScheduleChange(index, 'time', e.target.value)} type="time" tooltipText="Hora d'inici de l'activitat."/>
                 </div>
-                <div className="col-span-6">
-                  <TechSheetField id={`schedule-desc-${index}`} label={`Descripció ${index + 1}`} value={item.description} onChange={(e) => handleAssemblyScheduleChange(index, 'description', e.target.value)} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
+                <div className="col-span-2">
+                  <TechSheetField id={`schedule-time-end-${index}`} label="Hora Fi" value={item.timeEnd || ''} onChange={(e) => handleAssemblyScheduleChange(index, 'timeEnd', e.target.value)} type="time" tooltipText="Hora de finalització de l'activitat (opcional)."/>
+                </div>
+                <div className="col-span-4">
+                  <TechSheetField id={`schedule-desc-${index}`} label="Descripció" value={item.description} onChange={(e) => handleAssemblyScheduleChange(index, 'description', e.target.value)} as="textarea" rows={1} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
                 </div>
                 <div className="col-span-1 flex-shrink-0 pt-7">
                   <Tooltip text="Eliminar aquesta línia d'horari">
@@ -599,7 +719,12 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       </TechSheetSection>
 
       {/* Logistics */}
-      <TechSheetSection title="Logística" layout="single-column">
+      <TechSheetSection
+        title="Logística"
+        layout="single-column"
+        isOpen={expandedSections.logistics}
+        onToggle={() => handleToggleSection('logistics')}
+      >
         <ConditionalFormControl
           label="CAMERINOS / SALES DE PREPARACIÓ:"
           status={formData.dressingRooms?.status || 'unset'}
@@ -688,7 +813,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       </TechSheetSection>
 
       {/* Technical Needs */}
-      <TechSheetSection title="Necessitats Tècniques">
+      <TechSheetSection
+        title="Necessitats Tècniques"
+        isOpen={expandedSections.technicalNeeds}
+        onToggle={() => handleToggleSection('technicalNeeds')}
+      >
         {renderNeedsSection('Il·luminació', 'lighting')}
         {renderNeedsSection('So', 'sound')}
         {renderNeedsSection('Vídeo', 'video')}
@@ -704,13 +833,21 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       </TechSheetSection>
 
       {/* Other Details */}
-      <TechSheetSection title="Altres Detalls">
+      <TechSheetSection
+        title="Altres Detalls"
+        isOpen={expandedSections.otherDetails}
+        onToggle={() => handleToggleSection('otherDetails')}
+      >
         <TechSheetField id="controlLocation" label="CONTROL A:" value={formData.controlLocation || ''} onChange={handleChange} placeholder="Cabina, Platea, a 20 metres del escenari, sota el garrofer..." tooltipText="Ubicació del control tècnic (so, llums, etc.). Per exemple: 'Cabina fons platea'."/>
         <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints || ''} onChange={handleChange} as="textarea" rows={3} placeholder="Adjunts, link dels plànols, in situ...." tooltipText="Enllaços o referències als plànols tècnics de l'esdeveniment (escenari, llums, etc.)."/>
       </TechSheetSection>
 
       {/* Contacts & Observations */}
-      <TechSheetSection title="Contacte i Observacions">
+      <TechSheetSection
+        title="Contacte i Observacions"
+        isOpen={expandedSections.contactsObservations}
+        onToggle={() => handleToggleSection('contactsObservations')}
+      >
         <div className="col-span-full space-y-3">
           <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">CONTACTES (CLIENT / ARTISTA / GRUP):</h4>
           {(formData.contacts || []).map((contact, index) => (

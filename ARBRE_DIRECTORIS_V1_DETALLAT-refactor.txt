@@ -22,6 +22,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │       └── frame_*.png       # Seqüència d'imatges per a l'animació.
 │   ├── components/               # Carpeta principal dels components de React que formen la UI.
 │   │   ├── modals/               # Sub-carpeta per a tots els diàlegs modals de l'aplicació.
+│   │   │   ├── AddMaterialFromTechSheetModal.tsx # Permet afegir un ítem a l'inventari des de la fitxa de bolo.
 │   │   │   ├── AssignmentFormModal.tsx         # Formulari per crear/editar una assignació. [REFACTORITZAT: usa modalStore]
 │   │   │   ├── ConfirmDeleteModal.tsx          # Modal genèric per a confirmacions d'eliminació.
 │   │   │   ├── ConfirmDuplicateModal.tsx       # Avís de conflicte en crear una assignació duplicada.

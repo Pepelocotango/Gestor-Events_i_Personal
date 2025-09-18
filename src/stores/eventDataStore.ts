@@ -109,7 +109,7 @@ interface EventDataActions {
     syncWithGoogle: () => Promise<void>;
     executeSync: (targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
-    addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => void;
+    addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => MaterialItem;
     updateMaterialItem: (updatedItem: MaterialItem) => void;
     deleteMaterialItem: (itemId: string) => void;
     addMaterialItemsFromFile: (newItems: MaterialItem[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
@@ -448,6 +448,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => {
         const newItem: MaterialItem = { ...newItemData, id: generateId() };
         set((state: EventDataState) => ({ materialItems: [...state.materialItems, newItem].sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        return newItem;
     },
     updateMaterialItem: (updatedItem: MaterialItem) => {
         set((state: EventDataState) => ({ materialItems: state.materialItems.map((item: MaterialItem) => item.id === updatedItem.id ? updatedItem : item).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
