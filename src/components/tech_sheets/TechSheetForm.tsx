@@ -268,7 +268,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       const updatedItem = { ...newSchedule[index], [field]: value };
       newSchedule[index] = updatedItem;
 
-      // Si la data canvia, reordenem per mantenir les dates agrupades
+      // If the date changes, re-sort to maintain grouped dates
       if (field === 'date') {
         newSchedule.sort((a, b) => a.date.localeCompare(b.date));
       }
@@ -647,9 +647,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       {/* Personnel */}
       <TechSheetSection
         title="Personal Tècnic"
+        layout="single-column"
         isOpen={expandedSections.personnel}
         onToggle={() => handleToggleSection('personnel')}
-        layout="single-column"
       >
         <TechnicalPersonnelSection
           technicalProviders={formData.technicalProviders || []}

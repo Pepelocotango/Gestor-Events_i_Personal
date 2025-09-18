@@ -348,6 +348,9 @@ export const exportTechSheetToPdf = async (
         const scheduleBody: any[][] = [];
         const dateSubHeadStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold' };
 
+        // Add a header row for the grouped table
+        scheduleBody.push([{ content: 'Hores', styles: dateSubHeadStyles }, { content: 'Descripció', styles: dateSubHeadStyles }]);
+
         Object.entries(groupedSchedule).forEach(([date, items]) => {
             scheduleBody.push([{ content: `Data: ${formatDateDMY(date)}`, colSpan: 2, styles: dateSubHeadStyles }]);
             items.forEach(item => {
