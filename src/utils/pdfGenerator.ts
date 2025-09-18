@@ -335,15 +335,34 @@ export const exportTechSheetToPdf = async (
     // --- Horaris ---
     if (formData.schedule?.status === 'yes' && formData.schedule.data && formData.schedule.data.length > 0) {
         y = checkPageBreak(y);
-        const scheduleBody = formData.schedule.data.map(item => {
-            const timeRange = [sane(item.time), sane(item.timeEnd)].filter(t => t !== '-').join(' - ');
-            return [formatDateDMY(sane(item.date)), timeRange, sane(item.description)];
+
+        const groupedSchedule = formData.schedule.data.reduce((acc, item) => {
+            const date = item.date || 'Sense data';
+            if (!acc[date]) {
+                acc[date] = [];
+            }
+            acc[date].push(item);
+            return acc;
+        }, {} as Record<string, any[]>);
+
+        const scheduleBody: any[][] = [];
+        const dateSubHeadStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold' };
+
+        Object.entries(groupedSchedule).forEach(([date, items]) => {
+            scheduleBody.push([{ content: `Data: ${formatDateDMY(date)}`, colSpan: 2, styles: dateSubHeadStyles }]);
+            items.forEach(item => {
+                const timeRange = [sane(item.time), sane(item.timeEnd)].filter(t => t !== '-').join(' - ');
+                scheduleBody.push([timeRange, sane(item.description)]);
+            });
         });
+
         autoTable(pdf, {
-            head: [[{ content: 'HORARIS', colSpan: 3, styles: headStyles }]],
+            head: [[{ content: 'HORARIS', colSpan: 2, styles: headStyles }]],
             body: scheduleBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
-            columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 30 } },
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            columnStyles: { 0: { cellWidth: 40 } },
         });
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
