@@ -68,10 +68,13 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
         </div>
       </div>
 
+      // Canvi per aplicar desfer/refer a fitxes de bolo obligant a renderitzar
+      
       {selectedEventFrame && selectedEventFrame.techSheet ? (
         <Suspense fallback={<div className="text-center p-8">Carregant formulari...</div>}>
           <TechSheetForm 
-            key={selectedEventFrame.id}
+            key=
+            {`${selectedEventFrame.id}-${JSON.stringify(selectedEventFrame.techSheet)}`}
             eventFrame={selectedEventFrame}
             showToast={showToast}
           />
