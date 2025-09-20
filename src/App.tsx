@@ -585,8 +585,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
         }
       };
 
-      const cleanup = window.electronAPI.onConfirmQuit(handleQuit);
-      return cleanup;
+      window.electronAPI.onConfirmQuit(handleQuit);
     }
   }, [currentFilePath, exportDataFromManager, showToast]);
 
