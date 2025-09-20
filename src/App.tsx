@@ -523,71 +523,67 @@ const handleSaveDocument = async (): Promise<boolean> => {
     }
   };
 
+  // Lògica de sortida refactoritzada per evitar closures obsoletes.
+  // La lògica es manté en una ref, que s'actualitza a cada render.
+  const quitLogicRef = useRef<() => Promise<void>>();
+  useEffect(() => {
+    quitLogicRef.current = async () => {
+      logger.info("[Exit Flow] S'executa la lògica de sortida des de la ref.");
+
+      if (!hasUnsavedChangesRef.current) {
+        logger.info("No hi ha canvis no desats. Iniciant backup i sortida.");
+        await handleBackupAndQuit();
+        return;
+      }
+
+      if (window.electronAPI?.showUnsavedChangesDialog) {
+        const fileName = currentFilePath
+          ? currentFilePath.split(/[/\\]/).pop()
+          : generateDefaultFileName();
+
+        const message = `Vols desar els canvis fets a '${fileName}'?`;
+        const buttons = ['Desa', 'Desa com...', 'Tanca sense desar', 'Cancel·la'];
+        const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
+
+        switch (response) {
+          case 0: // Desa
+            if (await handleSaveDocument()) {
+              await handleBackupAndQuit();
+            } else {
+              showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
+            }
+            break;
+          case 1: // Desa com...
+            if (await handleSaveAsDocument()) {
+              await handleBackupAndQuit();
+            } else {
+              showToast("El 'Desa com...' ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
+            }
+            break;
+          case 2: // Tanca sense desar
+            await handleBackupAndQuit();
+            break;
+          case 3: // Cancel·la
+          default:
+            logger.info("Sortida cancel·lada per l'usuari.");
+            break;
+        }
+      }
+    };
+  });
+
+  // El listener de 'confirm-quit' es registra un sol cop, garantint que no hi ha múltiples listeners.
+  // Crida a la versió més recent de la lògica de sortida a través de la ref.
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
-      const handleQuit = async () => {
-        logger.info("[Exit Flow] Renderer ha rebut el senyal 'confirm-quit-signal'.");
+      const cleanup = window.electronAPI.onConfirmQuit(() => {
+        quitLogicRef.current?.();
+      });
 
-        // Si no hi ha canvis, el flux de sortida és directe però amb backup.
-        if (!hasUnsavedChangesRef.current) {
-            logger.info("No hi ha canvis no desats. Creant backup de sessió i sortint.");
-            await handleBackupAndQuit();
-            return;
-        }
-
-        // Si hi ha canvis, mostrem el nou diàleg intel·ligent.
-        if (window.electronAPI?.showUnsavedChangesDialog) {
-            const fileName = currentFilePath
-                ? currentFilePath.split(/[/\\]/).pop()
-                : generateDefaultFileName();
-
-            const message = `Vols desar els canvis fets a '${fileName}'?`;
-            const buttons = ['Desa', 'Desa com...', 'Tanca sense desar', 'Cancel·la'];
-
-            const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
-
-            switch (response) {
-                case 0: // Desa
-                    logger.info("[Exit Flow] Usuari ha triat 'Desa'.");
-                    const saved = await handleSaveDocument();
-                    if (saved) {
-                        logger.info("[Exit Flow] Document desat correctament. Procedint a fer backup i sortir.");
-                        await handleBackupAndQuit();
-                    } else {
-                        logger.warn("[Exit Flow] El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.");
-                        showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
-                    }
-                    break;
-
-                case 1: // Desa com...
-                    logger.info("[Exit Flow] Usuari ha triat 'Desa com...'.");
-                    const savedAs = await handleSaveAsDocument();
-                    if (savedAs) {
-                        logger.info("[Exit Flow] Document desat (com a) correctament. Procedint a fer backup i sortir.");
-                        await handleBackupAndQuit();
-                    } else {
-                        logger.warn("[Exit Flow] El 'Desa com...' ha fallat o ha estat cancel·lat. La sortida s'ha avortat.");
-                        showToast("El 'Desa com...' ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
-                    }
-                    break;
-
-                case 2: // Tanca sense desar
-                    logger.info("[Exit Flow] Usuari ha triat 'Tanca sense desar'. Procedint a fer backup i sortir.");
-                    await handleBackupAndQuit();
-                    break;
-
-                case 3: // Cancel·la
-                default:
-                    logger.info("[Exit Flow] Usuari ha triat 'Cancel·la'. La sortida s'ha avortat.");
-                    // No fem res, el procés de tancament s'atura.
-                    break;
-            }
-        }
-      };
-
-      window.electronAPI.onConfirmQuit(handleQuit);
+      // Neteja el listener quan el component es desmunta, per higiene.
+      return cleanup;
     }
-  }, [currentFilePath, exportDataFromManager, showToast]);
+  }, []);
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listeners per a l\'autenticació de Google.');

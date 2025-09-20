@@ -238,19 +238,30 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         const { refreshGoogleEvents } = get();
         if (data?.googleConfig) {
             try {
-                // Només actualitzem els camps del fitxer: activeAppCalendarId i managedAppCalendars
                 const { activeAppCalendarId, managedAppCalendars } = data.googleConfig;
                 const { useGoogleConfigStore } = await import('./googleConfigStore');
                 const prevConfig = useGoogleConfigStore.getState();
-                useGoogleConfigStore.setState({
+
+                const newMergedConfig = {
                     activeCalendarId: activeAppCalendarId ?? prevConfig.activeCalendarId,
                     managedCalendars: managedAppCalendars ?? prevConfig.managedCalendars,
-                });
+                    selectedIds: prevConfig.selectedIds, // Preserve existing selections
+                };
+
+                useGoogleConfigStore.setState(newMergedConfig);
+
+                if (window.electronAPI?.saveGoogleConfig) {
+                    await window.electronAPI.saveGoogleConfig({
+                        activeAppCalendarId: newMergedConfig.activeCalendarId,
+                        managedAppCalendars: newMergedConfig.managedCalendars,
+                    });
+                }
+
                 await refreshGoogleEvents();
-                return { success: true, message: 'Configuració de Google carregada del fitxer.', type: 'success' };
+                return { success: true, message: 'Configuració de Google carregada i desada correctament.', type: 'success' };
             } catch (error) {
-                logger.error("Error actualitzant la configuració de Google del fitxer:", { error });
-                return { success: false, message: "No s'ha pogut actualitzar la configuració de Google del fitxer.", type: 'error' };
+                logger.error("Error actualitzant la configuració de Google des del fitxer:", { error });
+                return { success: false, message: "No s'ha pogut actualitzar la configuració de Google des del fitxer.", type: 'error' };
             }
         }
         return { success: true, message: 'No hi havia configuració de Google per carregar.', type: 'info' };

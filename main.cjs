@@ -437,13 +437,6 @@ async function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-
-    // Restaurar el listener de tancament controlat
-    mainWindow.on('close', (event) => {
-      console.log(`[Exit Flow] Event 'close' rebut a la finestra. isQuitting: ${isQuitting}`);
-      event.preventDefault(); // Prevenim el tancament immediat
-      app.quit(); // Iniciar el flux de tancament controlat
-    });
   });
 
   if (process.env.NODE_ENV === 'development') {
