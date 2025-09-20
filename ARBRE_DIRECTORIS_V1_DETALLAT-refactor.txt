@@ -50,7 +50,8 @@ enllaç a Gestor-Events_i_Personal/
 │   │       ├── Modal.tsx                       # Component base per a tots els diàlegs modals.
 │   │       ├── SplashScreen.tsx                # Component que mostra una animació en iniciar l'app.
 │   │       ├── SyncProgressOverlay.tsx         # Overlay amb la barra de progrés per a la sincronització.
-│   │       └── Tooltip.tsx                     # Component per a missatges d'ajuda emergents (usa Portals).
+│   │       ├── Tooltip.tsx                     # Component per a missatges d'ajuda emergents (usa Portals).
+│   │       └── WelcomeScreen.tsx               # Pantalla de benvinguda per a la gestió de documents.
 │   │   ├── AssignmentCard.tsx      # Renderitza una assignació individual dins d'un esdeveniment. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── Controls.tsx            # Barra de controls superior (desar, carregar, tema, etc.). [REFACTORITZAT: usa stores]
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.

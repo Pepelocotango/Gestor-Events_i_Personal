@@ -91,35 +91,57 @@ let googleAuthClient;
 let googleCredentials;
 let googleServiceAccountClient;
 
-const createLoadFileClickHandler = (type, options) => async () => {
-  if (!mainWindow) return;
+// REFACCIÓ: La gestió de fitxers ara es fa amb handlers d'IPC específics cridats des del renderer.
+// Aquesta funció ja no és necessària.
+
+ipcMain.handle('open-file-dialog', async () => {
+  console.log("[IPC_IN] Rebut 'open-file-dialog'.");
+  if (!mainWindow) return { success: false, message: 'No hi ha cap finestra activa.' };
+
   try {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openFile'],
       filters: [{ name: 'JSON', extensions: ['json'] }],
-      ...options,
+      title: 'Obrir document',
     });
+
     if (result.canceled || !result.filePaths.length) {
-      return;
+      return { success: false, canceled: true };
     }
+
     const filePath = result.filePaths[0];
-    const content = fs.readFileSync(filePath, 'utf8');
-    mainWindow.webContents.send('file-data-loaded', {
-      success: true,
-      type,
-      content,
-      fileName: path.basename(filePath)
-    });
+    console.log(`Fitxer seleccionat per obrir: ${filePath}`);
+    return { success: true, filePath };
   } catch (error) {
-    console.error(`Error en carregar el fitxer (${type}):`, error);
-    dialog.showErrorBox('Error de Càrrega', `No s'ha pogut llegir el fitxer.\\n${error.message}`);
-    mainWindow.webContents.send('file-data-loaded', {
-      success: false,
-      type,
-      message: error.message
-    });
+    console.error('Error en el diàleg per obrir fitxer:', error);
+    return { success: false, message: error.message };
   }
-};
+});
+
+ipcMain.handle('read-file', async (event, filePath) => {
+  console.log(`[IPC_IN] Rebut 'read-file' per a: ${filePath}`);
+  if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    return { success: true, content };
+  } catch (error) {
+    console.error(`Error llegint el fitxer ${filePath}:`, error);
+    return { success: false, message: `No s'ha pogut llegir el fitxer: ${error.message}` };
+  }
+});
+
+ipcMain.handle('save-file', async (event, { filePath, data }) => {
+  console.log(`[IPC_IN] Rebut 'save-file' per a: ${filePath}`);
+  if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
+  try {
+    fs.writeFileSync(filePath, data, 'utf8');
+    console.log(`Fitxer desat correctament a: ${filePath}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Error desant el fitxer a ${filePath}:`, error);
+    return { success: false, message: `No s'ha pogut desar el fitxer: ${error.message}` };
+  }
+});
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -493,8 +515,12 @@ app.on('before-quit', async (event) => {
   if (isQuitting) {
     return;
   }
-  event.preventDefault();
+
+  console.log("Interceptat 'before-quit'. Delegant al renderer per a confirmació...");
+  event.preventDefault(); // Sempre prevenim la sortida immediata
+
   if (mainWindow && !mainWindow.isDestroyed()) {
+    // Desar l'estat de la finestra
     const windowBounds = mainWindow.getBounds();
     await saveSessionData({
       width: windowBounds.width,
@@ -502,22 +528,13 @@ app.on('before-quit', async (event) => {
       x: windowBounds.x,
       y: windowBounds.y
     });
-  }
-  const choice = await dialog.showMessageBox(mainWindow, {
-    type: 'question',
-    buttons: ['Sí, sortir', 'No, cancel·lar'],
-    defaultId: 1,
-    title: 'Confirmar sortida',
-    message: 'Estàs segur que vols sortir?',
-    cancelId: 1,
-  });
-  if (choice.response === 0) {
+    
+    // Enviar senyal al renderer per gestionar la sortida
+    mainWindow.webContents.send('confirm-quit-signal');
+  } else {
+    // Si no hi ha finestra, podem sortir directament
     isQuitting = true;
-    
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('confirm-quit-signal');
-    }
-    
+    app.quit();
   }
 });
 
@@ -551,23 +568,9 @@ ipcMain.on('log-message', (event, message, data) => {
 });
 
 ipcMain.handle('load-app-data', async () => {
-  console.log("[IPC_IN] Rebut 'load-app-data'.");
-  if (!DATA_FILE) {
-    console.error("LOGIC ERROR: DATA_FILE no està definit.");
-    return null;
-  }
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const fileContent = fs.readFileSync(DATA_FILE, 'utf8');
-      const data = fileContent.trim() ? JSON.parse(fileContent) : null;
-      console.log(`Dades carregades de ${DATA_FILE}.`, { size: fileContent.length, hasData: !!data });
-      return data;
-    }
-    console.log(`El fitxer de dades ${DATA_FILE} no existeix. Retornant null.`);
-  } catch (error) {
-    console.error('Error crític carregant dades de l\'aplicació:', error);
-    dialog.showErrorBox("Error de Càrrega", `No s'han pogut carregar les dades des de ${DATA_FILE}.\nError: ${error.message}`);
-  }
+  // REFACCIÓ: Aquesta funció ara només serveix per indicar a l'App que pot començar.
+  // La càrrega de dades es gestiona a través de les accions de l'usuari (Obrir, Recents).
+  console.log("[IPC_IN] Rebut 'load-app-data'. L'aplicació començarà amb un estat buit.");
   return null;
 });
 
@@ -578,6 +581,39 @@ ipcMain.handle('save-app-data', async (event, data) => {
     return { success: true };
   } catch (error) {
     console.error('Error en save-app-data IPC handler:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('get-recent-files', async () => {
+  console.log("[IPC_IN] Rebut 'get-recent-files'.");
+  const sessionData = loadSessionData();
+  return sessionData.recentFiles || [];
+});
+
+ipcMain.handle('add-recent-file', async (event, filePath) => {
+  console.log(`[IPC_IN] Rebut 'add-recent-file' per a: ${filePath}`);
+  if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
+
+  try {
+    const sessionData = loadSessionData();
+    let recentFiles = sessionData.recentFiles || [];
+
+    // Eliminar duplicats i moure el fitxer al principi
+    recentFiles = recentFiles.filter(f => f !== filePath);
+    recentFiles.unshift(filePath);
+
+    // Limitar la llista a 10 fitxers
+    const MAX_RECENT_FILES = 10;
+    if (recentFiles.length > MAX_RECENT_FILES) {
+      recentFiles = recentFiles.slice(0, MAX_RECENT_FILES);
+    }
+
+    await saveSessionData({ recentFiles });
+    console.log("Fitxers recents actualitzats:", recentFiles);
+    return { success: true, recentFiles };
+  } catch (error) {
+    console.error('Error afegint a fitxers recents:', error);
     return { success: false, message: error.message };
   }
 });
@@ -1072,19 +1108,33 @@ ipcMain.handle('get-default-data-path', () => {
   return 'Ruta no definida';
 });
 
-ipcMain.handle('show-unsaved-changes-dialog', async () => {
-  if (!mainWindow) return 2; // Retorna 'Cancel·lar' si no hi ha finestra
-  console.log("[IPC_IN] Mostrant diàleg de canvis no desats.");
-  const { response } = await dialog.showMessageBox(mainWindow, {
+ipcMain.handle('show-unsaved-changes-dialog', async (event, { hasFilePath }) => {
+  if (!mainWindow) return { response: 2 }; // Cancel·lar
+  console.log("[IPC_IN] Mostrant diàleg de canvis no desats.", { hasFilePath });
+
+  const buttons = hasFilePath
+    ? ['Guardar', 'No Guardar', 'Cancel·lar']
+    : ['Guardar com...', 'No Guardar', 'Cancel·lar'];
+
+  const message = hasFilePath
+    ? 'Hi ha canvis sense desar. Vols guardar els canvis abans de continuar?'
+    : 'Hi ha canvis sense desar. Vols guardar el document abans de continuar?';
+
+  const result = await dialog.showMessageBox(mainWindow, {
     type: 'question',
-    buttons: ['Desar', 'No Desar', 'Cancel·lar'],
+    buttons: buttons,
     defaultId: 0,
     cancelId: 2,
     title: 'Canvis no desats',
-    message: 'Vols desar els canvis de la sessió actual abans de sortir?',
+    message: message,
   });
-  console.log(`[IPC_OUT] Opció de diàleg seleccionada: ${response}`);
-  return response;
+
+  // Mapejar la resposta per ser consistent, independentment dels botons
+  // 'Guardar' / 'Guardar com...' -> 0
+  // 'No Guardar' -> 1
+  // 'Cancel·lar' -> 2
+  console.log(`[IPC_OUT] Opció de diàleg seleccionada: ${result.response}`);
+  return result;
 });
 
 ipcMain.handle('show-save-dialog', async (event, options) => {

@@ -16,16 +16,14 @@ interface ControlsProps {
   theme: string;
   toggleTheme: () => void;
   showToast: ShowToastFunction;
-  currentDataPath: string;
-  setCurrentDataPath: (path: string) => void;
+  currentFilePath: string | null;
 }
 
 const Controls: React.FC<ControlsProps> = ({
     theme,
     toggleTheme,
     showToast,
-    currentDataPath,
-    setCurrentDataPath
+    currentFilePath,
 }) => {
   const { loadData, exportData, setHasUnsavedChanges, syncWithGoogle } = useEventDataStore.getState();
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
@@ -264,9 +262,9 @@ const Controls: React.FC<ControlsProps> = ({
   return (
     <div className="p-1 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg w-full">
       <div className="flex justify-between items-center w-full">
-        <Tooltip text={currentDataPath}>
+        <Tooltip text={currentFilePath || 'Cap fitxer carregat'}>
           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-            Fitxer de dades: <strong>{currentDataPath}</strong>
+            Fitxer de dades: <strong>{currentFilePath || 'Document nou sense desar'}</strong>
           </div>
         </Tooltip>
         <Tooltip text={isExpanded ? "Col·lapsar controls" : "Expandir controls"}>
