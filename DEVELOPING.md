@@ -254,8 +254,7 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `google-disconnect`: Desconnecta el compte de Google i elimina tots els calendaris gestionats.
 
 -   **Accions de l'Aplicació:**
-    -   `perform-hard-reset`: Realitza un "reset de fàbrica" eliminant els fitxers de dades, configuració i tokens, permetent a l'usuari començar de zero.
-    -   `get-default-data-path`: Retorna la ruta relativa del fitxer de dades per mostrar-la a la UI.
+    -   `factory-reset`: Realitza una restauració de fàbrica eliminant els fitxers de configuració de l'aplicació (`session.json`, `google-config.json`, `google-tokens.json`) per resoldre problemes o desvincular un compte. No afecta els documents de l'usuari.
 
 -   **Interacció amb UI Nativa:**
     -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu, rebent les dades i la configuració del diàleg des de React.

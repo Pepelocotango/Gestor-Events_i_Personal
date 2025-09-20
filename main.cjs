@@ -1066,9 +1066,9 @@ process.on('uncaughtException', (error) => {
   }
 });
 
-ipcMain.handle('perform-hard-reset', async () => {
-  console.log("[IPC_IN] Rebut 'perform-hard-reset'.");
-  console.log("Iniciant Reset de Fàbrica...");
+ipcMain.handle('factory-reset', async () => {
+  console.log("[IPC_IN] Rebut 'factory-reset'.");
+  console.log("Iniciant Restauració de Fàbrica...");
   
   let success = true;
   let messages = [];
@@ -1090,9 +1090,9 @@ ipcMain.handle('perform-hard-reset', async () => {
     }
   };
 
-  // The concept of a single DATA_FILE is obsolete. Hard reset now only clears config files.
   eliminarFitxerDeFormaSegura(GOOGLE_TOKENS_PATH, `Fitxer de tokens de Google (${path.basename(GOOGLE_TOKENS_PATH)})`);
   eliminarFitxerDeFormaSegura(GOOGLE_CONFIG_PATH, `Fitxer de configuració de Google (${path.basename(GOOGLE_CONFIG_PATH)})`);
+  eliminarFitxerDeFormaSegura(SESSION_FILE, `Fitxer de sessió (${path.basename(SESSION_FILE)})`);
 
   if (googleAuthClient) {
     googleAuthClient.setCredentials(null);

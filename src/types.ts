@@ -457,7 +457,7 @@ export interface ElectronAPI {
   onBackendNotification: (callback: (notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void) => () => void;
 
   // Misc & Obsolete
-  performHardReset: () => Promise<{ success: boolean; message?: string }>;
+  factoryReset: () => Promise<{ success: boolean; message?: string }>;
   log: (message: string, data?: any) => void;
   // Obsolete - kept for safety, should be removed later
   loadAppData: () => Promise<any>;

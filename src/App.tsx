@@ -280,11 +280,10 @@ const handleSaveDocument = async (): Promise<boolean> => {
       if (!canContinue) return;
 
       loadDataFromManager(null);
-      useGoogleConfigStore.getState().resetGoogleConfig();
       setCurrentFilePath(null);
-      setIsDocumentOpen(true);
+      setIsDocumentOpen(false);
       setHasUnsavedChanges(false);
-      showToast('Nou document creat.', 'info');
+      showToast('Document tancat. Pots crear un nou document o obrir-ne un d\'existent.', 'info');
   };
 
   const handleOpenDocument = async (filePathToOpen?: string) => {
@@ -442,30 +441,27 @@ const handleSaveDocument = async (): Promise<boolean> => {
     }
   };
 
-  const handleRequestHardReset = () => {
+  const handleFactoryReset = () => {
     openModalFromStore('confirmHardReset', {
-      titleOverride: "Confirmar Reset de Fàbrica",
-      itemType: "Reset de Fàbrica",
-      itemName: "Estàs segur que vols restablir l'aplicació? S'esborraran <b>TOTES</b> les dades locals de l'aplicació (esdeveniments, persones, assignacions) i la configuració de Google. <br><br><b>Aquesta acció és irreversible.</b>",
-      confirmButtonText: "Sí, Resetejar Ara",
+      titleOverride: "Restaurar Configuració de Fàbrica",
+      itemName: "Estàs segur que vols restaurar la configuració de fàbrica? Aquesta acció esborrarà la teva connexió amb Google i la llista de fitxers recents. Els teus documents desats no seran afectats. Aquesta acció és irreversible.",
+      confirmButtonText: "Sí, Restaurar",
       cancelButtonText: "Cancel·lar",
       onConfirmSpecial: async () => {
-        if (window.electronAPI?.performHardReset) {
+        if (window.electronAPI?.factoryReset) {
           try {
-            const result = await window.electronAPI.performHardReset();
+            const result = await window.electronAPI.factoryReset();
               if (result.success) {
-                loadDataFromManager(null);
-                useGoogleConfigStore.getState().resetGoogleConfig();
-                setHasUnsavedChanges(false);
-                showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success');
+                showToast("Configuració restaurada. L'aplicació es reiniciarà.", 'success');
+                setTimeout(() => window.location.reload(), 2000);
               } else {
-                showToast(result.message || "Error durant el reset de fàbrica.", 'error');
+                showToast(result.message || "Error durant la restauració.", 'error');
               }
           } catch (error) {
-            showToast(`Error greu durant el reset de fàbrica: ${(error as Error).message}`, 'error');
+            showToast(`Error greu durant la restauració: ${(error as Error).message}`, 'error');
           }
         } else {
-          showToast("La funcionalitat de reset no està disponible.", 'error');
+          showToast("La funcionalitat de restauració no està disponible.", 'error');
         }
       },
     });
@@ -670,8 +666,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
           case 'export-material':
             handleExportData('material');
             break;
-          case 'hard-reset':
-            handleRequestHardReset();
+          case 'factory-reset':
+            handleFactoryReset();
             break;
           case 'sync-google':
             useEventDataStore.getState().syncWithGoogle();

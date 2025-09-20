@@ -54,7 +54,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   triggerMenuAction: (action) => ipcRenderer.send('trigger-menu-action', action),
 
   // Misc & Obsolete
-  performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
+  factoryReset: () => ipcRenderer.invoke('factory-reset'),
   log: (message, data) => ipcRenderer.send('log-message', message, data),
   loadAppData: () => ipcRenderer.invoke('load-app-data'),
 });

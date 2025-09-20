@@ -102,7 +102,12 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
           ],
         },
         { separator: true },
-        { label: 'Començar de Zero', action: 'hard-reset' },
+        {
+          label: 'Avançat',
+          submenu: [
+            { label: 'Restaurar Configuració de Fàbrica...', action: 'factory-reset' },
+          ]
+        },
         { label: 'Tema Clar/Fosc', action: 'toggle-theme' },
         { separator: true },
         { label: 'Sortir', action: 'quit' },
