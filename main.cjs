@@ -497,6 +497,7 @@ async function createWindow() {
 
   // >>> CANVI PRINCIPAL EN LA LÒGICA DE TANCAMENT <<<
   mainWindow.on('close', (event) => {
+    console.log(`[Exit Flow] Event 'close' rebut a la finestra. isQuitting: ${isQuitting}`);
     if (!isQuitting) {
       event.preventDefault(); // Prevenim que la finestra es tanqui directament
       app.quit(); // Iniciem el flux de sortida de l'aplicació
@@ -522,6 +523,7 @@ app.on('web-contents-created', (event, contents) => {
 });
 
 app.on('before-quit', async (event) => {
+  console.log(`[Exit Flow] Event 'before-quit' rebut. isQuitting: ${isQuitting}`);
   if (isQuitting) {
     return;
   }
@@ -565,8 +567,9 @@ app.on('window-all-closed', () => {
 
 // NOU LISTENER: S'executa quan el frontend ha acabat de desar les dades.
 ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
-  console.log("Backend rebut 'quit-confirmed'. Sortint de forma segura.");
+  console.log("[Exit Flow] Rebut 'quit-confirmed-by-renderer-signal'. Sortint de forma segura.");
   // Els backups ara es fan en desar, no en sortir.
+  isQuitting = true; // Marcar per evitar bucles
   setTimeout(() => {
     app.exit();
   }, 500); // Un petit temps de marge per si de cas
@@ -574,7 +577,7 @@ ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
 
 // NOU LISTENER: S'executa quan el frontend confirma sortir sense desar.
 ipcMain.on('quit-without-saving', () => {
-  console.log("Backend rebut 'quit-without-saving'. Sortint directament.");
+  console.log("[Exit Flow] Rebut 'quit-without-saving'. Sortint directament.");
   isQuitting = true;
   app.quit();
 });

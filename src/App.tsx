@@ -6,7 +6,7 @@ import Modal from './components/ui/Modal';
 import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
-import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
+import { initializeGoogleAuthListeners, useGoogleConfigStore } from './stores/googleConfigStore';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
@@ -280,6 +280,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
       if (!canContinue) return;
 
       loadDataFromManager(null);
+      useGoogleConfigStore.getState().resetGoogleConfig();
       setCurrentFilePath(null);
       setIsDocumentOpen(true);
       setHasUnsavedChanges(false);
@@ -312,6 +313,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
                 return;
             }
 
+            // FIX: Reset Google Config before loading new data to prevent stale state.
+            useGoogleConfigStore.getState().resetGoogleConfig();
+
             const data = JSON.parse(fileReadResult.content);
             const loadResult = await loadDataFromManager(data);
 
@@ -321,6 +325,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             }
 
             if (data.googleConfig) {
+                logger.info("Trobada configuració de Google al fitxer, restaurant-la...");
                 await loadGoogleConfigFromDataFile(data);
             }
 
@@ -450,6 +455,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             const result = await window.electronAPI.performHardReset();
               if (result.success) {
                 loadDataFromManager(null);
+                useGoogleConfigStore.getState().resetGoogleConfig();
                 setHasUnsavedChanges(false);
                 showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success');
               } else {

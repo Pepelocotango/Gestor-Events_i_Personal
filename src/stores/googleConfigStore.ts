@@ -27,6 +27,7 @@ interface ActionResult {
 interface GoogleConfigActions {
   toggleExternalCalendar: (calendarId: string) => void;
   setActiveCalendarId: (calendarId: string | null) => void;
+  resetGoogleConfig: () => void;
 }
 
 const initialState: GoogleConfigState = {
@@ -60,6 +61,11 @@ export const useGoogleConfigStore = create<GoogleConfigState & GoogleConfigActio
 
     setActiveCalendarId: (calendarId: string | null) => {
       set({ activeCalendarId: calendarId });
+    },
+
+    resetGoogleConfig: () => {
+      set(initialState);
+      logger.info("Estat de la configuració de Google restablert.");
     },
   }))
 );
