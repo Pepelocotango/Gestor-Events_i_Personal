@@ -168,11 +168,10 @@ El flux de sortida s'ha refactoritzat per eliminar els "backups de sessió" i al
 
 2.  **Gestió Centralitzada al Frontend (`onConfirmQuit`):**
     -   Un listener a `App.tsx` rep el senyal i centralitza tota la lògica.
-    -   Si no hi ha canvis no desats (`hasUnsavedChanges` és `false`), es crida directament a l'IPC `quit-application` per tancar l'aplicació.
-    -   **Si hi ha canvis no desats**, el frontend mostra un diàleg natiu amb les següents opcions:
-        -   `Desa`: Intenta desar el document. Si té èxit, es crida a `quit-application`.
-        -   `Tanca sense desar`: Crida immediatament a `quit-application`, descartant els canvis.
-        -   `Cancel·la`: Avorta el procés de tancament.
+    -   **Sempre** es mostra un diàleg de confirmació a l'usuari per prevenir un tancament accidental.
+        -   Si hi ha canvis no desats, el diàleg ofereix les opcions: "Desa", "Tanca sense desar" i "Cancel·la".
+        -   Si no hi ha canvis, el diàleg simplement pregunta: "Estàs segur que vols sortir de l'aplicació?" amb les opcions "Sortir" i "Cancel·lar".
+    -   En funció de la resposta, l'aplicació desa les dades si és necessari i finalment crida a l'IPC `quit-application` per tancar-se, o bé avorta el procés si l'usuari cancel·la.
 
 3.  **Tancament Definitiu (`quit-application`):**
     -   El nou gestor IPC `quit-application` al backend té una única responsabilitat: marcar la variable `isQuitting` com a `true` i cridar a `app.quit()`.

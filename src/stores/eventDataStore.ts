@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
 import { useModalStore } from './modalStore';
+import { useGoogleConfigStore } from './googleConfigStore';
 import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
@@ -239,7 +240,6 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         if (data?.googleConfig) {
             try {
                 const { activeAppCalendarId, managedAppCalendars } = data.googleConfig;
-                const { useGoogleConfigStore } = await import('./googleConfigStore');
                 const prevConfig = useGoogleConfigStore.getState();
 
                 const newMergedConfig = {

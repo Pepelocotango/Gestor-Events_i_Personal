@@ -521,41 +521,46 @@ const handleSaveDocument = async (): Promise<boolean> => {
         }
       };
 
-      if (!hasUnsavedChangesRef.current) {
-        logger.info("No hi ha canvis no desats. Sortint directament.");
-        quitApp();
-        return;
-      }
+      if (hasUnsavedChangesRef.current) {
+        // Cas 1: Hi ha canvis no desats
+        if (window.electronAPI?.showUnsavedChangesDialog) {
+          const fileName = currentFilePath
+            ? currentFilePath.split(/[/\\]/).pop()
+            : generateDefaultFileName();
 
-      if (window.electronAPI?.showUnsavedChangesDialog) {
-        const fileName = currentFilePath
-          ? currentFilePath.split(/[/\\]/).pop()
-          : generateDefaultFileName();
+          const message = `Vols desar els canvis fets a '${fileName}'?`;
+          const buttons = ['Desa', 'Tanca sense desar', 'Cancel·la'];
+          const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
 
-        const message = `Vols desar els canvis fets a '${fileName}'?`;
-        // S'elimina el botó "Desa com..." per simplificar el flux. L'usuari pot fer "Desa" o cancel·lar i desar com vulgui.
-        const buttons = ['Desa', 'Tanca sense desar', 'Cancel·la'];
-        const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
-
-        switch (response) {
-          case 0: // Desa
-            logger.info("[Exit Flow] Usuari tria 'Desa'.");
-            if (await handleSaveDocument()) {
-              logger.info("[Exit Flow] Document desat correctament. Sortint.");
+          switch (response) {
+            case 0: // Desa
+              if (await handleSaveDocument()) {
+                quitApp();
+              } else {
+                showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
+              }
+              break;
+            case 1: // Tanca sense desar
               quitApp();
-            } else {
-              logger.warn("[Exit Flow] El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.");
-              showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
-            }
-            break;
-          case 1: // Tanca sense desar
-            logger.info("[Exit Flow] Usuari tria 'Tanca sense desar'. Sortint.");
+              break;
+            case 2: // Cancel·la
+            default:
+              logger.info("Sortida cancel·lada per l'usuari.");
+              break;
+          }
+        }
+      } else {
+        // Cas 2: No hi ha canvis, però igualment es demana confirmació
+        if (window.electronAPI?.showUnsavedChangesDialog) {
+          const { response } = await window.electronAPI.showUnsavedChangesDialog({
+            message: 'Estàs segur que vols sortir de l\'aplicació?',
+            buttons: ['Sortir', 'Cancel·lar'],
+          });
+          if (response === 0) { // 0: Sortir
             quitApp();
-            break;
-          case 2: // Cancel·la
-          default:
-            logger.info("[Exit Flow] Sortida cancel·lada per l'usuari.");
-            break;
+          } else {
+            logger.info("Sortida cancel·lada per l'usuari.");
+          }
         }
       }
     };
