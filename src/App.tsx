@@ -510,8 +510,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
         logger.info("Renderer ha rebut el senyal 'confirm-quit-signal'.");
 
         if (!hasUnsavedChangesRef.current) {
-            logger.info("No hi ha canvis, sortint amb backup.");
-            window.electronAPI?.sendQuitConfirmedByRenderer?.();
+            logger.info("No hi ha canvis, sortint directament.");
+            window.electronAPI?.sendQuitWithoutSaving?.();
             return;
         }
 

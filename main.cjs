@@ -57,7 +57,6 @@ app.setAppUserModelId(APP_ID);
 const CONFIG_DIR = app.getPath('userData');
 const DATA_DIR = CONFIG_DIR;
 const SESSION_FILE = path.join(CONFIG_DIR, 'session.json');
-const DATA_FILE = path.join(DATA_DIR, 'events_data.json');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const GOOGLE_TOKENS_PATH = path.join(CONFIG_DIR, 'google-tokens.json');
 const GOOGLE_CONFIG_PATH = path.join(CONFIG_DIR, 'google-config.json');
@@ -526,12 +525,9 @@ app.on('before-quit', async (event) => {
   if (isQuitting) {
     return;
   }
-
-  console.log("Interceptat 'before-quit'. Delegant al renderer per a confirmació...");
-  event.preventDefault(); // Sempre prevenim la sortida immediata
+  event.preventDefault(); // Prevenim la sortida immediata per gestionar-la manualment
 
   if (mainWindow && !mainWindow.isDestroyed()) {
-    // Desar l'estat de la finestra
     const windowBounds = mainWindow.getBounds();
     await saveSessionData({
       width: windowBounds.width,
@@ -539,11 +535,22 @@ app.on('before-quit', async (event) => {
       x: windowBounds.x,
       y: windowBounds.y
     });
-    
-    // Enviar senyal al renderer per gestionar la sortida
-    mainWindow.webContents.send('confirm-quit-signal');
+
+    const choice = await dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      buttons: ['Sí, sortir', 'No, cancel·lar'],
+      defaultId: 1,
+      title: 'Confirmar sortida',
+      message: 'Estàs segur que vols sortir?',
+      cancelId: 1,
+    });
+
+    if (choice.response === 0) { // L'usuari ha triat "Sí, sortir"
+      // Ara deleguem al renderer per comprovar canvis no desats
+      mainWindow.webContents.send('confirm-quit-signal');
+    }
+    // Si l'usuari cancel·la, no fem res i la sortida es deté.
   } else {
-    // Si no hi ha finestra, podem sortir directament
     isQuitting = true;
     app.quit();
   }
@@ -558,9 +565,8 @@ app.on('window-all-closed', () => {
 
 // NOU LISTENER: S'executa quan el frontend ha acabat de desar les dades.
 ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
-  console.log("Backend rebut 'quit-confirmed'. Iniciant backup i sortida final.");
-  await createBackup();
-  await cleanupOldBackups();
+  console.log("Backend rebut 'quit-confirmed'. Sortint de forma segura.");
+  // Els backups ara es fan en desar, no en sortir.
   setTimeout(() => {
     app.exit();
   }, 500); // Un petit temps de marge per si de cas
@@ -583,17 +589,6 @@ ipcMain.handle('load-app-data', async () => {
   // La càrrega de dades es gestiona a través de les accions de l'usuari (Obrir, Recents).
   console.log("[IPC_IN] Rebut 'load-app-data'. L'aplicació començarà amb un estat buit.");
   return null;
-});
-
-ipcMain.handle('save-app-data', async (event, data) => {
-  console.log("[IPC_IN] Rebut 'save-app-data'.");
-  try {
-    await saveDataWithErrorHandling(DATA_FILE, data);
-    return { success: true };
-  } catch (error) {
-    console.error('Error en save-app-data IPC handler:', error);
-    return { success: false, message: error.message };
-  }
 });
 
 ipcMain.handle('get-recent-files', async () => {
@@ -1092,7 +1087,7 @@ ipcMain.handle('perform-hard-reset', async () => {
     }
   };
 
-  eliminarFitxerDeFormaSegura(DATA_FILE, `Fitxer de dades (${path.basename(DATA_FILE)})`);
+  // The concept of a single DATA_FILE is obsolete. Hard reset now only clears config files.
   eliminarFitxerDeFormaSegura(GOOGLE_TOKENS_PATH, `Fitxer de tokens de Google (${path.basename(GOOGLE_TOKENS_PATH)})`);
   eliminarFitxerDeFormaSegura(GOOGLE_CONFIG_PATH, `Fitxer de configuració de Google (${path.basename(GOOGLE_CONFIG_PATH)})`);
 
@@ -1109,14 +1104,6 @@ ipcMain.handle('perform-hard-reset', async () => {
     console.error("El reset de fàbrica ha fallat en alguns passos.");
     return { success: false, message: `El reset de fàbrica ha fallat:\n${messages.join('\n')}` };
   }
-});
-
-ipcMain.handle('get-default-data-path', () => {
-  console.log("[IPC_IN] Rebut 'get-default-data-path'.");
-  if (DATA_FILE) {
-    return getRelativePath(DATA_FILE);
-  }
-  return 'Ruta no definida';
 });
 
 ipcMain.handle('show-unsaved-changes-dialog', async (event, { hasFilePath }) => {

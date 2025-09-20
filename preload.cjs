@@ -57,6 +57,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
   log: (message, data) => ipcRenderer.send('log-message', message, data),
   loadAppData: () => ipcRenderer.invoke('load-app-data'),
-  saveAppData: (data) => ipcRenderer.invoke('save-app-data', data),
-  getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),
 });

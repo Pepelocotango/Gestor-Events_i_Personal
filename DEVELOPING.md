@@ -180,24 +180,21 @@ Aquesta funció s'encarrega de:
 5.  Carregar la URL del servidor de desenvolupament de Vite o el fitxer `index.html` de producció.
 6.  Construir i establir el menú natiu de l'aplicació (`Menu.buildFromTemplate`).
 
-#### Flux de Tancament Segur
-El flux de tancament ha estat simplificat i la seva lògica s'ha delegat al frontend per a una millor gestió dels canvis no desats.
+#### Flux de Tancament Segur (Doble Diàleg)
 
-1.  **Inici del Tancament:** L'usuari tanca la finestra o utilitza una drecera (`CmdOrCtrl+Q`).
-2.  **`before-quit`:** L'esdeveniment `before-quit` d'Electron s'activa.
-    -   Guarda l'estat de la finestra (mida, posició) a `session.json`.
-    -   **No mostra cap diàleg.** Envia un senyal IPC (`'confirm-quit-signal'`) al frontend i prevé la sortida immediata.
-3.  **Lògica Condicional al Frontend (`App.tsx`):** Un listener rep el senyal i actua:
-    -   **Sense Canvis:** Si `hasUnsavedChanges` és `false`, envia un senyal (`'quit-confirmed-by-renderer-signal'`) al backend per procedir amb el tancament (amb backup).
-    -   **Amb Canvis:** Si `hasUnsavedChanges` és `true`, el frontend crida a l'IPC handler `'show-unsaved-changes-dialog'`, passant si el document actual ja té una ruta (`hasFilePath`).
-        -   El backend mostra un diàleg natiu amb botons contextuals ("Guardar" o "Guardar com...").
-        -   El frontend rep la resposta i actua en conseqüència:
-            -   **Guardar / Guardar com...:** S'executa la lògica de desat. Si té èxit, s'envia `'quit-confirmed-by-renderer-signal'`. Si falla, el tancament es cancel·la.
-            -   **No Guardar:** S'envia `'quit-without-saving'`.
-            -   **Cancel·lar:** No es fa res i el tancament s'atura.
-4.  **Tancament Final al Backend:**
-    -   `on('quit-confirmed-by-renderer-signal')`: Crea un backup i tanca l'aplicació.
-    -   `on('quit-without-saving')`: Tanca l'aplicació directament.
+Per evitar la pèrdua de dades i alhora prevenir tancaments accidentals, el flux de sortida segueix un procés de dos passos:
+
+1.  **`before-quit` (Primera Confirmació General):**
+    -   Quan l'usuari intenta tancar l'aplicació, el listener `app.on('before-quit')` a `main.cjs` s'activa.
+    -   Aquest mostra un primer diàleg genèric: **"Estàs segur que vols sortir?"**.
+    -   Si l'usuari cancel·la, el procés s'atura.
+    -   Si l'usuari confirma, el backend **no tanca l'aplicació**, sinó que envia el senyal `'confirm-quit-signal'` al frontend.
+
+2.  **`onConfirmQuit` (Segona Confirmació Condicional al Frontend):**
+    -   Un listener a `App.tsx` rep el senyal.
+    -   **Si no hi ha canvis no desats** (`hasUnsavedChanges` és `false`), el frontend notifica al backend que pot tancar directament amb `sendQuitWithoutSaving`.
+    -   **Si hi ha canvis no desats**, el frontend demana al backend que mostri el segon diàleg, més específic, a través de `show-unsaved-changes-dialog`. Aquest diàleg ofereix opcions contextuals ("Guardar" o "Guardar com...").
+    -   El frontend gestiona la resposta de l'usuari (desant si cal) i finalment notifica al backend que pot procedir a tancar l'aplicació de manera segura.
 
 #### Gestió d'Excepcions
 
@@ -242,9 +239,9 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `get-recent-files`: Retorna la llista de fitxers recents des de `session.json`.
     -   `add-recent-file`: Afegeix una ruta a la llista de fitxers recents.
 
--   **Handlers Modificats o Obsolets:**
-    -   `load-app-data`: Ara només retorna `null`. La seva única funció és indicar al frontend que el backend està llest.
-    -   `save-app-data`: Es considera obsolet, ja que el desat ara es fa a rutes de fitxer específiques.
+-   **Handlers Obsolets:**
+    -   `load-app-data`: Encara existeix per a la seqüència d'inici, però ara només retorna `null`.
+    -   `save-app-data`, `getDefaultDataPath`: Han estat eliminats.
 
 -   **Integració amb Google:**
     -   `google-auth-start`: Inicia el flux d'autenticació OAuth 2.0.
