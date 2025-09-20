@@ -370,6 +370,14 @@ export const useEventDataStore = create<...>()(
     const { undo } = useEventDataStore.temporal.getState();
     ```
 
+#### Historial d'Accions Visual (Desfer/Refer)
+
+Per millorar l'experiència d'usuari, la funcionalitat de desfer/refer s'ha millorat per proporcionar un feedback visual clar sobre quina acció s'està modificant.
+
+-   **Descripció de l'Acció:** L'estat de `eventDataStore` ara inclou una propietat `lastActionDescription: string | null`. Cada vegada que s'executa una acció que modifica les dades (com afegir un esdeveniment, eliminar un contacte, etc.), aquesta propietat s'actualitza amb un text descriptiu (p. ex., `"Creat esdeveniment: 'El meu Esdeveniment'"`).
+-   **Notificacions Toast:** S'han creat les funcions `undoWithToast` i `redoWithToast` a l'store. Aquestes funcions embolcallen les crides originals de `undo()` i `redo()`. Llegeixen el `lastActionDescription` i mostren una notificació *toast* a la pantalla (p. ex., `"Desfeta l'acció: Creat esdeveniment: 'El meu Esdeveniment'"`), informant l'usuari de manera explícita.
+-   **Neteja de l'Historial:** Per garantir la integritat de les dades entre sessions de treball, l'historial de desfer/refer es neteja automàticament cada vegada que l'usuari carrega un nou fitxer o crea un document en blanc. Això es fa cridant a `temporal.getState().clear()` dins de la funció `loadData`, evitant que accions d'un document anterior es puguin desfer en el document actual.
+
 ### 4.2. Lògica de Gestió de Documents (`App.tsx`)
 `App.tsx` orquestra tota la lògica del cicle de vida dels documents.
 
