@@ -1,7 +1,8 @@
 
 
 import { create } from 'zustand';
-import { useStoreWithEqualityFn } from 'zustand/traditional';
+// import eliminat: useStoreWithEqualityFn
+import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
@@ -759,8 +760,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 type PartializedState = Pick<EventDataState, 'eventFrames' | 'peopleGroups' | 'materialItems' | 'lastActionDescription'>;
 
 export const useTemporalStore = <T,>(
-  selector: (state: TemporalState<PartializedState>) => T,
-  equality?: (a: T, b: T) => boolean,
+    selector: (state: TemporalState<PartializedState>) => T
 ) => {
-  return useStoreWithEqualityFn(useEventDataStore.temporal, selector, equality);
+    return useStore(useEventDataStore.temporal, selector);
 };
