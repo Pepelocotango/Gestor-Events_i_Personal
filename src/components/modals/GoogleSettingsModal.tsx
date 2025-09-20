@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ShowToastFunction, GoogleCalendar, ManagedAppCalendar } from '@/types';
 import Tooltip from '../ui/Tooltip';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { useModalStore } from '@/stores/modalStore';
 import {
   useGoogleConfigStore,
+  fetchAndLoadConfig,
   saveConfig,
   deleteCalendar,
   disconnectGoogle,
@@ -29,6 +30,12 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
   const activeCalendarId = useGoogleConfigStore(state => state.activeCalendarId);
   const loading = useGoogleConfigStore(state => state.loading);
   const error = useGoogleConfigStore(state => state.error);
+
+  // Afegit: Carrega la configuració més recent en obrir el modal
+  useEffect(() => {
+    logger.info('[GoogleSettingsModal] Muntat. Carregant la configuració de Google...');
+    fetchAndLoadConfig();
+  }, []); // El array buit assegura que només s'executi en muntar
 
   logger.info('[GoogleSettingsModal Render]', { loading, error });
 
