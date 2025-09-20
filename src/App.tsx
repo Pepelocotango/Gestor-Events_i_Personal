@@ -38,6 +38,7 @@ const SelectSyncCalendarModal = lazy(() => import('./components/modals/SelectSyn
 const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalendarModal'));
 const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/UpdateFromAssignmentsModal'));
 const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairModal'));
+const HistoryModal = lazy(() => import('./components/modals/HistoryModal'));
 
 
 import { useRef } from 'react';
@@ -851,6 +852,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
                   }}
                   message={data?.message || ''}
                 />;
+      case 'history':
+        return <HistoryModal />;
       default:
         return null;
     }

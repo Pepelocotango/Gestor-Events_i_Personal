@@ -4,7 +4,7 @@ import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { startGoogleAuthFlow } from '../stores/googleConfigStore';
 import { ShowToastFunction } from '../types';
-import { SunIcon, MoonIcon, InfoIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, DocumentArrowDownIcon } from '../constants';
+import { SunIcon, MoonIcon, InfoIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, DocumentArrowDownIcon, ClockIcon } from '../constants';
 import { exportEventListToPdf } from '../utils/pdfGenerator';
 import { exportEventListToCsv } from '../utils/csvUtils';
 import { selectFilteredEventFrames } from '../utils/selectors';
@@ -67,6 +67,11 @@ const Controls: React.FC<ControlsProps> = ({
               <Tooltip text="Refer (Ctrl+Y)">
                 <button onClick={redo} disabled={!canRedo} className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
                   <ArrowUturnRightIcon className="w-5 h-5" />
+                </button>
+              </Tooltip>
+              <Tooltip text="Historial de canvis">
+                <button onClick={() => openModal('history')} disabled={!canUndo && !canRedo} className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <ClockIcon className="w-5 h-5" />
                 </button>
               </Tooltip>
 

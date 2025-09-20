@@ -230,6 +230,7 @@ export type ModalType =
   | 'confirmDuplicate'
   | 'updateFromAssignments'
   | 'addMaterialFromTechSheet'
+  | 'history'
   | null;
 
 export interface ModalData {
