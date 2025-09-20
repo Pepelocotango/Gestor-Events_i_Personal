@@ -250,6 +250,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         },
     loadData: async (data: AppData | null) => {
         const { _applyDataToState } = get();
+        const { clear: clearHistory } = useEventDataStore.temporal.getState();
         logger.info("Iniciant la càrrega de dades (sense Google)...", { hasData: !!data });
 
         if (!data) {
@@ -257,6 +258,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 Object.assign(state, initialState);
                 state.lastActionDescription = 'Projecte netejat';
             });
+            clearHistory();
             return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
         }
 
@@ -265,6 +267,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
         if (validationResult.isValid) {
           _applyDataToState(migratedData);
+          clearHistory();
           return { status: 'ok', message: "Dades carregades amb èxit.", type: 'success' };
         } else {
           const { repairedData, fixes } = repairData(migratedData, validationResult.errors);
