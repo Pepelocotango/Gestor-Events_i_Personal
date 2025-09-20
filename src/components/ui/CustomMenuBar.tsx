@@ -17,9 +17,20 @@ interface CustomMenuBarProps {
   canRedo: boolean;
   splashScreenEnabled: boolean;
   onToggleSplashScreen: () => void;
+  isDocumentOpen: boolean;
+  hasUnsavedChanges: boolean;
+  recentFiles: string[];
 }
 
-const CustomMenuBar: React.FC<CustomMenuBarProps> = ({ canUndo, canRedo, splashScreenEnabled, onToggleSplashScreen }) => {
+const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
+  canUndo,
+  canRedo,
+  splashScreenEnabled,
+  onToggleSplashScreen,
+  isDocumentOpen,
+  hasUnsavedChanges,
+  recentFiles,
+}) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -59,13 +70,28 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({ canUndo, canRedo, splashS
     {
       label: 'Arxiu',
       items: [
-        { label: 'Carregar Tot', action: 'load-all' },
-        { label: 'Guardar Tot', action: 'save-all' },
-        { label: 'Carregar Material', action: 'load-material' },
-        { label: 'Carregar Persones', action: 'load-people' },
+        { label: 'Nou Document', action: 'new-document' },
+        { label: 'Obrir...', action: 'open-document' },
+        {
+            label: 'Obrir Recents',
+            submenu: recentFiles.length > 0
+                ? recentFiles.map(f => ({ label: f, action: `open-recent:${f}` }))
+                : [{ label: 'No hi ha fitxers recents', disabled: true }],
+        },
         { separator: true },
-        { label: 'Guardar Persones', action: 'save-people' },
-        { label: 'Guardar Material', action: 'save-material' },
+        { label: 'Guardar', action: 'save-document', disabled: !isDocumentOpen || !hasUnsavedChanges },
+        { label: 'Guardar com...', action: 'save-as-document', disabled: !isDocumentOpen },
+        { separator: true },
+        {
+          label: 'Importar / Exportar',
+          submenu: [
+            { label: 'Importar Persones...', action: 'import-people' },
+            { label: 'Exportar Persones...', action: 'export-people' },
+            { separator: true },
+            { label: 'Importar Material...', action: 'import-material' },
+            { label: 'Exportar Material...', action: 'export-material' },
+          ]
+        },
         { separator: true },
         {
           label: 'Configuració Google Calendar',
@@ -76,7 +102,12 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({ canUndo, canRedo, splashS
           ],
         },
         { separator: true },
-        { label: 'Començar de Zero', action: 'hard-reset' },
+        {
+          label: 'Avançat',
+          submenu: [
+            { label: 'Restaurar Configuració de Fàbrica...', action: 'factory-reset' },
+          ]
+        },
         { label: 'Tema Clar/Fosc', action: 'toggle-theme' },
         { separator: true },
         { label: 'Sortir', action: 'quit' },

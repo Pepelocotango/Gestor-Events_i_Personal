@@ -1,13 +1,15 @@
+
+
 import { create } from 'zustand';
 import { temporal } from 'zundo';
 import { useModalStore } from './modalStore';
+import { useGoogleConfigStore } from './googleConfigStore';
 import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import logger from '../utils/logger';
 import { immer } from 'zustand/middleware/immer';
-import { fetchAndLoadConfig } from './googleConfigStore';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -235,15 +237,31 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
       },
     loadGoogleConfigFromDataFile: async (data: AppData) => {
         const { refreshGoogleEvents } = get();
-        if (data?.googleConfig && window.electronAPI) {
+        if (data?.googleConfig) {
             try {
-                await window.electronAPI.saveGoogleConfig(data.googleConfig);
-                await fetchAndLoadConfig();
+                const { activeAppCalendarId, managedAppCalendars } = data.googleConfig;
+                const prevConfig = useGoogleConfigStore.getState();
+
+                const newMergedConfig = {
+                    activeCalendarId: activeAppCalendarId ?? prevConfig.activeCalendarId,
+                    managedCalendars: managedAppCalendars ?? prevConfig.managedCalendars,
+                    selectedIds: prevConfig.selectedIds, // Preserve existing selections
+                };
+
+                useGoogleConfigStore.setState(newMergedConfig);
+
+                if (window.electronAPI?.saveGoogleConfig) {
+                    await window.electronAPI.saveGoogleConfig({
+                        activeAppCalendarId: newMergedConfig.activeCalendarId,
+                        managedAppCalendars: newMergedConfig.managedCalendars,
+                    });
+                }
+
                 await refreshGoogleEvents();
-                return { success: true, message: 'Configuració de Google carregada del fitxer.', type: 'success' };
+                return { success: true, message: 'Configuració de Google carregada i desada correctament.', type: 'success' };
             } catch (error) {
-                logger.error("Error desant la configuració de Google del fitxer:", { error });
-                return { success: false, message: "No s'ha pogut actualitzar la configuració de Google del fitxer.", type: 'error' };
+                logger.error("Error actualitzant la configuració de Google des del fitxer:", { error });
+                return { success: false, message: "No s'ha pogut actualitzar la configuració de Google des del fitxer.", type: 'error' };
             }
         }
         return { success: true, message: 'No hi havia configuració de Google per carregar.', type: 'info' };

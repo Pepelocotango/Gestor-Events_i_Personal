@@ -57,7 +57,6 @@ app.setAppUserModelId(APP_ID);
 const CONFIG_DIR = app.getPath('userData');
 const DATA_DIR = CONFIG_DIR;
 const SESSION_FILE = path.join(CONFIG_DIR, 'session.json');
-const DATA_FILE = path.join(DATA_DIR, 'events_data.json');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const GOOGLE_TOKENS_PATH = path.join(CONFIG_DIR, 'google-tokens.json');
 const GOOGLE_CONFIG_PATH = path.join(CONFIG_DIR, 'google-config.json');
@@ -91,35 +90,62 @@ let googleAuthClient;
 let googleCredentials;
 let googleServiceAccountClient;
 
-const createLoadFileClickHandler = (type, options) => async () => {
-  if (!mainWindow) return;
+// REFACCIÓ: La gestió de fitxers ara es fa amb handlers d'IPC específics cridats des del renderer.
+// Aquesta funció ja no és necessària.
+
+ipcMain.handle('open-file-dialog', async () => {
+  console.log("[IPC_IN] Rebut 'open-file-dialog'.");
+  if (!mainWindow) return { success: false, message: 'No hi ha cap finestra activa.' };
+
   try {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openFile'],
       filters: [{ name: 'JSON', extensions: ['json'] }],
-      ...options,
+      title: 'Obrir document',
     });
+
     if (result.canceled || !result.filePaths.length) {
-      return;
+      return { success: false, canceled: true };
     }
+
     const filePath = result.filePaths[0];
-    const content = fs.readFileSync(filePath, 'utf8');
-    mainWindow.webContents.send('file-data-loaded', {
-      success: true,
-      type,
-      content,
-      fileName: path.basename(filePath)
-    });
+    console.log(`Fitxer seleccionat per obrir: ${filePath}`);
+    return { success: true, filePath };
   } catch (error) {
-    console.error(`Error en carregar el fitxer (${type}):`, error);
-    dialog.showErrorBox('Error de Càrrega', `No s'ha pogut llegir el fitxer.\\n${error.message}`);
-    mainWindow.webContents.send('file-data-loaded', {
-      success: false,
-      type,
-      message: error.message
-    });
+    console.error('Error en el diàleg per obrir fitxer:', error);
+    return { success: false, message: error.message };
   }
-};
+});
+
+ipcMain.handle('read-file', async (event, filePath) => {
+  console.log(`[IPC_IN] Rebut 'read-file' per a: ${filePath}`);
+  if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    return { success: true, content };
+  } catch (error) {
+    console.error(`Error llegint el fitxer ${filePath}:`, error);
+    return { success: false, message: `No s'ha pogut llegir el fitxer: ${error.message}` };
+  }
+});
+
+ipcMain.handle('save-file', async (event, { filePath, data }) => {
+  console.log(`[IPC_IN] Rebut 'save-file' per a: ${filePath}`);
+  if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
+  try {
+    fs.writeFileSync(filePath, data, 'utf8');
+    console.log(`Fitxer desat correctament a: ${filePath}`);
+
+    // Create backup after successful save
+    await createBackup(filePath);
+    await cleanupOldBackups(filePath);
+
+    return { success: true };
+  } catch (error) {
+    console.error(`Error desant el fitxer a ${filePath}:`, error);
+    return { success: false, message: `No s'ha pogut desar el fitxer: ${error.message}` };
+  }
+});
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -253,15 +279,18 @@ async function saveSessionData(newData) {
   return saveDataWithErrorHandling(SESSION_FILE, mergedData);
 }
 
-async function createBackup() {
-  if (!DATA_FILE || !BACKUP_DIR) return false;
+async function createBackup(sourceFilePath) {
+  if (!sourceFilePath || !BACKUP_DIR) return false;
   try {
-    if (fs.existsSync(DATA_FILE)) {
+    if (fs.existsSync(sourceFilePath)) {
       if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
       if (!checkWritePermissions(BACKUP_DIR)) throw new Error(`No hi ha permisos d'escriptura a ${BACKUP_DIR}`);
+
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupFile = path.join(BACKUP_DIR, `backup-events_data-${timestamp}.json`);
-      fs.copyFileSync(DATA_FILE, backupFile);
+      const sourceFileName = path.basename(sourceFilePath, '.json'); // Get filename without extension
+      const backupFile = path.join(BACKUP_DIR, `backup-${sourceFileName}-${timestamp}.json`);
+
+      fs.copyFileSync(sourceFilePath, backupFile);
       console.log(`Còpia de seguretat creada a: ${backupFile}`);
       return true;
     }
@@ -270,16 +299,19 @@ async function createBackup() {
   }
   return false;
 }
-async function cleanupOldBackups() {
+async function cleanupOldBackups(sourceFilePath) {
   const MAX_BACKUPS_TO_KEEP = 5;
-  if (!fs.existsSync(BACKUP_DIR)) {
+  if (!fs.existsSync(BACKUP_DIR) || !sourceFilePath) {
     return;
   }
   
+  const sourceFileName = path.basename(sourceFilePath, '.json');
+  const backupPrefix = `backup-${sourceFileName}-`;
+
   try {
-    console.log("Netejant backups antics...");
+    console.log(`Netejant backups antics per a ${sourceFileName}...`);
     const backupFiles = fs.readdirSync(BACKUP_DIR)
-      .filter(file => file.startsWith('backup-events_data-') && file.endsWith('.json'))
+      .filter(file => file.startsWith(backupPrefix) && file.endsWith('.json'))
       .map(file => {
         const filePath = path.join(BACKUP_DIR, file);
         try {
@@ -426,12 +458,12 @@ async function createWindow() {
     {
       label: 'Arxiu',
       submenu: [
-        { label: 'Carregar Tot', click: createLoadFileClickHandler('all', { title: 'Carregar Fitxer de Dades Complet' }) },
+        { label: 'Carregar Tot', click: () => mainWindow.webContents.send('menu-action', 'load-all') },
         { label: 'Guardar Tot', click: () => mainWindow.webContents.send('menu-action', 'save-all') },
-        { label: 'Carregar Material', click: createLoadFileClickHandler('material', { title: 'Carregar Fitxer de Material' }) },
+        { label: 'Carregar Material', click: () => mainWindow.webContents.send('menu-action', 'load-material') },
         { label: 'Començar de Zero', click: () => mainWindow.webContents.send('menu-action', 'hard-reset') },
         { type: 'separator' },
-        { label: 'Carregar Persones', click: createLoadFileClickHandler('people', { title: 'Carregar Fitxer de Persones' }) },
+        { label: 'Carregar Persones', click: () => mainWindow.webContents.send('menu-action', 'load-people') },
         { label: 'Guardar Persones', click: () => mainWindow.webContents.send('menu-action', 'save-people') },
         { label: 'Guardar Material', click: () => mainWindow.webContents.send('menu-action', 'save-material') },
         { type: 'separator' },
@@ -465,6 +497,7 @@ async function createWindow() {
 
   // >>> CANVI PRINCIPAL EN LA LÒGICA DE TANCAMENT <<<
   mainWindow.on('close', (event) => {
+    console.log(`[Exit Flow] Event 'close' rebut a la finestra. isQuitting: ${isQuitting}`);
     if (!isQuitting) {
       event.preventDefault(); // Prevenim que la finestra es tanqui directament
       app.quit(); // Iniciem el flux de sortida de l'aplicació
@@ -490,10 +523,12 @@ app.on('web-contents-created', (event, contents) => {
 });
 
 app.on('before-quit', async (event) => {
-  if (isQuitting) {
-    return;
-  }
-  event.preventDefault();
+  console.log(`[Exit Flow] Event 'before-quit' rebut. isQuitting: ${isQuitting}`);
+  if (isQuitting) return; // Evita bucles de tancament
+
+  event.preventDefault(); // Prevenim la sortida immediata per donar control al frontend
+
+  // Desar l'estat de la finestra (mida, posició) per a la propera sessió
   if (mainWindow && !mainWindow.isDestroyed()) {
     const windowBounds = mainWindow.getBounds();
     await saveSessionData({
@@ -502,22 +537,16 @@ app.on('before-quit', async (event) => {
       x: windowBounds.x,
       y: windowBounds.y
     });
-  }
-  const choice = await dialog.showMessageBox(mainWindow, {
-    type: 'question',
-    buttons: ['Sí, sortir', 'No, cancel·lar'],
-    defaultId: 1,
-    title: 'Confirmar sortida',
-    message: 'Estàs segur que vols sortir?',
-    cancelId: 1,
-  });
-  if (choice.response === 0) {
+
+    console.log('[Exit Flow] Estat de la finestra desat. Enviant senyal de confirmació al frontend...');
+    // Envia el senyal al frontend perquè gestioni la lògica de desat/backup
+    mainWindow.webContents.send('confirm-quit-signal');
+
+  } else {
+    // Si no hi ha finestra, no cal esperar el frontend.
+    console.log('[Exit Flow] No hi ha finestra principal, sortint directament.');
     isQuitting = true;
-    
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('confirm-quit-signal');
-    }
-    
+    app.quit();
   }
 });
 
@@ -528,49 +557,53 @@ app.on('window-all-closed', () => {
 });
 
 
-// NOU LISTENER: S'executa quan el frontend ha acabat de desar les dades.
-ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
-  console.log("Backend rebut 'quit-confirmed'. Iniciant backup i sortida final.");
-  await createBackup();
-  await cleanupOldBackups();
-  setTimeout(() => {
-    app.exit();
-  }, 500); // Un petit temps de marge per si de cas
-});
-
 console.log('[Startup] Configurant gestors de IPC...');
+
+ipcMain.handle('quit-application', () => {
+  console.log("[Exit Flow] Rebut 'quit-application'. Sortint de l'aplicació.");
+  isQuitting = true;
+  app.quit();
+});
 ipcMain.on('log-message', (event, message, data) => {
   logToFile(`[FRONTEND] ${message}`, data);
 });
 
 ipcMain.handle('load-app-data', async () => {
-  console.log("[IPC_IN] Rebut 'load-app-data'.");
-  if (!DATA_FILE) {
-    console.error("LOGIC ERROR: DATA_FILE no està definit.");
-    return null;
-  }
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const fileContent = fs.readFileSync(DATA_FILE, 'utf8');
-      const data = fileContent.trim() ? JSON.parse(fileContent) : null;
-      console.log(`Dades carregades de ${DATA_FILE}.`, { size: fileContent.length, hasData: !!data });
-      return data;
-    }
-    console.log(`El fitxer de dades ${DATA_FILE} no existeix. Retornant null.`);
-  } catch (error) {
-    console.error('Error crític carregant dades de l\'aplicació:', error);
-    dialog.showErrorBox("Error de Càrrega", `No s'han pogut carregar les dades des de ${DATA_FILE}.\nError: ${error.message}`);
-  }
+  // REFACCIÓ: Aquesta funció ara només serveix per indicar a l'App que pot començar.
+  // La càrrega de dades es gestiona a través de les accions de l'usuari (Obrir, Recents).
+  console.log("[IPC_IN] Rebut 'load-app-data'. L'aplicació començarà amb un estat buit.");
   return null;
 });
 
-ipcMain.handle('save-app-data', async (event, data) => {
-  console.log("[IPC_IN] Rebut 'save-app-data'.");
+ipcMain.handle('get-recent-files', async () => {
+  console.log("[IPC_IN] Rebut 'get-recent-files'.");
+  const sessionData = loadSessionData();
+  return sessionData.recentFiles || [];
+});
+
+ipcMain.handle('add-recent-file', async (event, filePath) => {
+  console.log(`[IPC_IN] Rebut 'add-recent-file' per a: ${filePath}`);
+  if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
+
   try {
-    await saveDataWithErrorHandling(DATA_FILE, data);
-    return { success: true };
+    const sessionData = loadSessionData();
+    let recentFiles = sessionData.recentFiles || [];
+
+    // Eliminar duplicats i moure el fitxer al principi
+    recentFiles = recentFiles.filter(f => f !== filePath);
+    recentFiles.unshift(filePath);
+
+    // Limitar la llista a 10 fitxers
+    const MAX_RECENT_FILES = 10;
+    if (recentFiles.length > MAX_RECENT_FILES) {
+      recentFiles = recentFiles.slice(0, MAX_RECENT_FILES);
+    }
+
+    await saveSessionData({ recentFiles });
+    console.log("Fitxers recents actualitzats:", recentFiles);
+    return { success: true, recentFiles };
   } catch (error) {
-    console.error('Error en save-app-data IPC handler:', error);
+    console.error('Error afegint a fitxers recents:', error);
     return { success: false, message: error.message };
   }
 });
@@ -1014,9 +1047,9 @@ process.on('uncaughtException', (error) => {
   }
 });
 
-ipcMain.handle('perform-hard-reset', async () => {
-  console.log("[IPC_IN] Rebut 'perform-hard-reset'.");
-  console.log("Iniciant Reset de Fàbrica...");
+ipcMain.handle('factory-reset', async () => {
+  console.log("[IPC_IN] Rebut 'factory-reset'.");
+  console.log("Iniciant Restauració de Fàbrica...");
   
   let success = true;
   let messages = [];
@@ -1038,9 +1071,9 @@ ipcMain.handle('perform-hard-reset', async () => {
     }
   };
 
-  eliminarFitxerDeFormaSegura(DATA_FILE, `Fitxer de dades (${path.basename(DATA_FILE)})`);
   eliminarFitxerDeFormaSegura(GOOGLE_TOKENS_PATH, `Fitxer de tokens de Google (${path.basename(GOOGLE_TOKENS_PATH)})`);
   eliminarFitxerDeFormaSegura(GOOGLE_CONFIG_PATH, `Fitxer de configuració de Google (${path.basename(GOOGLE_CONFIG_PATH)})`);
+  eliminarFitxerDeFormaSegura(SESSION_FILE, `Fitxer de sessió (${path.basename(SESSION_FILE)})`);
 
   if (googleAuthClient) {
     googleAuthClient.setCredentials(null);
@@ -1057,12 +1090,22 @@ ipcMain.handle('perform-hard-reset', async () => {
   }
 });
 
-ipcMain.handle('get-default-data-path', () => {
-  console.log("[IPC_IN] Rebut 'get-default-data-path'.");
-  if (DATA_FILE) {
-    return getRelativePath(DATA_FILE);
-  }
-  return 'Ruta no definida';
+ipcMain.handle('show-unsaved-changes-dialog', async (event, { message, buttons }) => {
+  if (!mainWindow) return { response: buttons.length - 1 }; // Cancel·lar per defecte
+  console.log("[IPC_IN] Mostrant diàleg de sortida personalitzat.");
+
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: 'question',
+    buttons: buttons,
+    defaultId: 0,
+    cancelId: buttons.length - 1, // L'últim botó sempre és 'Cancel·la'
+    title: 'Tancar aplicació', // Títol de la finestra del diàleg
+    message: message, // El missatge dinàmic rebut del frontend
+  });
+
+  console.log(`[IPC_OUT] Opció de diàleg seleccionada: ${result.response}`);
+  // El frontend ara és responsable de gestionar l'índex directament.
+  return { response: result.response };
 });
 
 ipcMain.handle('show-save-dialog', async (event, options) => {
@@ -1086,6 +1129,11 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
   try {
     const buffer = Buffer.from(data);
     fs.writeFileSync(result.filePath, buffer);
+
+    // Create backup after successful save
+    await createBackup(result.filePath);
+    await cleanupOldBackups(result.filePath);
+
     return { success: true, filePath: result.filePath };
   } catch (error) {
     console.error('Error desant el fitxer:', error);
@@ -1289,15 +1337,14 @@ ipcMain.on('trigger-menu-action', (event, action) => {
   }
 
   switch (action) {
-    // Accions de càrrega de fitxers
+    // Accions de càrrega de fitxers (ara gestionades pel renderer)
     case 'load-all':
-      createLoadFileClickHandler('all', { title: 'Carregar Fitxer de Dades Complet' })();
-      break;
     case 'load-material':
-      createLoadFileClickHandler('material', { title: 'Carregar Fitxer de Material' })();
-      break;
     case 'load-people':
-      createLoadFileClickHandler('people', { title: 'Carregar Fitxer de Persones' })();
+      // Simplement reenviem l'acció al renderer, que conté la lògica completa.
+      if (mainWindow) {
+        mainWindow.webContents.send('menu-action', action);
+      }
       break;
 
     // Control de l'aplicació

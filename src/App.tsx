@@ -1,15 +1,15 @@
+import { generateDefaultFileName } from './utils/dateFormat';
+import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import logger from './utils/logger';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ShowToastFunction, PersonGroup, MaterialItem, AppData } from './types';
+import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
-import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
-import { migrateData, validateMigratedData } from './utils/dataMigration';
 import { Toaster } from 'react-hot-toast';
 import { notificationService } from './utils/notificationService';
 
@@ -20,6 +20,7 @@ const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
 const SyncProgressOverlay = lazy(() => import('./components/ui/SyncProgressOverlay'));
 import CustomMenuBar from './components/ui/CustomMenuBar';
 import SplashScreen from './components/ui/SplashScreen';
+import WelcomeScreen from './components/ui/WelcomeScreen';
 
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
@@ -50,6 +51,9 @@ const App: React.FC = () => {
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
+  const [isDocumentOpen, setIsDocumentOpen] = useState<boolean>(false);
+  const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
+  const [recentFiles, setRecentFiles] = useState<string[]>([]);
   const { openModal: openModalFromStore, closeModal } = useModalStore.getState();
   const isOpen = useModalStore(state => state.isOpen);
   const type = useModalStore(state => state.type);
@@ -76,7 +80,6 @@ const App: React.FC = () => {
   // This avoids re-running useEffects that depend on them.
   const {
     loadData: loadDataFromManager,
-    loadGoogleConfigFromDataFile,
     exportData: exportDataFromManager,
     setHasUnsavedChanges,
     getPersonGroupById,
@@ -86,11 +89,8 @@ const App: React.FC = () => {
     addMaterialItemsFromFile,
     replacePeopleGroups,
     replaceMaterialItems,
-    _applyDataToState,
-    clearDataRepairInfo,
+    loadGoogleConfigFromDataFile,
   } = useEventDataStore.getState();
-
-  const [currentDataPath, setCurrentDataPath] = useState<string>('Cap fitxer carregat.');
 
   const showToast: ShowToastFunction = useCallback((message, type = 'success') => {
     switch (type) {
@@ -187,8 +187,169 @@ const App: React.FC = () => {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
+  // --- Document Management ---
 
-  const handleSaveData = async (type: 'all' | 'people' | 'material') => {
+  const handleSaveAsDocument = async (): Promise<boolean> => {
+    if (!window.electronAPI) {
+      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      return false;
+    }
+    try {
+        const dataToSave = await exportDataFromManager();
+        const jsonString = JSON.stringify(dataToSave, null, 2);
+        const fileName = currentFilePath ? currentFilePath.split(/[/\\]/).pop() : 'document.json';
+
+        const result = await window.electronAPI.showSaveDialog({
+            title: 'Guardar com...',
+            defaultPath: fileName || 'document.json',
+            filters: [{ name: 'JSON', extensions: ['json'] }],
+            data: jsonString,
+        });
+
+        if (result.success && result.filePath) {
+            setHasUnsavedChanges(false);
+            setCurrentFilePath(result.filePath);
+            const recentFilesResult = await window.electronAPI.addRecentFile(result.filePath);
+            if(recentFilesResult.success) {
+                setRecentFiles(recentFilesResult.recentFiles);
+            }
+            showToast('Document desat correctament.', 'success');
+            return true;
+        } else if (!result.canceled) {
+            showToast(`Error en desar: ${result.message}`, 'error');
+        }
+    } catch (error) {
+        showToast(`Error en desar: ${(error as Error).message}`, 'error');
+    }
+    return false;
+};
+
+const handleSaveDocument = async (): Promise<boolean> => {
+    if (!currentFilePath) {
+        return handleSaveAsDocument();
+    }
+    if (!window.electronAPI) {
+      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      return false;
+    }
+    try {
+        const dataToSave = await exportDataFromManager();
+        const jsonString = JSON.stringify(dataToSave, null, 2);
+        const result = await window.electronAPI.saveFile({
+            filePath: currentFilePath,
+            data: jsonString,
+        });
+
+        if (result.success) {
+            setHasUnsavedChanges(false);
+            showToast('Document desat.', 'success');
+            return true;
+        } else {
+            showToast(`Error en desar: ${result.message}`, 'error');
+        }
+    } catch (error) {
+        showToast(`Error en desar: ${(error as Error).message}`, 'error');
+    }
+    return false;
+};
+
+  const confirmContinueWithUnsavedChanges = async (): Promise<boolean> => {
+    if (!hasUnsavedChangesRef.current) {
+        return true; // No unsaved changes, can continue
+    }
+
+    if (window.electronAPI?.showUnsavedChangesDialog) {
+        const message = 'Teniu canvis sense desar. Voleu desar-los abans de continuar?';
+        const buttons = ['Desa', 'No desis', 'Cancel·la'];
+
+        const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
+        // 0: Desa, 1: No desis, 2: Cancel·la
+        switch (response) {
+            case 0: // Desa
+                const saved = await handleSaveDocument();
+                return saved;
+            case 1: // No desis
+                return true;
+            case 2: // Cancel·la
+            default:
+                return false;
+        }
+    }
+    // Fallback for web or if API is not available
+    return confirm('You have unsaved changes. Are you sure you want to continue?');
+  };
+
+  const handleNewDocument = async () => {
+      const canContinue = await confirmContinueWithUnsavedChanges();
+      if (!canContinue) return;
+
+      loadDataFromManager(null);
+      setCurrentFilePath(null);
+      setIsDocumentOpen(true);
+      setHasUnsavedChanges(false);
+      showToast('Nou espai de treball creat.', 'success');
+  };
+
+  const handleOpenDocument = async (filePathToOpen?: string) => {
+    const canContinue = await confirmContinueWithUnsavedChanges();
+    if (!canContinue) return;
+
+    let filePath = filePathToOpen;
+    if (!filePath && window.electronAPI) {
+        const dialogResult = await window.electronAPI.openFileDialog();
+        if (!dialogResult.success || !dialogResult.filePath) {
+            return; // User cancelled or error
+        }
+        filePath = dialogResult.filePath;
+    }
+
+    if (!filePath) {
+        showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+        return;
+    }
+
+    try {
+        if (window.electronAPI) {
+            const fileReadResult = await window.electronAPI.readFile(filePath);
+            if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
+                showToast(`Error en llegir el fitxer: ${fileReadResult.message}`, 'error');
+                return;
+            }
+
+
+            const data = JSON.parse(fileReadResult.content);
+            const loadResult = await loadDataFromManager(data);
+
+            if (loadResult.status === 'error') {
+                showToast(loadResult.message || 'Hi ha hagut un error en carregar les dades.', 'error');
+                return;
+            }
+
+            if (data.googleConfig) {
+                logger.info("Trobada configuració de Google al fitxer, restaurant-la...");
+                await loadGoogleConfigFromDataFile(data);
+            }
+
+            setCurrentFilePath(filePath);
+            setIsDocumentOpen(true);
+            const recentFilesResult = await window.electronAPI.addRecentFile(filePath);
+            if(recentFilesResult.success) {
+                setRecentFiles(recentFilesResult.recentFiles);
+            }
+
+            const fileName = filePath.split(/[/\\]/).pop() || filePath;
+            showToast(`Document "${fileName}" carregat.`, 'success');
+        }
+    } catch (error) {
+        showToast(`Error en processar el fitxer: ${(error as Error).message}`, 'error');
+    }
+  };
+
+  const handleOpenRecent = (filePath: string) => {
+    handleOpenDocument(filePath);
+  };
+
+  const handleExportData = async (type: 'people' | 'material') => {
     try {
       let dataToSave: any;
       let filename: string;
@@ -203,70 +364,106 @@ const App: React.FC = () => {
           dataToSave = { materialItems: fullData.materialItems };
           filename = 'material_dades.json';
           break;
-        case 'all':
-        default:
-          dataToSave = fullData;
-          filename = 'gestio_esdeveniments_dades.json';
-          break;
       }
       const jsonString = JSON.stringify(dataToSave, null, 2);
 
       if (window.electronAPI?.showSaveDialog) {
         const result = await window.electronAPI.showSaveDialog({
-          title: `Desar ${type} a JSON`,
+          title: `Exportar ${type} a JSON`,
           defaultPath: filename,
           filters: [{ name: 'JSON', extensions: ['json'] }],
           data: jsonString,
         });
         if (result.success) {
-          if (type === 'all') setHasUnsavedChanges(false);
-          showToast(`Dades de ${type} desades correctament.`, 'success');
+          showToast(`Dades de ${type} exportades correctament.`, 'success');
         } else if (!result.canceled) {
-          showToast(`Error en desar les dades: ${result.message}`, 'error');
+          showToast(`Error en exportar les dades: ${result.message}`, 'error');
         }
-      } else {
-        // Fallback for web version
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        if (type === 'all') setHasUnsavedChanges(false);
-        showToast(`Dades de ${type} desades correctament.`, 'success');
       }
     } catch (error) {
-      console.error(`Error saving ${type} data:`, error);
-      showToast(`Error en desar les dades: ${(error as Error).message}`, 'error');
+      showToast(`Error en exportar les dades: ${(error as Error).message}`, 'error');
     }
   };
 
-  const handleRequestHardReset = () => {
+  const handleImportPeople = async () => {
+    if (!window.electronAPI) {
+      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      return;
+    }
+    const dialogResult = await window.electronAPI.openFileDialog();
+    if (!dialogResult.success || !dialogResult.filePath) return;
+
+    const fileReadResult = await window.electronAPI.readFile(dialogResult.filePath);
+    if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
+        showToast(`Error en llegir el fitxer: ${fileReadResult.message}`, 'error');
+        return;
+    }
+
+    try {
+        const jsonData = JSON.parse(fileReadResult.content);
+        let newPeople: PersonGroup[] = [];
+        if (Array.isArray(jsonData.peopleGroups)) {
+            newPeople = jsonData.peopleGroups;
+        } else {
+            showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
+            return;
+        }
+        openModalFromStore('mergeOrReplace', { itemType: 'persones', newData: newPeople });
+    } catch (error) {
+        showToast(`Error en processar el fitxer de persones: ${(error as Error).message}`, 'error');
+    }
+  };
+
+  const handleImportMaterial = async () => {
+    if (!window.electronAPI) {
+      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      return;
+    }
+    const dialogResult = await window.electronAPI.openFileDialog();
+    if (!dialogResult.success || !dialogResult.filePath) return;
+
+    const fileReadResult = await window.electronAPI.readFile(dialogResult.filePath);
+    if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
+        showToast(`Error en llegir el fitxer: ${fileReadResult.message}`, 'error');
+        return;
+    }
+
+    try {
+      const jsonData = JSON.parse(fileReadResult.content);
+      if (Array.isArray(jsonData.materialItems)) {
+        openModalFromStore('mergeOrReplace', {
+          itemType: 'material',
+          newData: jsonData.materialItems,
+        });
+      } else {
+        showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
+      }
+    } catch (error) {
+      showToast(`Error en processar el fitxer de material: ${(error as Error).message}`, 'error');
+    }
+  };
+
+  const handleFactoryReset = () => {
     openModalFromStore('confirmHardReset', {
-      titleOverride: "Confirmar Reset de Fàbrica",
-      itemType: "Reset de Fàbrica",
-      itemName: "Estàs segur que vols restablir l'aplicació? S'esborraran <b>TOTES</b> les dades locals de l'aplicació (esdeveniments, persones, assignacions) i la configuració de Google. <br><br><b>Aquesta acció és irreversible.</b>",
-      confirmButtonText: "Sí, Resetejar Ara",
+      titleOverride: "Restaurar Configuració de Fàbrica",
+      itemName: "Estàs segur que vols restaurar la configuració de fàbrica? Aquesta acció esborrarà la teva connexió amb Google i la llista de fitxers recents. Els teus documents desats no seran afectats. Aquesta acció és irreversible.",
+      confirmButtonText: "Sí, Restaurar",
       cancelButtonText: "Cancel·lar",
       onConfirmSpecial: async () => {
-        if (window.electronAPI?.performHardReset) {
+        if (window.electronAPI?.factoryReset) {
           try {
-            const result = await window.electronAPI.performHardReset();
+            const result = await window.electronAPI.factoryReset();
               if (result.success) {
-                loadDataFromManager(null);
-                setHasUnsavedChanges(false);
-                showToast("L'aplicació s'ha restablert a l'estat de fàbrica.", 'success');
+                showToast("Configuració restaurada. L'aplicació es reiniciarà.", 'success');
+                setTimeout(() => window.location.reload(), 2000);
               } else {
-                showToast(result.message || "Error durant el reset de fàbrica.", 'error');
+                showToast(result.message || "Error durant la restauració.", 'error');
               }
           } catch (error) {
-            showToast(`Error greu durant el reset de fàbrica: ${(error as Error).message}`, 'error');
+            showToast(`Error greu durant la restauració: ${(error as Error).message}`, 'error');
           }
         } else {
-          showToast("La funcionalitat de reset no està disponible.", 'error');
+          showToast("La funcionalitat de restauració no està disponible.", 'error');
         }
       },
     });
@@ -286,110 +483,99 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const attemptInitialLoad = async () => {
-        const { openModal, closeModal } = useModalStore.getState();
-
-        logger.info('[Startup] App.tsx: Executant useEffect d\'inicialització de dades.');
-        if (window.electronAPI && typeof window.electronAPI.loadAppData === 'function') {
-            let loadedData: AppData | null = null;
-            try {
-                logger.info("[Startup] App.tsx: Cridant a window.electronAPI.loadAppData().");
-                loadedData = await window.electronAPI.loadAppData();
-
-                if (loadedData) {
-                    logger.info("[Startup] App.tsx: Dades rebudes. Cridant a loadData.");
-                    const result = await loadDataFromManager(loadedData);
-
-                    if (result.status === 'ok' && result.message) {
-                        showToast(result.message, result.type);
-                    } else if (result.status === 'needs_confirmation') {
-                        const dataRepairInfo = useEventDataStore.getState().dataRepairInfo;
-                        if (dataRepairInfo) {
-                            openModal('confirmDataRepair', {
-                                onConfirm: () => {
-                                    _applyDataToState(dataRepairInfo.repairedData);
-                                    showToast("Dades reparades i carregades.", 'success');
-                                    if (loadedData) loadGoogleConfigFromDataFile(loadedData); // Càrrega Google després de reparar
-                                    closeModal();
-                                    clearDataRepairInfo();
-                                },
-                                onCancel: () => {
-                                    closeModal();
-                                    clearDataRepairInfo();
-                                },
-                                fixes: result.fixes,
-                            });
-                        }
-                    } else if (result.status === 'error' && result.message) {
-                        showToast(result.message, result.type);
-                    }
-
-                    // Càrrega de Google només si la càrrega inicial no necessita confirmació
-                    if (result.status !== 'needs_confirmation') {
-                        await loadGoogleConfigFromDataFile(loadedData);
-                    }
-                } else {
-                    // Si no hi ha dades, neteja l'estat
-                    await loadDataFromManager(null);
-                }
-                setHasUnsavedChanges(false);
-            } catch (error) {
-                console.error('Error carregant dades de l\'aplicació via Electron:', error);
-                showToast(`Error carregant dades (Electron): ${(error as Error).message}`, 'error');
-                await loadDataFromManager(null);
-                setHasUnsavedChanges(false);
+    const initializeApp = async () => {
+        logger.info('[Startup] App.tsx: Iniciant la càrrega de la sessió.');
+        if (window.electronAPI) {
+            if (window.electronAPI.getRecentFiles) {
+                const files = await window.electronAPI.getRecentFiles();
+                setRecentFiles(files);
+                logger.info('[Startup] Fitxers recents carregats:', files);
             }
-
-            if (window.electronAPI?.getDefaultDataPath) {
-                try {
-                    const path = await window.electronAPI.getDefaultDataPath();
-                    setCurrentDataPath(path);
-                } catch (e) {
-                    setCurrentDataPath('Ruta del fitxer per defecte no disponible.');
-                }
-            }
-            if (window.electronAPI?.getSessionData) {
+            if (window.electronAPI.getSessionData) {
                 const sessionData = await window.electronAPI.getSessionData();
                 setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
-                setSplashConfigLoaded(true);
-            } else {
-                setSplashConfigLoaded(true);
+                logger.info('[Startup] Configuració del splash screen carregada.');
             }
-        } else {
-            console.log("Mode navegador detectat o API d'Electron no disponible. Començant buit.");
-            await loadDataFromManager(null);
-            setHasUnsavedChanges(false);
-            setSplashConfigLoaded(true);
         }
+        setSplashConfigLoaded(true);
         globalInitialLoadAttempted = true;
         logger.info('[Startup] App.tsx: Marcat initialLoadAttempted com a true.');
     };
 
     if (!globalInitialLoadAttempted) {
-        logger.info('[Startup] App.tsx: Primer render, cridant a attemptInitialLoad.');
-        attemptInitialLoad();
+        logger.info('[Startup] App.tsx: Primer render, cridant a initializeApp.');
+        initializeApp();
     }
   }, []);
 
+  // Lògica de sortida refactoritzada per eliminar el backup de sessió.
+  // El tancament ara és gestionat per un IPC handler simple que no crea backups.
+  const quitLogicRef = useRef<() => Promise<void>>();
   useEffect(() => {
-    if (window.electronAPI?.onConfirmQuit) {
-      const handleQuit = async () => {
-        logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
-        try {
-          if (hasUnsavedChangesRef.current) {
-            const dataToSave = await exportDataFromManager();
-            logger.info("Renderer: Desant dades abans de sortir...");
-            await window.electronAPI?.saveAppData?.(dataToSave);
-          } else {
-            logger.info("Renderer: No hi ha canvis per desar.");
-          }
-        } catch (error) {
-          logger.error("Renderer: Excepció durant el desat en sortir:", error);
-        } finally {
-          window.electronAPI?.sendQuitConfirmedByRenderer?.();
+    quitLogicRef.current = async () => {
+      logger.info("[Exit Flow] Executant la lògica de sortida refactoritzada.");
+
+      const quitApp = () => {
+        if (window.electronAPI?.quitApplication) {
+          window.electronAPI.quitApplication();
         }
       };
-      window.electronAPI.onConfirmQuit(handleQuit);
+
+      if (hasUnsavedChangesRef.current) {
+        // Cas 1: Hi ha canvis no desats
+        if (window.electronAPI?.showUnsavedChangesDialog) {
+          const fileName = currentFilePath
+            ? currentFilePath.split(/[/\\]/).pop()
+            : generateDefaultFileName();
+
+          const message = `Vols desar els canvis fets a '${fileName}'?`;
+          const buttons = ['Desa', 'Tanca sense desar', 'Cancel·la'];
+          const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
+
+          switch (response) {
+            case 0: // Desa
+              if (await handleSaveDocument()) {
+                quitApp();
+              } else {
+                showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
+              }
+              break;
+            case 1: // Tanca sense desar
+              quitApp();
+              break;
+            case 2: // Cancel·la
+            default:
+              logger.info("Sortida cancel·lada per l'usuari.");
+              break;
+          }
+        }
+      } else {
+        // Cas 2: No hi ha canvis, però igualment es demana confirmació
+        if (window.electronAPI?.showUnsavedChangesDialog) {
+          const { response } = await window.electronAPI.showUnsavedChangesDialog({
+            message: 'Estàs segur que vols sortir de l\'aplicació?',
+            buttons: ['Sortir', 'Cancel·lar'],
+          });
+          if (response === 0) { // 0: Sortir
+            quitApp();
+          } else {
+            logger.info("Sortida cancel·lada per l'usuari.");
+          }
+        }
+      }
+    };
+  });
+
+  // El listener de 'confirm-quit' es registra un sol cop, garantint que no hi ha múltiples listeners.
+  // Crida a la versió més recent de la lògica de sortida a través de la ref.
+  useEffect(() => {
+    if (window.electronAPI?.onConfirmQuit) {
+      const cleanup = window.electronAPI.onConfirmQuit(() => {
+        quitLogicRef.current?.();
+      });
+
+      // Neteja el listener quan el component es desmunta, per higiene.
+      return cleanup;
     }
   }, []);
 
@@ -464,101 +650,8 @@ const App: React.FC = () => {
     }
   }, [showToast]);
 
-  const processAllData = async (fileContent: string, fileName: string) => {
-    try {
-      if (!fileContent) {
-        showToast("Error: El contingut del fitxer està buit.", 'error');
-        return;
-      }
-      const jsonData = JSON.parse(fileContent);
-      let dataToLoad = null;
-      let isMigrated = false;
-
-      if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
-        dataToLoad = jsonData;
-      } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
-        const migratedData = migrateData(
-          { people: jsonData.people || [] },
-          { eventFrames: jsonData.eventFrames || [] },
-          { assignments: jsonData.assignments || [] }
-        );
-        const validation = validateMigratedData(migratedData);
-        if (!validation.isValid) {
-          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
-          return;
-        }
-        dataToLoad = migratedData;
-        isMigrated = true;
-      } else {
-        showToast("Error: El format del fitxer JSON no és vàlid.", 'error');
-        return;
-      }
-
-      if (dataToLoad) {
-        const result = await loadDataFromManager(dataToLoad);
-        if (result.status === 'ok') {
-          const message = isMigrated ? "Dades antigues migrades i carregades correctament." : "Totes les dades carregades correctament.";
-          showToast(message, 'success');
-          setHasUnsavedChanges(true);
-          setCurrentDataPath(fileName);
-        } else if (result.status === 'error') {
-          showToast(result.message || 'Error desconegut durant la càrrega.', result.type || 'error');
-        }
-        // El cas 'needs_confirmation' ja el gestiona el listener de l'efecte inicial, si s'escau
-      }
-    } catch (error) {
-      showToast(`Error en processar les dades: ${(error as Error).message}`, 'error');
-    }
-  };
-
-  const processMaterialData = (fileContent: string) => {
-    try {
-      const jsonData = JSON.parse(fileContent);
-      if (Array.isArray(jsonData.materialItems)) {
-        openModalFromStore('mergeOrReplace', {
-          itemType: 'material',
-          newData: jsonData.materialItems,
-        });
-      } else {
-        showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
-      }
-    } catch (error) {
-      showToast(`Error en processar el fitxer de material: ${(error as Error).message}`, 'error');
-    }
-  };
-
-  const processPeopleData = (fileContent: string) => {
-    try {
-      if (!fileContent) {
-        showToast("Error: El fitxer de persones està buit.", 'error');
-        return;
-      }
-      const jsonData = JSON.parse(fileContent);
-      let newPeople: PersonGroup[] = [];
-      if (Array.isArray(jsonData.peopleGroups)) {
-        newPeople = jsonData.peopleGroups;
-      } else if (Array.isArray(jsonData.people)) {
-        const migratedData = migrateData({ people: jsonData.people });
-        const validation = validateMigratedData(migratedData);
-        if (!validation.isValid) {
-          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
-          return;
-        }
-        newPeople = migratedData.peopleGroups;
-      } else {
-        showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
-        return;
-      }
-
-      openModalFromStore('mergeOrReplace', {
-        itemType: 'persones',
-        newData: newPeople,
-      });
-
-    } catch (error) {
-      showToast(`Error en carregar les dades de persones: ${(error as Error).message}`, 'error');
-    }
-  };
+  // Obsolete functions for file handling have been removed.
+  // The new logic is in handleOpenDocument, handleSaveDocument, etc.
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
@@ -567,6 +660,13 @@ const App: React.FC = () => {
     if (window.electronAPI) {
       const cleanup = window.electronAPI.onMenuAction((action) => {
         logger.info(`[Menu] Acció rebuda: ${action}`);
+
+        if (action.startsWith('open-recent:')) {
+            const filePath = action.substring('open-recent:'.length);
+            handleOpenDocument(filePath);
+            return;
+        }
+
         switch (action) {
           case 'undo':
             undo();
@@ -574,20 +674,34 @@ const App: React.FC = () => {
           case 'redo':
             redo();
             break;
-          case 'save-all':
-            handleSaveData('all');
+          case 'new-document':
+            handleNewDocument();
             break;
-          case 'hard-reset':
-            handleRequestHardReset();
+          case 'open-document':
+            handleOpenDocument();
             break;
-          case 'save-people':
-            handleSaveData('people');
+          case 'save-document':
+            handleSaveDocument();
             break;
-          case 'save-material':
-            handleSaveData('material');
+          case 'save-as-document':
+            handleSaveAsDocument();
+            break;
+          case 'import-people':
+            handleImportPeople();
+            break;
+          case 'export-people':
+            handleExportData('people');
+            break;
+          case 'import-material':
+            handleImportMaterial();
+            break;
+          case 'export-material':
+            handleExportData('material');
+            break;
+          case 'factory-reset':
+            handleFactoryReset();
             break;
           case 'sync-google':
-            // The logic is now centralized in the eventDataStore.
             useEventDataStore.getState().syncWithGoogle();
             break;
           case 'config-google':
@@ -606,24 +720,17 @@ const App: React.FC = () => {
 
       return cleanup;
     }
-  }, [openModalFromStore, closeModal, canUndo, canRedo, hasUnsavedChanges]);
+  }, [
+    openModalFromStore,
+    closeModal,
+    canUndo,
+    canRedo,
+    hasUnsavedChanges,
+    currentFilePath, // Added to deps
+    isDocumentOpen,  // Added to deps
+    recentFiles      // Added to deps
+  ]);
 
-  useEffect(() => {
-    if (window.electronAPI?.onFileDataLoaded) {
-      const cleanup = window.electronAPI.onFileDataLoaded((data) => {
-        logger.info('[IPC] Dades de fitxer rebudes des del menú', { type: data.type, fileName: data.fileName });
-        const { content, fileName } = data;
-        if (typeof content === 'string' && typeof fileName === 'string') {
-            processAllData(content, fileName);
-            processMaterialData(content);
-            processPeopleData(content);
-          } else {
-            console.error('Data content or fileName is undefined or not a string.');
-          }
-      });
-      return cleanup;
-    }
-  }, []);
 
   const renderModalContent = () => {
     if (!type) return null;
@@ -819,6 +926,9 @@ const App: React.FC = () => {
               canRedo={canRedo}
               splashScreenEnabled={splashScreenEnabled}
               onToggleSplashScreen={handleToggleSplashScreen}
+              isDocumentOpen={isDocumentOpen}
+              hasUnsavedChanges={hasUnsavedChanges}
+              recentFiles={recentFiles}
             />
             <div className="container mx-auto p-2">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
@@ -826,8 +936,7 @@ const App: React.FC = () => {
                   theme={theme}
                   toggleTheme={toggleTheme}
                   showToast={showToast}
-                  currentDataPath={currentDataPath}
-                  setCurrentDataPath={setCurrentDataPath}
+                  currentFilePath={currentFilePath}
                 />
               </Suspense>
               <Suspense fallback={<div className="text-center p-2">Carregant navegació...</div>}>
@@ -837,22 +946,31 @@ const App: React.FC = () => {
           </header>
 
           <main className="container mx-auto p-1 flex-grow">
-            <Suspense fallback={<div className="text-center p-8">Carregant vista...</div>}>
-              <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <MainDisplay
-                      ref={mainDisplayRef}
-                      setToastMessage={showToast}
-                    />
-                  }
-                />
-                <Route path="/tech-sheets" element={<TechSheetsDisplay showToast={showToast} />} />
-                <Route path="/people" element={<PeopleDisplay showToast={showToast} />} />
-                <Route path="/material" element={<MaterialDisplay showToast={showToast} />} />
-              </Routes>
-            </Suspense>
+            {!isDocumentOpen ? (
+              <WelcomeScreen
+                recentFiles={recentFiles}
+                onNewDocument={handleNewDocument}
+                onOpenDocument={() => handleOpenDocument()}
+                onOpenRecent={handleOpenRecent}
+              />
+            ) : (
+              <Suspense fallback={<div className="text-center p-8">Carregant vista...</div>}>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <MainDisplay
+                        ref={mainDisplayRef}
+                        setToastMessage={showToast}
+                      />
+                    }
+                  />
+                  <Route path="/tech-sheets" element={<TechSheetsDisplay showToast={showToast} />} />
+                  <Route path="/people" element={<PeopleDisplay showToast={showToast} />} />
+                  <Route path="/material" element={<MaterialDisplay showToast={showToast} />} />
+                </Routes>
+              </Suspense>
+            )}
           </main>
 
           <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">

@@ -105,16 +105,17 @@ El fitxer `main.cjs` és el punt d'entrada i el nucli de l'aplicació. S'executa
 
 ### 3.1. Sistema d'Arxius i Persistència de Dades
 
-L'aplicació gestiona totes les dades de l'usuari localment, garantint el seu funcionament offline. La ubicació central de les dades és el directori de dades de l'usuari, proporcionat per Electron (`app.getPath('userData')`), per assegurar la compatibilitat entre sistemes operatius.
+L'aplicació gestiona totes les dades de l'usuari localment, garantint el seu funcionament offline. La ubicació central de les dades de configuració és el directori de dades de l'usuari, proporcionat per Electron (`app.getPath('userData')`).
 
 #### Estructura de Fitxers i Rutes Clau
 
 Les rutes principals es defineixen com a constants a l'inici del fitxer:
 
--   `CONFIG_DIR` / `DATA_DIR`: Apunten a `app.getPath('userData')`. És el directori arrel per a totes les dades de l'aplicació.
--   `DATA_FILE`: (`.../events_data.json`) L'arxiu principal que conté totes les dades de l'aplicació: esdeveniments, persones, material i assignacions.
--   `SESSION_FILE`: (`.../session.json`) Emmagatzema l'estat de la finestra (mida i posició) per restaurar-lo en la següent execució.
--   `BACKUP_DIR`: (`.../backups/`) Subdirectori on es guarden les còpies de seguretat automàtiques.
+-   `CONFIG_DIR`: Apunta a `app.getPath('userData')`. És el directori arrel per a totes les dades de configuració de l'aplicació.
+-   `SESSION_FILE`: (`.../session.json`) Emmagatzema l'estat de la sessió. Les seves responsabilitats s'han ampliat:
+    -   Estat de la finestra (mida i posició).
+    -   `recentFiles`: Un array amb les rutes dels últims 10 documents oberts per l'usuari.
+-   `BACKUP_DIR`: (`.../backups/`) Subdirectori on es guarden les còpies de seguretat del fitxer de dades per defecte. **Nota:** La lògica de backup actual encara està lligada a l'antic `events_data.json` i es manté per compatibilitat.
 -   `LOGS_DIR`: (`.../logs/`) Subdirectori per als fitxers de log de cada sessió.
 -   `GOOGLE_TOKENS_PATH`: (`.../google-tokens.json`) Emmagatzema els tokens d'accés i de refresc d'OAuth 2.0 un cop l'usuari s'ha autenticat.
 -   `GOOGLE_CONFIG_PATH`: (`.../google-config.json`) Desa la configuració de Google Calendar. La seva estructura ha evolucionat per suportar múltiples calendaris:
@@ -147,15 +148,47 @@ Per facilitar la depuració, l'aplicació implementa un sistema de logging robus
 
 #### Còpies de Seguretat (Backups)
 
-Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de seguretat automàtic:
+Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de seguretat automàtic i millorat:
 
--   **Activació:** La funció `createBackup()` es crida durant el procés de tancament segur de l'aplicació, just abans de sortir.
--   **Nomenclatura:** Cada backup es desa a `BACKUP_DIR` amb un nom que inclou un timestamp (`backup-events_data-<timestamp>.json`), garantint que cada còpia sigui única.
--   **Neteja Automàtica:** La funció `cleanupOldBackups()` s'executa també durant el tancament. Revisa el directori de backups i elimina els més antics, conservant només els 5 més recents.
+-   **Activació:** La funció `createBackup(filePath)` es crida automàticament des dels gestors IPC `save-file` i `show-save-dialog` cada vegada que un document es desa amb èxit.
+-   **Nomenclatura:** Cada backup es desa a `BACKUP_DIR`. El nom del fitxer ara inclou el nom del document original per a una millor identificació (p. ex., `backup-ElMeuProjecte-2025-09-20T103000.json`), a més d'un timestamp per garantir que cada còpia sigui única.
+-   **Neteja Automàtica:** La funció `cleanupOldBackups(filePath)` s'executa també després de cada desat. Revisa el directori de backups i elimina els més antics per a aquell document específic, conservant només els 5 més recents.
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 
-El backend controla tots els aspectes del cicle de vida de l'aplicació, des de la creació de la finestra fins al tancament segur.
+El backend controla tots els aspectes del cicle de vida de l'aplicació, incloent un flux de tancament intel·ligent i segur.
+
+#### Flux de Tancament Intel·ligent
+
+El flux de sortida s'ha refactoritzat per eliminar els "backups de sessió" i alinear-se amb un model de gestió de documents, respectant sempre la decisió de l'usuari.
+
+1.  **Interceptació del Tancament (`before-quit`):**
+    -   Quan l'usuari intenta tancar l'aplicació, el listener `app.on('before-quit')` a `main.cjs` s'activa.
+    -   Aquest listener desa l'estat de la finestra (mida/posició) i envia el senyal `'confirm-quit-signal'` al frontend, prevenint la sortida immediata per cedir el control.
+
+2.  **Gestió Centralitzada al Frontend (`onConfirmQuit`):**
+    -   Un listener a `App.tsx` rep el senyal i centralitza tota la lògica.
+    -   **Sempre** es mostra un diàleg de confirmació a l'usuari per prevenir un tancament accidental.
+        -   Si hi ha canvis no desats, el diàleg ofereix les opcions: "Desa", "Tanca sense desar" i "Cancel·la".
+        -   Si no hi ha canvis, el diàleg simplement pregunta: "Estàs segur que vols sortir de l'aplicació?" amb les opcions "Sortir" i "Cancel·lar".
+    -   En funció de la resposta, l'aplicació desa les dades si és necessari i finalment crida a l'IPC `quit-application` per tancar-se, o bé avorta el procés si l'usuari cancel·la.
+
+3.  **Tancament Definitiu (`quit-application`):**
+    -   El nou gestor IPC `quit-application` al backend té una única responsabilitat: marcar la variable `isQuitting` com a `true` i cridar a `app.quit()`.
+    -   Això assegura que el segon esdeveniment `before-quit` no sigui interceptat, permetent que l'aplicació es tanqui de manera neta i definitiva.
+
+El sistema de backups de sessió (`backup_sessio.json`) ha estat completament eliminat. Els backups ara només es creen de manera explícita quan l'usuari desa un document, com es descriu a la secció `Còpies de Seguretat (Backups)`.
+
+#### Separació de Configuració Google
+
+- **Configuració Local:**
+  - Es desa a `google-config.json` (usuari). Inclou calendaris gestionats, calendaris externs, selecció d'ID, etc.
+  - Camps com `externalCalendars`, `selectedIds` i preferències visuals són exclusius de l'usuari i no es modifiquen en obrir documents.
+- **Configuració de Document:**
+  - Quan s'obre un document, només s'actualitzen `activeAppCalendarId` i `managedAppCalendars` a la store, la resta de camps romanen intactes.
+    - Això garanteix que la configuració local de l'usuari no es perdi ni se sobreescrigui accidentalment.
+
+> **Nota important:** Els IDs dels calendaris gestionats (`managedAppCalendars`, `activeAppCalendarId`) estan lligats als fitxers de dades. Un usuari pot tenir diferents documents amb calendaris diferents. El logging OAuth (autenticació Google) és independent del document: l'usuari pot canviar de fitxer i de calendaris gestionats sense perdre la sessió ni la vinculació amb el seu compte Google.
 
 
 #### Bloqueig d'Instància Única (Single Instance Lock)
@@ -179,22 +212,9 @@ Aquesta funció s'encarrega de:
 5.  Carregar la URL del servidor de desenvolupament de Vite o el fitxer `index.html` de producció.
 6.  Construir i establir el menú natiu de l'aplicació (`Menu.buildFromTemplate`).
 
-#### Flux de Tancament Segur
+#### Flux de Tancament Intel·ligent
 
-Per evitar la pèrdua de dades no desades, l'aplicació implementa un flux de tancament controlat:
-
-1.  **Interceptació:** L'esdeveniment `window.on('close')` no tanca la finestra directament, sinó que inicia el procés de sortida de l'aplicació (`app.quit()`).
-2.  **`before-quit`:** Aquest esdeveniment d'Electron és el nucli del procés.
-    -   Utilitza una variable de control `isQuitting` per evitar execucions múltiples.
-    -   Desa l'estat actual de la finestra a `session.json`.
-    -   Mostra un diàleg de confirmació natiu a l'usuari.
-    -   Si l'usuari cancel·la, el procés de tancament s'atura.
-    -   Si l'usuari confirma, s'envia un senyal IPC (`'confirm-quit-signal'`) al frontend. **L'aplicació no es tanca encara.**
-3.  **Confirmació del Frontend:** L'aplicació espera una resposta del frontend. A `App.tsx`, un `useEffect` amb un array de dependències buit `[]` registra un listener per al senyal `'confirm-quit-signal'`.
-    -   **Solució a l'Estat Caduc (Stale State):** Per evitar un error comú de "stale state" (on el listener només veu l'estat inicial de `hasUnsavedChanges`), s'utilitza un `useRef` (`hasUnsavedChangesRef`). Un altre `useEffect` s'encarrega de mantenir aquest ref sincronitzat amb l'últim valor de `hasUnsavedChanges`.
-    -   **Lògica de Desat:** Quan el listener rep el senyal, comprova `hasUnsavedChangesRef.current`. Si és `true`, exporta les dades actuals i les envia al backend per ser desades.
-    -   **Senyal de Tornada:** Un cop les dades han estat desades (o si no hi havia canvis), el frontend envia un senyal de tornada (`'quit-confirmed-by-renderer-signal'`).
-4.  **Tancament Final:** Un cop el backend rep `quit-confirmed-by-renderer-signal`, executa les últimes tasques (crear backup, netejar backups antics) i finalment tanca l'aplicació amb `app.exit()`.
+El flux de tancament de l'aplicació ha estat redissenyat per utilitzar un únic diàleg intel·ligent i garantir backups incondicionals. Per a una descripció detallada del procés, consulteu la secció **3.2. Cicle de Vida i Gestió de Finestres > Flux de Tancament Intel·ligent (Diàleg Únic)**.
 
 #### Gestió d'Excepcions
 
@@ -229,9 +249,19 @@ Aquest enfocament no només soluciona el bug original, sinó que també proporci
 
 La comunicació entre el frontend i el backend es realitza exclusivament a través de canals IPC. `main.cjs` defineix diversos gestors (`ipcMain.handle` i `ipcMain.on`) que conformen l'API interna de l'aplicació.
 
--   **Gestió de Dades:**
-    -   `load-app-data`: Llegeix `events_data.json` i l'envia al frontend.
-    -   `save-app-data`: Rep un objecte de dades del frontend i el desa a `events_data.json`.
+-   **Gestió de Dades de Documents:**
+    -   `open-file-dialog`: Obre un diàleg natiu per seleccionar un fitxer i retorna la ruta seleccionada.
+    -   `read-file`: Llegeix el contingut d'un fitxer donada una ruta.
+    -   `save-file`: Desa un contingut a una ruta de fitxer específica, sobreescrivint-lo.
+    -   `show-save-dialog`: Obre un diàleg de desat natiu i, si l'usuari confirma, desa el contingut a la nova ruta.
+
+-   **Gestió de Sessió:**
+    -   `get-recent-files`: Retorna la llista de fitxers recents des de `session.json`.
+    -   `add-recent-file`: Afegeix una ruta a la llista de fitxers recents.
+
+-   **Handlers Obsolets:**
+    -   `load-app-data`: Encara existeix per a la seqüència d'inici, però ara només retorna `null`.
+    -   `save-app-data`, `getDefaultDataPath`: Han estat eliminats.
 
 -   **Integració amb Google:**
     -   `google-auth-start`: Inicia el flux d'autenticació OAuth 2.0.
@@ -244,11 +274,12 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `google-disconnect`: Desconnecta el compte de Google i elimina tots els calendaris gestionats.
 
 -   **Accions de l'Aplicació:**
-    -   `perform-hard-reset`: Realitza un "reset de fàbrica" eliminant els fitxers de dades, configuració i tokens, permetent a l'usuari començar de zero.
-    -   `get-default-data-path`: Retorna la ruta relativa del fitxer de dades per mostrar-la a la UI.
+    -   `factory-reset`: Realitza una restauració de fàbrica eliminant els fitxers de configuració de l'aplicació.
+    -   `quit-application`: Inicia el procés de tancament definitiu de l'aplicació.
 
 -   **Interacció amb UI Nativa:**
-    -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu, rebent les dades i la configuració del diàleg des de React.
+    -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu.
+    -   `show-unsaved-changes-dialog`: Mostra el diàleg personalitzat de canvis no desats en sortir.
 
     ---
 
@@ -339,18 +370,27 @@ export const useEventDataStore = create<...>()(
     const { undo } = useEventDataStore.temporal.getState();
     ```
 
-### 4.2. Gestió de l'Estat dels Formularis (Modals)
+### 4.2. Lògica de Gestió de Documents (`App.tsx`)
+`App.tsx` orquestra tota la lògica del cicle de vida dels documents.
 
-Per gestionar la complexitat de les dades que necessiten els formularis dins dels modals (com ara dades per a una edició o valors per defecte), l'aplicació utilitza un patró centralitzat a través del `modalStore`.
+-   **Estat Clau:**
+    -   `isDocumentOpen: boolean`: Controla si s'ha de mostrar la pantalla de benvinguda o la interfície principal de l'aplicació.
+    -   `currentFilePath: string | null`: Emmagatzema la ruta del fitxer actualment obert. És `null` si es tracta d'un document nou que encara no s'ha desat.
+    -   `recentFiles: string[]`: La llista de fitxers recents per mostrar a la UI.
 
--   **Estat al `modalStore`:** En lloc de gestionar l'estat del formulari localment amb `useState`, les dades del formulari en curs resideixen dins de la propietat `data` del `modalStore`. Això permet una inicialització senzilla i directa en obrir un modal.
--   **Inicialització:** Quan s'obre un modal amb `openModal(type, initialData)`, les `initialData` (p. ex., un objecte `assignmentToEdit`) es col·loquen a `modalStore.data`. El component del formulari llegeix aquestes dades per popular els seus camps.
--   **Actualització en Temps Real:** Cada canvi en un camp del formulari (`onChange`) crida a la funció `updateModalData` del `modalStore`. Això manté l'estat del formulari actualitzat a l'store a mesura que l'usuari escriu.
--   **Enviament:** Quan el formulari s'envia (`onSubmit`), el component llegeix l'estat complet de `modalStore.data`, el valida, i crida a l'acció corresponent de l'store principal (`useEventDataStore`), com `addAssignment` o `updateAssignment`.
+-   **Funcions Gestores:**
+    -   `handleNewDocument()`: Inicia un nou document buit.
+    -   `handleOpenDocument(filePath?)`: Obre un document, ja sigui des d'un diàleg de fitxer o des de la llista de recents.
+    -   `handleSaveDocument()`: Desa el document actual. Si no té ruta (`currentFilePath` és `null`), crida a `handleSaveAsDocument()`.
+    -   `handleSaveAsDocument()`: Permet desar el document actual en una nova ubicació.
+    -   `confirmContinueWithUnsavedChanges()`: Funció d'ajuda que comprova el "dirty flag" (`hasUnsavedChanges`) i mostra el diàleg de confirmació abans de realitzar una acció que podria causar pèrdua de dades (com crear un nou document o obrir-ne un altre).
 
-Aquesta arquitectura centralitza la lògica de l'estat del formulari, fent-la accessible i desacoblant el component del formulari de la font de dades inicial.
+### 4.3. Menú d'Aplicació i UI
+-   **`WelcomeScreen.tsx`**: Nou component que actua com a pantalla d'inici, oferint accés ràpid a les accions de fitxer.
+-   **`CustomMenuBar.tsx`**: El menú s'ha reestructurat per reflectir les accions estàndard de gestió de fitxers. Està connectat a l'estat d'`App.tsx` per activar/desactivar opcions de manera dinàmica (p. ex., "Guardar" només està actiu si hi ha canvis no desats).
+-   **`Controls.tsx`**: Aquest component mostra ara la ruta del fitxer actiu (`currentFilePath`). La seva funcionalitat de càrrega/desat s'ha tornat redundant amb el nou menú, però es manté de moment.
 
-### 4.3. Component Reutilitzable: `AutosizeTextarea`
+### 4.4. Component Reutilitzable: `AutosizeTextarea`
 
 Per donar resposta a la necessitat que les àrees de text s'ajustin al seu contingut, s'ha creat un nou component a `src/components/ui/AutosizeTextarea.tsx`.
 

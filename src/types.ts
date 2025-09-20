@@ -421,12 +421,23 @@ export interface FileLoadedData {
 }
 
 export interface ElectronAPI {
+  // Document Management
+  openFileDialog: () => Promise<{ success: boolean; canceled?: boolean; filePath?: string; message?: string; }>;
+  readFile: (filePath: string) => Promise<{ success: boolean; content?: string; message?: string; }>;
+  saveFile: (options: { filePath: string, data: string }) => Promise<{ success: boolean; message?: string; }>;
   showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
-  loadAppData: () => Promise<any>;
-  saveAppData: (data: AppData) => Promise<{ success: boolean; message?: string }>;
+  showUnsavedChangesDialog: (options: { message: string; buttons: string[] }) => Promise<{ response: number }>;
+
+  // Session & App Lifecycle
+  onConfirmQuit: (callback: () => void) => () => void;
+  quitApplication: () => void;
+  getSessionData: () => Promise<any>;
+  saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;
+  getRecentFiles: () => Promise<string[]>;
+  addRecentFile: (filePath: string) => Promise<{ success: boolean; recentFiles: string[] }>;
+
+  // Google Integration
   loadGoogleConfig: () => Promise<GoogleConfig | null>;
-  onConfirmQuit: (callback: () => void) => void;
-  sendQuitConfirmedByRenderer: () => void;
   startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
   onGoogleAuthSuccess: (callback: () => void) => () => void;
   onGoogleAuthError: (callback: (errorMessage: string) => void) => () => void;
@@ -435,21 +446,25 @@ export interface ElectronAPI {
   getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
   syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
   onSyncProgress: (callback: (progress: Omit<SyncProgressState, 'visible'>) => void) => () => void;
-  onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
-  onSyncError: (callback: (error: string) => void) => () => void;
-  onSyncSuccess: (callback: (message: string) => void) => () => void;
-  onBackendNotification: (callback: (notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void) => () => void;
   googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
   deleteAppCalendar: (calendarId: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
   createNewAppCalendar: (suffix: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
-  getDefaultDataPath: () => Promise<string>;
-  performHardReset: () => Promise<{ success: boolean; message?: string }>;
+
+  // Menu and Notifications
   onMenuAction: (callback: (action: string) => void) => () => void;
-  onFileDataLoaded: (callback: (data: FileLoadedData) => void) => () => void;
   triggerMenuAction: (action: string) => void;
-  getSessionData: () => Promise<any>;
-  saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;
+  onBackendNotification: (callback: (notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void) => () => void;
+
+  // Misc & Obsolete
+  factoryReset: () => Promise<{ success: boolean; message?: string }>;
   log: (message: string, data?: any) => void;
+  // Obsolete - kept for safety, should be removed later
+  loadAppData: () => Promise<any>;
+  saveAppData: (data: AppData) => Promise<{ success: boolean; message?: string }>;
+  getDefaultDataPath: () => Promise<string>;
+  onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
+  onSyncError: (callback: (error: string) => void) => () => void;
+  onSyncSuccess: (callback: (message: string) => void) => () => void;
 }
 
 declare global {
