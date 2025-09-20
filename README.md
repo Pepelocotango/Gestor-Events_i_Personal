@@ -144,4 +144,20 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
 
 ## Desenvolupament
 
+## 🔒 Tancament Segur i Backups
+
+L'aplicació implementa un flux de tancament segur amb doble diàleg:
+- Quan tanques l'aplicació, primer es mostra un diàleg de confirmació.
+- Si hi ha canvis no desats, el sistema et demana explícitament si vols desar abans de sortir.
+- L'estat de la finestra es desa automàticament a `session.json`.
+
+Després de cada desat de document, es crea una còpia de seguretat automàtica a la carpeta `backups/`, amb el nom del fitxer original i la data/hora. Es conserven només els 5 backups més recents per cada document.
+
+## ⚡ Configuració de Google: Separació Local vs Document
+
+La configuració de Google Calendar es gestiona de forma separada:
+- La configuració local (`google-config.json`) manté calendaris gestionats, calendaris externs i preferències de l'usuari.
+- Quan obres un document, només s'actualitzen els calendaris gestionats i l'ID actiu; la resta de preferències romanen intactes.
+- Això garanteix que la configuració personal no es perdi ni se sobreescrigui accidentalment.
+
 Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](DEVELOPING.md) per obtenir informació sobre com configurar l'entorn i entendre els canvis recents.

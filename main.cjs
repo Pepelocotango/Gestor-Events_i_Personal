@@ -437,6 +437,13 @@ async function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+
+    // Restaurar el listener de tancament controlat
+    mainWindow.on('close', (event) => {
+      console.log(`[Exit Flow] Event 'close' rebut a la finestra. isQuitting: ${isQuitting}`);
+      event.preventDefault(); // Prevenim el tancament immediat
+      app.quit(); // Iniciar el flux de tancament controlat
+    });
   });
 
   if (process.env.NODE_ENV === 'development') {
@@ -524,11 +531,10 @@ app.on('web-contents-created', (event, contents) => {
 
 app.on('before-quit', async (event) => {
   console.log(`[Exit Flow] Event 'before-quit' rebut. isQuitting: ${isQuitting}`);
-  if (isQuitting) {
-    return;
-  }
-  event.preventDefault(); // Prevenim la sortida immediata per gestionar-la manualment
+  if (isQuitting) return;
+  event.preventDefault(); // Prevenir sortida immediata
 
+  // Desar estat de la finestra
   if (mainWindow && !mainWindow.isDestroyed()) {
     const windowBounds = mainWindow.getBounds();
     await saveSessionData({
@@ -538,6 +544,7 @@ app.on('before-quit', async (event) => {
       y: windowBounds.y
     });
 
+    // Mostrar diàleg de confirmació
     const choice = await dialog.showMessageBox(mainWindow, {
       type: 'question',
       buttons: ['Sí, sortir', 'No, cancel·lar'],
@@ -547,11 +554,11 @@ app.on('before-quit', async (event) => {
       cancelId: 1,
     });
 
-    if (choice.response === 0) { // L'usuari ha triat "Sí, sortir"
-      // Ara deleguem al renderer per comprovar canvis no desats
+    if (choice.response === 0) {
+      // Només si l'usuari confirma, enviar senyal al frontend
       mainWindow.webContents.send('confirm-quit-signal');
     }
-    // Si l'usuari cancel·la, no fem res i la sortida es deté.
+    // Si cancel·la, no fem res
   } else {
     isQuitting = true;
     app.quit();

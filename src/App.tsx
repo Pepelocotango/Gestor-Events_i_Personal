@@ -1,3 +1,4 @@
+import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import logger from './utils/logger';
@@ -6,7 +7,6 @@ import Modal from './components/ui/Modal';
 import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
-import { initializeGoogleAuthListeners, useGoogleConfigStore } from './stores/googleConfigStore';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
@@ -312,8 +312,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
                 return;
             }
 
-            // FIX: Reset Google Config before loading new data to prevent stale state.
-            useGoogleConfigStore.getState().resetGoogleConfig();
 
             const data = JSON.parse(fileReadResult.content);
             const loadResult = await loadDataFromManager(data);

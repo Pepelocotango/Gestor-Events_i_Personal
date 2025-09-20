@@ -156,7 +156,38 @@ Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de segu
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 
-El backend controla tots els aspectes del cicle de vida de l'aplicació, des de la creació de la finestra fins al tancament segur.
+El backend controla tots els aspectes del cicle de vida de l'aplicació, incloent un flux de tancament segur amb doble diàleg i un sistema automàtic de còpies de seguretat.
+
+#### Flux de Tancament Segur (Doble Diàleg)
+
+1. **Interceptació del Tancament:**
+    - El listener `mainWindow.on('close', ...)` dins `createWindow` intercepta el tancament de la finestra principal i crida a `app.quit()` de forma controlada.
+2. **Primera Confirmació (Backend):**
+    - El listener `app.on('before-quit', ...)` mostra un diàleg de confirmació genèric: "Estàs segur que vols sortir?".
+    - Si l'usuari cancel·la, el tancament s'aborta.
+    - Si confirma, es desa l'estat de la finestra a `session.json` i s'envia el senyal `confirm-quit-signal` al frontend.
+3. **Segona Confirmació (Frontend):**
+    - El frontend rep el senyal i comprova si hi ha canvis no desats (`hasUnsavedChanges`).
+    - Si no hi ha canvis, notifica el backend per tancar directament.
+    - Si hi ha canvis, mostra un diàleg específic per desar/cancel·lar, i només tanca si l'usuari ho confirma.
+
+#### Sistema de Backups Automàtics
+
+- **Activació:** Les funcions `createBackup(filePath)` i `cleanupOldBackups(filePath)` s'executen automàticament després de cada desat reeixit (IPC `save-file` i `show-save-dialog`).
+- **Nomenclatura:** El backup inclou el nom del fitxer original i un timestamp: `backup-NOM-YYYY-MM-DDTHHMMSS.json`.
+- **Neteja:** Es conserven només els 5 backups més recents per cada document.
+- **Ubicació:** Tots els backups es guarden a `BACKUP_DIR`.
+
+#### Separació de Configuració Google
+
+- **Configuració Local:**
+  - Es desa a `google-config.json` (usuari). Inclou calendaris gestionats, calendaris externs, selecció d'ID, etc.
+  - Camps com `externalCalendars`, `selectedIds` i preferències visuals són exclusius de l'usuari i no es modifiquen en obrir documents.
+- **Configuració de Document:**
+  - Quan s'obre un document, només s'actualitzen `activeAppCalendarId` i `managedAppCalendars` a la store, la resta de camps romanen intactes.
+    - Això garanteix que la configuració local de l'usuari no es perdi ni se sobreescrigui accidentalment.
+
+> **Nota important:** Els IDs dels calendaris gestionats (`managedAppCalendars`, `activeAppCalendarId`) estan lligats als fitxers de dades. Un usuari pot tenir diferents documents amb calendaris diferents. El logging OAuth (autenticació Google) és independent del document: l'usuari pot canviar de fitxer i de calendaris gestionats sense perdre la sessió ni la vinculació amb el seu compte Google.
 
 
 #### Bloqueig d'Instància Única (Single Instance Lock)
