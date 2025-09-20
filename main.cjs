@@ -458,12 +458,12 @@ async function createWindow() {
     {
       label: 'Arxiu',
       submenu: [
-        { label: 'Carregar Tot', click: createLoadFileClickHandler('all', { title: 'Carregar Fitxer de Dades Complet' }) },
+        { label: 'Carregar Tot', click: () => mainWindow.webContents.send('menu-action', 'load-all') },
         { label: 'Guardar Tot', click: () => mainWindow.webContents.send('menu-action', 'save-all') },
-        { label: 'Carregar Material', click: createLoadFileClickHandler('material', { title: 'Carregar Fitxer de Material' }) },
+        { label: 'Carregar Material', click: () => mainWindow.webContents.send('menu-action', 'load-material') },
         { label: 'Començar de Zero', click: () => mainWindow.webContents.send('menu-action', 'hard-reset') },
         { type: 'separator' },
-        { label: 'Carregar Persones', click: createLoadFileClickHandler('people', { title: 'Carregar Fitxer de Persones' }) },
+        { label: 'Carregar Persones', click: () => mainWindow.webContents.send('menu-action', 'load-people') },
         { label: 'Guardar Persones', click: () => mainWindow.webContents.send('menu-action', 'save-people') },
         { label: 'Guardar Material', click: () => mainWindow.webContents.send('menu-action', 'save-material') },
         { type: 'separator' },
@@ -1337,15 +1337,14 @@ ipcMain.on('trigger-menu-action', (event, action) => {
   }
 
   switch (action) {
-    // Accions de càrrega de fitxers
+    // Accions de càrrega de fitxers (ara gestionades pel renderer)
     case 'load-all':
-      createLoadFileClickHandler('all', { title: 'Carregar Fitxer de Dades Complet' })();
-      break;
     case 'load-material':
-      createLoadFileClickHandler('material', { title: 'Carregar Fitxer de Material' })();
-      break;
     case 'load-people':
-      createLoadFileClickHandler('people', { title: 'Carregar Fitxer de Persones' })();
+      // Simplement reenviem l'acció al renderer, que conté la lògica completa.
+      if (mainWindow) {
+        mainWindow.webContents.send('menu-action', action);
+      }
       break;
 
     // Control de l'aplicació
