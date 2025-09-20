@@ -747,13 +747,23 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return finalResult;
       },
     })),
-    {
-      partialize: (state) => {
-        const { eventFrames, peopleGroups, materialItems, lastActionDescription } = state;
-        return { eventFrames, peopleGroups, materialItems, lastActionDescription };
-      },
-      limit: 20,
-    }
+        {
+            // Memoització superficial per evitar objectes nous si l'estat no canvia
+            partialize: (() => {
+                let last: PartializedState | undefined;
+                let lastVals: [EventFrame[], PersonGroup[], MaterialItem[], string | null] | undefined;
+                return (state) => {
+                    const vals: [EventFrame[], PersonGroup[], MaterialItem[], string | null] = [state.eventFrames, state.peopleGroups, state.materialItems, state.lastActionDescription];
+                    if (lastVals && vals.every((v, i) => v === lastVals![i])) {
+                        return last!;
+                    }
+                    lastVals = vals;
+                    last = { eventFrames: vals[0], peopleGroups: vals[1], materialItems: vals[2], lastActionDescription: vals[3] };
+                    return last;
+                };
+            })(),
+            limit: 20,
+        }
   )
 );
 
