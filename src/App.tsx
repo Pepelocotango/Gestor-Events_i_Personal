@@ -285,9 +285,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
       loadDataFromManager(null);
       setCurrentFilePath(null);
-      setIsDocumentOpen(false);
+      setIsDocumentOpen(true);
       setHasUnsavedChanges(false);
-      showToast('Document tancat. Pots crear un nou document o obrir-ne un d\'existent.', 'info');
+      showToast('Nou espai de treball creat.', 'success');
   };
 
   const handleOpenDocument = async (filePathToOpen?: string) => {
