@@ -25,12 +25,11 @@ const Controls: React.FC<ControlsProps> = ({
   const { syncWithGoogle } = useEventDataStore.getState();
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
   const isSyncing = useEventDataStore(state => state.isSyncing);
-  const { canUndo, canRedo, undo, redo } = useTemporalStore(state => ({
+  const { canUndo, canRedo } = useTemporalStore(state => ({
     canUndo: state.pastStates.length > 0,
     canRedo: state.futureStates.length > 0,
-    undo: state.undo,
-    redo: state.redo,
   }));
+  const { undo, redo } = useEventDataStore.temporal.getState();
   const { openModal } = useModalStore.getState();
 
   const [isExpanded, setIsExpanded] = useState(true);
