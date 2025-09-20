@@ -125,19 +125,19 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const { undo, redo } = useEventDataStore.temporal.getState();
+    const { undoWithToast, redoWithToast } = useEventDataStore.getState();
     const handleKeyDown = (event: KeyboardEvent) => {
         const target = event.target as HTMLElement;
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
             return;
         }
-        if (event.ctrlKey) {
-            if (event.key.toLowerCase() === 'z') {
+        if (event.ctrlKey || event.metaKey) {
+            if (event.key.toLowerCase() === 'z' && !event.shiftKey) {
                 event.preventDefault();
-                undo();
+                undoWithToast();
             } else if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
                 event.preventDefault();
-                redo();
+                redoWithToast();
             }
         }
     };
@@ -655,7 +655,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
-    const { undo, redo } = useEventDataStore.temporal.getState();
+    const { undoWithToast, redoWithToast } = useEventDataStore.getState();
 
     if (window.electronAPI) {
       const cleanup = window.electronAPI.onMenuAction((action) => {
@@ -669,10 +669,10 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
         switch (action) {
           case 'undo':
-            undo();
+            undoWithToast();
             break;
           case 'redo':
-            redo();
+            redoWithToast();
             break;
           case 'new-document':
             handleNewDocument();

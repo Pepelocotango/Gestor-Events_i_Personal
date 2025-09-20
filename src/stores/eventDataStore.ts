@@ -10,6 +10,7 @@ import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import logger from '../utils/logger';
 import { immer } from 'zustand/middleware/immer';
+import { notificationService } from '../utils/notificationService';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -66,6 +67,7 @@ interface EventDataState {
     dataRepairInfo: { fixes: any[], repairedData: AppData } | null;
     filterUIEventFrame: string | null;
     highlightedEventId: string | null;
+    lastActionDescription: string | null;
     // Filtres centralitzats
     filterText: string;
     filterStatus: AssignmentStatus | '';
@@ -123,6 +125,8 @@ interface EventDataActions {
     _applyDataToState: (data: AppData) => void;
     clearDataRepairInfo: () => void;
     setIsUpdatingMaterial: (isUpdating: boolean) => void;
+    undoWithToast: () => void;
+    redoWithToast: () => void;
 }
 
 const initialState: EventDataState = {
@@ -137,6 +141,7 @@ const initialState: EventDataState = {
     dataRepairInfo: null,
     filterUIEventFrame: null,
     highlightedEventId: null,
+    lastActionDescription: null,
     // Filtres centralitzats - valors inicials
     filterText: '',
     filterStatus: '',
@@ -155,6 +160,34 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         ...initialState,
 
         setIsUpdatingMaterial: (isUpdating: boolean) => set({ isUpdatingMaterial: isUpdating }),
+
+        undoWithToast: () => {
+            const { temporal } = useEventDataStore;
+            // Get the description of the action that is about to be undone.
+            const currentDescription = get().lastActionDescription;
+
+            temporal.getState().undo();
+
+            if (currentDescription) {
+                notificationService.info(`Desfeta l'acció: ${currentDescription}`);
+            } else {
+                notificationService.info('Acció desfeta.');
+            }
+        },
+
+        redoWithToast: () => {
+            const { temporal } = useEventDataStore;
+
+            temporal.getState().redo();
+
+            // After redoing, the current state has the description of the redone action.
+            const newDescription = get().lastActionDescription;
+            if (newDescription) {
+                notificationService.info(`Refeta l'acció: ${newDescription}`);
+            } else {
+                notificationService.info('Acció refeta.');
+            }
+        },
 
         clearDataRepairInfo: () => set({ dataRepairInfo: null }),
 
@@ -211,7 +244,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 eventFrames: loadedEventFrames.sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)),
                 peopleGroups: (data.peopleGroups || []).sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)),
                 materialItems: (data.materialItems || []).sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)),
-                hasUnsavedChanges: false
+                hasUnsavedChanges: false,
+                lastActionDescription: 'Dades carregades des d\'un arxiu',
             });
         },
     loadData: async (data: AppData | null) => {
@@ -219,7 +253,10 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         logger.info("Iniciant la càrrega de dades (sense Google)...", { hasData: !!data });
 
         if (!data) {
-            set(initialState);
+            set((state) => {
+                Object.assign(state, initialState);
+                state.lastActionDescription = 'Projecte netejat';
+            });
             return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
         }
 
@@ -285,26 +322,60 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     // EVENT FRAMES
     addEventFrame: (newEventFrameData: Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete' | 'techSheet'>) => {
         const newEventFrame: EventFrame = { ...newEventFrameData, id: generateId(), assignments: [], personnelComplete: false, techSheet: createDefaultTechSheet(newEventFrameData) };
-        set((state: EventDataState) => ({ eventFrames: [...state.eventFrames, newEventFrame].sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => {
+            state.eventFrames.push(newEventFrame);
+            state.eventFrames.sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name));
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Creat esdeveniment: '${newEventFrame.name}'`;
+        });
         return newEventFrame;
     },
     updateEventFrame: (updatedEventFrame: EventFrame) => {
-        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === updatedEventFrame.id ? updatedEventFrame : ef).sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => {
+            const frameIndex = state.eventFrames.findIndex(ef => ef.id === updatedEventFrame.id);
+            if (frameIndex !== -1) {
+                state.eventFrames[frameIndex] = updatedEventFrame;
+            }
+            state.eventFrames.sort((a: EventFrame,b: EventFrame) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime() || a.name.localeCompare(b.name));
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Actualitzat esdeveniment: '${updatedEventFrame.name}'`;
+        });
     },
     deleteEventFrame: (eventFrameId: string) => {
-        set((state: EventDataState) => ({ eventFrames: state.eventFrames.filter((ef: EventFrame) => ef.id !== eventFrameId), hasUnsavedChanges: true }));
+        const eventFrameName = get().eventFrames.find(ef => ef.id === eventFrameId)?.name || 'desconegut';
+        set((state: EventDataState) => {
+            state.eventFrames = state.eventFrames.filter((ef: EventFrame) => ef.id !== eventFrameId);
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Eliminat esdeveniment: '${eventFrameName}'`;
+        });
     },
     getEventFrameById: (eventFrameId: string) => get().eventFrames.find((ef: EventFrame) => ef.id === eventFrameId),
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => {
-        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? {...ef, personnelComplete: complete} : ef), hasUnsavedChanges: true }));
+        const eventFrameName = get().eventFrames.find(ef => ef.id === eventFrameId)?.name || 'desconegut';
+        set((state: EventDataState) => {
+            const frame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (frame) {
+                frame.personnelComplete = complete;
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Marcat personal de '${eventFrameName}' com a ${complete ? 'completat' : 'pendent'}`;
+        });
     },
     addOrUpdateTechSheet: (eventFrameId: string, techSheetData: TechSheetData) => {
-        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? { ...ef, techSheet: techSheetData } : ef), hasUnsavedChanges: true }));
+        const eventFrameName = get().eventFrames.find(ef => ef.id === eventFrameId)?.name || 'desconegut';
+        set((state: EventDataState) => {
+            const frame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (frame) {
+                frame.techSheet = techSheetData;
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Actualitzada fitxa de '${eventFrameName}'`;
+        });
     },
 
     // ASSIGNMENTS
     addAssignment: (eventFrameId: string, newAssignmentData: Omit<Assignment, 'id' | 'eventFrameId' | 'dailyStatuses'>, force = false) => {
-        const { eventFrames } = get();
+        const { eventFrames, peopleGroups } = get();
         const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
         if (!eventFrame) return { success: false, message: "Marc d'esdeveniment no trobat." };
 
@@ -337,6 +408,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         }
 
         const newAssignment: Assignment = { ...newAssignmentData, id: generateId(), eventFrameId };
+        const personName = peopleGroups.find(p => p.id === newAssignmentData.personGroupId)?.name || 'desconegut';
         set((state: EventDataState) => {
             const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
             if (targetFrame) {
@@ -344,6 +416,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 targetFrame.assignments.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
             }
             state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Assignat '${personName}' a '${eventFrame.name}'`;
         });
         return { success: true };
     },
@@ -418,6 +491,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             }
         }
 
+        const personName = get().peopleGroups.find(p => p.id === finalAssignment.personGroupId)?.name || 'desconegut';
         set(state => {
             const eventFrame = state.eventFrames.find(ef => ef.id === finalAssignment.eventFrameId);
             if (eventFrame) {
@@ -428,49 +502,90 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 }
             }
             state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Actualitzada assignació de '${personName}'`;
         });
 
         return { success: true, warningMessage };
     },
     deleteAssignment: (eventFrameId: string, assignmentId: string) => {
-        set((state: EventDataState) => ({ eventFrames: state.eventFrames.map((ef: EventFrame) => ef.id === eventFrameId ? { ...ef, assignments: ef.assignments.filter((a: Assignment) => a.id !== assignmentId) } : ef), hasUnsavedChanges: true }));
+        const assignment = get().getAssignmentById(eventFrameId, assignmentId);
+        const personName = get().peopleGroups.find(p => p.id === assignment?.personGroupId)?.name || 'desconegut';
+        set((state: EventDataState) => {
+            const frame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (frame) {
+                frame.assignments = frame.assignments.filter((a: Assignment) => a.id !== assignmentId);
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Eliminada assignació de '${personName}'`;
+        });
     },
     getAssignmentById: (eventFrameId: string, assignmentId: string) => get().eventFrames.find((ef: EventFrame) => ef.id === eventFrameId)?.assignments.find((a: Assignment) => a.id === assignmentId),
 
     // PEOPLE
     addPersonGroup: (newPersonGroupData: Omit<PersonGroup, 'id'>) => {
         const newPersonGroup: PersonGroup = { id: generateId(), ...newPersonGroupData };
-        set((state: EventDataState) => ({ peopleGroups: [...state.peopleGroups, newPersonGroup].sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => {
+            state.peopleGroups.push(newPersonGroup);
+            state.peopleGroups.sort((a,b) => a.name.localeCompare(b.name));
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Afegit contacte: '${newPersonGroup.name}'`;
+        });
     },
     updatePersonGroup: (updatedPersonGroup: PersonGroup) => {
-        set((state: EventDataState) => ({ peopleGroups: state.peopleGroups.map((pg: PersonGroup) => pg.id === updatedPersonGroup.id ? updatedPersonGroup : pg).sort((a: PersonGroup,b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => {
+            const personIndex = state.peopleGroups.findIndex(p => p.id === updatedPersonGroup.id);
+            if (personIndex !== -1) {
+                state.peopleGroups[personIndex] = updatedPersonGroup;
+            }
+            state.peopleGroups.sort((a,b) => a.name.localeCompare(b.name));
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Actualitzat contacte: '${updatedPersonGroup.name}'`;
+        });
     },
     deletePersonGroup: (personGroupId: string) => {
-        set(state => ({
-            peopleGroups: state.peopleGroups.filter((pg: PersonGroup) => pg.id !== personGroupId),
-            eventFrames: state.eventFrames.map((ef: EventFrame) => ({ ...ef, assignments: ef.assignments.filter((a: Assignment) => a.personGroupId !== personGroupId) })),
-            hasUnsavedChanges: true
-        }));
+        const personName = get().peopleGroups.find(p => p.id === personGroupId)?.name || 'desconegut';
+        set(state => {
+            state.peopleGroups = state.peopleGroups.filter((pg: PersonGroup) => pg.id !== personGroupId);
+            state.eventFrames.forEach(ef => {
+                ef.assignments = ef.assignments.filter((a: Assignment) => a.personGroupId !== personGroupId)
+            });
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Eliminat contacte: '${personName}'`;
+        });
     },
     getPersonGroupById: (personGroupId: string) => get().peopleGroups.find((pg: PersonGroup) => pg.id === personGroupId),
     mergePeopleGroups: (newPeople: PersonGroup[]) => {
         const existingNames = new Set(get().peopleGroups.map((p: PersonGroup) => p.name.toLowerCase()));
         const peopleToAdd = newPeople.filter((p: PersonGroup) => !existingNames.has(p.name.toLowerCase()));
         if (peopleToAdd.length > 0) {
-            set((state: EventDataState) => ({ peopleGroups: [...state.peopleGroups, ...peopleToAdd].sort((a: PersonGroup, b: PersonGroup) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+            set((state: EventDataState) => {
+                state.peopleGroups.push(...peopleToAdd);
+                state.peopleGroups.sort((a, b) => a.name.localeCompare(b.name));
+                state.hasUnsavedChanges = true;
+                state.lastActionDescription = `Fusionats ${peopleToAdd.length} contactes`;
+            });
             return { success: true, message: `${peopleToAdd.length} noves persones afegides.`, type: 'success' };
         } else {
             return { success: true, message: "Totes les persones del fitxer ja existeixen.", type: 'info' };
         }
     },
     replacePeopleGroups: (newPeople) => {
-        set({ peopleGroups: newPeople.sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true });
+        set(state => {
+            state.peopleGroups = newPeople.sort((a, b) => a.name.localeCompare(b.name));
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = 'Reemplaçada la llista de contactes';
+        });
     },
 
     // MATERIAL
     addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => {
         const newItem: MaterialItem = { ...newItemData, id: generateId() };
-        set((state: EventDataState) => ({ materialItems: [...state.materialItems, newItem].sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+        set((state: EventDataState) => {
+            state.materialItems.push(newItem);
+            state.materialItems.sort((a,b) => a.name.localeCompare(b.name));
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Afegit material: '${newItem.name}'`;
+        });
         return newItem;
     },
     updateMaterialItem: (updatedItem: MaterialItem) => {
@@ -479,9 +594,11 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             setIsUpdatingMaterial(true);
             set(state => {
                 // 1. Actualitzar l'ítem mestre
-                state.materialItems = state.materialItems.map(item =>
-                    item.id === updatedItem.id ? updatedItem : item
-                ).sort((a, b) => a.name.localeCompare(b.name));
+                const itemIndex = state.materialItems.findIndex(item => item.id === updatedItem.id);
+                if (itemIndex !== -1) {
+                    state.materialItems[itemIndex] = updatedItem;
+                }
+                state.materialItems.sort((a, b) => a.name.localeCompare(b.name));
 
                 // 2. Propagar canvis a tota l'app
                 const needsKeys: (keyof TechSheetData)[] = [
@@ -505,26 +622,41 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                     });
                 });
                 state.hasUnsavedChanges = true;
+                state.lastActionDescription = `Actualitzat material: '${updatedItem.name}'`;
             });
         } finally {
             setIsUpdatingMaterial(false);
         }
     },
     deleteMaterialItem: (itemId: string) => {
-        set((state: EventDataState) => ({ materialItems: state.materialItems.filter((item: MaterialItem) => item.id !== itemId), hasUnsavedChanges: true }));
+        const itemName = get().materialItems.find(i => i.id === itemId)?.name || 'desconegut';
+        set((state: EventDataState) => {
+            state.materialItems = state.materialItems.filter((item: MaterialItem) => item.id !== itemId);
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Eliminat material: '${itemName}'`;
+        });
     },
     addMaterialItemsFromFile: (newItems: MaterialItem[]) => {
         const existingNames = new Set(get().materialItems.map(item => item.name.toLowerCase()));
         const itemsToAdd = newItems.filter((newItem: MaterialItem) => !existingNames.has(newItem.name.toLowerCase()));
         if (itemsToAdd.length > 0) {
-            set((state: EventDataState) => ({ materialItems: [...state.materialItems, ...itemsToAdd].sort((a: MaterialItem,b: MaterialItem) => a.name.localeCompare(b.name)), hasUnsavedChanges: true }));
+            set((state: EventDataState) => {
+                state.materialItems.push(...itemsToAdd);
+                state.materialItems.sort((a,b) => a.name.localeCompare(b.name));
+                state.hasUnsavedChanges = true;
+                state.lastActionDescription = `Fusionats ${itemsToAdd.length} articles de material`;
+            });
             return { success: true, message: `${itemsToAdd.length} nous articles de material afegits.`, type: 'success' };
         } else {
             return { success: true, message: "Tots els articles del fitxer ja existeixen.", type: 'info' };
         }
     },
     replaceMaterialItems: (newItems) => {
-        set({ materialItems: newItems.sort((a, b) => a.name.localeCompare(b.name)), hasUnsavedChanges: true });
+        set(state => {
+            state.materialItems = newItems.sort((a, b) => a.name.localeCompare(b.name));
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = 'Reemplaçat l\'inventari de material';
+        });
     },
     getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => {
         const { materialItems, eventFrames } = get();
