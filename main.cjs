@@ -136,6 +136,11 @@ ipcMain.handle('save-file', async (event, { filePath, data }) => {
   try {
     fs.writeFileSync(filePath, data, 'utf8');
     console.log(`Fitxer desat correctament a: ${filePath}`);
+
+    // Create backup after successful save
+    await createBackup(filePath);
+    await cleanupOldBackups(filePath);
+
     return { success: true };
   } catch (error) {
     console.error(`Error desant el fitxer a ${filePath}:`, error);
@@ -275,15 +280,18 @@ async function saveSessionData(newData) {
   return saveDataWithErrorHandling(SESSION_FILE, mergedData);
 }
 
-async function createBackup() {
-  if (!DATA_FILE || !BACKUP_DIR) return false;
+async function createBackup(sourceFilePath) {
+  if (!sourceFilePath || !BACKUP_DIR) return false;
   try {
-    if (fs.existsSync(DATA_FILE)) {
+    if (fs.existsSync(sourceFilePath)) {
       if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
       if (!checkWritePermissions(BACKUP_DIR)) throw new Error(`No hi ha permisos d'escriptura a ${BACKUP_DIR}`);
+
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupFile = path.join(BACKUP_DIR, `backup-events_data-${timestamp}.json`);
-      fs.copyFileSync(DATA_FILE, backupFile);
+      const sourceFileName = path.basename(sourceFilePath, '.json'); // Get filename without extension
+      const backupFile = path.join(BACKUP_DIR, `backup-${sourceFileName}-${timestamp}.json`);
+
+      fs.copyFileSync(sourceFilePath, backupFile);
       console.log(`Còpia de seguretat creada a: ${backupFile}`);
       return true;
     }
@@ -292,16 +300,19 @@ async function createBackup() {
   }
   return false;
 }
-async function cleanupOldBackups() {
+async function cleanupOldBackups(sourceFilePath) {
   const MAX_BACKUPS_TO_KEEP = 5;
-  if (!fs.existsSync(BACKUP_DIR)) {
+  if (!fs.existsSync(BACKUP_DIR) || !sourceFilePath) {
     return;
   }
   
+  const sourceFileName = path.basename(sourceFilePath, '.json');
+  const backupPrefix = `backup-${sourceFileName}-`;
+
   try {
-    console.log("Netejant backups antics...");
+    console.log(`Netejant backups antics per a ${sourceFileName}...`);
     const backupFiles = fs.readdirSync(BACKUP_DIR)
-      .filter(file => file.startsWith('backup-events_data-') && file.endsWith('.json'))
+      .filter(file => file.startsWith(backupPrefix) && file.endsWith('.json'))
       .map(file => {
         const filePath = path.join(BACKUP_DIR, file);
         try {
@@ -1158,6 +1169,11 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
   try {
     const buffer = Buffer.from(data);
     fs.writeFileSync(result.filePath, buffer);
+
+    // Create backup after successful save
+    await createBackup(result.filePath);
+    await cleanupOldBackups(result.filePath);
+
     return { success: true, filePath: result.filePath };
   } catch (error) {
     console.error('Error desant el fitxer:', error);

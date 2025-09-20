@@ -88,6 +88,7 @@ const App: React.FC = () => {
     addMaterialItemsFromFile,
     replacePeopleGroups,
     replaceMaterialItems,
+    loadGoogleConfigFromDataFile,
   } = useEventDataStore.getState();
 
   const showToast: ShowToastFunction = useCallback((message, type = 'success') => {
@@ -317,6 +318,10 @@ const handleSaveDocument = async (): Promise<boolean> => {
             if (loadResult.status === 'error') {
                 showToast(loadResult.message || 'Hi ha hagut un error en carregar les dades.', 'error');
                 return;
+            }
+
+            if (data.googleConfig) {
+                await loadGoogleConfigFromDataFile(data);
             }
 
             setCurrentFilePath(filePath);

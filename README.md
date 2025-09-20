@@ -105,16 +105,23 @@ Per a Linux, utilitzem el format `AppImage`, que no requereix instal·lació:
 
 ### 📂 Fitxers d'Exemple
 
-Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb fitxers de dades que pots carregar a l'aplicació. Utilitza els botons de la secció **Controls** per carregar i desar les teves dades.
+Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb fitxers de dades que pots utilitzar.
 
-*   **`example_all .json`**: És un arxiu complet amb esdeveniments, personal i material. Es carrega amb el botó **`Carregar Tot`**.
-    *   ⚠️ **Atenció:** Aquesta acció **esborra totes les dades actuals** i les reemplaça amb el contingut del fitxer.
+*   **`example_all.json`**: És un arxiu de projecte complet amb esdeveniments, personal i material. Per utilitzar-lo:
+    1.  Ves al menú **`Arxiu > Obrir...`**.
+    2.  Selecciona el fitxer `example_all.json`.
+    3.  L'aplicació carregarà el projecte. Pots desar els canvis amb `Guardar` o `Guardar com...`.
 
-*   **`example_person.json`**: Conté una llista de contactes. Es carrega amb el botó **`Carregar Persones`**.
-    *   🆕 **Novetat:** En carregar, l'aplicació et preguntarà si vols **fusionar** la nova llista amb l'existent (afegint només les persones que no existeixin) o **reemplaçar** completament la llista actual.
+*   **`example_person.json`**: Conté una llista de contactes. Aquesta funció està pensada per **importar** contactes a un projecte existent.
+    1.  Obre o crea un projecte.
+    2.  Ves al menú **`Arxiu > Importar / Exportar > Importar Persones...`**.
+    3.  Selecciona `example_person.json`.
+    4.  L'aplicació et preguntarà si vols **fusionar** la nova llista amb l'existent (afegint només les persones que no existeixin) o **reemplaçar** completament la llista actual.
 
-*   **`example_material.json`**: Un inventari de material d'exemple. Es carrega amb el botó **`Carregar Material`**.
-    *   🆕 **Novetat:** Igual que amb les persones, podràs triar entre **fusionar** l'inventari (afegint només els articles nous) o **reemplaçar-lo** per complet.
+*   **`example_material.json`**: Un inventari de material d'exemple. Funciona de la mateixa manera que la importació de persones.
+    1.  Obre o crea un projecte.
+    2.  Ves al menú **`Arxiu > Importar / Exportar > Importar Material...`**.
+    3.  Tria entre **fusionar** l'inventari o **reemplaçar-lo**.
 
 ## ✒️ Autoria
 

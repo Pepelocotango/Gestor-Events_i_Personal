@@ -148,11 +148,11 @@ Per facilitar la depuració, l'aplicació implementa un sistema de logging robus
 
 #### Còpies de Seguretat (Backups)
 
-Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de seguretat automàtic:
+Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de seguretat automàtic i millorat:
 
--   **Activació:** La funció `createBackup()` es crida durant el procés de tancament segur de l'aplicació, just abans de sortir.
--   **Nomenclatura:** Cada backup es desa a `BACKUP_DIR` amb un nom que inclou un timestamp (`backup-events_data-<timestamp>.json`), garantint que cada còpia sigui única.
--   **Neteja Automàtica:** La funció `cleanupOldBackups()` s'executa també durant el tancament. Revisa el directori de backups i elimina els més antics, conservant només els 5 més recents.
+-   **Activació:** La funció `createBackup(filePath)` es crida automàticament des dels gestors IPC `save-file` i `show-save-dialog` cada vegada que un document es desa amb èxit.
+-   **Nomenclatura:** Cada backup es desa a `BACKUP_DIR`. El nom del fitxer ara inclou el nom del document original per a una millor identificació (p. ex., `backup-ElMeuProjecte-2025-09-20T103000.json`), a més d'un timestamp per garantir que cada còpia sigui única.
+-   **Neteja Automàtica:** La funció `cleanupOldBackups(filePath)` s'executa també després de cada desat. Revisa el directori de backups i elimina els més antics per a aquell document específic, conservant només els 5 més recents.
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 
