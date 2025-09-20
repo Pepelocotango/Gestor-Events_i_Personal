@@ -204,7 +204,7 @@ const Controls: React.FC<ControlsProps> = ({
           data: jsonString,
         });
         if (result.success) {
-          if (type === 'all') setHasUnsavedChanges(false);
+          
           showToast(`Dades de ${type} desades correctament.`, 'success');
         } else if (!result.canceled) {
           showToast(`Error en desar les dades: ${result.message}`, 'error');
