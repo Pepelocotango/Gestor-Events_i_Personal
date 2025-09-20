@@ -427,6 +427,8 @@ export interface ElectronAPI {
   loadGoogleConfig: () => Promise<GoogleConfig | null>;
   onConfirmQuit: (callback: () => void) => void;
   sendQuitConfirmedByRenderer: () => void;
+  sendQuitWithoutSaving: () => void;
+  showUnsavedChangesDialog: () => Promise<number>;
   startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
   onGoogleAuthSuccess: (callback: () => void) => () => void;
   onGoogleAuthError: (callback: (errorMessage: string) => void) => () => void;

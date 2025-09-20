@@ -374,24 +374,49 @@ const App: React.FC = () => {
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
       const handleQuit = async () => {
-        logger.info("Renderer va rebre el senyal 'confirm-quit-signal'");
-        try {
-          if (hasUnsavedChangesRef.current) {
-            const dataToSave = await exportDataFromManager();
-            logger.info("Renderer: Desant dades abans de sortir...");
-            await window.electronAPI?.saveAppData?.(dataToSave);
-          } else {
-            logger.info("Renderer: No hi ha canvis per desar.");
-          }
-        } catch (error) {
-          logger.error("Renderer: Excepció durant el desat en sortir:", error);
-        } finally {
+        logger.info("Renderer ha rebut el senyal 'confirm-quit-signal', iniciant la lògica de sortida.");
+
+        if (!hasUnsavedChangesRef.current) {
+          logger.info("No hi ha canvis no desats. Iniciant sortida amb backup.");
           window.electronAPI?.sendQuitConfirmedByRenderer?.();
+          return;
+        }
+
+        logger.info("Hi ha canvis no desats. Mostrant diàleg a l'usuari.");
+        const choice = await window.electronAPI?.showUnsavedChangesDialog();
+
+        switch (choice) {
+          case 0: // Desar
+            logger.info("L'usuari ha triat 'Desar'.");
+            try {
+              const dataToSave = await exportDataFromManager();
+              logger.info("Desant dades abans de sortir...");
+              const result = await window.electronAPI?.saveAppData?.(dataToSave);
+              if (result?.success) {
+                logger.info("Dades desades amb èxit. Confirmant sortida amb desat.");
+                window.electronAPI?.sendQuitConfirmedByRenderer?.();
+              } else {
+                logger.error("Ha fallat el desat de dades en sortir. Es cancel·la la sortida.", result?.message);
+                showToast("Error en desar les dades. S'ha cancel·lat la sortida.", "error");
+              }
+            } catch (error) {
+              logger.error("Excepció durant el desat en sortir. Es cancel·la la sortida.", error);
+              showToast(`Error en desar: ${(error as Error).message}. S'ha cancel·lat la sortida.`, "error");
+            }
+            break;
+          case 1: // No Desar
+            logger.info("L'usuari ha triat 'No Desar'. Confirmant sortida sense desar.");
+            window.electronAPI?.sendQuitWithoutSaving?.();
+            break;
+          case 2: // Cancel·lar
+            logger.info("L'usuari ha triat 'Cancel·lar'. Es cancel·la la sortida.");
+            // No fem res
+            break;
         }
       };
       window.electronAPI.onConfirmQuit(handleQuit);
     }
-  }, []);
+  }, [exportDataFromManager, showToast]);
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listeners per a l\'autenticació de Google.');

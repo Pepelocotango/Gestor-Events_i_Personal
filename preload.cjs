@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('confirm-quit-signal', (event, ...args) => callback(...args));
    },
   sendQuitConfirmedByRenderer: () => ipcRenderer.send('quit-confirmed-by-renderer-signal'),
+  sendQuitWithoutSaving: () => ipcRenderer.send('quit-without-saving'),
    startGoogleAuth: () => ipcRenderer.invoke('google-auth-start'),
   onGoogleAuthSuccess: (callback) => {
     const subscription = (event, ...args) => callback(...args);
@@ -52,6 +53,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('file-data-loaded', handler);
     };
   },
+  showUnsavedChangesDialog: () => ipcRenderer.invoke('show-unsaved-changes-dialog'),
   showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
   getSessionData: () => ipcRenderer.invoke('get-session-data'),
   saveSessionData: (key, value) => ipcRenderer.invoke('save-session-data', { key, value }),

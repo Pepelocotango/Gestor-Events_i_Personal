@@ -538,6 +538,13 @@ ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
   }, 500); // Un petit temps de marge per si de cas
 });
 
+// NOU LISTENER: S'executa quan el frontend confirma sortir sense desar.
+ipcMain.on('quit-without-saving', () => {
+  console.log("Backend rebut 'quit-without-saving'. Sortint directament.");
+  isQuitting = true;
+  app.quit();
+});
+
 console.log('[Startup] Configurant gestors de IPC...');
 ipcMain.on('log-message', (event, message, data) => {
   logToFile(`[FRONTEND] ${message}`, data);
@@ -1063,6 +1070,21 @@ ipcMain.handle('get-default-data-path', () => {
     return getRelativePath(DATA_FILE);
   }
   return 'Ruta no definida';
+});
+
+ipcMain.handle('show-unsaved-changes-dialog', async () => {
+  if (!mainWindow) return 2; // Retorna 'Cancel·lar' si no hi ha finestra
+  console.log("[IPC_IN] Mostrant diàleg de canvis no desats.");
+  const { response } = await dialog.showMessageBox(mainWindow, {
+    type: 'question',
+    buttons: ['Desar', 'No Desar', 'Cancel·lar'],
+    defaultId: 0,
+    cancelId: 2,
+    title: 'Canvis no desats',
+    message: 'Vols desar els canvis de la sessió actual abans de sortir?',
+  });
+  console.log(`[IPC_OUT] Opció de diàleg seleccionada: ${response}`);
+  return response;
 });
 
 ipcMain.handle('show-save-dialog', async (event, options) => {

@@ -181,20 +181,23 @@ Aquesta funció s'encarrega de:
 
 #### Flux de Tancament Segur
 
-Per evitar la pèrdua de dades no desades, l'aplicació implementa un flux de tancament controlat:
+Per evitar la pèrdua de dades, el tancament de l'aplicació segueix un flux de diversos passos que involucra diàlegs condicionals.
 
-1.  **Interceptació:** L'esdeveniment `window.on('close')` no tanca la finestra directament, sinó que inicia el procés de sortida de l'aplicació (`app.quit()`).
-2.  **`before-quit`:** Aquest esdeveniment d'Electron és el nucli del procés.
-    -   Utilitza una variable de control `isQuitting` per evitar execucions múltiples.
-    -   Desa l'estat actual de la finestra a `session.json`.
-    -   Mostra un diàleg de confirmació natiu a l'usuari.
-    -   Si l'usuari cancel·la, el procés de tancament s'atura.
-    -   Si l'usuari confirma, s'envia un senyal IPC (`'confirm-quit-signal'`) al frontend. **L'aplicació no es tanca encara.**
-3.  **Confirmació del Frontend:** L'aplicació espera una resposta del frontend. A `App.tsx`, un `useEffect` amb un array de dependències buit `[]` registra un listener per al senyal `'confirm-quit-signal'`.
-    -   **Solució a l'Estat Caduc (Stale State):** Per evitar un error comú de "stale state" (on el listener només veu l'estat inicial de `hasUnsavedChanges`), s'utilitza un `useRef` (`hasUnsavedChangesRef`). Un altre `useEffect` s'encarrega de mantenir aquest ref sincronitzat amb l'últim valor de `hasUnsavedChanges`.
-    -   **Lògica de Desat:** Quan el listener rep el senyal, comprova `hasUnsavedChangesRef.current`. Si és `true`, exporta les dades actuals i les envia al backend per ser desades.
-    -   **Senyal de Tornada:** Un cop les dades han estat desades (o si no hi havia canvis), el frontend envia un senyal de tornada (`'quit-confirmed-by-renderer-signal'`).
-4.  **Tancament Final:** Un cop el backend rep `quit-confirmed-by-renderer-signal`, executa les últimes tasques (crear backup, netejar backups antics) i finalment tanca l'aplicació amb `app.exit()`.
+1.  **Inici del Tancament:** Quan l'usuari tanca la finestra (`window.on('close')`) o utilitza una drecera (`CmdOrCtrl+Q`), s'inicia el procés de sortida global de l'aplicació (`app.quit()`).
+2.  **`before-quit` (Primera Confirmació):** L'esdeveniment `before-quit` d'Electron actua com a primera barrera.
+    -   Desa l'estat de la finestra (mida, posició) a `session.json`.
+    -   Mostra un diàleg genèric: "Estàs segur que vols sortir?". Això evita tancaments accidentals.
+    -   Si l'usuari cancel·la, el procés de tancament s'atura completament.
+    -   Si confirma, el backend envia un senyal IPC (`'confirm-quit-signal'`) al frontend. L'aplicació encara no es tanca.
+3.  **Lògica Condicional al Frontend (`App.tsx`):** Un listener a `App.tsx` rep el senyal i actua de la següent manera:
+    -   **Sense Canvis:** Si no hi ha canvis no desats (`hasUnsavedChangesRef.current` és `false`), el frontend envia immediatament un nou senyal IPC al backend: `'quit-without-saving'`.
+    -   **Amb Canvis:** Si hi ha canvis, el frontend demana al backend que mostri un diàleg natiu més específic a través d'un nou gestor IPC (`'show-unsaved-changes-dialog'`). Aquest diàleg presenta tres opcions:
+        -   **"Desar":** El frontend exporta les dades, les envia al backend per ser desades a `events_data.json` (via `'save-app-data'`). Només si l'operació té èxit, envia el senyal `'quit-confirmed-by-renderer-signal'` per continuar amb el procés de tancament amb còpia de seguretat. Si el desat falla, el tancament es cancel·la per evitar pèrdua de dades.
+        -   **"No Desar":** El frontend envia el senyal `'quit-without-saving'`.
+        -   **"Cancel·lar":** No s'envia cap senyal. El procés de tancament s'atura.
+4.  **Tancament Final al Backend:** El backend té dos listeners per finalitzar el procés:
+    -   **`on('quit-confirmed-by-renderer-signal')`:** S'activa després d'un desat amb èxit. Executa tasques finals com crear una còpia de seguretat (`createBackup`) i netejar les antigues (`cleanupOldBackups`) abans de tancar l'aplicació amb `app.exit()`.
+    -   **`on('quit-without-saving')`:** S'activa quan no hi ha canvis o l'usuari tria no desar. Tanca l'aplicació immediatament (`isQuitting = true; app.quit();`) sense realitzar cap operació de desat ni de còpia de seguretat.
 
 #### Gestió d'Excepcions
 
