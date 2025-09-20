@@ -1,17 +1,29 @@
 import React from 'react';
-import { useStore } from 'zustand';
-import { useEventDataStore } from '../../stores/eventDataStore';
+import { useTemporalStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import { XMarkIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '@heroicons/react/24/solid';
 
 const HistoryModal: React.FC = () => {
-  const { pastStates, futureStates, jump } = useStore(useEventDataStore.temporal);
+  const { pastStates, futureStates, undo, redo } = useTemporalStore(state => ({
+    pastStates: state.pastStates,
+    futureStates: state.futureStates,
+    undo: state.undo,
+    redo: state.redo,
+  }));
   const { closeModal } = useModalStore.getState();
 
-  const handleJump = (index: number) => {
-    jump(index);
+  const handleUndo = (steps: number) => {
+    undo(steps);
     closeModal();
   };
+
+  const handleRedo = (steps: number) => {
+    redo(steps);
+    closeModal();
+  };
+
+  const reversedFutureStates = [...futureStates].reverse();
+  const reversedPastStates = [...pastStates].reverse();
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-auto">
@@ -26,10 +38,10 @@ const HistoryModal: React.FC = () => {
       </div>
       <div className="max-h-96 overflow-y-auto pr-2">
         <ul className="space-y-2">
-          {futureStates.slice().reverse().map((state, index) => (
+          {reversedFutureStates.map((state, index) => (
             <li key={`future-${index}`}>
               <button
-                onClick={() => handleJump(futureStates.length - index)}
+                onClick={() => handleRedo(index + 1)}
                 className="w-full text-left p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
               >
                 <ArrowUturnRightIcon className="w-5 h-5 text-gray-400" />
@@ -42,10 +54,10 @@ const HistoryModal: React.FC = () => {
               <span className="font-bold text-blue-800 dark:text-blue-200">Estat Actual</span>
             </div>
           </li>
-          {pastStates.slice().reverse().map((state, index) => (
+          {reversedPastStates.map((state, index) => (
             <li key={`past-${index}`}>
               <button
-                onClick={() => handleJump(-(index + 1))}
+                onClick={() => handleUndo(index + 1)}
                 className="w-full text-left p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
               >
                 <ArrowUturnLeftIcon className="w-5 h-5 text-gray-400" />

@@ -1,7 +1,8 @@
 
 
 import { create } from 'zustand';
-import { temporal } from 'zundo';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
+import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
 import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult } from '../types';
@@ -55,7 +56,7 @@ const createDefaultTechSheet = (eventFrame: Omit<EventFrame, 'id' | 'assignments
     };
   };
 
-interface EventDataState {
+export interface EventDataState {
     eventFrames: EventFrame[];
     peopleGroups: PersonGroup[];
     materialItems: MaterialItem[];
@@ -747,10 +748,19 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     })),
     {
       partialize: (state) => {
-        const { eventFrames, peopleGroups, materialItems } = state;
-        return { eventFrames, peopleGroups, materialItems };
+        const { eventFrames, peopleGroups, materialItems, lastActionDescription } = state;
+        return { eventFrames, peopleGroups, materialItems, lastActionDescription };
       },
       limit: 20,
     }
   )
 );
+
+type PartializedState = Pick<EventDataState, 'eventFrames' | 'peopleGroups' | 'materialItems' | 'lastActionDescription'>;
+
+export const useTemporalStore = <T,>(
+  selector: (state: TemporalState<PartializedState>) => T,
+  equality?: (a: T, b: T) => boolean,
+) => {
+  return useStoreWithEqualityFn(useEventDataStore.temporal, selector, equality);
+};

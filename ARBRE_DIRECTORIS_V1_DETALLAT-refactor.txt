@@ -33,6 +33,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── EventFrameDetailsModal.tsx      # Mostra un resum detallat d'un esdeveniment.
 │   │   │   ├── EventFrameFormModal.tsx         # Formulari per crear/editar un esdeveniment marc. [REFACTORITZAT: usa modalStore]
 │   │   │   ├── GoogleSettingsModal.tsx         # Panell de configuració de la integració amb Google Calendar.
+│   │   │   ├── HistoryModal.tsx                # Modal que mostra l'historial de canvis (desfer/refer).
 │   │   │   ├── MergeOrReplaceModal.tsx         # Opcions per fusionar o reemplaçar dades en importar.
 │   │   │   ├── SelectSyncCalendarModal.tsx     # Permet triar el calendari de destí per a la sincronització.
 │   │   │   └── UpdateFromAssignmentsModal.tsx  # Previsualitza i aplica canvis des d'assignacions a la fitxa.
