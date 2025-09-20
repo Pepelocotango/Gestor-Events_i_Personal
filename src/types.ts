@@ -426,12 +426,11 @@ export interface ElectronAPI {
   readFile: (filePath: string) => Promise<{ success: boolean; content?: string; message?: string; }>;
   saveFile: (options: { filePath: string, data: string }) => Promise<{ success: boolean; message?: string; }>;
   showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
-  showUnsavedChangesDialog: (options: { hasFilePath: boolean }) => Promise<{ response: number }>;
+  showUnsavedChangesDialog: (options: { message: string; buttons: string[] }) => Promise<{ response: number }>;
 
   // Session & App Lifecycle
-  onConfirmQuit: (callback: () => void) => void;
-  sendQuitConfirmedByRenderer: () => void;
-  sendQuitWithoutSaving: () => void;
+  onConfirmQuit: (callback: () => void) => () => void;
+  createBackupAndQuit: (data: string | null) => Promise<{ success: boolean }>;
   getSessionData: () => Promise<any>;
   saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;
   getRecentFiles: () => Promise<string[]>;

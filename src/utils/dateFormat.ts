@@ -24,3 +24,18 @@ export function addDaysISO(dateStr: string, days: number): string {
   date.setDate(date.getDate() + days);
   return date.toISOString().split('T')[0];
 }
+
+/**
+ * Genera un nom de fitxer per defecte amb el format dades_GEP_dd-mm-aa_HH-MM.json.
+ * @returns Un string amb el nom del fitxer generat.
+ */
+export function generateDefaultFileName(): string {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear()).slice(-2);
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+
+  return `dades_GEP_${day}-${month}-${year}_${hours}-${minutes}.json`;
+}

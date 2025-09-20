@@ -531,10 +531,11 @@ app.on('web-contents-created', (event, contents) => {
 
 app.on('before-quit', async (event) => {
   console.log(`[Exit Flow] Event 'before-quit' rebut. isQuitting: ${isQuitting}`);
-  if (isQuitting) return;
-  event.preventDefault(); // Prevenir sortida immediata
+  if (isQuitting) return; // Evita bucles de tancament
 
-  // Desar estat de la finestra
+  event.preventDefault(); // Prevenim la sortida immediata per donar control al frontend
+
+  // Desar l'estat de la finestra (mida, posició) per a la propera sessió
   if (mainWindow && !mainWindow.isDestroyed()) {
     const windowBounds = mainWindow.getBounds();
     await saveSessionData({
@@ -544,22 +545,13 @@ app.on('before-quit', async (event) => {
       y: windowBounds.y
     });
 
-    // Mostrar diàleg de confirmació
-    const choice = await dialog.showMessageBox(mainWindow, {
-      type: 'question',
-      buttons: ['Sí, sortir', 'No, cancel·lar'],
-      defaultId: 1,
-      title: 'Confirmar sortida',
-      message: 'Estàs segur que vols sortir?',
-      cancelId: 1,
-    });
+    console.log('[Exit Flow] Estat de la finestra desat. Enviant senyal de confirmació al frontend...');
+    // Envia el senyal al frontend perquè gestioni la lògica de desat/backup
+    mainWindow.webContents.send('confirm-quit-signal');
 
-    if (choice.response === 0) {
-      // Només si l'usuari confirma, enviar senyal al frontend
-      mainWindow.webContents.send('confirm-quit-signal');
-    }
-    // Si cancel·la, no fem res
   } else {
+    // Si no hi ha finestra, no cal esperar el frontend.
+    console.log('[Exit Flow] No hi ha finestra principal, sortint directament.');
     isQuitting = true;
     app.quit();
   }
@@ -572,24 +564,48 @@ app.on('window-all-closed', () => {
 });
 
 
-// NOU LISTENER: S'executa quan el frontend ha acabat de desar les dades.
-ipcMain.on('quit-confirmed-by-renderer-signal', async () => {
-  console.log("[Exit Flow] Rebut 'quit-confirmed-by-renderer-signal'. Sortint de forma segura.");
-  // Els backups ara es fan en desar, no en sortir.
-  isQuitting = true; // Marcar per evitar bucles
-  setTimeout(() => {
-    app.exit();
-  }, 500); // Un petit temps de marge per si de cas
-});
+async function createBackupFromData(data) {
+  if (!data || !BACKUP_DIR) return false;
+  try {
+    if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    if (!checkWritePermissions(BACKUP_DIR)) throw new Error(`No hi ha permisos d'escriptura a ${BACKUP_DIR}`);
 
-// NOU LISTENER: S'executa quan el frontend confirma sortir sense desar.
-ipcMain.on('quit-without-saving', () => {
-  console.log("[Exit Flow] Rebut 'quit-without-saving'. Sortint directament.");
-  isQuitting = true;
-  app.quit();
-});
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const timestamp = `${day}-${month}-${year}_${hours}-${minutes}`;
+
+    const backupFile = path.join(BACKUP_DIR, `backup_sessio-${timestamp}.json`);
+
+    fs.writeFileSync(backupFile, data, 'utf8');
+    console.log(`Còpia de seguretat de la sessió creada a: ${backupFile}`);
+    return true;
+  } catch (error) {
+    console.error('Error creant la còpia de seguretat de la sessió:', error);
+    return false;
+  }
+}
 
 console.log('[Startup] Configurant gestors de IPC...');
+
+ipcMain.handle('create-backup-and-quit', async (event, data) => {
+  console.log("[Exit Flow] Rebut 'create-backup-and-quit'. Creant backup i sortint...");
+
+  isQuitting = true;
+
+  if (data) {
+    await createBackupFromData(data);
+  } else {
+    console.warn('[Exit Flow] No s\'han rebut dades per al backup de sessió.');
+  }
+
+  app.quit();
+
+  return { success: true };
+});
 ipcMain.on('log-message', (event, message, data) => {
   logToFile(`[FRONTEND] ${message}`, data);
 });
@@ -1116,33 +1132,22 @@ ipcMain.handle('factory-reset', async () => {
   }
 });
 
-ipcMain.handle('show-unsaved-changes-dialog', async (event, { hasFilePath }) => {
-  if (!mainWindow) return { response: 2 }; // Cancel·lar
-  console.log("[IPC_IN] Mostrant diàleg de canvis no desats.", { hasFilePath });
-
-  const buttons = hasFilePath
-    ? ['Guardar', 'No Guardar', 'Cancel·lar']
-    : ['Guardar com...', 'No Guardar', 'Cancel·lar'];
-
-  const message = hasFilePath
-    ? 'Hi ha canvis sense desar. Vols guardar els canvis abans de continuar?'
-    : 'Hi ha canvis sense desar. Vols guardar el document abans de continuar?';
+ipcMain.handle('show-unsaved-changes-dialog', async (event, { message, buttons }) => {
+  if (!mainWindow) return { response: buttons.length - 1 }; // Cancel·lar per defecte
+  console.log("[IPC_IN] Mostrant diàleg de sortida personalitzat.");
 
   const result = await dialog.showMessageBox(mainWindow, {
     type: 'question',
     buttons: buttons,
     defaultId: 0,
-    cancelId: 2,
-    title: 'Canvis no desats',
-    message: message,
+    cancelId: buttons.length - 1, // L'últim botó sempre és 'Cancel·la'
+    title: 'Tancar aplicació', // Títol de la finestra del diàleg
+    message: message, // El missatge dinàmic rebut del frontend
   });
 
-  // Mapejar la resposta per ser consistent, independentment dels botons
-  // 'Guardar' / 'Guardar com...' -> 0
-  // 'No Guardar' -> 1
-  // 'Cancel·lar' -> 2
   console.log(`[IPC_OUT] Opció de diàleg seleccionada: ${result.response}`);
-  return result;
+  // El frontend ara és responsable de gestionar l'índex directament.
+  return { response: result.response };
 });
 
 ipcMain.handle('show-save-dialog', async (event, options) => {

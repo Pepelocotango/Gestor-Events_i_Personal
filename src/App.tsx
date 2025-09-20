@@ -1,3 +1,4 @@
+import { generateDefaultFileName } from './utils/dateFormat';
 import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
@@ -257,18 +258,21 @@ const handleSaveDocument = async (): Promise<boolean> => {
         return true; // No unsaved changes, can continue
     }
 
-    if (window.electronAPI) {
-        const { response } = await window.electronAPI.showUnsavedChangesDialog({ hasFilePath: !!currentFilePath });
-        // 0: Save / Save As, 1: Don't Save, 2: Cancel
+    if (window.electronAPI?.showUnsavedChangesDialog) {
+        const message = 'Teniu canvis sense desar. Voleu desar-los abans de continuar?';
+        const buttons = ['Desa', 'No desis', 'Cancel·la'];
+
+        const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
+        // 0: Desa, 1: No desis, 2: Cancel·la
         switch (response) {
-            case 0: // Save / Save As
-                const saved = await handleSaveDocument(); // This will call save or save as
-                return saved; // Continue only if save was successful
-            case 1: // Don't Save
-                return true; // Continue without saving
-            case 2: // Cancel
+            case 0: // Desa
+                const saved = await handleSaveDocument();
+                return saved;
+            case 1: // No desis
+                return true;
+            case 2: // Cancel·la
             default:
-                return false; // Do not continue
+                return false;
         }
     }
     // Fallback for web or if API is not available
@@ -504,46 +508,87 @@ const handleSaveDocument = async (): Promise<boolean> => {
     }
   }, []);
 
+  const handleBackupAndQuit = async () => {
+    logger.info('[Exit Flow] Iniciant tancament amb backup incondicional.');
+    if (window.electronAPI?.createBackupAndQuit) {
+      try {
+        const dataToBackup = await exportDataFromManager();
+        const jsonString = JSON.stringify(dataToBackup, null, 2);
+        await window.electronAPI.createBackupAndQuit(jsonString);
+      } catch (error) {
+        logger.error('Error preparant les dades per al backup en sortir:', error);
+        // Si la preparació de dades falla, intentem sortir sense dades per no bloquejar l'usuari.
+        await window.electronAPI.createBackupAndQuit(null);
+      }
+    }
+  };
+
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
       const handleQuit = async () => {
-        logger.info("Renderer ha rebut el senyal 'confirm-quit-signal'.");
+        logger.info("[Exit Flow] Renderer ha rebut el senyal 'confirm-quit-signal'.");
 
+        // Si no hi ha canvis, el flux de sortida és directe però amb backup.
         if (!hasUnsavedChangesRef.current) {
-            logger.info("No hi ha canvis, sortint directament.");
-            window.electronAPI?.sendQuitWithoutSaving?.();
+            logger.info("No hi ha canvis no desats. Creant backup de sessió i sortint.");
+            await handleBackupAndQuit();
             return;
         }
 
-        if (window.electronAPI) {
-            const { response } = await window.electronAPI.showUnsavedChangesDialog({ hasFilePath: !!currentFilePath });
-            // 0: Save / Save As, 1: Don't Save, 2: Cancel
+        // Si hi ha canvis, mostrem el nou diàleg intel·ligent.
+        if (window.electronAPI?.showUnsavedChangesDialog) {
+            const fileName = currentFilePath
+                ? currentFilePath.split(/[/\\]/).pop()
+                : generateDefaultFileName();
+
+            const message = `Vols desar els canvis fets a '${fileName}'?`;
+            const buttons = ['Desa', 'Desa com...', 'Tanca sense desar', 'Cancel·la'];
+
+            const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
 
             switch (response) {
-                case 0: // Save / Save As
+                case 0: // Desa
+                    logger.info("[Exit Flow] Usuari ha triat 'Desa'.");
                     const saved = await handleSaveDocument();
                     if (saved) {
-                        logger.info("Desat amb èxit, sortint amb backup.");
-                        window.electronAPI?.sendQuitConfirmedByRenderer?.();
+                        logger.info("[Exit Flow] Document desat correctament. Procedint a fer backup i sortir.");
+                        await handleBackupAndQuit();
                     } else {
-                        logger.error("Ha fallat el desat de dades en sortir. Es cancel·la la sortida.");
-                        showToast("Error en desar les dades. S'ha cancel·lat la sortida.", "error");
+                        logger.warn("[Exit Flow] El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.");
+                        showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
                     }
                     break;
-                case 1: // Don't Save
-                    logger.info("Sortint sense desar.");
-                    window.electronAPI?.sendQuitWithoutSaving?.();
+
+                case 1: // Desa com...
+                    logger.info("[Exit Flow] Usuari ha triat 'Desa com...'.");
+                    const savedAs = await handleSaveAsDocument();
+                    if (savedAs) {
+                        logger.info("[Exit Flow] Document desat (com a) correctament. Procedint a fer backup i sortir.");
+                        await handleBackupAndQuit();
+                    } else {
+                        logger.warn("[Exit Flow] El 'Desa com...' ha fallat o ha estat cancel·lat. La sortida s'ha avortat.");
+                        showToast("El 'Desa com...' ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
+                    }
                     break;
-                case 2: // Cancel
+
+                case 2: // Tanca sense desar
+                    logger.info("[Exit Flow] Usuari ha triat 'Tanca sense desar'. Procedint a fer backup i sortir.");
+                    await handleBackupAndQuit();
+                    break;
+
+                case 3: // Cancel·la
                 default:
-                    logger.info("Sortida cancel·lada per l'usuari.");
-                    break; // Do nothing
+                    logger.info("[Exit Flow] Usuari ha triat 'Cancel·la'. La sortida s'ha avortat.");
+                    // No fem res, el procés de tancament s'atura.
+                    break;
             }
         }
       };
-      window.electronAPI.onConfirmQuit(handleQuit);
+
+      const cleanup = window.electronAPI.onConfirmQuit(handleQuit);
+      return cleanup;
     }
-  }, [exportDataFromManager, showToast, currentFilePath]);
+  }, [currentFilePath, exportDataFromManager, showToast]);
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listeners per a l\'autenticació de Google.');

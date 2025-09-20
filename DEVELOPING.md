@@ -156,27 +156,36 @@ Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de segu
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 
-El backend controla tots els aspectes del cicle de vida de l'aplicació, incloent un flux de tancament segur amb doble diàleg i un sistema automàtic de còpies de seguretat.
+El backend controla tots els aspectes del cicle de vida de l'aplicació, incloent un flux de tancament intel·ligent amb un diàleg únic i un sistema de backup incondicional.
 
-#### Flux de Tancament Segur (Doble Diàleg)
+#### Flux de Tancament Intel·ligent (Diàleg Únic)
 
-1. **Interceptació del Tancament:**
-    - El listener `mainWindow.on('close', ...)` dins `createWindow` intercepta el tancament de la finestra principal i crida a `app.quit()` de forma controlada.
-2. **Primera Confirmació (Backend):**
-    - El listener `app.on('before-quit', ...)` mostra un diàleg de confirmació genèric: "Estàs segur que vols sortir?".
-    - Si l'usuari cancel·la, el tancament s'aborta.
-    - Si confirma, es desa l'estat de la finestra a `session.json` i s'envia el senyal `confirm-quit-signal` al frontend.
-3. **Segona Confirmació (Frontend):**
-    - El frontend rep el senyal i comprova si hi ha canvis no desats (`hasUnsavedChanges`).
-    - Si no hi ha canvis, notifica el backend per tancar directament.
-    - Si hi ha canvis, mostra un diàleg específic per desar/cancel·lar, i només tanca si l'usuari ho confirma.
+Per millorar l'experiència d'usuari i alhora garantir la màxima protecció de dades, el flux de sortida s'ha redissenyat per utilitzar un únic diàleg contextual, eliminant la doble confirmació anterior. Ara, es crea un backup de la sessió de manera incondicional.
 
-#### Sistema de Backups Automàtics
+1.  **Interceptació del Tancament (`before-quit`):**
+    -   Quan l'usuari intenta tancar l'aplicació, el listener `app.on('before-quit')` a `main.cjs` s'activa.
+    -   Aquest listener **ja no mostra cap diàleg**. La seva única responsabilitat és desar l'estat de la finestra (mida/posició) i enviar el senyal `'confirm-quit-signal'` al frontend, prevenint la sortida immediata.
 
-- **Activació:** Les funcions `createBackup(filePath)` i `cleanupOldBackups(filePath)` s'executen automàticament després de cada desat reeixit (IPC `save-file` i `show-save-dialog`).
-- **Nomenclatura:** El backup inclou el nom del fitxer original i un timestamp: `backup-NOM-YYYY-MM-DDTHHMMSS.json`.
-- **Neteja:** Es conserven només els 5 backups més recents per cada document.
-- **Ubicació:** Tots els backups es guarden a `BACKUP_DIR`.
+2.  **Gestió Centralitzada al Frontend (`onConfirmQuit`):**
+    -   Un listener a `App.tsx` rep el senyal i centralitza tota la lògica.
+    -   Si no hi ha canvis no desats (`hasUnsavedChanges` és `false`), es procedeix directament al tancament amb backup.
+    -   **Si hi ha canvis no desats**, el frontend construeix un diàleg natiu d'Electron de manera dinàmica:
+        -   **Missatge:** Es genera el missatge `Vols desar els canvis fets a '[Nom del Document]'?`. Si el document no s'ha desat mai, es genera un nom per defecte (p. ex., `dades_GEP_21-09-25_10-45.json`).
+        -   **Botons:** Es defineix un array amb quatre opcions: `['Desa', 'Desa com...', 'Tanca sense desar', 'Cancel·la']`.
+        -   S'invoca el gestor IPC `show-unsaved-changes-dialog` amb aquests paràmetres.
+
+3.  **Accions Basades en la Resposta:**
+    -   El frontend gestiona l'índex del botó premut:
+        -   `0 (Desa)`: Crida a `handleSaveDocument()`.
+        -   `1 (Desa com...)`: Crida a `handleSaveAsDocument()`.
+        -   `2 (Tanca sense desar)`: No fa cap acció de desat.
+        -   `3 (Cancel·la)`: Avorta el procés de tancament.
+
+#### Backups de Sessió Incondicionals
+
+- **Activació:** En **tots** els casos que impliquen un tancament (`Desa`, `Desa com...` i `Tanca sense desar`), un cop completada l'acció de l'usuari (si n'hi ha), es crida a la funció `handleBackupAndQuit`.
+- **Execució:** Aquesta funció envia l'estat complet de les dades de la sessió actual al nou gestor IPC `create-backup-and-quit`. El backend rep les dades, les desa en un nou fitxer de backup (`backup_sessio-[timestamp].json`) i, finalment, executa `app.quit()`.
+- **Garantia:** Aquest mecanisme assegura que sempre existeixi una "última foto" de la sessió de treball, fins i tot si l'usuari decideix descartar els canvis.
 
 #### Separació de Configuració Google
 
@@ -211,21 +220,9 @@ Aquesta funció s'encarrega de:
 5.  Carregar la URL del servidor de desenvolupament de Vite o el fitxer `index.html` de producció.
 6.  Construir i establir el menú natiu de l'aplicació (`Menu.buildFromTemplate`).
 
-#### Flux de Tancament Segur (Doble Diàleg)
+#### Flux de Tancament Intel·ligent
 
-Per evitar la pèrdua de dades i alhora prevenir tancaments accidentals, el flux de sortida segueix un procés de dos passos:
-
-1.  **`before-quit` (Primera Confirmació General):**
-    -   Quan l'usuari intenta tancar l'aplicació, el listener `app.on('before-quit')` a `main.cjs` s'activa.
-    -   Aquest mostra un primer diàleg genèric: **"Estàs segur que vols sortir?"**.
-    -   Si l'usuari cancel·la, el procés s'atura.
-    -   Si l'usuari confirma, el backend **no tanca l'aplicació**, sinó que envia el senyal `'confirm-quit-signal'` al frontend.
-
-2.  **`onConfirmQuit` (Segona Confirmació Condicional al Frontend):**
-    -   Un listener a `App.tsx` rep el senyal.
-    -   **Si no hi ha canvis no desats** (`hasUnsavedChanges` és `false`), el frontend notifica al backend que pot tancar directament amb `sendQuitWithoutSaving`.
-    -   **Si hi ha canvis no desats**, el frontend demana al backend que mostri el segon diàleg, més específic, a través de `show-unsaved-changes-dialog`. Aquest diàleg ofereix opcions contextuals ("Guardar" o "Guardar com...").
-    -   El frontend gestiona la resposta de l'usuari (desant si cal) i finalment notifica al backend que pot procedir a tancar l'aplicació de manera segura.
+El flux de tancament de l'aplicació ha estat redissenyat per utilitzar un únic diàleg intel·ligent i garantir backups incondicionals. Per a una descripció detallada del procés, consulteu la secció **3.2. Cicle de Vida i Gestió de Finestres > Flux de Tancament Intel·ligent (Diàleg Únic)**.
 
 #### Gestió d'Excepcions
 

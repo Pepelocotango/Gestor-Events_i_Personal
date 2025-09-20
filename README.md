@@ -144,14 +144,12 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
 
 ## Desenvolupament
 
-## 🔒 Tancament Segur i Backups
+## 🔒 Tancament Intel·ligent i Backups Incondicionals
 
-L'aplicació implementa un flux de tancament segur amb doble diàleg:
-- Quan tanques l'aplicació, primer es mostra un diàleg de confirmació.
-- Si hi ha canvis no desats, el sistema et demana explícitament si vols desar abans de sortir.
-- L'estat de la finestra es desa automàticament a `session.json`.
+L'aplicació garanteix que el teu treball estigui sempre protegit, fins i tot si decideixes no desar els canvis.
 
-Després de cada desat de document, es crea una còpia de seguretat automàtica a la carpeta `backups/`, amb el nom del fitxer original i la data/hora. Es conserven només els 5 backups més recents per cada document.
+-   **Diàleg de Sortida Únic:** En intentar tancar l'aplicació amb canvis no desats, es mostra un únic diàleg que t'ofereix un control clar i professional: `Desa`, `Desa com...`, `Tanca sense desar` o `Cancel·la`.
+-   **Backups de Seguretat Sempre:** Independentment de l'opció que triïs (fins i tot `Tanca sense desar`), l'aplicació crea automàticament un backup de la teva sessió de treball a la carpeta de dades de l'aplicació. Això assegura que sempre tinguis una còpia de seguretat de l'últim estat del teu treball, proporcionant una xarxa de seguretat robusta contra la pèrdua accidental de dades.
 
 ## ⚡ Configuració de Google: Separació Local vs Document
 
