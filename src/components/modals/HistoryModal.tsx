@@ -1,15 +1,14 @@
 import React from 'react';
-import { useTemporalStore } from '../../stores/eventDataStore';
+import { useTemporalStore, useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import { XMarkIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '@heroicons/react/24/solid';
 
 const HistoryModal: React.FC = () => {
-  const { pastStates, futureStates, undo, redo } = useTemporalStore(state => ({
+  const { pastStates, futureStates } = useTemporalStore(state => ({
     pastStates: state.pastStates,
     futureStates: state.futureStates,
-    undo: state.undo,
-    redo: state.redo,
   }));
+  const { undo, redo } = useEventDataStore.temporal.getState();
   const { closeModal } = useModalStore.getState();
 
   const handleUndo = (steps: number) => {
