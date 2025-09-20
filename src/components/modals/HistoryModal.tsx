@@ -4,10 +4,8 @@ import { useModalStore } from '../../stores/modalStore';
 import { XMarkIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '@heroicons/react/24/solid';
 
 const HistoryModal: React.FC = () => {
-  const { pastStates, futureStates } = useTemporalStore(state => ({
-    pastStates: state.pastStates,
-    futureStates: state.futureStates,
-  }));
+  const pastStates = useTemporalStore(state => state.pastStates);
+  const futureStates = useTemporalStore(state => state.futureStates);
   const { undo, redo } = useEventDataStore.temporal.getState();
   const { closeModal } = useModalStore.getState();
 
