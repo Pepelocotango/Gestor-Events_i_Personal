@@ -1,15 +1,27 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  loadAppData: () => ipcRenderer.invoke('load-app-data'),
-  saveAppData: (data) => ipcRenderer.invoke('save-app-data', data),
-   loadGoogleConfig: () => ipcRenderer.invoke('load-google-config'),
-   onConfirmQuit: (callback) => {
+  // Document Management
+  openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
+  readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
+  saveFile: (options) => ipcRenderer.invoke('save-file', options),
+  showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
+  showUnsavedChangesDialog: (options) => ipcRenderer.invoke('show-unsaved-changes-dialog', options),
+
+  // Session & App Lifecycle
+  onConfirmQuit: (callback) => {
     ipcRenderer.on('confirm-quit-signal', (event, ...args) => callback(...args));
-   },
+  },
   sendQuitConfirmedByRenderer: () => ipcRenderer.send('quit-confirmed-by-renderer-signal'),
   sendQuitWithoutSaving: () => ipcRenderer.send('quit-without-saving'),
-   startGoogleAuth: () => ipcRenderer.invoke('google-auth-start'),
+  getSessionData: () => ipcRenderer.invoke('get-session-data'),
+  saveSessionData: (key, value) => ipcRenderer.invoke('save-session-data', { key, value }),
+  getRecentFiles: () => ipcRenderer.invoke('get-recent-files'),
+  addRecentFile: (filePath) => ipcRenderer.invoke('add-recent-file', filePath),
+
+  // Google Integration
+  loadGoogleConfig: () => ipcRenderer.invoke('load-google-config'),
+  startGoogleAuth: () => ipcRenderer.invoke('google-auth-start'),
   onGoogleAuthSuccess: (callback) => {
     const subscription = (event, ...args) => callback(...args);
     ipcRenderer.on('google-auth-success', subscription);
@@ -27,35 +39,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onSyncProgress: (callback) => {
     const subscription = (event, ...args) => callback(...args);
     ipcRenderer.on('sync-progress', subscription);
-    return () => {
-      ipcRenderer.removeListener('sync-progress', subscription);
-    };
+    return () => ipcRenderer.removeListener('sync-progress', subscription);
   },
   googleDisconnect: () => ipcRenderer.invoke('google-disconnect'),
   deleteAppCalendar: (calendarId) => ipcRenderer.invoke('delete-app-calendar', calendarId),
   createNewAppCalendar: (suffix) => ipcRenderer.invoke('create-new-app-calendar', suffix),
-  getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),
-  performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
-  triggerMenuAction: (action) => ipcRenderer.send('trigger-menu-action', action),
 
-  // Menu actions
+  // Menu and Notifications
   onMenuAction: (callback) => {
     const handler = (event, action) => callback(action);
     ipcRenderer.on('menu-action', handler);
-    return () => {
-      ipcRenderer.removeListener('menu-action', handler);
-    };
+    return () => ipcRenderer.removeListener('menu-action', handler);
   },
-  onFileDataLoaded: (callback) => {
-    const handler = (event, data) => callback(data);
-    ipcRenderer.on('file-data-loaded', handler);
-    return () => {
-      ipcRenderer.removeListener('file-data-loaded', handler);
-    };
-  },
-  showUnsavedChangesDialog: () => ipcRenderer.invoke('show-unsaved-changes-dialog'),
-  showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
-  getSessionData: () => ipcRenderer.invoke('get-session-data'),
-  saveSessionData: (key, value) => ipcRenderer.invoke('save-session-data', { key, value }),
-  log: (message, data) => ipcRenderer.send('log-message', message, data)
+  triggerMenuAction: (action) => ipcRenderer.send('trigger-menu-action', action),
+
+  // Misc & Obsolete
+  performHardReset: () => ipcRenderer.invoke('perform-hard-reset'),
+  log: (message, data) => ipcRenderer.send('log-message', message, data),
+  loadAppData: () => ipcRenderer.invoke('load-app-data'),
+  saveAppData: (data) => ipcRenderer.invoke('save-app-data', data),
+  getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),
 });

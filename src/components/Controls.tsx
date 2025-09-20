@@ -3,10 +3,9 @@ import { useStore } from 'zustand';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { startGoogleAuthFlow } from '../stores/googleConfigStore';
-import { PersonGroup, ShowToastFunction } from '../types';
+import { ShowToastFunction } from '../types';
 import logger from '../utils/logger';
 import { SaveIcon, LoadIcon, SunIcon, MoonIcon, InfoIcon, TrashIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, DocumentArrowDownIcon } from '../constants';
-import { migrateData, validateMigratedData } from '../utils/dataMigration';
 import { exportEventListToPdf } from '../utils/pdfGenerator';
 import { exportEventListToCsv } from '../utils/csvUtils';
 import { selectFilteredEventFrames } from '../utils/selectors';
@@ -43,128 +42,43 @@ const Controls: React.FC<ControlsProps> = ({
 
   const toggleExpansion = () => setIsExpanded(prev => !prev);
 
-  const processAllData = (fileContent: string, fileName: string) => {
-    try {
-      if (!fileContent) {
-        showToast("Error: El contingut del fitxer està buit.", 'error');
-        return;
-      }
-      const jsonData = JSON.parse(fileContent);
-      if (jsonData.eventFrames && jsonData.peopleGroups && jsonData.assignments !== undefined) {
-  loadData(jsonData);
-        showToast("Totes les dades carregades correctament.", 'success');
-        setHasUnsavedChanges(true);
-        setCurrentDataPath(fileName);
-      } else if (jsonData.eventFrames || jsonData.people || jsonData.assignments) {
-        const migratedData = migrateData(
-          { people: jsonData.people || [] },
-          { eventFrames: jsonData.eventFrames || [] },
-          { assignments: jsonData.assignments || [] }
-        );
-        const validation = validateMigratedData(migratedData);
-        if (!validation.isValid) {
-          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
-          return;
-        }
-  loadData(migratedData);
-        showToast("Dades antigues migrades i carregades correctament.", 'success');
-        setHasUnsavedChanges(true);
-        setCurrentDataPath(fileName);
-      } else {
-        showToast("Error: El format del fitxer JSON no és vàlid.", 'error');
-      }
-    } catch (error) {
-      showToast(`Error en processar les dades: ${(error as Error).message}`, 'error');
-    }
+  const processAllData = () => {
+    // This logic is now handled in App.tsx by handleOpenDocument
+    showToast("Aquesta funció està sent eliminada. Si us plau, utilitza el menú Arxiu > Obrir.", 'warning');
   };
 
-  const processMaterialData = (fileContent: string) => {
-    try {
-      const jsonData = JSON.parse(fileContent);
-      if (Array.isArray(jsonData.materialItems)) {
-        openModal('mergeOrReplace', {
-          itemType: 'material',
-          newData: jsonData.materialItems,
-        });
-      } else {
-        showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
-      }
-    } catch (error) {
-      showToast(`Error en processar el fitxer de material: ${(error as Error).message}`, 'error');
-    }
+  const processMaterialData = () => {
+    // This logic is now handled in App.tsx by handleImportMaterial
+    showToast("Aquesta funció està sent eliminada. Si us plau, utilitza el menú Arxiu > Importar.", 'warning');
   };
 
   const handleLoadAllData = (event: ChangeEvent<HTMLInputElement>) => {
     logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'tot' });
     const file = event.target.files?.[0];
     if (!file) return;
-    const fileName = file.name;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const fileContent = e.target?.result as string;
-      processAllData(fileContent, fileName);
-      if (event.target) event.target.value = "";
-    };
-    reader.readAsText(file);
+    processAllData();
+    if (event.target) event.target.value = "";
   };
 
-  const processPeopleData = (fileContent: string) => {
-    try {
-      if (!fileContent) {
-        showToast("Error: El fitxer de persones està buit.", 'error');
-        return;
-      }
-      const jsonData = JSON.parse(fileContent);
-      let newPeople: PersonGroup[] = [];
-      if (Array.isArray(jsonData.peopleGroups)) {
-        newPeople = jsonData.peopleGroups;
-      } else if (Array.isArray(jsonData.people)) {
-        const migratedData = migrateData({ people: jsonData.people });
-        const validation = validateMigratedData(migratedData);
-        if (!validation.isValid) {
-          showToast(`Error en la migració de dades: ${validation.errors.join(', ')}`, 'error');
-          return;
-        }
-        newPeople = migratedData.peopleGroups;
-      } else {
-        showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
-        return;
-      }
-
-      openModal('mergeOrReplace', {
-        itemType: 'persones',
-        newData: newPeople,
-      });
-
-    } catch (error) {
-      showToast(`Error en carregar les dades de persones: ${(error as Error).message}`, 'error');
-    }
+  const processPeopleData = () => {
+    // This logic is now handled in App.tsx by handleImportPeople
+    showToast("Aquesta funció està sent eliminada. Si us plau, utilitza el menú Arxiu > Importar.", 'warning');
   };
 
   const handleLoadPeopleData = (event: ChangeEvent<HTMLInputElement>) => {
     logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'persones' });
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const fileContent = e.target?.result as string;
-      processPeopleData(fileContent);
-      if (event.target) event.target.value = "";
-    };
-    reader.readAsText(file);
+    processPeopleData();
+    if (event.target) event.target.value = "";
   };
 
   const handleLoadMaterialData = (event: ChangeEvent<HTMLInputElement>) => {
     logger.info('[UI] Iniciant càrrega de fitxer', { tipus: 'material' });
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      processMaterialData(content);
-      if (event.target) event.target.value = '';
-    };
-    reader.readAsText(file);
+    processMaterialData();
+    if (event.target) event.target.value = '';
   };
 
   const triggerLoadFile = () => fileInputRef.current?.click();

@@ -3,13 +3,12 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import logger from './utils/logger';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ShowToastFunction, PersonGroup, MaterialItem, AppData } from './types';
+import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
 import { useModalStore } from './stores/modalStore';
 import { useEventDataStore } from './stores/eventDataStore';
 import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
-import { migrateData, validateMigratedData } from './utils/dataMigration';
 import { Toaster } from 'react-hot-toast';
 import { notificationService } from './utils/notificationService';
 
@@ -80,7 +79,6 @@ const App: React.FC = () => {
   // This avoids re-running useEffects that depend on them.
   const {
     loadData: loadDataFromManager,
-    loadGoogleConfigFromDataFile,
     exportData: exportDataFromManager,
     setHasUnsavedChanges,
     getPersonGroupById,
@@ -90,8 +88,6 @@ const App: React.FC = () => {
     addMaterialItemsFromFile,
     replacePeopleGroups,
     replaceMaterialItems,
-    _applyDataToState,
-    clearDataRepairInfo,
   } = useEventDataStore.getState();
 
   const showToast: ShowToastFunction = useCallback((message, type = 'success') => {
@@ -192,6 +188,10 @@ const App: React.FC = () => {
   // --- Document Management ---
 
   const handleSaveAsDocument = async (): Promise<boolean> => {
+    if (!window.electronAPI) {
+      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      return false;
+    }
     try {
         const dataToSave = await exportDataFromManager();
         const jsonString = JSON.stringify(dataToSave, null, 2);
@@ -199,7 +199,7 @@ const App: React.FC = () => {
 
         const result = await window.electronAPI.showSaveDialog({
             title: 'Guardar com...',
-            defaultPath: fileName,
+            defaultPath: fileName || 'document.json',
             filters: [{ name: 'JSON', extensions: ['json'] }],
             data: jsonString,
         });
@@ -226,7 +226,10 @@ const handleSaveDocument = async (): Promise<boolean> => {
     if (!currentFilePath) {
         return handleSaveAsDocument();
     }
-
+    if (!window.electronAPI) {
+      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      return false;
+    }
     try {
         const dataToSave = await exportDataFromManager();
         const jsonString = JSON.stringify(dataToSave, null, 2);
@@ -253,18 +256,22 @@ const handleSaveDocument = async (): Promise<boolean> => {
         return true; // No unsaved changes, can continue
     }
 
-    const { response } = await window.electronAPI.showUnsavedChangesDialog({ hasFilePath: !!currentFilePath });
-    // 0: Save / Save As, 1: Don't Save, 2: Cancel
-    switch (response) {
-        case 0: // Save / Save As
-            const saved = await handleSaveDocument(); // This will call save or save as
-            return saved; // Continue only if save was successful
-        case 1: // Don't Save
-            return true; // Continue without saving
-        case 2: // Cancel
-        default:
-            return false; // Do not continue
+    if (window.electronAPI) {
+        const { response } = await window.electronAPI.showUnsavedChangesDialog({ hasFilePath: !!currentFilePath });
+        // 0: Save / Save As, 1: Don't Save, 2: Cancel
+        switch (response) {
+            case 0: // Save / Save As
+                const saved = await handleSaveDocument(); // This will call save or save as
+                return saved; // Continue only if save was successful
+            case 1: // Don't Save
+                return true; // Continue without saving
+            case 2: // Cancel
+            default:
+                return false; // Do not continue
+        }
     }
+    // Fallback for web or if API is not available
+    return confirm('You have unsaved changes. Are you sure you want to continue?');
   };
 
   const handleNewDocument = async () => {
@@ -279,46 +286,52 @@ const handleSaveDocument = async (): Promise<boolean> => {
   };
 
   const handleOpenDocument = async (filePathToOpen?: string) => {
-      const canContinue = await confirmContinueWithUnsavedChanges();
-      if (!canContinue) return;
+    const canContinue = await confirmContinueWithUnsavedChanges();
+    if (!canContinue) return;
 
-      let filePath = filePathToOpen;
-      if (!filePath) {
-          const dialogResult = await window.electronAPI.openFileDialog();
-          if (!dialogResult.success || !dialogResult.filePath) {
-              return; // User cancelled or error
-          }
-          filePath = dialogResult.filePath;
-      }
+    let filePath = filePathToOpen;
+    if (!filePath && window.electronAPI) {
+        const dialogResult = await window.electronAPI.openFileDialog();
+        if (!dialogResult.success || !dialogResult.filePath) {
+            return; // User cancelled or error
+        }
+        filePath = dialogResult.filePath;
+    }
 
-      try {
-          const fileReadResult = await window.electronAPI.readFile(filePath);
-          if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
-              showToast(`Error en llegir el fitxer: ${fileReadResult.message}`, 'error');
-              return;
-          }
+    if (!filePath) {
+        showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+        return;
+    }
 
-          const data = JSON.parse(fileReadResult.content);
-          const loadResult = await loadDataFromManager(data);
+    try {
+        if (window.electronAPI) {
+            const fileReadResult = await window.electronAPI.readFile(filePath);
+            if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
+                showToast(`Error en llegir el fitxer: ${fileReadResult.message}`, 'error');
+                return;
+            }
 
-          if (loadResult.status === 'error') {
-              showToast(loadResult.message || 'Hi ha hagut un error en carregar les dades.', 'error');
-              return;
-          }
+            const data = JSON.parse(fileReadResult.content);
+            const loadResult = await loadDataFromManager(data);
 
-          setCurrentFilePath(filePath);
-          setIsDocumentOpen(true);
-          const recentFilesResult = await window.electronAPI.addRecentFile(filePath);
-          if(recentFilesResult.success) {
-              setRecentFiles(recentFilesResult.recentFiles);
-          }
+            if (loadResult.status === 'error') {
+                showToast(loadResult.message || 'Hi ha hagut un error en carregar les dades.', 'error');
+                return;
+            }
 
-          const fileName = filePath.split(/[/\\]/).pop();
-          showToast(`Document "${fileName}" carregat.`, 'success');
+            setCurrentFilePath(filePath);
+            setIsDocumentOpen(true);
+            const recentFilesResult = await window.electronAPI.addRecentFile(filePath);
+            if(recentFilesResult.success) {
+                setRecentFiles(recentFilesResult.recentFiles);
+            }
 
-      } catch (error) {
-          showToast(`Error en processar el fitxer: ${(error as Error).message}`, 'error');
-      }
+            const fileName = filePath.split(/[/\\]/).pop() || filePath;
+            showToast(`Document "${fileName}" carregat.`, 'success');
+        }
+    } catch (error) {
+        showToast(`Error en processar el fitxer: ${(error as Error).message}`, 'error');
+    }
   };
 
   const handleOpenRecent = (filePath: string) => {
@@ -362,6 +375,10 @@ const handleSaveDocument = async (): Promise<boolean> => {
   };
 
   const handleImportPeople = async () => {
+    if (!window.electronAPI) {
+      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      return;
+    }
     const dialogResult = await window.electronAPI.openFileDialog();
     if (!dialogResult.success || !dialogResult.filePath) return;
 
@@ -387,6 +404,10 @@ const handleSaveDocument = async (): Promise<boolean> => {
   };
 
   const handleImportMaterial = async () => {
+    if (!window.electronAPI) {
+      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      return;
+    }
     const dialogResult = await window.electronAPI.openFileDialog();
     if (!dialogResult.success || !dialogResult.filePath) return;
 
@@ -489,28 +510,30 @@ const handleSaveDocument = async (): Promise<boolean> => {
             return;
         }
 
-        const { response } = await window.electronAPI.showUnsavedChangesDialog({ hasFilePath: !!currentFilePath });
-        // 0: Save / Save As, 1: Don't Save, 2: Cancel
+        if (window.electronAPI) {
+            const { response } = await window.electronAPI.showUnsavedChangesDialog({ hasFilePath: !!currentFilePath });
+            // 0: Save / Save As, 1: Don't Save, 2: Cancel
 
-        switch (response) {
-            case 0: // Save / Save As
-                const saved = await handleSaveDocument();
-                if (saved) {
-                    logger.info("Desat amb èxit, sortint amb backup.");
-                    window.electronAPI?.sendQuitConfirmedByRenderer?.();
-                } else {
-                    logger.error("Ha fallat el desat de dades en sortir. Es cancel·la la sortida.");
-                    showToast("Error en desar les dades. S'ha cancel·lat la sortida.", "error");
-                }
-                break;
-            case 1: // Don't Save
-                logger.info("Sortint sense desar.");
-                window.electronAPI?.sendQuitWithoutSaving?.();
-                break;
-            case 2: // Cancel
-            default:
-                logger.info("Sortida cancel·lada per l'usuari.");
-                break; // Do nothing
+            switch (response) {
+                case 0: // Save / Save As
+                    const saved = await handleSaveDocument();
+                    if (saved) {
+                        logger.info("Desat amb èxit, sortint amb backup.");
+                        window.electronAPI?.sendQuitConfirmedByRenderer?.();
+                    } else {
+                        logger.error("Ha fallat el desat de dades en sortir. Es cancel·la la sortida.");
+                        showToast("Error en desar les dades. S'ha cancel·lat la sortida.", "error");
+                    }
+                    break;
+                case 1: // Don't Save
+                    logger.info("Sortint sense desar.");
+                    window.electronAPI?.sendQuitWithoutSaving?.();
+                    break;
+                case 2: // Cancel
+                default:
+                    logger.info("Sortida cancel·lada per l'usuari.");
+                    break; // Do nothing
+            }
         }
       };
       window.electronAPI.onConfirmQuit(handleQuit);
