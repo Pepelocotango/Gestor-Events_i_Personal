@@ -10,9 +10,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Session & App Lifecycle
   onConfirmQuit: (callback) => {
-    ipcRenderer.on('confirm-quit-signal', (event, ...args) => callback(...args));
+    const subscription = (event, ...args) => callback(...args);
+    ipcRenderer.on('confirm-quit-signal', subscription);
+    return () => ipcRenderer.removeListener('confirm-quit-signal', subscription);
   },
-  createBackupAndQuit: (data) => ipcRenderer.invoke('create-backup-and-quit', data),
+  quitApplication: () => ipcRenderer.invoke('quit-application'),
   getSessionData: () => ipcRenderer.invoke('get-session-data'),
   saveSessionData: (key, value) => ipcRenderer.invoke('save-session-data', { key, value }),
   getRecentFiles: () => ipcRenderer.invoke('get-recent-files'),

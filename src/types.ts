@@ -429,8 +429,8 @@ export interface ElectronAPI {
   showUnsavedChangesDialog: (options: { message: string; buttons: string[] }) => Promise<{ response: number }>;
 
   // Session & App Lifecycle
-  onConfirmQuit: (callback: () => void) => void;
-  createBackupAndQuit: (data: string | null) => Promise<{ success: boolean }>;
+  onConfirmQuit: (callback: () => void) => () => void;
+  quitApplication: () => void;
   getSessionData: () => Promise<any>;
   saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;
   getRecentFiles: () => Promise<string[]>;

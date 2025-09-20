@@ -156,36 +156,29 @@ Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de segu
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 
-El backend controla tots els aspectes del cicle de vida de l'aplicació, incloent un flux de tancament intel·ligent amb un diàleg únic i un sistema de backup incondicional.
+El backend controla tots els aspectes del cicle de vida de l'aplicació, incloent un flux de tancament intel·ligent i segur.
 
-#### Flux de Tancament Intel·ligent (Diàleg Únic)
+#### Flux de Tancament Intel·ligent
 
-Per millorar l'experiència d'usuari i alhora garantir la màxima protecció de dades, el flux de sortida s'ha redissenyat per utilitzar un únic diàleg contextual, eliminant la doble confirmació anterior. Ara, es crea un backup de la sessió de manera incondicional.
+El flux de sortida s'ha refactoritzat per eliminar els "backups de sessió" i alinear-se amb un model de gestió de documents, respectant sempre la decisió de l'usuari.
 
 1.  **Interceptació del Tancament (`before-quit`):**
     -   Quan l'usuari intenta tancar l'aplicació, el listener `app.on('before-quit')` a `main.cjs` s'activa.
-    -   Aquest listener **ja no mostra cap diàleg**. La seva única responsabilitat és desar l'estat de la finestra (mida/posició) i enviar el senyal `'confirm-quit-signal'` al frontend, prevenint la sortida immediata.
+    -   Aquest listener desa l'estat de la finestra (mida/posició) i envia el senyal `'confirm-quit-signal'` al frontend, prevenint la sortida immediata per cedir el control.
 
 2.  **Gestió Centralitzada al Frontend (`onConfirmQuit`):**
     -   Un listener a `App.tsx` rep el senyal i centralitza tota la lògica.
-    -   Si no hi ha canvis no desats (`hasUnsavedChanges` és `false`), es procedeix directament al tancament amb backup.
-    -   **Si hi ha canvis no desats**, el frontend construeix un diàleg natiu d'Electron de manera dinàmica:
-        -   **Missatge:** Es genera el missatge `Vols desar els canvis fets a '[Nom del Document]'?`. Si el document no s'ha desat mai, es genera un nom per defecte (p. ex., `dades_GEP_21-09-25_10-45.json`).
-        -   **Botons:** Es defineix un array amb quatre opcions: `['Desa', 'Desa com...', 'Tanca sense desar', 'Cancel·la']`.
-        -   S'invoca el gestor IPC `show-unsaved-changes-dialog` amb aquests paràmetres.
+    -   Si no hi ha canvis no desats (`hasUnsavedChanges` és `false`), es crida directament a l'IPC `quit-application` per tancar l'aplicació.
+    -   **Si hi ha canvis no desats**, el frontend mostra un diàleg natiu amb les següents opcions:
+        -   `Desa`: Intenta desar el document. Si té èxit, es crida a `quit-application`.
+        -   `Tanca sense desar`: Crida immediatament a `quit-application`, descartant els canvis.
+        -   `Cancel·la`: Avorta el procés de tancament.
 
-3.  **Accions Basades en la Resposta:**
-    -   El frontend gestiona l'índex del botó premut:
-        -   `0 (Desa)`: Crida a `handleSaveDocument()`.
-        -   `1 (Desa com...)`: Crida a `handleSaveAsDocument()`.
-        -   `2 (Tanca sense desar)`: No fa cap acció de desat.
-        -   `3 (Cancel·la)`: Avorta el procés de tancament.
+3.  **Tancament Definitiu (`quit-application`):**
+    -   El nou gestor IPC `quit-application` al backend té una única responsabilitat: marcar la variable `isQuitting` com a `true` i cridar a `app.quit()`.
+    -   Això assegura que el segon esdeveniment `before-quit` no sigui interceptat, permetent que l'aplicació es tanqui de manera neta i definitiva.
 
-#### Backups de Sessió Incondicionals
-
-- **Activació:** En **tots** els casos que impliquen un tancament (`Desa`, `Desa com...` i `Tanca sense desar`), un cop completada l'acció de l'usuari (si n'hi ha), es crida a la funció `handleBackupAndQuit`.
-- **Execució:** Aquesta funció envia l'estat complet de les dades de la sessió actual al nou gestor IPC `create-backup-and-quit`. El backend rep les dades, les desa en un nou fitxer de backup (`backup_sessio-[timestamp].json`) i, finalment, executa `app.quit()`.
-- **Garantia:** Aquest mecanisme assegura que sempre existeixi una "última foto" de la sessió de treball, fins i tot si l'usuari decideix descartar els canvis.
+El sistema de backups de sessió (`backup_sessio.json`) ha estat completament eliminat. Els backups ara només es creen de manera explícita quan l'usuari desa un document, com es descriu a la secció `Còpies de Seguretat (Backups)`.
 
 #### Separació de Configuració Google
 
@@ -282,10 +275,12 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `google-disconnect`: Desconnecta el compte de Google i elimina tots els calendaris gestionats.
 
 -   **Accions de l'Aplicació:**
-    -   `factory-reset`: Realitza una restauració de fàbrica eliminant els fitxers de configuració de l'aplicació (`session.json`, `google-config.json`, `google-tokens.json`) per resoldre problemes o desvincular un compte. No afecta els documents de l'usuari.
+    -   `factory-reset`: Realitza una restauració de fàbrica eliminant els fitxers de configuració de l'aplicació.
+    -   `quit-application`: Inicia el procés de tancament definitiu de l'aplicació.
 
 -   **Interacció amb UI Nativa:**
-    -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu, rebent les dades i la configuració del diàleg des de React.
+    -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu.
+    -   `show-unsaved-changes-dialog`: Mostra el diàleg personalitzat de canvis no desats en sortir.
 
     ---
 

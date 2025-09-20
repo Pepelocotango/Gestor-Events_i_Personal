@@ -557,47 +557,12 @@ app.on('window-all-closed', () => {
 });
 
 
-async function createBackupFromData(data) {
-  if (!data || !BACKUP_DIR) return false;
-  try {
-    if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
-    if (!checkWritePermissions(BACKUP_DIR)) throw new Error(`No hi ha permisos d'escriptura a ${BACKUP_DIR}`);
-
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const year = String(now.getFullYear()).slice(-2);
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const timestamp = `${day}-${month}-${year}_${hours}-${minutes}`;
-
-    const backupFile = path.join(BACKUP_DIR, `backup_sessio-${timestamp}.json`);
-
-    fs.writeFileSync(backupFile, data, 'utf8');
-    console.log(`Còpia de seguretat de la sessió creada a: ${backupFile}`);
-    return true;
-  } catch (error) {
-    console.error('Error creant la còpia de seguretat de la sessió:', error);
-    return false;
-  }
-}
-
 console.log('[Startup] Configurant gestors de IPC...');
 
-ipcMain.handle('create-backup-and-quit', async (event, data) => {
-  console.log("[Exit Flow] Rebut 'create-backup-and-quit'. Creant backup i sortint...");
-
+ipcMain.handle('quit-application', () => {
+  console.log("[Exit Flow] Rebut 'quit-application'. Sortint de l'aplicació.");
   isQuitting = true;
-
-  if (data) {
-    await createBackupFromData(data);
-  } else {
-    console.warn('[Exit Flow] No s\'han rebut dades per al backup de sessió.');
-  }
-
   app.quit();
-
-  return { success: true };
 });
 ipcMain.on('log-message', (event, message, data) => {
   logToFile(`[FRONTEND] ${message}`, data);
