@@ -596,9 +596,9 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return newItem;
     },
     updateMaterialItem: (updatedItem: MaterialItem) => {
+        set({ isUpdatingMaterial: true });
         set(state => {
             // 1. Actualitzar l'ítem mestre
-            state.isUpdatingMaterial = true;
             const itemIndex = state.materialItems.findIndex(item => item.id === updatedItem.id);
             if (itemIndex !== -1) {
                 state.materialItems[itemIndex] = updatedItem;
@@ -628,8 +628,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             });
             state.hasUnsavedChanges = true;
             state.lastActionDescription = `Has modificat el material «${updatedItem.name}» de l'inventari`;
-            state.isUpdatingMaterial = false;
         });
+        set({ isUpdatingMaterial: false });
     },
     deleteMaterialItem: (itemId: string) => {
         const itemName = get().materialItems.find(i => i.id === itemId)?.name || 'desconegut';
