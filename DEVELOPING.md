@@ -370,6 +370,18 @@ export const useEventDataStore = create<...>()(
     const { undo } = useEventDataStore.temporal.getState();
     ```
 
+#### Historial d'Accions Visual (Desfer/Refer)
+
+La funcionalitat d'historial desfer/refer utilitza Zustand + zundo amb una optimització clau:
+
+- **Descripció d'acció:** Cada acció que modifica l'estat actualitza `lastActionDescription` amb un text clar (ex: "Creat esdeveniment: 'Nom'").
+- **Notificacions:** Les funcions `undoWithToast` i `redoWithToast` mostren un toast amb la descripció de l'acció desfer/refer.
+- **Neteja d'historial:** L'historial es neteja automàticament en carregar un nou document.
+- **Visualitzador interactiu:** El modal `HistoryModal.tsx` mostra la llista d'accions passades/futures. Ara la descripció de cada acció a desfer/refer reflecteix l'acció que realment s'eliminarà (no la de l'estat actual), gràcies a una lògica que mostra la descripció del següent estat.
+- **Optimització partialize:** La funció `partialize` del store està memoitzada per evitar bucles infinits de render, retornant el mateix objecte si l'estat no canvia.
+### Correcció modal d'historial
+El modal d'historial mostra ara la descripció de l'acció que es desfarà/refer, no la de l'estat actual. Això evita confusió i fa que el feedback sigui fidel a l'acció real.
+
 ### 4.2. Lògica de Gestió de Documents (`App.tsx`)
 `App.tsx` orquestra tota la lògica del cicle de vida dels documents.
 
