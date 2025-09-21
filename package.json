@@ -62,7 +62,7 @@
     "appId": "com.gestorevents.app",
     "productName": "GestorEsdevenimentsPersonal",
     "directories": {
-      "output": "release"
+      "output": "dist"
     },
     "files": [
       "dist/**/*",
