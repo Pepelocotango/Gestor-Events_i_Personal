@@ -372,12 +372,15 @@ export const useEventDataStore = create<...>()(
 
 #### Historial d'Accions Visual (Desfer/Refer)
 
-Per millorar l'experiència d'usuari, la funcionalitat de desfer/refer s'ha millorat per proporcionar un feedback visual clar sobre quina acció s'està modificant.
+La funcionalitat d'historial desfer/refer utilitza Zustand + zundo amb una optimització clau:
 
--   **Descripció de l'Acció:** L'estat de `eventDataStore` ara inclou una propietat `lastActionDescription: string | null`. Cada vegada que s'executa una acció que modifica les dades (com afegir un esdeveniment, eliminar un contacte, etc.), aquesta propietat s'actualitza amb un text descriptiu (p. ex., `"Creat esdeveniment: 'El meu Esdeveniment'"`).
--   **Notificacions Toast:** S'han creat les funcions `undoWithToast` i `redoWithToast` a l'store. Aquestes funcions embolcallen les crides originals de `undo()` i `redo()`. Llegeixen el `lastActionDescription` i mostren una notificació *toast* a la pantalla (p. ex., `"Desfeta l'acció: Creat esdeveniment: 'El meu Esdeveniment'"`), informant l'usuari de manera explícita.
--   **Neteja de l'Historial:** Per garantir la integritat de les dades entre sessions de treball, l'historial de desfer/refer es neteja automàticament cada vegada que l'usuari carrega un nou fitxer o crea un document en blanc. Això es fa cridant a `temporal.getState().clear()` dins de la funció `loadData`, evitant que accions d'un document anterior es puguin desfer en el document actual.
--   **Visualitzador d'Historial Interactiu:** S'ha afegit un botó d'historial al costat dels controls de desfer/refer. Aquest botó obre el modal `HistoryModal.tsx`, que mostra una llista de totes les accions passades i futures. L'usuari pot fer clic a qualsevol element de la llista per "saltar" a aquell estat específic de l'historial, utilitzant les funcions `undo(steps)` i `redo(steps)` proporcionades per la llibreria `zundo`. Perquè les descripcions de les accions estiguin disponibles a l'historial, la propietat `lastActionDescription` s'inclou a la funció `partialize` de la configuració del middleware temporal.
+- **Descripció d'acció:** Cada acció que modifica l'estat actualitza `lastActionDescription` amb un text clar (ex: "Creat esdeveniment: 'Nom'").
+- **Notificacions:** Les funcions `undoWithToast` i `redoWithToast` mostren un toast amb la descripció de l'acció desfer/refer.
+- **Neteja d'historial:** L'historial es neteja automàticament en carregar un nou document.
+- **Visualitzador interactiu:** El modal `HistoryModal.tsx` mostra la llista d'accions passades/futures. Ara la descripció de cada acció a desfer/refer reflecteix l'acció que realment s'eliminarà (no la de l'estat actual), gràcies a una lògica que mostra la descripció del següent estat.
+- **Optimització partialize:** La funció `partialize` del store està memoitzada per evitar bucles infinits de render, retornant el mateix objecte si l'estat no canvia.
+### Correcció modal d'historial
+El modal d'historial mostra ara la descripció de l'acció que es desfarà/refer, no la de l'estat actual. Això evita confusió i fa que el feedback sigui fidel a l'acció real.
 
 ### 4.2. Lògica de Gestió de Documents (`App.tsx`)
 `App.tsx` orquestra tota la lògica del cicle de vida dels documents.
