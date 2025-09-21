@@ -629,7 +629,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             state.hasUnsavedChanges = true;
             state.lastActionDescription = `Has modificat el material «${updatedItem.name}» de l'inventari`;
         });
-        set({ isUpdatingMaterial: false });
+        setTimeout(() => set({ isUpdatingMaterial: false }), 0);
     },
     deleteMaterialItem: (itemId: string) => {
         const itemName = get().materialItems.find(i => i.id === itemId)?.name || 'desconegut';
