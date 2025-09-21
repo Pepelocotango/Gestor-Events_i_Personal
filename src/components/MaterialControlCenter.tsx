@@ -13,11 +13,9 @@ interface MaterialControlCenterProps {
 }
 
 const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast }) => {
-  const { eventFrames, materialItems, isUpdatingMaterial } = useEventDataStore(state => ({
-    eventFrames: state.eventFrames,
-    materialItems: state.materialItems,
-    isUpdatingMaterial: state.isUpdatingMaterial,
-  }));
+  const eventFrames = useEventDataStore(state => state.eventFrames);
+  const materialItems = useEventDataStore(state => state.materialItems);
+  const isUpdatingMaterial = useEventDataStore(state => state.isUpdatingMaterial);
 
   const [filters, setFilters] = useState<FiltersState>({
     dateRange: { start: '', end: '' },
