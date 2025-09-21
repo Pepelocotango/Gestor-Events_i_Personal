@@ -1,9 +1,9 @@
 ![Captura de pantalla del gestor d'events i personal](0_CONTEXT_i_eines/imatges%20i%20recursos/en_construcció_GV.png)
 ### NOVA BRANCA DESENVOLUPAMENT --> DEV
- CHECKPOINT_V1.0.0
+ CHECKPOINT_V1.1.0
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal V1.0.0
+# Gestor d'Esdeveniments i Personal V1.1.0
 
 Aplicació d'escriptori multiplataforma (construïda amb Electron, React i Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material amb control d'estoc.
 

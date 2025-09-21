@@ -1,5 +1,5 @@
 branca de desenvolupament * REFAC_OK-PER-REVISAR16-9-25 ## ->PROVES DE REFACTORITZACIÓ
-## DEVELOPING.md V1.0.0
+## DEVELOPING.md V1.1.0
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
