@@ -665,10 +665,30 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             state.lastActionDescription = 'Reemplaçat l\'inventari de material';
         });
     },
-    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => {
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string) => {
         const { materialItems, eventFrames } = get();
         const materialItem = materialItems.find(item => item.id === materialId);
         if (!materialItem) return { available: 0, total: 0 };
+
+        let committedInCurrentEvent = 0;
+        const currentEventFrame = eventFrames.find(ef => ef.id === currentEventFrameId);
+        if (currentEventFrame?.techSheet) {
+            const needsKeys: (keyof TechSheetData)[] = [
+                'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
+                'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
+            ];
+            needsKeys.forEach(key => {
+                const section = currentEventFrame.techSheet![key];
+                if (section && section.status === 'yes' && Array.isArray((section as any).data?.needs)) {
+                    (section as any).data.needs.forEach((need: NeedItem) => {
+                        if (need.materialItemId === materialId && need.id !== currentItemId) {
+                            committedInCurrentEvent += Number(need.quantity) || 0;
+                        }
+                    });
+                }
+            });
+        }
+
         let minAvailable = materialItem.stock;
         for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
             const currentDate = new Date(d);
@@ -677,9 +697,11 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 if (ef.id === currentEventFrameId) return;
                 if (currentDate >= new Date(ef.startDate) && currentDate <= new Date(ef.endDate)) {
                     Object.values(ef.techSheet || {}).forEach(section => {
-                        if (section && section.status === 'yes' && Array.isArray(section.data?.needs)) {
-                            section.data.needs.forEach((need: NeedItem) => {
-                                if (need.materialItemId === materialId) dailyCommittedStock += Number(need.quantity) || 0;
+                        if (section && section.status === 'yes' && Array.isArray((section as any).data?.needs)) {
+                            (section as any).data.needs.forEach((need: NeedItem) => {
+                                if (need.materialItemId === materialId) {
+                                    dailyCommittedStock += Number(need.quantity) || 0;
+                                }
                             });
                         }
                     });
@@ -687,7 +709,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             });
             minAvailable = Math.min(minAvailable, materialItem.stock - dailyCommittedStock);
         }
-        return { total: materialItem.stock, available: minAvailable };
+        return { total: materialItem.stock, available: minAvailable - committedInCurrentEvent };
     },
 
     // GOOGLE & SYNC

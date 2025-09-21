@@ -13,7 +13,7 @@ interface NeedsListProps {
   onListChange: (listName: string, index: number, field: string, value: any) => void;
   onRemoveListItem: (listName: string, index: number) => void;
   onAddListItem: (listName: string) => void;
-  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string) => { available: number; total: number };
+  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string, currentItemId?: string) => { available: number; total: number };
   onMoveItemUp: (listName: string, index: number) => void;
   onMoveItemDown: (listName: string, index: number) => void;
   onSortByOrigin: (listName: string) => void;
@@ -66,7 +66,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
         let availabilityInfo = '';
         let quantityError = false;
         if (selectedMaterial) {
-          const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+          const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, need.id);
           availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
           if (Number(need.quantity) > availability.available) {
             quantityError = true;
