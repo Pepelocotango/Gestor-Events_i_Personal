@@ -5,11 +5,42 @@
 
 # Gestor d'Esdeveniments i Personal V1.1.0
 
-Aplicació d'escriptori multiplataforma (construïda amb Electron, React i Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material amb control d'estoc.
+Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material amb control d'estoc.
 
 El projecte està actualment en fase de desenvolupament actiu.
 
-## 🚀 Funcionalitats Principals
+## 🚀 Novetats i Funcionalitats Clau
+
+* **Centre de Control de Material:**
+  * Nova secció avançada per analitzar l'inventari, amb filtres per data, esdeveniment, origen i categoria.
+  * Taula interactiva amb desglossament per esdeveniment, exportació a PDF resum/detallat i CSV.
+  * Detecció automàtica de desequilibris d'estoc.
+
+* **Gestió d'Estat amb Zustand:**
+  * Estat global optimitzat amb selectors independents per evitar bucles infinits de renderitzat.
+  * Historial desfer/refer interactiu amb modal, botons i descripcions clares d'acció.
+
+* **Backups i Tancament Intel·ligent:**
+  * Diàleg de sortida únic amb opcions clares: Desa, Desa com..., Tanca sense desar, Cancel·la.
+  * Backups automàtics incondicionals a cada desat o tancament, amb neteja i rotació intel·ligent.
+
+* **Separació de Configuració Google:**
+  * Configuració local (`google-config.json`) independent de la configuració de cada document.
+  * Sincronització multi-calendari i gestió d'IDs separada per usuari i projecte.
+
+* **Instància Única:**
+  * Bloqueig d'instància per evitar errors d'escriptura i finestres duplicades.
+
+* **Menú Personalitzat en React:**
+  * Substitució del menú natiu d'Electron per un component React, amb accions IPC centralitzades.
+
+* **Altres millores:**
+  * Refactorització de stores, modals, tech_sheets i utils.
+  * Gestió d'errors robusta amb logs de sessió i ErrorBoundary.
+
+---
+
+## Funcionalitats Principals
 
 L'aplicació està dissenyada per cobrir tot el cicle de vida de la gestió d'un esdeveniment, oferint les següents eines:
 

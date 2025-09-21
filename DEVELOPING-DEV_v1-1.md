@@ -6,7 +6,28 @@ branca de desenvolupament * REFAC_OK-PER-REVISAR16-9-25 ## ->PROVES DE REFACTORI
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
----
+# NOVETATS V1.1.0 (Setembre 2025)
+
+**Resum de canvis tècnics recents:**
+- Refactorització completa de la gestió d'estat amb Zustand i zundo: stores independents, historial desfer/refer, partialize memoitzada per evitar bucles infinits.
+- Nova lògica de backups automàtics i tancament intel·ligent: backups per document, neteja automàtica, eliminació de backups de sessió.
+- Menú d'aplicació personalitzat en React: substitució del menú natiu d'Electron, comunicació frontend-backend via IPC.
+- Gestió d'IPC centralitzada: canals segurs, separació de responsabilitats, API interna documentada.
+- Solució als bucles infinits de renderitzat: selectors Zustand independents, gestió asíncrona de flags d'actualització.
+- Exemples de selectors correctes amb Zustand:
+```tsx
+// Selector independent (evita bucles)
+const materialItems = useEventDataStore(state => state.materialItems);
+
+// Acció estable (no reactiva)
+const { updateMaterialItem } = useEventDataStore.getState();
+
+// Historial desfer/refer
+import { useStore } from 'zustand';
+const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 0);
+```
+
+Consulta les seccions corresponents per a detalls i exemples complets.
 
 ## 1. Visió General i Pila Tecnològica
 
