@@ -596,44 +596,40 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return newItem;
     },
     updateMaterialItem: (updatedItem: MaterialItem) => {
-        const { setIsUpdatingMaterial } = get();
-        try {
-            setIsUpdatingMaterial(true);
-            set(state => {
-                // 1. Actualitzar l'ítem mestre
-                const itemIndex = state.materialItems.findIndex(item => item.id === updatedItem.id);
-                if (itemIndex !== -1) {
-                    state.materialItems[itemIndex] = updatedItem;
-                }
-                state.materialItems.sort((a, b) => a.name.localeCompare(b.name));
+        set(state => {
+            // 1. Actualitzar l'ítem mestre
+            state.isUpdatingMaterial = true;
+            const itemIndex = state.materialItems.findIndex(item => item.id === updatedItem.id);
+            if (itemIndex !== -1) {
+                state.materialItems[itemIndex] = updatedItem;
+            }
+            state.materialItems.sort((a, b) => a.name.localeCompare(b.name));
 
-                // 2. Propagar canvis a tota l'app
-                const needsKeys: (keyof TechSheetData)[] = [
-                    'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
-                    'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
-                ];
+            // 2. Propagar canvis a tota l'app
+            const needsKeys: (keyof TechSheetData)[] = [
+                'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
+                'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
+            ];
 
-                state.eventFrames.forEach(eventFrame => {
-                    if (!eventFrame.techSheet) return;
+            state.eventFrames.forEach(eventFrame => {
+                if (!eventFrame.techSheet) return;
 
-                    needsKeys.forEach(key => {
-                        const section = eventFrame.techSheet![key];
-                        if (section && typeof section === 'object' && 'status' in section && section.status === 'yes' && 'data' in section && section.data && Array.isArray(section.data.needs)) {
-                            section.data.needs.forEach((needItem: NeedItem) => {
-                                if (needItem.materialItemId === updatedItem.id) {
-                                    needItem.description = updatedItem.name;
-                                    needItem.origin = updatedItem.location;
-                                }
-                            });
-                        }
-                    });
+                needsKeys.forEach(key => {
+                    const section = eventFrame.techSheet![key];
+                    if (section && typeof section === 'object' && 'status' in section && section.status === 'yes' && 'data' in section && section.data && Array.isArray(section.data.needs)) {
+                        section.data.needs.forEach((needItem: NeedItem) => {
+                            if (needItem.materialItemId === updatedItem.id) {
+                                needItem.description = updatedItem.name;
+                                needItem.origin = updatedItem.location;
+                            }
+                        });
+                    }
                 });
-                state.hasUnsavedChanges = true;
-                state.lastActionDescription = `Has modificat el material «${updatedItem.name}» de l'inventari`;
             });
-        } finally {
-            setIsUpdatingMaterial(false);
-        }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Has modificat el material «${updatedItem.name}» de l'inventari`;
+            state.isUpdatingMaterial = false;
+        });
     },
     deleteMaterialItem: (itemId: string) => {
         const itemName = get().materialItems.find(i => i.id === itemId)?.name || 'desconegut';
