@@ -55,7 +55,7 @@ jobs:
       id: zip_windows
       shell: pwsh
       run: |
-        $filesToZip = Get-ChildItem -Path "dist" -Filter "*.exe" | ForEach-Object { $_.FullName }
+        $filesToZip = Get-ChildItem -Path "release" -Filter "*.exe" | ForEach-Object { $_.FullName }
         $filesToZip += @("LICENSE", "README.md", "DEVELOPING.md")
         $filesToZip += Get-ChildItem -Path "examples json" -Recurse | ForEach-Object { $_.FullName }
 
