@@ -58,6 +58,9 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.
 │   │   ├── EventFrameCard.tsx      # Renderitza una targeta per a un esdeveniment marc a la llista. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── MainDisplay.tsx         # Vista principal. Gestiona la detecció de conflictes en modificar estats. [REFACTORITZAT: usa stores]
+│   │   ├── MaterialControlCenter.tsx # Nou: Component principal per al Centre de Control de Material.
+│   │   ├── MaterialControlFilters.tsx# Nou: Panell de filtres per al Centre de Control.
+│   │   ├── MaterialControlTable.tsx  # Nou: Taula de resultats per al Centre de Control.
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa MaterialForm]
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. [REFACTORITZAT: usa eventDataStore]

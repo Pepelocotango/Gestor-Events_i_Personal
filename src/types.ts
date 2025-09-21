@@ -170,6 +170,17 @@ export interface MaterialItem {
   notes?: string;
 }
 
+export interface MaterialControlRow {
+  item: MaterialItem;
+  totalDemand: number;
+  balance: number;
+  breakdown: {
+    eventFrameId: string;
+    eventName: string;
+    quantity: number;
+  }[];
+}
+
 export interface ManagedAppCalendar {
   id: string;
   name: string;

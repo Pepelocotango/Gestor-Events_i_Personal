@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import MaterialControlCenter from './MaterialControlCenter';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { MaterialItem, ShowToastFunction } from '../types';
 import { TrashIcon, EditIcon, PdfIcon } from '../constants';
@@ -281,6 +282,16 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
           </div>
         </div>
       </div>
+
+      <CollapsibleSection
+        title="Centre de Control de Material"
+        defaultOpen={false}
+        headerClassName="text-xl font-semibold"
+      >
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-b-lg border-t border-gray-200 dark:border-gray-700">
+          <MaterialControlCenter showToast={showToast} />
+        </div>
+      </CollapsibleSection>
     </div>
   );
 };

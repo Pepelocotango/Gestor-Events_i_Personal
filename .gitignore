@@ -2,7 +2,6 @@
 #carpetes i fitxers personals
 gestor-d'esdeveniments_react_vite_gemini BUILD.code-workspace
 chekpoints/
-RELASES/
 
 
 # Dependències de Node.js
@@ -12,6 +11,7 @@ node_modules/
 # Sortida de la compilació (build)
 # Aquesta carpeta es genera amb 'npm run build' o 'npm run build:electron'
 dist/
+release/
 
 # Fitxers de variables d'entorn locals
 # ¡MOLT IMPORTANT! Contenen claus secretes i no han de ser a GitHub.

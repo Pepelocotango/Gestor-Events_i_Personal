@@ -1,4 +1,4 @@
-import { EventFrame, PersonGroup, Assignment, ShowToastFunction } from '../types';
+import { EventFrame, PersonGroup, Assignment, ShowToastFunction, MaterialControlRow } from '../types';
 import { getStatusSummaryText } from './statusUtils';
 
 export const escapeCsvCell = (cellData: string | number | boolean | undefined | null): string => {
@@ -91,6 +91,59 @@ export const exportEventListToCsv = async (
       link.click();
       document.body.removeChild(link);
       showToast('Llista exportada a CSV amb èxit!', 'success');
+    }
+  } catch (error) {
+    showToast(`Error generant CSV: ${(error as Error).message}`, 'error');
+  }
+};
+
+export const exportMaterialControlCsv = async (
+  data: MaterialControlRow[],
+  showToast: ShowToastFunction
+) => {
+  try {
+    const headers = ['Nom', 'Categoria', 'Origen', 'Demanada', 'Estoc', 'Balanç', 'Notes'];
+
+    const rows = data.map(row => [
+      escapeCsvCell(row.item.name),
+      escapeCsvCell(row.item.category),
+      escapeCsvCell(row.item.location),
+      escapeCsvCell(row.totalDemand),
+      escapeCsvCell(row.item.stock),
+      escapeCsvCell(row.balance),
+      escapeCsvCell(row.item.notes),
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const fileName = `Control_Material_${new Date().toISOString().slice(0, 10)}.csv`;
+
+    if (window.electronAPI?.showSaveDialog) {
+      const result = await window.electronAPI.showSaveDialog({
+        title: 'Desar CSV',
+        defaultPath: fileName,
+        filters: [{ name: 'CSV', extensions: ['csv'] }],
+        data: csvContent,
+      });
+      if (result.success) {
+        showToast('CSV desat amb èxit!', 'success');
+      } else if (!result.canceled) {
+        showToast(`Error en desar el CSV: ${result.message}`, 'error');
+      }
+    } else {
+      const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', fileName);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Dades exportades a CSV amb èxit!', 'success');
     }
   } catch (error) {
     showToast(`Error generant CSV: ${(error as Error).message}`, 'error');

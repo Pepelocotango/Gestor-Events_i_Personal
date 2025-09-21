@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem } from '../types';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 
@@ -178,6 +178,155 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
     });
 
     const fileName = `Llista_Material_${new Date().toISOString().slice(0, 10)}.pdf`;
+    await savePdfWithDialog(pdf, fileName, showToast);
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
+  }
+};
+
+// --- EXPORTACIÓ DE CONTROL DE MATERIAL ---
+
+export const exportMaterialControlSummaryPdf = async (
+  data: MaterialControlRow[],
+  showToast: ShowToastFunction
+) => {
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = createPdfHeader(pdf, 'Resum de Control de Material');
+    let pageCount = 1;
+
+    const itemsByCategory: { [key: string]: MaterialControlRow[] } = {};
+    data.forEach(row => {
+      const category = row.item.category || 'Sense Categoria';
+      if (!itemsByCategory[category]) {
+        itemsByCategory[category] = [];
+      }
+      itemsByCategory[category].push(row);
+    });
+
+    const head = [['Nom', 'Demanada', 'Estoc', 'Balanç']];
+    const body: any[][] = [];
+
+    Object.keys(itemsByCategory).sort().forEach(category => {
+      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: '#e0e0e0', textColor: '#000000', fontSize: 11 } }]);
+      itemsByCategory[category].forEach(row => {
+        body.push([
+          row.item.name,
+          row.totalDemand.toString(),
+          row.item.stock.toString(),
+          { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? '#c0392b' : '#27ae60' } }
+        ]);
+      });
+    });
+
+    autoTable(pdf, {
+      head,
+      body,
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: 'bold' },
+      didDrawPage: (data: any) => {
+        if (data.pageNumber > 1) {
+          createPdfHeader(pdf, 'Resum de Control de Material');
+        }
+        addFooter(pdf, pageCount++);
+      },
+      margin: { top: 30, bottom: 15 }
+    });
+
+    const fileName = `Resum_Control_Material_${new Date().toISOString().slice(0, 10)}.pdf`;
+    await savePdfWithDialog(pdf, fileName, showToast);
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
+  }
+};
+
+export const exportMaterialControlDetailedPdf = async (
+  data: MaterialControlRow[],
+  eventFrames: EventFrame[],
+  showToast: ShowToastFunction
+) => {
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = createPdfHeader(pdf, 'Detall de Control de Material');
+    let pageCount = 1;
+
+    // Create a map of eventId to event details for quick lookup
+    const eventMap = new Map(eventFrames.map(ef => [ef.id, ef]));
+
+    // Group materials by event
+    const materialByEvent: Map<string, { eventName: string, items: any[] }> = new Map();
+    data.forEach(row => {
+      row.breakdown.forEach(bd => {
+        if (!materialByEvent.has(bd.eventFrameId)) {
+          materialByEvent.set(bd.eventFrameId, { eventName: bd.eventName, items: [] });
+        }
+        materialByEvent.get(bd.eventFrameId)!.items.push({
+          name: row.item.name,
+          quantity: bd.quantity,
+          category: row.item.category,
+          location: row.item.location
+        });
+      });
+    });
+
+    // Sort events by date
+    const sortedEventIds = Array.from(materialByEvent.keys()).sort((a, b) => {
+        const eventA = eventMap.get(a);
+        const eventB = eventMap.get(b);
+        if (!eventA || !eventB) return 0;
+        return new Date(eventA.startDate).getTime() - new Date(eventB.startDate).getTime();
+    });
+
+
+    for (const eventId of sortedEventIds) {
+      const eventData = materialByEvent.get(eventId)!;
+      const eventDetails = eventMap.get(eventId);
+
+      // Check for page break before adding new content
+      if (y > 250) {
+        addFooter(pdf, pageCount++);
+        pdf.addPage();
+        y = createPdfHeader(pdf, 'Detall de Control de Material');
+      }
+
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      const eventTitle = `${eventData.eventName} (${formatDateRangeDMY(eventDetails?.startDate, eventDetails?.endDate)})`;
+      pdf.text(eventTitle, 14, y);
+      y += 8;
+
+      const head = [['Nom', 'Quantitat', 'Categoria', 'Origen']];
+      const body = eventData.items
+        .sort((a,b) => a.name.localeCompare(b.name))
+        .map(item => [item.name, item.quantity.toString(), item.category, item.location]);
+
+      autoTable(pdf, {
+        head,
+        body,
+        startY: y,
+        theme: 'striped',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
+        didDrawPage: (data: any) => {
+            if (data.pageNumber > pageCount) {
+                pageCount = data.pageNumber;
+            }
+        },
+      });
+
+      y = (pdf as any).lastAutoTable.finalY + 10;
+    }
+
+    // Add footer to all pages
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for(let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        addFooter(pdf, i);
+    }
+
+    const fileName = `Detall_Control_Material_${new Date().toISOString().slice(0, 10)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
