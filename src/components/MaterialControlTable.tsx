@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
 import { MaterialControlRow } from '../types';
-import { ChevronDownIcon, ChevronRightIcon } from '../constants'; // Assumint que aquestes icones existeixen
+import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon } from '../constants';
+
+type SortDirection = 'ascending' | 'descending';
+type SortableKeys = 'name' | 'category' | 'origin';
+
+interface SortConfig {
+  key: SortableKeys;
+  direction: SortDirection;
+}
 
 interface MaterialControlTableProps {
   data: MaterialControlRow[];
+  requestSort: (key: SortableKeys) => void;
+  sortConfig: SortConfig;
 }
 
-const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => {
+const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, requestSort, sortConfig }) => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const toggleRow = (itemId: string) => {
@@ -31,9 +41,30 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
         <thead className="bg-gray-50 dark:bg-gray-700">
           <tr>
             <th scope="col" className="w-12 px-4 py-3"></th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nom</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Categoria</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Origen</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('name')}>
+              <div className="flex items-center">
+                Nom
+                {sortConfig.key === 'name' && (
+                  sortConfig.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />
+                )}
+              </div>
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('category')}>
+              <div className="flex items-center">
+                Categoria
+                {sortConfig.key === 'category' && (
+                  sortConfig.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />
+                )}
+              </div>
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('origin')}>
+              <div className="flex items-center">
+                Origen
+                {sortConfig.key === 'origin' && (
+                  sortConfig.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />
+                )}
+              </div>
+            </th>
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Demanada</th>
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Estoc</th>
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Balanç</th>

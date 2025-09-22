@@ -7,6 +7,13 @@ import { exportMaterialControlCsv } from '../utils/csvUtils';
 import MaterialControlFilters from './MaterialControlFilters';
 import MaterialControlTable from './MaterialControlTable';
 
+type SortDirection = 'ascending' | 'descending';
+type SortableKeys = 'name' | 'category' | 'origin';
+
+interface SortConfig {
+  key: SortableKeys;
+  direction: SortDirection;
+}
 
 interface MaterialControlCenterProps {
   showToast: ShowToastFunction;
@@ -25,6 +32,8 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
     searchText: '',
   });
 
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'ascending' });
+
   const allOrigins = useMemo(() => selectAvailableOrigins({ materialItems } as any), [materialItems]);
   const allCategories = useMemo(() => {
     const categories = new Set(materialItems.map(item => item.category));
@@ -33,11 +42,33 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
 
   const filteredData = useMemo(() => {
     if (isUpdatingMaterial) {
-        // Retorna un estat de càrrega o les dades anteriors mentre s'actualitza
-        return []; // o un estat de càrrega més explícit
+      return [];
     }
-    return selectMaterialControlData({ eventFrames, materialItems } as any, filters);
-  }, [eventFrames, materialItems, filters, isUpdatingMaterial]);
+    const data = selectMaterialControlData({ eventFrames, materialItems } as any, filters);
+
+    const sortedData = [...data].sort((a, b) => {
+      const aValue = sortConfig.key === 'name' ? a.item.name : sortConfig.key === 'category' ? a.item.category : a.item.location;
+      const bValue = sortConfig.key === 'name' ? b.item.name : sortConfig.key === 'category' ? b.item.category : b.item.location;
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sortedData;
+  }, [eventFrames, materialItems, filters, isUpdatingMaterial, sortConfig]);
+
+  const requestSort = (key: SortableKeys) => {
+    let direction: SortDirection = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const handleExportSummaryPdf = () => {
     if (filteredData.length === 0) {
@@ -108,6 +139,8 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
       ) : (
           <MaterialControlTable
             data={filteredData}
+            requestSort={requestSort}
+            sortConfig={sortConfig}
           />
       )}
     </div>
