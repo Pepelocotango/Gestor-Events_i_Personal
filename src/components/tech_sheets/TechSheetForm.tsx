@@ -102,8 +102,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       addOrUpdateTechSheet(eventFrame.id, formDataRef.current);
       if (isManualSave) {
         showToast('Canvis desats manualment.', 'success');
-      } else {
-        showToast('Canvis desats automàticament.', 'success');
       }
       isDirtyRef.current = false;
     }

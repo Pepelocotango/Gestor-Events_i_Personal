@@ -72,8 +72,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
       {selectedEventFrame && selectedEventFrame.techSheet ? (
         <Suspense fallback={<div className="text-center p-8">Carregant formulari...</div>}>
           <TechSheetForm 
-            key=
-            {`${selectedEventFrame.id}-${JSON.stringify(selectedEventFrame.techSheet)}`}
+            key={selectedEventFrame.id}
             eventFrame={selectedEventFrame}
             showToast={showToast}
           />
