@@ -83,7 +83,6 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── techSheetMigration.ts   # Lògica específica per migrar l'estructura de les fitxes de bolo. Converteix dades antigues a l'estructura moderna de TechSheetData, assegura compatibilitat i integritat, i gestiona casos especials amb defaults i validació. Utilitzat en la càrrega de documents i migració automàtica.
 │   │   ├── notificationService.ts # Servei centralitzat per mostrar notificacions (toasts) i missatges globals a la UI. Integrat amb modalStore i la lògica de feedback d'usuari.
 │   │   ├── selectors.ts           # Selectors optimitzats per Zustand. Permeten accedir a porcions de l'estat de forma memoitzada i evitar re-renderitzats innecessaris. Inclou exemples de selectors independents per evitar bucles.
-│   │   └── notificationService.ts # Servei centralitzat per mostrar notificacions (toasts) i missatges globals a la UI. Integrat amb modalStore i la lògica de feedback d'usuari.
 │   ├── App.tsx                   # Component arrel de React. Gestiona l'enrutament, modals i estat de la UI. [REFACTORITZAT: usa stores de Zustand]
 │   ├── calendar-styles.d.ts      # Definició de tipus per a la importació de fitxers CSS a TypeScript.
 │   ├── constants.tsx             # Emmagatzema constants i icones SVG reutilitzables.
