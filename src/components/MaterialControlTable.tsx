@@ -13,10 +13,10 @@ interface SortConfig {
 interface MaterialControlTableProps {
   data: MaterialControlRow[];
   requestSort: (key: SortableKeys) => void;
-  sortConfig: SortConfig;
+  sortConfigs: SortConfig[];
 }
 
-const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, requestSort, sortConfig }) => {
+const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, requestSort, sortConfigs }) => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const toggleRow = (itemId: string) => {
@@ -44,25 +44,39 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, reque
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('name')}>
               <div className="flex items-center">
                 Nom
-                {sortConfig.key === 'name' && (
-                  sortConfig.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />
-                )}
+                {sortConfigs.find(c => c.key === 'name')?.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />}
               </div>
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('category')}>
               <div className="flex items-center">
                 Categoria
-                {sortConfig.key === 'category' && (
-                  sortConfig.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />
-                )}
+                {(() => {
+                  const config = sortConfigs.find(c => c.key === 'category');
+                  const index = sortConfigs.findIndex(c => c.key === 'category');
+                  if (!config) return null;
+                  return (
+                    <>
+                      {config.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />}
+                      {sortConfigs.length > 1 && index !== -1 && <span className="ml-1 text-xs font-bold">{index + 1}</span>}
+                    </>
+                  );
+                })()}
               </div>
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('origin')}>
               <div className="flex items-center">
                 Origen
-                {sortConfig.key === 'origin' && (
-                  sortConfig.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />
-                )}
+                {(() => {
+                  const config = sortConfigs.find(c => c.key === 'origin');
+                  const index = sortConfigs.findIndex(c => c.key === 'origin');
+                  if (!config) return null;
+                  return (
+                    <>
+                      {config.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />}
+                      {sortConfigs.length > 1 && index !== -1 && <span className="ml-1 text-xs font-bold">{index + 1}</span>}
+                    </>
+                  );
+                })()}
               </div>
             </th>
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Demanada</th>
