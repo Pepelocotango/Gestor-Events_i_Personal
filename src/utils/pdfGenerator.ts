@@ -299,7 +299,6 @@ export const exportMaterialControlDetailedPdf = async (
 
       const head = [['Nom', 'Quantitat', 'Categoria', 'Origen']];
       const body = eventData.items
-        .sort((a,b) => a.name.localeCompare(b.name))
         .map(item => [item.name, item.quantity.toString(), item.category, item.location]);
 
       autoTable(pdf, {

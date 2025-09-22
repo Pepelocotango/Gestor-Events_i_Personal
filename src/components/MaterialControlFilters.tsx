@@ -108,10 +108,11 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
 
   return (
     <CollapsibleSection title="Filtres" defaultOpen={true}>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-b-lg border-t border-gray-200 dark:border-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-b-lg border-t border-gray-200 dark:border-gray-700 space-y-4">
+            {/* Fila 1: Cerca i Rang de dates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Text Search */}
-                <div className="lg:col-span-1">
+                <div>
                     <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cerca per text</label>
                     <input
                         type="text"
@@ -123,29 +124,32 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
                     />
                 </div>
                 {/* Date Range */}
-                <div className="lg:col-span-1">
+                <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rang de Dates</label>
                     <div className="flex items-center space-x-2 mt-1">
                         <input
-                        type="date"
-                        name="start"
-                        value={filters.dateRange?.start || ''}
-                        onChange={handleDateChange}
-                        className={commonInputClass + " mt-0"}
+                            type="date"
+                            name="start"
+                            value={filters.dateRange?.start || ''}
+                            onChange={handleDateChange}
+                            className={commonInputClass + " mt-0"}
                         />
                         <span>-</span>
                         <input
-                        type="date"
-                        name="end"
-                        value={filters.dateRange?.end || ''}
-                        onChange={handleDateChange}
-                        className={commonInputClass + " mt-0"}
+                            type="date"
+                            name="end"
+                            value={filters.dateRange?.end || ''}
+                            onChange={handleDateChange}
+                            className={commonInputClass + " mt-0"}
                         />
                     </div>
                 </div>
+            </div>
 
+            {/* Fila 2: Checkboxes */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Events */}
-                <div className="lg:col-span-1">
+                <div>
                     <CheckboxList
                         title="Esdeveniments"
                         field="selectedEventIds"
@@ -156,7 +160,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
                 </div>
 
                 {/* Origins */}
-                <div className="lg:col-span-1">
+                <div>
                     <CheckboxList
                         title="Orígens"
                         field="selectedOrigins"
@@ -167,7 +171,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
                 </div>
 
                 {/* Categories */}
-                <div className="lg:col-span-1">
+                <div>
                     <CheckboxList
                         title="Categories"
                         field="selectedCategories"
