@@ -10,6 +10,7 @@ export interface MaterialFormProps {
   onCancel?: () => void;
   submitButtonText?: string;
   categories?: string[];
+  locations?: string[];
   materialItems?: MaterialItem[]; // Llista completa per a la validació
 }
 
@@ -19,6 +20,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   onCancel,
   submitButtonText = 'Desar',
   categories = [],
+  locations = [],
   materialItems = [],
 }) => {
   // Estats interns per als camps del formulari
@@ -145,8 +147,12 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
               value={location}
               onChange={e => setLocation(e.target.value)}
               className={commonInputClass}
+              list="location-suggestions"
             />
           </Tooltip>
+          <datalist id="location-suggestions">
+            {locations.map((loc: string) => <option key={loc} value={loc} />)}
+          </datalist>
         </div>
       </div>
 
