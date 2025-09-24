@@ -8,7 +8,7 @@ import MaterialControlFilters from './MaterialControlFilters';
 import MaterialControlTable from './MaterialControlTable';
 
 type SortDirection = 'ascending' | 'descending';
-type SortableKeys = 'name' | 'category' | 'origin';
+type SortableKeys = 'name' | 'category' | 'origin' | 'balance';
 
 interface SortConfig {
   key: SortableKeys;
@@ -33,7 +33,7 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
   });
 
   const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([
-    { key: 'name', direction: 'ascending' },
+    { key: 'balance', direction: 'ascending' },
   ]);
 
   const allOrigins = useMemo(() => selectAvailableOrigins({ materialItems } as any), [materialItems]);
@@ -66,16 +66,21 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
             aValue = a.item.location;
             bValue = b.item.location;
             break;
+          case 'balance':
+            aValue = a.balance;
+            bValue = b.balance;
+            break;
           default:
             aValue = a.item.name;
             bValue = b.item.name;
         }
 
-        if (aValue < bValue) {
-          return config.direction === 'ascending' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return config.direction === 'ascending' ? 1 : -1;
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+            if (aValue < bValue) return config.direction === 'ascending' ? -1 : 1;
+            if (aValue > bValue) return config.direction === 'ascending' ? 1 : -1;
+        } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+            const comparison = aValue.localeCompare(bValue);
+            if (comparison !== 0) return config.direction === 'ascending' ? comparison : -comparison;
         }
       }
       return 0;
@@ -87,37 +92,30 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
   const requestSort = (key: SortableKeys) => {
     setSortConfigs(prevConfigs => {
       const existingConfigIndex = prevConfigs.findIndex(c => c.key === key);
-
-      if (key === 'name') {
-        // Si es clica "Nom", sempre es converteix en l'únic criteri
-        const direction = (prevConfigs[0]?.key === 'name' && prevConfigs[0]?.direction === 'ascending') ? 'descending' : 'ascending';
-        return [{ key: 'name', direction }];
-      }
-
       let newConfigs = [...prevConfigs];
 
       if (existingConfigIndex === 0) {
         // Si es clica el criteri principal, només canvia la direcció
         newConfigs[0].direction = newConfigs[0].direction === 'ascending' ? 'descending' : 'ascending';
       } else {
+        // Si es clica un nou criteri, o un de secundari, es posa al principi
         let newConfig: SortConfig = { key, direction: 'ascending' };
         if (existingConfigIndex > 0) {
           // Si ja existeix, el movem al principi
           newConfig = { ...newConfigs[existingConfigIndex], direction: 'ascending' };
           newConfigs.splice(existingConfigIndex, 1);
         }
-        // El nou criteri es posa al principi
         newConfigs.unshift(newConfig);
       }
 
-      // Assegurem que "name" sempre hi sigui com a últim desempat
+      // Assegurem que "name" sempre hi sigui com a últim desempat, si no és ja un criteri principal
       const hasNameSort = newConfigs.some(c => c.key === 'name');
       if (!hasNameSort) {
         newConfigs.push({ key: 'name', direction: 'ascending' });
       }
 
-      // Limitem a un màxim de 2 criteris principals + el de nom
-      return newConfigs.filter(c => c.key === key || c.key === prevConfigs[0]?.key || c.key === 'name').slice(0, 3);
+      // Limitem a 3 criteris (2 principals + nom)
+      return newConfigs.slice(0, 3);
     });
   };
 

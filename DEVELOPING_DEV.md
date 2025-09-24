@@ -571,9 +571,34 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
 
 
 
-### 5.3. Control d'Estoc de Material en Temps Real
+### 5.3. Centre de Control de Material (Càlcul de Pic de Demanda)
 
-Aquesta funcionalitat evita la sobre-assignació de material. La lògica principal resideix a l'acció `getMaterialAvailability` dins de `useEventDataStore`.
+Aquesta secció ha estat completament redissenyada per oferir una anàlisi més potent i realista de les necessitats de material. En lloc de sumar tota la demanda, ara calcula el **pic de demanda concurrent** per a un període determinat, responent a la pregunta: "Quin és el nombre màxim d'unitats d'un ítem que necessitaré en un sol dia?".
+
+#### Lògica de Càlcul (`selectMaterialControlData`)
+
+La lògica principal resideix al selector `selectMaterialControlData` dins de `eventDataStore.ts`.
+
+-   **Condició d'Activació:** El càlcul de pic de demanda només s'activa si l'usuari aplica un **filtre per esdeveniments o un rang de dates**. Si no hi ha cap d'aquests filtres actius, la vista mostra tots els ítems de l'inventari amb una demanda de 0, per a una gestió ràpida de l'estoc.
+
+-   **Flux de Càlcul de Pic de Demanda:**
+    1.  **Identificació d'Esdeveniments Rellevants:** El selector primer filtra la llista global d'esdeveniments per quedar-se només amb aquells que coincideixen amb els filtres actius.
+    2.  **Càlcul per Ítem:** Per a cada `MaterialItem` de l'inventari:
+        a.  Recopila totes les necessitats (`NeedItem`) d'aquest ítem dins dels esdeveniments rellevants.
+        b.  Determina el rang de dates global (mínim i màxim) cobert per aquestes necessitats.
+        c.  **Iteració Diària:** Recorre aquest rang dia per dia. Per a cada dia, suma la quantitat total de l'ítem requerida per tots els esdeveniments que estan actius en aquella data.
+        d.  **Determinació del Pic:** Emmagatzema el valor diari més alt trobat durant la iteració. Aquest valor és el `totalDemand`.
+    3.  **Càlcul del Balanç:** El balanç es calcula com `item.stock - totalDemand`. Un valor negatiu indica un dèficit en el dia de màxima demanda.
+
+#### Canvis a la Interfície d'Usuari (`MaterialControlTable.tsx`)
+
+Per reflectir aquesta nova lògica, la interfície s'ha reorganitzat:
+
+-   **Nou Ordre de Columnes:** Les columnes ara segueixen un ordre més lògic per a la gestió d'estoc: `Estoc`, `Nom`, `Categoria`, `Origen`, `Demanada`, `Balanç`.
+-   **Ordenació per Defecte:** La taula s'ordena per defecte per la columna `Balanç` en ordre ascendent, destacant immediatament els ítems amb més problemes d'estoc (els balanços més negatius).
+-   **Desglossament Enriquit:** En expandir una fila, el desglossament ara mostra no només la quantitat necessària per a cada esdeveniment, sinó també el rang de dates de l'esdeveniment, proporcionant un context crucial.
+
+Aquesta refactorització converteix el Centre de Control de Material en una eina predictiva molt més precisa i útil per a la planificació logística.
 
 
 

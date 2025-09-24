@@ -204,16 +204,16 @@ export const exportMaterialControlSummaryPdf = async (
       itemsByCategory[category].push(row);
     });
 
-    const head = [['Nom', 'Demanada', 'Estoc', 'Balanç']];
+    const head = [['Estoc', 'Nom', 'Demanada', 'Balanç']];
     const body: any[][] = [];
 
     Object.keys(itemsByCategory).sort().forEach(category => {
       body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: '#e0e0e0', textColor: '#000000', fontSize: 11 } }]);
       itemsByCategory[category].forEach(row => {
         body.push([
+          row.item.stock.toString(),
           row.item.name,
           row.totalDemand.toString(),
-          row.item.stock.toString(),
           { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? '#c0392b' : '#27ae60' } }
         ]);
       });
@@ -297,9 +297,9 @@ export const exportMaterialControlDetailedPdf = async (
       pdf.text(eventTitle, 14, y);
       y += 8;
 
-      const head = [['Nom', 'Quantitat', 'Categoria', 'Origen']];
+      const head = [['Quantitat', 'Nom', 'Categoria', 'Origen']];
       const body = eventData.items
-        .map(item => [item.name, item.quantity.toString(), item.category, item.location]);
+        .map(item => [item.quantity.toString(), item.name, item.category, item.location]);
 
       autoTable(pdf, {
         head,

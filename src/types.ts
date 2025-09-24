@@ -178,6 +178,8 @@ export interface MaterialControlRow {
     eventFrameId: string;
     eventName: string;
     quantity: number;
+    startDate: string;
+    endDate: string;
   }[];
 }
 

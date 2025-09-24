@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { MaterialControlRow } from '../types';
 import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon } from '../constants';
+import { formatDateRangeDMY } from '../utils/dateFormat';
 
 type SortDirection = 'ascending' | 'descending';
-type SortableKeys = 'name' | 'category' | 'origin';
+type SortableKeys = 'name' | 'category' | 'origin' | 'balance';
 
 interface SortConfig {
   key: SortableKeys;
@@ -41,6 +42,7 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, reque
         <thead className="bg-gray-50 dark:bg-gray-700">
           <tr>
             <th scope="col" className="w-12 px-4 py-3"></th>
+            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Estoc</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('name')}>
               <div className="flex items-center">
                 Nom
@@ -80,8 +82,22 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, reque
               </div>
             </th>
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Demanada</th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Estoc</th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Balanç</th>
+            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('balance')}>
+              <div className="flex items-center justify-end">
+                Balanç
+                {(() => {
+                  const config = sortConfigs.find(c => c.key === 'balance');
+                  const index = sortConfigs.findIndex(c => c.key === 'balance');
+                  if (!config) return null;
+                  return (
+                    <>
+                      {config.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />}
+                      {sortConfigs.length > 1 && index !== -1 && <span className="ml-1 text-xs font-bold">{index + 1}</span>}
+                    </>
+                  );
+                })()}
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -100,6 +116,7 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, reque
                       </button>
                     )}
                   </td>
+                  <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">{row.item.stock}</td>
                   <td className="px-6 py-3 whitespace-nowrap">
                     <div className="font-medium text-gray-900 dark:text-gray-100">{row.item.name}</div>
                     {row.item.notes && <div className="text-xs text-gray-500">{row.item.notes}</div>}
@@ -107,7 +124,6 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, reque
                   <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{row.item.category}</td>
                   <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{row.item.location}</td>
                   <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">{row.totalDemand}</td>
-                  <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">{row.item.stock}</td>
                   <td className={`px-6 py-3 whitespace-nowrap text-right text-sm font-bold ${balanceIsNegative ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                     {row.balance}
                   </td>
@@ -120,8 +136,8 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, reque
                         <ul className="list-disc pl-5 space-y-1">
                           {row.breakdown.map(bd => (
                             <li key={bd.eventFrameId} className="text-sm">
-                              <span className="font-medium">{bd.eventName}:</span>
-                              <span className="ml-2 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-blue-800 dark:text-blue-200 rounded-full">{bd.quantity} unitat(s)</span>
+                              <span className="font-medium">{bd.eventName} ({formatDateRangeDMY(bd.startDate, bd.endDate)}):</span>
+                              <span className="ml-2">{bd.quantity} unitat(s)</span>
                             </li>
                           ))}
                         </ul>
