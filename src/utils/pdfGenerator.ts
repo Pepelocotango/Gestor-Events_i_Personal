@@ -440,16 +440,6 @@ export const exportTechSheetToPdf = async (
     }
 
     // --- Personal Tècnic ---
-    if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
-        y = checkPageBreak(y);
-        autoTable(pdf, {
-            head: [[{ content: 'NOTES GENERALS DEL PERSONAL TÈCNIC', styles: headStyles }]],
-            body: [[sane(formData.technicalPersonnelNotes)]],
-            startY: y, theme: 'grid', pageBreak: 'avoid'
-        });
-        y = (pdf as any).lastAutoTable.finalY + 8;
-    }
-
     const personnelBody: any[][] = [];
     if (formData.technicalProviders && formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
@@ -469,9 +459,15 @@ export const exportTechSheetToPdf = async (
     }
     if (personnelBody.length > 0) {
         y = checkPageBreak(y);
+        const tableBody: any[][] = [];
+        if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
+            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: 4, styles: { fontStyle: 'italic' as 'italic' } }]);
+        }
+        personnelBody.forEach(row => tableBody.push(row));
+
         autoTable(pdf, {
             head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
-            body: personnelBody,
+            body: tableBody,
             startY: y, theme: 'grid', pageBreak: 'avoid',
             headStyles: { ...headStyles, halign: 'center' as 'center' },
             columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
@@ -507,6 +503,10 @@ export const exportTechSheetToPdf = async (
         const dateSubHeadStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold' };
 
         // Add a header row for the grouped table
+        if (formData.showScheduleNotesInPdf && sane(formData.schedule.details) !== '-') {
+            scheduleBody.push([{ content: sane(formData.schedule.details), colSpan: 2, styles: { fontStyle: 'italic' as 'italic' } }]);
+        }
+
         scheduleBody.push([{ content: 'Hores', styles: dateSubHeadStyles }, { content: 'Descripció', styles: dateSubHeadStyles }]);
 
         Object.entries(groupedSchedule).forEach(([date, items]) => {
@@ -552,17 +552,10 @@ export const exportTechSheetToPdf = async (
     }
 
     // --- Necessitats Tècniques ---
-    if (formData.showTechnicalNeedsNotesInPdf && sane(formData.technicalNeedsNotes) !== '-') {
-        y = checkPageBreak(y);
-        autoTable(pdf, {
-            head: [[{ content: 'NOTES GENERALS DE NECESSITATS TÈCNIQUES', styles: headStyles }]],
-            body: [[sane(formData.technicalNeedsNotes)]],
-            startY: y, theme: 'grid', pageBreak: 'avoid'
-        });
-        y = (pdf as any).lastAutoTable.finalY + 8;
-    }
-
     const needsBody: any[][] = [];
+    if (formData.showTechnicalNeedsNotesInPdf && sane(formData.technicalNeedsNotes) !== '-') {
+        needsBody.push([{ content: sane(formData.technicalNeedsNotes), colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
+    }
     const addNeedsToBody = (title: string, section: TechSheetData[keyof TechSheetData]) => {
         const needsSection = section as { status: 'yes' | 'no' | 'unset', details?: string, data?: { needs: NeedItem[] } };
         if (!needsSection || needsSection.status !== 'yes') return;

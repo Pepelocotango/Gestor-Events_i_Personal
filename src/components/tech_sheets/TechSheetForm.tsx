@@ -865,9 +865,25 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         >
           <div className="flex justify-between items-start mb-2">
             <div className="flex-grow pr-4">
+                <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes generals dels horaris:</label>
+                    <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="showScheduleNotesInPdf"
+                                name="showScheduleNotesInPdf"
+                                checked={formData.showScheduleNotesInPdf ?? true}
+                                onChange={handleChange}
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label htmlFor="showScheduleNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                        </div>
+                    </Tooltip>
+                </div>
               <TechSheetField
                 id="scheduleDetails"
-                label="Notes generals dels horaris:"
+                label=""
                 value={formData.schedule?.details || ''}
                 onChange={(e) => handleConditionalChange('schedule', { details: e.target.value })}
                 as="textarea"
@@ -876,7 +892,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 tooltipText="Aquestes notes s'apliquen a tota la secció d'horaris."
               />
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 pt-7">
               <Tooltip text={`Ordena els blocs de dies per data ${scheduleSortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
                 <button
                   type="button"
