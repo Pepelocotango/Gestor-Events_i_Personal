@@ -439,8 +439,12 @@ Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les
 -   **`Assignment`**: Defineix una assignació de personal. Enllaça un `personGroupId` amb un `eventFrameId` i gestiona l'estat (`status`) i els estats diaris (`dailyStatuses`).
 -   **`PersonGroup`**: Representa una entrada a l'agenda (una persona, una empresa, etc.).
 -   **`MaterialItem`**: Defineix un article a l'inventari, amb propietats com `stock` i `category`.
--   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo, incloent sub-estructures com `TechSheetProvider` i `TechSheetNeed`.
--   **`AppData`**: Defineix l'estructura de l'objecte que es desa al fitxer `events_data.json`, amb llistes planes per a cada tipus de dada per facilitar la serialització.
+-   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo. S'han afegit els camps següents per a les notes generals de personal i necessitats tècniques:
+    -   `technicalPersonnelNotes?: string`: Notes generals per a la secció de personal tècnic.
+    -   `showTechnicalPersonnelNotesInPdf?: boolean`: Controla la visibilitat d'aquestes notes al PDF.
+    -   `technicalNeedsNotes?: string`: Notes generals per a la secció de necessitats tècniques.
+    -   `showTechnicalNeedsNotesInPdf?: boolean`: Controla la visibilitat d'aquestes notes al PDF.
+-   **`AppData`**: Defineix l'estructura de l'objecte que es desa al fitxer de dades, amb llistes planes per a cada tipus de dada per facilitar la serialització.
 -   **`GoogleConfig` i `ManagedAppCalendar`**: Tipifiquen la nova estructura de dades per a la configuració de Google.
 -   **`ElectronAPI`**: Tipifica l'objecte `window.electronAPI`, proporcionant autocompletat i seguretat de tipus en les comunicacions amb el backend.
 

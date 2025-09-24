@@ -160,6 +160,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     markAsDirty();
   };
 
+  const handleFieldChange = (field: keyof TechSheetData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    markAsDirty();
+  };
+
   const handleSortNeedsByOrigin = (listName: TechSheetNeedsKey) => {
     setFormData(prev => {
       const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
@@ -803,11 +808,13 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         onToggle={() => handleToggleSection('personnel')}
       >
         <TechnicalPersonnelSection
+          formData={formData}
           technicalProviders={formData.technicalProviders || []}
           peopleGroups={peopleGroups}
           eventFrame={eventFrame}
           onProviderChange={handleProviderChange}
           onRoleChange={handleRoleChange}
+          onFieldChange={handleFieldChange}
           onAddProvider={handleAddProvider}
           onRemoveProvider={handleRemoveProvider}
           onAddRole={handleAddRole}
@@ -1071,6 +1078,34 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         isOpen={expandedSections.technicalNeeds}
         onToggle={() => handleToggleSection('technicalNeeds')}
       >
+        <div className="col-span-full mb-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+                <label htmlFor="technicalNeedsNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Notes Generals de Necessitats Tècniques
+                </label>
+                <div className="flex items-center">
+                    <input
+                        id="showTechnicalNeedsNotesInPdf"
+                        name="showTechnicalNeedsNotesInPdf"
+                        type="checkbox"
+                        checked={formData.showTechnicalNeedsNotesInPdf ?? true}
+                        onChange={handleChange}
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="showTechnicalNeedsNotesInPdf" className="ml-2 block text-sm text-gray-900 dark:text-gray-200">
+                        Mostrar al PDF
+                    </label>
+                </div>
+            </div>
+            <AutosizeTextarea
+                id="technicalNeedsNotes"
+                name="technicalNeedsNotes"
+                value={formData.technicalNeedsNotes || ''}
+                onChange={handleChange}
+                placeholder="Afegeix notes addicionals sobre les necessitats tècniques en general..."
+                className="w-full"
+            />
+        </div>
         {renderNeedsSection('Il·luminació', 'lighting')}
         {renderNeedsSection('So', 'sound')}
         {renderNeedsSection('Vídeo', 'video')}
