@@ -138,36 +138,37 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
         </Tooltip>
       }
     >
-      <div className="col-span-full mb-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-md border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-2">
-          <label htmlFor="technicalPersonnelNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Notes Generals del Personal Tècnic
-          </label>
-          <div className="flex items-center">
-            <input
-              id="showTechnicalPersonnelNotesInPdf"
-              name="showTechnicalPersonnelNotesInPdf"
-              type="checkbox"
-              checked={formData.showTechnicalPersonnelNotesInPdf ?? true}
-              onChange={(e) => onFieldChange('showTechnicalPersonnelNotesInPdf', e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <label htmlFor="showTechnicalPersonnelNotesInPdf" className="ml-2 block text-sm text-gray-900 dark:text-gray-200">
-              Mostrar al PDF
-            </label>
-          </div>
+        <div className="col-span-full">
+            <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals del Personal Tècnic</label>
+                <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="showTechnicalPersonnelNotesInPdf"
+                            name="showTechnicalPersonnelNotesInPdf"
+                            checked={formData.showTechnicalPersonnelNotesInPdf ?? true}
+                            onChange={(e) => onFieldChange('showTechnicalPersonnelNotesInPdf', e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label htmlFor="showTechnicalPersonnelNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                    </div>
+                </Tooltip>
+            </div>
+            <Tooltip text="Afegeix aquí qualsevol nota general o comentari rellevant per a tot el personal tècnic.">
+                <AutosizeTextarea
+                    id="technicalPersonnelNotes"
+                    name="technicalPersonnelNotes"
+                    value={formData.technicalPersonnelNotes || ''}
+                    onChange={(e) => onFieldChange('technicalPersonnelNotes', e.target.value)}
+                    rows={3}
+                    className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Afegeix notes addicionals sobre el personal tècnic..."
+                />
+            </Tooltip>
         </div>
-        <AutosizeTextarea
-          id="technicalPersonnelNotes"
-          name="technicalPersonnelNotes"
-          value={formData.technicalPersonnelNotes || ''}
-          onChange={(e) => onFieldChange('technicalPersonnelNotes', e.target.value)}
-          placeholder="Afegeix notes addicionals sobre el personal tècnic..."
-          className="w-full"
-        />
-      </div>
 
-      <div className="col-span-full space-y-6">
+      <div className="col-span-full space-y-6 mt-6">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={technicalProviders.map(p => p.id)} strategy={verticalListSortingStrategy}>
             {technicalProviders.map((provider, providerIndex) => {

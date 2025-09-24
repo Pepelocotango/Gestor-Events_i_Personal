@@ -1078,33 +1078,34 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         isOpen={expandedSections.technicalNeeds}
         onToggle={() => handleToggleSection('technicalNeeds')}
       >
-        <div className="col-span-full mb-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-md border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-                <label htmlFor="technicalNeedsNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Notes Generals de Necessitats Tècniques
-                </label>
-                <div className="flex items-center">
-                    <input
-                        id="showTechnicalNeedsNotesInPdf"
-                        name="showTechnicalNeedsNotesInPdf"
-                        type="checkbox"
-                        checked={formData.showTechnicalNeedsNotesInPdf ?? true}
-                        onChange={handleChange}
-                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <label htmlFor="showTechnicalNeedsNotesInPdf" className="ml-2 block text-sm text-gray-900 dark:text-gray-200">
-                        Mostrar al PDF
-                    </label>
-                </div>
+        <div className="col-span-full">
+            <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de Necessitats Tècniques</label>
+                <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="showTechnicalNeedsNotesInPdf"
+                            name="showTechnicalNeedsNotesInPdf"
+                            checked={formData.showTechnicalNeedsNotesInPdf ?? true}
+                            onChange={handleChange}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label htmlFor="showTechnicalNeedsNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                    </div>
+                </Tooltip>
             </div>
-            <AutosizeTextarea
-                id="technicalNeedsNotes"
-                name="technicalNeedsNotes"
-                value={formData.technicalNeedsNotes || ''}
-                onChange={handleChange}
-                placeholder="Afegeix notes addicionals sobre les necessitats tècniques en general..."
-                className="w-full"
-            />
+            <Tooltip text="Afegeix aquí qualsevol nota general o comentari rellevant per a totes les necessitats tècniques.">
+                <AutosizeTextarea
+                    id="technicalNeedsNotes"
+                    name="technicalNeedsNotes"
+                    value={formData.technicalNeedsNotes || ''}
+                    onChange={handleChange}
+                    rows={3}
+                    className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Afegeix notes addicionals sobre les necessitats tècniques en general..."
+                />
+            </Tooltip>
         </div>
         {renderNeedsSection('Il·luminació', 'lighting')}
         {renderNeedsSection('So', 'sound')}
