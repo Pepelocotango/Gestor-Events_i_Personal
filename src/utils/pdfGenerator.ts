@@ -440,6 +440,16 @@ export const exportTechSheetToPdf = async (
     }
 
     // --- Personal Tècnic ---
+    if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'NOTES GENERALS DEL PERSONAL TÈCNIC', styles: headStyles }]],
+            body: [[sane(formData.technicalPersonnelNotes)]],
+            startY: y, theme: 'grid', pageBreak: 'avoid'
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
+    }
+
     const personnelBody: any[][] = [];
     if (formData.technicalProviders && formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
@@ -542,6 +552,16 @@ export const exportTechSheetToPdf = async (
     }
 
     // --- Necessitats Tècniques ---
+    if (formData.showTechnicalNeedsNotesInPdf && sane(formData.technicalNeedsNotes) !== '-') {
+        y = checkPageBreak(y);
+        autoTable(pdf, {
+            head: [[{ content: 'NOTES GENERALS DE NECESSITATS TÈCNIQUES', styles: headStyles }]],
+            body: [[sane(formData.technicalNeedsNotes)]],
+            startY: y, theme: 'grid', pageBreak: 'avoid'
+        });
+        y = (pdf as any).lastAutoTable.finalY + 8;
+    }
+
     const needsBody: any[][] = [];
     const addNeedsToBody = (title: string, section: TechSheetData[keyof TechSheetData]) => {
         const needsSection = section as { status: 'yes' | 'no' | 'unset', details?: string, data?: { needs: NeedItem[] } };

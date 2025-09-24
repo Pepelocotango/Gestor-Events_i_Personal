@@ -124,6 +124,11 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
         showNeeds: oldData.showNeeds ?? true,
         showOther: oldData.showOther ?? true,
         showGeneralNotesInPdf: oldData.showGeneralNotesInPdf ?? true,
+
+        technicalPersonnelNotes: oldData.technicalPersonnelNotes || '',
+        showTechnicalPersonnelNotesInPdf: oldData.showTechnicalPersonnelNotesInPdf ?? true,
+        technicalNeedsNotes: oldData.technicalNeedsNotes || '',
+        showTechnicalNeedsNotesInPdf: oldData.showTechnicalNeedsNotesInPdf ?? true,
     };
 
     return newSheet;

@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment } from '../../types';
+import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment, TechSheetData } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
@@ -21,13 +21,16 @@ import Tooltip from '../ui/Tooltip';
 import { useModalStore } from '../../stores/modalStore';
 import { formatDateDMY } from '../../utils/dateFormat';
 import SortableProvider from './SortableProvider';
+import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface TechnicalPersonnelSectionProps {
+  formData: TechSheetData;
   technicalProviders: TechSheetProvider[];
   peopleGroups: PersonGroup[];
   eventFrame: any;
   onProviderChange: (providerIndex: number, personGroupId: string) => void;
   onRoleChange: (providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => void;
+  onFieldChange: (field: keyof TechSheetData, value: any) => void;
   onAddProvider: () => void;
   onRemoveProvider: (providerIndex: number) => void;
   onAddRole: (providerIndex: number) => void;
@@ -40,11 +43,13 @@ interface TechnicalPersonnelSectionProps {
 }
 
 const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
+  formData,
   technicalProviders,
   peopleGroups,
   eventFrame,
   onProviderChange,
   onRoleChange,
+  onFieldChange,
   onAddProvider,
   onRemoveProvider,
   onAddRole,
@@ -133,6 +138,35 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
         </Tooltip>
       }
     >
+      <div className="col-span-full mb-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-2">
+          <label htmlFor="technicalPersonnelNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Notes Generals del Personal Tècnic
+          </label>
+          <div className="flex items-center">
+            <input
+              id="showTechnicalPersonnelNotesInPdf"
+              name="showTechnicalPersonnelNotesInPdf"
+              type="checkbox"
+              checked={formData.showTechnicalPersonnelNotesInPdf ?? true}
+              onChange={(e) => onFieldChange('showTechnicalPersonnelNotesInPdf', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <label htmlFor="showTechnicalPersonnelNotesInPdf" className="ml-2 block text-sm text-gray-900 dark:text-gray-200">
+              Mostrar al PDF
+            </label>
+          </div>
+        </div>
+        <AutosizeTextarea
+          id="technicalPersonnelNotes"
+          name="technicalPersonnelNotes"
+          value={formData.technicalPersonnelNotes || ''}
+          onChange={(e) => onFieldChange('technicalPersonnelNotes', e.target.value)}
+          placeholder="Afegeix notes addicionals sobre el personal tècnic..."
+          className="w-full"
+        />
+      </div>
+
       <div className="col-span-full space-y-6">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={technicalProviders.map(p => p.id)} strategy={verticalListSortingStrategy}>

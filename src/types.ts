@@ -131,6 +131,10 @@ export interface TechSheetData {
   showNeeds?: boolean;
   showOther?: boolean;
   showGeneralNotesInPdf?: boolean;
+  technicalPersonnelNotes?: string;
+  showTechnicalPersonnelNotesInPdf?: boolean;
+  technicalNeedsNotes?: string;
+  showTechnicalNeedsNotesInPdf?: boolean;
 
   // Legacy fields that might exist in old data
   parkingInfo?: string;
