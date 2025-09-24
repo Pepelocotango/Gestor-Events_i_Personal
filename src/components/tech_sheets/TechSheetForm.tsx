@@ -887,7 +887,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                   {/* Therefore, `index` refers to the item's position *within its day group*, not the overall schedule array. */}
                   {/* This makes the `disabled` logic for the move buttons correct. */}
                   {items.map((item, index) => {
-                    const isNewItem = date === 'Sense data';
                     return (
                       <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
                         <div className="col-span-3">
