@@ -6,7 +6,7 @@ import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
@@ -116,6 +116,7 @@ interface EventDataActions {
     syncWithGoogle: () => Promise<void>;
     executeSync: (targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
+    reorderTechnicalProviders: (eventFrameId: string, reorderedProviders: TechSheetProvider[]) => void;
     addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => MaterialItem;
     updateMaterialItem: (updatedItem: MaterialItem) => void;
     deleteMaterialItem: (itemId: string) => void;
@@ -377,6 +378,17 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             }
             state.hasUnsavedChanges = true;
             state.lastActionDescription = `Has actualitzat la fitxa tècnica de «${eventFrameName}»`;
+        });
+    },
+    reorderTechnicalProviders: (eventFrameId: string, reorderedProviders: TechSheetProvider[]) => {
+        const eventFrameName = get().eventFrames.find(ef => ef.id === eventFrameId)?.name || 'desconegut';
+        set(state => {
+            const frame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (frame && frame.techSheet) {
+                frame.techSheet.technicalProviders = reorderedProviders;
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Has reordenat el personal tècnic de «${eventFrameName}»`;
         });
     },
 

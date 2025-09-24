@@ -562,6 +562,15 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
 
+-   **Reordenació de Personal Tècnic (Drag-and-Drop):**
+    -   **Tecnologia:** S'utilitza la llibreria `dnd-kit` per implementar la funcionalitat d'arrossegar i deixar anar.
+    -   **Implementació:**
+        -   El component `TechnicalPersonnelSection.tsx` embolcalla la llista de proveïdors amb `DndContext` i `SortableContext`.
+        -   S'ha creat un component reutilitzable `SortableProvider.tsx` que utilitza el hook `useSortable` per fer que cada proveïdor sigui arrossegable.
+        -   S'ha afegit una icona de "drag handle" a cada proveïdor per iniciar l'arrossegament.
+        -   L'esdeveniment `onDragEnd` calcula el nou ordre i crida a l'acció `reorderTechnicalProviders` de l'store `eventDataStore.ts`.
+    -   **Flux de Dades:** `onDragEnd` -> `reorderTechnicalProviders` (Zustand) -> Actualització de l'estat -> Re-renderitzat de la llista.
+
 -  **Actualització Interactiva des d'Assignacions:** Per donar un control més gran a l'usuari, el botó **`⟳ Actualitza des d'assignacions`** ja no modifica directament la fitxa, sinó que obre un diàleg de confirmació.
     1.  **Càlcul de Canvis:** En fer clic, la lògica a `TechnicalPersonnelSection.tsx` compara el personal actual de la fitxa amb les assignacions confirmades i genera tres llistes: personal per afegir, personal per eliminar i personal per mantenir.
     2.  **Modal de Previsualització (`UpdateFromAssignmentsModal`):** Aquestes llistes s'envien a un nou modal que mostra cada canvi proposat (addicions en verd, eliminacions en vermell) amb una casella de selecció.

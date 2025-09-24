@@ -56,6 +56,7 @@ L'aplicació està dissenyada per cobrir tot el cicle de vida de la gestió d'un
 *   **Documentació Tècnica (Fitxes de Bolo):**
     *   Genera fitxes tècniques completes per a cada esdeveniment.
     *   Gestiona el personal per proveïdors i rols, i les necessitats de material (il·luminació, so, vídeo, etc.).
+    *   **Reordena els proveïdors de personal amb drag-and-drop** per a una organització visual i lògica.
     *   Pobla automàticament la llista de personal a partir de les assignacions confirmades.
 
 *   **Inventari de Material:**

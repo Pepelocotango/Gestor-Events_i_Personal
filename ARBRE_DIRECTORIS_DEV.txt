@@ -40,6 +40,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── tech_sheets/          # Components específics per a la gestió de les Fitxes de Bolo.
 │   │   │   ├── ConditionalFormControl.tsx      # Component UI per a seccions que es mostren condicionalment (SI/NO).
 │   │   │   ├── NeedsList.tsx                   # Renderitza les llistes de necessitats de material (llum, so, etc.).
+│   │   │   ├── SortableProvider.tsx            # Component reutilitzable per a la funcionalitat de drag-and-drop.
 │   │   │   ├── TechSheetField.tsx              # Component de camp de formulari genèric i reutilitzable.
 │   │   │   ├── TechSheetForm.tsx               # !! Component central que munta tota la fitxa de bolo !!
 │   │   │   ├── TechSheetSection.tsx            # Component de secció col·lapsable per organitzar la fitxa.
