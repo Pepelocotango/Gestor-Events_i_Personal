@@ -129,6 +129,7 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
         showTechnicalPersonnelNotesInPdf: oldData.showTechnicalPersonnelNotesInPdf ?? true,
         technicalNeedsNotes: oldData.technicalNeedsNotes || '',
         showTechnicalNeedsNotesInPdf: oldData.showTechnicalNeedsNotesInPdf ?? true,
+        showScheduleNotesInPdf: oldData.showScheduleNotesInPdf ?? true,
     };
 
     return newSheet;
