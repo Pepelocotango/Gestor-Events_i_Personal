@@ -890,18 +890,16 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                     const isNewItem = date === 'Sense data';
                     return (
                       <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
-                        {isNewItem && (
-                          <div className="col-span-3">
-                            <TechSheetField id={`schedule-date-${item.id}`} label={index === 0 ? "Data" : ""} value={item.date} onChange={(e) => handleAssemblyScheduleChange(item.id, 'date', e.target.value)} type="date" tooltipText="Assigna una data per moure aquest ítem al seu grup."/>
-                          </div>
-                        )}
+                        <div className="col-span-3">
+                          <TechSheetField id={`schedule-date-${item.id}`} label={index === 0 ? "Data" : ""} value={item.date} onChange={(e) => handleAssemblyScheduleChange(item.id, 'date', e.target.value)} type="date" tooltipText="Modifica la data de la tasca. Si canvies la data, la tasca es mourà al bloc del dia corresponent."/>
+                        </div>
                         <div className="col-span-2">
                           <TechSheetField id={`schedule-time-${item.id}`} label={index === 0 ? "Hora Inici" : ""} value={item.time} onChange={(e) => handleAssemblyScheduleChange(item.id, 'time', e.target.value)} type="time" tooltipText="Hora d'inici de l'activitat."/>
                         </div>
                         <div className="col-span-2">
                           <TechSheetField id={`schedule-time-end-${item.id}`} label={index === 0 ? "Hora Fi" : ""} value={item.timeEnd || ''} onChange={(e) => handleAssemblyScheduleChange(item.id, 'timeEnd', e.target.value)} type="time" tooltipText="Hora de finalització de l'activitat (opcional)."/>
                         </div>
-                        <div className={isNewItem ? "col-span-4" : "col-span-7"}>
+                        <div className="col-span-4">
                           <TechSheetField id={`schedule-desc-${item.id}`} label={index === 0 ? "Descripció" : ""} value={item.description} onChange={(e) => handleAssemblyScheduleChange(item.id, 'description', e.target.value)} as="textarea" rows={1} tooltipText="Descripció de l'activitat (p. ex., 'Muntatge llums', 'Prova de so')."/>
                         </div>
                         <div className="col-span-1 flex-shrink-0 self-center pt-5 flex items-center justify-center space-x-1">
@@ -936,8 +934,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
               </div>
             ))}
             <div className="mt-4 no-print">
-              <Tooltip text="Afegir una nova línia d'horari (per defecte, amb la data d'inici de l'esdeveniment).">
-                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Ítem Horari (Nova Data)</button>
+              <Tooltip text="Afegeix una nova entrada a l'horari amb la data d'inici de l'esdeveniment. Podràs modificar la data posteriorment.">
+                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Nova Data</button>
               </Tooltip>
             </div>
           </div>
