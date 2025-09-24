@@ -59,6 +59,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     return initialState;
   });
 
+  const [scheduleSortOrder, setScheduleSortOrder] = useState<'asc' | 'desc'>('asc');
+
   const handleToggleSection = (sectionKey: string) => {
     setExpandedSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
   };
@@ -158,6 +160,41 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       const updatedSection = { ...section, data: { ...section.data, needs: sortedNeeds } };
       return { ...prev, [listName]: updatedSection };
     });
+    markAsDirty();
+  };
+
+  const handleSortScheduleByDate = () => {
+    setFormData(prev => {
+      const scheduleData = prev.schedule?.data || [];
+      const groupedByDate = scheduleData.reduce((acc, item) => {
+        const date = item.date || 'Sense data';
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(item);
+        return acc;
+      }, {} as Record<string, AssemblyScheduleItem[]>);
+
+      const sortedDates = Object.keys(groupedByDate)
+        .filter(date => date !== 'Sense data')
+        .sort((a, b) => {
+          if (scheduleSortOrder === 'asc') {
+            return a.localeCompare(b);
+          } else {
+            return b.localeCompare(a);
+          }
+        });
+
+      const newSchedule = sortedDates.flatMap(date => groupedByDate[date]);
+
+      // Keep 'Sense data' items at the end
+      if (groupedByDate['Sense data']) {
+        newSchedule.push(...groupedByDate['Sense data']);
+      }
+
+      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
+    });
+    setScheduleSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
     markAsDirty();
   };
 
@@ -339,30 +376,13 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       const updatedItem = { ...newSchedule[index], [field]: value };
       newSchedule[index] = updatedItem;
 
-      // If the date changes, re-sort the entire schedule to maintain chronological order of days
-      if (field === 'date') {
-        newSchedule.sort((a, b) => {
-          const dateA = a.date || '';
-          const dateB = b.date || '';
-          if (dateA < dateB) return -1;
-          if (dateA > dateB) return 1;
-
-          const timeA = a.time || '';
-          const timeB = b.time || '';
-          if (timeA < timeB) return -1;
-          if (timeA > timeB) return 1;
-
-          return 0;
-        });
-      }
-
       return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule }};
     });
     markAsDirty();
   };
 
   const handleAddAssemblyScheduleItem = (date?: string) => {
-    const newDate = date !== undefined ? date : '';
+    const newDate = date !== undefined ? date : eventFrame.startDate;
     const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: newDate, time: '', timeEnd: '', description: '' };
 
     setFormData(prev => {
@@ -806,7 +826,33 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
           onStatusChange={(status) => handleConditionalChange('schedule', { status })}
           tooltipText="Activa aquesta secció per detallar la planificació horària de l'esdeveniment."
         >
-          <div className="col-span-full space-y-4 mt-4">
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex-grow pr-4">
+              <TechSheetField
+                id="scheduleDetails"
+                label="Notes generals dels horaris:"
+                value={formData.schedule?.details || ''}
+                onChange={(e) => handleConditionalChange('schedule', { details: e.target.value })}
+                as="textarea"
+                rows={2}
+                placeholder="Afegeix aquí notes generals sobre la planificació, com ara pauses, hores de menjars, etc."
+                tooltipText="Aquestes notes s'apliquen a tota la secció d'horaris."
+              />
+            </div>
+            <div className="flex-shrink-0">
+              <Tooltip text={`Ordena els blocs de dies per data ${scheduleSortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
+                <button
+                  type="button"
+                  onClick={handleSortScheduleByDate}
+                  className="px-2 py-1 bg-indigo-600 text-white text-xs rounded-md hover:bg-indigo-700 no-print"
+                >
+                  Ordenar Dies ({scheduleSortOrder === 'asc' ? 'ASC' : 'DESC'})
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+
+          <div className="col-span-full space-y-4 mt-2">
             {Object.entries(
               (formData.schedule?.data || []).reduce((acc, item) => {
                 const date = item.date || 'Sense data';
