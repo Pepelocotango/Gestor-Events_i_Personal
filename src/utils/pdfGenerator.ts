@@ -461,7 +461,7 @@ export const exportTechSheetToPdf = async (
         y = checkPageBreak(y);
         const tableBody: any[][] = [];
         if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
-            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: 4, styles: { fontStyle: 'italic' as 'italic' } }]);
+            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: 4, styles: { fontStyle: 'italic' as 'italic', halign: 'left' as 'left' } }]);
         }
         personnelBody.forEach(row => tableBody.push(row));
 
