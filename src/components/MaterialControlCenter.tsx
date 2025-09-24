@@ -6,7 +6,6 @@ import { exportMaterialControlSummaryPdf, exportMaterialControlDetailedPdf } fro
 import { exportMaterialControlCsv } from '../utils/csvUtils';
 import MaterialControlFilters from './MaterialControlFilters';
 import MaterialControlTable from './MaterialControlTable';
-import Tooltip from './ui/Tooltip';
 
 type SortDirection = 'ascending' | 'descending';
 type SortableKeys = 'name' | 'category' | 'origin' | 'balance';
@@ -161,33 +160,27 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
       />
 
       <div className="flex justify-end space-x-2">
-        <Tooltip text="Exporta un resum del control de material en format PDF.">
-          <button
-            onClick={handleExportSummaryPdf}
-            className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-50"
-            disabled={filteredData.length === 0}
-          >
-            PDF Resum
-          </button>
-        </Tooltip>
-        <Tooltip text="Exporta un informe detallat del control de material, incloent el desglossament per esdeveniment, en format PDF.">
-          <button
-            onClick={handleExportDetailedPdf}
-            className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-50"
-            disabled={filteredData.length === 0}
-          >
-            PDF Detallat
-          </button>
-        </Tooltip>
-        <Tooltip text="Exporta les dades del control de material en format CSV, compatible amb fulls de càlcul.">
-          <button
-            onClick={handleExportCsv}
-            className="px-3 py-1 text-sm rounded-md bg-green-100 text-green-800 hover:bg-green-200 disabled:opacity-50"
-            disabled={filteredData.length === 0}
-          >
-            CSV
-          </button>
-        </Tooltip>
+        <button
+          onClick={handleExportSummaryPdf}
+          className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-50"
+          disabled={filteredData.length === 0}
+        >
+          PDF Resum
+        </button>
+        <button
+          onClick={handleExportDetailedPdf}
+          className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-50"
+          disabled={filteredData.length === 0}
+        >
+          PDF Detallat
+        </button>
+        <button
+          onClick={handleExportCsv}
+          className="px-3 py-1 text-sm rounded-md bg-green-100 text-green-800 hover:bg-green-200 disabled:opacity-50"
+          disabled={filteredData.length === 0}
+        >
+          CSV
+        </button>
       </div>
 
       {isUpdatingMaterial ? (
