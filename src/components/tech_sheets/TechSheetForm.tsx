@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
+import { DragEndEvent } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -125,6 +127,16 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       if (isDirtyRef.current) saveData();
     };
   }, [saveData]);
+
+  // Aquest useEffect és clau per sincronitzar l'estat local amb el global
+  useEffect(() => {
+    const newProviders = eventFrame.techSheet?.technicalProviders || [];
+    // Comprovem si l'array de proveïdors a l'estat local és diferent del de l'estat global.
+    // Això passa després que l'acció de reordenació actualitzi la store.
+    if (JSON.stringify(formData.technicalProviders) !== JSON.stringify(newProviders)) {
+      setFormData(prev => ({ ...prev, technicalProviders: newProviders }));
+    }
+  }, [eventFrame.techSheet?.technicalProviders]); // S'executa cada cop que els proveïdors a la store canvien
 
   if (!formData) {
     return <div>Carregant dades de la fitxa tècnica...</div>;
@@ -643,6 +655,23 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     showToast(`${selectedChanges.length} canvi(s) aplicat(s) des de les assignacions.`, 'success');
   };
 
+  const { reorderTechnicalProviders } = useEventDataStore.getState();
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = formData.technicalProviders.findIndex(p => p.id === active.id);
+      const newIndex = formData.technicalProviders.findIndex(p => p.id === over.id);
+      const reorderedProviders = arrayMove(formData.technicalProviders, oldIndex, newIndex);
+
+      // Actualitzem l'estat local per a una resposta visual immediata
+      setFormData(prev => ({ ...prev, technicalProviders: reorderedProviders }));
+
+      // Cridem l'acció de la store per persistir el canvi a l'estat global
+      reorderTechnicalProviders(eventFrame.id, reorderedProviders);
+    }
+  };
+
   const renderNeedsSection = (title: string, fieldName: TechSheetNeedsKey) => (
     <ConditionalFormControl
       label={`${title}:`}
@@ -786,6 +815,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
           getPersonGroupById={(id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' })}
           showToast={showToast}
           onConfirmUpdate={handleConfirmUpdateFromAssignments}
+          onDragEnd={handleDragEnd}
         />
       </TechSheetSection>
 

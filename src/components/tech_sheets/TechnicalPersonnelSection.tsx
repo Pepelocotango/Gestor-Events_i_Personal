@@ -9,12 +9,10 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useEventDataStore } from '../../stores/eventDataStore';
 import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
@@ -37,6 +35,7 @@ interface TechnicalPersonnelSectionProps {
   getPersonGroupById: (id: string) => PersonGroup | undefined;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
   onConfirmUpdate: (selectedChanges?: any[]) => void;
+  onDragEnd: (event: DragEndEvent) => void;
   dragHandle?: React.ReactNode;
 }
 
@@ -52,9 +51,9 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onRemoveRole,
   showToast,
   onConfirmUpdate,
+  onDragEnd,
 }) => {
   const openModal = useModalStore(state => state.openModal);
-  const reorderTechnicalProviders = useEventDataStore(state => state.reorderTechnicalProviders);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
     peopleGroups.forEach(p => m.set(p.id, p.name));
@@ -67,16 +66,6 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = technicalProviders.findIndex(p => p.id === active.id);
-      const newIndex = technicalProviders.findIndex(p => p.id === over.id);
-      const reordered = arrayMove(technicalProviders, oldIndex, newIndex);
-      reorderTechnicalProviders(eventFrame.id, reordered);
-    }
-  }
 
   return (
     <TechSheetSection title="Personal Tècnic"
@@ -145,7 +134,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
       }
     >
       <div className="col-span-full space-y-6">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={technicalProviders.map(p => p.id)} strategy={verticalListSortingStrategy}>
             {technicalProviders.map((provider, providerIndex) => {
               return (
