@@ -382,7 +382,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   };
 
   const handleAddAssemblyScheduleItem = (date?: string) => {
-    const newDate = date !== undefined ? date : eventFrame.startDate;
+    const newDate = date !== undefined ? date : '';
     const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: newDate, time: '', timeEnd: '', description: '' };
 
     setFormData(prev => {
@@ -936,8 +936,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
               </div>
             ))}
             <div className="mt-4 no-print">
-              <Tooltip text="Afegir una nova línia d'horari per a una nova data">
-                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Ítem Horari (Nova Data)</button>
+              <Tooltip text="Afegir una nova línia d'horari sense data per introduir una data manualment.">
+                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Nova Data</button>
               </Tooltip>
             </div>
           </div>
