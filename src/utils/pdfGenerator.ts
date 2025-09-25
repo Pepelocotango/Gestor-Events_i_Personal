@@ -204,16 +204,16 @@ export const exportMaterialControlSummaryPdf = async (
       itemsByCategory[category].push(row);
     });
 
-    const head = [['Nom', 'Demanada', 'Estoc', 'Balanç']];
+    const head = [['Estoc', 'Nom', 'Demanada', 'Balanç']];
     const body: any[][] = [];
 
     Object.keys(itemsByCategory).sort().forEach(category => {
       body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: '#e0e0e0', textColor: '#000000', fontSize: 11 } }]);
       itemsByCategory[category].forEach(row => {
         body.push([
+          row.item.stock.toString(),
           row.item.name,
           row.totalDemand.toString(),
-          row.item.stock.toString(),
           { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? '#c0392b' : '#27ae60' } }
         ]);
       });
@@ -297,9 +297,9 @@ export const exportMaterialControlDetailedPdf = async (
       pdf.text(eventTitle, 14, y);
       y += 8;
 
-      const head = [['Nom', 'Quantitat', 'Categoria', 'Origen']];
+      const head = [['Quantitat', 'Nom', 'Categoria', 'Origen']];
       const body = eventData.items
-        .map(item => [item.name, item.quantity.toString(), item.category, item.location]);
+        .map(item => [item.quantity.toString(), item.name, item.category, item.location]);
 
       autoTable(pdf, {
         head,
@@ -459,9 +459,15 @@ export const exportTechSheetToPdf = async (
     }
     if (personnelBody.length > 0) {
         y = checkPageBreak(y);
+        const tableBody: any[][] = [];
+        if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
+            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: 4, styles: { fontStyle: 'italic' as 'italic', halign: 'left' as 'left' } }]);
+        }
+        personnelBody.forEach(row => tableBody.push(row));
+
         autoTable(pdf, {
             head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
-            body: personnelBody,
+            body: tableBody,
             startY: y, theme: 'grid', pageBreak: 'avoid',
             headStyles: { ...headStyles, halign: 'center' as 'center' },
             columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
@@ -497,7 +503,9 @@ export const exportTechSheetToPdf = async (
         const dateSubHeadStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold' };
 
         // Add a header row for the grouped table
-        scheduleBody.push([{ content: 'Hores', styles: dateSubHeadStyles }, { content: 'Descripció', styles: dateSubHeadStyles }]);
+        if (formData.showScheduleNotesInPdf && sane(formData.schedule.details) !== '-') {
+            scheduleBody.push([{ content: sane(formData.schedule.details), colSpan: 2, styles: { fontStyle: 'italic' as 'italic' } }]);
+        }
 
         Object.entries(groupedSchedule).forEach(([date, items]) => {
             scheduleBody.push([{ content: `Data: ${formatDateDMY(date)}`, colSpan: 2, styles: dateSubHeadStyles }]);
@@ -543,6 +551,9 @@ export const exportTechSheetToPdf = async (
 
     // --- Necessitats Tècniques ---
     const needsBody: any[][] = [];
+    if (formData.showTechnicalNeedsNotesInPdf && sane(formData.technicalNeedsNotes) !== '-') {
+        needsBody.push([{ content: sane(formData.technicalNeedsNotes), colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
+    }
     const addNeedsToBody = (title: string, section: TechSheetData[keyof TechSheetData]) => {
         const needsSection = section as { status: 'yes' | 'no' | 'unset', details?: string, data?: { needs: NeedItem[] } };
         if (!needsSection || needsSection.status !== 'yes') return;

@@ -439,8 +439,12 @@ Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les
 -   **`Assignment`**: Defineix una assignació de personal. Enllaça un `personGroupId` amb un `eventFrameId` i gestiona l'estat (`status`) i els estats diaris (`dailyStatuses`).
 -   **`PersonGroup`**: Representa una entrada a l'agenda (una persona, una empresa, etc.).
 -   **`MaterialItem`**: Defineix un article a l'inventari, amb propietats com `stock` i `category`.
--   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo, incloent sub-estructures com `TechSheetProvider` i `TechSheetNeed`.
--   **`AppData`**: Defineix l'estructura de l'objecte que es desa al fitxer `events_data.json`, amb llistes planes per a cada tipus de dada per facilitar la serialització.
+-   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo. S'han afegit els camps següents per a les notes generals de personal i necessitats tècniques:
+    -   `technicalPersonnelNotes?: string`: Notes generals per a la secció de personal tècnic.
+    -   `showTechnicalPersonnelNotesInPdf?: boolean`: Controla la visibilitat d'aquestes notes al PDF.
+    -   `technicalNeedsNotes?: string`: Notes generals per a la secció de necessitats tècniques.
+    -   `showTechnicalNeedsNotesInPdf?: boolean`: Controla la visibilitat d'aquestes notes al PDF.
+-   **`AppData`**: Defineix l'estructura de l'objecte que es desa al fitxer de dades, amb llistes planes per a cada tipus de dada per facilitar la serialització.
 -   **`GoogleConfig` i `ManagedAppCalendar`**: Tipifiquen la nova estructura de dades per a la configuració de Google.
 -   **`ElectronAPI`**: Tipifica l'objecte `window.electronAPI`, proporcionant autocompletat i seguretat de tipus en les comunicacions amb el backend.
 
@@ -562,6 +566,15 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
 
+-   **Reordenació de Personal Tècnic (Drag-and-Drop):**
+    -   **Tecnologia:** S'utilitza la llibreria `dnd-kit` per implementar la funcionalitat d'arrossegar i deixar anar.
+    -   **Implementació:**
+        -   El component `TechnicalPersonnelSection.tsx` embolcalla la llista de proveïdors amb `DndContext` i `SortableContext`.
+        -   S'ha creat un component reutilitzable `SortableProvider.tsx` que utilitza el hook `useSortable` per fer que cada proveïdor sigui arrossegable.
+        -   S'ha afegit una icona de "drag handle" a cada proveïdor per iniciar l'arrossegament.
+        -   L'esdeveniment `onDragEnd` calcula el nou ordre i crida a l'acció `reorderTechnicalProviders` de l'store `eventDataStore.ts`.
+    -   **Flux de Dades:** `onDragEnd` -> `reorderTechnicalProviders` (Zustand) -> Actualització de l'estat -> Re-renderitzat de la llista.
+
 -  **Actualització Interactiva des d'Assignacions:** Per donar un control més gran a l'usuari, el botó **`⟳ Actualitza des d'assignacions`** ja no modifica directament la fitxa, sinó que obre un diàleg de confirmació.
     1.  **Càlcul de Canvis:** En fer clic, la lògica a `TechnicalPersonnelSection.tsx` compara el personal actual de la fitxa amb les assignacions confirmades i genera tres llistes: personal per afegir, personal per eliminar i personal per mantenir.
     2.  **Modal de Previsualització (`UpdateFromAssignmentsModal`):** Aquestes llistes s'envien a un nou modal que mostra cada canvi proposat (addicions en verd, eliminacions en vermell) amb una casella de selecció.
@@ -571,9 +584,34 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
 
 
 
-### 5.3. Control d'Estoc de Material en Temps Real
+### 5.3. Centre de Control de Material (Càlcul de Pic de Demanda)
 
-Aquesta funcionalitat evita la sobre-assignació de material. La lògica principal resideix a l'acció `getMaterialAvailability` dins de `useEventDataStore`.
+Aquesta secció ha estat completament redissenyada per oferir una anàlisi més potent i realista de les necessitats de material. En lloc de sumar tota la demanda, ara calcula el **pic de demanda concurrent** per a un període determinat, responent a la pregunta: "Quin és el nombre màxim d'unitats d'un ítem que necessitaré en un sol dia?".
+
+#### Lògica de Càlcul (`selectMaterialControlData`)
+
+La lògica principal resideix al selector `selectMaterialControlData` dins de `eventDataStore.ts`.
+
+-   **Condició d'Activació:** El càlcul de pic de demanda només s'activa si l'usuari aplica un **filtre per esdeveniments o un rang de dates**. Si no hi ha cap d'aquests filtres actius, la vista mostra tots els ítems de l'inventari amb una demanda de 0, per a una gestió ràpida de l'estoc.
+
+-   **Flux de Càlcul de Pic de Demanda:**
+    1.  **Identificació d'Esdeveniments Rellevants:** El selector primer filtra la llista global d'esdeveniments per quedar-se només amb aquells que coincideixen amb els filtres actius.
+    2.  **Càlcul per Ítem:** Per a cada `MaterialItem` de l'inventari:
+        a.  Recopila totes les necessitats (`NeedItem`) d'aquest ítem dins dels esdeveniments rellevants.
+        b.  Determina el rang de dates global (mínim i màxim) cobert per aquestes necessitats.
+        c.  **Iteració Diària:** Recorre aquest rang dia per dia. Per a cada dia, suma la quantitat total de l'ítem requerida per tots els esdeveniments que estan actius en aquella data.
+        d.  **Determinació del Pic:** Emmagatzema el valor diari més alt trobat durant la iteració. Aquest valor és el `totalDemand`.
+    3.  **Càlcul del Balanç:** El balanç es calcula com `item.stock - totalDemand`. Un valor negatiu indica un dèficit en el dia de màxima demanda.
+
+#### Canvis a la Interfície d'Usuari (`MaterialControlTable.tsx`)
+
+Per reflectir aquesta nova lògica, la interfície s'ha reorganitzat:
+
+-   **Nou Ordre de Columnes:** Les columnes ara segueixen un ordre més lògic per a la gestió d'estoc: `Estoc`, `Nom`, `Categoria`, `Origen`, `Demanada`, `Balanç`.
+-   **Ordenació per Defecte:** La taula s'ordena per defecte per la columna `Balanç` en ordre ascendent, destacant immediatament els ítems amb més problemes d'estoc (els balanços més negatius).
+-   **Desglossament Enriquit:** En expandir una fila, el desglossament ara mostra no només la quantitat necessària per a cada esdeveniment, sinó també el rang de dates de l'esdeveniment, proporcionant un context crucial.
+
+Aquesta refactorització converteix el Centre de Control de Material en una eina predictiva molt més precisa i útil per a la planificació logística.
 
 
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
+import { DragEndEvent } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
@@ -126,6 +128,16 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     };
   }, [saveData]);
 
+  // Aquest useEffect és clau per sincronitzar l'estat local amb el global
+  useEffect(() => {
+    const newProviders = eventFrame.techSheet?.technicalProviders || [];
+    // Comprovem si l'array de proveïdors a l'estat local és diferent del de l'estat global.
+    // Això passa després que l'acció de reordenació actualitzi la store.
+    if (JSON.stringify(formData.technicalProviders) !== JSON.stringify(newProviders)) {
+      setFormData(prev => ({ ...prev, technicalProviders: newProviders }));
+    }
+  }, [eventFrame.techSheet?.technicalProviders]); // S'executa cada cop que els proveïdors a la store canvien
+
   if (!formData) {
     return <div>Carregant dades de la fitxa tècnica...</div>;
   }
@@ -145,6 +157,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     } else {
         setFormData(prev => ({ ...prev, [name]: value }));
     }
+    markAsDirty();
+  };
+
+  const handleFieldChange = (field: keyof TechSheetData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
     markAsDirty();
   };
 
@@ -278,14 +295,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       const currentField = prev[fieldName] as ConditionalSection<any> || { status: 'unset', details: ''};
       const updatedField = { ...currentField, ...fieldValue };
 
-      if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
-        if (updatedField.data && Array.isArray(updatedField.data.needs)) {
-            updatedField.data.needs = [];
+        // INICI DE LA CORRECCIÓ
+        if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
+          if (updatedField.data) {
+            // CORRECCIÓ: Creem un nou objecte 'data' en lloc de mutar l'existent.
+            // Això soluciona l'error amb la propietat 'needs'.
+            updatedField.data = { ...updatedField.data, needs: [] };
+          }
+          // La lògica per a 'schedule' ja era correcta, però la mantenim per consistència.
+          if (fieldName === 'schedule' && updatedField.data) {
+            updatedField.data = [];
+          }
         }
-        if (fieldName === 'schedule' && updatedField.data) {
-          updatedField.data = [];
-        }
-      }
+        // FI DE LA CORRECCIÓ
 
       return { ...prev, [fieldName]: updatedField };
     });
@@ -643,6 +665,23 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     showToast(`${selectedChanges.length} canvi(s) aplicat(s) des de les assignacions.`, 'success');
   };
 
+  const { reorderTechnicalProviders } = useEventDataStore.getState();
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = formData.technicalProviders.findIndex(p => p.id === active.id);
+      const newIndex = formData.technicalProviders.findIndex(p => p.id === over.id);
+      const reorderedProviders = arrayMove(formData.technicalProviders, oldIndex, newIndex);
+
+      // Actualitzem l'estat local per a una resposta visual immediata
+      setFormData(prev => ({ ...prev, technicalProviders: reorderedProviders }));
+
+      // Cridem l'acció de la store per persistir el canvi a l'estat global
+      reorderTechnicalProviders(eventFrame.id, reorderedProviders);
+    }
+  };
+
   const renderNeedsSection = (title: string, fieldName: TechSheetNeedsKey) => (
     <ConditionalFormControl
       label={`${title}:`}
@@ -774,11 +813,13 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         onToggle={() => handleToggleSection('personnel')}
       >
         <TechnicalPersonnelSection
+          formData={formData}
           technicalProviders={formData.technicalProviders || []}
           peopleGroups={peopleGroups}
           eventFrame={eventFrame}
           onProviderChange={handleProviderChange}
           onRoleChange={handleRoleChange}
+          onFieldChange={handleFieldChange}
           onAddProvider={handleAddProvider}
           onRemoveProvider={handleRemoveProvider}
           onAddRole={handleAddRole}
@@ -786,6 +827,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
           getPersonGroupById={(id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' })}
           showToast={showToast}
           onConfirmUpdate={handleConfirmUpdateFromAssignments}
+          onDragEnd={handleDragEnd}
         />
       </TechSheetSection>
 
@@ -828,9 +870,25 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         >
           <div className="flex justify-between items-start mb-2">
             <div className="flex-grow pr-4">
+                <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes generals dels horaris:</label>
+                    <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="showScheduleNotesInPdf"
+                                name="showScheduleNotesInPdf"
+                                checked={formData.showScheduleNotesInPdf ?? true}
+                                onChange={handleChange}
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label htmlFor="showScheduleNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                        </div>
+                    </Tooltip>
+                </div>
               <TechSheetField
                 id="scheduleDetails"
-                label="Notes generals dels horaris:"
+                label=""
                 value={formData.schedule?.details || ''}
                 onChange={(e) => handleConditionalChange('schedule', { details: e.target.value })}
                 as="textarea"
@@ -839,7 +897,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 tooltipText="Aquestes notes s'apliquen a tota la secció d'horaris."
               />
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 pt-7">
               <Tooltip text={`Ordena els blocs de dies per data ${scheduleSortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
                 <button
                   type="button"
@@ -1041,6 +1099,35 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         isOpen={expandedSections.technicalNeeds}
         onToggle={() => handleToggleSection('technicalNeeds')}
       >
+        <div className="col-span-full">
+            <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de Necessitats Tècniques</label>
+                <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="showTechnicalNeedsNotesInPdf"
+                            name="showTechnicalNeedsNotesInPdf"
+                            checked={formData.showTechnicalNeedsNotesInPdf ?? true}
+                            onChange={handleChange}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label htmlFor="showTechnicalNeedsNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                    </div>
+                </Tooltip>
+            </div>
+            <Tooltip text="Afegeix aquí qualsevol nota general o comentari rellevant per a totes les necessitats tècniques.">
+                <AutosizeTextarea
+                    id="technicalNeedsNotes"
+                    name="technicalNeedsNotes"
+                    value={formData.technicalNeedsNotes || ''}
+                    onChange={handleChange}
+                    rows={3}
+                    className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Afegeix notes addicionals sobre les necessitats tècniques en general..."
+                />
+            </Tooltip>
+        </div>
         {renderNeedsSection('Il·luminació', 'lighting')}
         {renderNeedsSection('So', 'sound')}
         {renderNeedsSection('Vídeo', 'video')}

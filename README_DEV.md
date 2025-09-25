@@ -11,10 +11,10 @@ El projecte està actualment en fase de desenvolupament actiu.
 
 ## 🚀 Novetats i Funcionalitats Clau
 
-* **Centre de Control de Material:**
-  * Nova secció avançada per analitzar l'inventari, amb filtres per data, esdeveniment, origen i categoria.
-  * Taula interactiva amb desglossament per esdeveniment, exportació a PDF resum/detallat i CSV.
-  * Detecció automàtica de desequilibris d'estoc.
+* **Centre de Control de Material (Redissenyat):**
+  * **Càlcul de Pic de Demanda Concurrent:** La nova lògica calcula la demanda màxima d'un ítem en un sol dia dins d'un període, oferint una previsió d'estoc molt més realista.
+  * **Interfície Reorganitzada:** Les columnes s'han reordenat per prioritzar la informació d'estoc i balanç. L'ordenació per defecte ara ressalta els ítems amb més problemes de disponibilitat.
+  * **Desglossament Enriquit:** El desglossament per esdeveniment ara inclou les dates, proporcionant un context immediat.
 
 * **Gestió d'Estat amb Zustand:**
   * Estat global optimitzat amb selectors independents per evitar bucles infinits de renderitzat.
@@ -56,6 +56,7 @@ L'aplicació està dissenyada per cobrir tot el cicle de vida de la gestió d'un
 *   **Documentació Tècnica (Fitxes de Bolo):**
     *   Genera fitxes tècniques completes per a cada esdeveniment.
     *   Gestiona el personal per proveïdors i rols, i les necessitats de material (il·luminació, so, vídeo, etc.).
+    *   **Reordena els proveïdors de personal amb drag-and-drop** per a una organització visual i lògica.
     *   Pobla automàticament la llista de personal a partir de les assignacions confirmades.
 
 *   **Inventari de Material:**

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { EventFrame } from '../types';
 import { MaterialControlFilters as FiltersState } from '../stores/eventDataStore';
 import CollapsibleSection from './ui/CollapsibleSection';
+import Tooltip from './ui/Tooltip';
 
 interface MaterialControlFiltersProps {
   filters: FiltersState;
@@ -86,8 +87,12 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
     <div>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{title}</label>
       <div className="flex items-center gap-2 mt-1">
-        <button onClick={() => handleSelectAll(field, items)} className="text-xs text-blue-600 hover:underline">Tots</button>
-        <button onClick={() => handleSelectNone(field)} className="text-xs text-blue-600 hover:underline">Cap</button>
+        <Tooltip text={`Selecciona tots els ${title.toLowerCase()}.`}>
+            <button onClick={() => handleSelectAll(field, items)} className="text-xs text-blue-600 hover:underline">Tots</button>
+        </Tooltip>
+        <Tooltip text={`Deselecciona tots els ${title.toLowerCase()}.`}>
+            <button onClick={() => handleSelectNone(field)} className="text-xs text-blue-600 hover:underline">Cap</button>
+        </Tooltip>
       </div>
       <div className={commonCheckboxContainerClass}>
         {items.map((item: any) => (
@@ -114,34 +119,40 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
                 {/* Text Search */}
                 <div>
                     <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cerca per text</label>
-                    <input
-                        type="text"
-                        id="search"
-                        value={filters.searchText || ''}
-                        onChange={(e) => setFilters(prev => ({ ...prev, searchText: e.target.value }))}
-                        placeholder="Nom, categoria, origen..."
-                        className={commonInputClass}
-                    />
+                    <Tooltip text="Filtra la taula per qualsevol text present a les files (nom, categoria, origen, etc.).">
+                        <input
+                            type="text"
+                            id="search"
+                            value={filters.searchText || ''}
+                            onChange={(e) => setFilters(prev => ({ ...prev, searchText: e.target.value }))}
+                            placeholder="Nom, categoria, origen..."
+                            className={commonInputClass}
+                        />
+                    </Tooltip>
                 </div>
                 {/* Date Range */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rang de Dates</label>
                     <div className="flex items-center space-x-2 mt-1">
-                        <input
-                            type="date"
-                            name="start"
-                            value={filters.dateRange?.start || ''}
-                            onChange={handleDateChange}
-                            className={commonInputClass + " mt-0"}
-                        />
+                        <Tooltip text="Filtra els esdeveniments per data d'inici.">
+                            <input
+                                type="date"
+                                name="start"
+                                value={filters.dateRange?.start || ''}
+                                onChange={handleDateChange}
+                                className={commonInputClass + " mt-0"}
+                            />
+                        </Tooltip>
                         <span>-</span>
-                        <input
-                            type="date"
-                            name="end"
-                            value={filters.dateRange?.end || ''}
-                            onChange={handleDateChange}
-                            className={commonInputClass + " mt-0"}
-                        />
+                        <Tooltip text="Filtra els esdeveniments per data de finalització.">
+                            <input
+                                type="date"
+                                name="end"
+                                value={filters.dateRange?.end || ''}
+                                onChange={handleDateChange}
+                                className={commonInputClass + " mt-0"}
+                            />
+                        </Tooltip>
                     </div>
                 </div>
             </div>

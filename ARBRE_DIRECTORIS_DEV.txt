@@ -40,6 +40,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── tech_sheets/          # Components específics per a la gestió de les Fitxes de Bolo.
 │   │   │   ├── ConditionalFormControl.tsx      # Component UI per a seccions que es mostren condicionalment (SI/NO).
 │   │   │   ├── NeedsList.tsx                   # Renderitza les llistes de necessitats de material (llum, so, etc.).
+│   │   │   ├── SortableProvider.tsx            # Component reutilitzable per a la funcionalitat de drag-and-drop.
 │   │   │   ├── TechSheetField.tsx              # Component de camp de formulari genèric i reutilitzable.
 │   │   │   ├── TechSheetForm.tsx               # !! Component central que munta tota la fitxa de bolo !!
 │   │   │   ├── TechSheetSection.tsx            # Component de secció col·lapsable per organitzar la fitxa.
@@ -58,9 +59,9 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.
 │   │   ├── EventFrameCard.tsx      # Renderitza una targeta per a un esdeveniment marc a la llista. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── MainDisplay.tsx         # Vista principal. Gestiona la detecció de conflictes en modificar estats. [REFACTORITZAT: usa stores]
-│   │   ├── MaterialControlCenter.tsx # Component principal del Centre de Control de Material. Mostra la taula interactiva amb tot l'inventari, permet filtratge avançat, exportació PDF/CSV i accions massives sobre el material.
-│   │   ├── MaterialControlFilters.tsx# Panell de filtres dinàmics per al Centre de Control. Permet filtrar per categoria, estat, disponibilitat, i cerca per text. Optimitza la UX per gestió d'inventari gran.
-│   │   ├── MaterialControlTable.tsx  # Taula de resultats del Centre de Control. Renderitza l'inventari filtrat, amb accions ràpides, selecció múltiple i exportació. Integració directa amb la lògica de stores.
+│   │   ├── MaterialControlCenter.tsx # Component principal del Centre de Control de Material. Orquestra els filtres i la taula de dades.
+│   │   ├── MaterialControlFilters.tsx# Panell de filtres per data, esdeveniment, origen, categoria i text.
+│   │   ├── MaterialControlTable.tsx  # Taula de resultats que mostra el pic de demanda. Columnes i ordenació redissenyades per a anàlisi d'estoc.
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa MaterialForm]
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. [REFACTORITZAT: usa eventDataStore]

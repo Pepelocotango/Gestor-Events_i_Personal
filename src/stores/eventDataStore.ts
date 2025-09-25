@@ -6,7 +6,7 @@ import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
@@ -116,6 +116,7 @@ interface EventDataActions {
     syncWithGoogle: () => Promise<void>;
     executeSync: (targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
+    reorderTechnicalProviders: (eventFrameId: string, reorderedProviders: TechSheetProvider[]) => void;
     addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => MaterialItem;
     updateMaterialItem: (updatedItem: MaterialItem) => void;
     deleteMaterialItem: (itemId: string) => void;
@@ -377,6 +378,17 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             }
             state.hasUnsavedChanges = true;
             state.lastActionDescription = `Has actualitzat la fitxa tècnica de «${eventFrameName}»`;
+        });
+    },
+    reorderTechnicalProviders: (eventFrameId: string, reorderedProviders: TechSheetProvider[]) => {
+        const eventFrameName = get().eventFrames.find(ef => ef.id === eventFrameId)?.name || 'desconegut';
+        set(state => {
+            const frame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (frame && frame.techSheet) {
+                frame.techSheet.technicalProviders = reorderedProviders;
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Has reordenat el personal tècnic de «${eventFrameName}»`;
         });
     },
 
@@ -814,58 +826,70 @@ export const selectMaterialControlData = (
   state: EventDataState,
   filters: MaterialControlFilters
 ): MaterialControlRow[] => {
-  // 1. Filter events by date range first, if provided
-  const relevantEvents = state.eventFrames.filter(event => {
-    if (!filters.dateRange || (!filters.dateRange.start && !filters.dateRange.end)) {
-      return true; // No date filter
-    }
-    const eventStart = new Date(event.startDate);
-    const eventEnd = new Date(event.endDate);
-    const filterStart = filters.dateRange.start ? new Date(filters.dateRange.start) : null;
-    const filterEnd = filters.dateRange.end ? new Date(filters.dateRange.end) : null;
+  const { selectedEventIds, dateRange, selectedOrigins, selectedCategories, searchText } = filters;
+  const { materialItems, eventFrames } = state;
 
-    if(filterStart && !isNaN(filterStart.getTime())) {
-        if (eventEnd < filterStart) return false;
-    }
-    if(filterEnd && !isNaN(filterEnd.getTime())) {
-        // Add a day to the end date to make it inclusive
-        const inclusiveFilterEnd = new Date(filterEnd);
-        inclusiveFilterEnd.setDate(inclusiveFilterEnd.getDate() + 1);
-        if (eventStart >= inclusiveFilterEnd) return false;
-    }
+  const isPeakDemandActive = (selectedEventIds && selectedEventIds.length > 0) || (dateRange && (dateRange.start || dateRange.end));
 
-    return true;
-  });
+  if (!isPeakDemandActive) {
+    // Comportament per defecte: mostra tots els materials sense demanda.
+    const allRows = materialItems.map(item => ({
+      item,
+      totalDemand: 0,
+      balance: item.stock,
+      breakdown: [],
+    }));
 
-  // 2. Calculate demand from all tech sheets in the relevant event frames
-  const demandMap = new Map<string, { totalDemand: number; breakdown: { eventFrameId: string; eventName: string; quantity: number }[] }>();
+    // Aplica filtres simples que no depenen de la demanda.
+    return allRows.filter(row => {
+      if (selectedOrigins && selectedOrigins.length > 0 && !selectedOrigins.includes(row.item.location)) return false;
+      if (selectedCategories && selectedCategories.length > 0 && !selectedCategories.includes(row.item.category)) return false;
+      if (searchText && searchText.trim()) {
+        const lowerCaseSearch = searchText.toLowerCase();
+        return row.item.name.toLowerCase().includes(lowerCaseSearch) ||
+               row.item.category.toLowerCase().includes(lowerCaseSearch) ||
+               row.item.location.toLowerCase().includes(lowerCaseSearch);
+      }
+      return true;
+    });
+  }
 
+  // --- Càlcul de Pic de Demanda Activat ---
+
+  // 1. Determina els esdeveniments rellevants.
+  let relevantEvents = eventFrames;
+  if (selectedEventIds && selectedEventIds.length > 0) {
+    const eventIdSet = new Set(selectedEventIds);
+    relevantEvents = eventFrames.filter(ef => eventIdSet.has(ef.id));
+  } else if (dateRange && (dateRange.start || dateRange.end)) {
+    relevantEvents = eventFrames.filter(event => {
+      const eventStart = new Date(event.startDate);
+      const eventEnd = new Date(event.endDate);
+      const filterStart = dateRange.start ? new Date(dateRange.start) : null;
+      const filterEnd = dateRange.end ? new Date(dateRange.end) : null;
+      if (filterStart && eventEnd < filterStart) return false;
+      if (filterEnd) {
+          const inclusiveFilterEnd = new Date(filterEnd);
+          inclusiveFilterEnd.setDate(inclusiveFilterEnd.getDate() + 1);
+          if (eventStart >= inclusiveFilterEnd) return false;
+      }
+      return true;
+    });
+  }
+
+  // 2. Extreu totes les necessitats de material dels esdeveniments rellevants.
+  const allNeeds: ({ itemId: string; quantity: number; event: EventFrame })[] = [];
   relevantEvents.forEach(event => {
     if (!event.techSheet) return;
-
-    const needsKeys: (keyof TechSheetData)[] = [
-      'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
-      'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
-    ];
-
+    const needsKeys: (keyof TechSheetData)[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
     needsKeys.forEach(key => {
       const section = event.techSheet![key];
-      // Type guard to ensure section and its properties exist
-      if (section && section.status === 'yes' && 'data' in section && section.data && 'needs' in section.data && Array.isArray(section.data.needs)) {
-        section.data.needs.forEach((need: NeedItem) => {
+      if (section && section.status === 'yes' && 'data' in section && section.data && Array.isArray((section.data as any).needs)) {
+        (section.data as any).needs.forEach((need: NeedItem) => {
           if (need.materialItemId && need.quantity) {
             const numericQuantity = Number(need.quantity);
             if (!isNaN(numericQuantity) && numericQuantity > 0) {
-              if (!demandMap.has(need.materialItemId)) {
-                demandMap.set(need.materialItemId, { totalDemand: 0, breakdown: [] });
-              }
-              const entry = demandMap.get(need.materialItemId)!;
-              entry.totalDemand += numericQuantity;
-              entry.breakdown.push({
-                eventFrameId: event.id,
-                eventName: event.name,
-                quantity: numericQuantity,
-              });
+              allNeeds.push({ itemId: need.materialItemId, quantity: numericQuantity, event });
             }
           }
         });
@@ -873,59 +897,65 @@ export const selectMaterialControlData = (
     });
   });
 
-  // 3. Create initial list of MaterialControlRow based on all material items
-  const allRows: MaterialControlRow[] = state.materialItems.map(item => {
-    const demand = demandMap.get(item.id);
-    const totalDemand = demand ? demand.totalDemand : 0;
+  // 3. Construeix les files de resultats per a cada ítem de material.
+  const resultRows: MaterialControlRow[] = materialItems.map(item => {
+    const itemNeeds = allNeeds.filter(need => need.itemId === item.id);
+    if (itemNeeds.length === 0) {
+      return { item, totalDemand: 0, balance: item.stock, breakdown: [] };
+    }
+
+    // Troba el rang de dates global per a aquest ítem.
+    const allDates = itemNeeds.flatMap(need => [new Date(need.event.startDate), new Date(need.event.endDate)]);
+    const minDate = new Date(Math.min.apply(null, allDates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max.apply(null, allDates.map(d => d.getTime())));
+
+    // Calcula el pic de demanda dia a dia.
+    let peakDemand = 0;
+    for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+      let dailyDemand = 0;
+      itemNeeds.forEach(need => {
+        const eventStart = new Date(need.event.startDate);
+        const eventEnd = new Date(need.event.endDate);
+        if (d >= eventStart && d <= eventEnd) {
+          dailyDemand += need.quantity;
+        }
+      });
+      if (dailyDemand > peakDemand) {
+        peakDemand = dailyDemand;
+      }
+    }
+
+    // Construeix el desglossament.
+    const breakdown = itemNeeds.map(need => ({
+      eventFrameId: need.event.id,
+      eventName: need.event.name,
+      quantity: need.quantity,
+      startDate: need.event.startDate,
+      endDate: need.event.endDate,
+    }));
+
     return {
-      item: item,
-      totalDemand: totalDemand,
-      balance: item.stock - totalDemand,
-      breakdown: demand ? demand.breakdown : [],
+      item,
+      totalDemand: peakDemand,
+      balance: item.stock - peakDemand,
+      breakdown,
     };
   });
 
-  // 4. Apply filters to the rows
-  const { selectedEventIds, selectedOrigins, selectedCategories, searchText } = filters;
-
-  const filteredRows = allRows.filter(row => {
-    // If a row has no demand, it should only be shown if no event-specific filters are active.
-    if (row.totalDemand === 0) {
-        // If filtering by specific events, hide items with no demand.
-        if (selectedEventIds && selectedEventIds.length > 0) {
-            return false;
-        }
-    } else {
-        // If there is demand, check if it matches the selected events
-        if (selectedEventIds && selectedEventIds.length > 0) {
-            const eventIdSet = new Set(selectedEventIds);
-            const isInSelectedEvent = row.breakdown.some(bd => eventIdSet.has(bd.eventFrameId));
-            if (!isInSelectedEvent) return false;
-        }
+  // 4. Aplica filtres finals.
+  return resultRows.filter(row => {
+    // Amaga files sense demanda si el filtre d'esdeveniments està actiu.
+    if (row.totalDemand === 0 && selectedEventIds && selectedEventIds.length > 0) {
+        return false;
     }
-
-    // Filter by Origin
-    if (selectedOrigins && selectedOrigins.length > 0 && !selectedOrigins.includes(row.item.location)) {
-      return false;
-    }
-
-    // Filter by Category
-    if (selectedCategories && selectedCategories.length > 0 && !selectedCategories.includes(row.item.category)) {
-      return false;
-    }
-
-    // Filter by Search Text
+    if (selectedOrigins && selectedOrigins.length > 0 && !selectedOrigins.includes(row.item.location)) return false;
+    if (selectedCategories && selectedCategories.length > 0 && !selectedCategories.includes(row.item.category)) return false;
     if (searchText && searchText.trim()) {
       const lowerCaseSearch = searchText.toLowerCase();
-      const matches =
-        row.item.name.toLowerCase().includes(lowerCaseSearch) ||
-        row.item.category.toLowerCase().includes(lowerCaseSearch) ||
-        row.item.location.toLowerCase().includes(lowerCaseSearch);
-      if (!matches) return false;
+      return row.item.name.toLowerCase().includes(lowerCaseSearch) ||
+             row.item.category.toLowerCase().includes(lowerCaseSearch) ||
+             row.item.location.toLowerCase().includes(lowerCaseSearch);
     }
-
     return true;
   });
-
-  return filteredRows;
 };
