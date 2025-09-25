@@ -295,14 +295,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       const currentField = prev[fieldName] as ConditionalSection<any> || { status: 'unset', details: ''};
       const updatedField = { ...currentField, ...fieldValue };
 
-      if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
-        if (updatedField.data && Array.isArray(updatedField.data.needs)) {
-            updatedField.data.needs = [];
+        // INICI DE LA CORRECCIÓ
+        if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
+          if (updatedField.data) {
+            // CORRECCIÓ: Creem un nou objecte 'data' en lloc de mutar l'existent.
+            // Això soluciona l'error amb la propietat 'needs'.
+            updatedField.data = { ...updatedField.data, needs: [] };
+          }
+          // La lògica per a 'schedule' ja era correcta, però la mantenim per consistència.
+          if (fieldName === 'schedule' && updatedField.data) {
+            updatedField.data = [];
+          }
         }
-        if (fieldName === 'schedule' && updatedField.data) {
-          updatedField.data = [];
-        }
-      }
+        // FI DE LA CORRECCIÓ
 
       return { ...prev, [fieldName]: updatedField };
     });
