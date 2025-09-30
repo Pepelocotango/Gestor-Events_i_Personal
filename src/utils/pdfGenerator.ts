@@ -195,28 +195,42 @@ export const exportMaterialControlSummaryPdf = async (
     let y = createPdfHeader(pdf, 'Resum de Control de Material');
     let pageCount = 1;
 
-    const itemsByCategory: { [key: string]: MaterialControlRow[] } = {};
-    data.forEach(row => {
-      const category = row.item.category || 'Sense Categoria';
-      if (!itemsByCategory[category]) {
-        itemsByCategory[category] = [];
-      }
-      itemsByCategory[category].push(row);
-    });
-
-    const head = [['Estoc', 'Nom', 'Demanada', 'Balanç']];
+    // Data is pre-sorted: 1. Category, 2. Origin, 3. Name
+    const head = [['Nom', 'Origen', 'Estoc', 'Balanç', 'Demanada']];
     const body: any[][] = [];
+    let lastCategory = '';
+    let lastOrigin = '';
 
-    Object.keys(itemsByCategory).sort().forEach(category => {
-      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: '#e0e0e0', textColor: '#000000', fontSize: 11 } }]);
-      itemsByCategory[category].forEach(row => {
-        body.push([
-          row.item.stock.toString(),
-          row.item.name,
-          row.totalDemand.toString(),
-          { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? '#c0392b' : '#27ae60' } }
-        ]);
-      });
+    data.forEach(row => {
+      // Add category header if it changes
+      if (row.item.category !== lastCategory) {
+        lastCategory = row.item.category;
+        lastOrigin = ''; // Reset origin when category changes
+        body.push([{
+          content: lastCategory,
+          colSpan: 5,
+          styles: { fontStyle: 'bold', fillColor: '#d3d3d3', textColor: '#000000', fontSize: 11, halign: 'left' }
+        }]);
+      }
+
+      // Add origin sub-header if it changes
+      if (row.item.location !== lastOrigin) {
+        lastOrigin = row.item.location;
+        body.push([{
+          content: `Origen: ${lastOrigin}`,
+          colSpan: 5,
+          styles: { fontStyle: 'italic', fillColor: '#f0f0f0', textColor: '#333333', fontSize: 10, halign: 'left' }
+        }]);
+      }
+
+      // Add the material data row
+      body.push([
+        row.item.name,
+        row.item.location,
+        row.item.stock.toString(),
+        { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? '#c0392b' : '#27ae60' } },
+        row.totalDemand.toString()
+      ]);
     });
 
     autoTable(pdf, {

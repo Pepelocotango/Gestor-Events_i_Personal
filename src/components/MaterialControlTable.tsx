@@ -1,24 +1,14 @@
 import React, { useState } from 'react';
 import { MaterialControlRow } from '../types';
-import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon } from '../constants';
+import { ChevronDownIcon, ChevronRightIcon } from '../constants';
 import { formatDateRangeDMY } from '../utils/dateFormat';
 import Tooltip from './ui/Tooltip';
 
-type SortDirection = 'ascending' | 'descending';
-type SortableKeys = 'name' | 'category' | 'origin' | 'balance';
-
-interface SortConfig {
-  key: SortableKeys;
-  direction: SortDirection;
-}
-
 interface MaterialControlTableProps {
   data: MaterialControlRow[];
-  requestSort: (key: SortableKeys) => void;
-  sortConfigs: SortConfig[];
 }
 
-const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, requestSort, sortConfigs }) => {
+const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const toggleRow = (itemId: string) => {
@@ -48,48 +38,19 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, reque
                 <span>Estoc</span>
               </Tooltip>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('name')}>
-              <Tooltip text="Nom del material. Fes clic per ordenar.">
-                <div className="flex items-center">
-                  Nom
-                  {sortConfigs.find(c => c.key === 'name')?.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />}
-                </div>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <Tooltip text="Nom del material">
+                <span>Nom</span>
               </Tooltip>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('category')}>
-              <Tooltip text="Categoria del material. Fes clic per ordenar.">
-                <div className="flex items-center">
-                  Categoria
-                  {(() => {
-                    const config = sortConfigs.find(c => c.key === 'category');
-                    const index = sortConfigs.findIndex(c => c.key === 'category');
-                    if (!config) return null;
-                    return (
-                      <>
-                        {config.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />}
-                        {sortConfigs.length > 1 && index !== -1 && <span className="ml-1 text-xs font-bold">{index + 1}</span>}
-                      </>
-                    );
-                  })()}
-                </div>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <Tooltip text="Categoria del material">
+                <span>Categoria</span>
               </Tooltip>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('origin')}>
-              <Tooltip text="Origen o magatzem del material. Fes clic per ordenar.">
-                <div className="flex items-center">
-                  Origen
-                  {(() => {
-                    const config = sortConfigs.find(c => c.key === 'origin');
-                    const index = sortConfigs.findIndex(c => c.key === 'origin');
-                    if (!config) return null;
-                    return (
-                      <>
-                        {config.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />}
-                        {sortConfigs.length > 1 && index !== -1 && <span className="ml-1 text-xs font-bold">{index + 1}</span>}
-                      </>
-                    );
-                  })()}
-                </div>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <Tooltip text="Origen o magatzem del material">
+                <span>Origen</span>
               </Tooltip>
             </th>
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -97,22 +58,9 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data, reque
                 <span>Demanada</span>
               </Tooltip>
             </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => requestSort('balance')}>
-              <Tooltip text="Balanç final del material (Estoc - Demanada). Fes clic per ordenar.">
-                <div className="flex items-center justify-end">
-                  Balanç
-                  {(() => {
-                    const config = sortConfigs.find(c => c.key === 'balance');
-                    const index = sortConfigs.findIndex(c => c.key === 'balance');
-                    if (!config) return null;
-                    return (
-                      <>
-                        {config.direction === 'ascending' ? <ChevronUpIcon className="w-4 h-4 ml-1" /> : <ChevronDownIcon className="w-4 h-4 ml-1" />}
-                        {sortConfigs.length > 1 && index !== -1 && <span className="ml-1 text-xs font-bold">{index + 1}</span>}
-                      </>
-                    );
-                  })()}
-                </div>
+            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <Tooltip text="Balanç final del material (Estoc - Demanada).">
+                <span>Balanç</span>
               </Tooltip>
             </th>
           </tr>

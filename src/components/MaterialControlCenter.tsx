@@ -8,14 +8,6 @@ import MaterialControlFilters from './MaterialControlFilters';
 import MaterialControlTable from './MaterialControlTable';
 import Tooltip from './ui/Tooltip';
 
-type SortDirection = 'ascending' | 'descending';
-type SortableKeys = 'name' | 'category' | 'origin' | 'balance';
-
-interface SortConfig {
-  key: SortableKeys;
-  direction: SortDirection;
-}
-
 interface MaterialControlCenterProps {
   showToast: ShowToastFunction;
 }
@@ -33,10 +25,6 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
     searchText: '',
   });
 
-  const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([
-    { key: 'balance', direction: 'ascending' },
-  ]);
-
   const allOrigins = useMemo(() => selectAvailableOrigins({ materialItems } as any), [materialItems]);
   const allCategories = useMemo(() => {
     const categories = new Set(materialItems.map(item => item.category));
@@ -49,76 +37,24 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
     }
     const data = selectMaterialControlData({ eventFrames, materialItems } as any, filters);
 
+    // Centralized sorting: 1. Category, 2. Origin, 3. Name
     const sortedData = [...data].sort((a, b) => {
-      for (const config of sortConfigs) {
-        let aValue: string | number;
-        let bValue: string | number;
-
-        switch (config.key) {
-          case 'name':
-            aValue = a.item.name;
-            bValue = b.item.name;
-            break;
-          case 'category':
-            aValue = a.item.category;
-            bValue = b.item.category;
-            break;
-          case 'origin':
-            aValue = a.item.location;
-            bValue = b.item.location;
-            break;
-          case 'balance':
-            aValue = a.balance;
-            bValue = b.balance;
-            break;
-          default:
-            aValue = a.item.name;
-            bValue = b.item.name;
-        }
-
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-            if (aValue < bValue) return config.direction === 'ascending' ? -1 : 1;
-            if (aValue > bValue) return config.direction === 'ascending' ? 1 : -1;
-        } else if (typeof aValue === 'string' && typeof bValue === 'string') {
-            const comparison = aValue.localeCompare(bValue);
-            if (comparison !== 0) return config.direction === 'ascending' ? comparison : -comparison;
-        }
+      const categoryComparison = a.item.category.localeCompare(b.item.category);
+      if (categoryComparison !== 0) {
+        return categoryComparison;
       }
-      return 0;
+
+      const originComparison = a.item.location.localeCompare(b.item.location);
+      if (originComparison !== 0) {
+        return originComparison;
+      }
+
+      return a.item.name.localeCompare(b.item.name);
     });
 
     return sortedData;
-  }, [eventFrames, materialItems, filters, isUpdatingMaterial, sortConfigs]);
+  }, [eventFrames, materialItems, filters, isUpdatingMaterial]);
 
-  const requestSort = (key: SortableKeys) => {
-    setSortConfigs(prevConfigs => {
-      const existingConfigIndex = prevConfigs.findIndex(c => c.key === key);
-      let newConfigs = [...prevConfigs];
-
-      if (existingConfigIndex === 0) {
-        // Si es clica el criteri principal, només canvia la direcció
-        newConfigs[0].direction = newConfigs[0].direction === 'ascending' ? 'descending' : 'ascending';
-      } else {
-        // Si es clica un nou criteri, o un de secundari, es posa al principi
-        let newConfig: SortConfig = { key, direction: 'ascending' };
-        if (existingConfigIndex > 0) {
-          // Si ja existeix, el movem al principi
-          newConfig = { ...newConfigs[existingConfigIndex], direction: 'ascending' };
-          newConfigs.splice(existingConfigIndex, 1);
-        }
-        newConfigs.unshift(newConfig);
-      }
-
-      // Assegurem que "name" sempre hi sigui com a últim desempat, si no és ja un criteri principal
-      const hasNameSort = newConfigs.some(c => c.key === 'name');
-      if (!hasNameSort) {
-        newConfigs.push({ key: 'name', direction: 'ascending' });
-      }
-
-      // Limitem a 3 criteris (2 principals + nom)
-      return newConfigs.slice(0, 3);
-    });
-  };
 
   const handleExportSummaryPdf = () => {
     if (filteredData.length === 0) {
@@ -129,14 +65,25 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
   };
 
   const handleExportDetailedPdf = () => {
-     if (filteredData.length === 0) {
-        showToast('No hi ha dades per exportar.', 'warning');
-        return;
+    if (filteredData.length === 0) {
+      showToast('No hi ha dades per exportar.', 'warning');
+      return;
     }
-    const relevantEventIds = new Set(filters.selectedEventIds);
-    const eventsToExport = relevantEventIds.size > 0
-        ? eventFrames.filter(ef => relevantEventIds.has(ef.id))
-        : eventFrames; // o potser tots els esdeveniments rellevants de `filteredData`?
+
+    // Deduce relevant events from the filtered data that is being displayed
+    const relevantEventIds = new Set<string>();
+    filteredData.forEach(row => {
+      row.breakdown.forEach(bd => {
+        relevantEventIds.add(bd.eventFrameId);
+      });
+    });
+
+    if (relevantEventIds.size === 0) {
+      showToast('No hi ha cap esdeveniment associat a les dades filtrades per exportar.', 'warning');
+      return;
+    }
+
+    const eventsToExport = eventFrames.filter(ef => relevantEventIds.has(ef.id));
 
     exportMaterialControlDetailedPdf(filteredData, eventsToExport, showToast);
   };
@@ -195,8 +142,6 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
       ) : (
           <MaterialControlTable
             data={filteredData}
-            requestSort={requestSort}
-            sortConfigs={sortConfigs}
           />
       )}
     </div>

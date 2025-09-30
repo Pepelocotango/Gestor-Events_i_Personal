@@ -603,15 +603,14 @@ La lògica principal resideix al selector `selectMaterialControlData` dins de `e
         d.  **Determinació del Pic:** Emmagatzema el valor diari més alt trobat durant la iteració. Aquest valor és el `totalDemand`.
     3.  **Càlcul del Balanç:** El balanç es calcula com `item.stock - totalDemand`. Un valor negatiu indica un dèficit en el dia de màxima demanda.
 
-#### Canvis a la Interfície d'Usuari (`MaterialControlTable.tsx`)
+#### Lògica d'Ordenació Centralitzada i UI (`MaterialControlCenter.tsx`)
 
-Per reflectir aquesta nova lògica, la interfície s'ha reorganitzat:
+Per millorar la consistència i la claredat, la lògica d'ordenació de dades s'ha centralitzat i simplificat:
 
--   **Nou Ordre de Columnes:** Les columnes ara segueixen un ordre més lògic per a la gestió d'estoc: `Estoc`, `Nom`, `Categoria`, `Origen`, `Demanada`, `Balanç`.
--   **Ordenació per Defecte:** La taula s'ordena per defecte per la columna `Balanç` en ordre ascendent, destacant immediatament els ítems amb més problemes d'estoc (els balanços més negatius).
--   **Desglossament Enriquit:** En expandir una fila, el desglossament ara mostra no només la quantitat necessària per a cada esdeveniment, sinó també el rang de dates de l'esdeveniment, proporcionant un context crucial.
-
-Aquesta refactorització converteix el Centre de Control de Material en una eina predictiva molt més precisa i útil per a la planificació logística.
+-   **Ordenació Jeràrquica Fixa:** Les dades del Centre de Control de Material ara s'ordenen sempre seguint una jerarquia estricta: 1r per **Categoria**, 2n per **Origen** (`location`), i 3r per **Nom**.
+-   **Lògica Centralitzada:** Aquesta ordenació es realitza dins d'un `useMemo` al component `MaterialControlCenter.tsx`, just després de filtrar les dades. Això garanteix que tant la taula visual com totes les funcions d'exportació (PDF Resum, PDF Detallat, CSV) rebin exactament les mateixes dades ja ordenades.
+-   **Eliminació d'Ordenació Interactiva:** Com a conseqüència, s'ha eliminat la possibilitat que l'usuari ordeni la taula fent clic a les capçaleres. S'ha netejat el codi de `MaterialControlTable.tsx` i `MaterialControlCenter.tsx`, eliminant els estats (`sortConfigs`), funcions (`requestSort`) i lògica de la UI que gestionaven l'ordenació dinàmica.
+-   **Desglossament Enriquit:** Es manté el desglossament enriquit, que mostra el detall per esdeveniment amb les seves dates.
 
 
 
@@ -705,6 +704,22 @@ L'aplicació ofereix múltiples opcions per externalitzar i internalitzar dades,
     -   `MainDisplay.tsx` manté un estat (`currentlyDisplayedFrames`) que reflecteix la llista d'esdeveniments actualment visibles segons els filtres aplicats.
     -   Quan l'usuari clica "Exportar a CSV/PDF", aquesta llista filtrada és la que es passa a les funcions d'exportació, assegurant que l'arxiu generat sigui un reflex fidel del que l'usuari veu a la pantalla.
 -   **Compatibilitat amb Excel (BOM):** Per garantir la correcta visualització d'accents i caràcters especials en programes com Microsoft Excel, els components que generen fitxers CSV (com `PeopleDisplay.tsx`) afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut del fitxer.
+
+##### Millores a les Exportacions del Centre de Control de Material
+S'han implementat millores significatives a les funcions d'exportació del Centre de Control de Material per augmentar-ne la claredat i la fiabilitat.
+
+-   **Exportació a PDF Resum (`exportMaterialControlSummaryPdf`):**
+    -   **Estructura Jeràrquica:** Aquesta funció ja no realitza la seva pròpia agrupació. Rep les dades pre-ordenades (per categoria, origen i nom) des de `MaterialControlCenter.tsx`.
+    -   **Agrupació Visual:** Itera sobre les dades i injecta dinàmicament files de capçalera per a cada **categoria** i sub-capçaleres per a cada **origen**, creant una estructura visual clara i fàcil de seguir.
+    -   **Noves Columnes:** S'ha afegit la columna 'Origen' i s'ha reorganitzat la capçalera a `['Nom', 'Origen', 'Estoc', 'Balanç', 'Demanada']` per a una millor llegibilitat.
+
+-   **Exportació a CSV (`exportMaterialControlCsv`):**
+    -   Aquesta funció ara rep les dades ja ordenades jeràrquicament. No s'ha necessitat cap canvi en la seva lògica, però el resultat és un CSV amb les files pre-ordenades de manera consistent amb el PDF de resum.
+
+-   **Correcció a l'Exportació de PDF Detallat (`handleExportDetailedPdf`):**
+    -   S'ha solucionat un error crític que provocava que s'exportés un PDF buit si no hi havia cap esdeveniment seleccionat explícitament al filtre.
+    -   La nova lògica a `MaterialControlCenter.tsx` dedueix quins esdeveniments són rellevants directament de les dades filtrades (`filteredData`). Itera sobre el desglossament de cada fila, recull tots els `eventFrameId` únics en un `Set`, i filtra la llista completa d'esdeveniments amb aquest conjunt.
+    -   Això garanteix que el PDF detallat sempre contingui la informació dels esdeveniments associats a les dades que l'usuari està veient a la taula.
 
 La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha estat optimitzada per crear documents nets i rellevants:
 
