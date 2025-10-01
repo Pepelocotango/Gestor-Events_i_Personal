@@ -1,4 +1,4 @@
-import React, { useState, useRef, ReactElement, useLayoutEffect } from 'react';
+import React, { useState, useRef, ReactElement, useLayoutEffect, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
 interface TooltipProps {
@@ -14,6 +14,15 @@ const Tooltip: React.FC<TooltipProps> = ({ text, children, delay = 500 }) => {
   const childRef = useRef<HTMLElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Cleanup function to clear the timeout when the component unmounts
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleMouseEnter = (e: React.MouseEvent) => {
     const target = e.currentTarget as HTMLElement;
