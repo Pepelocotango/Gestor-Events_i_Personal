@@ -854,6 +854,8 @@ import Tooltip from './ui/Tooltip';
     -   Utilitza `position: absolute` i `transform` per posicionar-se correctament respecte a l'element que l'activa.
     -   Té un `z-index` molt alt per assegurar que sempre es mostri per sobre de tots els altres elements.
 
+-   **Solució de Condició de Cursa (Race Condition) en Desmuntatge:** S'ha solucionat un bug crític que provocava la pèrdua de focus de la finestra. El problema ocorria quan un element amb un tooltip actiu desapareixia de la UI (per exemple, en ser eliminat d'una llista). El temporitzador del tooltip intentava executar-se després que el component s'hagués desmuntat, causant una condició de cursa que afectava el focus. La solució ha consistit a implementar una funció de neteja (`cleanup function`) dins d'un `useEffect` al component `Tooltip`. Aquesta funció s'assegura de cancel·lar qualsevol temporitzador pendent (`clearTimeout`) en el moment en què el component es desmunta, garantint que no quedin operacions asíncrones residuals i prevenint la pèrdua de focus.
+
 ---
 
 ## 7. Compilació i Desplegament (CI/CD)
