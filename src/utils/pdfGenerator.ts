@@ -231,6 +231,20 @@ export const exportMaterialControlSummaryPdf = async (
         { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? '#c0392b' : '#27ae60' } },
         row.totalDemand.toString()
       ]);
+
+      // Add notes row if they exist
+      if (row.item.notes) {
+        body.push([{
+          content: `Nota: ${row.item.notes}`,
+          colSpan: 5,
+          styles: {
+            fillColor: '#f5f5f5',
+            textColor: '#444444',
+            fontStyle: 'italic',
+            fontSize: 8
+          }
+        }]);
+      }
     });
 
     autoTable(pdf, {

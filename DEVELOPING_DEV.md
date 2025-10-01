@@ -712,6 +712,7 @@ S'han implementat millores significatives a les funcions d'exportació del Centr
     -   **Estructura Jeràrquica:** Aquesta funció ja no realitza la seva pròpia agrupació. Rep les dades pre-ordenades (per categoria, origen i nom) des de `MaterialControlCenter.tsx`.
     -   **Agrupació Visual:** Itera sobre les dades i injecta dinàmicament files de capçalera per a cada **categoria** i sub-capçaleres per a cada **origen**, creant una estructura visual clara i fàcil de seguir.
     -   **Noves Columnes:** S'ha afegit la columna 'Origen' i s'ha reorganitzat la capçalera a `['Nom', 'Origen', 'Estoc', 'Balanç', 'Demanada']` per a una millor llegibilitat.
+    -   **Inclusió de Notes:** Si un ítem de material té notes, aquestes s'inclouen en una fila addicional just a sota de l'ítem, amb un estil visual diferenciat per a una fàcil identificació.
 
 -   **Exportació a CSV (`exportMaterialControlCsv`):**
     -   Aquesta funció ara rep les dades ja ordenades jeràrquicament. No s'ha necessitat cap canvi en la seva lògica, però el resultat és un CSV amb les files pre-ordenades de manera consistent amb el PDF de resum.
