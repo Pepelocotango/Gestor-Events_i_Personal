@@ -940,6 +940,7 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Consistència de la Interfície d'Usuari**: S'ha fet un esforç per estandarditzar el comportament dels components interactius. Per exemple, totes les seccions col·lapsables ara permeten expandir/col·lapsar fent clic a qualsevol lloc de la capçalera, no només a la icona.
 -   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
+-   **Ús de Modals Interns per a Confirmacions**: Per evitar bugs de pèrdua de focus i mantenir una experiència d'usuari consistent, s'ha estandarditzat l'ús del sistema de modals interns de l'aplicació (`useModalStore`) en lloc de les funcions natives del navegador com `window.confirm()`. Qualsevol nova acció que requereixi confirmació de l'usuari ha d'implementar un modal a través d'aquest sistema.
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
 

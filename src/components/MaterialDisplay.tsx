@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useModalStore } from '../stores/modalStore';
 import MaterialControlCenter from './MaterialControlCenter';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { MaterialItem, ShowToastFunction } from '../types';
@@ -20,6 +21,7 @@ interface MaterialDisplayProps {
 const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   const { addMaterialItem, updateMaterialItem, deleteMaterialItem } = useEventDataStore.getState();
   const materialItems = useEventDataStore(state => state.materialItems);
+  const { openModal } = useModalStore();
   
   const [editingItem, setEditingItem] = useState<MaterialItem | null>(null);
   const [search, setSearch] = useState('');
@@ -52,13 +54,17 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   };
 
   const handleDelete = (item: MaterialItem) => {
-    if (window.confirm(`Segur que vols eliminar "${item.name}"?`)) {
-      deleteMaterialItem(item.id);
-      showToast('Material eliminat.', 'success');
-      if (editingItem?.id === item.id) {
-        resetForm();
-      }
-    }
+    openModal('confirmDelete', {
+      itemType: 'Material',
+      itemName: item.name,
+      onConfirm: () => {
+        deleteMaterialItem(item.id);
+        showToast('Material eliminat.', 'success');
+        if (editingItem?.id === item.id) {
+          resetForm();
+        }
+      },
+    });
   };
 
   const handleExportPdf = () => {

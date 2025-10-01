@@ -248,6 +248,7 @@ export type ModalType =
   | 'confirmDuplicate'
   | 'updateFromAssignments'
   | 'addMaterialFromTechSheet'
+  | 'confirmDelete'
   | 'history'
   | null;
 
@@ -273,7 +274,7 @@ export interface ModalData {
     place?: string;
     generalNotes?: string;
     itemType?: string;
-    onConfirm?: (selectedChanges?: any[]) => void;
+    onConfirm?: (...args: any[]) => void;
     onCancel?: () => void;
     onConfirmSpecial?: (inputValue?: string) => void;
     confirmButtonText?: string;

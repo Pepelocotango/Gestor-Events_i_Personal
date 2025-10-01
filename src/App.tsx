@@ -779,6 +779,15 @@ const handleSaveDocument = async (): Promise<boolean> => {
                   }}
                   showToast={showToast}
                 />;
+
+      case 'confirmDelete':
+        return <ConfirmDeleteModal
+                  onClose={closeModal}
+                  itemType={data!.itemType!}
+                  itemName={data!.itemName!}
+                  onConfirm={data!.onConfirm!}
+                  showToast={showToast}
+                />;
                 
       case 'confirmDeleteAssignment':
         return <ConfirmDeleteModal
@@ -879,6 +888,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
+      case 'confirmDelete':
         return "Confirmar Eliminació";
       case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
       default: return "Diàleg";
