@@ -48,7 +48,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   return (
     <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
       <div
-        className="p-1 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
+        className="px-1 py-0.5 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
         onClick={(e) => {
           e.stopPropagation();
           // Only toggle expand if the click is not on an interactive element like a button.
@@ -60,7 +60,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
         }}
       >
         <div className="flex flex-col sm:flex-row justify-between sm:items-center">
-          <div className="mb-1 sm:mb-0 flex items-center gap-1.5">
+          <div className="mb-0.5 sm:mb-0 flex items-center gap-1">
             <Tooltip text={eventFrame.personnelComplete ? 'Marcar com a incomplet' : 'Marcar com a complet'}>
               <button
                 onClick={(e) => {
@@ -75,7 +75,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
             </Tooltip>
             <h4
               id={`event-frame-title-${eventFrame.id}`}
-              className="text-base font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5" // <<< Afegim classes flex
+              className="text-sm font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1"
               onClick={(e) => {
                 e.stopPropagation();
                 openModal('eventFrameDetails', { eventFrame });
@@ -117,8 +117,8 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
-              <button onClick={(e) => { e.stopPropagation(); logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); onToggleExpand(eventFrame.id); }} className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
-                {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
+              <button onClick={(e) => { e.stopPropagation(); logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); onToggleExpand(eventFrame.id); }} className="p-0.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+                {isExpanded ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
               </button>
             </Tooltip>
           </div>
@@ -126,18 +126,18 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       </div>
 
       {isExpanded && (
-        <div className="p-1 bg-white dark:bg-gray-800">
+        <div className="px-1 py-0.5 bg-white dark:bg-gray-800">
           {eventFrame.generalNotes && (
-            <div className="mb-1">
+            <div className="mb-0.5">
               <h5 className="font-medium text-sm">Notes Generals</h5>
               <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{eventFrame.generalNotes}</p>
             </div>
           )}
-          <h5 className="font-medium text-sm mb-1">Assignacions</h5>
+          <h5 className="font-medium text-sm mb-0.5">Assignacions</h5>
           {filteredAssignments.length === 0 ? (
             <p className="text-xs text-gray-500">No hi ha assignacions que coincideixin amb els filtres.</p>
           ) : (
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {filteredAssignments.map(assign => (
                 <AssignmentCard
                   key={assign.id}

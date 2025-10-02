@@ -933,7 +933,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
         <ErrorBoundary>
           <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
             {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
-            <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+            <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700">
             <CustomMenuBar
               canUndo={canUndo}
               canRedo={canRedo}
@@ -943,7 +943,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
               hasUnsavedChanges={hasUnsavedChanges}
               recentFiles={recentFiles}
             />
-            <div className="p-2 px-2 sm:px-4 lg:px-6">
+            <div className="px-1 py-1">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   theme={theme}
@@ -958,7 +958,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             </div>
           </header>
 
-          <main className="flex-grow px-2 sm:px-4 lg:px-6">
+          <main className="flex-grow px-1 pt-2">
             {!isDocumentOpen ? (
               <WelcomeScreen
                 recentFiles={recentFiles}
