@@ -35,10 +35,10 @@ const Controls: React.FC<ControlsProps> = ({
   const toggleExpansion = () => setIsExpanded(prev => !prev);
 
   return (
-    <div className="p-1 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg w-full">
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg w-full">
       <div className="flex justify-between items-center w-full">
         <Tooltip text={currentFilePath || 'Cap fitxer carregat'}>
-          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+          <div className="text-xs text-gray-500 dark:text-gray-400 truncate pl-1">
             Fitxer de dades: <strong>{currentFilePath || 'Document nou sense desar'}</strong>
           </div>
         </Tooltip>
@@ -53,9 +53,9 @@ const Controls: React.FC<ControlsProps> = ({
       </div>
 
       {isExpanded && (
-        <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-1">
+        <div className="pt-1 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-0.5">
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <Tooltip text="Desfer (Ctrl+Z)">
                 <button onClick={() => undo()} disabled={!canUndo} className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
                   <ArrowUturnLeftIcon className="w-5 h-5" />
@@ -72,7 +72,7 @@ const Controls: React.FC<ControlsProps> = ({
                 </button>
               </Tooltip>
 
-              <div className="border-l border-gray-300 dark:border-gray-600 h-6 mx-1"></div>
+              <div className="border-l border-gray-300 dark:border-gray-600 h-6 mx-0.5"></div>
 
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
                 <button
@@ -132,7 +132,7 @@ const Controls: React.FC<ControlsProps> = ({
           </div>
 
           <div className="flex items-center justify-end w-full">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <Tooltip text="Sincronitzar manualment amb Google Calendar">
                 <button
                   onClick={syncWithGoogle}

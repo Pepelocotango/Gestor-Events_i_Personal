@@ -55,17 +55,17 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
   const contentId = id ? `${id}-content` : undefined;
 
   return (
-    <div className="mb-2 bg-white dark:bg-gray-800 shadow-md rounded-lg">
+    <div className="mb-1 bg-white dark:bg-gray-800 shadow-md rounded-lg">
       <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
-        <button id={buttonId} onClick={handleToggle} className="w-full flex justify-between items-center p-1.5 text-left text-base font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
-          <div className="flex items-center gap-1.5">
+        <button id={buttonId} onClick={handleToggle} className="w-full flex justify-between items-center p-1 text-left text-sm font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
+          <div className="flex items-center gap-1">
             {icon && <React.Fragment>{icon}</React.Fragment>}
             <span>{title}</span>
           </div>
-          {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+          {isOpen ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
         </button>
       </Tooltip>
-      {isOpen && <div id={contentId} className="p-1.5 border-t border-gray-200 dark:border-gray-700">{children}</div>}
+      {isOpen && <div id={contentId} className="p-1 border-t border-gray-200 dark:border-gray-700">{children}</div>}
     </div>
   );
 };
@@ -372,7 +372,7 @@ const MainDisplay = React.forwardRef<
   };
 
     return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
         <div className="calendar-wrapper" style={{ padding: '0.25rem' }}>
           <FullCalendar

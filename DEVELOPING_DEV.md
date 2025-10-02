@@ -26,6 +26,7 @@ const { updateMaterialItem } = useEventDataStore.getState();
 import { useStore } from 'zustand';
 const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 0);
 ```
+- **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Això optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
 
 Consulta les seccions corresponents per a detalls i exemples complets.
 

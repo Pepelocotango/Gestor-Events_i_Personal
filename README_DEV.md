@@ -40,6 +40,7 @@ El projecte està actualment en fase de desenvolupament actiu.
   * Substitució del menú natiu d'Electron per un component React, amb accions IPC centralitzades.
 
 * **Altres millores:**
+  * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.
   * Refactorització de stores, modals, tech_sheets i utils.
   * Gestió d'errors robusta amb logs de sessió i ErrorBoundary.
 
