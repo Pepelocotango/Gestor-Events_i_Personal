@@ -943,7 +943,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
               hasUnsavedChanges={hasUnsavedChanges}
               recentFiles={recentFiles}
             />
-            <div className="container mx-auto p-2">
+            <div className="p-2 px-4 sm:px-6 lg:px-8">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   theme={theme}
@@ -958,7 +958,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             </div>
           </header>
 
-          <main className="container mx-auto p-1 flex-grow">
+          <main className="flex-grow px-4 sm:px-6 lg:px-8">
             {!isDocumentOpen ? (
               <WelcomeScreen
                 recentFiles={recentFiles}
