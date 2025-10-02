@@ -31,7 +31,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 
   // Efecte per omplir el formulari quan initialData canvia (mode edició)
   useEffect(() => {
@@ -175,7 +175,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="px-3 py-1.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 rounded-md"
+              className="px-3 py-1.5 text-sm font-medium bg-gray-300 dark:bg-gray-600 rounded-md"
             >
               Cancel·lar
             </button>

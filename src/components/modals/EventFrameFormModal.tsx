@@ -93,7 +93,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
       });
     }
   };
-  const commonInputClass = "mt-1 block w-full px-2 py-1 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
+  const commonInputClass = "mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
   
   const uniqueEventNames = Array.from(new Set(eventFrames.map(ef => ef.name).filter(Boolean)));
   const uniqueLocations = Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean)));

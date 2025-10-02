@@ -71,7 +71,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
     setSortConfig({ key, direction });
   };
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
 
   const resetForm = () => {
     setName('');
@@ -206,7 +206,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Columna del formulari */}
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
                 <form onSubmit={handleSubmit} className="space-y-3" aria-labelledby="people-group-form-title">
                     <div className="flex items-center justify-between mb-2">
                         <h4 id="people-group-form-title" className="text-lg font-medium text-gray-800 dark:text-gray-200">{editingContact ? 'Editar Contacte' : 'Afegir Nou Contacte'}</h4>
@@ -273,7 +273,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                     <div className="flex justify-end space-x-2 pt-2">
                         {editingContact && (
                             <Tooltip text="Cancel·lar els canvis i netejar el formulari">
-                                <button type="button" onClick={resetForm} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar Edició</button>
+                                <button type="button" onClick={resetForm} className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-md border border-gray-400 dark:border-gray-500">Cancel·lar Edició</button>
                             </Tooltip>
                         )}
                         <Tooltip text={editingContact ? 'Desar els canvis' : 'Afegir el nou contacte'}>
@@ -284,7 +284,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
             </div>
 
             {/* Columna de la llista */}
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
                 <div className="flex items-center justify-between mb-2">
                     <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Llista de Contactes</h4>
                     <div className="flex items-center gap-2">
@@ -307,7 +307,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                     <Tooltip text="Cercar per nom, rol, email o telèfon">
                       <input
                       type="search"
-                      className="block w-full px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="block w-full px-2 py-1 bg-gray-100 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       placeholder="Cerca per nom, rol, email, tel..."
                       value={search}
                       onChange={e => setSearch(e.target.value)}
@@ -318,12 +318,12 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                 <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm font-medium">Ordenar per:</span>
                     <Tooltip text="Ordenar per nom (A-Z / Z-A)">
-                      <button onClick={() => requestSort('name')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>
+                      <button onClick={() => requestSort('name')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600'}`}>
                           Nom {sortConfig.key === 'name' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                       </button>
                     </Tooltip>
                     <Tooltip text="Ordenar per rol (A-Z / Z-A)">
-                      <button onClick={() => requestSort('role')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'role' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>
+                      <button onClick={() => requestSort('role')} className={`px-2 py-0.5 text-xs rounded-md ${sortConfig.key === 'role' ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600'}`}>
                           Rol {sortConfig.key === 'role' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                       </button>
                     </Tooltip>
@@ -333,7 +333,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                 ) : (
                     <ul className="space-y-1 max-h-[55vh] overflow-y-auto" aria-label="Llista de contactes existents">
                     {sortedContacts.map((p: PersonGroup) => (
-                        <li key={p.id} className="p-2 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <li key={p.id} className="p-2 border dark:border-gray-700 rounded-md bg-gray-100 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                         <div className="flex justify-between items-start">
                             <div className="flex-grow">
                                 <span className="font-semibold text-gray-800 dark:text-gray-100">{p.name}</span>
@@ -363,11 +363,11 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
 
         {showDeleteModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm w-full">
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm w-full">
                     <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">Confirmar Eliminació</h3>
                     <p className="mb-4 text-gray-700 dark:text-gray-300">Segur que vols eliminar a <span className="font-bold">{editingContact?.name}</span>? Aquesta acció no es pot desfer.</p>
                     <div className="flex justify-end gap-2">
-                    <button onClick={() => setShowDeleteModal(false)} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
+                    <button onClick={() => setShowDeleteModal(false)} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-md border border-gray-400 dark:border-gray-500">Cancel·lar</button>
                     <button onClick={confirmActualDeleteContact} className="px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">Eliminar</button>
                     </div>
                 </div>

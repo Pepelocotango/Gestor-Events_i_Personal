@@ -29,7 +29,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 
   const categories = useMemo(() => Array.from(new Set(materialItems.map((item: MaterialItem) => item.category))).sort((a,b) => a.localeCompare(b, 'ca', { sensitivity: 'base' })), [materialItems]);
   const locations = useMemo(() => Array.from(new Set(materialItems.map((item: MaterialItem) => item.location).filter(Boolean))).sort((a,b) => a.localeCompare(b, 'ca', { sensitivity: 'base' })), [materialItems]);
@@ -157,7 +157,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   };
 
   const renderItemRow = (item: MaterialItem) => (
-    <div key={item.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/60">
+    <div key={item.id} className="p-3 border dark:border-gray-700 rounded-md bg-gray-100 dark:bg-gray-700/60">
       <div className="flex justify-between items-start gap-2">
         <div className="w-2/5">
           <p className="font-semibold">{item.name}</p>
@@ -187,7 +187,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Columna del formulari */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
             {editingItem ? 'Editar Material' : 'Afegir Nou Material'}
           </h4>
@@ -204,7 +204,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
         </div>
 
         {/* Columna de la llista */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-medium">Inventari</h4>
             <div className="flex items-center gap-2">
@@ -228,15 +228,15 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">Ordenar per:</span>
               <Tooltip text="Agrupar per categoria i ordenar dins de cada grup">
-                <button onClick={() => handleSortModeChange('category')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'category' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Categoria</button>
+                <button onClick={() => handleSortModeChange('category')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'category' ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600'}`}>Categoria</button>
               </Tooltip>
               <Tooltip text="Ordenar tota la llista per nom d'ítem">
-                <button onClick={() => handleSortModeChange('name')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600'}`}>Nom d'Ítem</button>
+                <button onClick={() => handleSortModeChange('name')} className={`px-2 py-1 text-sm rounded-md ${sortMode === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600'}`}>Nom d'Ítem</button>
               </Tooltip>
             </div>
             {sortMode === 'category' && Object.keys(expandedCategories).length > 0 && (
               <Tooltip text="Expandir o col·lapsar totes les categories">
-                <button onClick={toggleAll} className="px-2 py-1 text-sm rounded-md bg-gray-200 dark:bg-gray-600">
+                <button onClick={toggleAll} className="px-2 py-1 text-sm rounded-md bg-gray-300 dark:bg-gray-600">
                   {Object.values(expandedCategories).every(Boolean) ? 'Col·lapsar Tot' : 'Expandir Tot'}
                 </button>
               </Tooltip>
@@ -275,7 +275,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
                     title={`${category} (${items.length})`}
                     isExpanded={expandedCategories[category]}
                     onToggle={() => handleToggleCategory(category)}
-                    headerClassName="bg-gray-50 dark:bg-gray-700/50 text-md"
+                    headerClassName="bg-gray-100 dark:bg-gray-700/50 text-md"
                     contentClassName="space-y-2"
                   >
                     {items.map(renderItemRow)}
@@ -296,7 +296,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
         defaultOpen={false}
         headerClassName="text-xl font-semibold"
       >
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-b-lg border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-b-lg border-t border-gray-300 dark:border-gray-700">
           <MaterialControlCenter showToast={showToast} />
         </div>
       </CollapsibleSection>

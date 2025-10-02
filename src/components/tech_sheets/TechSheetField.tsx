@@ -39,9 +39,9 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   className = '',
   tooltipText,
 }) => {
-  const baseClasses = "mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm resize-none overflow-hidden";
-  const disabledClasses = "disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed";
-  const readOnlyClasses = "read-only:bg-gray-100 dark:read-only:bg-gray-500";
+  const baseClasses = "mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm resize-none overflow-hidden";
+  const disabledClasses = "disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed";
+  const readOnlyClasses = "read-only:bg-gray-200 dark:read-only:bg-gray-500";
 
   const finalClassName = `${baseClasses} ${disabledClasses} ${readOnlyClasses} ${className}`.trim();
 

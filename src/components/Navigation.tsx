@@ -14,12 +14,12 @@ const Navigation: React.FC = () => {
     `flex items-center gap-1 px-1.5 text-xs font-medium rounded-md transition-colors ${
       isActive
         ? 'bg-blue-600 text-white shadow'
-        : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200'
+        : 'bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200'
     }`;
 
   return (
     <nav className="flex justify-center">
-      <div className="flex space-x-0.5 bg-gray-100 dark:bg-gray-800 rounded-lg">
+      <div className="flex space-x-0.5 bg-gray-200 dark:bg-gray-800 rounded-lg">
         <Tooltip text="Anar a la vista principal del calendari i llista d'esdeveniments">
           <NavLink to="/" className={getLinkClassName}>
             <CalendarIcon className="h-5 w-5" />

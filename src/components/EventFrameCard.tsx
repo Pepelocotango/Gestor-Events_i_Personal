@@ -46,9 +46,9 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
 
   return (
-    <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
+    <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
       <div
-        className="px-1 py-0.5 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
+        className="px-1 py-0.5 bg-slate-200 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-300 dark:border-slate-700"
         onClick={(e) => {
           e.stopPropagation();
           // Only toggle expand if the click is not on an interactive element like a button.
@@ -117,7 +117,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
             </Tooltip>
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
-              <button onClick={(e) => { e.stopPropagation(); logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); onToggleExpand(eventFrame.id); }} className="p-0.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+              <button onClick={(e) => { e.stopPropagation(); logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); onToggleExpand(eventFrame.id); }} className="p-0.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
                 {isExpanded ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
               </button>
             </Tooltip>
@@ -126,7 +126,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       </div>
 
       {isExpanded && (
-        <div className="px-1 py-0.5 bg-white dark:bg-gray-800">
+        <div className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800">
           {eventFrame.generalNotes && (
             <div className="mb-0.5">
               <h5 className="font-medium text-sm">Notes Generals</h5>
