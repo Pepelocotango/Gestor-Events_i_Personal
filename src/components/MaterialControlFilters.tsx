@@ -21,7 +21,7 @@ interface CheckboxListProps {
   idProp: string;
 }
 
-const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
+const commonInputClass = "mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 const commonCheckboxContainerClass = "max-h-40 overflow-y-auto p-2 border rounded-md bg-gray-50 dark:bg-gray-900/50 dark:border-gray-600";
 const commonLabelClass = "flex items-center space-x-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1";
 
