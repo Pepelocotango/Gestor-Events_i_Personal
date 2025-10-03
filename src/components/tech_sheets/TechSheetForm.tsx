@@ -11,7 +11,6 @@ import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';
 import ConditionalFormControl from './ConditionalFormControl';
-import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
@@ -715,7 +714,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   );
 
   return (
-    <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow space-y-4 tech-sheet-form-container">
+    <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow space-y-4 tech-sheet-form-container">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -723,10 +722,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         </h2>
         <div className="flex items-center gap-2">
             <Tooltip text="Expandir totes les seccions del formulari">
-                <button onClick={expandAll} className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 no-print">Expandir Totes</button>
+                <button onClick={expandAll} className="px-2 py-1 bg-gray-300 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 no-print">Expandir Totes</button>
             </Tooltip>
             <Tooltip text="Col·lapsar totes les seccions del formulari">
-                <button onClick={collapseAll} className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 no-print">Col·lapsar Totes</button>
+                <button onClick={collapseAll} className="px-2 py-1 bg-gray-300 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 no-print">Col·lapsar Totes</button>
             </Tooltip>
             <Tooltip text="Forçar el desat immediat de tots els canvis pendents">
               <button onClick={handleManualSave} className="save-changes-button px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print">Desar Canvis</button>
@@ -756,7 +755,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         {eventFrame.generalNotes && (
             <div className="col-span-full">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de l'Esdeveniment (No editable)</label>
-                <div className="mt-1 p-2 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                <div className="mt-1 p-2 w-full bg-gray-200 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 rounded-md shadow-sm text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
                     {eventFrame.generalNotes}
                 </div>
             </div>
@@ -764,25 +763,24 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
         <div className="col-span-full">
             <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de la Fitxa Tècnica</label>
+                <label htmlFor="generalNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de la Fitxa Tècnica</label>
                 <Tooltip text="Marca aquesta casella per incloure les notes generals en exportar la fitxa a PDF.">
                     <div className="flex items-center gap-2">
-                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"/>
                         <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
                     </div>
                 </Tooltip>
             </div>
-            <Tooltip text="Afegeix aquí qualsevol nota general o comentari rellevant per a tota la fitxa.">
-                <AutosizeTextarea
-                    id="generalNotes"
-                    name="generalNotes"
-                    value={formData.generalNotes || ''}
-                    onChange={handleChange}
-                    rows={3}
-                    className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder=".... Aquí les notes generals de la fitxa tècnica, ( amb selector de impresió si/no)"
-                />
-            </Tooltip>
+            <TechSheetField
+                id="generalNotes"
+                label=""
+                value={formData.generalNotes || ''}
+                onChange={handleChange}
+                as="textarea"
+                rows={3}
+                placeholder=".... Aquí les notes generals de la fitxa tècnica, ( amb selector de impresió si/no)"
+                tooltipText="Afegeix aquí qualsevol nota general o comentari rellevant per a tota la fitxa."
+            />
         </div>
         <div className="col-span-full -mb-3">
             <ConditionalFormControl
@@ -880,7 +878,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                                 name="showScheduleNotesInPdf"
                                 checked={formData.showScheduleNotesInPdf ?? true}
                                 onChange={handleChange}
-                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                className="h-4 w-4 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"
                             />
                             <label htmlFor="showScheduleNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
                         </div>
@@ -921,7 +919,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 return acc;
               }, {} as Record<string, AssemblyScheduleItem[]>)
             ).map(([date, items]) => (
-              <div key={date} className="p-3 border rounded-md bg-gray-50 dark:bg-gray-700/50">
+              <div key={date} className="p-3 border rounded-md bg-gray-100 dark:bg-gray-700/50">
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="font-semibold text-gray-800 dark:text-gray-200">
                     {date === 'Sense data' ? 'Elements nous - Assignar data' : `Data: ${formatDateDMY(date)}`}
@@ -930,7 +928,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                     <div className="flex items-center gap-2">
                       {items.length > 1 && (
                         <Tooltip text="Ordenar les entrades d'aquest dia per hora">
-                          <button type="button" onClick={() => handleSortScheduleByTime(date)} className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 no-print">Ordenar per Hora</button>
+                          <button type="button" onClick={() => handleSortScheduleByTime(date)} className="px-2 py-1 bg-gray-300 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 no-print">Ordenar per Hora</button>
                         </Tooltip>
                       )}
                       <Tooltip text={`Afegir una nova línia d'horari per al ${formatDateDMY(date)}`}>
@@ -965,7 +963,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                               type="button"
                               onClick={() => handleMoveAssemblyScheduleItemUp(item.id)}
                               disabled={index === 0}
-                              className="text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               &#x25B2;
                             </button>
@@ -975,7 +973,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                               type="button"
                               onClick={() => handleMoveAssemblyScheduleItemDown(item.id)}
                               disabled={index === items.length - 1}
-                              className="text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               &#x25BC;
                             </button>
@@ -1032,28 +1030,27 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         >
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nº:</label>
-              <Tooltip text="Nombre total d'actors o artistes que participen.">
-                <input
-                  type="number"
-                  value={formData.actorsInfo?.data?.number || ''}
-                  onChange={(e) => handleConditionalChange('actorsInfo', { data: { ...(formData.actorsInfo?.data || { number: 0, names: '' }), number: e.target.value } })}
-                  className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                  min="0"
+                <TechSheetField
+                    id="actorsInfo-number"
+                    label="Nº:"
+                    type="number"
+                    value={formData.actorsInfo?.data?.number || ''}
+                    onChange={(e) => handleConditionalChange('actorsInfo', { data: { ...(formData.actorsInfo?.data || { number: 0, names: '' }), number: parseInt(e.target.value, 10) || 0 } })}
+                    className="w-24"
+                    tooltipText="Nombre total d'actors o artistes que participen."
                 />
-              </Tooltip>
             </div>
             <div className="col-span-3">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Noms / Notes:</label>
-              <Tooltip text="Llista els noms dels actors o artistes i qualsevol nota rellevant.">
-                <AutosizeTextarea
-                  value={formData.actorsInfo?.data?.names || ''}
-                  onChange={(e) => handleConditionalChange('actorsInfo', { data: { ...(formData.actorsInfo?.data || { number: 0, names: '' }), names: e.target.value } })}
-                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  rows={2}
-                  placeholder="Detalls, notes, noms..."
+                <TechSheetField
+                    id="actorsInfo-names"
+                    label="Noms / Notes:"
+                    value={formData.actorsInfo?.data?.names || ''}
+                    onChange={(e) => handleConditionalChange('actorsInfo', { data: { ...(formData.actorsInfo?.data || { number: 0, names: '' }), names: e.target.value } })}
+                    as="textarea"
+                    rows={2}
+                    placeholder="Detalls, notes, noms..."
+                    tooltipText="Llista els noms dels actors o artistes i qualsevol nota rellevant."
                 />
-              </Tooltip>
             </div>
           </div>
         </ConditionalFormControl>
@@ -1065,30 +1062,29 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
           tooltipText="Indica si hi ha personal tècnic o de producció de la companyia."
         >
           <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nº:</label>
-              <Tooltip text="Nombre total de personal tècnic o de producció de la companyia.">
-                <input
-                  type="number"
-                  value={formData.techniciansInfo?.data?.number || ''}
-                  onChange={(e) => handleConditionalChange('techniciansInfo', { data: { ...(formData.techniciansInfo?.data || { number: 0, names: '' }), number: e.target.value } })}
-                  className="mt-1 block w-24 pl-3 pr-1 py-0.5 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                  min="0"
-                />
-              </Tooltip>
-            </div>
-            <div className="col-span-3">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Noms / Notes:</label>
-              <Tooltip text="Llista els noms del personal i qualsevol nota rellevant.">
-                <AutosizeTextarea
-                  value={formData.techniciansInfo?.data?.names || ''}
-                  onChange={(e) => handleConditionalChange('techniciansInfo', { data: { ...(formData.techniciansInfo?.data || { number: 0, names: '' }), names: e.target.value } })}
-                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  rows={2}
-                  placeholder="Detalls, notes, noms..."
-                />
-              </Tooltip>
-            </div>
+              <div className="col-span-1">
+                  <TechSheetField
+                      id="techniciansInfo-number"
+                      label="Nº:"
+                      type="number"
+                      value={formData.techniciansInfo?.data?.number || ''}
+                      onChange={(e) => handleConditionalChange('techniciansInfo', { data: { ...(formData.techniciansInfo?.data || { number: 0, names: '' }), number: parseInt(e.target.value, 10) || 0 } })}
+                      className="w-24"
+                      tooltipText="Nombre total de personal tècnic o de producció de la companyia."
+                  />
+              </div>
+              <div className="col-span-3">
+                  <TechSheetField
+                      id="techniciansInfo-names"
+                      label="Noms / Notes:"
+                      value={formData.techniciansInfo?.data?.names || ''}
+                      onChange={(e) => handleConditionalChange('techniciansInfo', { data: { ...(formData.techniciansInfo?.data || { number: 0, names: '' }), names: e.target.value } })}
+                      as="textarea"
+                      rows={2}
+                      placeholder="Detalls, notes, noms..."
+                      tooltipText="Llista els noms del personal i qualsevol nota rellevant."
+                  />
+              </div>
           </div>
         </ConditionalFormControl>
       </TechSheetSection>
@@ -1110,23 +1106,22 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                             name="showTechnicalNeedsNotesInPdf"
                             checked={formData.showTechnicalNeedsNotesInPdf ?? true}
                             onChange={handleChange}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            className="h-4 w-4 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"
                         />
                         <label htmlFor="showTechnicalNeedsNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
                     </div>
                 </Tooltip>
             </div>
-            <Tooltip text="Afegeix aquí qualsevol nota general o comentari rellevant per a totes les necessitats tècniques.">
-                <AutosizeTextarea
-                    id="technicalNeedsNotes"
-                    name="technicalNeedsNotes"
-                    value={formData.technicalNeedsNotes || ''}
-                    onChange={handleChange}
-                    rows={3}
-                    className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Afegeix notes addicionals sobre les necessitats tècniques en general..."
-                />
-            </Tooltip>
+            <TechSheetField
+                id="technicalNeedsNotes"
+                label=""
+                value={formData.technicalNeedsNotes || ''}
+                onChange={(e) => handleFieldChange('technicalNeedsNotes', e.target.value)}
+                as="textarea"
+                rows={3}
+                placeholder="Afegeix notes addicionals sobre les necessitats tècniques en general..."
+                tooltipText="Afegeix aquí qualsevol nota general o comentari rellevant per a totes les necessitats tècniques."
+            />
         </div>
         {renderNeedsSection('Il·luminació', 'lighting')}
         {renderNeedsSection('So', 'sound')}
