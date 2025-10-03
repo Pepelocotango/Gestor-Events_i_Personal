@@ -21,7 +21,6 @@ import Tooltip from '../ui/Tooltip';
 import { useModalStore } from '../../stores/modalStore';
 import { formatDateDMY } from '../../utils/dateFormat';
 import SortableProvider from './SortableProvider';
-import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface TechnicalPersonnelSectionProps {
   formData: TechSheetData;
