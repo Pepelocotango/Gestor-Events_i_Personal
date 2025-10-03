@@ -55,7 +55,7 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
         )}
       </div>
       {status === 'yes' && (
-        <div className="mt-3 pl-4 border-l-2 border-indigo-500/30 dark:border-indigo-700/50 ml-1 space-y-3">
+        <div className="mt-3 ml-1 space-y-3 p-4 rounded-lg bg-gray-100 border border-gray-300 dark:bg-transparent dark:border-0 dark:p-0 dark:pl-4 dark:border-l-2 dark:border-indigo-700/50">
           {children}
         </div>
       )}
