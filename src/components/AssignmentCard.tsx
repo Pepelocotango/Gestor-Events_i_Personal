@@ -107,7 +107,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                     toggleDailyView();
                   }}
                   className={`px-1.5 py-0.5 rounded-md text-xs font-medium transition-colors ${
-                    isDailyViewExpanded ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                    isDailyViewExpanded ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
                   }`}
                 >
                   {isDailyViewExpanded ? "Ocultar" : "Mostrar"}

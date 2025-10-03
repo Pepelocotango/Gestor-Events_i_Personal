@@ -47,7 +47,7 @@ class ErrorBoundary extends Component<Props, State> {
           >
             Recarregar Aplicació
           </button>
-          <details className="w-full max-w-2xl bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow">
+          <details className="w-full max-w-2xl bg-white dark:bg-gray-800 p-4 rounded-md shadow">
             <summary className="cursor-pointer font-semibold">Detalls de l'error</summary>
             <pre className="mt-2 text-xs whitespace-pre-wrap overflow-auto">
               {this.state.error?.toString()}

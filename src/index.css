@@ -111,7 +111,7 @@
     @apply bg-yellow-100/70 dark:bg-yellow-800/40;
   }
   .daily-row-mixed { /* Fallback per si no hi ha estat definit */
-    @apply bg-gray-200/70 dark:bg-gray-800/40;
+    @apply bg-gray-100/70 dark:bg-gray-800/40;
   }
   
   /* Estils per als botons de canvi d'estat (píndoles) - APLICABLE A TOT */
@@ -134,7 +134,7 @@
     @apply bg-green-300 dark:bg-green-900/30;
   }
   .status-pill-unselected {
-    @apply bg-gray-400/70 text-gray-800 hover:bg-gray-400/100 dark:bg-gray-600/70 dark:text-gray-100 dark:hover:bg-gray-600;
+    @apply bg-gray-300/70 text-gray-800 hover:bg-gray-300/100 dark:bg-gray-600/70 dark:text-gray-100 dark:hover:bg-gray-600;
   }
 
   /* Portal Tooltip Styles */

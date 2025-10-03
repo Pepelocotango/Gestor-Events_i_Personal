@@ -14,7 +14,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onOpenRecent,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-gray-200 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="flex flex-col items-center justify-center h-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <div className="text-center p-8 max-w-2xl">
         <h1 className="text-4xl font-bold mb-4">Gestor d'Esdeveniments</h1>
         <p className="text-lg mb-8 text-gray-600 dark:text-gray-400">
@@ -29,7 +29,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </button>
           <button
             onClick={onOpenDocument}
-            className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75"
+            className="px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75"
           >
             Obrir...
           </button>
@@ -40,7 +40,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             <h2 className="text-2xl font-semibold mb-4">Documents Recents</h2>
             <ul className="space-y-2 text-left">
               {recentFiles.map((filePath, index) => (
-                <li key={index} className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg shadow-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <li key={index} className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <button
                     onClick={() => onOpenRecent(filePath)}
                     className="w-full text-left focus:outline-none"

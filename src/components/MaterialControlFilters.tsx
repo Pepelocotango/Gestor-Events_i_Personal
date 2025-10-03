@@ -21,9 +21,9 @@ interface CheckboxListProps {
   idProp: string;
 }
 
-const commonInputClass = "mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
-const commonCheckboxContainerClass = "max-h-40 overflow-y-auto p-2 border rounded-md bg-gray-100 dark:bg-gray-900/50 dark:border-gray-600";
-const commonLabelClass = "flex items-center space-x-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 rounded p-1";
+const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
+const commonCheckboxContainerClass = "max-h-40 overflow-y-auto p-2 border rounded-md bg-gray-50 dark:bg-gray-900/50 dark:border-gray-600";
+const commonLabelClass = "flex items-center space-x-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1";
 
 const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
   filters,
@@ -113,7 +113,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
 
   return (
     <CollapsibleSection title="Filtres" defaultOpen={true}>
-        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-b-lg border-t border-gray-300 dark:border-gray-700 space-y-4">
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-b-lg border-t border-gray-200 dark:border-gray-700 space-y-4">
             {/* Fila 1: Cerca i Rang de dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Text Search */}
