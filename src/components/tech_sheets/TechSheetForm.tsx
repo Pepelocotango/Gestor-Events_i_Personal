@@ -11,7 +11,6 @@ import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';
 import ConditionalFormControl from './ConditionalFormControl';
-import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
