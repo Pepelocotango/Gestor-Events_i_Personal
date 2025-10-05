@@ -17,6 +17,7 @@ interface ConfirmDeleteProps extends CommonFormProps {
   onCloseModal?: () => void;
   requiresInput?: boolean;
   suppressSuccessToast?: boolean;
+  intent?: 'destructive' | 'constructive';
 }
 
 export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
@@ -30,6 +31,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
   onCloseModal,
   requiresInput = false,
   suppressSuccessToast = false,
+  intent,
 }) => {
   const [inputValue, setInputValue] = useState('');
 
@@ -93,7 +95,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
           <button
             onClick={handleConfirm}
             className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
-              confirmButtonText.toLowerCase().includes('esborrar') || confirmButtonText.toLowerCase().includes('eliminar')
+              intent === 'destructive'
                 ? "bg-red-600 hover:bg-red-700"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}

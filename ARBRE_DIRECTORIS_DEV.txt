@@ -68,7 +68,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades. [REFACTORITZAT: usa eventDataStore]
 │   │   └── TechSheetsDisplay.tsx   # Nova vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
 │   ├── stores/                 # Gestors d'estat global (Zustand).
-│   │   ├── eventDataStore.ts   # !! EL CERVELL DEL FRONTEND !! Store que centralitza tot l'estat i la lògica de negoci. Inclou historial desfer/refer amb partialize memoitzada per evitar bucles infinits.
+│   │   ├── eventDataStore.ts   # !! EL CERVELL DEL FRONTEND !! Store que centralitza tot l'estat i la lògica de negoci. Inclou historial desfer/refer, lògica d'arxivatge d'esdeveniments, i partialize memoitzada per evitar bucles infinits.
 │   │   ├── googleConfigStore.ts# Store per a la configuració i estat de la integració amb Google Calendar.
 │   │   ├── loggingMiddleware.ts# Middleware de Zustand per registrar accions i canvis d'estat.
 │   │   └── modalStore.ts       # Store centralitzat per a l'estat i la lògica dels modals.
@@ -83,14 +83,14 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── statusUtils.ts        # Funcions per gestionar i mostrar els estats de les assignacions.
 │   │   ├── techSheetMigration.ts   # Lògica específica per migrar l'estructura de les fitxes de bolo. Converteix dades antigues a l'estructura moderna de TechSheetData, assegura compatibilitat i integritat, i gestiona casos especials amb defaults i validació. Utilitzat en la càrrega de documents i migració automàtica.
 │   │   ├── notificationService.ts # Servei centralitzat per mostrar notificacions (toasts) i missatges globals a la UI. Integrat amb modalStore i la lògica de feedback d'usuari.
-│   │   ├── selectors.ts           # Selectors optimitzats per Zustand. Permeten accedir a porcions de l'estat de forma memoitzada i evitar re-renderitzats innecessaris. Inclou exemples de selectors independents per evitar bucles.
+│   │   ├── selectors.ts           # Selectors optimitzats per Zustand. Permeten accedir a porcions de l'estat de forma memoitzada i evitar re-renderitzats innecessaris. Inclou la lògica de filtrat per a esdeveniments arxivats.
 │   ├── App.tsx                   # Component arrel de React. Gestiona l'enrutament, modals i estat de la UI. [REFACTORITZAT: usa stores de Zustand]
 │   ├── calendar-styles.d.ts      # Definició de tipus per a la importació de fitxers CSS a TypeScript.
 │   ├── constants.tsx             # Emmagatzema constants i icones SVG reutilitzables.
 │   ├── images.d.ts               # Permet la importació de fitxers d'imatge (.png) a TypeScript.
 │   ├── index.css                 # Fitxer principal d'estils CSS i configuració de Tailwind.
 │   ├── index.tsx                 # Punt d'entrada de React que renderitza l'App al DOM.
-│   └── types.ts                  # Fitxer crític. Defineix totes les interfícies i tipus de dades de l'aplicació (EventFrame, Assignment, MaterialItem, TechSheetData, AppData, GoogleConfig, ElectronAPI). La font de veritat per la robustesa i mantenibilitat del projecte.
+│   └── types.ts                  # Fitxer crític. Defineix totes les interfícies i tipus de dades de l'aplicació (EventFrame amb el flag isArchived, Assignment, MaterialItem, TechSheetData, AppData, GoogleConfig, ElectronAPI). La font de veritat per la robustesa i mantenibilitat del projecte.
 ├── .gitattributes                # Fitxer per definir atributs per a rutes de git.
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
 ├── ANALYSIS_REPORT.md            # Informe d'anàlisi de l'estat de la refactorització del codi.

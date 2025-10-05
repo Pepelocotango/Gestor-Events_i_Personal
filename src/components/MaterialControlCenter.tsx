@@ -96,6 +96,10 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
     exportMaterialControlCsv(filteredData, showToast);
   };
 
+  const activeEventFrames = useMemo(() => {
+    return eventFrames.filter(ef => ef.isArchived !== true);
+  }, [eventFrames]);
+
   return (
     <div className="space-y-4">
       <MaterialControlFilters
@@ -103,7 +107,7 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
         setFilters={setFilters}
         availableOrigins={allOrigins}
         availableCategories={allCategories}
-        eventFrames={eventFrames}
+        eventFrames={activeEventFrames}
         dateRange={filters.dateRange}
       />
 

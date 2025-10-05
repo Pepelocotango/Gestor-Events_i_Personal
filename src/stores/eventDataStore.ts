@@ -130,6 +130,9 @@ interface EventDataActions {
     setIsUpdatingMaterial: (isUpdating: boolean) => void;
     undoWithToast: () => void;
     redoWithToast: () => void;
+    archiveOldEventFrames: () => EventFrame[];
+    confirmArchiveEventFrames: (eventFrameIds: string[]) => void;
+    restoreEventFrame: (eventFrameId: string) => void;
 }
 
 const initialState: EventDataState = {
@@ -778,6 +781,43 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
         return finalResult;
       },
+
+    // ARCHIVING
+    archiveOldEventFrames: () => {
+        const { eventFrames } = get();
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+        return eventFrames.filter(ef => {
+            const endDate = new Date(ef.endDate);
+            return endDate < oneMonthAgo && !ef.isArchived;
+        });
+    },
+
+    confirmArchiveEventFrames: (eventFrameIds: string[]) => {
+        set(state => {
+            const idsToArchive = new Set(eventFrameIds);
+            state.eventFrames.forEach(ef => {
+                if (idsToArchive.has(ef.id)) {
+                    ef.isArchived = true;
+                }
+            });
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Has arxivat ${eventFrameIds.length} esdeveniments antics`;
+        });
+    },
+
+    restoreEventFrame: (eventFrameId: string) => {
+        const eventFrameName = get().eventFrames.find(ef => ef.id === eventFrameId)?.name || 'desconegut';
+        set(state => {
+            const frame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (frame) {
+                frame.isArchived = false;
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Has restaurat l'esdeveniment «${eventFrameName}»`;
+        });
+    },
     })),
         {
             // Memoització superficial per evitar objectes nous si l'estat no canvia

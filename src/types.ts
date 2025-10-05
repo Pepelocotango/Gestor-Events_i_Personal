@@ -162,6 +162,7 @@ export interface EventFrame {
   lastModified?: string;
   lastSync?: string;
   techSheet?: TechSheetData;
+  isArchived?: boolean;
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;
@@ -283,6 +284,8 @@ export interface ModalData {
     titleOverride?: string;
     newData?: PersonGroup[] | MaterialItem[];
     requiresInput?: boolean;
+    suppressSuccessToast?: boolean;
+    intent?: 'destructive' | 'constructive';
     managedCalendars?: ManagedAppCalendar[];
     activeCalendarId?: string | null;
     onConfirmSync?: (targetCalendarId: string) => void;

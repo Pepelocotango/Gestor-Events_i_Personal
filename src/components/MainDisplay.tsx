@@ -3,7 +3,7 @@ import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon } from '../constants';
+import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -13,6 +13,8 @@ import multiMonthPlugin from '@fullcalendar/multimonth';
 import caLocale from '@fullcalendar/core/locales/ca';
 import SummaryReports from './SummaryReports';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
+import { exportEventListToPdf } from '../utils/pdfGenerator';
+import { exportEventListToCsv } from '../utils/csvUtils';
 import EventFrameCard from './EventFrameCard';
 import { selectFilteredEventFrames } from '../utils/selectors';
 import logger from '../utils/logger';
@@ -119,9 +121,12 @@ const MainDisplay = React.forwardRef<
     setFilterPlace,
     setFilterUIEventFrame,
     clearAllFilters,
+    archiveOldEventFrames,
+    confirmArchiveEventFrames,
   } = useEventDataStore.getState();
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showArchived, setShowArchived] = useState(false);
 
   // Estats d'expansió centralitzats
   const isEventListExpanded = useEventDataStore(state => state.isEventListExpanded);
@@ -167,9 +172,10 @@ const MainDisplay = React.forwardRef<
       filterDate,
       localFilterUIPerson,
       filterPlace,
-      filterUIEventFrame
+      filterUIEventFrame,
+      showArchived,
     });
-  }, [eventFrames, peopleGroups, filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame]);
+  }, [eventFrames, peopleGroups, filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame, showArchived]);
 
   const filteredAndSortedEventFrames = useMemo(() => {
     return filteredEventFrames.sort((a, b) => sortOrder === 'asc'
@@ -413,7 +419,7 @@ const MainDisplay = React.forwardRef<
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} isOpen={isEventListExpanded} onToggle={() => useEventDataStore.getState().toggleEventListExpanded()} id="event-list-section">
+      <CollapsibleSection title={showArchived ? `Esdeveniments Arxivats (${filteredAndSortedEventFrames.length})` : `Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} isOpen={isEventListExpanded} onToggle={() => useEventDataStore.getState().toggleEventListExpanded()} id="event-list-section">
         <div className="mb-1 flex justify-start items-center gap-1">
           <Tooltip text="Crear un nou marc d'esdeveniment">
             <button onClick={() => {
@@ -437,6 +443,69 @@ const MainDisplay = React.forwardRef<
               {sortOrder === 'asc' ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />} Ordena
             </button>
           </Tooltip>
+            <div className="border-l border-gray-400 dark:border-gray-600 h-6 mx-1"></div>
+            <Tooltip text="Mostrar o ocultar els esdeveniments arxivats">
+                <div className="flex items-center">
+                    <input
+                        type="checkbox"
+                        id="showArchived"
+                        checked={showArchived}
+                        onChange={(e) => setShowArchived(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="showArchived" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Mostrar arxivats
+                    </label>
+                </div>
+            </Tooltip>
+            <div className="flex-grow"></div>
+            <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'un mes)">
+                <button
+                    onClick={() => {
+                        const eventsToArchive = archiveOldEventFrames();
+                        if (eventsToArchive.length > 0) {
+                            const oneMonthAgo = new Date();
+                            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                            const formattedDate = oneMonthAgo.toLocaleDateString('ca-ES');
+
+                            openModal('confirmDelete', {
+                                itemType: 'Esdeveniments',
+                                itemName: `S'arxivaran <strong>${eventsToArchive.length}</strong> esdeveniments finalitzats abans del <strong>${formattedDate}</strong>.`,
+                                onConfirm: () => {
+                                    const eventIds = eventsToArchive.map(e => e.id);
+                                    confirmArchiveEventFrames(eventIds);
+                                    setToastMessage(`${eventIds.length} esdeveniment(s) arxivat(s) correctament.`, 'success');
+                                },
+                                titleOverride: "Confirmació Arxivar",
+                                confirmButtonText: "Arxivar Antics",
+                                suppressSuccessToast: true,
+                                intent: 'destructive'
+                            });
+                        } else {
+                            setToastMessage("No hi ha esdeveniments antics per arxivar.", 'info');
+                        }
+                    }}
+                    className="flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                >
+                    <ArchiveIcon className="w-4 h-4" /> Arxivar Antics
+                </button>
+            </Tooltip>
+              <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
+                <button
+                  onClick={() => exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
+                  className="flex items-center justify-center gap-1 bg-red-700 hover:bg-red-800 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" /> PDF
+                </button>
+              </Tooltip>
+              <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
+                <button
+                  onClick={() => exportEventListToCsv(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
+                  className="flex items-center justify-center gap-1 bg-green-700 hover:bg-green-800 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" /> CSV
+                </button>
+              </Tooltip>
         </div>
         
         <div className="mb-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-1">
@@ -464,6 +533,7 @@ const MainDisplay = React.forwardRef<
           <EventFrameCard
             key={ef.id}
             eventFrame={ef}
+            isArchived={showArchived}
             isExpanded={expandedEventFrameIds.has(ef.id)}
             expandedDailyViewAssignmentIds={expandedDailyViewAssignmentIds}
             filters={{ person: localFilterUIPerson, status: filterStatus }}

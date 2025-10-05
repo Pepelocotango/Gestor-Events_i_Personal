@@ -777,6 +777,42 @@ Les classes CSS esmentades no són classes de Tailwind per defecte. Estan defini
 
 Aquesta arquitectura connecta de manera eficient una simple dada booleana amb múltiples representacions visuals a tota la UI, proporcionant un feedback clar i immediat a l'usuari.
 
+### 5.9. Sistema d'Arxivatge d'Esdeveniments
+
+Per mantenir la interfície neta i centrada en els esdeveniments actuals, s'ha implementat un sistema d'arxivatge. Aquesta funcionalitat permet als usuaris ocultar esdeveniments antics (finalitzats fa més d'un mes) de les vistes principals, sense eliminar les dades.
+
+#### Model de Dades
+
+-   **`EventFrame`**: S'ha afegit una nova propietat opcional `isArchived?: boolean` a la interfície. Si és `true`, l'esdeveniment es considera arxivat.
+
+#### Lògica a l'Store (`eventDataStore.ts`)
+
+S'han afegit tres noves accions per gestionar el cicle de vida de l'arxivatge:
+-   **`archiveOldEventFrames()`**: Aquesta acció no modifica l'estat. Escaneja tots els `eventFrames` i retorna una llista d'aquells que van finalitzar fa més d'un mes i que encara no estan arxivats.
+-   **`confirmArchiveEventFrames(eventFrameIds: string[])`**: Aquesta acció rep un array d'IDs, busca els esdeveniments corresponents i estableix la seva propietat `isArchived` a `true`.
+-   **`restoreEventFrame(eventFrameId: string)`**: Rep l'ID d'un esdeveniment, el busca i estableix `isArchived` a `false`.
+
+#### Integració a la Interfície d'Usuari
+
+1.  **Arxivatge massiu (`Controls.tsx`):**
+    -   S'ha afegit un botó "Arxivar Antics".
+    -   En fer-hi clic, es crida a `archiveOldEventFrames()`. Si retorna esdeveniments, s'obre un modal de confirmació (`confirmDelete`).
+    -   Si l'usuari confirma, es crida a `confirmArchiveEventFrames()` amb els IDs dels esdeveniments a arxivar.
+
+2.  **Visualització d'Arxivats (`MainDisplay.tsx`):**
+    -   S'ha afegit un estat local `showArchived` i una casella de selecció ("Mostrar arxivats") per controlar-lo.
+    -   El selector `selectFilteredEventFrames` s'ha modificat per acceptar un paràmetre `showArchived`. Per defecte (`false`), filtra i exclou els esdeveniments arxivats. Si és `true`, mostra *només* els arxivats.
+    -   El títol de la secció canvia a "Esdeveniments Arxivats" quan la casella està marcada.
+
+3.  **Restauració (`EventFrameCard.tsx`):**
+    -   El component rep una nova propietat `isArchived: boolean`.
+    -   Si és `true`, els botons d'acció habituals (editar, eliminar) s'oculten i es mostra un únic botó "Restaurar".
+    -   Aquest botó, en ser clicat, invoca l'acció `restoreEventFrame()` amb l'ID de l'esdeveniment, restaurant-lo a la vista principal.
+
+4.  **Fitxes de Bolo (`TechSheetsDisplay.tsx`):**
+    -   S'ha afegit un estat `includeArchived` i una casella de selecció ("Incloure arxivats").
+    -   La lògica que genera les opcions per al selector d'esdeveniments filtra els esdeveniments arxivats tret que aquesta casella estigui marcada, garantint que les fitxes d'esdeveniments antics segueixin sent accessibles si cal.
+
 ### 5.8. Format de Dates: Intern (YYYY-MM-DD) vs. Visual (DD/MM/YYYY)
 
 L'aplicació utilitza deliberadament dos formats de data diferents per a dues finalitats diferents, una pràctica estàndard per garantir la integritat de les dades i una bona experiència d'usuari.

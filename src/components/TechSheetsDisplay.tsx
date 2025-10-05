@@ -18,14 +18,14 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
       if (window.electronAPI?.getSessionData) {
         const sessionData = await window.electronAPI.getSessionData();
         const lastId = sessionData?.lastViewedTechSheetId;
-        // Comprovem si l'esdeveniment encara existeix abans de seleccionar-lo
-        if (lastId && eventFrames.some(ef => ef.id === lastId)) {
+        // Check if the event still exists and is not archived before selecting it
+        if (lastId && eventFrames.some(ef => ef.id === lastId && ef.isArchived !== true)) {
           setSelectedEventFrameId(lastId);
         }
       }
     };
     loadLastViewed();
-  }, [eventFrames]); // S'executa quan els eventFrames canvien (després de la càrrega inicial)
+  }, [eventFrames]);
 
   useEffect(() => {
     if (selectedEventFrameId && window.electronAPI?.saveSessionData) {
@@ -34,12 +34,21 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   }, [selectedEventFrameId]);
 
   const sortedEventFrames = useMemo(() => {
-    return [...eventFrames].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+    return eventFrames
+      .filter(ef => ef.isArchived !== true)
+      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
   }, [eventFrames]);
 
   const selectedEventFrame = useMemo((): EventFrame | undefined => {
     return eventFrames.find((ef: EventFrame) => ef.id === selectedEventFrameId);
   }, [eventFrames, selectedEventFrameId]);
+
+  useEffect(() => {
+    // If the currently selected event is no longer in the sorted list (e.g., it got archived), clear the selection
+    if (selectedEventFrameId && !sortedEventFrames.some(ef => ef.id === selectedEventFrameId)) {
+        setSelectedEventFrameId('');
+    }
+  }, [sortedEventFrames, selectedEventFrameId]);
 
   return (
     <div className="space-y-6">

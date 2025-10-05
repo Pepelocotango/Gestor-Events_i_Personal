@@ -948,7 +948,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
                 <Controls
                   theme={theme}
                   toggleTheme={toggleTheme}
-                  showToast={showToast}
                   currentFilePath={currentFilePath}
                 />
               </Suspense>
