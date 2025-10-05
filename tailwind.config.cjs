@@ -45,6 +45,18 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -54,46 +66,28 @@ module.exports = {
     },
   },
   plugins: [
-    plugin(function({ addBase, theme }) {
+    plugin(function({ addBase }) {
       addBase({
-        // --- Estils per als esdeveniments de l'App (sempre s'apliquen) ---
+        // --- Estils per als esdeveniments de l'App (ara temàtics) ---
         '.event-complete': {
           backgroundColor: 'hsl(var(--primary))',
-          borderColor: theme('colors.green.500'),
+          borderColor: 'hsl(var(--success))',
           borderWidth: '3px',
           color: 'hsl(var(--primary-foreground))',
         },
         '.event-incomplete': {
           backgroundColor: 'hsl(var(--primary))',
-          borderColor: theme('colors.yellow.500'),
+          borderColor: 'hsl(var(--warning))',
           borderWidth: '3px',
           color: 'hsl(var(--primary-foreground))',
         },
 
-        // --- Estils Generals de FullCalendar (per a ambdós temes) ---
+        // --- Estils Generals de FullCalendar (ara temàtics i unificats) ---
         '.fc': {
           '--fc-border-color': 'hsl(var(--border))',
           '--fc-today-bg-color': 'hsla(var(--accent) / 0.5)',
           '--fc-list-event-hover-bg-color': 'hsl(var(--accent))',
-          '.fc-daygrid-day': {
-            overflow: 'visible',
-          },
-        },
-        '.fc-day-today .fc-daygrid-day-number': {
-          backgroundColor: 'hsl(var(--primary))',
-          color: 'hsl(var(--primary-foreground))',
-          borderRadius: '9999px',
-          width: '24px',
-          height: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '0',
-          margin: '2px',
-        },
 
-        // --- Estils Específics del Tema Fosc ---
-        '.dark .fc': {
           '.fc-button': {
             backgroundColor: 'hsl(var(--secondary))',
             color: 'hsl(var(--secondary-foreground))',
@@ -113,12 +107,13 @@ module.exports = {
           },
           '.fc-col-header, .fc-popover-header': {
             backgroundColor: 'hsl(var(--secondary))',
+            color: 'hsl(var(--card-foreground))',
           },
           '.fc-list-day-cushion, .fc-multimonth-month': {
             backgroundColor: 'hsl(var(--muted))',
           },
           '.fc-daygrid-day': {
-            backgroundColor: 'hsl(var(--secondary))',
+            backgroundColor: 'hsl(var(--card))',
             overflow: 'visible',
           },
           '.fc-popover': {
@@ -128,6 +123,19 @@ module.exports = {
           '.fc-popover-header': {
              color: 'hsl(var(--popover-foreground))',
           }
+        },
+
+        '.fc-day-today .fc-daygrid-day-number': {
+          backgroundColor: 'hsl(var(--primary))',
+          color: 'hsl(var(--primary-foreground))',
+          borderRadius: '9999px',
+          width: '24px',
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '0',
+          margin: '2px',
         },
       });
     })

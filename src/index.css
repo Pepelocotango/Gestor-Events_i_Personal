@@ -24,6 +24,26 @@
     --input: 240 5.9% 90%;
     --ring: 221 83% 53%;
     --radius: 0.5rem;
+
+    /* Nous colors semàntics per estats */
+    --success: 142 71% 45%;        /* green-500 */
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;         /* yellow-500 */
+    --warning-foreground: 240 5.9% 10%; /* gray-900 */
+    --info: 221 83% 53%;           /* blue-600 */
+    --info-foreground: 0 0% 100%;
+    --mixed-status: 283 81% 58%;   /* fuchsia-500 */
+    --mixed-status-foreground: 0 0% 100%;
+
+    /* Colors per a fons de files i píndoles */
+    --daily-row-yes-bg: hsla(137, 46%, 92%, 0.7); /* green-100/70 */
+    --daily-row-no-bg: hsla(0, 85%, 94%, 0.7); /* red-100/70 */
+    --daily-row-pending-bg: hsla(46, 92%, 92%, 0.7); /* yellow-100/70 */
+    --daily-row-mixed-bg: hsla(240, 5%, 96.1%, 0.5); /* muted/50 */
+
+    /* Altres */
+    --highlight-bg: 60 100% 50%; /* yellow */
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   }
 
   .dark {
@@ -41,19 +61,38 @@
     --muted-foreground: 240 4.8% 85.9%; /* gray-400 */
     --accent: 240 5.1% 26.1%;      /* gray-700, for hover */
     --accent-foreground: 240 5% 96.1%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 74% 50%; /* red-700 */
     --destructive-foreground: 0 0% 100%;
     --border: 240 5.1% 26.1%;      /* gray-700 */
     --input: 240 5% 34.1%;         /* gray-600 */
     --ring: 221 83% 53%;
+
+    /* Nous colors semàntics per estats - Dark Mode */
+    --success: 139 65% 35%;        /* green-600 */
+    --success-foreground: 0 0% 100%;
+    --warning: 45 83% 43%;         /* yellow-600 */
+    --warning-foreground: 240 5.9% 10%;
+    --info: 215 75% 45%;           /* blue-700 */
+    --info-foreground: 0 0% 100%;
+    --mixed-status: 283 71% 48%;   /* fuchsia-600 */
+    --mixed-status-foreground: 0 0% 100%;
+
+    /* Colors per a fons de files i píndoles - Dark Mode */
+    --daily-row-yes-bg: hsla(137, 60%, 25%, 0.4); /* green-800/40 */
+    --daily-row-no-bg: hsla(0, 72%, 35%, 0.4); /* red-800/40 */
+    --daily-row-pending-bg: hsla(45, 83%, 30%, 0.4); /* yellow-800/40 */
+    --daily-row-mixed-bg: hsla(240, 5.1%, 26.1%, 0.5); /* muted/50 */
+
+    /* Altres - Dark Mode */
+    --highlight-bg: 60 100% 50%;
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
   }
 }
 
-
 @keyframes highlight-fade {
   from {
-    background-color: rgba(255, 255, 0, 0.5);
-    outline: 2px solid rgba(255, 255, 0, 0.8);
+    background-color: hsla(var(--highlight-bg), 0.5);
+    outline: 2px solid hsla(var(--highlight-bg), 0.8);
   }
   to {
     background-color: transparent;
@@ -72,93 +111,35 @@
 
 /* Reducir espaciado en pantallas medianas */
 @media (min-width: 1024px) and (max-width: 1279px) {
-  .section {
-    margin-bottom: 5px;
-    padding: 4px;
-  }
-
-  /* Ajuste de grid para mejor aprovechamiento */
-  .form-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-  }
-
-  /* Reducción de márgenes y padding en elementos */
-  .form-group { 
-    margin-bottom: 6px;
-  }
-
-  .modal-content {
-    padding: 16px;
-    max-width: 95%;
-  }
-
-  /* Optimización de tablas */
-  .table-responsive {
-    margin: 0;
-  }
-
-  #events-table th, 
-  #events-table td {
-    padding: 4px 6px;
-  }
-  
-  /* Ajuste del padding del calendario */
-  .calendar-wrapper {
-    padding: 0.25rem;
-  }
-  
-  /* Ajuste de elementos de formulario */
-  input[type="text"], 
-  input[type="date"], 
-  input[type="search"], 
-  input[type="email"], 
-  input[type="tel"], 
-  input[type="url"], 
-  select, 
-  textarea {
-    padding: 6px 8px;
-  }
-
-  .btn {
-    padding: 6px 12px;
-  }
+  .section { margin-bottom: 5px; padding: 4px; }
+  .form-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .form-group { margin-bottom: 6px; }
+  .modal-content { padding: 16px; max-width: 95%; }
+  .table-responsive { margin: 0; }
+  #events-table th, #events-table td { padding: 4px 6px; }
+  .calendar-wrapper { padding: 0.25rem; }
+  input[type="text"], input[type="date"], input[type="search"], input[type="email"], input[type="tel"], input[type="url"], select, textarea { padding: 6px 8px; }
+  .btn { padding: 6px 12px; }
 }
+
 @layer components {
-  /* Fons per a cada fila diària - es mantenen colors d'estat */
-  .daily-row-yes {
-    @apply bg-green-100/70 dark:bg-green-800/40;
-  }
-  .daily-row-no {
-    @apply bg-red-100/70 dark:bg-red-800/40;
-  }
-  .daily-row-pending {
-    @apply bg-yellow-100/70 dark:bg-yellow-800/40;
-  }
-  .daily-row-mixed { /* Fallback per si no hi ha estat definit */
-    @apply bg-muted/50;
-  }
-  
-  /* Estils per als botons de canvi d'estat (píndoles) - APLICABLE A TOT */
-  .status-pill {
-    @apply px-2.5 py-0.5 text-xs font-bold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring focus:ring-offset-background;
-  }
-  /* Els colors seleccionats es mantenen per semàntica d'estat */
-  .status-pill-selected-yes {
-    @apply bg-green-500 text-white shadow-md focus:ring-green-400;
-  }
-  .status-pill-selected-no {
-    @apply bg-red-500 text-white shadow-md focus:ring-red-400;
-  }
-  .status-pill-selected-pending {
-    @apply bg-yellow-500 text-white shadow-md focus:ring-yellow-400;
-  }
-  .status-pill-selected-mixed {
-    @apply bg-fuchsia-500 text-white shadow-md focus:ring-fuchsia-400;
-  }
-  .status-pill-unselected {
-    @apply bg-secondary text-secondary-foreground/70 hover:bg-accent hover:text-accent-foreground;
-  }
+  /* Fons per a cada fila diària */
+  .daily-row-yes { background-color: var(--daily-row-yes-bg); }
+  .daily-row-no { background-color: var(--daily-row-no-bg); }
+  .daily-row-pending { background-color: var(--daily-row-pending-bg); }
+  .daily-row-mixed { background-color: var(--daily-row-mixed-bg); }
+
+  /* Estils per als botons de canvi d'estat (píndoles) */
+  .status-pill { @apply px-2.5 py-0.5 text-xs font-bold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring focus:ring-offset-background; }
+  .status-pill-selected-yes { background-color: hsl(var(--success)); color: hsl(var(--success-foreground)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-yes:focus { --tw-ring-color: hsl(var(--success)); }
+  .status-pill-selected-no { background-color: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-no:focus { --tw-ring-color: hsl(var(--destructive)); }
+  .status-pill-selected-pending { background-color: hsl(var(--warning)); color: hsl(var(--warning-foreground)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-pending:focus { --tw-ring-color: hsl(var(--warning)); }
+  .status-pill-selected-mixed { background-color: hsl(var(--mixed-status)); color: hsl(var(--mixed-status-foreground)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-mixed:focus { --tw-ring-color: hsl(var(--mixed-status)); }
+  .status-pill-unselected { @apply bg-secondary text-secondary-foreground/70 hover:bg-accent hover:text-accent-foreground; }
 
   /* Portal Tooltip Styles */
   .tooltip-portal {
@@ -175,7 +156,7 @@
     pointer-events: none;
     white-space: normal;
     max-width: 250px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
   }

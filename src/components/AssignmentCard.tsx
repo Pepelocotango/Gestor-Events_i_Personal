@@ -61,12 +61,18 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const skipNextCollapse = useRef(false);
 
   const statusBorderClasses: { [key in AssignmentStatus]: string } = {
-    [AssignmentStatus.Yes]: 'border-l-green-500',
-    [AssignmentStatus.Pending]: 'border-l-yellow-500',
-    [AssignmentStatus.No]: 'border-l-red-500',
-    [AssignmentStatus.Mixed]: 'border-l-fuchsia-500',
+    [AssignmentStatus.Yes]: 'border-l-success',
+    [AssignmentStatus.Pending]: 'border-l-warning',
+    [AssignmentStatus.No]: 'border-l-destructive',
+    [AssignmentStatus.Mixed]: 'border-l-primary',
   };
   const borderClass = statusBorderClasses[assignment.status] || 'border-l-transparent';
+
+  const statusButtonClasses: { [key in AssignmentStatus]?: string } = {
+    [AssignmentStatus.Yes]: 'bg-success text-success-foreground',
+    [AssignmentStatus.Pending]: 'bg-warning text-warning-foreground',
+    [AssignmentStatus.No]: 'bg-destructive text-destructive-foreground',
+  };
 
   const toggleDailyView = () => {
     onToggleDailyView(assignment.id);
@@ -121,7 +127,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                     assignment.status === status && assignment.status !== AssignmentStatus.Mixed
                       ? 'opacity-100 ring-1 ring-offset-1 ring-offset-card ring-ring/50'
                       : 'opacity-60 hover:opacity-100'
-                  } ${status === AssignmentStatus.Yes ? 'bg-green-500 text-white' : status === AssignmentStatus.Pending ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'}`}
+                  } ${statusButtonClasses[status]}`}
                 >
                   {status}
                 </button>

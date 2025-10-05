@@ -88,7 +88,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
         </Suspense>
       ) : (
         selectedEventFrameId && (
-          <div className="p-4 text-center text-orange-500 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+          <div className="p-4 text-center text-warning-foreground bg-warning/10 rounded-lg">
             <p>Aquest esdeveniment no té una fitxa tècnica associada. Pot ser de dades antigues. Desa l'esdeveniment per generar-ne una.</p>
           </div>
         )

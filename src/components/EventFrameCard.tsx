@@ -72,7 +72,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                 }}
                 className="focus:outline-none"
               >
-              <CheckCircleIcon className={`w-5 h-5 transition-colors ${eventFrame.personnelComplete ? 'text-green-500' : 'text-yellow-500'}`} />
+              <CheckCircleIcon className={`w-5 h-5 transition-colors ${eventFrame.personnelComplete ? 'text-success' : 'text-warning'}`} />
               </button>
             </Tooltip>
             <h4
@@ -105,7 +105,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                     restoreEventFrame(eventFrame.id);
                     setToastMessage(`Esdeveniment "${eventFrame.name}" restaurat.`, 'success');
                   }}
-                  className="flex items-center gap-1 p-0.5 text-green-500 hover:text-green-600 rounded-md hover:bg-accent"
+                  className="flex items-center gap-1 p-0.5 text-success hover:text-success/90 rounded-md hover:bg-accent"
                 >
                   <RestoreIcon className="w-4 h-4" />
                   Restaurar

@@ -13,14 +13,14 @@ const MergeOrReplaceModal: React.FC<MergeOrReplaceModalProps> = ({ isOpen, onClo
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Carregar dades de ${itemType}`}>
       <div className="p-4">
-        <p className="text-gray-700 dark:text-gray-300 mb-6">
+        <p className="text-muted-foreground mb-6">
           Vols fusionar les noves dades de {itemType} amb les existents o vols reemplaçar totes les dades actuals?
         </p>
         <div className="flex justify-end gap-4">
           <Tooltip text="Afegir les noves dades mantenint les existents. Si hi ha conflictes (mateix ID), es mantenen les dades antigues.">
             <button
               onClick={onMerge}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-4 rounded-md transition-colors"
             >
               Fusionar
             </button>
@@ -28,7 +28,7 @@ const MergeOrReplaceModal: React.FC<MergeOrReplaceModalProps> = ({ isOpen, onClo
           <Tooltip text="Esborrar totes les dades actuals d'aquest tipus i carregar només les noves.">
             <button
               onClick={onReplace}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+              className="bg-warning hover:bg-warning/90 text-warning-foreground font-semibold py-2 px-4 rounded-md transition-colors"
             >
               Reemplaçar
             </button>
@@ -36,7 +36,7 @@ const MergeOrReplaceModal: React.FC<MergeOrReplaceModalProps> = ({ isOpen, onClo
           <Tooltip text="Cancel·lar la càrrega de dades.">
             <button
               onClick={onClose}
-              className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-md transition-colors"
+              className="bg-secondary hover:bg-accent text-secondary-foreground font-semibold py-2 px-4 rounded-md transition-colors border border-border"
             >
               Cancel·lar
             </button>
