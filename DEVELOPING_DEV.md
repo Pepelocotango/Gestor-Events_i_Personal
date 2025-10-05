@@ -838,71 +838,40 @@ La conversió entre aquests dos formats es gestiona de manera centralitzada per 
 
 ---
 
-## 6. Sistema d'Estils (Tailwind CSS i Variables CSS)
+## 6. Sistema d'Estils (Tematització Semàntica Centralitzada)
 
-El disseny de la interfície s'ha refactoritzat per utilitzar un **sistema de disseny centralitzat** que combina la potència de Tailwind CSS amb la flexibilitat de les variables CSS natives. Aquesta arquitectura permet una gestió de temes (clar i fosc) robusta, consistent i fàcil de mantenir des d'un únic lloc.
+El disseny de la interfície s'ha refactoritzat per utilitzar un **sistema de tematització semàntic i centralitzat** que combina la potència de Tailwind CSS amb la flexibilitat de les variables CSS natives. Aquesta arquitectura no només permet una gestió de temes (clar i fosc) robusta, sinó que també garanteix la coherència visual entre la interfície d'usuari i els documents exportats (PDF).
 
 ### Arquitectura del Disseny
 
-1.  **Definició de Variables (`src/index.css`):**
-    -   Tots els colors de l'aplicació es defineixen com a variables CSS dins d'una capa `@layer base`.
-    -   S'estableix una paleta de colors semàntica (p. ex., `--background`, `--foreground`, `--primary`, `--card`, `--border`) en format HSL.
-    -   El tema per defecte (clar) es defineix a `:root`.
-    -   El tema fosc simplement sobreescriu aquestes mateixes variables dins del selector `.dark`.
+El sistema es basa en una jerarquia de "fonts de veritat" per assegurar la màxima consistència i mantenibilitat.
 
-    ```css
-    @layer base {
-      :root {
-        --background: 0 0% 100%;
-        --foreground: 240 10% 3.9%;
-        --primary: 240 5.9% 10%;
-        /* ...altres variables */
-      }
+1.  **Font Única de Veritat per a Colors (`src/utils/themeDefinition.ts`):**
+    -   **Descripció:** Aquest fitxer és el **nucli de tot el sistema de colors**. Exporta un objecte `themeHslColors` que defineix tots els colors base de l'aplicació en format de tuples HSL `[Hue, Saturation, Lightness]`.
+    -   **Responsabilitat:** Qualsevol canvi fonamental en la paleta de colors de l'aplicació (p. ex., canviar el to del color primari) s'ha de fer **únicament** en aquest fitxer.
 
-      .dark {
-        --background: 240 10% 3.9%;
-        --foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        /* ...altres variables */
-      }
-    }
-    ```
+2.  **Definició de Variables CSS (`src/index.css`):**
+    -   **Descripció:** Aquest fitxer consumeix els valors de `themeDefinition.ts` (de manera manual, per ara) per definir una paleta de variables CSS semàntiques (p. ex., `--background`, `--foreground`, `--primary`, `--destructive`).
+    -   **Tematització Clar/Fosc:** El tema per defecte (clar) es defineix a `:root`. El tema fosc simplement sobreescriu aquestes mateixes variables dins del selector `.dark`.
+    -   **Colors Derivats:** Les variables més específiques (com `--daily-row-yes-bg` per al fons de les files) es deriven de les variables semàntiques principals mitjançant `hsla(var(--success) / 0.15)`, assegurant que s'adaptin automàticament al tema.
 
-2.  **Integració amb Tailwind (`tailwind.config.cjs`):**
-    -   El fitxer de configuració de Tailwind s'ha modificat per consumir aquestes variables CSS.
-    -   En lloc de definir colors directament, la paleta de Tailwind ara fa referència a les variables mitjançant la funció `hsl()`. Això permet que les classes d'utilitat de Tailwind (com `bg-background`, `text-primary`, `border-border`) apliquin automàticament el color correcte segons el tema actiu.
+3.  **Integració amb Tailwind (`tailwind.config.cjs`):**
+    -   **Descripció:** El fitxer de configuració de Tailwind s'ha modificat per consumir les variables CSS definides a `index.css`.
+    -   **Implementació:** En lloc de definir colors directament, la paleta de Tailwind fa referència a les variables mitjançant la funció `hsl()`. Això permet que les classes d'utilitat de Tailwind (com `bg-background`, `text-primary`, `border-border`) apliquin automàticament el color correcte segons el tema actiu.
 
-    ```javascript
-    // tailwind.config.cjs
-    // ...
-    theme: {
-      extend: {
-        colors: {
-          background: "hsl(var(--background))",
-          foreground: "hsl(var(--foreground))",
-          primary: {
-            DEFAULT: "hsl(var(--primary))",
-            foreground: "hsl(var(--primary-foreground))",
-          },
-          // ...altres colors semàntics
-        },
-      },
-    },
-    // ...
-    ```
-
-3.  **Aplicació del Tema (`App.tsx`):**
-    -   El component arrel `App.tsx` continua sent responsable de commutar la classe `dark` a l'element `<html>`, la qual cosa activa el canvi de variables CSS a tot el document.
+4.  **Coherència en PDFs (`src/utils/colorUtils.ts` i `pdfGenerator.ts`):**
+    -   **Problema:** La llibreria `jspdf-autotable` requereix colors en format RGB, no HSL.
+    -   **Solució:**
+        -   S'ha creat una funció d'utilitat a **`src/utils/colorUtils.ts`** anomenada `hslToRgb` que converteix els colors del format HSL al format RGB.
+        -   El generador de PDFs (`src/utils/pdfGenerator.ts`) ara importa els colors HSL directament des de la font única de veritat (`themeHslColors`) i els converteix a RGB al moment utilitzant `hslToRgb`.
+    -   **Resultat:** Això garanteix que els colors dels PDFs exportats siguin sempre una representació fidel del tema de l'aplicació, eliminant completament els colors "hardcoded" i la possibilitat d'inconsistències.
 
 ### Avantatges d'Aquesta Arquitectura
 
--   **Centralització:** Tots els valors de colors resideixen a `src/index.css`, facilitant canvis globals a la paleta de colors.
--   **Consistència:** Assegura que tots els components, inclosos els de tercers com FullCalendar, utilitzin la mateixa paleta de colors.
--   **Mantenibilitat:** Redueix la necessitat de classes condicionals `dark:` als components, simplificant el codi JSX.
-
-### Estils de Components de Tercers (FullCalendar)
-
-El plugin personalitzat a `tailwind.config.cjs` per a FullCalendar també s'ha actualitzat per utilitzar les noves variables CSS, garantint que l'aparença del calendari (fons, vores, botons) sigui totalment coherent amb el tema seleccionat.
+-   **Centralització Absoluta:** Un únic fitxer (`themeDefinition.ts`) defineix la paleta de colors per a tota l'aplicació.
+-   **Consistència Garantida:** La UI, el calendari, els tooltips i els PDFs comparteixen la mateixa font de colors.
+-   **Mantenibilitat Superior:** Modificar un color a `themeDefinition.ts` i actualitzar-lo a `index.css` és suficient per canviar-lo a tota l'aplicació, inclosos els exports.
+-   **Codi Net:** Redueix la necessitat de classes condicionals `dark:` als components, simplificant el codi JSX.
 
 ### 6.1. Sistema de Tooltips (Basat en Portals)
 

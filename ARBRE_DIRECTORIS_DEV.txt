@@ -73,15 +73,17 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── loggingMiddleware.ts# Middleware de Zustand per registrar accions i canvis d'estat.
 │   │   └── modalStore.ts       # Store centralitzat per a l'estat i la lògica dels modals.
 │   ├── utils/
+│   │   ├── colorUtils.ts         # Utilitat per convertir colors (ex: HSL a RGB) per a la generació de PDF.
 │   │   ├── csvUtils.ts           # Utilitats per a la generació i escapat de fitxers CSV. Inclou funcions per formatar cel·les, afegir BOM per compatibilitat Excel, i exportar llistes filtrades.
 │   │   ├── dataIntegrity.ts      # Lògica per validar i reparar dades carregades des d'un fitxer. Comprova la integritat referencial, elimina elements trencats i documenta les correccions aplicades.
 │   │   ├── dataMigration.ts      # Scripts per convertir formats de dades antics al format actual. Permet migració transparent i retrocompatibilitat amb versions anteriors.
 │   │   ├── dateFormat.ts         # Utilitats per a la conversió i format de dates.
 │   │   ├── dateRangeFormatter.ts # Utilitat per crear rangs de dates compactes (ex: 14/05-16/05).
 │   │   ├── logger.ts             # Client de logging del frontend que envia missatges al backend.
-│   │   ├── pdfGenerator.ts       # Tota la lògica per crear els diferents documents PDF.
+│   │   ├── pdfGenerator.ts       # Tota la lògica per crear els diferents documents PDF, ara utilitzant colors temàtics.
 │   │   ├── statusUtils.ts        # Funcions per gestionar i mostrar els estats de les assignacions.
 │   │   ├── techSheetMigration.ts   # Lògica específica per migrar l'estructura de les fitxes de bolo. Converteix dades antigues a l'estructura moderna de TechSheetData, assegura compatibilitat i integritat, i gestiona casos especials amb defaults i validació. Utilitzat en la càrrega de documents i migració automàtica.
+│   │   ├── themeDefinition.ts    # Font única de veritat per als colors base (HSL) de tota l'aplicació.
 │   │   ├── notificationService.ts # Servei centralitzat per mostrar notificacions (toasts) i missatges globals a la UI. Integrat amb modalStore i la lògica de feedback d'usuari.
 │   │   ├── selectors.ts           # Selectors optimitzats per Zustand. Permeten accedir a porcions de l'estat de forma memoitzada i evitar re-renderitzats innecessaris. Inclou la lògica de filtrat per a esdeveniments arxivats.
 │   ├── App.tsx                   # Component arrel de React. Gestiona l'enrutament, modals i estat de la UI. [REFACTORITZAT: usa stores de Zustand]

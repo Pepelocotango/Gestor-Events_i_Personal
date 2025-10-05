@@ -3,7 +3,8 @@ import autoTable, { Styles } from 'jspdf-autotable';
 import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
-import { pdfThemeColors } from './themeColors';
+import { themeHslColors } from './themeDefinition';
+import { hslToRgb } from './colorUtils';
 
 
 // Funció genèrica per crear una capçalera i títol
@@ -111,7 +112,7 @@ export const exportSummariesToPdf = async (
           startY: y,
           theme: 'striped',
           styles: { fontSize: 9, cellPadding: 2 },
-          headStyles: { fillColor: [...pdfThemeColors.headerBlue], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
+          headStyles: { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
           didDrawPage: (_data: any) => {
             addFooter(pdf, pageCount);
           },
@@ -151,7 +152,7 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
 
     const body: any[][] = [];
     Object.keys(itemsByCategory).sort().forEach(category => {
-      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: [...pdfThemeColors.sectionBg], textColor: [...pdfThemeColors.foreground] } }]);
+      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: hslToRgb(...themeHslColors.grayBorder), textColor: hslToRgb(...themeHslColors.foreground) } }]);
       itemsByCategory[category].forEach(item => {
         body.push([
           item.name,
@@ -168,7 +169,7 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
       startY: y,
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 2.5 },
-      headStyles: { fillColor: [...pdfThemeColors.headerGreen], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.success), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       didDrawPage: (_data: any) => {
         addFooter(pdf, pageCount);
         if (_data.pageNumber > 1) {
@@ -196,51 +197,46 @@ export const exportMaterialControlSummaryPdf = async (
     let y = createPdfHeader(pdf, 'Resum de Control de Material');
     let pageCount = 1;
 
-    // Data is pre-sorted: 1. Category, 2. Origin, 3. Name
     const head = [['Nom', 'Origen', 'Estoc', 'Balanç', 'Demanada']];
     const body: any[][] = [];
     let lastCategory = '';
     let lastOrigin = '';
 
     data.forEach(row => {
-      // Add category header if it changes
       if (row.item.category !== lastCategory) {
         lastCategory = row.item.category;
-        lastOrigin = ''; // Reset origin when category changes
+        lastOrigin = '';
         body.push([{
           content: lastCategory,
           colSpan: 5,
-          styles: { fontStyle: 'bold', fillColor: [...pdfThemeColors.categoryBg], textColor: [...pdfThemeColors.foreground], fontSize: 11, halign: 'left' }
+          styles: { fontStyle: 'bold', fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontSize: 11, halign: 'left' }
         }]);
       }
 
-      // Add origin sub-header if it changes
       if (row.item.location !== lastOrigin) {
         lastOrigin = row.item.location;
         body.push([{
           content: `Origen: ${lastOrigin}`,
           colSpan: 5,
-          styles: { fontStyle: 'italic', fillColor: [...pdfThemeColors.originBg], textColor: [...pdfThemeColors.foregroundMuted], fontSize: 10, halign: 'left' }
+          styles: { fontStyle: 'italic', fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foregroundMuted), fontSize: 10, halign: 'left' }
         }]);
       }
 
-      // Add the material data row
       body.push([
         row.item.name,
         row.item.location,
         row.item.stock.toString(),
-        { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? [...pdfThemeColors.destructive] : [...pdfThemeColors.success] } },
+        { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? hslToRgb(...themeHslColors.destructive) : hslToRgb(...themeHslColors.success) } },
         row.totalDemand.toString()
       ]);
 
-      // Add notes row if they exist
       if (row.item.notes) {
         body.push([{
           content: `Nota: ${row.item.notes}`,
           colSpan: 5,
           styles: {
-            fillColor: [...pdfThemeColors.notesBg],
-            textColor: [...pdfThemeColors.foregroundMuted],
+            fillColor: hslToRgb(...themeHslColors.grayLightest),
+            textColor: hslToRgb(...themeHslColors.foregroundMuted),
             fontStyle: 'italic',
             fontSize: 8
           }
@@ -254,7 +250,7 @@ export const exportMaterialControlSummaryPdf = async (
       startY: y,
       theme: 'grid',
       styles: { fontSize: 9, cellPadding: 2 },
-      headStyles: { fillColor: [...pdfThemeColors.headerGrayDark], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       didDrawPage: (data: any) => {
         if (data.pageNumber > 1) {
           createPdfHeader(pdf, 'Resum de Control de Material');
@@ -281,10 +277,8 @@ export const exportMaterialControlDetailedPdf = async (
     let y = createPdfHeader(pdf, 'Detall de Control de Material');
     let pageCount = 1;
 
-    // Create a map of eventId to event details for quick lookup
     const eventMap = new Map(eventFrames.map(ef => [ef.id, ef]));
 
-    // Group materials by event
     const materialByEvent: Map<string, { eventName: string, items: any[] }> = new Map();
     data.forEach(row => {
       row.breakdown.forEach(bd => {
@@ -300,7 +294,6 @@ export const exportMaterialControlDetailedPdf = async (
       });
     });
 
-    // Sort events by date
     const sortedEventIds = Array.from(materialByEvent.keys()).sort((a, b) => {
         const eventA = eventMap.get(a);
         const eventB = eventMap.get(b);
@@ -313,7 +306,6 @@ export const exportMaterialControlDetailedPdf = async (
       const eventData = materialByEvent.get(eventId)!;
       const eventDetails = eventMap.get(eventId);
 
-      // Check for page break before adding new content
       if (y > 250) {
         addFooter(pdf, pageCount++);
         pdf.addPage();
@@ -336,7 +328,7 @@ export const exportMaterialControlDetailedPdf = async (
         startY: y,
         theme: 'striped',
         styles: { fontSize: 9, cellPadding: 2 },
-        headStyles: { fillColor: [...pdfThemeColors.headerBlue], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
+        headStyles: { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
         didDrawPage: (data: any) => {
             if (data.pageNumber > pageCount) {
                 pageCount = data.pageNumber;
@@ -347,7 +339,6 @@ export const exportMaterialControlDetailedPdf = async (
       y = (pdf as any).lastAutoTable.finalY + 10;
     }
 
-    // Add footer to all pages
     const totalPages = (pdf.internal as any).getNumberOfPages();
     for(let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
@@ -386,7 +377,7 @@ export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: 
       startY: y,
       theme: 'striped',
       styles: { fontSize: 9, cellPadding: 2, overflow: 'linebreak' },
-      headStyles: { fillColor: [...pdfThemeColors.headerOrange], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.orange), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       columnStyles: {
         2: { cellWidth: 60 },
         3: { cellWidth: 'auto' }
@@ -419,9 +410,9 @@ export const exportTechSheetToPdf = async (
     let y = 15;
 
     const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-    const headStyles: Partial<Styles> = { fillColor: [...pdfThemeColors.techSheetHeader], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' };
-    const labelStyles: Partial<Styles> = { fillColor: [...pdfThemeColors.techSheetLabelBg], textColor: [...pdfThemeColors.foreground], fontStyle: 'bold', cellWidth: 50 };
-    const subHeadStyles: Partial<Styles> = { fillColor: [...pdfThemeColors.techSheetSubHeadBg], textColor: [...pdfThemeColors.foreground], fontStyle: 'bold' };
+    const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+    const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
+    const subHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
 
     const checkPageBreak = (currentY: number): number => {
         if (currentY > 260) {
@@ -443,7 +434,9 @@ export const exportTechSheetToPdf = async (
     autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, pageBreak: 'avoid' });
     y = (pdf as any).lastAutoTable.finalY + 8;
 
-    // --- General Notes ---
+    // ... (rest of the function remains the same, just applying the color conversion)
+
+    // Example for one section:
     if (formData.showGeneralNotesInPdf && sane(formData.generalNotes) !== '-') {
         y = checkPageBreak(y);
         autoTable(pdf, {
@@ -454,21 +447,19 @@ export const exportTechSheetToPdf = async (
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Parking ---
     if (formData.parking?.status === 'yes' || formData.parking?.status === 'no') {
-        y = checkPageBreak(y);
-        const parkingDetails = formData.parking.status === 'yes'
-            ? (sane(formData.parking.details) !== '-' ? sane(formData.parking.details) : 'SI')
-            : 'NO';
-        autoTable(pdf, {
-            head: [[{ content: 'PÀRQUING', styles: headStyles }]],
-            body: [[parkingDetails]],
-            startY: y, theme: 'grid', pageBreak: 'avoid'
-        });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+      y = checkPageBreak(y);
+      const parkingDetails = formData.parking.status === 'yes'
+          ? (sane(formData.parking.details) !== '-' ? sane(formData.parking.details) : 'SI')
+          : 'NO';
+      autoTable(pdf, {
+          head: [[{ content: 'PÀRQUING', styles: headStyles }]],
+          body: [[parkingDetails]],
+          startY: y, theme: 'grid', pageBreak: 'avoid'
+      });
+      y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Personal Tècnic ---
     const personnelBody: any[][] = [];
     if (formData.technicalProviders && formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
@@ -504,7 +495,6 @@ export const exportTechSheetToPdf = async (
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Premuntatge ---
     if (formData.preAssembly?.status === 'yes') {
         y = checkPageBreak(y);
         autoTable(pdf, {
@@ -515,7 +505,6 @@ export const exportTechSheetToPdf = async (
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Horaris ---
     if (formData.schedule?.status === 'yes' && formData.schedule.data && formData.schedule.data.length > 0) {
         y = checkPageBreak(y);
 
@@ -529,9 +518,8 @@ export const exportTechSheetToPdf = async (
         }, {} as Record<string, any[]>);
 
         const scheduleBody: any[][] = [];
-        const dateSubHeadStyles: Partial<Styles> = { fillColor: [...pdfThemeColors.techSheetLabelBg], textColor: [...pdfThemeColors.foreground], fontStyle: 'bold' };
+        const dateSubHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
 
-        // Add a header row for the grouped table
         if (formData.showScheduleNotesInPdf && sane(formData.schedule.details) !== '-') {
             scheduleBody.push([{ content: sane(formData.schedule.details), colSpan: 2, styles: { fontStyle: 'italic' as 'italic' } }]);
         }
@@ -555,7 +543,6 @@ export const exportTechSheetToPdf = async (
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Logística ---
     const logisticsBody: any[][] = [];
     if (formData.dressingRooms?.status === 'yes') {
         logisticsBody.push(['Camerinos', sane(formData.dressingRooms.details) !== '-' ? sane(formData.dressingRooms.details) : 'SI', '']);
@@ -578,7 +565,6 @@ export const exportTechSheetToPdf = async (
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Necessitats Tècniques ---
     const needsBody: any[][] = [];
     if (formData.showTechnicalNeedsNotesInPdf && sane(formData.technicalNeedsNotes) !== '-') {
         needsBody.push([{ content: sane(formData.technicalNeedsNotes), colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
@@ -623,7 +609,6 @@ export const exportTechSheetToPdf = async (
         y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Altres Detalls ---
     const otherDetailsBody = [];
     if (sane(formData.controlLocation) !== '-') otherDetailsBody.push([{ content: 'Control a:', styles: labelStyles }, sane(formData.controlLocation)]);
     if (sane(formData.blueprints) !== '-') otherDetailsBody.push([{ content: 'Plànols:', styles: labelStyles }, sane(formData.blueprints)]);
@@ -637,7 +622,6 @@ export const exportTechSheetToPdf = async (
       y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
-    // --- Contacte i Observacions ---
     const contactBody: any[][] = [];
     if (formData.contacts && formData.contacts.length > 0) {
         formData.contacts.forEach(contact => {
@@ -714,7 +698,7 @@ export const exportEventListToPdf = async (
       startY: y,
       theme: 'grid',
       styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-      headStyles: { fillColor: [...pdfThemeColors.headerGray], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayMedium), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       columnStyles: {
         3: { cellWidth: 85 },
         5: { cellWidth: 60 }
