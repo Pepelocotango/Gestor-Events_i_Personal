@@ -3,7 +3,7 @@ import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon } from '../constants';
+import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -13,6 +13,8 @@ import multiMonthPlugin from '@fullcalendar/multimonth';
 import caLocale from '@fullcalendar/core/locales/ca';
 import SummaryReports from './SummaryReports';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
+import { exportEventListToPdf } from '../utils/pdfGenerator';
+import { exportEventListToCsv } from '../utils/csvUtils';
 import EventFrameCard from './EventFrameCard';
 import { selectFilteredEventFrames } from '../utils/selectors';
 import logger from '../utils/logger';
@@ -119,6 +121,8 @@ const MainDisplay = React.forwardRef<
     setFilterPlace,
     setFilterUIEventFrame,
     clearAllFilters,
+    archiveOldEventFrames,
+    confirmArchiveEventFrames,
   } = useEventDataStore.getState();
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -454,6 +458,51 @@ const MainDisplay = React.forwardRef<
                     </label>
                 </div>
             </Tooltip>
+            <div className="flex-grow"></div>
+            <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'un mes)">
+                <button
+                    onClick={() => {
+                        const eventsToArchive = archiveOldEventFrames();
+                        if (eventsToArchive.length > 0) {
+                            const oneMonthAgo = new Date();
+                            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                            const formattedDate = oneMonthAgo.toLocaleDateString('ca-ES');
+
+                            openModal('confirmDelete', {
+                                titleOverride: "Confirmació Arxivar",
+                                message: `S'arxivaran ${eventsToArchive.length} esdeveniments finalitzats abans del ${formattedDate}.`,
+                                confirmButtonText: 'Arxivar',
+                                onConfirm: () => {
+                                    const eventIds = eventsToArchive.map(e => e.id);
+                                    confirmArchiveEventFrames(eventIds);
+                                    setToastMessage(`${eventsToArchive.length} esdeveniments arxivats correctament.`, 'success');
+                                },
+                            });
+                        } else {
+                            setToastMessage("No hi ha esdeveniments antics per arxivar.", 'info');
+                        }
+                    }}
+                    className="flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                >
+                    <ArchiveIcon className="w-4 h-4" /> Arxivar Antics
+                </button>
+            </Tooltip>
+              <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
+                <button
+                  onClick={() => exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
+                  className="flex items-center justify-center gap-1 bg-red-700 hover:bg-red-800 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" /> PDF
+                </button>
+              </Tooltip>
+              <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
+                <button
+                  onClick={() => exportEventListToCsv(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
+                  className="flex items-center justify-center gap-1 bg-green-700 hover:bg-green-800 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" /> CSV
+                </button>
+              </Tooltip>
         </div>
         
         <div className="mb-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-1">

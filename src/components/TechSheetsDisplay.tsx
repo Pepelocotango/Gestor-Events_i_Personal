@@ -12,21 +12,20 @@ interface TechSheetsDisplayProps {
 const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
-  const [includeArchived, setIncludeArchived] = useState(false);
 
   useEffect(() => {
     const loadLastViewed = async () => {
       if (window.electronAPI?.getSessionData) {
         const sessionData = await window.electronAPI.getSessionData();
         const lastId = sessionData?.lastViewedTechSheetId;
-        // Comprovem si l'esdeveniment encara existeix abans de seleccionar-lo
-        if (lastId && eventFrames.some(ef => ef.id === lastId)) {
+        // Check if the event still exists and is not archived before selecting it
+        if (lastId && eventFrames.some(ef => ef.id === lastId && ef.isArchived !== true)) {
           setSelectedEventFrameId(lastId);
         }
       }
     };
     loadLastViewed();
-  }, [eventFrames]); // S'executa quan els eventFrames canvien (després de la càrrega inicial)
+  }, [eventFrames]);
 
   useEffect(() => {
     if (selectedEventFrameId && window.electronAPI?.saveSessionData) {
@@ -35,18 +34,17 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   }, [selectedEventFrameId]);
 
   const sortedEventFrames = useMemo(() => {
-    const filteredFrames = includeArchived
-      ? eventFrames
-      : eventFrames.filter(ef => ef.isArchived !== true);
-    return filteredFrames.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-  }, [eventFrames, includeArchived]);
+    return eventFrames
+      .filter(ef => ef.isArchived !== true)
+      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  }, [eventFrames]);
 
   const selectedEventFrame = useMemo((): EventFrame | undefined => {
     return eventFrames.find((ef: EventFrame) => ef.id === selectedEventFrameId);
   }, [eventFrames, selectedEventFrameId]);
 
   useEffect(() => {
-    // If the currently selected event is no longer in the sorted list (due to filtering), clear the selection
+    // If the currently selected event is no longer in the sorted list (e.g., it got archived), clear the selection
     if (selectedEventFrameId && !sortedEventFrames.some(ef => ef.id === selectedEventFrameId)) {
         setSelectedEventFrameId('');
     }
@@ -76,18 +74,6 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
               ))}
             </select>
           </Tooltip>
-            <div className="mt-2 flex items-center">
-                <input
-                    id="include-archived"
-                    type="checkbox"
-                    checked={includeArchived}
-                    onChange={(e) => setIncludeArchived(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-indigo-600 focus:ring-indigo-500"
-                />
-                <label htmlFor="include-archived" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Incloure arxivats
-                </label>
-            </div>
         </div>
       </div>
 
