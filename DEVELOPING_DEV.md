@@ -838,24 +838,71 @@ La conversió entre aquests dos formats es gestiona de manera centralitzada per 
 
 ---
 
-## 6. Sistema d'Estils (Tailwind CSS)
+## 6. Sistema d'Estils (Tailwind CSS i Variables CSS)
 
-El disseny de la interfície es basa en Tailwind CSS, un framework "utility-first" que permet construir dissenys personalitzats de manera ràpida.
+El disseny de la interfície s'ha refactoritzat per utilitzar un **sistema de disseny centralitzat** que combina la potència de Tailwind CSS amb la flexibilitat de les variables CSS natives. Aquesta arquitectura permet una gestió de temes (clar i fosc) robusta, consistent i fàcil de mantenir des d'un únic lloc.
 
-### `tailwind.config.cjs`
+### Arquitectura del Disseny
 
-Aquest fitxer és el centre de la configuració d'estils.
+1.  **Definició de Variables (`src/index.css`):**
+    -   Tots els colors de l'aplicació es defineixen com a variables CSS dins d'una capa `@layer base`.
+    -   S'estableix una paleta de colors semàntica (p. ex., `--background`, `--foreground`, `--primary`, `--card`, `--border`) en format HSL.
+    -   El tema per defecte (clar) es defineix a `:root`.
+    -   El tema fosc simplement sobreescriu aquestes mateixes variables dins del selector `.dark`.
 
--   **Mode Fosc (`darkMode: 'class'`)**: L'aplicació suporta un tema fosc. Aquesta configuració fa que Tailwind apliqui les variants `dark:` quan la classe `dark` està present a l'element `<html>`. La gestió d'aquesta classe es fa a `App.tsx`.
--   **Plugin Personalitzat**: Per estilitzar components de tercers com FullCalendar, que no utilitzen classes de Tailwind directament, s'ha creat un plugin personalitzat.
-    -   Aquest plugin utilitza la funció `addBase` per injectar estils CSS purs.
-    -   Permet accedir a les variables de disseny de Tailwind (com `theme('colors.gray.900')`) per mantenir la coherència visual entre els estils personalitzats i la resta de la interfície.
-    -   Defineix estils específics per al calendari en mode clar i fosc.
+    ```css
+    @layer base {
+      :root {
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
+        --primary: 240 5.9% 10%;
+        /* ...altres variables */
+      }
 
-### `index.css`
+      .dark {
+        --background: 240 10% 3.9%;
+        --foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        /* ...altres variables */
+      }
+    }
+    ```
 
--   Conté les directives base de Tailwind (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`).
--   Defineix algunes classes personalitzades a `@layer components`, com `assignment-card-*`, que agrupen diverses utilitats de Tailwind per a una reutilització més senzilla.
+2.  **Integració amb Tailwind (`tailwind.config.cjs`):**
+    -   El fitxer de configuració de Tailwind s'ha modificat per consumir aquestes variables CSS.
+    -   En lloc de definir colors directament, la paleta de Tailwind ara fa referència a les variables mitjançant la funció `hsl()`. Això permet que les classes d'utilitat de Tailwind (com `bg-background`, `text-primary`, `border-border`) apliquin automàticament el color correcte segons el tema actiu.
+
+    ```javascript
+    // tailwind.config.cjs
+    // ...
+    theme: {
+      extend: {
+        colors: {
+          background: "hsl(var(--background))",
+          foreground: "hsl(var(--foreground))",
+          primary: {
+            DEFAULT: "hsl(var(--primary))",
+            foreground: "hsl(var(--primary-foreground))",
+          },
+          // ...altres colors semàntics
+        },
+      },
+    },
+    // ...
+    ```
+
+3.  **Aplicació del Tema (`App.tsx`):**
+    -   El component arrel `App.tsx` continua sent responsable de commutar la classe `dark` a l'element `<html>`, la qual cosa activa el canvi de variables CSS a tot el document.
+
+### Avantatges d'Aquesta Arquitectura
+
+-   **Centralització:** Tots els valors de colors resideixen a `src/index.css`, facilitant canvis globals a la paleta de colors.
+-   **Consistència:** Assegura que tots els components, inclosos els de tercers com FullCalendar, utilitzin la mateixa paleta de colors.
+-   **Mantenibilitat:** Redueix la necessitat de classes condicionals `dark:` als components, simplificant el codi JSX.
+
+### Estils de Components de Tercers (FullCalendar)
+
+El plugin personalitzat a `tailwind.config.cjs` per a FullCalendar també s'ha actualitzat per utilitzar les noves variables CSS, garantint que l'aparença del calendari (fons, vores, botons) sigui totalment coherent amb el tema seleccionat.
 
 ### 6.1. Sistema de Tooltips (Basat en Portals)
 

@@ -93,7 +93,6 @@ enllaç a Gestor-Events_i_Personal/
 │   └── types.ts                  # Fitxer crític. Defineix totes les interfícies i tipus de dades de l'aplicació (EventFrame amb el flag isArchived, Assignment, MaterialItem, TechSheetData, AppData, GoogleConfig, ElectronAPI). La font de veritat per la robustesa i mantenibilitat del projecte.
 ├── .gitattributes                # Fitxer per definir atributs per a rutes de git.
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
-├── ANALYSIS_REPORT.md            # Informe d'anàlisi de l'estat de la refactorització del codi.
 ├── DEVELOPING.md                 # Documentació tècnica detallada de l'arquitectura i funcionalitats per a desenvolupadors.
 ├── LICENSE                       # Fitxer de llicència del projecte.
 ├── README.md                     # Documentació principal del projecte: funcionalitats, instal·lació i ús.

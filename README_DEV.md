@@ -42,6 +42,7 @@ El projecte està actualment en fase de desenvolupament actiu.
 * **Sistema d'Arxivatge:** Nova funcionalitat per arxivar esdeveniments antics, mantenint la llista principal neta i organitzada.
 
 * **Altres millores:**
+  * **Sistema de Disseny Centralitzat:** S'ha refactoritzat tota la interfície per utilitzar un sistema de disseny basat en variables CSS, la qual cosa permet una gestió de temes (clar/fosc) més robusta, consistent i fàcil de mantenir.
   * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.
   * Refactorització de stores, modals, tech_sheets i utils.
   * Gestió d'errors robusta amb logs de sessió i ErrorBoundary.
