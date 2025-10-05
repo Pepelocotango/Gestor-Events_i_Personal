@@ -115,7 +115,7 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
         <Tooltip text="Exporta un resum del control de material en format PDF.">
           <button
             onClick={handleExportSummaryPdf}
-            className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-50"
+            className="px-3 py-1 text-sm rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50"
             disabled={filteredData.length === 0}
           >
             PDF Resum
@@ -124,7 +124,7 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
         <Tooltip text="Exporta un informe detallat del control de material, incloent el desglossament per esdeveniment, en format PDF.">
           <button
             onClick={handleExportDetailedPdf}
-            className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-50"
+            className="px-3 py-1 text-sm rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50"
             disabled={filteredData.length === 0}
           >
             PDF Detallat
@@ -133,7 +133,7 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
         <Tooltip text="Exporta les dades del control de material en format CSV, compatible amb fulls de càlcul.">
           <button
             onClick={handleExportCsv}
-            className="px-3 py-1 text-sm rounded-md bg-green-100 text-green-800 hover:bg-green-200 disabled:opacity-50"
+            className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50"
             disabled={filteredData.length === 0}
           >
             CSV
@@ -142,7 +142,7 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
       </div>
 
       {isUpdatingMaterial ? (
-          <div className="text-center p-8">Actualitzant dades de material...</div>
+          <div className="text-center p-8 text-muted-foreground">Actualitzant dades de material...</div>
       ) : (
           <MaterialControlTable
             data={filteredData}

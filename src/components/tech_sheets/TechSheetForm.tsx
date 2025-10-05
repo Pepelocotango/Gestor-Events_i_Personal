@@ -714,29 +714,29 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   );
 
   return (
-    <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow space-y-4 tech-sheet-form-container">
+    <div className="p-2 bg-background rounded-lg shadow space-y-4 tech-sheet-form-container">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-          Fitxa de Bolo: <span className="text-blue-600 dark:text-blue-400">{eventFrame.name}</span>
+        <h2 className="text-xl font-bold text-foreground">
+          Fitxa de Bolo: <span className="text-primary">{eventFrame.name}</span>
         </h2>
         <div className="flex items-center gap-2">
             <Tooltip text="Expandir totes les seccions del formulari">
-                <button onClick={expandAll} className="px-2 py-1 bg-gray-300 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 no-print">Expandir Totes</button>
+                <button onClick={expandAll} className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md hover:bg-accent no-print">Expandir Totes</button>
             </Tooltip>
             <Tooltip text="Col·lapsar totes les seccions del formulari">
-                <button onClick={collapseAll} className="px-2 py-1 bg-gray-300 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 no-print">Col·lapsar Totes</button>
+                <button onClick={collapseAll} className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md hover:bg-accent no-print">Col·lapsar Totes</button>
             </Tooltip>
             <Tooltip text="Forçar el desat immediat de tots els canvis pendents">
-              <button onClick={handleManualSave} className="save-changes-button px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold no-print">Desar Canvis</button>
+              <button onClick={handleManualSave} className="save-changes-button px-3 py-1 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-semibold no-print">Desar Canvis</button>
             </Tooltip>
             <Tooltip text="Generar i descarregar un PDF amb la fitxa tècnica actual">
-              <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold no-print">Exportar a PDF</button>
+              <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 font-semibold no-print">Exportar a PDF</button>
             </Tooltip>
         </div>
       </div>
       <div className="mt-1">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Edita els detalls tècnics de l'esdeveniment. Els canvis es desen automàticament.</p>
+        <p className="text-sm text-muted-foreground">Edita els detalls tècnics de l'esdeveniment. Els canvis es desen automàticament.</p>
       </div>
 
       {/* General Info */}
@@ -754,8 +754,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
         {eventFrame.generalNotes && (
             <div className="col-span-full">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de l'Esdeveniment (No editable)</label>
-                <div className="mt-1 p-2 w-full bg-gray-200 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 rounded-md shadow-sm text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                <label className="block text-sm font-medium text-muted-foreground">Notes Generals de l'Esdeveniment (No editable)</label>
+                <div className="mt-1 p-2 w-full bg-muted border border-border rounded-md shadow-sm text-sm text-muted-foreground whitespace-pre-wrap">
                     {eventFrame.generalNotes}
                 </div>
             </div>
@@ -763,11 +763,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
         <div className="col-span-full">
             <div className="flex items-center justify-between mb-1">
-                <label htmlFor="generalNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de la Fitxa Tècnica</label>
+                <label htmlFor="generalNotes" className="block text-sm font-medium text-muted-foreground">Notes Generals de la Fitxa Tècnica</label>
                 <Tooltip text="Marca aquesta casella per incloure les notes generals en exportar la fitxa a PDF.">
                     <div className="flex items-center gap-2">
-                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"/>
-                        <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-input text-primary focus:ring-ring"/>
+                        <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                     </div>
                 </Tooltip>
             </div>
@@ -869,7 +869,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
           <div className="flex justify-between items-start mb-2">
             <div className="flex-grow pr-4">
                 <div className="flex items-center justify-between mb-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes generals dels horaris:</label>
+                    <label className="block text-sm font-medium text-muted-foreground">Notes generals dels horaris:</label>
                     <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
                         <div className="flex items-center gap-2">
                             <input
@@ -878,9 +878,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                                 name="showScheduleNotesInPdf"
                                 checked={formData.showScheduleNotesInPdf ?? true}
                                 onChange={handleChange}
-                                className="h-4 w-4 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"
+                                className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                             />
-                            <label htmlFor="showScheduleNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                            <label htmlFor="showScheduleNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                         </div>
                     </Tooltip>
                 </div>
@@ -900,7 +900,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 <button
                   type="button"
                   onClick={handleSortScheduleByDate}
-                  className="px-2 py-1 bg-indigo-600 text-white text-xs rounded-md hover:bg-indigo-700 no-print"
+                  className="px-2 py-1 bg-primary text-primary-foreground text-xs rounded-md hover:bg-primary/90 no-print"
                 >
                   Ordenar Dies ({scheduleSortOrder === 'asc' ? 'ASC' : 'DESC'})
                 </button>
@@ -919,29 +919,26 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 return acc;
               }, {} as Record<string, AssemblyScheduleItem[]>)
             ).map(([date, items]) => (
-              <div key={date} className="p-3 border rounded-md bg-gray-100 dark:bg-gray-700/50">
+              <div key={date} className="p-3 border rounded-md bg-muted/50 border-border">
                 <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-semibold text-gray-800 dark:text-gray-200">
+                  <h4 className="font-semibold text-foreground">
                     {date === 'Sense data' ? 'Elements nous - Assignar data' : `Data: ${formatDateDMY(date)}`}
                   </h4>
                   {date !== 'Sense data' && (
                     <div className="flex items-center gap-2">
                       {items.length > 1 && (
                         <Tooltip text="Ordenar les entrades d'aquest dia per hora">
-                          <button type="button" onClick={() => handleSortScheduleByTime(date)} className="px-2 py-1 bg-gray-300 dark:bg-gray-600 text-xs rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 no-print">Ordenar per Hora</button>
+                          <button type="button" onClick={() => handleSortScheduleByTime(date)} className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md hover:bg-accent no-print">Ordenar per Hora</button>
                         </Tooltip>
                       )}
                       <Tooltip text={`Afegir una nova línia d'horari per al ${formatDateDMY(date)}`}>
-                        <button type="button" onClick={() => handleAddAssemblyScheduleItem(date)} className="add-item-button px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">+ Afegir Horari</button>
+                        <button type="button" onClick={() => handleAddAssemblyScheduleItem(date)} className="add-item-button px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 text-xs">+ Afegir Horari</button>
                       </Tooltip>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  {/* The .map function iterates over `items`, which is an array of schedule entries grouped by a specific day. */}
-                  {/* Therefore, `index` refers to the item's position *within its day group*, not the overall schedule array. */}
-                  {/* This makes the `disabled` logic for the move buttons correct. */}
                   {items.map((item, index) => {
                     return (
                       <div key={item.id} className="grid grid-cols-12 gap-2 items-start">
@@ -963,7 +960,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                               type="button"
                               onClick={() => handleMoveAssemblyScheduleItemUp(item.id)}
                               disabled={index === 0}
-                              className="text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="text-muted-foreground hover:bg-accent rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               &#x25B2;
                             </button>
@@ -973,13 +970,13 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                               type="button"
                               onClick={() => handleMoveAssemblyScheduleItemDown(item.id)}
                               disabled={index === items.length - 1}
-                              className="text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="text-muted-foreground hover:bg-accent rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               &#x25BC;
                             </button>
                           </Tooltip>
                           <Tooltip text="Eliminar aquesta línia d'horari">
-                            <button type="button" onClick={() => handleRemoveAssemblyScheduleItem(item.id)} className="remove-item-button text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
+                            <button type="button" onClick={() => handleRemoveAssemblyScheduleItem(item.id)} className="remove-item-button text-destructive hover:bg-destructive/10 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
                           </Tooltip>
                         </div>
                       </div>
@@ -990,7 +987,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
             ))}
             <div className="mt-4 no-print">
               <Tooltip text="Afegeix una nova entrada a l'horari amb la data d'inici de l'esdeveniment. Podràs modificar la data posteriorment.">
-                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Nova Data</button>
+                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm">+ Afegir Nova Data</button>
               </Tooltip>
             </div>
           </div>
@@ -1097,7 +1094,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       >
         <div className="col-span-full">
             <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals de Necessitats Tècniques</label>
+                <label className="block text-sm font-medium text-muted-foreground">Notes Generals de Necessitats Tècniques</label>
                 <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
                     <div className="flex items-center gap-2">
                         <input
@@ -1106,9 +1103,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                             name="showTechnicalNeedsNotesInPdf"
                             checked={formData.showTechnicalNeedsNotesInPdf ?? true}
                             onChange={handleChange}
-                            className="h-4 w-4 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"
+                            className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                         />
-                        <label htmlFor="showTechnicalNeedsNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                        <label htmlFor="showTechnicalNeedsNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                     </div>
                 </Tooltip>
             </div>
@@ -1154,23 +1151,23 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         onToggle={() => handleToggleSection('contactsObservations')}
       >
         <div className="col-span-full space-y-3">
-          <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">CONTACTES (CLIENT / ARTISTA / GRUP):</h4>
+          <h4 className="text-md font-semibold text-foreground">CONTACTES (CLIENT / ARTISTA / GRUP):</h4>
           {(formData.contacts || []).map((contact, index) => (
-            <div key={contact.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-center p-2 border rounded-md dark:border-gray-600">
+            <div key={contact.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-center p-2 border rounded-md border-border">
               <div className="col-span-3"><TechSheetField id={`contact-name-${index}`} label="Nom" value={contact.name} onChange={(e) => handleContactChange(index, 'name', e.target.value)} placeholder="Nom del contacte" tooltipText="Nom i cognoms del contacte."/></div>
               <div className="col-span-3"><TechSheetField id={`contact-role-${index}`} label="Càrrec" value={contact.role} onChange={(e) => handleContactChange(index, 'role', e.target.value)} placeholder="Regidor, tècnic@ de llums/so, Producció, conserge del poble...." tooltipText="Càrrec o rol del contacte dins la companyia (p. ex., 'Director Tècnic', 'Producció')."/></div>
               <div className="col-span-3"><TechSheetField id={`contact-email-${index}`} label="Email" type="email" value={contact.email} onChange={(e) => handleContactChange(index, 'email', e.target.value)} placeholder="email@exemple.com" tooltipText="Correu electrònic del contacte."/></div>
               <div className="col-span-2"><TechSheetField id={`contact-phone-${index}`} label="Telèfon" type="tel" value={contact.phone} onChange={(e) => handleContactChange(index, 'phone', e.target.value)} placeholder="600123456" tooltipText="Número de telèfon del contacte."/></div>
               <div className="col-span-1 flex items-end justify-center pb-1">
                 <Tooltip text="Eliminar contacte">
-                  <button type="button" onClick={() => handleRemoveContact(index)} className="remove-item-button text-red-500 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
+                  <button type="button" onClick={() => handleRemoveContact(index)} className="remove-item-button text-destructive hover:bg-destructive/10 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
                 </Tooltip>
               </div>
             </div>
           ))}
           <div className="mt-2 no-print">
             <Tooltip text="Afegir un nou contacte">
-              <button type="button" onClick={handleAddContact} className="add-item-button px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">+ Afegir Contacte</button>
+              <button type="button" onClick={handleAddContact} className="add-item-button px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm">+ Afegir Contacte</button>
             </Tooltip>
           </div>
         </div>
