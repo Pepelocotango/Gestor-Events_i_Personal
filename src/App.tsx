@@ -931,9 +931,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
   return (
       <HashRouter>
         <ErrorBoundary>
-          <div className="min-h-screen flex flex-col bg-gray-200 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+          <div className="min-h-screen flex flex-col bg-background text-foreground">
             {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
-            <header className="sticky top-0 z-40 bg-gray-200/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm border-b border-gray-300 dark:border-gray-700">
+            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-sm border-b border-border">
             <CustomMenuBar
               canUndo={canUndo}
               canRedo={canRedo}
@@ -985,7 +985,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             )}
           </main>
 
-          <footer className="bg-gray-100 dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
+          <footer className="bg-secondary p-4 text-center text-sm text-muted-foreground border-t border-border">
             <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.1.0. Llicència MIT (codi lliure). </span>
             <span>Si vols col·laborar, pots fer-ho al <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">projecte de GitHub</a> o amb una aportació a <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>.</span>
           </footer>
@@ -1004,24 +1004,13 @@ const handleSaveDocument = async (): Promise<boolean> => {
           <Toaster
             position="top-right"
             toastOptions={{
+              className: 'bg-popover text-popover-foreground border-border border p-4 rounded-lg shadow-lg',
               duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
               success: {
                 duration: 3000,
-                iconTheme: {
-                  primary: '#4ade80',
-                  secondary: '#fff',
-                },
               },
               error: {
                 duration: 5000,
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
-                },
               },
             }}
           />
@@ -1031,21 +1020,21 @@ const handleSaveDocument = async (): Promise<boolean> => {
           </Suspense>
 
           {isLoadingOverlayVisible && !syncProgress.visible && (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
-              <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
+              <svg className="animate-spin h-10 w-10 text-foreground mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-white text-lg">{loadingOverlayMessage || "Processant..."}</p>
+              <p className="text-foreground text-lg">{loadingOverlayMessage || "Processant..."}</p>
             </div>
           )}
           {isUpdatingMaterial && (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9999]" aria-live="assertive" role="alert">
-              <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex flex-col justify-center items-center z-[9999]" aria-live="assertive" role="alert">
+              <svg className="animate-spin h-10 w-10 text-foreground mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-white text-lg">Actualitzant material a tota l'aplicació...</p>
+              <p className="text-foreground text-lg">Actualitzant material a tota l'aplicació...</p>
             </div>
           )}
           </div>

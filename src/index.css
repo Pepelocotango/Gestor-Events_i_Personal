@@ -2,6 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
 
 @keyframes highlight-fade {
   from {
@@ -78,29 +125,7 @@
   }
 }
 @layer components {
-  /* Estils per a la targeta d'assignació */
-  .assignment-card {
-    @apply p-2 rounded-lg shadow-md transition-colors duration-300;
-  }
-  .assignment-card-yes {
-    @apply bg-green-100 dark:bg-green-900/60 text-green-900 dark:text-green-100;
-  }
-  .assignment-card-no {
-    @apply bg-red-100 dark:bg-red-900/60 text-red-900 dark:text-red-100;
-  }
-  .assignment-card-pending {
-    @apply bg-yellow-100 dark:bg-yellow-800/60 text-yellow-900 dark:text-yellow-100;
-  }
-  .assignment-card-mixed {
-    @apply bg-gradient-to-r from-yellow-100 via-green-100 to-red-100 dark:from-yellow-900/60 dark:via-green-900/60 dark:to-red-900/60 text-gray-800 dark:text-gray-100;
-  }
-
-  /* Estils per a la secció de detall diari */
-  .daily-details-section {
-    @apply mt-2 pt-2 border-t bg-black/5 dark:bg-black/20 rounded-b-md;
-  }
-  
-  /* Fons per a cada fila diària */
+  /* Fons per a cada fila diària - es mantenen colors d'estat */
   .daily-row-yes {
     @apply bg-green-100/70 dark:bg-green-800/40;
   }
@@ -111,13 +136,14 @@
     @apply bg-yellow-100/70 dark:bg-yellow-800/40;
   }
   .daily-row-mixed { /* Fallback per si no hi ha estat definit */
-    @apply bg-gray-100/70 dark:bg-gray-800/40;
+    @apply bg-muted/50;
   }
   
   /* Estils per als botons de canvi d'estat (píndoles) - APLICABLE A TOT */
   .status-pill {
-    @apply px-2.5 py-0.5 text-xs font-bold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
+    @apply px-2.5 py-0.5 text-xs font-bold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring focus:ring-offset-background;
   }
+  /* Els colors seleccionats es mantenen per semàntica d'estat */
   .status-pill-selected-yes {
     @apply bg-green-500 text-white shadow-md focus:ring-green-400;
   }
@@ -130,31 +156,26 @@
   .status-pill-selected-mixed {
     @apply bg-fuchsia-500 text-white shadow-md focus:ring-fuchsia-400;
   }
-  .event-card-complete {
-    @apply bg-green-300 dark:bg-green-900/30;
-  }
   .status-pill-unselected {
-    @apply bg-gray-300/70 text-gray-800 hover:bg-gray-300/100 dark:bg-gray-600/70 dark:text-gray-100 dark:hover:bg-gray-600;
+    @apply bg-secondary text-secondary-foreground/70 hover:bg-accent hover:text-accent-foreground;
   }
 
   /* Portal Tooltip Styles */
   .tooltip-portal {
     position: absolute;
-    /* Center horizontally, position above with a small gap */
     transform: translate(-50%, calc(-100% - 8px));
     padding: 4px 8px;
-    background-color: #1f2937; /* Equivalent to dark:bg-gray-800 */
-    color: white;
-    border-radius: 4px;
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
     font-size: 12px;
     font-weight: 600;
-    z-index: 10000; /* Highest z-index */
-    pointer-events: none; /* Tooltip should not be interactive */
+    z-index: 10000;
+    pointer-events: none;
     white-space: normal;
     max-width: 250px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-
-    /* Fade-in animation */
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
   }

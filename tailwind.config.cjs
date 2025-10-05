@@ -11,40 +11,78 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
-      // Pots afegir colors personalitzats aquí si vols
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      }
     },
   },
   plugins: [
-    plugin(function({ addBase, addComponents, theme }) {
+    plugin(function({ addBase, theme }) {
       addBase({
-        // --------------------------------------------------------------------
         // --- Estils per als esdeveniments de l'App (sempre s'apliquen) ---
-        // --------------------------------------------------------------------
         '.event-complete': {
-          backgroundColor: theme('colors.gray.900'),
+          backgroundColor: 'hsl(var(--primary))',
           borderColor: theme('colors.green.500'),
           borderWidth: '3px',
-          color: theme('colors.white'),
+          color: 'hsl(var(--primary-foreground))',
         },
         '.event-incomplete': {
-          backgroundColor: theme('colors.gray.900'),
+          backgroundColor: 'hsl(var(--primary))',
           borderColor: theme('colors.yellow.500'),
           borderWidth: '3px',
-          color: theme('colors.white'),
+          color: 'hsl(var(--primary-foreground))',
         },
 
-        // --------------------------------------------------------------------
-        // --- TEMA CLAR ---
-        // --------------------------------------------------------------------
+        // --- Estils Generals de FullCalendar (per a ambdós temes) ---
         '.fc': {
+          '--fc-border-color': 'hsl(var(--border))',
+          '--fc-today-bg-color': 'hsla(var(--accent) / 0.5)',
+          '--fc-list-event-hover-bg-color': 'hsl(var(--accent))',
           '.fc-daygrid-day': {
             overflow: 'visible',
           },
         },
         '.fc-day-today .fc-daygrid-day-number': {
-          backgroundColor: theme('colors.gray.700'),
-          color: theme('colors.white'),
-          borderRadius: '50%',
+          backgroundColor: 'hsl(var(--primary))',
+          color: 'hsl(var(--primary-foreground))',
+          borderRadius: '9999px',
           width: '24px',
           height: '24px',
           display: 'flex',
@@ -54,85 +92,42 @@ module.exports = {
           margin: '2px',
         },
 
-        // --------------------------------------------------------------------
-        // --- TEMA FOSC ---
-        // --------------------------------------------------------------------
+        // --- Estils Específics del Tema Fosc ---
         '.dark .fc': {
-          '--fc-border-color': theme('colors.gray.600'),
-          
-          // Botons de la capçalera
           '.fc-button': {
-            backgroundColor: theme('colors.gray.700'),
-            color: theme('colors.gray.200'),
-            borderColor: theme('colors.gray.600'),
+            backgroundColor: 'hsl(var(--secondary))',
+            color: 'hsl(var(--secondary-foreground))',
+            borderColor: 'hsl(var(--border))',
           },
           '.fc-button:hover': {
-            backgroundColor: theme('colors.gray.600'),
+            backgroundColor: 'hsl(var(--accent))',
           },
           '.fc-button-primary:not(:disabled).fc-button-active': {
-            backgroundColor: theme('colors.blue.600'),
-            borderColor: theme('colors.blue.600'),
+            backgroundColor: 'hsl(var(--primary))',
+            color: 'hsl(var(--primary-foreground))',
+            borderColor: 'hsl(var(--primary))',
           },
-          
-          // Capçaleres dels dies
-          '.fc-col-header-cell-cushion': {
-            color: theme('colors.gray.300'),
+          '.fc-col-header-cell-cushion, .fc-daygrid-day-number, .fc-list-event-title a, .fc-list-table, .fc-list-event td, .fc-multimonth-title, .fc-popover-body': {
+            color: 'hsl(var(--muted-foreground))',
             textDecoration: 'none',
           },
-          '.fc-col-header': {
-            backgroundColor: theme('colors.gray.700'),
+          '.fc-col-header, .fc-popover-header': {
+            backgroundColor: 'hsl(var(--secondary))',
           },
-          
-          // Números dels dies (general)
-          '.fc-daygrid-day-number': {
-            color: theme('colors.gray.300'),
-            textDecoration: 'none',
-          },
-          
-          // Vista de llista (Agenda)
-          '.fc-list-day-cushion': {
-            backgroundColor: theme('colors.gray.800'),
-          },
-          '.fc-list-event-title a': {
-            color: theme('colors.gray.200'),
-          },
-          '.fc-list-table, .fc-list-event td': {
-            color: theme('colors.gray.300'),
-          },
-          '.fc-list-event:hover td': {
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-          },
-          
-          // Vistes Multi-Mes
-          '.fc-multimonth-month': {
-             backgroundColor: theme('colors.gray.800'),
+          '.fc-list-day-cushion, .fc-multimonth-month': {
+            backgroundColor: 'hsl(var(--muted))',
           },
           '.fc-daygrid-day': {
-             backgroundColor: theme('colors.gray.700'),
-             overflow: 'visible',
+            backgroundColor: 'hsl(var(--secondary))',
+            overflow: 'visible',
           },
-          '.fc-multimonth-title': {
-            color: theme('colors.gray.100'),
-          },
-          
-          // Popover d'esdeveniments (+X més)
           '.fc-popover': {
-            backgroundColor: theme('colors.gray.800'),
-            borderColor: theme('colors.gray.600'),
+            backgroundColor: 'hsl(var(--popover))',
+            borderColor: 'hsl(var(--border))',
           },
           '.fc-popover-header': {
-            backgroundColor: theme('colors.gray.700'),
-            color: theme('colors.gray.200'),
-          },
-          '.fc-popover-body': {
-             color: theme('colors.gray.300'),
-          },
-        },
-        
-        // Regla específica per al número del dia d'avui en tema fosc
-        '.dark .fc-day-today .fc-daygrid-day-number': {
-           backgroundColor: theme('colors.gray.300'),
-           color: theme('colors.gray.900'),
+             color: 'hsl(var(--popover-foreground))',
+          }
         },
       });
     })
