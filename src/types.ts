@@ -284,6 +284,8 @@ export interface ModalData {
     titleOverride?: string;
     newData?: PersonGroup[] | MaterialItem[];
     requiresInput?: boolean;
+    suppressSuccessToast?: boolean;
+    intent?: 'destructive' | 'constructive';
     managedCalendars?: ManagedAppCalendar[];
     activeCalendarId?: string | null;
     onConfirmSync?: (targetCalendarId: string) => void;

@@ -469,14 +469,17 @@ const MainDisplay = React.forwardRef<
                             const formattedDate = oneMonthAgo.toLocaleDateString('ca-ES');
 
                             openModal('confirmDelete', {
-                                titleOverride: "Confirmació Arxivar",
-                                message: `S'arxivaran ${eventsToArchive.length} esdeveniments finalitzats abans del ${formattedDate}.`,
-                                confirmButtonText: 'Arxivar',
+                                itemType: 'Esdeveniments',
+                                itemName: `S'arxivaran <strong>${eventsToArchive.length}</strong> esdeveniments finalitzats abans del <strong>${formattedDate}</strong>.`,
                                 onConfirm: () => {
                                     const eventIds = eventsToArchive.map(e => e.id);
                                     confirmArchiveEventFrames(eventIds);
-                                    setToastMessage(`${eventsToArchive.length} esdeveniments arxivats correctament.`, 'success');
+                                    setToastMessage(`${eventIds.length} esdeveniment(s) arxivat(s) correctament.`, 'success');
                                 },
+                                titleOverride: "Confirmació Arxivar",
+                                confirmButtonText: "Arxivar Antics",
+                                suppressSuccessToast: true,
+                                intent: 'destructive'
                             });
                         } else {
                             setToastMessage("No hi ha esdeveniments antics per arxivar.", 'info');
