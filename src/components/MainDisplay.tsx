@@ -529,7 +529,7 @@ const MainDisplay = React.forwardRef<
             </div>
         </div>
 
-        {filteredAndSortedEventFrames.length === 0 && <p className="text-center text-gray-500 dark:text-gray-400 py-4">No s'han trobat marcs d'esdeveniment.</p>}
+        {filteredAndSortedEventFrames.length === 0 && <p className="text-center text-muted-foreground py-4">No s'han trobat marcs d'esdeveniment.</p>}
         {filteredAndSortedEventFrames.map((ef: EventFrame) => (
           <EventFrameCard
             key={ef.id}

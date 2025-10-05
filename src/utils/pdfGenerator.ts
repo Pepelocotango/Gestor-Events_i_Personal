@@ -3,6 +3,7 @@ import autoTable, { Styles } from 'jspdf-autotable';
 import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
+import { pdfThemeColors } from './themeColors';
 
 
 // Funció genèrica per crear una capçalera i títol
@@ -110,7 +111,7 @@ export const exportSummariesToPdf = async (
           startY: y,
           theme: 'striped',
           styles: { fontSize: 9, cellPadding: 2 },
-          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
+          headStyles: { fillColor: [...pdfThemeColors.headerBlue], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
           didDrawPage: (_data: any) => {
             addFooter(pdf, pageCount);
           },
@@ -150,7 +151,7 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
 
     const body: any[][] = [];
     Object.keys(itemsByCategory).sort().forEach(category => {
-      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: '#e0e0e0', textColor: '#000000' } }]);
+      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: [...pdfThemeColors.sectionBg], textColor: [...pdfThemeColors.foreground] } }]);
       itemsByCategory[category].forEach(item => {
         body.push([
           item.name,
@@ -167,7 +168,7 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
       startY: y,
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 2.5 },
-      headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: [...pdfThemeColors.headerGreen], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
       didDrawPage: (_data: any) => {
         addFooter(pdf, pageCount);
         if (_data.pageNumber > 1) {
@@ -209,7 +210,7 @@ export const exportMaterialControlSummaryPdf = async (
         body.push([{
           content: lastCategory,
           colSpan: 5,
-          styles: { fontStyle: 'bold', fillColor: '#d3d3d3', textColor: '#000000', fontSize: 11, halign: 'left' }
+          styles: { fontStyle: 'bold', fillColor: [...pdfThemeColors.categoryBg], textColor: [...pdfThemeColors.foreground], fontSize: 11, halign: 'left' }
         }]);
       }
 
@@ -219,7 +220,7 @@ export const exportMaterialControlSummaryPdf = async (
         body.push([{
           content: `Origen: ${lastOrigin}`,
           colSpan: 5,
-          styles: { fontStyle: 'italic', fillColor: '#f0f0f0', textColor: '#333333', fontSize: 10, halign: 'left' }
+          styles: { fontStyle: 'italic', fillColor: [...pdfThemeColors.originBg], textColor: [...pdfThemeColors.foregroundMuted], fontSize: 10, halign: 'left' }
         }]);
       }
 
@@ -228,7 +229,7 @@ export const exportMaterialControlSummaryPdf = async (
         row.item.name,
         row.item.location,
         row.item.stock.toString(),
-        { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? '#c0392b' : '#27ae60' } },
+        { content: row.balance.toString(), styles: { fontStyle: 'bold', textColor: row.balance < 0 ? [...pdfThemeColors.destructive] : [...pdfThemeColors.success] } },
         row.totalDemand.toString()
       ]);
 
@@ -238,8 +239,8 @@ export const exportMaterialControlSummaryPdf = async (
           content: `Nota: ${row.item.notes}`,
           colSpan: 5,
           styles: {
-            fillColor: '#f5f5f5',
-            textColor: '#444444',
+            fillColor: [...pdfThemeColors.notesBg],
+            textColor: [...pdfThemeColors.foregroundMuted],
             fontStyle: 'italic',
             fontSize: 8
           }
@@ -253,7 +254,7 @@ export const exportMaterialControlSummaryPdf = async (
       startY: y,
       theme: 'grid',
       styles: { fontSize: 9, cellPadding: 2 },
-      headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: [...pdfThemeColors.headerGrayDark], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
       didDrawPage: (data: any) => {
         if (data.pageNumber > 1) {
           createPdfHeader(pdf, 'Resum de Control de Material');
@@ -335,7 +336,7 @@ export const exportMaterialControlDetailedPdf = async (
         startY: y,
         theme: 'striped',
         styles: { fontSize: 9, cellPadding: 2 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
+        headStyles: { fillColor: [...pdfThemeColors.headerBlue], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
         didDrawPage: (data: any) => {
             if (data.pageNumber > pageCount) {
                 pageCount = data.pageNumber;
@@ -385,7 +386,7 @@ export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: 
       startY: y,
       theme: 'striped',
       styles: { fontSize: 9, cellPadding: 2, overflow: 'linebreak' },
-      headStyles: { fillColor: [243, 156, 18], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: [...pdfThemeColors.headerOrange], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
       columnStyles: {
         2: { cellWidth: 60 },
         3: { cellWidth: 'auto' }
@@ -418,9 +419,9 @@ export const exportTechSheetToPdf = async (
     let y = 15;
 
     const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-    const headStyles: Partial<Styles> = { fillColor: [64, 64, 64], textColor: [255, 255, 255], fontStyle: 'bold' };
-    const labelStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold', cellWidth: 50 };
-    const subHeadStyles: Partial<Styles> = { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' };
+    const headStyles: Partial<Styles> = { fillColor: [...pdfThemeColors.techSheetHeader], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' };
+    const labelStyles: Partial<Styles> = { fillColor: [...pdfThemeColors.techSheetLabelBg], textColor: [...pdfThemeColors.foreground], fontStyle: 'bold', cellWidth: 50 };
+    const subHeadStyles: Partial<Styles> = { fillColor: [...pdfThemeColors.techSheetSubHeadBg], textColor: [...pdfThemeColors.foreground], fontStyle: 'bold' };
 
     const checkPageBreak = (currentY: number): number => {
         if (currentY > 260) {
@@ -528,7 +529,7 @@ export const exportTechSheetToPdf = async (
         }, {} as Record<string, any[]>);
 
         const scheduleBody: any[][] = [];
-        const dateSubHeadStyles: Partial<Styles> = { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold' };
+        const dateSubHeadStyles: Partial<Styles> = { fillColor: [...pdfThemeColors.techSheetLabelBg], textColor: [...pdfThemeColors.foreground], fontStyle: 'bold' };
 
         // Add a header row for the grouped table
         if (formData.showScheduleNotesInPdf && sane(formData.schedule.details) !== '-') {
@@ -713,7 +714,7 @@ export const exportEventListToPdf = async (
       startY: y,
       theme: 'grid',
       styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-      headStyles: { fillColor: [75, 85, 99], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: [...pdfThemeColors.headerGray], textColor: [...pdfThemeColors.foregroundWhite], fontStyle: 'bold' },
       columnStyles: {
         3: { cellWidth: 85 },
         5: { cellWidth: 60 }
