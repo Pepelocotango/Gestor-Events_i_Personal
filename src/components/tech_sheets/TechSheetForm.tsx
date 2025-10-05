@@ -766,7 +766,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 <label htmlFor="generalNotes" className="block text-sm font-medium text-muted-foreground">Notes Generals de la Fitxa Tècnica</label>
                 <Tooltip text="Marca aquesta casella per incloure les notes generals en exportar la fitxa a PDF.">
                     <div className="flex items-center gap-2">
-                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-input text-primary focus:ring-ring"/>
+                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-input accent-primary focus:ring-ring"/>
                         <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                     </div>
                 </Tooltip>
@@ -878,7 +878,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                                 name="showScheduleNotesInPdf"
                                 checked={formData.showScheduleNotesInPdf ?? true}
                                 onChange={handleChange}
-                                className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
+                                className="h-4 w-4 rounded border-input accent-primary focus:ring-ring"
                             />
                             <label htmlFor="showScheduleNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                         </div>
@@ -987,7 +987,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
             ))}
             <div className="mt-4 no-print">
               <Tooltip text="Afegeix una nova entrada a l'horari amb la data d'inici de l'esdeveniment. Podràs modificar la data posteriorment.">
-                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm">+ Afegir Nova Data</button>
+                <button type="button" onClick={() => handleAddAssemblyScheduleItem()} className="add-item-button px-3 py-1 bg-success text-success-foreground rounded-md hover:bg-success/90 text-sm">+ Afegir Nova Data</button>
               </Tooltip>
             </div>
           </div>
@@ -1103,7 +1103,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                             name="showTechnicalNeedsNotesInPdf"
                             checked={formData.showTechnicalNeedsNotesInPdf ?? true}
                             onChange={handleChange}
-                            className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
+                            className="h-4 w-4 rounded border-input accent-primary focus:ring-ring"
                         />
                         <label htmlFor="showTechnicalNeedsNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                     </div>
@@ -1167,7 +1167,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
           ))}
           <div className="mt-2 no-print">
             <Tooltip text="Afegir un nou contacte">
-              <button type="button" onClick={handleAddContact} className="add-item-button px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm">+ Afegir Contacte</button>
+              <button type="button" onClick={handleAddContact} className="add-item-button px-3 py-1 bg-success text-success-foreground rounded-md hover:bg-success/90 text-sm">+ Afegir Contacte</button>
             </Tooltip>
           </div>
         </div>
