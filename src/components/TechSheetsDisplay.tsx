@@ -12,6 +12,7 @@ interface TechSheetsDisplayProps {
 const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
+  const [includeArchived, setIncludeArchived] = useState(false);
 
   useEffect(() => {
     const loadLastViewed = async () => {
@@ -34,12 +35,22 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   }, [selectedEventFrameId]);
 
   const sortedEventFrames = useMemo(() => {
-    return [...eventFrames].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-  }, [eventFrames]);
+    const filteredFrames = includeArchived
+      ? eventFrames
+      : eventFrames.filter(ef => ef.isArchived !== true);
+    return filteredFrames.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  }, [eventFrames, includeArchived]);
 
   const selectedEventFrame = useMemo((): EventFrame | undefined => {
     return eventFrames.find((ef: EventFrame) => ef.id === selectedEventFrameId);
   }, [eventFrames, selectedEventFrameId]);
+
+  useEffect(() => {
+    // If the currently selected event is no longer in the sorted list (due to filtering), clear the selection
+    if (selectedEventFrameId && !sortedEventFrames.some(ef => ef.id === selectedEventFrameId)) {
+        setSelectedEventFrameId('');
+    }
+  }, [sortedEventFrames, selectedEventFrameId]);
 
   return (
     <div className="space-y-6">
@@ -65,6 +76,18 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
               ))}
             </select>
           </Tooltip>
+            <div className="mt-2 flex items-center">
+                <input
+                    id="include-archived"
+                    type="checkbox"
+                    checked={includeArchived}
+                    onChange={(e) => setIncludeArchived(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-indigo-600 focus:ring-indigo-500"
+                />
+                <label htmlFor="include-archived" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Incloure arxivats
+                </label>
+            </div>
         </div>
       </div>
 

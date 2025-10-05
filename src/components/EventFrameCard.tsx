@@ -3,7 +3,7 @@ import logger from '@/utils/logger';
 import { useModalStore } from '@/stores/modalStore';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '@/types';
-import { PersonAddIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, GoogleIcon } from '@/constants';
+import { PersonAddIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, GoogleIcon, RestoreIcon } from '@/constants';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { formatDateRangeDMY } from '@/utils/dateFormat';
 import AssignmentCard from './AssignmentCard';
@@ -22,15 +22,17 @@ interface EventFrameCardProps {
   onEditAssignment: (eventFrameId: string, assignmentId: string) => void;
   onDeleteAssignment: (eventFrameId: string, assignmentId: string) => void;
   setToastMessage: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
+  isArchived?: boolean;
 }
 
 const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   eventFrame, isExpanded, expandedDailyViewAssignmentIds, filters, onToggleExpand,
   onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
+  isArchived = false,
 }, ref) => {
   logger.info(`[EventFrameCard] Render for ${eventFrame.name}. isExpanded: ${isExpanded}`);
-  const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const { peopleGroups, restoreEventFrame } = useEventDataStore.getState();
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
     peopleGroups.forEach(p => m.set(p.id, p.name));
@@ -95,27 +97,44 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
             <p className="text-xs text-gray-500 dark:text-gray-400">{formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)}</p>
           </div>
           <div className="flex items-center space-x-0.5 sm:space-x-0.5 flex-wrap">
-            <Tooltip text="Editar els detalls de l'esdeveniment">
-              <button onClick={(e) => { e.stopPropagation(); openModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
-            </Tooltip>
-            <Tooltip text="Eliminar l'esdeveniment">
-              <button onClick={(e) => { e.stopPropagation(); openModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
-            </Tooltip>
-            <Tooltip text="Afegir una nova assignació de personal">
-              <button onClick={(e) => {
-                e.stopPropagation();
-                const defaultPersonGroupId = peopleGroups.length > 0 ? peopleGroups[0].id : '';
-                openModal('addAssignment', {
-                  eventFrame,
-                  personGroupId: defaultPersonGroupId,
-                  // Pre-fill form data for a new assignment
-                  startDate: eventFrame.startDate,
-                  endDate: eventFrame.endDate,
-                  status: AssignmentStatus.Pending,
-                  notes: '',
-                });
-              }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
-            </Tooltip>
+            {isArchived ? (
+              <Tooltip text="Restaurar l'esdeveniment">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    restoreEventFrame(eventFrame.id);
+                    setToastMessage(`Esdeveniment "${eventFrame.name}" restaurat.`, 'success');
+                  }}
+                  className="flex items-center gap-1 p-0.5 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 rounded-md hover:bg-green-100 dark:hover:bg-gray-700"
+                >
+                  <RestoreIcon className="w-4 h-4" />
+                  Restaurar
+                </button>
+              </Tooltip>
+            ) : (
+              <>
+                <Tooltip text="Editar els detalls de l'esdeveniment">
+                  <button onClick={(e) => { e.stopPropagation(); openModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
+                </Tooltip>
+                <Tooltip text="Eliminar l'esdeveniment">
+                  <button onClick={(e) => { e.stopPropagation(); openModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
+                </Tooltip>
+                <Tooltip text="Afegir una nova assignació de personal">
+                  <button onClick={(e) => {
+                    e.stopPropagation();
+                    const defaultPersonGroupId = peopleGroups.length > 0 ? peopleGroups[0].id : '';
+                    openModal('addAssignment', {
+                      eventFrame,
+                      personGroupId: defaultPersonGroupId,
+                      startDate: eventFrame.startDate,
+                      endDate: eventFrame.endDate,
+                      status: AssignmentStatus.Pending,
+                      notes: '',
+                    });
+                  }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
+                </Tooltip>
+              </>
+            )}
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
               <button onClick={(e) => { e.stopPropagation(); logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); onToggleExpand(eventFrame.id); }} className="p-0.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
                 {isExpanded ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}

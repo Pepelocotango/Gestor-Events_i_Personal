@@ -3,7 +3,7 @@ import { useEventDataStore, useTemporalStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { startGoogleAuthFlow } from '../stores/googleConfigStore';
 import { ShowToastFunction } from '../types';
-import { SunIcon, MoonIcon, InfoIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, DocumentArrowDownIcon, ClockIcon } from '../constants';
+import { SunIcon, MoonIcon, InfoIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, DocumentArrowDownIcon, ClockIcon, ArchiveIcon } from '../constants';
 import { exportEventListToPdf } from '../utils/pdfGenerator';
 import { exportEventListToCsv } from '../utils/csvUtils';
 import { selectFilteredEventFrames } from '../utils/selectors';
@@ -116,6 +116,32 @@ const Controls: React.FC<ControlsProps> = ({
                   <DocumentArrowDownIcon className="w-4 h-4" /> CSV
                 </button>
               </Tooltip>
+                <div className="border-l border-gray-400 dark:border-gray-600 h-6 mx-0.5"></div>
+                <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'un mes)">
+                    <button
+                        onClick={() => {
+                            const { archiveOldEventFrames, confirmArchiveEventFrames } = useEventDataStore.getState();
+                            const eventsToArchive = archiveOldEventFrames();
+                            if (eventsToArchive.length > 0) {
+                                openModal('confirmDelete', {
+                                    message: `Estàs segur que vols arxivar ${eventsToArchive.length} esdeveniments antics? Aquesta acció es pot desfer.`,
+                                    onConfirm: () => {
+                                        const eventIds = eventsToArchive.map(e => e.id);
+                                        confirmArchiveEventFrames(eventIds);
+                                        showToast(`${eventsToArchive.length} esdeveniments arxivats correctament.`, 'success');
+                                    },
+                                    confirmButtonText: 'Arxivar',
+                                    titleOverride: 'Confirmar Arxivat'
+                                });
+                            } else {
+                                showToast("No hi ha esdeveniments antics per arxivar.", 'info');
+                            }
+                        }}
+                        className="flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                    >
+                        <ArchiveIcon className="w-4 h-4" /> Arxivar Antics
+                    </button>
+                </Tooltip>
             </div>
 
             {hasUnsavedChanges && (

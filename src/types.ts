@@ -162,6 +162,7 @@ export interface EventFrame {
   lastModified?: string;
   lastSync?: string;
   techSheet?: TechSheetData;
+  isArchived?: boolean;
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;

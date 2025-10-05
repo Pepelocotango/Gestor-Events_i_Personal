@@ -122,6 +122,7 @@ const MainDisplay = React.forwardRef<
   } = useEventDataStore.getState();
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showArchived, setShowArchived] = useState(false);
 
   // Estats d'expansió centralitzats
   const isEventListExpanded = useEventDataStore(state => state.isEventListExpanded);
@@ -167,9 +168,10 @@ const MainDisplay = React.forwardRef<
       filterDate,
       localFilterUIPerson,
       filterPlace,
-      filterUIEventFrame
+      filterUIEventFrame,
+      showArchived,
     });
-  }, [eventFrames, peopleGroups, filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame]);
+  }, [eventFrames, peopleGroups, filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame, showArchived]);
 
   const filteredAndSortedEventFrames = useMemo(() => {
     return filteredEventFrames.sort((a, b) => sortOrder === 'asc'
@@ -413,7 +415,7 @@ const MainDisplay = React.forwardRef<
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title={`Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} isOpen={isEventListExpanded} onToggle={() => useEventDataStore.getState().toggleEventListExpanded()} id="event-list-section">
+      <CollapsibleSection title={showArchived ? `Esdeveniments Arxivats (${filteredAndSortedEventFrames.length})` : `Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} isOpen={isEventListExpanded} onToggle={() => useEventDataStore.getState().toggleEventListExpanded()} id="event-list-section">
         <div className="mb-1 flex justify-start items-center gap-1">
           <Tooltip text="Crear un nou marc d'esdeveniment">
             <button onClick={() => {
@@ -437,6 +439,21 @@ const MainDisplay = React.forwardRef<
               {sortOrder === 'asc' ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />} Ordena
             </button>
           </Tooltip>
+            <div className="border-l border-gray-400 dark:border-gray-600 h-6 mx-1"></div>
+            <Tooltip text="Mostrar o ocultar els esdeveniments arxivats">
+                <div className="flex items-center">
+                    <input
+                        type="checkbox"
+                        id="showArchived"
+                        checked={showArchived}
+                        onChange={(e) => setShowArchived(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="showArchived" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Mostrar arxivats
+                    </label>
+                </div>
+            </Tooltip>
         </div>
         
         <div className="mb-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-wrap items-end gap-1">
@@ -464,6 +481,7 @@ const MainDisplay = React.forwardRef<
           <EventFrameCard
             key={ef.id}
             eventFrame={ef}
+            isArchived={showArchived}
             isExpanded={expandedEventFrameIds.has(ef.id)}
             expandedDailyViewAssignmentIds={expandedDailyViewAssignmentIds}
             filters={{ person: localFilterUIPerson, status: filterStatus }}

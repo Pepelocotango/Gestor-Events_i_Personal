@@ -39,6 +39,8 @@ El projecte està actualment en fase de desenvolupament actiu.
 * **Menú Personalitzat en React:**
   * Substitució del menú natiu d'Electron per un component React, amb accions IPC centralitzades.
 
+* **Sistema d'Arxivatge:** Nova funcionalitat per arxivar esdeveniments antics, mantenint la llista principal neta i organitzada.
+
 * **Altres millores:**
   * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.
   * Refactorització de stores, modals, tech_sheets i utils.
