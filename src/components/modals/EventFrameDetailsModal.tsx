@@ -54,10 +54,10 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
               .sort((a, b) => (peopleGroups.find(p => p.id === a.personGroupId)?.name || '').localeCompare(peopleGroups.find(p => p.id === b.personGroupId)?.name || ''))
               .map(assign => {
               const person = peopleGroups.find(p => p.id === assign.personGroupId);
-              let statusColor = 'text-yellow-500';
-              if (assign.status === AssignmentStatus.Yes) statusColor = 'text-green-500';
-              if (assign.status === AssignmentStatus.No) statusColor = 'text-red-500';
-              if (assign.status === AssignmentStatus.Mixed) statusColor = 'text-blue-500';
+              let statusColor = 'text-warning';
+              if (assign.status === AssignmentStatus.Yes) statusColor = 'text-success';
+              if (assign.status === AssignmentStatus.No) statusColor = 'text-destructive';
+              if (assign.status === AssignmentStatus.Mixed) statusColor = 'text-info';
               return (
                 <li key={assign.id} className="text-muted-foreground py-1">
                   <strong className="text-foreground">{person?.name || 'N/A'}</strong>: {assign.startDate === assign.endDate ? formatDateDMY(assign.startDate) : formatDateRangeDMY(assign.startDate, assign.endDate)} <span className={`${statusColor} font-semibold`}>{getStatusSummaryText(assign)}</span>

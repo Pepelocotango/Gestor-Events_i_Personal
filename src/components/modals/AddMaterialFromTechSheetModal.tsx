@@ -46,7 +46,7 @@ const AddMaterialFromTechSheetModal: React.FC = () => {
   }
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-lg mx-auto">
+    <div className="p-6 rounded-lg shadow-lg w-full max-w-lg mx-auto">
       <MaterialForm
         initialData={{ name }}
         onSubmit={handleSubmit}

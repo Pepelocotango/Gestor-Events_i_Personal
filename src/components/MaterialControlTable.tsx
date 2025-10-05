@@ -89,7 +89,7 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
                   <td className="px-6 py-3 whitespace-nowrap text-sm text-muted-foreground">{row.item.category}</td>
                   <td className="px-6 py-3 whitespace-nowrap text-sm text-muted-foreground">{row.item.location}</td>
                   <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">{row.totalDemand}</td>
-                  <td className={`px-6 py-3 whitespace-nowrap text-right text-sm font-bold ${balanceIsNegative ? 'text-destructive' : 'text-green-600 dark:text-green-400'}`}>
+                  <td className={`px-6 py-3 whitespace-nowrap text-right text-sm font-bold ${balanceIsNegative ? 'text-destructive' : 'text-success'}`}>
                     {row.balance}
                   </td>
                 </tr>
