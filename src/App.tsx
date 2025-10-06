@@ -1008,9 +1008,11 @@ const handleSaveDocument = async (): Promise<boolean> => {
               duration: 4000,
               success: {
                 duration: 3000,
+                className: 'bg-success text-success-foreground border-border border p-4 rounded-lg shadow-lg',
               },
               error: {
                 duration: 5000,
+                className: 'bg-destructive text-destructive-foreground border-border border p-4 rounded-lg shadow-lg',
               },
             }}
           />
