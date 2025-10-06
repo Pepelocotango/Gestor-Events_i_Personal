@@ -68,66 +68,65 @@ module.exports = {
   plugins: [
     plugin(function({ addBase }) {
       addBase({
-        // --- Estils per als esdeveniments de l'App (ara temàtics) ---
+        // --- Estils per als esdeveniments (SEMPRE ESTIL FOSC) ---
         '.event-complete': {
-          backgroundColor: 'hsl(var(--primary))',
-          borderColor: 'hsl(var(--success))',
+          backgroundColor: 'hsl(240 5.9% 19%)', // Color fons d'esdeveniment fosc
+          borderColor: 'hsl(142 71% 45%)',     // Color verd (--success)
           borderWidth: '3px',
-          color: 'hsl(var(--primary-foreground))',
+          color: 'hsl(0 0% 100%)',             // Color text blanc
         },
         '.event-incomplete': {
-          backgroundColor: 'hsl(var(--primary))',
-          borderColor: 'hsl(var(--warning))',
+          backgroundColor: 'hsl(240 5.9% 19%)', // Color fons d'esdeveniment fosc
+          borderColor: 'hsl(38 92% 50%)',      // Color groc (--warning)
           borderWidth: '3px',
-          color: 'hsl(var(--primary-foreground))',
+          color: 'hsl(0 0% 100%)',             // Color text blanc
         },
 
-        // --- Estils Generals de FullCalendar (ara temàtics i unificats) ---
+        // --- Estils Generals de FullCalendar (SEMPRE ESTIL FOSC) ---
         '.fc': {
-          '--fc-border-color': 'hsl(var(--border))',
-          '--fc-today-bg-color': 'hsla(var(--accent) / 0.5)',
-          '--fc-list-event-hover-bg-color': 'hsl(var(--accent))',
+          '--fc-border-color': 'hsl(240 5.1% 26.1%)',  // border (dark)
+          '--fc-today-bg-color': 'hsla(240 5.1% 26.1% / 0.5)', // accent (dark)
+          '--fc-list-event-hover-bg-color': 'hsl(240 5.1% 26.1%)', // accent (dark)
 
           '.fc-button': {
-            backgroundColor: 'hsl(var(--secondary))',
-            color: 'hsl(var(--secondary-foreground))',
-            borderColor: 'hsl(var(--border))',
+            backgroundColor: 'hsl(240 5.1% 26.1%)', // secondary (dark)
+            color: 'hsl(240 5% 96.1%)',         // secondary-foreground (dark)
+            borderColor: 'hsl(240 5.1% 26.1%)',     // border (dark)
           },
           '.fc-button:hover': {
-            backgroundColor: 'hsl(var(--accent))',
+            backgroundColor: 'hsl(240 5.1% 30.1%)', // Un pèl més clar que accent
           },
           '.fc-button-primary:not(:disabled).fc-button-active': {
-            backgroundColor: 'hsl(var(--primary))',
-            color: 'hsl(var(--primary-foreground))',
-            borderColor: 'hsl(var(--primary))',
+            backgroundColor: 'hsl(221 83% 53%)', // primary
+            color: 'hsl(0 0% 100%)',         // primary-foreground
+            borderColor: 'hsl(221 83% 53%)', // primary
           },
           '.fc-col-header-cell-cushion, .fc-daygrid-day-number, .fc-list-event-title a, .fc-list-table, .fc-list-event td, .fc-multimonth-title, .fc-popover-body': {
-            color: 'hsl(var(--muted-foreground))',
+            color: 'hsl(240 4.8% 85.9%)', // muted-foreground (dark)
             textDecoration: 'none',
           },
           '.fc-col-header, .fc-popover-header': {
-            backgroundColor: 'hsl(var(--secondary))',
-            color: 'hsl(var(--card-foreground))',
+            backgroundColor: 'hsl(240 5.1% 26.1%)', // secondary (dark)
+            color: 'hsl(240 5% 96.1%)',         // card-foreground (dark)
           },
           '.fc-list-day-cushion, .fc-multimonth-month': {
-            backgroundColor: 'hsl(var(--muted))',
+            backgroundColor: 'hsl(240 5.1% 26.1%)', // muted (dark)
           },
           '.fc-daygrid-day': {
-            backgroundColor: 'hsl(var(--card))',
+            backgroundColor: 'hsl(240 5.9% 19%)', // card (dark)
             overflow: 'visible',
           },
           '.fc-popover': {
-            backgroundColor: 'hsl(var(--popover))',
-            borderColor: 'hsl(var(--border))',
+            backgroundColor: 'hsl(240 5.9% 10%)', // popover (dark)
+            borderColor: 'hsl(240 5.1% 26.1%)',     // border (dark)
           },
           '.fc-popover-header': {
-             color: 'hsl(var(--popover-foreground))',
+              color: 'hsl(240 5% 96.1%)', // popover-foreground (dark)
           }
         },
-
         '.fc-day-today .fc-daygrid-day-number': {
-          backgroundColor: 'hsl(var(--primary))',
-          color: 'hsl(var(--primary-foreground))',
+          backgroundColor: 'hsl(221 83% 53%)', // primary
+          color: 'hsl(0 0% 100%)',         // primary-foreground
           borderRadius: '9999px',
           width: '24px',
           height: '24px',

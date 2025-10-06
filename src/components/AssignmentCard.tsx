@@ -79,7 +79,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
 
   return (
-    <li className={`bg-card rounded-lg border-l-4 ${borderClass}`}>
+    <li className={`rounded-lg ${assignment.status === 'Mixt' ? 'bg-gradient-mixed' : `bg-card border-l-4 ${borderClass}`}`}>
       <div
         className={`flex flex-col sm:flex-row justify-between sm:items-start gap-0.5 p-2 ${isMultiDay ? 'cursor-pointer' : ''}`}
         onClick={(e) => {

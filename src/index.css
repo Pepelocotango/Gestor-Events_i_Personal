@@ -18,7 +18,7 @@
     --muted-foreground: 240 3.8% 46.1%; /* gray-500 */
     --accent: 240 5.9% 90%;         /* gray-300, for hover */
     --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84% 60%;      /* red-600 */
+    --destructive: 0 100% 50%;     /* Vermell pur i brillant */
     --destructive-foreground: 0 0% 100%;
     --border: 240 5.9% 90%;         /* gray-300 */
     --input: 240 5.9% 90%;
@@ -26,9 +26,9 @@
     --radius: 0.5rem;
 
     /* Nous colors semàntics per estats */
-    --success: 142 71% 45%;        /* green-500 */
+    --success: 120 100% 40%;       /* Verd més intens */
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;         /* yellow-500 */
+    --warning: 45 100% 50%;        /* Groc més pur */
     --warning-foreground: 240 5.9% 10%; /* gray-900 */
     --info: 221 83% 53%;           /* blue-600 */
     --info-foreground: 0 0% 100%;
@@ -36,9 +36,9 @@
     --mixed-status-foreground: 0 0% 100%;
 
     /* Colors per a fons de files i píndoles (ara derivats del tema) */
-    --daily-row-yes-bg: hsla(var(--success) / 0.15);
-    --daily-row-no-bg: hsla(var(--destructive) / 0.15);
-    --daily-row-pending-bg: hsla(var(--warning) / 0.15);
+    --daily-row-yes-bg: hsl(142, 71%, 94%); /* Verd molt clar */
+    --daily-row-no-bg: hsl(0, 84%, 97%);   /* Vermell molt clar */
+    --daily-row-pending-bg: hsl(38, 92%, 95%); /* Groc molt clar */
     --daily-row-mixed-bg: hsla(var(--muted) / 0.5);
 
     /* Altres (ara derivats del tema) */
@@ -61,16 +61,16 @@
     --muted-foreground: 240 4.8% 85.9%; /* gray-400 */
     --accent: 240 5.1% 26.1%;      /* gray-700, for hover */
     --accent-foreground: 240 5% 96.1%;
-    --destructive: 0 74% 50%; /* red-700 */
+    --destructive: 0 85% 45%; /* red-700 */
     --destructive-foreground: 0 0% 100%;
     --border: 240 5.1% 26.1%;      /* gray-700 */
     --input: 240 5% 34.1%;         /* gray-600 */
     --ring: 221 83% 53%;
 
     /* Nous colors semàntics per estats - Dark Mode */
-    --success: 139 65% 35%;        /* green-600 */
+    --success: 120 85% 30%;        /* green-600 */
     --success-foreground: 0 0% 100%;
-    --warning: 45 83% 43%;         /* yellow-600 */
+    --warning: 45 90% 40%;         /* yellow-600 */
     --warning-foreground: 240 5.9% 10%;
     --info: 215 75% 45%;           /* blue-700 */
     --info-foreground: 0 0% 100%;
@@ -78,9 +78,9 @@
     --mixed-status-foreground: 0 0% 100%;
 
     /* Colors per a fons de files i píndoles - Dark Mode (ara derivats del tema) */
-    --daily-row-yes-bg: hsla(var(--success) / 0.2);
-    --daily-row-no-bg: hsla(var(--destructive) / 0.2);
-    --daily-row-pending-bg: hsla(var(--warning) / 0.2);
+    --daily-row-yes-bg: hsl(142, 81%, 25%); /* Verd fosc */
+    --daily-row-no-bg: hsl(0, 74%, 30%);   /* Vermell fosc */
+    --daily-row-pending-bg: hsl(38, 82%, 35%); /* Groc/taronja fosc */
     --daily-row-mixed-bg: hsla(var(--muted) / 0.5);
 
     /* Altres - Dark Mode (ara derivats del tema) */
@@ -159,5 +159,9 @@
     box-shadow: var(--shadow-md);
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
+  }
+
+  .bg-gradient-mixed {
+    background-image: linear-gradient(to right, hsla(var(--success) / 0.6), hsla(var(--warning) / 0.6), hsla(var(--destructive) / 0.6));
   }
 }
