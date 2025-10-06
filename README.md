@@ -169,10 +169,6 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 -   **Autor Principal:** Pëp 
 -   **Co-autoria i Suport Tècnic:** Isaac ;) / Google Gemini - Google Studio IA - Jules / Github Copilot / Perplexity / ChatGPT / Claude /
 
-### Captures de pantalla:    
-![Captura de pantalla del gestor d'events i personal](0_CONTEXT_i_eines/imatges%20i%20recursos/screenshot1mac.jpeg)
-
-
 ## 📄 Llicència
 
 Aquest projecte està sota la llicència **GNU General Public License v3.0**.

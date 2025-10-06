@@ -14,6 +14,8 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── example_all.json          # JSON amb dades completes.
 │   ├── example_material.json     # JSON amb dades de material.
 │   └── example_person.json       # JSON amb dades de contactes.
+├── imatges/                      # Conté imatges i captures de pantalla per a la documentació.
+│   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
 │   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
 ├── scripts/                      # Scripts d'utilitat per al procés de desenvolupament i compilació.
@@ -101,7 +103,6 @@ enllaç a Gestor-Events_i_Personal/
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
 ├── DEVELOPING.md                 # Documentació tècnica detallada de l'arquitectura i funcionalitats per a desenvolupadors.
 ├── LICENSE                       # Fitxer de llicència del projecte.
-├── README_DEV.md                 # Documentació amb les novetats i canvis de la branca de desenvolupament.
 ├── README.md                     # Documentació principal del projecte: funcionalitats, instal·lació i ús.
 ├── index.html                    # El punt d'entrada HTML on es munta l'aplicació de React.
 ├── main.cjs                      # !! EL CERVELL DEL BACKEND !! Procés principal d'Electron. Gestiona finestres, fitxers i API externes.
