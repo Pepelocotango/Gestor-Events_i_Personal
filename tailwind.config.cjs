@@ -68,18 +68,18 @@ module.exports = {
   plugins: [
     plugin(function({ addBase }) {
       addBase({
-        // --- Estils per als esdeveniments (ARA DINÀMICS) ---
+        // --- Estils per als esdeveniments (ARA AMB ESTIL FOSC FIX) ---
         '.event-complete': {
-          backgroundColor: 'hsl(var(--card))',
+          backgroundColor: 'hsl(var(--calendar-event-bg))',
           borderColor: 'hsl(var(--success))',
           borderWidth: '3px',
-          color: 'hsl(var(--card-foreground))',
+          color: 'hsl(var(--calendar-event-fg))',
         },
         '.event-incomplete': {
-          backgroundColor: 'hsl(var(--card))',
+          backgroundColor: 'hsl(var(--calendar-event-bg))',
           borderColor: 'hsl(var(--warning))',
           borderWidth: '3px',
-          color: 'hsl(var(--card-foreground))',
+          color: 'hsl(var(--calendar-event-fg))',
         },
 
         // --- Estils Generals de FullCalendar (ARA DINÀMICS) ---
