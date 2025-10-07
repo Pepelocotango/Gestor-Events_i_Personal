@@ -78,8 +78,26 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     onToggleDailyView(assignment.id);
   };
 
+  const liClasses = useMemo(() => {
+    const base = 'rounded-lg';
+    const borderClasses = `border-l-4 ${borderClass}`;
+
+    switch (assignment.status) {
+      case AssignmentStatus.Yes:
+        return `${base} bg-success text-success-foreground ${borderClasses}`;
+      case AssignmentStatus.Pending:
+        return `${base} bg-warning text-warning-foreground ${borderClasses}`;
+      case AssignmentStatus.No:
+        return `${base} bg-destructive text-destructive-foreground ${borderClasses}`;
+      case AssignmentStatus.Mixed:
+        return `${base} bg-gradient-mixed text-card-foreground`;
+      default:
+        return `${base} bg-card text-card-foreground ${borderClasses}`;
+    }
+  }, [assignment.status, borderClass]);
+
   return (
-    <li className={`rounded-lg ${assignment.status === 'Mixt' ? 'bg-gradient-mixed' : `bg-card border-l-4 ${borderClass}`}`}>
+    <li className={liClasses}>
       <div
         className={`flex flex-col sm:flex-row justify-between sm:items-start gap-0.5 p-2 ${isMultiDay ? 'cursor-pointer' : ''}`}
         onClick={(e) => {
@@ -95,9 +113,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         }}
       >
         <div className="flex-grow">
-          <p className="font-semibold text-sm text-card-foreground">{personName || 'Persona Desconeguda'}</p>
+          <p className="font-semibold text-sm">{personName || 'Persona Desconeguda'}</p>
           <p className="text-xs text-muted-foreground">{formatDateRangeDMY(assignment.startDate, assignment.endDate)}</p>
-          <p className="text-xs font-bold text-card-foreground/90">
+          <p className="text-xs font-bold">
             {getStatusSummaryText(assignment)}
           </p>
           {assignment.notes && <p className="text-xs mt-0.5 italic text-muted-foreground whitespace-pre-wrap">Nota: {assignment.notes}</p>}
