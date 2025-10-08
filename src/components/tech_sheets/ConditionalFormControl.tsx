@@ -34,7 +34,7 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
     <select
       value={statusToDisplay(status)}
       onChange={(e) => onStatusChange(displayToStatus(e.target.value))}
-      className="block w-28 pl-3 pr-10 py-1 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+      className="block w-28 pl-3 pr-10 py-1 text-base bg-input border-border focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm rounded-md"
     >
       <option>--</option>
       <option>SI</option>
@@ -43,9 +43,9 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
   );
 
   return (
-    <div className={`mb-3 col-span-full border-t border-gray-200 dark:border-gray-700 pt-4 ${className}`}>
+    <div className={`mb-3 col-span-full border-t border-border pt-4 ${className}`}>
       <div className="flex items-center gap-4">
-        <label className="block text-md font-semibold text-gray-800 dark:text-gray-200">{label}</label>
+        <label className="block text-md font-semibold text-foreground">{label}</label>
         {tooltipText ? (
           <Tooltip text={tooltipText}>
             {selectElement}
@@ -55,7 +55,7 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
         )}
       </div>
       {status === 'yes' && (
-        <div className="mt-3 ml-1 space-y-3 p-4 rounded-lg bg-gray-100 border border-gray-300 dark:bg-transparent dark:border-0 dark:p-0 dark:pl-4 dark:border-l-2 dark:border-indigo-700/50">
+        <div className="mt-3 ml-1 space-y-3 p-4 rounded-lg bg-muted/50 border border-border dark:bg-transparent dark:border-0 dark:p-0 dark:pl-4 dark:border-l-2 dark:border-primary/50">
           {children}
         </div>
       )}

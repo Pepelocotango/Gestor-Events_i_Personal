@@ -29,17 +29,17 @@ const Controls: React.FC<ControlsProps> = ({
   const toggleExpansion = () => setIsExpanded(prev => !prev);
 
   return (
-    <div className="bg-gray-200 dark:bg-gray-800 rounded-lg w-full">
+    <div className="bg-card text-card-foreground rounded-lg w-full p-2">
       <div className="flex justify-between items-center w-full">
         <Tooltip text={currentFilePath || 'Cap fitxer carregat'}>
-          <div className="text-xs text-gray-500 dark:text-gray-400 truncate pl-1">
+          <div className="text-xs text-muted-foreground truncate">
             Fitxer de dades: <strong>{currentFilePath || 'Document nou sense desar'}</strong>
           </div>
         </Tooltip>
         <Tooltip text={isExpanded ? "Col·lapsar controls" : "Expandir controls"}>
           <button
             onClick={toggleExpansion}
-            className="p-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700"
+            className="p-1 rounded-md hover:bg-accent"
           >
             {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
           </button>
@@ -47,21 +47,21 @@ const Controls: React.FC<ControlsProps> = ({
       </div>
 
       {isExpanded && (
-        <div className="pt-1 border-t border-gray-300 dark:border-gray-700 flex flex-col gap-0.5">
+        <div className="pt-2 mt-2 border-t border-border flex flex-col gap-1">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-0.5">
               <Tooltip text="Desfer (Ctrl+Z)">
-                <button onClick={() => undo()} disabled={!canUndo} className="p-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onClick={() => undo()} disabled={!canUndo} className="p-1 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
                   <ArrowUturnLeftIcon className="w-5 h-5" />
                 </button>
               </Tooltip>
               <Tooltip text="Refer (Ctrl+Y)">
-                <button onClick={() => redo()} disabled={!canRedo} className="p-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onClick={() => redo()} disabled={!canRedo} className="p-1 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
                   <ArrowUturnRightIcon className="w-5 h-5" />
                 </button>
               </Tooltip>
               <Tooltip text="Historial de canvis">
-                <button onClick={() => openModal('history')} disabled={!canUndo && !canRedo} className="p-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onClick={() => openModal('history')} disabled={!canUndo && !canRedo} className="p-1 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
                   <ClockIcon className="w-5 h-5" />
                 </button>
               </Tooltip>
@@ -69,14 +69,14 @@ const Controls: React.FC<ControlsProps> = ({
             </div>
 
             {hasUnsavedChanges && (
-              <div className="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1 font-semibold animate-pulse">
+              <div className="text-sm text-warning flex items-center gap-1 font-semibold animate-pulse">
                 <InfoIcon className="w-4 h-4" /> Canvis sense desar
               </div>
             )}
 
             <Tooltip text={theme === 'dark' ? 'Canviar a tema clar' : 'Canviar a tema fosc'}>
-              <button onClick={toggleTheme} className="rounded-full p-1 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  {theme === 'dark' ? <SunIcon className="w-5 h-5 text-yellow-400" /> : <MoonIcon className="w-5 h-5 text-gray-700" />}
+              <button data-testid="theme-toggle" onClick={toggleTheme} className="rounded-full p-1 bg-secondary hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-ring">
+                  {theme === 'dark' ? <SunIcon className="w-5 h-5 text-warning" /> : <MoonIcon className="w-5 h-5 text-foreground" />}
               </button>
             </Tooltip>
           </div>
@@ -87,11 +87,11 @@ const Controls: React.FC<ControlsProps> = ({
                 <button
                   onClick={syncWithGoogle}
                   disabled={isSyncing}
-                  className="flex items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm disabled:opacity-50 disabled:cursor-wait w-40"
+                  className="flex items-center justify-center gap-1 bg-warning hover:bg-warning/90 text-warning-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm disabled:opacity-50 disabled:cursor-wait w-40"
                 >
                   {isSyncing ? (
                     <>
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -106,14 +106,14 @@ const Controls: React.FC<ControlsProps> = ({
                 </button>
               </Tooltip>
               <Tooltip text="Configurar la connexió amb Google">
-                <button onClick={() => openModal('googleSettings')} className="flex items-center justify-center gap-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-2 rounded-md transition-colors text-sm">
+                <button onClick={() => openModal('googleSettings')} className="flex items-center justify-center gap-1 bg-secondary hover:bg-accent text-secondary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm">
                     <GoogleIcon /> Configurar
                 </button>
               </Tooltip>
               <Tooltip text="Connectar amb Google Calendar">
                 <button
                     onClick={startGoogleAuthFlow}
-                    className="flex items-center justify-center gap-1 bg-gray-100 hover:bg-gray-300 text-gray-800 font-semibold py-1 px-2 rounded-md transition-colors text-sm border border-gray-400"
+                    className="flex items-center justify-center gap-1 bg-background hover:bg-accent text-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm border border-border"
                 >
                     <GoogleIcon />
                     <span>Connectar Google</span>

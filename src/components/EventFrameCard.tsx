@@ -48,9 +48,9 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
 
   return (
-    <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 border-2 border-black" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
+    <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-card text-card-foreground border border-border" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
       <div
-        className="px-1 py-0.5 bg-slate-100 dark:bg-slate-800 cursor-pointer border-b-2 border-slate-200 dark:border-slate-700"
+        className="px-1 py-0.5 bg-muted cursor-pointer border-b border-border"
         onClick={(e) => {
           e.stopPropagation();
           // Only toggle expand if the click is not on an interactive element like a button.
@@ -72,12 +72,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                 }}
                 className="focus:outline-none"
               >
-              <CheckCircleIcon className={`w-5 h-5 transition-colors ${eventFrame.personnelComplete ? 'text-green-500' : 'text-yellow-500'}`} />
+              <CheckCircleIcon className={`w-5 h-5 transition-colors ${eventFrame.personnelComplete ? 'text-success' : 'text-warning'}`} />
               </button>
             </Tooltip>
             <h4
               id={`event-frame-title-${eventFrame.id}`}
-              className="text-sm font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1"
+              className="text-sm font-semibold hover:text-primary flex items-center gap-1"
               onClick={(e) => {
                 e.stopPropagation();
                 openModal('eventFrameDetails', { eventFrame });
@@ -93,8 +93,8 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
 
               {eventFrame.name}
             </h4>
-            {eventFrame.place && <p className="text-xs text-gray-500 dark:text-gray-400">{eventFrame.place}</p>}
-            <p className="text-xs text-gray-500 dark:text-gray-400">{formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)}</p>
+            {eventFrame.place && <p className="text-xs text-muted-foreground">{eventFrame.place}</p>}
+            <p className="text-xs text-muted-foreground">{formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)}</p>
           </div>
           <div className="flex items-center space-x-0.5 sm:space-x-0.5 flex-wrap">
             {isArchived ? (
@@ -105,7 +105,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                     restoreEventFrame(eventFrame.id);
                     setToastMessage(`Esdeveniment "${eventFrame.name}" restaurat.`, 'success');
                   }}
-                  className="flex items-center gap-1 p-0.5 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 rounded-md hover:bg-green-100 dark:hover:bg-gray-700"
+                  className="flex items-center gap-1 p-0.5 text-success hover:text-success/90 rounded-md hover:bg-accent"
                 >
                   <RestoreIcon className="w-4 h-4" />
                   Restaurar
@@ -114,10 +114,10 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
             ) : (
               <>
                 <Tooltip text="Editar els detalls de l'esdeveniment">
-                  <button onClick={(e) => { e.stopPropagation(); openModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-gray-700"><EditIcon className="w-4 h-4" /></button>
+                  <button onClick={(e) => { e.stopPropagation(); openModal('editEventFrame', { eventFrameToEdit: eventFrame }); }} className="p-0.5 text-primary hover:text-primary/80 rounded-md hover:bg-accent"><EditIcon className="w-4 h-4" /></button>
                 </Tooltip>
                 <Tooltip text="Eliminar l'esdeveniment">
-                  <button onClick={(e) => { e.stopPropagation(); openModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-100 dark:hover:bg-gray-700"><TrashIcon className="w-4 h-4" /></button>
+                  <button onClick={(e) => { e.stopPropagation(); openModal('confirmDeleteEventFrame', { itemType: "Marc d'Esdeveniment", itemName: eventFrame.name, itemId: eventFrame.id }); }} className="p-0.5 text-destructive hover:text-destructive/80 rounded-md hover:bg-accent"><TrashIcon className="w-4 h-4" /></button>
                 </Tooltip>
                 <Tooltip text="Afegir una nova assignació de personal">
                   <button onClick={(e) => {
@@ -131,12 +131,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                       status: AssignmentStatus.Pending,
                       notes: '',
                     });
-                  }} className="p-0.5 text-green-600 ..."><PersonAddIcon className="w-4 h-4" /></button>
+                  }} className="p-0.5 text-primary hover:text-primary/80 rounded-md hover:bg-accent"><PersonAddIcon className="w-4 h-4" /></button>
                 </Tooltip>
               </>
             )}
             <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
-              <button onClick={(e) => { e.stopPropagation(); logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); onToggleExpand(eventFrame.id); }} className="p-0.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+              <button onClick={(e) => { e.stopPropagation(); logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); onToggleExpand(eventFrame.id); }} className="p-0.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent">
                 {isExpanded ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
               </button>
             </Tooltip>
@@ -145,16 +145,16 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
       </div>
 
       {isExpanded && (
-        <div className="px-1 py-0.5 bg-white dark:bg-gray-800">
+        <div className="px-1 py-0.5 bg-card">
           {eventFrame.generalNotes && (
             <div className="mb-0.5">
               <h5 className="font-medium text-sm">Notes Generals</h5>
-              <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{eventFrame.generalNotes}</p>
+              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{eventFrame.generalNotes}</p>
             </div>
           )}
           <h5 className="font-medium text-sm mb-0.5">Assignacions</h5>
           {filteredAssignments.length === 0 ? (
-            <p className="text-xs text-gray-500">No hi ha assignacions que coincideixin amb els filtres.</p>
+            <p className="text-xs text-muted-foreground">No hi ha assignacions que coincideixin amb els filtres.</p>
           ) : (
             <ul className="space-y-0.5">
               {filteredAssignments.map(assign => (

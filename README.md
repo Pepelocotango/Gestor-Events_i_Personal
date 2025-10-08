@@ -42,6 +42,7 @@ El projecte està actualment en fase de desenvolupament actiu.
 * **Sistema d'Arxivatge:** Nova funcionalitat per arxivar esdeveniments antics, mantenint la llista principal neta i organitzada.
 
 * **Altres millores:**
+  * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`npm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).
   * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.
   * Refactorització de stores, modals, tech_sheets i utils.
   * Gestió d'errors robusta amb logs de sessió i ErrorBoundary.
@@ -167,10 +168,6 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 
 -   **Autor Principal:** Pëp 
 -   **Co-autoria i Suport Tècnic:** Isaac ;) / Google Gemini - Google Studio IA - Jules / Github Copilot / Perplexity / ChatGPT / Claude /
-
-### Captures de pantalla:    
-![Captura de pantalla del gestor d'events i personal](0_CONTEXT_i_eines/imatges%20i%20recursos/screenshot1mac.jpeg)
-
 
 ## 📄 Llicència
 

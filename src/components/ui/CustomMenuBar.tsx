@@ -149,28 +149,28 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   ];
 
   const DropdownMenu: React.FC<{ items: MenuItem[] }> = ({ items }) => (
-    <div className="absolute top-full left-0 mt-1 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg z-50 min-w-[240px]">
+    <div className="absolute top-full left-0 mt-1 py-1 bg-popover text-popover-foreground border border-border rounded-md shadow-lg z-50 min-w-[240px]">
       {items.map((item, index) => {
         if (item.separator) {
-          return <div key={`separator-${index}`} className="h-px bg-gray-300 dark:bg-gray-700 my-1" />;
+          return <div key={`separator-${index}`} className="h-px bg-border my-1" />;
         }
         if (item.submenu) {
           return (
             <div key={item.label} className="relative group">
-              <div className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 flex justify-between items-center cursor-default">
+              <div className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex justify-between items-center cursor-default">
                 <span>{item.label}</span>
                 <svg className="w-4 h-4 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
               </div>
-              <div className="absolute left-full -top-1 mt-0 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg hidden group-hover:block min-w-max">
+              <div className="absolute left-full -top-1 mt-0 py-1 bg-popover border border-border rounded-md shadow-lg hidden group-hover:block min-w-max">
                 {item.submenu.map(subItem => (
                    <button
                       key={subItem.label}
                       onClick={() => handleAction(subItem.action, subItem.role)}
                       disabled={subItem.disabled}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
                     >
                       <span>{subItem.label}</span>
-                      {subItem.accelerator && <span className="text-xs text-gray-500 dark:text-gray-400">{subItem.accelerator}</span>}
+                      {subItem.accelerator && <span className="text-xs text-muted-foreground">{subItem.accelerator}</span>}
                     </button>
                 ))}
               </div>
@@ -189,13 +189,13 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
               }
             }}
             disabled={item.disabled}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
+            className="block w-full text-left px-4 py-2 text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
           >
             <span className="flex items-center">
               <span className="w-4 mr-2 text-center">{item.checked ? '✓' : ''}</span>
               <span>{item.label}</span>
             </span>
-            {item.accelerator && <span className="text-xs text-gray-500 dark:text-gray-400">{item.accelerator}</span>}
+            {item.accelerator && <span className="text-xs text-muted-foreground">{item.accelerator}</span>}
           </button>
         );
       })}
@@ -203,14 +203,14 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   );
 
   return (
-    <div ref={menuRef} className="relative flex h-8 bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full" style={{ userSelect: 'none' }}>
+    <div ref={menuRef} className="relative flex h-8 bg-secondary text-secondary-foreground w-full" style={{ userSelect: 'none' }}>
       <div className="flex">
         {menuData.map(menu => (
           <div key={menu.label} className="relative">
             <button
               onClick={() => setOpenMenu(openMenu === menu.label ? null : menu.label)}
               onMouseEnter={() => { if (openMenu) setOpenMenu(menu.label) }}
-              className={`px-3 py-1 text-sm h-full ${openMenu === menu.label ? 'bg-gray-400 dark:bg-gray-700' : ''} hover:bg-gray-400 dark:hover:bg-gray-700 focus:outline-none`}
+              className={`px-3 py-1 text-sm h-full ${openMenu === menu.label ? 'bg-accent' : ''} hover:bg-accent focus:outline-none`}
             >
               {menu.label}
             </button>

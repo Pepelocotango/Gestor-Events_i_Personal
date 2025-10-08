@@ -41,12 +41,12 @@ const NeedsList: React.FC<NeedsListProps> = ({
   return (
     <>
       <div className="col-span-full flex justify-between items-center mt-3 -mb-2">
-        <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">{title}:</h4>
+        <h4 className="text-md font-semibold text-foreground">{title}:</h4>
         {needs.length > 1 && (
           <Tooltip text="Ordena la llista de necessitats alfabèticament per origen.">
             <button
               onClick={() => onSortByOrigin(listName)}
-              className="text-xs bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 no-print"
+              className="text-xs px-2 py-1 rounded-md no-print bg-secondary text-secondary-foreground hover:bg-secondary/80"
             >
               Ordenar per Origen
             </button>
@@ -54,7 +54,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
         )}
       </div>
       {needs.length > 0 && (
-        <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 mt-2 -mb-2">
+        <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-muted-foreground mt-2 -mb-2">
           <div className="w-1/6">Quant.</div>
           <div className="flex-grow">Descripció</div>
           <div className="w-1/4">Origen</div>
@@ -82,7 +82,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 value={need.quantity}
                 onChange={e => onListChange(listName, index, 'quantity', e.target.value)}
                 placeholder="XX"
-                className={quantityError ? 'border-red-500 ring-2 ring-red-300' : ''}
+                className={quantityError ? 'border-destructive ring-2 ring-destructive/30' : ''}
               />
             </div>
             <div className="flex-grow flex items-start gap-1">
@@ -97,7 +97,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                   readOnly={!!selectedMaterial}
                 />
                 {selectedMaterial && selectedMaterial.notes && (
-                  <p className="no-print text-xs italic text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="no-print text-xs italic text-muted-foreground mt-1">
                     <strong>Nota:</strong> {selectedMaterial.notes}
                   </p>
                 )}
@@ -115,7 +115,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                           onListChange(listName, index, 'origin', newItem.location);
                         }
                       })}
-                      className="text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full w-7 h-7 flex items-center justify-center text-2xl font-bold no-print"
+                      className="text-primary hover:bg-primary/10 rounded-full w-7 h-7 flex items-center justify-center text-2xl font-bold no-print"
                     >
                       +
                     </button>
@@ -140,7 +140,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                   type="button"
                   onClick={() => onMoveItemUp(listName, index)}
                   disabled={index === 0}
-                  className="text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="text-muted-foreground hover:bg-accent rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   &#x25B2;
                 </button>
@@ -150,7 +150,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                   type="button"
                   onClick={() => onMoveItemDown(listName, index)}
                   disabled={index === needs.length - 1}
-                  className="text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="text-muted-foreground hover:bg-accent rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   &#x25BC;
                 </button>
@@ -159,7 +159,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 <button
                   type="button"
                   onClick={() => onRemoveListItem(listName, index)}
-                  className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print"
+                  className="text-destructive hover:bg-destructive/10 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print"
                 >
                   &times;
                 </button>
@@ -173,7 +173,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
           <button
             type="button"
             onClick={() => onAddListItem(listName)}
-            className="add-item-button px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+            className="add-item-button px-4 py-2 rounded-md text-sm bg-success text-success-foreground hover:bg-success/90"
           >
             + Afegir Necessitat {title}
           </button>

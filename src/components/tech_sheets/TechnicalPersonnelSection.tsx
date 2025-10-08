@@ -130,7 +130,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                 onConfirm: onConfirmUpdate,
               });
             }}
-            className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-medium shadow no-print"
+            className="ml-2 px-2 py-1 rounded text-xs font-medium shadow no-print bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <span className="font-bold">⟳</span> <span className="hidden sm:inline">Actualitza des d'assignacions</span>
           </button>
@@ -139,7 +139,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
     >
         <div className="col-span-full">
             <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals del Personal Tècnic</label>
+                <label className="block text-sm font-medium text-muted-foreground">Notes Generals del Personal Tècnic</label>
                 <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
                     <div className="flex items-center gap-2">
                         <input
@@ -148,9 +148,9 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                             name="showTechnicalPersonnelNotesInPdf"
                             checked={formData.showTechnicalPersonnelNotesInPdf ?? true}
                             onChange={(e) => onFieldChange('showTechnicalPersonnelNotesInPdf', e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"
+                            className="h-4 w-4 rounded border-border accent-primary focus:ring-ring"
                         />
-                        <label htmlFor="showTechnicalPersonnelNotesInPdf" className="text-sm font-medium text-gray-700 dark:text-gray-300">Imprimir al PDF</label>
+                        <label htmlFor="showTechnicalPersonnelNotesInPdf" className="text-sm font-medium text-muted-foreground">Imprimir al PDF</label>
                     </div>
                 </Tooltip>
             </div>
@@ -190,7 +190,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
       </div>
       <div className="col-span-full mt-4 no-print">
         <Tooltip text="Afegir un nou proveïdor de personal manualment">
-          <button type="button" onClick={onAddProvider} className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold">+ Afegir Proveïdor de Personal</button>
+          <button type="button" onClick={onAddProvider} className="px-4 py-2 rounded-md text-sm font-semibold bg-success text-success-foreground hover:bg-success/90">+ Afegir Proveïdor de Personal</button>
         </Tooltip>
       </div>
     </TechSheetSection>
@@ -223,16 +223,16 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
     const selectedPerson = peopleGroups.find(pg => pg.id === provider.personGroupId);
 
     return (
-        <div className="p-4 border border-gray-400 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700/50 relative pl-8">
+        <div className="p-4 border border-border rounded-lg bg-muted/50 relative pl-8">
             {dragHandle}
             <div className="flex justify-between items-start mb-4">
                 <div className="flex-1 flex items-start gap-4">
                     <div className="w-2/3">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Proveïdor de Personal {providerIndex + 1}</label>
+                        <label className="block text-sm font-medium text-muted-foreground">Proveïdor de Personal {providerIndex + 1}</label>
                         <select
                             value={provider.personGroupId}
                             onChange={(e) => onProviderChange(providerIndex, e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-gray-600 border border-gray-400 dark:border-gray-500 rounded-md shadow-sm"
+                            className="mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         >
                             <option value="" disabled>-- Selecciona un proveïdor --</option>
                             {peopleGroups.map(pg => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
@@ -249,13 +249,13 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                     </div>
                 </div>
                 <Tooltip text="Eliminar aquest proveïdor i tots els seus rols associats">
-                    <button type="button" onClick={() => onRemoveProvider(providerIndex)} className="ml-4 text-red-500 hover:text-red-700 font-bold">Eliminar Proveïdor</button>
+                    <button type="button" onClick={() => onRemoveProvider(providerIndex)} className="ml-4 text-destructive hover:text-destructive/80 font-bold">Eliminar Proveïdor</button>
                 </Tooltip>
             </div>
 
-            <div className="space-y-3 pl-4 border-l-2 border-indigo-300 dark:border-indigo-700">
+            <div className="space-y-3 pl-4 border-l-2 border-primary">
                 {provider.roles.length > 0 && (
-                    <div className="flex items-center gap-4 w-full text-xs font-semibold text-gray-500 dark:text-gray-400 -mb-2">
+                    <div className="flex items-center gap-4 w-full text-xs font-semibold text-muted-foreground -mb-2">
                         <div className="w-1/12">Quant.</div>
                         <div className="w-4/12">Rol</div>
                         <div className="w-5/12">Notes assignació</div>
@@ -281,19 +281,19 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                                     type="checkbox"
                                     checked={roleItem.printNotes ?? true}
                                     onChange={(e) => onRoleChange(providerIndex, roleIndex, 'printNotes', e.target.checked)}
-                                    className="h-5 w-5 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"
+                                    className="h-5 w-5 rounded border-border accent-primary focus:ring-ring"
                                 />
                             </Tooltip>
                         </div>
                         <div className="w-1/12 flex-shrink-0 pt-2">
                             <Tooltip text="Eliminar aquest rol">
-                                <button type="button" onClick={() => onRemoveRole(providerIndex, roleIndex)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
+                                <button type="button" onClick={() => onRemoveRole(providerIndex, roleIndex)} className="text-destructive hover:bg-destructive/10 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
                             </Tooltip>
                         </div>
                     </div>
                 ))}
                 <Tooltip text="Afegir un nou rol per a aquest proveïdor">
-                    <button type="button" onClick={() => onAddRole(providerIndex)} className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">+ Afegir Rol</button>
+                    <button type="button" onClick={() => onAddRole(providerIndex)} className="px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90">+ Afegir Rol</button>
                 </Tooltip>
             </div>
         </div>

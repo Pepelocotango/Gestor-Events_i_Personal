@@ -39,8 +39,8 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Selecciona el Calendari de Destinació</h3>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <h3 className="text-lg font-medium text-foreground">Selecciona el Calendari de Destinació</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           Tria a quin calendari de l'aplicació vols pujar les dades actuals. Aquesta acció sobreescriurà tot el contingut del calendari de destinació.
         </p>
       </div>
@@ -48,7 +48,7 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
       {managedCalendars.length > 0 ? (
         <div className="space-y-2 max-h-60 overflow-y-auto p-1">
           {managedCalendars.map(cal => (
-            <div key={cal.id} className="flex items-center p-2 rounded-md border border-transparent has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-900/20">
+            <div key={cal.id} className="flex items-center p-2 rounded-md border border-transparent has-[:checked]:border-primary has-[:checked]:bg-primary/10">
               <Tooltip text={`Seleccionar el calendari '${cal.name}' com a destinació per a la sincronització`}>
                 <input
                   type="radio"
@@ -57,27 +57,27 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
                   value={cal.id}
                   checked={cal.id === selectedCalendarId}
                   onChange={() => setSelectedCalendarId(cal.id)}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                  className="h-4 w-4 accent-primary focus:ring-ring border-border"
                 />
               </Tooltip>
-              <label htmlFor={`sync-cal-${cal.id}`} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor={`sync-cal-${cal.id}`} className="ml-3 block text-sm font-medium text-foreground">
                 {cal.name}
               </label>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center text-sm text-gray-500 dark:text-gray-400 py-6 bg-gray-50 dark:bg-gray-800 rounded-md">
+        <div className="text-center text-sm text-muted-foreground py-6 bg-muted/50 rounded-md">
           <p>No s'ha trobat cap calendari gestionat per l'aplicació.</p>
           <p className="mt-1">Si us plau, ves a "Configuració Google Calendar" per crear-ne un primer.</p>
         </div>
       )}
 
-      <div className="flex justify-end items-center pt-4 border-t dark:border-gray-700 space-x-2">
+      <div className="flex justify-end items-center pt-4 border-t border-border space-x-2">
         <Tooltip text="Tancar sense sincronitzar">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="px-4 py-2 text-sm font-medium rounded-md border bg-secondary text-secondary-foreground hover:bg-secondary/80"
           >
             Cancel·lar
           </button>
@@ -86,7 +86,7 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
           <button
             onClick={handleSync}
             disabled={!selectedCalendarId}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {selectedCalendar ? `Sincronitzar amb "${selectedCalendar.name}"` : 'Selecciona un calendari'}
           </button>

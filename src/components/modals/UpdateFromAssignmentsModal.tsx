@@ -82,7 +82,7 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
 
   return (
     <div className="space-y-4">
-      <p className="text-gray-700 dark:text-gray-300">
+      <p className="text-muted-foreground">
         S'han detectat canvis entre les assignacions confirmades i la llista de personal tècnic.
         Selecciona els canvis que vols aplicar.
       </p>
@@ -90,16 +90,16 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
       {allChanges.length > 0 ? (
         <>
           <div className="flex justify-end space-x-2">
-            <button onClick={handleSelectAll} className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Seleccionar Tot</button>
-            <button onClick={handleDeselectAll} className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">Deseleccionar Tot</button>
+            <button onClick={handleSelectAll} className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90">Seleccionar Tot</button>
+            <button onClick={handleDeselectAll} className="px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-accent">Deseleccionar Tot</button>
           </div>
-          <div className="max-h-60 overflow-y-auto space-y-2 p-2 border rounded-md bg-gray-50 dark:bg-gray-800">
+          <div className="max-h-60 overflow-y-auto space-y-2 p-2 border rounded-md bg-muted/50">
             {allChanges.map(change => {
               const bgColor = change.type === 'add'
-                ? 'bg-green-100 dark:bg-green-900/50'
+                ? 'bg-success/10'
                 : change.type === 'remove'
-                ? 'bg-red-100 dark:bg-red-900/50'
-                : 'bg-yellow-100 dark:bg-yellow-900/50';
+                ? 'bg-destructive/10'
+                : 'bg-warning/10';
 
               return (
               <div key={change.id} className={`p-2 rounded flex items-center ${bgColor}`}>
@@ -107,11 +107,11 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
                   type="checkbox"
                   checked={selectedIds.has(change.id)}
                   onChange={() => handleToggle(change.id)}
-                  className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3"
+                  className="h-5 w-5 rounded border-input text-primary focus:ring-ring mr-3"
                 />
                 <div>
-                  <span className="font-semibold">{change.label}</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">{change.details}</span>
+                  <span className="font-semibold text-foreground">{change.label}</span>
+                  <span className="text-sm text-muted-foreground ml-2">{change.details}</span>
                 </div>
               </div>
               )
@@ -119,17 +119,17 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
           </div>
         </>
       ) : (
-        <p className="text-center text-gray-500 dark:text-gray-400 py-4">No hi ha canvis per aplicar.</p>
+        <p className="text-center text-muted-foreground py-4">No hi ha canvis per aplicar.</p>
       )}
 
       <div className="flex justify-end space-x-3 mt-6">
         <Tooltip text="Tancar sense aplicar cap canvi">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border">
             Cancel·lar
           </button>
         </Tooltip>
         <Tooltip text="Aplicar els canvis seleccionats a la fitxa tècnica">
-          <button onClick={handleConfirm} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+          <button onClick={handleConfirm} className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md">
             Confirmar Canvis ({selectedIds.size})
           </button>
         </Tooltip>

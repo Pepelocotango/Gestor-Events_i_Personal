@@ -21,9 +21,9 @@ interface CheckboxListProps {
   idProp: string;
 }
 
-const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
-const commonCheckboxContainerClass = "max-h-40 overflow-y-auto p-2 border rounded-md bg-gray-50 dark:bg-gray-900/50 dark:border-gray-600";
-const commonLabelClass = "flex items-center space-x-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1";
+const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
+const commonCheckboxContainerClass = "max-h-40 overflow-y-auto p-2 border border-input rounded-md bg-muted/50";
+const commonLabelClass = "flex items-center space-x-2 cursor-pointer hover:bg-accent rounded p-1";
 
 const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
   filters,
@@ -85,13 +85,13 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
 
   const CheckboxList = ({ title, field, items, displayProp, idProp }: CheckboxListProps) => (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{title}</label>
+      <label className="block text-sm font-medium text-muted-foreground">{title}</label>
       <div className="flex items-center gap-2 mt-1">
         <Tooltip text={`Selecciona tots els ${title.toLowerCase()}.`}>
-            <button onClick={() => handleSelectAll(field, items)} className="text-xs text-blue-600 hover:underline">Tots</button>
+            <button onClick={() => handleSelectAll(field, items)} className="text-xs text-primary hover:underline">Tots</button>
         </Tooltip>
         <Tooltip text={`Deselecciona tots els ${title.toLowerCase()}.`}>
-            <button onClick={() => handleSelectNone(field)} className="text-xs text-blue-600 hover:underline">Cap</button>
+            <button onClick={() => handleSelectNone(field)} className="text-xs text-primary hover:underline">Cap</button>
         </Tooltip>
       </div>
       <div className={commonCheckboxContainerClass}>
@@ -101,9 +101,9 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
               type="checkbox"
               checked={filters[field]?.includes(item[idProp])}
               onChange={() => handleMultiSelectChange(field, item[idProp])}
-              className="rounded"
+              className="rounded border-input text-primary focus:ring-ring"
             />
-            <span>{item[displayProp]}</span>
+            <span className="text-foreground">{item[displayProp]}</span>
           </label>
         ))}
       </div>
@@ -113,12 +113,12 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
 
   return (
     <CollapsibleSection title="Filtres" defaultOpen={true}>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-b-lg border-t border-gray-200 dark:border-gray-700 space-y-4">
+        <div className="p-4 bg-card text-card-foreground rounded-b-lg border-t border-border space-y-4">
             {/* Fila 1: Cerca i Rang de dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Text Search */}
                 <div>
-                    <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cerca per text</label>
+                    <label htmlFor="search" className="block text-sm font-medium text-muted-foreground">Cerca per text</label>
                     <Tooltip text="Filtra la taula per qualsevol text present a les files (nom, categoria, origen, etc.).">
                         <input
                             type="text"
@@ -132,7 +132,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
                 </div>
                 {/* Date Range */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rang de Dates</label>
+                    <label className="block text-sm font-medium text-muted-foreground">Rang de Dates</label>
                     <div className="flex items-center space-x-2 mt-1">
                         <Tooltip text="Filtra els esdeveniments per data d'inici.">
                             <input

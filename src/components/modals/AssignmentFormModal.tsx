@@ -122,7 +122,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
     performSubmit(false);
   };
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm disabled:opacity-50";
 
   const statusValue = isEditingMixed ? AssignmentStatus.Pending : formData.status;
 
@@ -130,14 +130,14 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
     <form onSubmit={handleSubmit} className="space-y-4" aria-labelledby="assignment-form-title">
       <h2 id="assignment-form-title" className="sr-only">{isEditing ? 'Formulari Edició Assignació' : 'Formulari Nova Assignació'} per {eventFrame.name}</h2>
       {isEditingMixed && (
-        <div className="p-3 bg-blue-100 dark:bg-blue-900/50 border-l-4 border-blue-500 dark:border-blue-400 rounded">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+        <div className="p-3 bg-info/10 border-l-4 border-info rounded">
+          <p className="text-sm text-info-foreground">
             Aquesta assignació té estats diaris personalitzats. Canviar l'estat aquí sobreescriurà tots els estats diaris amb el nou valor seleccionat.
           </p>
         </div>
       )}
       <div>
-        <label htmlFor="as-person" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Persona/Grup</label>
+        <label htmlFor="as-person" className="block text-sm font-medium text-muted-foreground">Persona/Grup</label>
         <Tooltip text="Seleccionar la persona o grup a assignar">
           <select
             id="as-person"
@@ -155,11 +155,11 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
             }
           </select>
         </Tooltip>
-        {errors.personGroupId && <p className="text-red-500 text-xs mt-1">{errors.personGroupId}</p>}
+        {errors.personGroupId && <p className="text-destructive text-xs mt-1">{errors.personGroupId}</p>}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="as-startDate" className="block text-sm font-medium">Data d'Inici</label>
+          <label htmlFor="as-startDate" className="block text-sm font-medium text-muted-foreground">Data d'Inici</label>
           <Tooltip text="Data d'inici de l'assignació">
             <input
               type="date"
@@ -170,11 +170,11 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
               required
             />
           </Tooltip>
-          {formData.startDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.startDate)}</p>}
-          {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
+          {formData.startDate && <p className="text-xs text-primary mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.startDate)}</p>}
+          {errors.startDate && <p className="text-destructive text-xs mt-1">{errors.startDate}</p>}
         </div>
         <div>
-          <label htmlFor="as-endDate" className="block text-sm font-medium">Data de Fi</label>
+          <label htmlFor="as-endDate" className="block text-sm font-medium text-muted-foreground">Data de Fi</label>
           <Tooltip text="Data de fi de l'assignació">
             <input
               type="date"
@@ -185,13 +185,13 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
               required
             />
           </Tooltip>
-          {formData.endDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.endDate)}</p>}
-          {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
+          {formData.endDate && <p className="text-xs text-primary mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.endDate)}</p>}
+          {errors.endDate && <p className="text-destructive text-xs mt-1">{errors.endDate}</p>}
         </div>
       </div>
-      {errors.datesRange && <p className="text-red-500 text-xs text-center -mt-2">{errors.datesRange}</p>}
+      {errors.datesRange && <p className="text-destructive text-xs text-center -mt-2">{errors.datesRange}</p>}
       <div>
-        <label htmlFor="as-status" className="block text-sm font-medium">Estat</label>
+        <label htmlFor="as-status" className="block text-sm font-medium text-muted-foreground">Estat</label>
         <Tooltip text="Estat general de l'assignació">
           <select
             id="as-status"
@@ -204,7 +204,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
         </Tooltip>
       </div>
       <div>
-        <label htmlFor="as-notes" className="block text-sm font-medium">Notes (Opcional)</label>
+        <label htmlFor="as-notes" className="block text-sm font-medium text-muted-foreground">Notes (Opcional)</label>
         <AutosizeTextarea
             id="as-notes"
             value={formData.notes || ''}
@@ -215,10 +215,10 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
       </div>
       <div className="flex justify-end space-x-3 pt-4">
         <Tooltip text="Tancar el formulari sense desar canvis">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300">Cancel·lar</button>
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-md border bg-secondary text-secondary-foreground hover:bg-secondary/80">Cancel·lar</button>
         </Tooltip>
         <Tooltip text={isEditing ? 'Desar els canvis de l\'assignació' : 'Crear la nova assignació'}>
-          <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md" disabled={peopleGroups.length === 0 && !isEditing}>{isEditing ? 'Actualitzar' : 'Crear'}</button>
+          <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50" disabled={peopleGroups.length === 0 && !isEditing}>{isEditing ? 'Actualitzar' : 'Crear'}</button>
         </Tooltip>
       </div>
     </form>

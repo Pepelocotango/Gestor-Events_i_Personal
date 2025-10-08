@@ -48,11 +48,11 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   }, [defaultOpen, isExpanded]);
 
   return (
-    <div className="mb-2 bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div className="mb-2 bg-card shadow rounded-lg">
       <div
         id={buttonId}
         onClick={handleToggle}
-        className={`w-full flex justify-between items-center p-3 text-left font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg cursor-pointer ${headerClassName}`}
+        className={`w-full flex justify-between items-center p-3 text-left font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring rounded-t-lg cursor-pointer ${headerClassName}`}
         aria-expanded={isOpen}
         aria-controls={contentId}
         role="button"
@@ -70,7 +70,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         </div>
         {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
       </div>
-      {isOpen && <div id={contentId} className={`p-4 border-t border-gray-200 dark:border-gray-700 ${contentClassName}`}>{children}</div>}
+      {isOpen && <div id={contentId} className={`p-4 border-t border-border ${contentClassName}`}>{children}</div>}
     </div>
   );
 };

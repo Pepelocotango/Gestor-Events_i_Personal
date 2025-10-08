@@ -93,7 +93,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
       });
     }
   };
-  const commonInputClass = "mt-1 block w-full px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50";
+  const commonInputClass = "mt-1 block w-full px-2 py-1 bg-input text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring sm:text-sm disabled:opacity-50";
   
   const uniqueEventNames = Array.from(new Set(eventFrames.map(ef => ef.name).filter(Boolean)));
   const uniqueLocations = Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean)));
@@ -102,17 +102,17 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
     <form onSubmit={handleSubmit} className="space-y-3" aria-labelledby="event-frame-form-title" id="event-frame-form-modal-actual-form">
       <h2 id="event-frame-form-title" className="sr-only">{isEditing ? 'Formulari Edició Marc Esdeveniment' : 'Formulari Nou Marc Esdeveniment'}</h2>
       <div>
-        <label htmlFor="ef-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom de l'Esdeveniment</label>
+        <label htmlFor="ef-name" className="block text-sm font-medium text-foreground">Nom de l'Esdeveniment</label>
         <Tooltip text="Nom principal de l'esdeveniment">
           <input type="text" id="ef-name" value={formData.name || ''} onChange={e => handleFieldChange('name', e.target.value)} className={commonInputClass} required aria-required="true" list={eventNameDatalistId}/>
         </Tooltip>
         <datalist id={eventNameDatalistId}>
             {uniqueEventNames.map(n => <option key={n} value={n} />)}
         </datalist>
-        {errors.name && <p className="text-red-500 text-xs mt-1" role="alert">{errors.name}</p>}
+        {errors.name && <p className="text-destructive text-xs mt-1" role="alert">{errors.name}</p>}
       </div>
       <div>
-        <label htmlFor="ef-place" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lloc (Opcional)</label>
+        <label htmlFor="ef-place" className="block text-sm font-medium text-foreground">Lloc (Opcional)</label>
         <Tooltip text="Ubicació o lloc de l'esdeveniment">
           <input type="text" id="ef-place" value={formData.place || ''} onChange={e => handleFieldChange('place', e.target.value)} className={commonInputClass} list={locationDatalistId} />
         </Tooltip>
@@ -122,24 +122,24 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
-          <label htmlFor="ef-startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data d'Inici</label>
+          <label htmlFor="ef-startDate" className="block text-sm font-medium text-foreground">Data d'Inici</label>
           <Tooltip text="Data d'inici del marc d'esdeveniment">
             <input type="date" id="ef-startDate" value={formData.startDate || ''} onChange={e => handleFieldChange('startDate', e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
           </Tooltip>
-          {formData.startDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.startDate)}</p>}
-          {errors.startDate && <p className="text-red-500 text-xs mt-1" role="alert">{errors.startDate}</p>}
+          {formData.startDate && <p className="text-xs text-muted-foreground mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.startDate)}</p>}
+          {errors.startDate && <p className="text-destructive text-xs mt-1" role="alert">{errors.startDate}</p>}
         </div>
         <div>
-          <label htmlFor="ef-endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data de Fi</label>
+          <label htmlFor="ef-endDate" className="block text-sm font-medium text-foreground">Data de Fi</label>
           <Tooltip text="Data de fi del marc d'esdeveniment">
             <input type="date" id="ef-endDate" value={formData.endDate || ''} onChange={e => handleFieldChange('endDate', e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
           </Tooltip>
-          {formData.endDate && <p className="text-xs text-blue-600 dark:text-blue-300 mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.endDate)}</p>}
-          {errors.endDate && <p className="text-red-500 text-xs mt-1" role="alert">{errors.endDate}</p>}
+          {formData.endDate && <p className="text-xs text-muted-foreground mt-1"><span className="font-semibold">Data seleccionada:</span> {formatDateDMY(formData.endDate)}</p>}
+          {errors.endDate && <p className="text-destructive text-xs mt-1" role="alert">{errors.endDate}</p>}
         </div>
       </div>
       <div>
-        <label htmlFor="ef-generalNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes Generals (Opcional)</label>
+        <label htmlFor="ef-generalNotes" className="block text-sm font-medium text-foreground">Notes Generals (Opcional)</label>
         <Tooltip text="Anotacions generals sobre l'esdeveniment">
           <AutosizeTextarea id="ef-generalNotes" value={formData.generalNotes || ''} onChange={e => handleFieldChange('generalNotes', e.target.value)} rows={3} className={`${commonInputClass} resize-none overflow-hidden`} />
         </Tooltip>
@@ -156,7 +156,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
                   }
                   // No tanquem el modal per evitar condicions de cursa
                 }}
-                className="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                className="px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md"
               >
                 Mostrar a la llista
               </button>
@@ -165,21 +165,21 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
         </div>
         <div className="flex justify-end space-x-2">
           <Tooltip text="Tancar el formulari sense desar">
-            <button type="button" onClick={onClose} className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500">Cancel·lar</button>
+            <button type="button" onClick={onClose} className="px-3 py-1 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border">Cancel·lar</button>
           </Tooltip>
           {!isEditing && (
             <Tooltip text="Crear el marc i obrir directament el formulari d'assignació">
               <button
                 type="button"
                 onClick={handleCreateAndAssign}
-                className="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+                className="px-3 py-1 text-sm font-medium bg-success text-success-foreground hover:bg-success/90 rounded-md"
               >
                 Crear i Assignar
               </button>
             </Tooltip>
           )}
           <Tooltip text={isEditing ? 'Desar els canvis del marc' : 'Crear el nou marc d\'esdeveniment'}>
-            <button type="submit" className="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">{isEditing ? 'Actualitzar' : 'Crear'}</button>
+            <button type="submit" className="px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md">{isEditing ? 'Actualitzar' : 'Crear'}</button>
           </Tooltip>
         </div>
       </div>

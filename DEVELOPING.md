@@ -838,24 +838,40 @@ La conversió entre aquests dos formats es gestiona de manera centralitzada per 
 
 ---
 
-## 6. Sistema d'Estils (Tailwind CSS)
+## 6. Sistema d'Estils (Tematització Semàntica Centralitzada)
 
-El disseny de la interfície es basa en Tailwind CSS, un framework "utility-first" que permet construir dissenys personalitzats de manera ràpida.
+El disseny de la interfície s'ha refactoritzat per utilitzar un **sistema de tematització semàntic i centralitzat** que combina la potència de Tailwind CSS amb la flexibilitat de les variables CSS natives. Aquesta arquitectura no només permet una gestió de temes (clar i fosc) robusta, sinó que també garanteix la coherència visual entre la interfície d'usuari i els documents exportats (PDF).
 
-### `tailwind.config.cjs`
+### Arquitectura del Disseny
 
-Aquest fitxer és el centre de la configuració d'estils.
+El sistema es basa en una jerarquia de "fonts de veritat" per assegurar la màxima consistència i mantenibilitat.
 
--   **Mode Fosc (`darkMode: 'class'`)**: L'aplicació suporta un tema fosc. Aquesta configuració fa que Tailwind apliqui les variants `dark:` quan la classe `dark` està present a l'element `<html>`. La gestió d'aquesta classe es fa a `App.tsx`.
--   **Plugin Personalitzat**: Per estilitzar components de tercers com FullCalendar, que no utilitzen classes de Tailwind directament, s'ha creat un plugin personalitzat.
-    -   Aquest plugin utilitza la funció `addBase` per injectar estils CSS purs.
-    -   Permet accedir a les variables de disseny de Tailwind (com `theme('colors.gray.900')`) per mantenir la coherència visual entre els estils personalitzats i la resta de la interfície.
-    -   Defineix estils específics per al calendari en mode clar i fosc.
+1.  **Font Única de Veritat per a Colors (`src/utils/themeDefinition.ts`):**
+    -   **Descripció:** Aquest fitxer és el **nucli de tot el sistema de colors**. Exporta un objecte `themeHslColors` que defineix tots els colors base de l'aplicació en format de tuples HSL `[Hue, Saturation, Lightness]`.
+    -   **Responsabilitat:** Qualsevol canvi fonamental en la paleta de colors de l'aplicació (p. ex., canviar el to del color primari) s'ha de fer **únicament** en aquest fitxer.
 
-### `index.css`
+2.  **Definició de Variables CSS (`src/index.css`):**
+    -   **Descripció:** Aquest fitxer consumeix els valors de `themeDefinition.ts` (de manera manual, per ara) per definir una paleta de variables CSS semàntiques (p. ex., `--background`, `--foreground`, `--primary`, `--destructive`).
+    -   **Tematització Clar/Fosc:** El tema per defecte (clar) es defineix a `:root`. El tema fosc simplement sobreescriu aquestes mateixes variables dins del selector `.dark`.
+    -   **Colors Derivats:** Les variables més específiques (com `--daily-row-yes-bg` per al fons de les files) es deriven de les variables semàntiques principals mitjançant `hsla(var(--success) / 0.15)`, assegurant que s'adaptin automàticament al tema.
 
--   Conté les directives base de Tailwind (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`).
--   Defineix algunes classes personalitzades a `@layer components`, com `assignment-card-*`, que agrupen diverses utilitats de Tailwind per a una reutilització més senzilla.
+3.  **Integració amb Tailwind (`tailwind.config.cjs`):**
+    -   **Descripció:** El fitxer de configuració de Tailwind s'ha modificat per consumir les variables CSS definides a `index.css`.
+    -   **Implementació:** En lloc de definir colors directament, la paleta de Tailwind fa referència a les variables mitjançant la funció `hsl()`. Això permet que les classes d'utilitat de Tailwind (com `bg-background`, `text-primary`, `border-border`) apliquin automàticament el color correcte segons el tema actiu.
+
+4.  **Coherència en PDFs (`src/utils/colorUtils.ts` i `pdfGenerator.ts`):**
+    -   **Problema:** La llibreria `jspdf-autotable` requereix colors en format RGB, no HSL.
+    -   **Solució:**
+        -   S'ha creat una funció d'utilitat a **`src/utils/colorUtils.ts`** anomenada `hslToRgb` que converteix els colors del format HSL al format RGB.
+        -   El generador de PDFs (`src/utils/pdfGenerator.ts`) ara importa els colors HSL directament des de la font única de veritat (`themeHslColors`) i els converteix a RGB al moment utilitzant `hslToRgb`.
+    -   **Resultat:** Això garanteix que els colors dels PDFs exportats siguin sempre una representació fidel del tema de l'aplicació, eliminant completament els colors "hardcoded" i la possibilitat d'inconsistències.
+
+### Avantatges d'Aquesta Arquitectura
+
+-   **Centralització Absoluta:** Un únic fitxer (`themeDefinition.ts`) defineix la paleta de colors per a tota l'aplicació.
+-   **Consistència Garantida:** La UI, el calendari, els tooltips i els PDFs comparteixen la mateixa font de colors.
+-   **Mantenibilitat Superior:** Modificar un color a `themeDefinition.ts` i actualitzar-lo a `index.css` és suficient per canviar-lo a tota l'aplicació, inclosos els exports.
+-   **Codi Net:** Redueix la necessitat de classes condicionals `dark:` als components, simplificant el codi JSX.
 
 ### 6.1. Sistema de Tooltips (Basat en Portals)
 
@@ -1069,3 +1085,48 @@ S'ha reintroduït la barra de progrés en temps real durant la sincronització a
 
 -   **Comunicació Backend -> Frontend:** El procés principal (`main.cjs`) envia actualitzacions de progrés a través del canal IPC `'sync-progress'`.
 -   **Gestió d'Estat amb Zustand:** Un `useEffect` a `App.tsx` escolta aquests esdeveniments i actualitza un estat `syncProgress` dins de `useEventDataStore`, que és consumit pel component `SyncProgressOverlay.tsx`.
+
+## 🎨 Sistema de Temes i Gestió de Colors
+
+Per garantir la consistència visual i facilitar el manteniment, l'aplicació utilitza un sistema de temes centralitzat. Tota la paleta de colors es gestiona des d'una única font de veritat, i els fitxers de l'aplicació es generen automàticament a partir d'aquesta.
+
+### 1. La Font Única de la Veritat: `theme.config.cjs`
+
+- **Fitxer Clau:** `theme.config.cjs` a l'arrel del projecte.
+- **Propòsit:** Aquest fitxer és l'únic lloc on s'han de definir o modificar els colors de l'aplicació. Conté:
+    - `light`: Un objecte amb els colors per al tema clar en format string HSL (`"H S% L%"`).
+    - `dark`: Un objecte amb els colors per al tema fosc.
+    - `pdfExtras`: Colors addicionals que no són part del sistema de temes CSS però que es necessiten per a la generació de PDFs.
+    - `pdfMapping`: Un mapeig que indica quin color de tema (`light` o `dark`) s'ha d'utilitzar per a cada variable de color en el context dels PDFs.
+
+**Mai no s'han de modificar els colors directament a `src/index.css` o `src/utils/themeDefinition.ts`.**
+
+### 2. Generació Automàtica de Fitxers de Tema
+
+- **Script:** `scripts/build-theme.cjs`
+- **Comanda:** `npm run build:theme`
+
+Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
+
+- **`src/index.css`**: Injecta les variables de color CSS per als selectors `:root` (tema clar) i `.dark` (tema fosc). Aquestes variables són les que utilitza Tailwind CSS a tota l'aplicació.
+- **`src/utils/themeDefinition.ts`**: Genera un objecte TypeScript (`themeHslColors`) que conté els colors en format d'array HSL (`[H, S, L]`). Aquest objecte s'utilitza en llocs on les variables CSS no són accessibles, com durant la generació de documents PDF.
+
+### 3. Com Actualitzar un Color (Flux de Treball)
+
+1.  Obre el fitxer `theme.config.cjs`.
+2.  Modifica el valor HSL del color que vulguis canviar al tema `light`, `dark` o a tots dos.
+3.  Desa el fitxer.
+4.  Executa la següent comanda a la terminal:
+    ```bash
+    npm run build:theme
+    ```
+5.  Això és tot. L'script actualitzarà automàticament tots els fitxers necessaris. El comando `npm run build` també executa aquest script, de manera que els canvis sempre estaran sincronitzats en fer una nova compilació.
+
+---
+## Arquitectura General (Resum)
+
+- **Frontend:** React amb Vite.
+- **Escriptori:** Electron.
+- **Gestió d'Estat:** Zustand.
+- **Estils:** Tailwind CSS.
+- **Llenguatge:** TypeScript.

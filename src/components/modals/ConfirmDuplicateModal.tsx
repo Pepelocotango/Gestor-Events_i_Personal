@@ -19,14 +19,14 @@ export const ConfirmDuplicateModal: React.FC<ConfirmDuplicateModalProps> = ({
 
   return (
     <div>
-      <p className="text-gray-700 dark:text-gray-300">{message}</p>
-      <p className="text-gray-700 dark:text-gray-300 mt-2">Vols crear l'assignació duplicada de totes maneres?</p>
+      <p className="text-muted-foreground">{message}</p>
+      <p className="text-muted-foreground mt-2">Vols crear l'assignació duplicada de totes maneres?</p>
 
       <div className="flex justify-end space-x-3 mt-6">
         <Tooltip text="Tancar aquest diàleg i cancel·lar l'acció">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md border border-gray-300 dark:border-gray-500"
+            className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border"
           >
             Cancel·lar
           </button>
@@ -34,7 +34,7 @@ export const ConfirmDuplicateModal: React.FC<ConfirmDuplicateModalProps> = ({
         <Tooltip text="Confirmar i crear l'assignació duplicada">
           <button
             onClick={handleConfirm}
-            className="px-4 py-2 text-sm font-medium text-white rounded-md bg-orange-600 hover:bg-orange-700"
+            className="px-4 py-2 text-sm font-medium text-warning-foreground bg-warning hover:bg-warning/90 rounded-md"
           >
             Confirmar Duplicat
           </button>
