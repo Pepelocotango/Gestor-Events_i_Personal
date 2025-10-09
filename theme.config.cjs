@@ -7,76 +7,130 @@
 const themeConfig = {
   // Colors amb variants per al tema clar i fosc.
   // Els valors són strings HSL "H S% L%".
-    light: {
-    // === PROVA CONTUNDENT: TOT LILA ===
-    'background': '270 90% 70%', // Lila clar per al fons
-    'card': '270 90% 75%',       // Lila una mica més clar per a les targetes
-    'popover': '270 90% 75%',
-    'secondary': '270 80% 80%',
-    'muted': '270 80% 80%',
-    'accent': '270 85% 78%',
-    'primary': '270 95% 60%',     // Blau original canviat a un lila més fort
-    'destructive': '270 95% 60%', // Vermell original canviat a lila
-    'success': '270 95% 60%',     // Verd original canviat a lila
-    'warning': '270 95% 60%',     // Groc original canviat a lila
-    'info': '270 95% 60%',         // Blau info canviat a lila
-    'mixed-status': '270 95% 60%', // Lila original canviat a lila
-
-    // === PROVA CONTUNDENT: TOT VERMELL ===
-    'foreground': '0 90% 50%',              // Text principal vermell
-    'card-foreground': '0 90% 50%',
-    'popover-foreground': '0 90% 50%',
-    'primary-foreground': '0 90% 50%',
-    'secondary-foreground': '0 90% 50%',
-    'muted-foreground': '0 80% 60%',         // Text atenuat vermell clar
-    'accent-foreground': '0 90% 50%',
-    'destructive-foreground': '0 90% 50%',
-    'success-foreground': '0 90% 50%',
-    'warning-foreground': '0 90% 50%',
-    'info-foreground': '0 90% 50%',
-    'mixed-status-foreground': '0 90% 50%',
-
-    // === PROVA CONTUNDENT: TOT GROC ===
-    'border': '50 100% 50%',  // Vores grogues
-    'input': '50 100% 50%',   // Fons d'inputs groc
-    'ring': '50 100% 50%',    // Anell de focus groc
+  light: {
+    // Fons principal de les pàgines.
+    'background': '240 5.9% 90%',
+    // Color del text per defecte.
+    'foreground': '222.2 47.4% 11.2%',
+    // Fons per a elements continguts, com targetes (Gris molt clar en lloc de blanc pur).
+    'card': '0 0% 98%',
+    // Color del text dins de les targetes.
+    'card-foreground': '222.2 47.4% 11.2%',
+    // Fons per a popovers i menús desplegables (Gris molt clar en lloc de blanc pur).
+    'popover': '0 0% 98%',
+    // Color del text dins de popovers.
+    'popover-foreground': '222.2 47.4% 11.2%',
+    // Color primari per a botons principals i elements destacats.
+    'primary': '221.2 83.2% 53.3%',
+    // Color del text sobre fons primari (Gris molt clar en lloc de blanc pur).
+    'primary-foreground': '0 0% 98%',
+    // Color secundari per a botons i elements menys importants.
+    'secondary': '240 5% 96.1%',
+    // Color del text sobre fons secundari.
+    'secondary-foreground': '222.2 47.4% 11.2%',
+    // Color per a text o elements atenuats.
+    'muted': '240 5% 96.1%',
+    // Color del text atenuat.
+    'muted-foreground': '215.4 16.3% 46.9%',
+    // Color d'accent per a destacar elements o en passar el ratolí.
+    'accent': '240 5.9% 90%',
+    // Color del text sobre fons d'accent.
+    'accent-foreground': '222.2 47.4% 11.2%',
+    // Color per a accions destructives (eliminar, errors).
+    'destructive': '0 84.2% 60.2%',
+    // Color del text sobre fons destructiu (Gris molt clar en lloc de blanc pur).
+    'destructive-foreground': '0 0% 98%',
+    // Color per a vores i separadors.
+    'border': '214.3 31.8% 91.4%',
+    // Color de fons per a camps d'entrada de formulari.
+    'input': '214.3 31.8% 91.4%',
+    // Color de l'anell de focus per a l'accessibilitat.
+    'ring': '221.2 83.2% 53.3%',
+    // Color per a estats d'èxit (verd).
+    'success': '142.1 70.6% 45.3%',
+    // Color del text sobre fons d'èxit (Gris molt clar en lloc de blanc pur).
+    'success-foreground': '0 0% 98%',
+    // Color per a estats d'advertència (groc).
+    'warning': '47.9 95.8% 53.1%',
+    // Color del text sobre fons d'advertència.
+    'warning-foreground': '240 5.9% 10%',
+    // Color per a missatges informatius (blau).
+    'info': '221.2 83.2% 53.3%',
+    // Color del text sobre fons informatiu (Gris molt clar en lloc de blanc pur).
+    'info-foreground': '0 0% 98%',
+    // Color per a l'estat "Mixt" a les assignacions (lila).
+    'mixed-status': '283 81% 58%',
+    // Color del text sobre fons d'estat "Mixt" (Gris molt clar en lloc de blanc pur).
+    'mixed-status-foreground': '0 0% 98%',
   },
   dark: {
-    // El tema fosc el deixem igual per no confondre'ns.
+    // Fons principal de les pàgines (Gris fosc en lloc de gairebé negre).
     'background': '240 5.9% 12%',
-    'foreground': '210 40% 97%',
+    // Color del text per defecte.
+    'foreground': '210 40% 98%',
+    // Fons per a elements continguts, com targetes.
     'card': '240 5.9% 19%',
-    'card-foreground': '210 40% 97%',
+    // Color del text dins de les targetes.
+    'card-foreground': '210 40% 98%',
+    // Fons per a popovers i menús desplegables (Gris fosc en lloc de gairebé negre).
     'popover': '240 5.9% 12%',
-    'popover-foreground': '210 40% 97%',
-    'primary': '221.2 76% 53.3%',
-    'primary-foreground': '0 0% 97%',
+    // Color del text dins de popovers.
+    'popover-foreground': '210 40% 98%',
+    // Color primari per a botons principals i elements destacats.
+    'primary': '221.2 83.2% 53.3%',
+    // Color del text sobre fons primari (Gris molt clar en lloc de blanc pur).
+    'primary-foreground': '0 0% 98%',
+    // Color secundari per a botons i elements menys importants.
     'secondary': '240 5.1% 26.1%',
-    'secondary-foreground': '210 40% 97%',
+    // Color del text sobre fons secundari.
+    'secondary-foreground': '210 40% 98%',
+    // Color per a text o elements atenuats.
     'muted': '240 5.1% 26.1%',
+    // Color del text atenuat.
     'muted-foreground': '215.4 16.3% 56.9%',
+    // Color d'accent per a destacar elements o en passar el ratolí.
     'accent': '240 5.1% 26.1%',
-    'accent-foreground': '210 40% 97%',
-    'destructive': '0 68% 50.6%',
-    'destructive-foreground': '0 0% 97%',
+    // Color del text sobre fons d'accent.
+    'accent-foreground': '210 40% 98%',
+    // Color per a accions destructives (eliminar, errors).
+    'destructive': '0 72.2% 50.6%',
+    // Color del text sobre fons destructiu (Gris molt clar en lloc de blanc pur).
+    'destructive-foreground': '0 0% 98%',
+    // Color per a vores i separadors.
     'border': '217.2 32.6% 17.5%',
+    // Color de fons per a camps d'entrada de formulari.
     'input': '240 5% 34.1%',
-    'ring': '221.2 76% 53.3%',
-    'success': '142.1 65% 45.3%',
-    'success-foreground': '0 0% 97%',
-    'warning': '47.9 88% 55%',
+    // Color de l'anell de focus per a l'accessibilitat.
+    'ring': '221.2 83.2% 53.3%',
+    // Color per a estats d'èxit (verd).
+    'success': '142.1 70.6% 45.3%',
+    // Color del text sobre fons d'èxit (Gris molt clar en lloc de blanc pur).
+    'success-foreground': '0 0% 98%',
+    // Color per a estats d'advertència (groc).
+    'warning': '47.9 95.8% 53.1%',
+    // Color del text sobre fons d'advertència (Gris fosc en lloc de gairebé negre).
     'warning-foreground': '240 5.9% 12%',
-    'info': '215 68% 48%',
-    'info-foreground': '0 0% 97%',
-    'mixed-status': '283 65% 50%',
-  
-  // ... (la resta de l'arxiu es manté igual)
+    // Color per a missatges informatius (blau).
+    'info': '215 75% 45%',
+    // Color del text sobre fons informatiu (Gris molt clar en lloc de blanc pur).
+    'info-foreground': '0 0% 98%',
+    // Color per a l'estat "Mixt" a les assignacions (lila).
+    'mixed-status': '283 71% 48%',
+    // Color del text sobre fons d'estat "Mixt" (Gris molt clar en lloc de blanc pur).
+    'mixed-status-foreground': '0 0% 98%',
+  },
+  // Colors addicionals que només s'utilitzen en la generació de PDFs
+  // i no formen part del sistema de variables CSS de Tailwind.
+  // Els valors són arrays numèrics [H, S, L].
   pdfExtras: {
     grayMedium: [75, 85, 99],
     graySubtle: [240, 5, 92],
     grayLightest: [240, 5, 98],
     orange: [25, 95, 53],
   },
+  // Mapeig per generar l'objecte 'themeHslColors' a 'themeDefinition.ts'.
+  // L'script utilitzarà aquest mapa per obtenir el valor correcte del tema 'light'
+  // o 'dark' i assignar-lo a la clau corresponent en l'objecte JS.
   pdfMapping: {
     primary: 'light.primary',
     success: 'light.success',
@@ -85,7 +139,7 @@ const themeConfig = {
     foreground: 'light.foreground',
     foregroundMuted: 'light.muted-foreground',
     foregroundWhite: 'light.primary-foreground',
-    grayDark: 'dark.secondary',
+    grayDark: 'dark.secondary', // Cas especial: utilitza un valor del tema fosc
     grayBorder: 'light.border',
     grayMuted: 'light.muted',
   }

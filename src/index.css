@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 260 50% 88%;
+    --background: 240 5.9% 90%;
     --foreground: 222.2 47.4% 11.2%;
-    --card: 260 50% 92%;
+    --card: 0 0% 98%;
     --card-foreground: 222.2 47.4% 11.2%;
-    --popover: 260 50% 92%;
+    --popover: 0 0% 98%;
     --popover-foreground: 222.2 47.4% 11.2%;
-    --primary: 221.2 76% 53.3%;
-    --primary-foreground: 260 50% 92%;
-    --secondary: 260 50% 90%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 5% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 260 50% 90%;
+    --muted: 240 5% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 260 50% 87%;
+    --accent: 240 5.9% 90%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 78% 60.2%;
-    --destructive-foreground: 260 50% 92%;
-    --border: 260 50% 85%;
-    --input: 260 50% 89%;
-    --ring: 221.2 76% 53.3%;
-    --success: 142.1 65% 45.3%;
-    --success-foreground: 260 50% 92%;
-    --warning: 47.9 88% 55%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 0 0% 98%;
+    --warning: 47.9 95.8% 53.1%;
     --warning-foreground: 240 5.9% 10%;
-    --info: 221.2 76% 53.3%;
-    --info-foreground: 260 50% 92%;
-    --mixed-status: 283 75% 58%;
-    --mixed-status-foreground: 260 50% 92%;
+    --info: 221.2 83.2% 53.3%;
+    --info-foreground: 0 0% 98%;
+    --mixed-status: 283 81% 58%;
+    --mixed-status-foreground: 0 0% 98%;
     --radius: 0.5rem;
 
     /* Colors per a fons de files (estil DEV, sòlid i viu) */
@@ -50,32 +50,32 @@
 
   .dark {
     --background: 240 5.9% 12%;
-    --foreground: 210 40% 97%;
+    --foreground: 210 40% 98%;
     --card: 240 5.9% 19%;
-    --card-foreground: 210 40% 97%;
+    --card-foreground: 210 40% 98%;
     --popover: 240 5.9% 12%;
-    --popover-foreground: 210 40% 97%;
-    --primary: 221.2 76% 53.3%;
-    --primary-foreground: 0 0% 97%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 0 0% 98%;
     --secondary: 240 5.1% 26.1%;
-    --secondary-foreground: 210 40% 97%;
+    --secondary-foreground: 210 40% 98%;
     --muted: 240 5.1% 26.1%;
     --muted-foreground: 215.4 16.3% 56.9%;
     --accent: 240 5.1% 26.1%;
-    --accent-foreground: 210 40% 97%;
-    --destructive: 0 68% 50.6%;
-    --destructive-foreground: 0 0% 97%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 0 0% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 240 5% 34.1%;
-    --ring: 221.2 76% 53.3%;
-    --success: 142.1 65% 45.3%;
-    --success-foreground: 0 0% 97%;
-    --warning: 47.9 88% 55%;
+    --ring: 221.2 83.2% 53.3%;
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 0 0% 98%;
+    --warning: 47.9 95.8% 53.1%;
     --warning-foreground: 240 5.9% 12%;
-    --info: 215 68% 48%;
-    --info-foreground: 0 0% 97%;
-    --mixed-status: 283 65% 50%;
-    --mixed-status-foreground: 0 0% 97%;
+    --info: 215 75% 45%;
+    --info-foreground: 0 0% 98%;
+    --mixed-status: 283 71% 48%;
+    --mixed-status-foreground: 0 0% 98%;
 
     /* Colors per a fons de files - Dark Mode (estil DEV, sòlid i viu) */
     --daily-row-yes-bg: hsl(var(--success));
