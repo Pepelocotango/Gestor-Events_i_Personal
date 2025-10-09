@@ -979,6 +979,10 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
 -   `npm run build`: Compila el codi TypeScript i el frontend amb Vite a la carpeta `dist`.
 -   `npm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron.
 -   `npm run build:linux`, `npm run build:win`, `npm run build:mac`: Scripts específics per compilar l'aplicació per a cada sistema operatiu.
+`npm start` : Aquesta única comanda s'encarregarà de tot:
+Reconstruirà els teus colors a partir de theme.config.cjs.
+Llançarà Vite sense memòria cau (--force).
+Obrirà Electron.
 
 ### Depuració (Debugging)
 

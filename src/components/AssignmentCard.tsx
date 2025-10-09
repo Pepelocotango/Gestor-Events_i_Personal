@@ -84,11 +84,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
     switch (assignment.status) {
       case AssignmentStatus.Yes:
-        return `${base} bg-success/80 text-success-foreground ${borderClasses}`;
+        return `${base} bg-success/30 text-success-foreground ${borderClasses}`;
       case AssignmentStatus.Pending:
-        return `${base} bg-warning/80 text-warning-foreground ${borderClasses}`;
+        return `${base} bg-warning/30 text-warning-foreground ${borderClasses}`;
       case AssignmentStatus.No:
-        return `${base} bg-destructive/80 text-destructive-foreground ${borderClasses}`;
+        return `${base} bg-destructive/30 text-destructive-foreground ${borderClasses}`;
       case AssignmentStatus.Mixed:
         return `${base} bg-gradient-mixed text-card-foreground`;
       default:
@@ -173,12 +173,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             {getDaysInRange(assignment.startDate, assignment.endDate).map(date => {
               const currentDailyStatus = assignment.dailyStatuses?.[date] || (assignment.status !== AssignmentStatus.Mixed ? assignment.status : AssignmentStatus.Pending);
               
-              const statusRowClasses: { [key: string]: string } = {
-                  [AssignmentStatus.Yes]: 'daily-row-yes',
-                  [AssignmentStatus.No]: 'daily-row-no',
-                  [AssignmentStatus.Pending]: 'daily-row-pending',
+              const statusRowClasses: { [key in AssignmentStatus]?: string } = {
+                [AssignmentStatus.Yes]: 'bg-success/60',      // Fons verd al 60%
+                [AssignmentStatus.No]: 'bg-destructive/60',   // Fons vermell al 60%
+                [AssignmentStatus.Pending]: 'bg-warning/60',   // Fons groc al 60%
               };
-              const rowClass = statusRowClasses[currentDailyStatus] || 'daily-row-mixed';
+              const rowClass = statusRowClasses[currentDailyStatus] || 'bg-muted/50';
 
               return (
                 <div key={date} className={`flex items-center justify-between p-0.5 rounded-md transition-colors duration-200 ${rowClass}`}>

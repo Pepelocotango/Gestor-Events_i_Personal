@@ -439,19 +439,26 @@ async function createWindow() {
     mainWindow.show();
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
-    mainWindow.loadURL(devUrl).catch(err => {
-      console.error('Error loading dev URL:', devUrl, err);
-      dialog.showErrorBox('Error de Desenvolupament', `No s'ha pogut carregar ${devUrl}: ${err.message}`);
-    });
-  } else {
-    const indexPath = path.resolve(__dirname, 'dist', 'index.html');
-    mainWindow.loadFile(indexPath).catch(err => {
-      console.error('Error loading production index file:', indexPath, err);
-      dialog.showErrorBox('Error de Càrrega', `No s'ha pogut carregar l'aplicació: ${err.message}`);
-    });
-  }
+  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+console.log('[Startup] Mode de desenvolupament:', isDev);
+console.log('[Startup] NODE_ENV:', process.env.NODE_ENV);
+console.log('[Startup] app.isPackaged:', app.isPackaged);
+
+if (isDev) {
+  const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+  console.log('[Startup] Carregant des del servidor de desenvolupament:', devUrl);
+  mainWindow.loadURL(devUrl).catch(err => {
+    console.error('Error loading dev URL:', devUrl, err);
+    dialog.showErrorBox('Error de Desenvolupament', `No s'ha pogut carregar ${devUrl}: ${err.message}`);
+  });
+} else {
+  const indexPath = path.resolve(__dirname, 'dist', 'index.html');
+  console.log('[Startup] Carregant des del fitxer de producció:', indexPath);
+  mainWindow.loadFile(indexPath).catch(err => {
+    console.error('Error loading production index file:', indexPath, err);
+    dialog.showErrorBox('Error de Càrrega', `No s'ha pogut carregar l'aplicació: ${error.message}`);
+  });
+}
 
 
   const template = [
