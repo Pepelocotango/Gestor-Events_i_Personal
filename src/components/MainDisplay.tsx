@@ -493,7 +493,7 @@ const MainDisplay = React.forwardRef<
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
                 <button
                   onClick={() => exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
-                  className="flex items-center justify-center gap-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                  className="flex items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" /> PDF
                 </button>
@@ -501,7 +501,7 @@ const MainDisplay = React.forwardRef<
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
                 <button
                   onClick={() => exportEventListToCsv(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
-                  className="flex items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+                  className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" /> CSV
                 </button>

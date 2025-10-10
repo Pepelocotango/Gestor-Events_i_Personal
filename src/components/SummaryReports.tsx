@@ -201,7 +201,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
             <Tooltip text="Exportar a CSV">
               <button
                   onClick={() => handleExportCsv(dataType)}
-                  className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
+                  className="p-1.5 rounded-full bg-success/10 text-success hover:bg-success/20"
                   aria-label={`Exportar tot el resum ${title} a CSV`}
               > <CsvIcon className="w-4 h-4" />
               </button>
@@ -209,7 +209,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
             <Tooltip text="Exportar a PDF">
               <button
                   onClick={() => handleExportPdf(title, data, dataType)}
-                  className="p-1.5 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20"
+                  className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
                   aria-label={`Exportar tot el resum ${title} a PDF`}
               > <PdfIcon className="w-4 h-4" />
               </button>
@@ -229,7 +229,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
                     onClick={() => handleExportCsv(dataType, groupKey)}
                     className="p-1 rounded-full hover:bg-accent flex-shrink-0 ml-2"
                   >
-                    <CsvIcon className="w-4 h-4 text-primary" />
+                    <CsvIcon className="w-4 h-4 text-success" />
                   </button>
                 </Tooltip>
                 <Tooltip text={`Exportar només "${groupKey}" a PDF`}>
@@ -240,7 +240,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
                     }}
                     className="p-1 rounded-full hover:bg-accent flex-shrink-0 ml-1"
                   >
-                    <PdfIcon className="w-4 h-4 text-destructive" />
+                    <PdfIcon className="w-4 h-4 text-primary" />
                   </button>
                 </Tooltip>
               </div>

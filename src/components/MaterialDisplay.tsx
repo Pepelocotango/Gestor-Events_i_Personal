@@ -215,7 +215,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
                 <Tooltip text="Exportar llista a PDF">
                   <button
                     onClick={handleExportPdf}
-                    className="p-2 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20"
+                    className="p-2 rounded-md bg-primary/10 text-primary hover:bg-primary/20"
                     aria-label="Exportar llista de material a PDF"
                     disabled={filteredItems.length === 0}
                   >

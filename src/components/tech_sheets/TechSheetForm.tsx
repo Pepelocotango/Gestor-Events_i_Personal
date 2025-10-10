@@ -731,7 +731,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
               <button onClick={handleManualSave} className="save-changes-button px-3 py-1 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-semibold no-print">Desar Canvis</button>
             </Tooltip>
             <Tooltip text="Generar i descarregar un PDF amb la fitxa tècnica actual">
-              <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 font-semibold no-print">Exportar a PDF</button>
+              <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-semibold no-print">Exportar a PDF</button>
             </Tooltip>
         </div>
       </div>

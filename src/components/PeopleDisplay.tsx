@@ -286,16 +286,16 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                 <div className="flex items-center justify-between mb-2">
                     <h4 className="text-lg font-medium">Llista de Contactes</h4>
                     <div className="flex items-center gap-2">
-                        <Tooltip text="Exportar a CSV">
-                            <button type="button" onClick={exportPeopleToCSV} className="p-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20">
-                                <CsvIcon className="w-4 h-4" />
-                            </button>
-                        </Tooltip>
-                        <Tooltip text="Exportar a PDF">
-                            <button type="button" onClick={exportToPdf} className="p-1 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20">
-                                <PdfIcon className="w-4 h-4" />
-                            </button>
-                        </Tooltip>
+            <Tooltip text="Exportar a CSV">
+              <button type="button" onClick={exportPeopleToCSV} className="p-1 rounded-md bg-success/10 text-success hover:bg-success/20">
+                <CsvIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <Tooltip text="Exportar a PDF">
+              <button type="button" onClick={exportToPdf} className="p-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20">
+                <PdfIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
                     </div>
                 </div>
                 <div className="mb-2 flex items-center gap-2">
