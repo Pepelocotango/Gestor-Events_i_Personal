@@ -162,6 +162,6 @@
   }
 
   .bg-gradient-mixed {
-    background-image: linear-gradient(to right, hsla(var(--success) / 0.6), hsla(var(--warning) / 0.6), hsla(var(--destructive) / 0.6));
+    background-image: linear-gradient(to right, hsla(var(--success) / 0.3), hsla(var(--warning) / 0.3), hsla(var(--destructive) / 0.3));
   }
 }
