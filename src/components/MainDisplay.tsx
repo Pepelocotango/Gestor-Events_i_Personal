@@ -3,7 +3,7 @@ import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon } from '../constants';
+import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon, ArrowsPointingInIcon, ArrowsPointingOutIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -242,6 +242,22 @@ const MainDisplay = React.forwardRef<
     return manualExpandedFrameIds;
   }, [isAnyFilterActive, filteredAndSortedEventFrames, manualExpandedFrameIds]);
 
+  const areAllVisibleExpanded = useMemo(() => {
+    if (isAnyFilterActive || filteredAndSortedEventFrames.length === 0) return true;
+    return filteredAndSortedEventFrames.every(ef => manualExpandedFrameIds.has(ef.id));
+  }, [manualExpandedFrameIds, filteredAndSortedEventFrames, isAnyFilterActive]);
+
+  const handleToggleAllCards = () => {
+    if (areAllVisibleExpanded) {
+      // If all are expanded, collapse all
+      setManualExpandedFrameIds(() => new Set());
+    } else {
+      // If some or none are expanded, expand all
+      const allVisibleIds = new Set(filteredAndSortedEventFrames.map(ef => ef.id));
+      setManualExpandedFrameIds(() => allVisibleIds);
+    }
+  };
+
   const expandedDailyViewAssignmentIds = useMemo(() => {
     if (!isAnyFilterActive) return manualExpandedDailyView;
     const newExpandedAssignments = new Set<string>();
@@ -457,6 +473,16 @@ const MainDisplay = React.forwardRef<
                         Mostrar arxivats
                     </label>
                 </div>
+            </Tooltip>
+            <Tooltip text={areAllVisibleExpanded ? "Col·lapsar totes les targetes" : "Expandir totes les targetes"}>
+              <button
+                onClick={handleToggleAllCards}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
+                disabled={isAnyFilterActive || filteredAndSortedEventFrames.length === 0}
+              >
+                {areAllVisibleExpanded ? <ArrowsPointingInIcon className="w-4 h-4" /> : <ArrowsPointingOutIcon className="w-4 h-4" />}
+                <span>{areAllVisibleExpanded ? "Col·lapsar" : "Expandir"}</span>
+              </button>
             </Tooltip>
             <div className="flex-grow"></div>
             <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'un mes)">
