@@ -84,15 +84,15 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
     switch (assignment.status) {
       case AssignmentStatus.Yes:
-        return `${base} bg-success/30 text-success-foreground ${borderClasses}`;
+        return `${base} bg-success/30 ${borderClasses}`;
       case AssignmentStatus.Pending:
-        return `${base} bg-warning/30 text-warning-foreground ${borderClasses}`;
+        return `${base} bg-warning/30 ${borderClasses}`;
       case AssignmentStatus.No:
-        return `${base} bg-destructive/30 text-destructive-foreground ${borderClasses}`;
+        return `${base} bg-destructive/30 ${borderClasses}`;
       case AssignmentStatus.Mixed:
-        return `${base} bg-gradient-mixed text-card-foreground`;
+        return `${base} bg-gradient-mixed`;
       default:
-        return `${base} bg-card text-card-foreground ${borderClasses}`;
+        return `${base} bg-card ${borderClasses}`;
     }
   }, [assignment.status, borderClass]);
 
