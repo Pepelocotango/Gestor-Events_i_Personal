@@ -80,21 +80,25 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   const liClasses = useMemo(() => {
     const base = 'rounded-lg';
+    // La vora per 'Mixt' utilitzarà el color 'primary' per defecte
+    const borderClassForMixed = 'border-l-primary'; 
     const borderClasses = `border-l-4 ${borderClass}`;
 
     switch (assignment.status) {
       case AssignmentStatus.Yes:
-        return `${base} bg-success/30 text-success-foreground ${borderClasses}`;
+        return `${base} bg-success/15 ${borderClasses}`;
       case AssignmentStatus.Pending:
-        return `${base} bg-warning/30 text-warning-foreground ${borderClasses}`;
+        return `${base} bg-warning/15 ${borderClasses}`;
       case AssignmentStatus.No:
-        return `${base} bg-destructive/30 text-destructive-foreground ${borderClasses}`;
+        return `${base} bg-destructive/15 ${borderClasses}`;
       case AssignmentStatus.Mixed:
-        return `${base} bg-gradient-mixed text-card-foreground`;
+        // Només apliquem la classe del degradat. La transparència la definirem al CSS.
+        // Afegim la vora per consistència visual.
+        return `${base} bg-gradient-mixed border-l-4 ${borderClassForMixed}`; 
       default:
-        return `${base} bg-card text-card-foreground ${borderClasses}`;
+        return `${base} bg-card ${borderClasses}`;
     }
-  }, [assignment.status, borderClass]);
+}, [assignment.status, borderClass]);
 
   return (
     <li className={liClasses}>
