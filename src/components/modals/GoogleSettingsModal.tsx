@@ -54,8 +54,8 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
     <div className="space-y-4">
       <div>
         <h3 className="text-lg font-medium text-foreground">Configuració de Google Calendar</h3>
-        <div className="mt-2 text-sm text-warning-foreground/90 space-y-2 p-3 bg-warning/10 border-l-4 border-warning">
-          <p><strong className="font-semibold text-warning-foreground">Important:</strong> La sincronització és <strong>unidireccional</strong>: les dades de l'app sobreescriuen les del calendari seleccionat a Google. Qualsevol canvi fet directament a Google en aquests calendaris <strong>es perdrà</strong>.</p>
+        <div className="mt-2 text-sm space-y-2 p-3 bg-warning/10 border-l-4 border-warning">
+          <p><strong className="font-semibold">Important:</strong> La sincronització és <strong>unidireccional</strong>: les dades de l'app sobreescriuen les del calendari seleccionat a Google. Qualsevol canvi fet directament a Google en aquests calendaris <strong>es perdrà</strong>.</p>
         </div>
       </div>
 

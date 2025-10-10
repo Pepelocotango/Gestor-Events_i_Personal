@@ -79,13 +79,13 @@
 
   /* Estils per als botons de canvi d'estat (píndoles) */
   .status-pill { @apply px-2.5 py-0.5 text-xs font-bold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring focus:ring-offset-background; }
-  .status-pill-selected-yes { background-color: hsl(var(--success)); color: hsl(var(--success-foreground)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-yes { background-color: hsl(var(--success)); box-shadow: var(--shadow-md); }
   .status-pill-selected-yes:focus { --tw-ring-color: hsl(var(--success)); }
-  .status-pill-selected-no { background-color: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-no { background-color: hsl(var(--destructive)); box-shadow: var(--shadow-md); }
   .status-pill-selected-no:focus { --tw-ring-color: hsl(var(--destructive)); }
-  .status-pill-selected-pending { background-color: hsl(var(--warning)); color: hsl(var(--warning-foreground)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-pending { background-color: hsl(var(--warning)); box-shadow: var(--shadow-md); }
   .status-pill-selected-pending:focus { --tw-ring-color: hsl(var(--warning)); }
-  .status-pill-selected-mixed { background-color: hsl(var(--mixed-status)); color: hsl(var(--mixed-status-foreground)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-mixed { background-color: hsl(var(--mixed-status)); box-shadow: var(--shadow-md); }
   .status-pill-selected-mixed:focus { --tw-ring-color: hsl(var(--mixed-status)); }
   .status-pill-unselected { @apply bg-secondary text-secondary-foreground/70 hover:bg-accent hover:text-accent-foreground; }
 
