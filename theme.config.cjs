@@ -39,7 +39,7 @@ const themeConfig = {
     // --- TEXTOS SOBRE COLORS D'ACCIÓ ---
     'destructive-foreground': '0 0% 98%',   // Color del text sobre fons 'destructive'.
     'success-foreground':   '0 0% 98%',     // Color del text sobre fons 'success'.
-    'warning-foreground':   '48 95% 15%',   // Color del text sobre fons 'warning'.
+    'warning-foreground':   '0 0% 98%',   // CANVIAT: Ara és un color clar (blanc) per a la consistència.
     'info-foreground':      '0 0% 98%',     // Color del text sobre fons 'info'.
     'mixed-status-foreground':'0 0% 98%', // Color del text sobre fons 'mixed-status'.
   },
@@ -75,7 +75,7 @@ const themeConfig = {
     'primary-foreground':   '220 13% 97%',   // Color del text sobre fons 'primary' en mode fosc.
     'destructive-foreground':'210 20% 98%', // Color del text sobre fons 'destructive' en mode fosc.
     'success-foreground':   '145 60% 98%',   // Color del text sobre fons 'success' en mode fosc.
-    'warning-foreground':   '48 95% 15%',   // Color del text sobre fons 'warning' en mode fosc (comparteix amb el tema clar per contrast).
+    'warning-foreground':   '48 95% 98%',   // CANVIAT: Ara és un color clar (groc molt pàl·lid) per a la consistència.
     'info-foreground':      '210 20% 98%',   // Color del text sobre fons 'info' en mode fosc.
     'mixed-status-foreground':'280 60% 98%', // Color del text sobre fons 'mixed-status' en mode fosc.
   },
