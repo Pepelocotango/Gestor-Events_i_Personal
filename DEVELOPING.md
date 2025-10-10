@@ -984,6 +984,11 @@ Reconstruirà els teus colors a partir de theme.config.cjs.
 Llançarà Vite sense memòria cau (--force).
 Obrirà Electron.
 
+- ultim script `npm run fresh-start` : Aquesta única comanda s'encarregarà de tot:
+Reconstruirà els teus colors a partir de theme.config.cjs.
+Llançarà Vite sense memòria cau (--force).
+Obrirà Electron.
+
 ### Depuració (Debugging)
 
 -   **Procés Principal (Backend):** Els logs es mostren a la terminal on has executat `npm run electron-dev` i es guarden als fitxers de log a la carpeta de dades de l'usuari.
