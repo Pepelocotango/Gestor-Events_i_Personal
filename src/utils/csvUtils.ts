@@ -73,7 +73,7 @@ export const exportEventListToCsv = async (
         title: 'Desar CSV',
         defaultPath: fileName,
         filters: [{ name: 'CSV', extensions: ['csv'] }],
-        data: csvContent,
+        data: "\uFEFF" + csvContent,
       });
       if (result.success) {
         showToast('CSV desat amb èxit!', 'success');
@@ -81,7 +81,7 @@ export const exportEventListToCsv = async (
         showToast(`Error en desar el CSV: ${result.message}`, 'error');
       }
     } else {
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
