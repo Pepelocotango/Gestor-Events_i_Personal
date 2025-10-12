@@ -1,6 +1,6 @@
 {
   "name": "Gestor d'Esdeveniments React",
-  "description": "Una aplicació React per gestionar esdeveniments, assignacions i persones, amb funcionalitats de calendari, filtratge, i exportació de dades.",
+  "description": "Aplicació integral per a la gestió d'esdeveniments, personal i inventari. Permet la planificació d'esdeveniments, l'assignació de personal amb detecció de conflictes, la generació de fitxes tècniques detallades (fitxes de bolo), i el control d'estoc de material amb càlcul de disponibilitat. Inclou visualització en calendari, filtratge avançat i exportació a PDF/CSV.",
   "requestFramePermissions": [],
   "prompt": ""
 }
