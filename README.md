@@ -112,28 +112,27 @@ L'aplicació es construeix amb Electron 38, la qual cosa defineix els següents 
 
 Oferim dues versions per a Windows:
 
-1.  **Instal·lador (`...-Installer.exe`):**
+> **Nota IMPORTANT per a Windows:** Com que l'aplicació no està signada digitalment, és probable que Windows Defender SmartScreen la bloquegi. Per executar-la, hauràs de fer clic a **"Més informació"** a la pantalla blava d'avís i, a continuació, al botó **"Executar de totes maneres"**.
+1.  **Instal·lador (`..._Setup.exe`):**
     *   **Recomanat per a la majoria d'usuaris.**
-    *   Descarrega i executa el fitxer `.exe` que conté la paraula `Installer`.
+    *   Descarrega i executa el fitxer `.exe` que conté la paraula `Setup`.
     *   Això instal·larà l'aplicació al teu sistema, creant una drecera a l'escriptori i una entrada al menú d'inici per a un accés fàcil.
 
-2.  **Versió Portable (`...-Portable.exe`):**
+2.  **Versió Portable (`..._.exe`):**
     *   **Ideal per executar sense instal·lar, per exemple des d'un pen-drive.**
-    *   Descarrega el fitxer `.exe` que conté la paraula `Portable`.
+    *   Descarrega el fitxer `.exe`.
     *   Pots executar l'aplicació directament amb un doble clic sense que s'instal·li res al teu sistema.
 
 ####  **macOS**
 
 Per a macOS, la distribució es fa a través d'un fitxer `.dmg`:
 
+> **Nota IMPORTANT per a macOS:** Com que l'aplicació no està descarregada des de l'App Store ni està notariada per Apple, macOS la bloquejarà per defecte. Per obrir-la per primera vegada, has de fer **clic dret (o Ctrl+clic) sobre la icona de l'aplicació, seleccionar "Obrir"** i confirmar l'acció al diàleg de seguretat que apareixerà. Aquest pas només és necessari la primera vegada.
+
 *   Descarrega el fitxer `...-macOS-10.15+.dmg`.
 *   Fes-hi doble clic per obrir-lo. S'obrirà una finestra del Finder.
 *   Per instal·lar l'aplicació, simplement **arrossega la icona de l'aplicació a la drecera de la carpeta d'Aplicacions** que apareix a la mateixa finestra.
 *   Ja pots executar l'aplicació des de la teva carpeta d'Aplicacions o mitjançant Launchpad.
-
-> **Nota IMPORTANT per a Windows:** Com que l'aplicació no està signada digitalment, és probable que Windows Defender SmartScreen la bloquegi. Per executar-la, hauràs de fer clic a **"Més informació"** a la pantalla blava d'avís i, a continuació, al botó **"Executar de totes maneres"**.
->
-> **Nota IMPORTANT per a macOS:** Com que l'aplicació no està descarregada des de l'App Store ni està notariada per Apple, macOS la bloquejarà per defecte. Per obrir-la per primera vegada, has de fer **clic dret (o Ctrl+clic) sobre la icona de l'aplicació, seleccionar "Obrir"** i confirmar l'acció al diàleg de seguretat que apareixerà. Aquest pas només és necessari la primera vegada.
 
 #### 🐧 **Linux**
 
