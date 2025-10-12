@@ -51,7 +51,9 @@ El projecte està actualment en fase de desenvolupament actiu.
 
 ## Funcionalitats Principals
 
-L'aplicació està dissenyada per cobrir tot el cicle de vida de la gestió d'un esdeveniment, oferint les següents eines:
+Aquesta aplicació està dissenyada per ser una solució integral per a professionals del sector dels esdeveniments, com ara directors de producció, caps tècnics o empreses de lloguer de material. El seu objectiu és centralitzar i simplificar tota la logística que envolta un esdeveniment, cobrint tot el cicle de vida, des de la planificació inicial fins a l'execució tècnica.
+
+L'aplicació ofereix les següents eines:
 
 *   **Gestió d'Esdeveniments i Assignacions:**
     *   Crea "esdeveniments marc" amb dates i notes generals.
