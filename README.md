@@ -89,7 +89,7 @@ Cada versió inclou binaris compilats per a Windows, macOS i Linux. Assegura't d
 
 ### Requisits Mínims del Sistema
 
-L'aplicació es construeix amb Electron 29, la qual cosa defineix els següents requisits mínims:
+L'aplicació es construeix amb Electron 38, la qual cosa defineix els següents requisits mínims:
 
 *   **Windows:** Windows 10 (només 64-bit) o superior.
 *   **macOS:** macOS 10.15 (Catalina) o superior.
@@ -181,12 +181,12 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
 
 ## Desenvolupament
 
-## 🔒 Tancament Intel·ligent i Backups Incondicionals
+## 🔒 Tancament Intel·ligent i Backups
 
-L'aplicació garanteix que el teu treball estigui sempre protegit, fins i tot si decideixes no desar els canvis.
+L'aplicació prioritza la integritat de les teves dades amb un sistema de desat i backups segur.
 
--   **Diàleg de Sortida Únic:** En intentar tancar l'aplicació amb canvis no desats, es mostra un únic diàleg que t'ofereix un control clar i professional: `Desa`, `Desa com...`, `Tanca sense desar` o `Cancel·la`.
--   **Backups de Seguretat Sempre:** Independentment de l'opció que triïs (fins i tot `Tanca sense desar`), l'aplicació crea automàticament un backup de la teva sessió de treball a la carpeta de dades de l'aplicació. Això assegura que sempre tinguis una còpia de seguretat de l'últim estat del teu treball, proporcionant una xarxa de seguretat robusta contra la pèrdua accidental de dades.
+-   **Diàleg de Sortida Únic:** En intentar tancar l'aplicació amb canvis no desats, es mostra un únic diàleg que t'ofereix un control clar: `Desa`, `Desa com...`, `Tanca sense desar` o `Cancel·la`.
+-   **Backups Automàtics en Desar:** Es crea automàticament un backup del teu document cada vegada que l'usuari realitza una acció de desat amb èxit (`Desa` o `Desa com...`). El sistema gestiona una rotació intel·ligent, conservant les còpies més recents per a cada document i proporcionant una xarxa de seguretat robusta contra la pèrdua de dades.
 
 ## ⚡ Configuració de Google: Separació Local vs Document
 

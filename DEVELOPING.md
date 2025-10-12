@@ -49,7 +49,7 @@ L'aplicació està dissenyada per funcionar de manera totalment autònoma (offli
 El projecte es basa en un conjunt de tecnologies modernes de l'ecosistema JavaScript/TypeScript.
 
 -   **Framework d'Aplicació:**
-    -   **Electron `^29.4.6`**: Permet construir aplicacions d'escriptori multiplataforma utilitzant tecnologies web.
+    -   **Electron `38.1.1`**: Permet construir aplicacions d'escriptori multiplataforma utilitzant tecnologies web.
     -   **Electron Builder `^24.13.3`**: Eina per empaquetar i distribuir l'aplicació per a Windows, macOS i Linux.
 
 -   **Frontend:**
@@ -746,7 +746,7 @@ Per garantir la retrocompatibilitat amb versions anteriors de l'estructura de da
 
 -   **Fitxer Clau:** `src/utils/dataMigration.ts`.
 -   **Funció `migrateData`:** Aquesta funció accepta objectes de dades amb l'estructura antiga (p. ex., amb `people` en lloc de `peopleGroups`, ID numèrics, etc.) i els transforma a l'estructura `AppData` moderna.
--   **Activació:** A `Controls.tsx`, dins de `handleLoadAllData`, després de parsejar el JSON, es comprova si el fitxer té l'estructura nova. Si no, es passa a `migrateData` i `validateMigratedData` abans de carregar-lo a l'estat, assegurant una transició suau per a l'usuari.
+-   **Activació:** La lògica de migració i validació ara es troba centralitzada dins de l'acció **`loadData`** al fitxer **`src/stores/eventDataStore.ts`**.
 
 ---
 
@@ -1033,22 +1033,11 @@ La lògica central resideix a l'acció `loadData` de l'store `useEventDataStore`
 
 Aquest sistema garanteix que l'aplicació sigui extremadament resilient a errors de dades, alhora que manté una experiència fluida per a la majoria d'usuaris les dades dels quals són correctes.
 
-### 9. Solució de Bug de Renderitzat del Calendari
-
-S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de *repaint/reflow* del navegador que FullCalendar no gestiona automàticament.
-
-La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació canvia.
-
--   **`src/components/MainDisplay.tsx`**: Utilitza `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que internament crida a `calendarApi.updateSize()`.
--   **`src/App.tsx`**: Crea una referència (`useRef`) al component `MainDisplay` i utilitza un `useEffect` que, en detectar un canvi a `toastState`, crida a la funció `handleResize` del component fill.
-
----
-
-## 10. Restauració de Funcionalitats Post-Refactorització (Zustand)
+## 9. Restauració de Funcionalitats Post-Refactorització (Zustand)
 
 Després de la migració a Zustand, algunes interaccions de la UI es van haver de reconnectar. Aquesta secció documenta les solucions.
 
-### 10.1. Gestió d'Expansió de Targetes (Manual i Automàtica)
+### 9.1. Gestió d'Expansió de Targetes (Manual i Automàtica)
 
 S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment les targetes d'esdeveniments.
 
@@ -1060,7 +1049,7 @@ S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment le
     -   La funció `handleToggleExpand` crida a l'acció de l'store.
     -   Un `useMemo` decideix quines targetes estan expandides: si hi ha filtres actius, s'expandeixen tots els resultats; si no, s'utilitza el conjunt manual.
 
-### 10.2. Funcionalitat "Mostrar a la Llista" i Ressaltat (Correcció de Condició de Cursa)
+### 9.2. Funcionalitat "Mostrar a la Llista" i Ressaltat (Correcció de Condició de Cursa)
 
 S'ha restaurat l'acció "Mostrar a la Llista" i s'ha corregit una condició de cursa que impedia que funcionés de manera fiable.
 
@@ -1071,14 +1060,14 @@ S'ha restaurat l'acció "Mostrar a la Llista" i s'ha corregit una condició de c
     -   **Explicació:** Això garanteix que l'efecte només s'executi després que React hagi renderitzat la llista d'esdeveniments (si estava col·lapsada). D'aquesta manera, quan `document.getElementById` busca la targeta, aquesta ja existeix al DOM.
     -   L'efecte fa `scrollIntoView()`, afegeix una classe CSS per a l'animació, i la neteja després de 3 segons.
 
-### 10.3. Exportació de Vistes Filtrades (PDF/CSV)
+### 9.3. Exportació de Vistes Filtrades (PDF/CSV)
 
 S'ha restaurat la capacitat d'exportar a PDF o CSV només els esdeveniments que coincideixen amb els filtres actius a la vista principal.
 
 -   **Lògica:** La funcionalitat d'exportació, ubicada a `Controls.tsx`, utilitza un selector (`selectFilteredEventFrames`) per accedir a la llista filtrada directament des de l'store `useEventDataStore`.
 -   **Implementació:** Quan l'usuari clica a "Exportar a PDF/CSV", `Controls.tsx` obté l'estat complet de l'store, el passa al selector per obtenir la llista filtrada, i finalment envia aquesta llista a les utilitats `pdfGenerator` o `csvUtils`. Si no hi ha cap filtre actiu, s'exporta la llista completa per defecte.
 
-### 10.4. Avís de Conflictes en Assignacions
+### 9.4. Avís de Conflictes en Assignacions
 
 S'ha reimplementat i estandarditzat el diàleg modal que adverteix l'usuari quan intenta crear o modificar una assignació que se solapa en el temps amb una altra assignació existent per a la mateixa persona.
 
@@ -1088,7 +1077,7 @@ S'ha reimplementat i estandarditzat el diàleg modal que adverteix l'usuari quan
     -   **`MainDisplay.tsx`**: S'ha corregit un error pel qual l'avís no apareixia en modificar l'estat d'una assignació directament des de la vista principal. Ara, els seus gestors també comproven el missatge de conflicte.
     -   **Consistència:** Ambdós components utilitzen el mateix modal de confirmació (`ConfirmDuplicateModal`) per oferir una experiència d'usuari unificada.
 
-### 10.5. Barra de Progrés Detallada per a la Sincronització
+### 9.5. Barra de Progrés Detallada per a la Sincronització
 
 S'ha reintroduït la barra de progrés en temps real durant la sincronització amb Google Calendar.
 
