@@ -76,6 +76,7 @@ L'aplicació ofereix les següents eines:
 
 *   **Connectivitat i Gestió de Dades:**
     *   **Integració amb Google Calendar:** Sincronitza els esdeveniments de l'aplicació a un calendari dedicat de Google i visualitza altres calendaris teus en mode de només lectura.
+        > **AVÍS IMPORTANT:** La integració amb Google Calendar està actualment en **mode de proves**. Perquè la sincronització funcioni, Google requereix que el desenvolupador afegeixi manualment el teu correu electrònic a la llista de "testers" autoritzats del projecte. Si vols utilitzar aquesta funcionalitat, si us plau, contacta amb l'autor.
     *   **Importació/Exportació:** Desa i carrega totes les dades de l'aplicació en format JSON. La càrrega de dades de personal i material permet fusionar o reemplaçar la informació existent.
     *   **Exportació a PDF/CSV:** Exporta resums, llistes de personal, inventaris i fitxes de bolo a formats professionals com PDF i CSV.
 
@@ -130,9 +131,9 @@ Per a macOS, la distribució es fa a través d'un fitxer `.dmg`:
 *   Per instal·lar l'aplicació, simplement **arrossega la icona de l'aplicació a la drecera de la carpeta d'Aplicacions** que apareix a la mateixa finestra.
 *   Ja pots executar l'aplicació des de la teva carpeta d'Aplicacions o mitjançant Launchpad.
 
-> **Nota IMPORTANT!:** La primera vegada que obris l'aplicació, com que no està descarregada des de l'App Store, macOS podria mostrar un avís de seguretat.
-Per obrir-la, CTRL+clic o fes clic dret sobre la icona de l'aplicació, selecciona "Obrir" i confirma l'acció al diàleg que apareixerà.
-Si el pas anterior no funciona, prova de anar a preferències de sistema i donar-li permís d'execució a la App. ( gràcies Isaac!)
+> **Nota IMPORTANT per a Windows:** Com que l'aplicació no està signada digitalment, és probable que Windows Defender SmartScreen la bloquegi. Per executar-la, hauràs de fer clic a **"Més informació"** a la pantalla blava d'avís i, a continuació, al botó **"Executar de totes maneres"**.
+>
+> **Nota IMPORTANT per a macOS:** Com que l'aplicació no està descarregada des de l'App Store ni està notariada per Apple, macOS la bloquejarà per defecte. Per obrir-la per primera vegada, has de fer **clic dret (o Ctrl+clic) sobre la icona de l'aplicació, seleccionar "Obrir"** i confirmar l'acció al diàleg de seguretat que apareixerà. Aquest pas només és necessari la primera vegada.
 
 #### 🐧 **Linux**
 
