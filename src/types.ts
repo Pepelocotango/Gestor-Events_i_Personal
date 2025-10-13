@@ -251,9 +251,11 @@ export type ModalType =
   | 'addMaterialFromTechSheet'
   | 'confirmDelete'
   | 'history'
+  | 'googleEventDetails'
   | null;
 
 export interface ModalData {
+    eventData?: any;
     toAdd?: Assignment[];
     toRemove?: (TechSheetRoleItem & { personGroupId: string })[];
     toUpdate?: { assignment: Assignment; currentRole: TechSheetRoleItem; newNotes: string }[];
@@ -467,6 +469,7 @@ export interface ElectronAPI {
   getCalendarList: () => Promise<{ success: boolean, calendars?: GoogleCalendar[], message?: string }>;
   saveGoogleConfig: (config: Partial<GoogleConfig>) => Promise<{ success: boolean, data?: GoogleConfig, message?: string }>;
   getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
+  getEventDetails: (calendarId: string, eventId: string) => Promise<{ success: boolean, event?: any, message?: string }>;
   syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
   onSyncProgress: (callback: (progress: Omit<SyncProgressState, 'visible'>) => void) => () => void;
   googleDisconnect: () => Promise<{ success: boolean; message?: string }>;

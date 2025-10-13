@@ -39,6 +39,7 @@ const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalenda
 const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/UpdateFromAssignmentsModal'));
 const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairModal'));
 const HistoryModal = lazy(() => import('./components/modals/HistoryModal'));
+const GoogleEventDetailsModal = lazy(() => import('./components/modals/GoogleEventDetailsModal'));
 
 
 import { useRef } from 'react';
@@ -863,6 +864,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
                 />;
       case 'history':
         return <HistoryModal />;
+      case 'googleEventDetails':
+        return <GoogleEventDetailsModal />;
       default:
         return null;
     }
@@ -874,6 +877,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
         return data.titleOverride;
     }
     switch (type) {
+      case 'googleEventDetails': return "Detalls de l'Esdeveniment de Google";
       case 'addEventFrame': return "Afegir Nou Marc d'Esdeveniment";
       case 'editEventFrame': return "Editar Marc d'Esdeveniment";
       case 'addAssignment': return `Nova Assignació per a: ${data?.eventFrame?.name || ''}`;
@@ -904,6 +908,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
       case 'editAssignment':
       case 'eventFrameDetails':
         return '4xl';
+      case 'googleEventDetails':
+        return '2xl';
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmHardReset':

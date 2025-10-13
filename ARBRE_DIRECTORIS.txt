@@ -38,6 +38,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── CreateCalendarModal.tsx         # Formulari per crear un nou calendari de l'app a Google.
 │   │   │   ├── EventFrameDetailsModal.tsx      # Mostra un resum detallat d'un esdeveniment.
 │   │   │   ├── EventFrameFormModal.tsx         # Formulari per crear/editar un esdeveniment marc. [REFACTORITZAT: usa modalStore]
+│   │   │   ├── GoogleEventDetailsModal.tsx     # Mostra els detalls complets d'un esdeveniment extern de Google Calendar.
 │   │   │   ├── GoogleSettingsModal.tsx         # Panell de configuració de la integració amb Google Calendar.
 │   │   │   ├── HistoryModal.tsx                # Modal que mostra l'historial de canvis (desfer/refer). Mostra la descripció de l'acció que es desfarà/refer (no la de l'estat actual).
 │   │   │   ├── MergeOrReplaceModal.tsx         # Opcions per fusionar o reemplaçar dades en importar.

@@ -423,13 +423,29 @@ const MainDisplay = React.forwardRef<
                   endDate: info.dateStr,
                   generalNotes: '',
                 })}
-                eventClick={(info) => {
-                if (info.event.extendedProps.type === 'google') {
-                info.jsEvent.preventDefault();
-                return;
-                }
-                const ef = getEventFrameById(info.event.id);
-                if (ef) openModal('eventFrameDetails', { eventFrame: ef });
+                eventClick={async (info) => {
+                  info.jsEvent.preventDefault(); // Prevenim l'acció per defecte per a tots els clics
+
+                  if (info.event.extendedProps.type === 'google') {
+                    if (window.electronAPI) {
+                      const { calendarId } = info.event.extendedProps;
+                      const eventId = info.event.id;
+
+                      try {
+                        const result = await window.electronAPI.getEventDetails(calendarId, eventId);
+                        if (result.success && result.event) {
+                          openModal('googleEventDetails', { eventData: result.event });
+                        } else {
+                          setToastMessage(result.message || "No s'han pogut obtenir els detalls de l'esdeveniment.", 'error');
+                        }
+                      } catch (error) {
+                        setToastMessage(`Error de comunicació: ${(error as Error).message}`, 'error');
+                      }
+                    }
+                  } else {
+                    const ef = getEventFrameById(info.event.id);
+                    if (ef) openModal('eventFrameDetails', { eventFrame: ef });
+                  }
                 }}
                 />
         </div>

@@ -290,6 +290,7 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `load-google-config`, `save-google-config`: Llegeixen i escriuen les preferències de l'usuari per a Google Calendar.
     -   `google-get-calendar-list`: Obté la llista de calendaris del compte de l'usuari.
     -   `get-google-events`: Recupera esdeveniments dels calendaris seleccionats per a visualització.
+    -   `google-get-event-details`: Obté tots els detalls d'un esdeveniment específic de Google Calendar a partir del seu `calendarId` i `eventId`.
     -   `sync-with-google(payload)`: Orquestra la sincronització unidireccional cap a un calendari específic.
     -   `create-new-app-calendar(suffix)`: Crea un nou calendari gestionat per l'app.
     -   `delete-app-calendar(calendarId)`: Elimina un calendari gestionat específic.

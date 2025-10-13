@@ -1034,6 +1034,33 @@ ipcMain.handle('get-google-events', async () => {
   }
 });
 
+ipcMain.handle('google-get-event-details', async (event, { calendarId, eventId }) => {
+  console.log(`[IPC_IN] Rebut 'google-get-event-details' per a: calendarId=${calendarId}, eventId=${eventId}`);
+  try {
+    if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
+        throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
+    }
+    if (!calendarId || !eventId) {
+      throw new Error('Es requereix calendarId i eventId.');
+    }
+
+    const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
+
+    const res = await calendar.events.get({
+      calendarId: calendarId,
+      eventId: eventId,
+    });
+
+    console.log(`  -> Detalls de l'esdeveniment obtinguts amb èxit per a ${eventId}.`);
+    return { success: true, event: res.data };
+
+  } catch (error) {
+    console.error(`Error obtenint detalls de l'esdeveniment de Google ${eventId}:`, error);
+    const errorMessage = error.response?.data?.error?.message || error.message;
+    return { success: false, message: `No s'han pogut obtenir els detalls de l'esdeveniment: ${errorMessage}` };
+  }
+});
+
 let hasShownUncaughtExceptionDialog = false;
 process.on('uncaughtException', (error) => {
   const errorMsg = `Excepció no capturada: ${JSON.stringify(error, null, 2)}\n`;
