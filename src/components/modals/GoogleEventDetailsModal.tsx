@@ -4,10 +4,9 @@ import { CalendarIcon, UsersIcon } from '../../constants';
 import { MapPinIcon, VideoCameraIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 
 const GoogleEventDetailsModal: React.FC = () => {
-  const { data, closeModal } = useModalStore(state => ({
-    data: state.data,
-    closeModal: state.closeModal
-  }));
+  const data = useModalStore(state => state.data);
+const closeModal = useModalStore(state => state.closeModal);
+
 
   const event = data?.eventData;
 
