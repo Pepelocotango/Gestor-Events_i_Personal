@@ -30,21 +30,33 @@ const Controls: React.FC<ControlsProps> = ({
 
   return (
     <div className="bg-card text-card-foreground rounded-lg w-full p-2">
-      <div className="flex justify-between items-center w-full">
-        <Tooltip text={currentFilePath || 'Cap fitxer carregat'}>
-          <div className="text-xs text-muted-foreground truncate">
-            Fitxer de dades: <strong>{currentFilePath || 'Document nou sense desar'}</strong>
+      <Tooltip text={isExpanded ? "Col·lapsar controls" : "Expandir controls"}>
+        <div
+          onClick={toggleExpansion}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleExpansion();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          className="flex justify-between items-center w-full cursor-pointer"
+        >
+          {/* Aquest div atura la propagació de l'esdeveniment onMouseEnter per evitar que es mostrin dos tooltips alhora */}
+          <div onMouseEnter={(e) => e.stopPropagation()}>
+            <Tooltip text={currentFilePath || 'Cap fitxer carregat'}>
+              <div className="text-xs text-muted-foreground truncate">
+                Fitxer de dades: <strong>{currentFilePath || 'Document nou sense desar'}</strong>
+              </div>
+            </Tooltip>
           </div>
-        </Tooltip>
-        <Tooltip text={isExpanded ? "Col·lapsar controls" : "Expandir controls"}>
-          <button
-            onClick={toggleExpansion}
-            className="p-1 rounded-md hover:bg-accent"
-          >
+
+          <div>
             {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
-          </button>
-        </Tooltip>
-      </div>
+          </div>
+        </div>
+      </Tooltip>
 
       {isExpanded && (
         <div className="pt-2 mt-2 border-t border-border flex flex-col gap-1">
