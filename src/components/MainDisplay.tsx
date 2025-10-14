@@ -533,7 +533,12 @@ const MainDisplay = React.forwardRef<
             </Tooltip>
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
                 <button
-                  onClick={() => exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
+                  onClick={() => exportEventListToPdf(
+                    filteredAndSortedEventFrames,
+                    peopleGroups,
+                    setToastMessage,
+                    { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
+                  )}
                   className="flex items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" /> PDF
@@ -541,7 +546,12 @@ const MainDisplay = React.forwardRef<
               </Tooltip>
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
                 <button
-                  onClick={() => exportEventListToCsv(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
+                  onClick={() => exportEventListToCsv(
+                    filteredAndSortedEventFrames,
+                    peopleGroups,
+                    setToastMessage,
+                    { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
+                  )}
                   className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" /> CSV
@@ -592,7 +602,11 @@ const MainDisplay = React.forwardRef<
       </CollapsibleSection>
 
       <CollapsibleSection title="Resums" icon={<ChartBarIcon />} defaultOpen={false} id="summary-section">
-         <SummaryReports setToastMessage={setToastMessage} />
+         <SummaryReports
+            setToastMessage={setToastMessage}
+            filteredEventFrames={filteredAndSortedEventFrames}
+            activeFilters={{ filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }}
+         />
       </CollapsibleSection>
     </div>
   );

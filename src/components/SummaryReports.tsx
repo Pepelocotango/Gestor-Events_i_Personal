@@ -1,19 +1,30 @@
 import React, { useMemo } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
-import { AssignmentStatus, SummaryRow, ShowToastFunction } from '../types';
+import { AssignmentStatus, SummaryRow, ShowToastFunction, EventFrame } from '../types';
 import { CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import { formatDateDMY, formatDateRangeDMY } from '../utils/dateFormat';
 import { getStatusSummaryText } from '../utils/statusUtils';
 import { exportSummariesToPdf } from '../utils/pdfGenerator';
 import { escapeCsvCell } from '../utils/csvUtils';
+import { generateFileName } from '../utils/fileNameUtils';
 import Tooltip from './ui/Tooltip';
+
+type ActiveFilters = {
+  filterText?: string | null;
+  filterStatus?: string | null;
+  filterDate?: string | null;
+  localFilterUIPerson?: string | null;
+  filterPlace?: string | null;
+  filterUIEventFrame?: string | null;
+};
 
 interface SummaryReportsProps {
   setToastMessage: ShowToastFunction;
+  filteredEventFrames: EventFrame[];
+  activeFilters: ActiveFilters;
 }
 
-const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
-  const eventFrames = useEventDataStore(state => state.eventFrames);
+const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filteredEventFrames, activeFilters }) => {
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -26,10 +37,10 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     console.log(`[TOAST] ${type?.toUpperCase()}: ${message}`);
   };
 
-  // --- LÒGICA DE DADES (sense canvis) ---
+  // --- LÒGICA DE DADES (ara basada en dades filtrades) ---
   const allAssignmentsSummary = useMemo((): SummaryRow[] => {
     const summary: SummaryRow[] = [];
-    eventFrames.forEach(ef => {
+    filteredEventFrames.forEach(ef => {
       ef.assignments.forEach(a => {
         const personName = peopleMap.get(a.personGroupId);
         summary.push({
@@ -52,7 +63,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
       });
     });
     return summary;
-  }, [eventFrames, peopleMap]);
+  }, [filteredEventFrames, peopleMap]);
 
   // Estat d'ordre per als resums
   const [summarySortOrder, setSummarySortOrder] = React.useState<'asc' | 'desc'>('desc');
@@ -169,14 +180,17 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
   };
 
   const handleExportPdf = async (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person') => {
-    await exportSummariesToPdf(title, data, dataType, showToast);
+    // Nota: La generació del nom del fitxer es farà dins de exportSummariesToPdf
+    await exportSummariesToPdf(title, data, dataType, showToast, activeFilters, filteredEventFrames);
   };
 
   const handleExportCsv = async (dataType: 'event-name' | 'start-date' | 'person', groupKey: string | null = null) => {
     const csvContent = generateDetailedCsv(dataType, groupKey);
-    const dateSuffix = new Date().toISOString().slice(0, 10);
-    const keySuffix = groupKey ? `_${groupKey.replace(/[^a-zA-Z0-9]/g, '-')}` : '';
-    const filename = `resum_${dataType}${keySuffix}_${dateSuffix}.csv`;
+
+    // Utilitza la nova lògica per generar el nom del fitxer
+    const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
+    const filename = generateFileName(prefix, activeFilters, filteredEventFrames, 'csv');
+
     await downloadCsv(csvContent, filename);
   };
   

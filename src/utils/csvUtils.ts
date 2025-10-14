@@ -1,5 +1,16 @@
 import { EventFrame, PersonGroup, Assignment, ShowToastFunction, MaterialControlRow } from '../types';
 import { getStatusSummaryText } from './statusUtils';
+import { generateFileName } from './fileNameUtils';
+
+// Define ActiveFilters type locally for this module
+type ActiveFilters = {
+  filterText?: string | null;
+  filterStatus?: string | null;
+  filterDate?: string | null;
+  localFilterUIPerson?: string | null;
+  filterPlace?: string | null;
+  filterUIEventFrame?: string | null;
+};
 
 export const escapeCsvCell = (cellData: string | number | boolean | undefined | null): string => {
   if (cellData === undefined || cellData === null) return '';
@@ -13,7 +24,8 @@ export const escapeCsvCell = (cellData: string | number | boolean | undefined | 
 export const exportEventListToCsv = async (
   eventFrames: EventFrame[],
   peopleGroups: PersonGroup[],
-  showToast: ShowToastFunction
+  showToast: ShowToastFunction,
+  activeFilters: ActiveFilters
 ) => {
   try {
     const headers = [
@@ -66,7 +78,7 @@ export const exportEventListToCsv = async (
       ...rows.map(row => row.join(','))
     ].join('\n');
 
-    const fileName = `Llista_Esdeveniments_${new Date().toISOString().slice(0, 10)}.csv`;
+    const fileName = generateFileName('Llista_Esdeveniments', activeFilters, eventFrames, 'csv');
 
     if (window.electronAPI?.showSaveDialog) {
       const result = await window.electronAPI.showSaveDialog({
