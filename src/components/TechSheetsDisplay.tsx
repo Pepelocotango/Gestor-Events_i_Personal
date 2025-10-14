@@ -1,9 +1,14 @@
-import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import React, { useState, useMemo, lazy, Suspense, useEffect, useRef } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
+import CollapsibleSection from './ui/CollapsibleSection';
 
 const TechSheetForm = lazy(() => import('./tech_sheets/TechSheetForm'));
+
+interface TechSheetFormHandle {
+  toggleAllSections: () => void;
+}
 
 interface TechSheetsDisplayProps {
   showToast: ShowToastFunction;
@@ -12,14 +17,14 @@ interface TechSheetsDisplayProps {
 const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
+  const techSheetFormRef = useRef<TechSheetFormHandle>(null);
 
   useEffect(() => {
     const loadLastViewed = async () => {
       if (window.electronAPI?.getSessionData) {
         const sessionData = await window.electronAPI.getSessionData();
         const lastId = sessionData?.lastViewedTechSheetId;
-        // Check if the event still exists and is not archived before selecting it
-        if (lastId && eventFrames.some(ef => ef.id === lastId && ef.isArchived !== true)) {
+        if (lastId && eventFrames.some(ef => ef.id === lastId && !ef.isArchived)) {
           setSelectedEventFrameId(lastId);
         }
       }
@@ -35,7 +40,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
 
   const sortedEventFrames = useMemo(() => {
     return eventFrames
-      .filter(ef => ef.isArchived !== true)
+      .filter(ef => !ef.isArchived)
       .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
   }, [eventFrames]);
 
@@ -44,17 +49,22 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   }, [eventFrames, selectedEventFrameId]);
 
   useEffect(() => {
-    // If the currently selected event is no longer in the sorted list (e.g., it got archived), clear the selection
     if (selectedEventFrameId && !sortedEventFrames.some(ef => ef.id === selectedEventFrameId)) {
-        setSelectedEventFrameId('');
+      setSelectedEventFrameId('');
     }
   }, [sortedEventFrames, selectedEventFrameId]);
 
+  const handleToggleAll = () => {
+    techSheetFormRef.current?.toggleAllSections();
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="p-4 bg-card rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-4 text-card-foreground">Gestor de Fitxes de Bolo</h2>
-        
+    <CollapsibleSection
+      title="Gestor de Fitxes de Bolo"
+      defaultOpen={true}
+      onHeaderDoubleClick={handleToggleAll}
+    >
+      <div className="space-y-4">
         <div className="max-w-md">
           <label htmlFor="event-selector" className="block text-sm font-medium text-muted-foreground">
             Selecciona un esdeveniment per veure o editar la seva fitxa:
@@ -75,25 +85,25 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
             </select>
           </Tooltip>
         </div>
-      </div>
 
-          
-      {selectedEventFrame && selectedEventFrame.techSheet ? (
-        <Suspense fallback={<div className="text-center p-8">Carregant formulari...</div>}>
-          <TechSheetForm 
-            key={selectedEventFrame.id}
-            eventFrame={selectedEventFrame}
-            showToast={showToast}
-          />
-        </Suspense>
-      ) : (
-        selectedEventFrameId && (
-          <div className="p-4 text-center text-warning-foreground bg-warning/10 rounded-lg">
-            <p>Aquest esdeveniment no té una fitxa tècnica associada. Pot ser de dades antigues. Desa l'esdeveniment per generar-ne una.</p>
-          </div>
-        )
-      )}
-    </div>
+        {selectedEventFrame && selectedEventFrame.techSheet ? (
+          <Suspense fallback={<div className="text-center p-8">Carregant formulari...</div>}>
+            <TechSheetForm
+              ref={techSheetFormRef}
+              key={selectedEventFrame.id}
+              eventFrame={selectedEventFrame}
+              showToast={showToast}
+            />
+          </Suspense>
+        ) : (
+          selectedEventFrameId && (
+            <div className="p-4 text-center text-warning-foreground bg-warning/10 rounded-lg">
+              <p>Aquest esdeveniment no té una fitxa tècnica associada. Pot ser de dades antigues. Desa l'esdeveniment per generar-ne una.</p>
+            </div>
+          )
+        )}
+      </div>
+    </CollapsibleSection>
   );
 };
 

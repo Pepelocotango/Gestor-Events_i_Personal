@@ -210,13 +210,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
           {/* Columna de la llista */}
           <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
             <div className="flex items-center justify-between mb-4">
-              <Tooltip text="Fes doble clic per expandir/replegar totes les categories.">
-                <h4
-                  className="text-lg font-medium"
-                  onDoubleClick={toggleAll}
-                  style={{ cursor: 'pointer' }}
-                >Inventari</h4>
-              </Tooltip>
+              <h4 className="text-lg font-medium">Inventari</h4>
               <div className="flex items-center gap-2">
                   <Tooltip text="Cercar per nom, categoria o ubicació">
                     <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
