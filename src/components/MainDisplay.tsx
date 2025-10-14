@@ -347,11 +347,16 @@ const MainDisplay = React.forwardRef<
   };
 
     return (
-    <div className="space-y-1">
-      <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
-        <div className="calendar-wrapper" style={{ padding: '0.25rem' }}>
-          <FullCalendar
-                ref={calendarRef}
+    <CollapsibleSection
+      title="Calendari i Llista"
+      defaultOpen={true}
+      onHeaderDoubleClick={handleToggleAllCards}
+    >
+      <div className="space-y-1">
+        <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
+          <div className="calendar-wrapper" style={{ padding: '0.25rem' }}>
+            <FullCalendar
+                  ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
                 initialView="multiMonth2"
                 views={{
@@ -409,7 +414,6 @@ const MainDisplay = React.forwardRef<
         icon={<ListIcon />}
         isExpanded={isEventListExpanded}
         onToggle={() => useEventDataStore.getState().toggleEventListExpanded()}
-        onHeaderDoubleClick={handleToggleAllCards}
         id="event-list-section"
       >
         <div className="mb-1 flex justify-start items-center gap-1">
@@ -569,6 +573,7 @@ const MainDisplay = React.forwardRef<
          />
       </CollapsibleSection>
     </div>
+  </CollapsibleSection>
   );
 });
 

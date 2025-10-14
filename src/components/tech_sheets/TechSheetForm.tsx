@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -17,7 +17,11 @@ interface TechSheetFormProps {
   showToast: ShowToastFunction;
 }
 
-const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) => {
+export interface TechSheetFormHandle {
+  toggleAllSections: () => void;
+}
+
+const TechSheetForm = forwardRef<TechSheetFormHandle, TechSheetFormProps>(({ eventFrame, showToast }, ref) => {
   const { peopleGroups, materialItems, addOrUpdateTechSheet, getMaterialAvailability } = useEventDataStore.getState();
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -78,7 +82,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     setExpandedSections(allCollapsed);
   };
 
-  const handleToggleAllSections = () => {
+  const toggleAllSections = () => {
     const areAllExpanded = sectionKeys.every(key => expandedSections[key]);
     if (areAllExpanded) {
       collapseAll();
@@ -86,6 +90,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       expandAll();
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    toggleAllSections
+  }));
 
   useEffect(() => {
     formDataRef.current = formData;
@@ -726,15 +734,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     <div className="p-2 bg-background rounded-lg shadow space-y-4 tech-sheet-form-container">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <Tooltip text="Fes doble clic per expandir/replegar totes les seccions.">
-          <h2
-            className="text-xl font-bold text-foreground"
-            onDoubleClick={handleToggleAllSections}
-            style={{ cursor: 'pointer' }}
-          >
-            Fitxa de Bolo: <span className="text-primary">{eventFrame.name}</span>
-          </h2>
-        </Tooltip>
+        <h2 className="text-xl font-bold text-foreground">
+          Fitxa de Bolo: <span className="text-primary">{eventFrame.name}</span>
+        </h2>
         <div className="flex items-center gap-2">
             <Tooltip text="Expandir totes les seccions del formulari">
                 <button onClick={expandAll} className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md hover:bg-accent no-print">Expandir Totes</button>
@@ -1193,6 +1195,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
     </div>
   );
-};
+});
 
 export default TechSheetForm;
