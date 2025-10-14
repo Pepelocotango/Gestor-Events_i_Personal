@@ -60,7 +60,7 @@ const TechSheetSection: React.FC<TechSheetSectionProps> = ({
   return (
     <div className={containerClasses}>
       <div className="flex items-center justify-between bg-muted/50 rounded-t-lg">
-        <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
+        <Tooltip text={isOpen ? `Replegar secció ${title}` : `Expandir secció ${title}`}>
           <button
             type="button"
             onClick={handleToggle}
