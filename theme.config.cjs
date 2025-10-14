@@ -9,14 +9,14 @@ const themeConfig = {
   // Els valors són strings HSL "H S% L%".
   light: {
     // --- BASE DE GRISOS CÀLIDS UNIFICADA (to groc/marronós molt subtil) ---
-    'background':           '40 7% 97%', // Color de fons principal de l'aplicació.
-    'card':                 '40 7% 94%', // Color de fons per a components tipus "targeta" (cards), com els formularis o les cel·les del calendari.
-    'popover':              '40 7% 94%', // Color de fons per a elements emergents (popovers), com els menús desplegables o tooltips.
-    'secondary':            '40 7% 91%', // Color per a fons secundaris, com la barra de menú superior o capçaleres.
-    'muted':                '40 7% 91%', // Color de fons per a elements amb menys èmfasi o desactivats.
-    'border':               '40 7% 70%', // Color per a les vores de contenidors i controls d'input.
-    'input':                '40 7% 88%', // Color de fons per als camps d'entrada (inputs). Lligat a 'border'.
-    'accent':               '40 7% 85%', // Color utilitzat per a l'efecte "hover" (passar el ratolí per sobre) en llistes i botons.
+    'background':           '40 9% 95%', // Color de fons principal de l'aplicació.
+    'card':                 '40 9% 92%', // Color de fons per a components tipus "targeta" (cards), com els formularis o les cel·les del calendari.
+    'popover':              '40 9% 92%', // Color de fons per a elements emergents (popovers), com els menús desplegables o tooltips.
+    'secondary':            '40 9% 89%', // Color per a fons secundaris, com la barra de menú superior o capçaleres.
+    'muted':                '40 9% 89%', // Color de fons per a elements amb menys èmfasi o desactivats.
+    'border':               '40 9% 68%', // Color per a les vores de contenidors i controls d'input.
+    'input':                '40 9% 86%', // Color de fons per als camps d'entrada (inputs). Lligat a 'border'.
+    'accent':               '40 9% 83%', // Color utilitzat per a l'efecte "hover" (passar el ratolí per sobre) en llistes i botons.
     
     // --- TEXTOS ---
     'foreground':           '80 5% 15%', // Color principal del text a tota l'aplicació.
