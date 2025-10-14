@@ -17,6 +17,7 @@ El projecte està actualment en fase de desenvolupament actiu.
   * **Desglossament Enriquit:** El desglossament per esdeveniment ara inclou les dates, proporcionant un context immediat.
 
 * **Millores en Exportacions (PDF i CSV):**
+  * **Noms de Fitxer Intel·ligents:** Els fitxers exportats (PDF/CSV) ara tenen noms descriptius que reflecteixen automàticament els filtres aplicats (p. ex., `Llista_Esdeveniments_Persona_Pep_+Filtres.pdf`), millorant dràsticament l'organització i la claredat dels documents generats.
   * **Ordenació Jeràrquica:** Els informes PDF de resum i CSV ara presenten les dades ordenades jeràrquicament per categoria, origen i nom, facilitant la seva anàlisi.
   * **PDF de Resum Millorat:** S'ha afegit la columna "Origen" i s'han reorganitzat les columnes per a una major claredat.
   * **Correcció d'Exportació Detallada:** Solucionat un error que generava un PDF detallat buit si no se seleccionava cap esdeveniment al filtre. Ara, l'informe sempre reflecteix les dades visibles a la taula.

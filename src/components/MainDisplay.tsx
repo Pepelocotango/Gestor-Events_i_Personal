@@ -19,58 +19,11 @@ import EventFrameCard from './EventFrameCard';
 import { selectFilteredEventFrames } from '../utils/selectors';
 import logger from '../utils/logger';
 
+import CollapsibleSection from './ui/CollapsibleSection';
+
 interface MainDisplayProps {
   setToastMessage: ShowToastFunction;
 }
-
-interface CollapsibleSectionProps {
-  title: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-  id?: string;
-  isOpen?: boolean;
-  onToggle?: () => void;
-}
-
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, children, defaultOpen = false, id, isOpen: controlledIsOpen, onToggle }) => {
-  const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
-
-  const isControlled = typeof controlledIsOpen === 'boolean';
-  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
-
-  const handleToggle = () => {
-    if (isControlled && onToggle) {
-      onToggle();
-    } else {
-      setInternalIsOpen(prev => !prev);
-    }
-  };
-
-  useEffect(() => {
-    if (!isControlled) {
-      setInternalIsOpen(defaultOpen);
-    }
-  }, [defaultOpen, isControlled]);
-
-  const buttonId = id ? `${id}-button` : undefined;
-  const contentId = id ? `${id}-content` : undefined;
-
-  return (
-    <div className="mb-1 bg-card text-card-foreground shadow-md rounded-lg border border-border">
-      <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
-        <button id={buttonId} onClick={handleToggle} className="w-full flex justify-between items-center p-1 text-left text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-ring rounded-t-lg" aria-expanded={isOpen} aria-controls={contentId}>
-          <div className="flex items-center gap-1">
-            {icon && <React.Fragment>{icon}</React.Fragment>}
-            <span>{title}</span>
-          </div>
-          {isOpen ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
-        </button>
-      </Tooltip>
-      {isOpen && <div id={contentId} className="p-1 border-t border-border">{children}</div>}
-    </div>
-  );
-};
 
 const MainDisplay = React.forwardRef<
   { resize: () => void },
@@ -394,11 +347,15 @@ const MainDisplay = React.forwardRef<
   };
 
     return (
-    <div className="space-y-1">
-      <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
-        <div className="calendar-wrapper" style={{ padding: '0.25rem' }}>
-          <FullCalendar
-                ref={calendarRef}
+    <CollapsibleSection
+      title="Calendari i Llista"
+      defaultOpen={true}
+    >
+      <div className="space-y-1">
+        <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
+          <div className="calendar-wrapper" style={{ padding: '0.25rem' }}>
+            <FullCalendar
+                  ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
                 initialView="multiMonth2"
                 views={{
@@ -451,7 +408,13 @@ const MainDisplay = React.forwardRef<
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title={showArchived ? `Esdeveniments Arxivats (${filteredAndSortedEventFrames.length})` : `Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`} icon={<ListIcon />} isOpen={isEventListExpanded} onToggle={() => useEventDataStore.getState().toggleEventListExpanded()} id="event-list-section">
+      <CollapsibleSection
+        title={showArchived ? `Esdeveniments Arxivats (${filteredAndSortedEventFrames.length})` : `Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`}
+        icon={<ListIcon />}
+        isExpanded={isEventListExpanded}
+        onToggle={() => useEventDataStore.getState().toggleEventListExpanded()}
+        id="event-list-section"
+      >
         <div className="mb-1 flex justify-start items-center gap-1">
           <Tooltip text="Crear un nou marc d'esdeveniment">
             <button data-testid="add-event-frame-button" onClick={() => {
@@ -533,7 +496,12 @@ const MainDisplay = React.forwardRef<
             </Tooltip>
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
                 <button
-                  onClick={() => exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
+                  onClick={() => exportEventListToPdf(
+                    filteredAndSortedEventFrames,
+                    peopleGroups,
+                    setToastMessage,
+                    { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
+                  )}
                   className="flex items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" /> PDF
@@ -541,7 +509,12 @@ const MainDisplay = React.forwardRef<
               </Tooltip>
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
                 <button
-                  onClick={() => exportEventListToCsv(filteredAndSortedEventFrames, peopleGroups, setToastMessage)}
+                  onClick={() => exportEventListToCsv(
+                    filteredAndSortedEventFrames,
+                    peopleGroups,
+                    setToastMessage,
+                    { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
+                  )}
                   className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" /> CSV
@@ -592,9 +565,14 @@ const MainDisplay = React.forwardRef<
       </CollapsibleSection>
 
       <CollapsibleSection title="Resums" icon={<ChartBarIcon />} defaultOpen={false} id="summary-section">
-         <SummaryReports setToastMessage={setToastMessage} />
+         <SummaryReports
+            setToastMessage={setToastMessage}
+            filteredEventFrames={filteredAndSortedEventFrames}
+            activeFilters={{ filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }}
+         />
       </CollapsibleSection>
     </div>
+  </CollapsibleSection>
   );
 });
 

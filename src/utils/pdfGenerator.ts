@@ -5,9 +5,17 @@ import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 import { themeHslColors } from './themeDefinition';
 import { hslToRgb } from './colorUtils';
+import { generateFileName, generateTechSheetFileName } from './fileNameUtils';
 
-
-// Funció genèrica per crear una capçalera i títol
+// Define ActiveFilters type locally for this module
+type ActiveFilters = {
+  filterText?: string | null;
+  filterStatus?: string | null;
+  filterDate?: string | null;
+  localFilterUIPerson?: string | null;
+  filterPlace?: string | null;
+  filterUIEventFrame?: string | null;
+};
 const createPdfHeader = (pdf: jsPDF, title: string): number => {
   pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
@@ -56,7 +64,9 @@ export const exportSummariesToPdf = async (
   title: string,
   data: Map<string, SummaryRow[]>,
   dataType: 'event-name' | 'start-date' | 'person',
-  showToast: ShowToastFunction
+  showToast: ShowToastFunction,
+  activeFilters: ActiveFilters,
+  filteredEventFrames: EventFrame[]
 ) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -123,7 +133,8 @@ export const exportSummariesToPdf = async (
       });
     }
 
-    const fileName = `Resum_${title.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
+    const fileName = generateFileName(prefix, activeFilters, filteredEventFrames, 'pdf');
     await savePdfWithDialog(pdf, fileName, showToast);
 
   } catch (error) {
@@ -651,7 +662,7 @@ export const exportTechSheetToPdf = async (
         });
     }
 
-    const fileName = `Fitxa_Bolo_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+    const fileName = generateTechSheetFileName(eventName, formData.date || '');
     await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
@@ -662,7 +673,8 @@ export const exportTechSheetToPdf = async (
 export const exportEventListToPdf = async (
   eventFrames: EventFrame[],
   peopleGroups: PersonGroup[],
-  showToast: ShowToastFunction
+  showToast: ShowToastFunction,
+  activeFilters: ActiveFilters
 ) => {
   try {
     const pdf = new jsPDF('l', 'mm', 'a4'); // 'l' per a format apaïsat (landscape)
@@ -712,7 +724,7 @@ export const exportEventListToPdf = async (
       margin: { top: 30, bottom: 15 }
     });
 
-    const fileName = `Llista_Esdeveniments_${new Date().toISOString().slice(0, 10)}.pdf`;
+    const fileName = generateFileName('Llista_Esdeveniments', activeFilters, eventFrames, 'pdf');
     await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
