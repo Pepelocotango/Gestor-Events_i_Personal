@@ -14,7 +14,7 @@ const themeConfig = {
     'popover':              '40 7% 94%', // Color de fons per a elements emergents (popovers), com els menús desplegables o tooltips.
     'secondary':            '40 7% 91%', // Color per a fons secundaris, com la barra de menú superior o capçaleres.
     'muted':                '40 7% 91%', // Color de fons per a elements amb menys èmfasi o desactivats.
-    'border':               '40 7% 88%', // Color per a les vores de contenidors i controls d'input.
+    'border':               '40 7% 70%', // Color per a les vores de contenidors i controls d'input.
     'input':                '40 7% 88%', // Color de fons per als camps d'entrada (inputs). Lligat a 'border'.
     'accent':               '40 7% 85%', // Color utilitzat per a l'efecte "hover" (passar el ratolí per sobre) en llistes i botons.
     
