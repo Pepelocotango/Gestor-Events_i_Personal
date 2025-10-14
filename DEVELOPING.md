@@ -729,6 +729,24 @@ La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha esta
 -   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
 -   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
 -   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (p. ex., canviant de 'SI' a 'NO'), les dades associades s'esborren de l'estat, assegurant que el PDF reflecteixi sempre la informació visible.
+
+### 5.6. Generació de Noms de Fitxer Intel·ligents
+
+Per millorar dràsticament la utilitat dels fitxers exportats (PDF/CSV), s'ha implementat un sistema de nomenclatura intel·ligent i contextual que fa que els noms dels fitxers siguin auto-descriptius.
+
+#### Lògica Centralitzada (`src/utils/fileNameUtils.ts`)
+
+-   **Mòdul Dedicat:** S'ha creat un nou mòdul a `src/utils/fileNameUtils.ts` que centralitza tota la lògica de generació de noms de fitxer.
+-   **Funció Principal (`generateFileName`):** Aquesta funció construeix el nom del fitxer basant-se en una jerarquia de prioritat dels filtres actius:
+    1.  **Prioritat Alta:** Filtres restrictius com **Esdeveniment específic**, **Persona** o **Data concreta** formen la part principal del nom (p. ex., `Llista_Esdeveniments_Persona_Pep`).
+    2.  **Indicador Secundari:** Si s'apliquen filtres addicionals menys específics (com text lliure), s'afegeix un indicador genèric (`_+Filtres`) per a indicar que el contingut està més acotat.
+    3.  **Comportament sense Filtres:** Si no hi ha cap filtre actiu, el nom del fitxer descriu el **rang de dates** del contingut exportat (p. ex., `De_01-09-25_a_30-11-25`), que s'extreu directament de les dades.
+-   **Formats Especials:** El mòdul també inclou funcions per a formats específics, com `generateTechSheetFileName`, que segueix el patró `Fitxa_Bolo_[NomEsdeveniment]_[Data].pdf`.
+
+#### Integració i Coherència de Dades
+
+-   **Flux de Dades a `SummaryReports`:** El component `SummaryReports.tsx` ha estat refactoritzat per a rebre el conjunt de dades ja filtrat com a `props` des de `MainDisplay.tsx`. Això garanteix que els resums i les seves exportacions es basen exactament en les mateixes dades que l'usuari veu a la llista principal.
+-   **Actualització dels Mòduls d'Exportació:** Les funcions a `pdfGenerator.ts` i `csvUtils.ts` han estat actualitzades per a acceptar l'estat dels filtres i cridar a `generateFileName`, assegurant que tots els fitxers exportats segueixin la nova convenció de nomenclatura.
 ---------
 
 
