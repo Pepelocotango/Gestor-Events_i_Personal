@@ -1,14 +1,10 @@
-import React, { useState, useMemo, lazy, Suspense, useEffect, useRef } from 'react';
+import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
 
 const TechSheetForm = lazy(() => import('./tech_sheets/TechSheetForm'));
-
-interface TechSheetFormHandle {
-  toggleAllSections: () => void;
-}
 
 interface TechSheetsDisplayProps {
   showToast: ShowToastFunction;
@@ -17,7 +13,6 @@ interface TechSheetsDisplayProps {
 const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
-  const techSheetFormRef = useRef<TechSheetFormHandle>(null);
 
   useEffect(() => {
     const loadLastViewed = async () => {
@@ -54,15 +49,10 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
     }
   }, [sortedEventFrames, selectedEventFrameId]);
 
-  const handleToggleAll = () => {
-    techSheetFormRef.current?.toggleAllSections();
-  };
-
   return (
     <CollapsibleSection
       title="Gestor de Fitxes de Bolo"
       defaultOpen={true}
-      onHeaderDoubleClick={handleToggleAll}
     >
       <div className="space-y-4">
         <div className="max-w-md">
@@ -89,7 +79,6 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
         {selectedEventFrame && selectedEventFrame.techSheet ? (
           <Suspense fallback={<div className="text-center p-8">Carregant formulari...</div>}>
             <TechSheetForm
-              ref={techSheetFormRef}
               key={selectedEventFrame.id}
               eventFrame={selectedEventFrame}
               showToast={showToast}

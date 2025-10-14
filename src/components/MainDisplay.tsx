@@ -350,7 +350,6 @@ const MainDisplay = React.forwardRef<
     <CollapsibleSection
       title="Calendari i Llista"
       defaultOpen={true}
-      onHeaderDoubleClick={handleToggleAllCards}
     >
       <div className="space-y-1">
         <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">

@@ -9,7 +9,6 @@ interface CollapsibleSectionProps {
   defaultOpen?: boolean;
   isExpanded?: boolean;
   onToggle?: () => void;
-  onHeaderDoubleClick?: () => void;
   id?: string;
   headerClassName?: string;
   contentClassName?: string;
@@ -22,7 +21,6 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   defaultOpen = false,
   isExpanded,
   onToggle,
-  onHeaderDoubleClick,
   id,
   headerClassName = '',
   contentClassName = ''
@@ -50,40 +48,31 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     }
   }, [defaultOpen, isExpanded]);
 
-  const headerContent = (
-    <div
-      id={buttonId}
-      onClick={handleToggle}
-      onDoubleClick={onHeaderDoubleClick}
-      className={`w-full flex justify-between items-center p-3 text-left font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring rounded-t-lg cursor-pointer ${headerClassName}`}
-      aria-expanded={isOpen}
-      aria-controls={contentId}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleToggle();
-        }
-      }}
-    >
-      <div className="flex items-center gap-2">
-        {icon && <React.Fragment>{icon}</React.Fragment>}
-        <span>{title}</span>
-      </div>
-      {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-    </div>
-  );
-
   return (
     <div className="mb-2 bg-card shadow rounded-lg">
-      {onHeaderDoubleClick ? (
-        <Tooltip text="Fes doble clic per expandir/replegar tot el contingut niat.">
-          {headerContent}
-        </Tooltip>
-      ) : (
-        headerContent
-      )}
+      <Tooltip text={`Replegar/Expandir secció ${title}`}>
+        <div
+          id={buttonId}
+          onClick={handleToggle}
+          className={`w-full flex justify-between items-center p-3 text-left font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring rounded-t-lg cursor-pointer ${headerClassName}`}
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleToggle();
+            }
+          }}
+        >
+          <div className="flex items-center gap-2">
+            {icon && <React.Fragment>{icon}</React.Fragment>}
+            <span>{title}</span>
+          </div>
+          {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+        </div>
+      </Tooltip>
       {isOpen && <div id={contentId} className={`p-4 border-t border-border ${contentClassName}`}>{children}</div>}
     </div>
   );
