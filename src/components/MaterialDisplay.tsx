@@ -183,9 +183,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   );
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">Gestor de Material</h2>
-      
+    <CollapsibleSection title="Gestor de Material" defaultOpen={true}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Columna del formulari */}
         <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
@@ -207,7 +205,13 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
         {/* Columna de la llista */}
         <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium">Inventari</h4>
+            <Tooltip text="Fes doble clic per expandir/replegar totes les categories.">
+              <h4
+                className="text-lg font-medium"
+                onDoubleClick={toggleAll}
+                style={{ cursor: 'pointer' }}
+              >Inventari</h4>
+            </Tooltip>
             <div className="flex items-center gap-2">
                 <Tooltip text="Cercar per nom, categoria o ubicació">
                   <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
@@ -301,7 +305,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
           <MaterialControlCenter showToast={showToast} />
         </div>
       </CollapsibleSection>
-    </div>
+    </CollapsibleSection>
   );
 };
 

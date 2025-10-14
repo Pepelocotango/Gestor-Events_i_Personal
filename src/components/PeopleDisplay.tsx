@@ -8,6 +8,7 @@ import { exportPeopleToPdf } from '../utils/pdfGenerator';
 import { escapeCsvCell } from '../utils/csvUtils';
 import Tooltip from './ui/Tooltip';
 import AutosizeTextarea from './ui/AutosizeTextarea';
+import CollapsibleSection from './ui/CollapsibleSection';
 
 interface PeopleDisplayProps {
   showToast: ShowToastFunction;
@@ -199,9 +200,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
   };
 
   return (
-    <div className="space-y-4">
-        <h2 className="text-xl font-bold text-foreground">Gestor de Contactes</h2>
-        
+    <CollapsibleSection title="Gestor de Contactes" defaultOpen={true}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Columna del formulari */}
             <div className="bg-card text-card-foreground p-4 rounded-lg shadow-md">
@@ -358,7 +357,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                 )}
             </div>
         </div>
-    </div>
+    </CollapsibleSection>
   );
 };
 
