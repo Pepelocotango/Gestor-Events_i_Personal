@@ -187,7 +187,6 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
       <CollapsibleSection
         title="Gestor de Material"
         defaultOpen={true}
-        onHeaderDoubleClick={toggleAll}
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Columna del formulari */}

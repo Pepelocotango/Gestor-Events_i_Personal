@@ -28,14 +28,6 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
   const [editingContact, setEditingContact] = useState<PersonGroup | null>(null);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [search, setSearch] = useState('');
-  const [subSectionsExpanded, setSubSectionsExpanded] = useState({ form: true, list: true });
-
-  const handleToggleAll = () => {
-    setSubSectionsExpanded(prev => {
-      const allExpanded = Object.values(prev).every(Boolean);
-      return { form: !allExpanded, list: !allExpanded };
-    });
-  };
 
   function normalize(str: string) {
     return str
@@ -211,14 +203,12 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
     <CollapsibleSection
       title="Gestor de Contactes"
       defaultOpen={true}
-      onHeaderDoubleClick={handleToggleAll}
     >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Columna del formulari */}
             <CollapsibleSection
               title={editingContact ? 'Editar Contacte' : 'Afegir Nou Contacte'}
-              isExpanded={subSectionsExpanded.form}
-              onToggle={() => setSubSectionsExpanded(prev => ({ ...prev, form: !prev.form }))}
+              defaultOpen={true}
             >
                 <form onSubmit={handleSubmit} className="space-y-3" aria-labelledby="people-group-form-title">
                     {editingContact && (
@@ -298,8 +288,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
             {/* Columna de la llista */}
             <CollapsibleSection
               title="Llista de Contactes"
-              isExpanded={subSectionsExpanded.list}
-              onToggle={() => setSubSectionsExpanded(prev => ({ ...prev, list: !prev.list }))}
+              defaultOpen={true}
             >
                 <div className="flex items-center justify-end mb-2 gap-2">
                     <Tooltip text="Exportar a CSV">
