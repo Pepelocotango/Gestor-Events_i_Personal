@@ -10,7 +10,7 @@
     "dev": "vite --force --clearScreen false",
     "build:theme": "node scripts/build-theme.cjs",
     "wait": "node -e \"setTimeout(() => process.exit(0), 500)\"",
-    "build": "npm run build:theme && ./node_modules/.bin/tsc && vite build",
+    "build": "npm run build:theme && tsc && vite build",
     "preview": "vite preview",
     "electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
     "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
