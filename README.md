@@ -11,47 +11,6 @@ Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió
 
 El projecte està actualment en fase de desenvolupament actiu.
 
-## 🚀 Novetats i Funcionalitats Clau
-
-* **Centre de Control de Material (Redissenyat):**
-  * **Càlcul de Pic de Demanda Concurrent:** La nova lògica calcula la demanda màxima d'un ítem en un sol dia dins d'un període, oferint una previsió d'estoc molt més realista.
-  * **Interfície Reorganitzada:** Les columnes s'han reordenat per prioritzar la informació d'estoc i balanç. L'ordenació per defecte ara ressalta els ítems amb més problemes de disponibilitat.
-  * **Desglossament Enriquit:** El desglossament per esdeveniment ara inclou les dates, proporcionant un context immediat.
-
-* **Millores en Exportacions (PDF i CSV):**
-  * **Noms de Fitxer Intel·ligents:** Els fitxers exportats (PDF/CSV) ara tenen noms descriptius que reflecteixen automàticament els filtres aplicats (p. ex., `Llista_Esdeveniments_Persona_Pep_+Filtres.pdf`), millorant dràsticament l'organització i la claredat dels documents generats.
-  * **Ordenació Jeràrquica:** Els informes PDF de resum i CSV ara presenten les dades ordenades jeràrquicament per categoria, origen i nom, facilitant la seva anàlisi.
-  * **PDF de Resum Millorat:** S'ha afegit la columna "Origen" i s'han reorganitzat les columnes per a una major claredat.
-  * **Correcció d'Exportació Detallada:** Solucionat un error que generava un PDF detallat buit si no se seleccionava cap esdeveniment al filtre. Ara, l'informe sempre reflecteix les dades visibles a la taula.
-
-* **Gestió d'Estat amb Zustand:**
-  * Estat global optimitzat amb selectors independents per evitar bucles infinits de renderitzat.
-  * Historial desfer/refer interactiu amb modal, botons i descripcions clares d'acció.
-
-* **Backups i Tancament Intel·ligent:**
-  * Diàleg de sortida únic amb opcions clares: Desa, Desa com..., Tanca sense desar, Cancel·la.
-  * Backups automàtics incondicionals a cada desat o tancament, amb neteja i rotació intel·ligent.
-
-* **Separació de Configuració Google:**
-  * Configuració local (`google-config.json`) independent de la configuració de cada document.
-  * Sincronització multi-calendari i gestió d'IDs separada per usuari i projecte.
-
-* **Instància Única:**
-  * Bloqueig d'instància per evitar errors d'escriptura i finestres duplicades.
-
-* **Menú Personalitzat en React:**
-  * Substitució del menú natiu d'Electron per un component React, amb accions IPC centralitzades.
-
-* **Sistema d'Arxivatge:** Nova funcionalitat per arxivar esdeveniments antics, mantenint la llista principal neta i organitzada.
-
-* **Altres millores:**
-  * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`npm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).
-  * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.
-  * Refactorització de stores, modals, tech_sheets i utils.
-  * Gestió d'errors robusta amb logs de sessió i ErrorBoundary.
-
----
-
 ## Funcionalitats Principals
 
 Aquesta aplicació està dissenyada per ser una solució integral per a professionals del sector dels esdeveniments, com ara directors de producció, caps tècnics o empreses de lloguer de material. El seu objectiu és centralitzar i simplificar tota la logística que envolta un esdeveniment, cobrint tot el cicle de vida, des de la planificació inicial fins a l'execució tècnica.
@@ -183,7 +142,46 @@ Això significa que ets lliure d'utilitzar, estudiar, modificar i compartir aque
 Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del projecte.
 
 ---
+## 🚀 Novetats i Funcionalitats Clau
 
+* **Centre de Control de Material (Redissenyat):**
+  * **Càlcul de Pic de Demanda Concurrent:** La nova lògica calcula la demanda màxima d'un ítem en un sol dia dins d'un període, oferint una previsió d'estoc molt més realista.
+  * **Interfície Reorganitzada:** Les columnes s'han reordenat per prioritzar la informació d'estoc i balanç. L'ordenació per defecte ara ressalta els ítems amb més problemes de disponibilitat.
+  * **Desglossament Enriquit:** El desglossament per esdeveniment ara inclou les dates, proporcionant un context immediat.
+
+* **Millores en Exportacions (PDF i CSV):**
+  * **Noms de Fitxer Intel·ligents:** Els fitxers exportats (PDF/CSV) ara tenen noms descriptius que reflecteixen automàticament els filtres aplicats (p. ex., `Llista_Esdeveniments_Persona_Pep_+Filtres.pdf`), millorant dràsticament l'organització i la claredat dels documents generats.
+  * **Ordenació Jeràrquica:** Els informes PDF de resum i CSV ara presenten les dades ordenades jeràrquicament per categoria, origen i nom, facilitant la seva anàlisi.
+  * **PDF de Resum Millorat:** S'ha afegit la columna "Origen" i s'han reorganitzat les columnes per a una major claredat.
+  * **Correcció d'Exportació Detallada:** Solucionat un error que generava un PDF detallat buit si no se seleccionava cap esdeveniment al filtre. Ara, l'informe sempre reflecteix les dades visibles a la taula.
+
+* **Gestió d'Estat amb Zustand:**
+  * Estat global optimitzat amb selectors independents per evitar bucles infinits de renderitzat.
+  * Historial desfer/refer interactiu amb modal, botons i descripcions clares d'acció.
+
+* **Backups i Tancament Intel·ligent:**
+  * Diàleg de sortida únic amb opcions clares: Desa, Desa com..., Tanca sense desar, Cancel·la.
+  * Backups automàtics incondicionals a cada desat o tancament, amb neteja i rotació intel·ligent.
+
+* **Separació de Configuració Google:**
+  * Configuració local (`google-config.json`) independent de la configuració de cada document.
+  * Sincronització multi-calendari i gestió d'IDs separada per usuari i projecte.
+
+* **Instància Única:**
+  * Bloqueig d'instància per evitar errors d'escriptura i finestres duplicades.
+
+* **Menú Personalitzat en React:**
+  * Substitució del menú natiu d'Electron per un component React, amb accions IPC centralitzades.
+
+* **Sistema d'Arxivatge:** Nova funcionalitat per arxivar esdeveniments antics, mantenint la llista principal neta i organitzada.
+
+* **Altres millores:**
+  * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`npm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).
+  * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.
+  * Refactorització de stores, modals, tech_sheets i utils.
+  * Gestió d'errors robusta amb logs de sessió i ErrorBoundary.
+
+---
 ## Desenvolupament
 
 ## 🔒 Tancament Intel·ligent i Backups
