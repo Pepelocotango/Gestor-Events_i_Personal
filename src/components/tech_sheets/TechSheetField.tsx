@@ -39,11 +39,9 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   className = '',
   tooltipText,
 }) => {
-  const baseClasses = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm resize-none overflow-hidden";
-  const disabledClasses = "disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed";
-  const readOnlyClasses = "read-only:bg-gray-100 dark:read-only:bg-gray-500";
+  const baseClasses = "mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm resize-none overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed read-only:bg-muted/50";
 
-  const finalClassName = `${baseClasses} ${disabledClasses} ${readOnlyClasses} ${className}`.trim();
+  const finalClassName = `${baseClasses} ${className}`.trim();
 
   const datalistId = suggestions ? `${id}-suggestions` : undefined;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -86,9 +84,9 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
 
   return (
     <div className="w-full">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label htmlFor={id} className="block text-sm font-medium text-muted-foreground">
         {label}
-        {required && <span className="text-red-500">*</span>}
+        {required && <span className="text-destructive">*</span>}
       </label>
       <div className="flex items-center gap-2">
         {tooltipText ? (
@@ -98,7 +96,7 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
         ) : (
           fieldContent
         )}
-        {infoText && <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">{infoText}</span>}
+        {infoText && <span className="text-xs text-muted-foreground mt-1 whitespace-nowrap">{infoText}</span>}
       </div>
       
       {suggestions && (

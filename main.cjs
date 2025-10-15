@@ -439,19 +439,26 @@ async function createWindow() {
     mainWindow.show();
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
-    mainWindow.loadURL(devUrl).catch(err => {
-      console.error('Error loading dev URL:', devUrl, err);
-      dialog.showErrorBox('Error de Desenvolupament', `No s'ha pogut carregar ${devUrl}: ${err.message}`);
-    });
-  } else {
-    const indexPath = path.resolve(__dirname, 'dist', 'index.html');
-    mainWindow.loadFile(indexPath).catch(err => {
-      console.error('Error loading production index file:', indexPath, err);
-      dialog.showErrorBox('Error de Càrrega', `No s'ha pogut carregar l'aplicació: ${err.message}`);
-    });
-  }
+  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+console.log('[Startup] Mode de desenvolupament:', isDev);
+console.log('[Startup] NODE_ENV:', process.env.NODE_ENV);
+console.log('[Startup] app.isPackaged:', app.isPackaged);
+
+if (isDev) {
+  const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+  console.log('[Startup] Carregant des del servidor de desenvolupament:', devUrl);
+  mainWindow.loadURL(devUrl).catch(err => {
+    console.error('Error loading dev URL:', devUrl, err);
+    dialog.showErrorBox('Error de Desenvolupament', `No s'ha pogut carregar ${devUrl}: ${err.message}`);
+  });
+} else {
+  const indexPath = path.resolve(__dirname, 'dist', 'index.html');
+  console.log('[Startup] Carregant des del fitxer de producció:', indexPath);
+  mainWindow.loadFile(indexPath).catch(err => {
+    console.error('Error loading production index file:', indexPath, err);
+    dialog.showErrorBox('Error de Càrrega', `No s'ha pogut carregar l'aplicació: ${error.message}`);
+  });
+}
 
 
   const template = [
@@ -1024,6 +1031,33 @@ ipcMain.handle('get-google-events', async () => {
   } catch (error) {
     console.error('Error general a get-google-events:', error);
     return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('google-get-event-details', async (event, { calendarId, eventId }) => {
+  console.log(`[IPC_IN] Rebut 'google-get-event-details' per a: calendarId=${calendarId}, eventId=${eventId}`);
+  try {
+    if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
+        throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
+    }
+    if (!calendarId || !eventId) {
+      throw new Error('Es requereix calendarId i eventId.');
+    }
+
+    const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
+
+    const res = await calendar.events.get({
+      calendarId: calendarId,
+      eventId: eventId,
+    });
+
+    console.log(`  -> Detalls de l'esdeveniment obtinguts amb èxit per a ${eventId}.`);
+    return { success: true, event: res.data };
+
+  } catch (error) {
+    console.error(`Error obtenint detalls de l'esdeveniment de Google ${eventId}:`, error);
+    const errorMessage = error.response?.data?.error?.message || error.message;
+    return { success: false, message: `No s'han pogut obtenir els detalls de l'esdeveniment: ${errorMessage}` };
   }
 });
 

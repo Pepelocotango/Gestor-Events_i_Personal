@@ -55,20 +55,20 @@ const TechSheetSection: React.FC<TechSheetSectionProps> = ({
       gridClasses += 'grid-cols-1 md:grid-cols-3';
   }
 
-  const containerClasses = `mb-2 border border-gray-200 dark:border-gray-700 rounded-lg ${isPrintHidden ? 'no-print' : ''}`;
+  const containerClasses = `mb-2 border border-border rounded-lg ${isPrintHidden ? 'no-print' : ''}`;
 
   return (
     <div className={containerClasses}>
-      <div className="flex items-center justify-between">
-        <Tooltip text={isOpen ? `Col·lapsar secció ${title}` : `Expandir secció ${title}`}>
+      <div className="flex items-center justify-between bg-muted/50 rounded-t-lg">
+        <Tooltip text={isOpen ? `Replegar secció ${title}` : `Expandir secció ${title}`}>
           <button
             type="button"
             onClick={handleToggle}
-            className="flex-1 flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-700/50 rounded-t-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 flex justify-between items-center p-2 rounded-t-lg focus:outline-none focus:ring-2 focus:ring-ring"
             aria-expanded={isOpen}
           >
-            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">{title}</h3>
-            {isOpen ? <ChevronUpIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <ChevronDownIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />}
+            <h3 className="text-base font-semibold text-foreground">{title}</h3>
+            {isOpen ? <ChevronUpIcon className="w-5 h-5 text-muted-foreground" /> : <ChevronDownIcon className="w-5 h-5 text-muted-foreground" />}
           </button>
         </Tooltip>
         {headerActions && <div className="pr-3">{headerActions}</div>}

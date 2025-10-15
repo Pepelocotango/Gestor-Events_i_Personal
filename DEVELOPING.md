@@ -6,7 +6,29 @@ branca de desenvolupament * REFAC_OK-PER-REVISAR16-9-25 ## ->PROVES DE REFACTORI
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
----
+# NOVETATS V1.1.0 (Setembre 2025)
+
+**Resum de canvis tècnics recents:**
+- Refactorització completa de la gestió d'estat amb Zustand i zundo: stores independents, historial desfer/refer, partialize memoitzada per evitar bucles infinits.
+- Nova lògica de backups automàtics i tancament intel·ligent: backups per document, neteja automàtica, eliminació de backups de sessió.
+- Menú d'aplicació personalitzat en React: substitució del menú natiu d'Electron, comunicació frontend-backend via IPC.
+- Gestió d'IPC centralitzada: canals segurs, separació de responsabilitats, API interna documentada.
+- Solució als bucles infinits de renderitzat: selectors Zustand independents, gestió asíncrona de flags d'actualització.
+- Exemples de selectors correctes amb Zustand:
+```tsx
+// Selector independent (evita bucles)
+const materialItems = useEventDataStore(state => state.materialItems);
+
+// Acció estable (no reactiva)
+const { updateMaterialItem } = useEventDataStore.getState();
+
+// Historial desfer/refer
+import { useStore } from 'zustand';
+const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 0);
+```
+- **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Això optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
+
+Consulta les seccions corresponents per a detalls i exemples complets.
 
 ## 1. Visió General i Pila Tecnològica
 
@@ -27,7 +49,7 @@ L'aplicació està dissenyada per funcionar de manera totalment autònoma (offli
 El projecte es basa en un conjunt de tecnologies modernes de l'ecosistema JavaScript/TypeScript.
 
 -   **Framework d'Aplicació:**
-    -   **Electron `^29.4.6`**: Permet construir aplicacions d'escriptori multiplataforma utilitzant tecnologies web.
+    -   **Electron `38.1.1`**: Permet construir aplicacions d'escriptori multiplataforma utilitzant tecnologies web.
     -   **Electron Builder `^24.13.3`**: Eina per empaquetar i distribuir l'aplicació per a Windows, macOS i Linux.
 
 -   **Frontend:**
@@ -268,6 +290,7 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `load-google-config`, `save-google-config`: Llegeixen i escriuen les preferències de l'usuari per a Google Calendar.
     -   `google-get-calendar-list`: Obté la llista de calendaris del compte de l'usuari.
     -   `get-google-events`: Recupera esdeveniments dels calendaris seleccionats per a visualització.
+    -   `google-get-event-details`: Obté tots els detalls d'un esdeveniment específic de Google Calendar a partir del seu `calendarId` i `eventId`.
     -   `sync-with-google(payload)`: Orquestra la sincronització unidireccional cap a un calendari específic.
     -   `create-new-app-calendar(suffix)`: Crea un nou calendari gestionat per l'app.
     -   `delete-app-calendar(calendarId)`: Elimina un calendari gestionat específic.
@@ -418,8 +441,12 @@ Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les
 -   **`Assignment`**: Defineix una assignació de personal. Enllaça un `personGroupId` amb un `eventFrameId` i gestiona l'estat (`status`) i els estats diaris (`dailyStatuses`).
 -   **`PersonGroup`**: Representa una entrada a l'agenda (una persona, una empresa, etc.).
 -   **`MaterialItem`**: Defineix un article a l'inventari, amb propietats com `stock` i `category`.
--   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo, incloent sub-estructures com `TechSheetProvider` i `TechSheetNeed`.
--   **`AppData`**: Defineix l'estructura de l'objecte que es desa al fitxer `events_data.json`, amb llistes planes per a cada tipus de dada per facilitar la serialització.
+-   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo. S'han afegit els camps següents per a les notes generals de personal i necessitats tècniques:
+    -   `technicalPersonnelNotes?: string`: Notes generals per a la secció de personal tècnic.
+    -   `showTechnicalPersonnelNotesInPdf?: boolean`: Controla la visibilitat d'aquestes notes al PDF.
+    -   `technicalNeedsNotes?: string`: Notes generals per a la secció de necessitats tècniques.
+    -   `showTechnicalNeedsNotesInPdf?: boolean`: Controla la visibilitat d'aquestes notes al PDF.
+-   **`AppData`**: Defineix l'estructura de l'objecte que es desa al fitxer de dades, amb llistes planes per a cada tipus de dada per facilitar la serialització.
 -   **`GoogleConfig` i `ManagedAppCalendar`**: Tipifiquen la nova estructura de dades per a la configuració de Google.
 -   **`ElectronAPI`**: Tipifica l'objecte `window.electronAPI`, proporcionant autocompletat i seguretat de tipus en les comunicacions amb el backend.
 
@@ -541,6 +568,15 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
     -   Cada ítem de llista ha de tenir un `id` únic (generat localment amb `generateLocalId`) per a un renderitzat eficient a React.
 
+-   **Reordenació de Personal Tècnic (Drag-and-Drop):**
+    -   **Tecnologia:** S'utilitza la llibreria `dnd-kit` per implementar la funcionalitat d'arrossegar i deixar anar.
+    -   **Implementació:**
+        -   El component `TechnicalPersonnelSection.tsx` embolcalla la llista de proveïdors amb `DndContext` i `SortableContext`.
+        -   S'ha creat un component reutilitzable `SortableProvider.tsx` que utilitza el hook `useSortable` per fer que cada proveïdor sigui arrossegable.
+        -   S'ha afegit una icona de "drag handle" a cada proveïdor per iniciar l'arrossegament.
+        -   L'esdeveniment `onDragEnd` calcula el nou ordre i crida a l'acció `reorderTechnicalProviders` de l'store `eventDataStore.ts`.
+    -   **Flux de Dades:** `onDragEnd` -> `reorderTechnicalProviders` (Zustand) -> Actualització de l'estat -> Re-renderitzat de la llista.
+
 -  **Actualització Interactiva des d'Assignacions:** Per donar un control més gran a l'usuari, el botó **`⟳ Actualitza des d'assignacions`** ja no modifica directament la fitxa, sinó que obre un diàleg de confirmació.
     1.  **Càlcul de Canvis:** En fer clic, la lògica a `TechnicalPersonnelSection.tsx` compara el personal actual de la fitxa amb les assignacions confirmades i genera tres llistes: personal per afegir, personal per eliminar i personal per mantenir.
     2.  **Modal de Previsualització (`UpdateFromAssignmentsModal`):** Aquestes llistes s'envien a un nou modal que mostra cada canvi proposat (addicions en verd, eliminacions en vermell) amb una casella de selecció.
@@ -550,9 +586,33 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
 
 
 
-### 5.3. Control d'Estoc de Material en Temps Real
+### 5.3. Centre de Control de Material (Càlcul de Pic de Demanda)
 
-Aquesta funcionalitat evita la sobre-assignació de material. La lògica principal resideix a l'acció `getMaterialAvailability` dins de `useEventDataStore`.
+Aquesta secció ha estat completament redissenyada per oferir una anàlisi més potent i realista de les necessitats de material. En lloc de sumar tota la demanda, ara calcula el **pic de demanda concurrent** per a un període determinat, responent a la pregunta: "Quin és el nombre màxim d'unitats d'un ítem que necessitaré en un sol dia?".
+
+#### Lògica de Càlcul (`selectMaterialControlData`)
+
+La lògica principal resideix al selector `selectMaterialControlData` dins de `eventDataStore.ts`.
+
+-   **Condició d'Activació:** El càlcul de pic de demanda només s'activa si l'usuari aplica un **filtre per esdeveniments o un rang de dates**. Si no hi ha cap d'aquests filtres actius, la vista mostra tots els ítems de l'inventari amb una demanda de 0, per a una gestió ràpida de l'estoc.
+
+-   **Flux de Càlcul de Pic de Demanda:**
+    1.  **Identificació d'Esdeveniments Rellevants:** El selector primer filtra la llista global d'esdeveniments per quedar-se només amb aquells que coincideixen amb els filtres actius.
+    2.  **Càlcul per Ítem:** Per a cada `MaterialItem` de l'inventari:
+        a.  Recopila totes les necessitats (`NeedItem`) d'aquest ítem dins dels esdeveniments rellevants.
+        b.  Determina el rang de dates global (mínim i màxim) cobert per aquestes necessitats.
+        c.  **Iteració Diària:** Recorre aquest rang dia per dia. Per a cada dia, suma la quantitat total de l'ítem requerida per tots els esdeveniments que estan actius en aquella data.
+        d.  **Determinació del Pic:** Emmagatzema el valor diari més alt trobat durant la iteració. Aquest valor és el `totalDemand`.
+    3.  **Càlcul del Balanç:** El balanç es calcula com `item.stock - totalDemand`. Un valor negatiu indica un dèficit en el dia de màxima demanda.
+
+#### Lògica d'Ordenació Centralitzada i UI (`MaterialControlCenter.tsx`)
+
+Per millorar la consistència i la claredat, la lògica d'ordenació de dades s'ha centralitzat i simplificat:
+
+-   **Ordenació Jeràrquica Fixa:** Les dades del Centre de Control de Material ara s'ordenen sempre seguint una jerarquia estricta: 1r per **Categoria**, 2n per **Origen** (`location`), i 3r per **Nom**.
+-   **Lògica Centralitzada:** Aquesta ordenació es realitza dins d'un `useMemo` al component `MaterialControlCenter.tsx`, just després de filtrar les dades. Això garanteix que tant la taula visual com totes les funcions d'exportació (PDF Resum, PDF Detallat, CSV) rebin exactament les mateixes dades ja ordenades.
+-   **Eliminació d'Ordenació Interactiva:** Com a conseqüència, s'ha eliminat la possibilitat que l'usuari ordeni la taula fent clic a les capçaleres. S'ha netejat el codi de `MaterialControlTable.tsx` i `MaterialControlCenter.tsx`, eliminant els estats (`sortConfigs`), funcions (`requestSort`) i lògica de la UI que gestionaven l'ordenació dinàmica.
+-   **Desglossament Enriquit:** Es manté el desglossament enriquit, que mostra el detall per esdeveniment amb les seves dates.
 
 
 
@@ -647,11 +707,46 @@ L'aplicació ofereix múltiples opcions per externalitzar i internalitzar dades,
     -   Quan l'usuari clica "Exportar a CSV/PDF", aquesta llista filtrada és la que es passa a les funcions d'exportació, assegurant que l'arxiu generat sigui un reflex fidel del que l'usuari veu a la pantalla.
 -   **Compatibilitat amb Excel (BOM):** Per garantir la correcta visualització d'accents i caràcters especials en programes com Microsoft Excel, els components que generen fitxers CSV (com `PeopleDisplay.tsx`) afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut del fitxer.
 
+##### Millores a les Exportacions del Centre de Control de Material
+S'han implementat millores significatives a les funcions d'exportació del Centre de Control de Material per augmentar-ne la claredat i la fiabilitat.
+
+-   **Exportació a PDF Resum (`exportMaterialControlSummaryPdf`):**
+    -   **Estructura Jeràrquica:** Aquesta funció ja no realitza la seva pròpia agrupació. Rep les dades pre-ordenades (per categoria, origen i nom) des de `MaterialControlCenter.tsx`.
+    -   **Agrupació Visual:** Itera sobre les dades i injecta dinàmicament files de capçalera per a cada **categoria** i sub-capçaleres per a cada **origen**, creant una estructura visual clara i fàcil de seguir.
+    -   **Noves Columnes:** S'ha afegit la columna 'Origen' i s'ha reorganitzat la capçalera a `['Nom', 'Origen', 'Estoc', 'Balanç', 'Demanada']` per a una millor llegibilitat.
+    -   **Inclusió de Notes:** Si un ítem de material té notes, aquestes s'inclouen en una fila addicional just a sota de l'ítem, amb un estil visual diferenciat per a una fàcil identificació.
+
+-   **Exportació a CSV (`exportMaterialControlCsv`):**
+    -   Aquesta funció ara rep les dades ja ordenades jeràrquicament. No s'ha necessitat cap canvi en la seva lògica, però el resultat és un CSV amb les files pre-ordenades de manera consistent amb el PDF de resum.
+
+-   **Correcció a l'Exportació de PDF Detallat (`handleExportDetailedPdf`):**
+    -   S'ha solucionat un error crític que provocava que s'exportés un PDF buit si no hi havia cap esdeveniment seleccionat explícitament al filtre.
+    -   La nova lògica a `MaterialControlCenter.tsx` dedueix quins esdeveniments són rellevants directament de les dades filtrades (`filteredData`). Itera sobre el desglossament de cada fila, recull tots els `eventFrameId` únics en un `Set`, i filtra la llista completa d'esdeveniments amb aquest conjunt.
+    -   Això garanteix que el PDF detallat sempre contingui la informació dels esdeveniments associats a les dades que l'usuari està veient a la taula.
+
 La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha estat optimitzada per crear documents nets i rellevants:
 
 -   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
 -   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
 -   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (p. ex., canviant de 'SI' a 'NO'), les dades associades s'esborren de l'estat, assegurant que el PDF reflecteixi sempre la informació visible.
+
+### 5.6. Generació de Noms de Fitxer Intel·ligents
+
+Per millorar dràsticament la utilitat dels fitxers exportats (PDF/CSV), s'ha implementat un sistema de nomenclatura intel·ligent i contextual que fa que els noms dels fitxers siguin auto-descriptius.
+
+#### Lògica Centralitzada (`src/utils/fileNameUtils.ts`)
+
+-   **Mòdul Dedicat:** S'ha creat un nou mòdul a `src/utils/fileNameUtils.ts` que centralitza tota la lògica de generació de noms de fitxer.
+-   **Funció Principal (`generateFileName`):** Aquesta funció construeix el nom del fitxer basant-se en una jerarquia de prioritat dels filtres actius:
+    1.  **Prioritat Alta:** Filtres restrictius com **Esdeveniment específic**, **Persona** o **Data concreta** formen la part principal del nom (p. ex., `Llista_Esdeveniments_Persona_Pep`).
+    2.  **Indicador Secundari:** Si s'apliquen filtres addicionals menys específics (com text lliure), s'afegeix un indicador genèric (`_+Filtres`) per a indicar que el contingut està més acotat.
+    3.  **Comportament sense Filtres:** Si no hi ha cap filtre actiu, el nom del fitxer descriu el **rang de dates** del contingut exportat (p. ex., `De_01-09-25_a_30-11-25`), que s'extreu directament de les dades.
+-   **Formats Especials:** El mòdul també inclou funcions per a formats específics, com `generateTechSheetFileName`, que segueix el patró `Fitxa_Bolo_[NomEsdeveniment]_[Data].pdf`.
+
+#### Integració i Coherència de Dades
+
+-   **Flux de Dades a `SummaryReports`:** El component `SummaryReports.tsx` ha estat refactoritzat per a rebre el conjunt de dades ja filtrat com a `props` des de `MainDisplay.tsx`. Això garanteix que els resums i les seves exportacions es basen exactament en les mateixes dades que l'usuari veu a la llista principal.
+-   **Actualització dels Mòduls d'Exportació:** Les funcions a `pdfGenerator.ts` i `csvUtils.ts` han estat actualitzades per a acceptar l'estat dels filtres i cridar a `generateFileName`, assegurant que tots els fitxers exportats segueixin la nova convenció de nomenclatura.
 ---------
 
 
@@ -670,7 +765,7 @@ Per garantir la retrocompatibilitat amb versions anteriors de l'estructura de da
 
 -   **Fitxer Clau:** `src/utils/dataMigration.ts`.
 -   **Funció `migrateData`:** Aquesta funció accepta objectes de dades amb l'estructura antiga (p. ex., amb `people` en lloc de `peopleGroups`, ID numèrics, etc.) i els transforma a l'estructura `AppData` moderna.
--   **Activació:** A `Controls.tsx`, dins de `handleLoadAllData`, després de parsejar el JSON, es comprova si el fitxer té l'estructura nova. Si no, es passa a `migrateData` i `validateMigratedData` abans de carregar-lo a l'estat, assegurant una transició suau per a l'usuari.
+-   **Activació:** La lògica de migració i validació ara es troba centralitzada dins de l'acció **`loadData`** al fitxer **`src/stores/eventDataStore.ts`**.
 
 ---
 
@@ -701,6 +796,42 @@ Les classes CSS esmentades no són classes de Tailwind per defecte. Estan defini
 
 Aquesta arquitectura connecta de manera eficient una simple dada booleana amb múltiples representacions visuals a tota la UI, proporcionant un feedback clar i immediat a l'usuari.
 
+### 5.9. Sistema d'Arxivatge d'Esdeveniments
+
+Per mantenir la interfície neta i centrada en els esdeveniments actuals, s'ha implementat un sistema d'arxivatge. Aquesta funcionalitat permet als usuaris ocultar esdeveniments antics (finalitzats fa més d'un mes) de les vistes principals, sense eliminar les dades.
+
+#### Model de Dades
+
+-   **`EventFrame`**: S'ha afegit una nova propietat opcional `isArchived?: boolean` a la interfície. Si és `true`, l'esdeveniment es considera arxivat.
+
+#### Lògica a l'Store (`eventDataStore.ts`)
+
+S'han afegit tres noves accions per gestionar el cicle de vida de l'arxivatge:
+-   **`archiveOldEventFrames()`**: Aquesta acció no modifica l'estat. Escaneja tots els `eventFrames` i retorna una llista d'aquells que van finalitzar fa més d'un mes i que encara no estan arxivats.
+-   **`confirmArchiveEventFrames(eventFrameIds: string[])`**: Aquesta acció rep un array d'IDs, busca els esdeveniments corresponents i estableix la seva propietat `isArchived` a `true`.
+-   **`restoreEventFrame(eventFrameId: string)`**: Rep l'ID d'un esdeveniment, el busca i estableix `isArchived` a `false`.
+
+#### Integració a la Interfície d'Usuari
+
+1.  **Arxivatge massiu (`Controls.tsx`):**
+    -   S'ha afegit un botó "Arxivar Antics".
+    -   En fer-hi clic, es crida a `archiveOldEventFrames()`. Si retorna esdeveniments, s'obre un modal de confirmació (`confirmDelete`).
+    -   Si l'usuari confirma, es crida a `confirmArchiveEventFrames()` amb els IDs dels esdeveniments a arxivar.
+
+2.  **Visualització d'Arxivats (`MainDisplay.tsx`):**
+    -   S'ha afegit un estat local `showArchived` i una casella de selecció ("Mostrar arxivats") per controlar-lo.
+    -   El selector `selectFilteredEventFrames` s'ha modificat per acceptar un paràmetre `showArchived`. Per defecte (`false`), filtra i exclou els esdeveniments arxivats. Si és `true`, mostra *només* els arxivats.
+    -   El títol de la secció canvia a "Esdeveniments Arxivats" quan la casella està marcada.
+
+3.  **Restauració (`EventFrameCard.tsx`):**
+    -   El component rep una nova propietat `isArchived: boolean`.
+    -   Si és `true`, els botons d'acció habituals (editar, eliminar) s'oculten i es mostra un únic botó "Restaurar".
+    -   Aquest botó, en ser clicat, invoca l'acció `restoreEventFrame()` amb l'ID de l'esdeveniment, restaurant-lo a la vista principal.
+
+4.  **Fitxes de Bolo (`TechSheetsDisplay.tsx`):**
+    -   S'ha afegit un estat `includeArchived` i una casella de selecció ("Incloure arxivats").
+    -   La lògica que genera les opcions per al selector d'esdeveniments filtra els esdeveniments arxivats tret que aquesta casella estigui marcada, garantint que les fitxes d'esdeveniments antics segueixin sent accessibles si cal.
+
 ### 5.8. Format de Dates: Intern (YYYY-MM-DD) vs. Visual (DD/MM/YYYY)
 
 L'aplicació utilitza deliberadament dos formats de data diferents per a dues finalitats diferents, una pràctica estàndard per garantir la integritat de les dades i una bona experiència d'usuari.
@@ -726,24 +857,40 @@ La conversió entre aquests dos formats es gestiona de manera centralitzada per 
 
 ---
 
-## 6. Sistema d'Estils (Tailwind CSS)
+## 6. Sistema d'Estils (Tematització Semàntica Centralitzada)
 
-El disseny de la interfície es basa en Tailwind CSS, un framework "utility-first" que permet construir dissenys personalitzats de manera ràpida.
+El disseny de la interfície s'ha refactoritzat per utilitzar un **sistema de tematització semàntic i centralitzat** que combina la potència de Tailwind CSS amb la flexibilitat de les variables CSS natives. Aquesta arquitectura no només permet una gestió de temes (clar i fosc) robusta, sinó que també garanteix la coherència visual entre la interfície d'usuari i els documents exportats (PDF).
 
-### `tailwind.config.cjs`
+### Arquitectura del Disseny
 
-Aquest fitxer és el centre de la configuració d'estils.
+El sistema es basa en una jerarquia de "fonts de veritat" per assegurar la màxima consistència i mantenibilitat.
 
--   **Mode Fosc (`darkMode: 'class'`)**: L'aplicació suporta un tema fosc. Aquesta configuració fa que Tailwind apliqui les variants `dark:` quan la classe `dark` està present a l'element `<html>`. La gestió d'aquesta classe es fa a `App.tsx`.
--   **Plugin Personalitzat**: Per estilitzar components de tercers com FullCalendar, que no utilitzen classes de Tailwind directament, s'ha creat un plugin personalitzat.
-    -   Aquest plugin utilitza la funció `addBase` per injectar estils CSS purs.
-    -   Permet accedir a les variables de disseny de Tailwind (com `theme('colors.gray.900')`) per mantenir la coherència visual entre els estils personalitzats i la resta de la interfície.
-    -   Defineix estils específics per al calendari en mode clar i fosc.
+1.  **Font Única de Veritat per a Colors (`src/utils/themeDefinition.ts`):**
+    -   **Descripció:** Aquest fitxer és el **nucli de tot el sistema de colors**. Exporta un objecte `themeHslColors` que defineix tots els colors base de l'aplicació en format de tuples HSL `[Hue, Saturation, Lightness]`.
+    -   **Responsabilitat:** Qualsevol canvi fonamental en la paleta de colors de l'aplicació (p. ex., canviar el to del color primari) s'ha de fer **únicament** en aquest fitxer.
 
-### `index.css`
+2.  **Definició de Variables CSS (`src/index.css`):**
+    -   **Descripció:** Aquest fitxer consumeix els valors de `themeDefinition.ts` (de manera manual, per ara) per definir una paleta de variables CSS semàntiques (p. ex., `--background`, `--foreground`, `--primary`, `--destructive`).
+    -   **Tematització Clar/Fosc:** El tema per defecte (clar) es defineix a `:root`. El tema fosc simplement sobreescriu aquestes mateixes variables dins del selector `.dark`.
+    -   **Colors Derivats:** Les variables més específiques (com `--daily-row-yes-bg` per al fons de les files) es deriven de les variables semàntiques principals mitjançant `hsla(var(--success) / 0.15)`, assegurant que s'adaptin automàticament al tema.
 
--   Conté les directives base de Tailwind (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`).
--   Defineix algunes classes personalitzades a `@layer components`, com `assignment-card-*`, que agrupen diverses utilitats de Tailwind per a una reutilització més senzilla.
+3.  **Integració amb Tailwind (`tailwind.config.cjs`):**
+    -   **Descripció:** El fitxer de configuració de Tailwind s'ha modificat per consumir les variables CSS definides a `index.css`.
+    -   **Implementació:** En lloc de definir colors directament, la paleta de Tailwind fa referència a les variables mitjançant la funció `hsl()`. Això permet que les classes d'utilitat de Tailwind (com `bg-background`, `text-primary`, `border-border`) apliquin automàticament el color correcte segons el tema actiu.
+
+4.  **Coherència en PDFs (`src/utils/colorUtils.ts` i `pdfGenerator.ts`):**
+    -   **Problema:** La llibreria `jspdf-autotable` requereix colors en format RGB, no HSL.
+    -   **Solució:**
+        -   S'ha creat una funció d'utilitat a **`src/utils/colorUtils.ts`** anomenada `hslToRgb` que converteix els colors del format HSL al format RGB.
+        -   El generador de PDFs (`src/utils/pdfGenerator.ts`) ara importa els colors HSL directament des de la font única de veritat (`themeHslColors`) i els converteix a RGB al moment utilitzant `hslToRgb`.
+    -   **Resultat:** Això garanteix que els colors dels PDFs exportats siguin sempre una representació fidel del tema de l'aplicació, eliminant completament els colors "hardcoded" i la possibilitat d'inconsistències.
+
+### Avantatges d'Aquesta Arquitectura
+
+-   **Centralització Absoluta:** Un únic fitxer (`themeDefinition.ts`) defineix la paleta de colors per a tota l'aplicació.
+-   **Consistència Garantida:** La UI, el calendari, els tooltips i els PDFs comparteixen la mateixa font de colors.
+-   **Mantenibilitat Superior:** Modificar un color a `themeDefinition.ts` i actualitzar-lo a `index.css` és suficient per canviar-lo a tota l'aplicació, inclosos els exports.
+-   **Codi Net:** Redueix la necessitat de classes condicionals `dark:` als components, simplificant el codi JSX.
 
 ### 6.1. Sistema de Tooltips (Basat en Portals)
 
@@ -779,6 +926,8 @@ import Tooltip from './ui/Tooltip';
     -   La classe `.tooltip-portal` defineix l'estil del tooltip (fons, color, mida de font, etc.).
     -   Utilitza `position: absolute` i `transform` per posicionar-se correctament respecte a l'element que l'activa.
     -   Té un `z-index` molt alt per assegurar que sempre es mostri per sobre de tots els altres elements.
+
+-   **Solució de Condició de Cursa (Race Condition) en Desmuntatge:** S'ha solucionat un bug crític que provocava la pèrdua de focus de la finestra. El problema ocorria quan un element amb un tooltip actiu desapareixia de la UI (per exemple, en ser eliminat d'una llista). El temporitzador del tooltip intentava executar-se després que el component s'hagués desmuntat, causant una condició de cursa que afectava el focus. La solució ha consistit a implementar una funció de neteja (`cleanup function`) dins d'un `useEffect` al component `Tooltip`. Aquesta funció s'assegura de cancel·lar qualsevol temporitzador pendent (`clearTimeout`) en el moment en què el component es desmunta, garantint que no quedin operacions asíncrones residuals i prevenint la pèrdua de focus.
 
 ---
 
@@ -849,6 +998,15 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
 -   `npm run build`: Compila el codi TypeScript i el frontend amb Vite a la carpeta `dist`.
 -   `npm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron.
 -   `npm run build:linux`, `npm run build:win`, `npm run build:mac`: Scripts específics per compilar l'aplicació per a cada sistema operatiu.
+`npm start` : Aquesta única comanda s'encarregarà de tot:
+Reconstruirà els teus colors a partir de theme.config.cjs.
+Llançarà Vite sense memòria cau (--force).
+Obrirà Electron.
+
+- ultim script `npm run fresh-start` : Aquesta única comanda s'encarregarà de tot:
+Reconstruirà els teus colors a partir de theme.config.cjs.
+Llançarà Vite sense memòria cau (--force).
+Obrirà Electron.
 
 ### Depuració (Debugging)
 
@@ -863,6 +1021,7 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Consistència de la Interfície d'Usuari**: S'ha fet un esforç per estandarditzar el comportament dels components interactius. Per exemple, totes les seccions col·lapsables ara permeten expandir/col·lapsar fent clic a qualsevol lloc de la capçalera, no només a la icona.
 -   **Programació Defensiva: El codi inclou comprovacions per a window.electronAPI abans de la seva execució, permetent que la base de codi del frontend sigui més resilient i pugui, teòricament, funcionar en un entorn de navegador sense trencar-se.
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
+-   **Ús de Modals Interns per a Confirmacions**: Per evitar bugs de pèrdua de focus i mantenir una experiència d'usuari consistent, s'ha estandarditzat l'ús del sistema de modals interns de l'aplicació (`useModalStore`) en lloc de les funcions natives del navegador com `window.confirm()`. Qualsevol nova acció que requereixi confirmació de l'usuari ha d'implementar un modal a través d'aquest sistema.
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
 
@@ -893,22 +1052,11 @@ La lògica central resideix a l'acció `loadData` de l'store `useEventDataStore`
 
 Aquest sistema garanteix que l'aplicació sigui extremadament resilient a errors de dades, alhora que manté una experiència fluida per a la majoria d'usuaris les dades dels quals són correctes.
 
-### 9. Solució de Bug de Renderitzat del Calendari
-
-S'ha solucionat un bug visual a la llibreria FullCalendar on alguns elements (com els números dels dies) desapareixien quan altres components de la UI (com les notificacions toast) apareixien. Això es deu a un problema de *repaint/reflow* del navegador que FullCalendar no gestiona automàticament.
-
-La solució implementada força el calendari a recalcular les seves dimensions i redibuixar-se cada vegada que l'estat d'una notificació canvia.
-
--   **`src/components/MainDisplay.tsx`**: Utilitza `forwardRef` i `useImperativeHandle` per exposar una funció `handleResize` que internament crida a `calendarApi.updateSize()`.
--   **`src/App.tsx`**: Crea una referència (`useRef`) al component `MainDisplay` i utilitza un `useEffect` que, en detectar un canvi a `toastState`, crida a la funció `handleResize` del component fill.
-
----
-
-## 10. Restauració de Funcionalitats Post-Refactorització (Zustand)
+## 9. Restauració de Funcionalitats Post-Refactorització (Zustand)
 
 Després de la migració a Zustand, algunes interaccions de la UI es van haver de reconnectar. Aquesta secció documenta les solucions.
 
-### 10.1. Gestió d'Expansió de Targetes (Manual i Automàtica)
+### 9.1. Gestió d'Expansió de Targetes (Manual i Automàtica)
 
 S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment les targetes d'esdeveniments.
 
@@ -920,7 +1068,7 @@ S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment le
     -   La funció `handleToggleExpand` crida a l'acció de l'store.
     -   Un `useMemo` decideix quines targetes estan expandides: si hi ha filtres actius, s'expandeixen tots els resultats; si no, s'utilitza el conjunt manual.
 
-### 10.2. Funcionalitat "Mostrar a la Llista" i Ressaltat (Correcció de Condició de Cursa)
+### 9.2. Funcionalitat "Mostrar a la Llista" i Ressaltat (Correcció de Condició de Cursa)
 
 S'ha restaurat l'acció "Mostrar a la Llista" i s'ha corregit una condició de cursa que impedia que funcionés de manera fiable.
 
@@ -931,14 +1079,14 @@ S'ha restaurat l'acció "Mostrar a la Llista" i s'ha corregit una condició de c
     -   **Explicació:** Això garanteix que l'efecte només s'executi després que React hagi renderitzat la llista d'esdeveniments (si estava col·lapsada). D'aquesta manera, quan `document.getElementById` busca la targeta, aquesta ja existeix al DOM.
     -   L'efecte fa `scrollIntoView()`, afegeix una classe CSS per a l'animació, i la neteja després de 3 segons.
 
-### 10.3. Exportació de Vistes Filtrades (PDF/CSV)
+### 9.3. Exportació de Vistes Filtrades (PDF/CSV)
 
 S'ha restaurat la capacitat d'exportar a PDF o CSV només els esdeveniments que coincideixen amb els filtres actius a la vista principal.
 
 -   **Lògica:** La funcionalitat d'exportació, ubicada a `Controls.tsx`, utilitza un selector (`selectFilteredEventFrames`) per accedir a la llista filtrada directament des de l'store `useEventDataStore`.
 -   **Implementació:** Quan l'usuari clica a "Exportar a PDF/CSV", `Controls.tsx` obté l'estat complet de l'store, el passa al selector per obtenir la llista filtrada, i finalment envia aquesta llista a les utilitats `pdfGenerator` o `csvUtils`. Si no hi ha cap filtre actiu, s'exporta la llista completa per defecte.
 
-### 10.4. Avís de Conflictes en Assignacions
+### 9.4. Avís de Conflictes en Assignacions
 
 S'ha reimplementat i estandarditzat el diàleg modal que adverteix l'usuari quan intenta crear o modificar una assignació que se solapa en el temps amb una altra assignació existent per a la mateixa persona.
 
@@ -948,9 +1096,54 @@ S'ha reimplementat i estandarditzat el diàleg modal que adverteix l'usuari quan
     -   **`MainDisplay.tsx`**: S'ha corregit un error pel qual l'avís no apareixia en modificar l'estat d'una assignació directament des de la vista principal. Ara, els seus gestors també comproven el missatge de conflicte.
     -   **Consistència:** Ambdós components utilitzen el mateix modal de confirmació (`ConfirmDuplicateModal`) per oferir una experiència d'usuari unificada.
 
-### 10.5. Barra de Progrés Detallada per a la Sincronització
+### 9.5. Barra de Progrés Detallada per a la Sincronització
 
 S'ha reintroduït la barra de progrés en temps real durant la sincronització amb Google Calendar.
 
 -   **Comunicació Backend -> Frontend:** El procés principal (`main.cjs`) envia actualitzacions de progrés a través del canal IPC `'sync-progress'`.
 -   **Gestió d'Estat amb Zustand:** Un `useEffect` a `App.tsx` escolta aquests esdeveniments i actualitza un estat `syncProgress` dins de `useEventDataStore`, que és consumit pel component `SyncProgressOverlay.tsx`.
+
+## 🎨 Sistema de Temes i Gestió de Colors
+
+Per garantir la consistència visual i facilitar el manteniment, l'aplicació utilitza un sistema de temes centralitzat. Tota la paleta de colors es gestiona des d'una única font de veritat, i els fitxers de l'aplicació es generen automàticament a partir d'aquesta.
+
+### 1. La Font Única de la Veritat: `theme.config.cjs`
+
+- **Fitxer Clau:** `theme.config.cjs` a l'arrel del projecte.
+- **Propòsit:** Aquest fitxer és l'únic lloc on s'han de definir o modificar els colors de l'aplicació. Conté:
+    - `light`: Un objecte amb els colors per al tema clar en format string HSL (`"H S% L%"`).
+    - `dark`: Un objecte amb els colors per al tema fosc.
+    - `pdfExtras`: Colors addicionals que no són part del sistema de temes CSS però que es necessiten per a la generació de PDFs.
+    - `pdfMapping`: Un mapeig que indica quin color de tema (`light` o `dark`) s'ha d'utilitzar per a cada variable de color en el context dels PDFs.
+
+**Mai no s'han de modificar els colors directament a `src/index.css` o `src/utils/themeDefinition.ts`.**
+
+### 2. Generació Automàtica de Fitxers de Tema
+
+- **Script:** `scripts/build-theme.cjs`
+- **Comanda:** `npm run build:theme`
+
+Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
+
+- **`src/index.css`**: Injecta les variables de color CSS per als selectors `:root` (tema clar) i `.dark` (tema fosc). Aquestes variables són les que utilitza Tailwind CSS a tota l'aplicació.
+- **`src/utils/themeDefinition.ts`**: Genera un objecte TypeScript (`themeHslColors`) que conté els colors en format d'array HSL (`[H, S, L]`). Aquest objecte s'utilitza en llocs on les variables CSS no són accessibles, com durant la generació de documents PDF.
+
+### 3. Com Actualitzar un Color (Flux de Treball)
+
+1.  Obre el fitxer `theme.config.cjs`.
+2.  Modifica el valor HSL del color que vulguis canviar al tema `light`, `dark` o a tots dos.
+3.  Desa el fitxer.
+4.  Executa la següent comanda a la terminal:
+    ```bash
+    npm run build:theme
+    ```
+5.  Això és tot. L'script actualitzarà automàticament tots els fitxers necessaris. El comando `npm run build` també executa aquest script, de manera que els canvis sempre estaran sincronitzats en fer una nova compilació.
+
+---
+## Arquitectura General (Resum)
+
+- **Frontend:** React amb Vite.
+- **Escriptori:** Electron.
+- **Gestió d'Estat:** Zustand.
+- **Estils:** Tailwind CSS.
+- **Llenguatge:** TypeScript.

@@ -13,6 +13,7 @@ export const selectFilteredEventFrames = (state: {
   localFilterUIPerson: string;
   filterPlace: string;
   filterUIEventFrame: string | null;
+  showArchived?: boolean;
 }) => {
   const {
     eventFrames,
@@ -22,7 +23,8 @@ export const selectFilteredEventFrames = (state: {
     filterDate,
     localFilterUIPerson,
     filterPlace,
-    filterUIEventFrame
+    filterUIEventFrame,
+    showArchived = false
   } = state;
 
   // Crear mapa de persones per eficiència
@@ -31,6 +33,13 @@ export const selectFilteredEventFrames = (state: {
 
   try {
     let frames = [...eventFrames];
+
+    // 1. Filter by archive status
+    if (showArchived) {
+        frames = frames.filter(ef => ef.isArchived === true);
+    } else {
+        frames = frames.filter(ef => ef.isArchived !== true);
+    }
 
     // Aplicar filtres
     if (filterUIEventFrame) {

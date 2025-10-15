@@ -10,6 +10,7 @@ export interface MaterialFormProps {
   onCancel?: () => void;
   submitButtonText?: string;
   categories?: string[];
+  locations?: string[];
   materialItems?: MaterialItem[]; // Llista completa per a la validació
 }
 
@@ -19,6 +20,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   onCancel,
   submitButtonText = 'Desar',
   categories = [],
+  locations = [],
   materialItems = [],
 }) => {
   // Estats interns per als camps del formulari
@@ -29,7 +31,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
 
   // Efecte per omplir el formulari quan initialData canvia (mode edició)
   useEffect(() => {
@@ -87,7 +89,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="mat-name" className="block text-sm font-medium">Nom</label>
+        <label htmlFor="mat-name" className="block text-sm font-medium text-muted-foreground">Nom</label>
         <Tooltip text="Nom de l'ítem de material">
           <input
             type="text"
@@ -98,11 +100,11 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
             required
           />
         </Tooltip>
-        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+        {errors.name && <p className="text-destructive text-xs mt-1">{errors.name}</p>}
       </div>
 
       <div>
-        <label htmlFor="mat-category" className="block text-sm font-medium">Categoria</label>
+        <label htmlFor="mat-category" className="block text-sm font-medium text-muted-foreground">Categoria</label>
         <Tooltip text="Categoria a la que pertany l'ítem">
           <input
             type="text"
@@ -117,12 +119,12 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
         <datalist id="category-suggestions">
           {categories.map((cat: string) => <option key={cat} value={cat} />)}
         </datalist>
-        {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
+        {errors.category && <p className="text-destructive text-xs mt-1">{errors.category}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="mat-stock" className="block text-sm font-medium">Estoc</label>
+          <label htmlFor="mat-stock" className="block text-sm font-medium text-muted-foreground">Estoc</label>
           <Tooltip text="Quantitat total d'aquest ítem en inventari">
             <input
               type="number"
@@ -134,10 +136,10 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
               required
             />
           </Tooltip>
-          {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock}</p>}
+          {errors.stock && <p className="text-destructive text-xs mt-1">{errors.stock}</p>}
         </div>
         <div>
-          <label htmlFor="mat-location" className="block text-sm font-medium">Ubicació</label>
+          <label htmlFor="mat-location" className="block text-sm font-medium text-muted-foreground">Ubicació</label>
           <Tooltip text="On es guarda aquest ítem (opcional)">
             <input
               type="text"
@@ -145,13 +147,17 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
               value={location}
               onChange={e => setLocation(e.target.value)}
               className={commonInputClass}
+              list="location-suggestions"
             />
           </Tooltip>
+          <datalist id="location-suggestions">
+            {locations.map((loc: string) => <option key={loc} value={loc} />)}
+          </datalist>
         </div>
       </div>
 
       <div>
-        <label htmlFor="mat-notes" className="block text-sm font-medium">Notes</label>
+        <label htmlFor="mat-notes" className="block text-sm font-medium text-muted-foreground">Notes</label>
         <Tooltip text="Anotacions addicionals sobre l'ítem (opcional)">
           <AutosizeTextarea
             id="mat-notes"
@@ -169,7 +175,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="px-3 py-1.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 rounded-md"
+              className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md"
             >
               Cancel·lar
             </button>
@@ -178,7 +184,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
         <Tooltip text={submitButtonText === 'Actualitzar' ? 'Desar els canvis fets a l\'ítem' : 'Afegir el nou ítem a l\'inventari'}>
           <button
             type="submit"
-            className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md"
+            className="px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md"
           >
             {submitButtonText}
           </button>

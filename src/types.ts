@@ -131,6 +131,11 @@ export interface TechSheetData {
   showNeeds?: boolean;
   showOther?: boolean;
   showGeneralNotesInPdf?: boolean;
+  technicalPersonnelNotes?: string;
+  showTechnicalPersonnelNotesInPdf?: boolean;
+  technicalNeedsNotes?: string;
+  showTechnicalNeedsNotesInPdf?: boolean;
+  showScheduleNotesInPdf?: boolean;
 
   // Legacy fields that might exist in old data
   parkingInfo?: string;
@@ -157,6 +162,7 @@ export interface EventFrame {
   lastModified?: string;
   lastSync?: string;
   techSheet?: TechSheetData;
+  isArchived?: boolean;
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;
@@ -168,6 +174,19 @@ export interface MaterialItem {
   stock: number;
   location: string;
   notes?: string;
+}
+
+export interface MaterialControlRow {
+  item: MaterialItem;
+  totalDemand: number;
+  balance: number;
+  breakdown: {
+    eventFrameId: string;
+    eventName: string;
+    quantity: number;
+    startDate: string;
+    endDate: string;
+  }[];
 }
 
 export interface ManagedAppCalendar {
@@ -230,10 +249,13 @@ export type ModalType =
   | 'confirmDuplicate'
   | 'updateFromAssignments'
   | 'addMaterialFromTechSheet'
+  | 'confirmDelete'
   | 'history'
+  | 'googleEventDetails'
   | null;
 
 export interface ModalData {
+    eventData?: any;
     toAdd?: Assignment[];
     toRemove?: (TechSheetRoleItem & { personGroupId: string })[];
     toUpdate?: { assignment: Assignment; currentRole: TechSheetRoleItem; newNotes: string }[];
@@ -255,7 +277,7 @@ export interface ModalData {
     place?: string;
     generalNotes?: string;
     itemType?: string;
-    onConfirm?: (selectedChanges?: any[]) => void;
+    onConfirm?: (...args: any[]) => void;
     onCancel?: () => void;
     onConfirmSpecial?: (inputValue?: string) => void;
     confirmButtonText?: string;
@@ -264,6 +286,8 @@ export interface ModalData {
     titleOverride?: string;
     newData?: PersonGroup[] | MaterialItem[];
     requiresInput?: boolean;
+    suppressSuccessToast?: boolean;
+    intent?: 'destructive' | 'constructive';
     managedCalendars?: ManagedAppCalendar[];
     activeCalendarId?: string | null;
     onConfirmSync?: (targetCalendarId: string) => void;
@@ -445,6 +469,7 @@ export interface ElectronAPI {
   getCalendarList: () => Promise<{ success: boolean, calendars?: GoogleCalendar[], message?: string }>;
   saveGoogleConfig: (config: Partial<GoogleConfig>) => Promise<{ success: boolean, data?: GoogleConfig, message?: string }>;
   getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
+  getEventDetails: (calendarId: string, eventId: string) => Promise<{ success: boolean, event?: any, message?: string }>;
   syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
   onSyncProgress: (callback: (progress: Omit<SyncProgressState, 'visible'>) => void) => () => void;
   googleDisconnect: () => Promise<{ success: boolean; message?: string }>;

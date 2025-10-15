@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronUpIcon, ChevronDownIcon } from '../../constants';
+import Tooltip from './Tooltip';
 
 interface CollapsibleSectionProps {
   title: string;
   icon?: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
-  isExpanded?: boolean; // Prop per controlar l'estat des de fora
-  onToggle?: () => void; // Callback per notificar el canvi d'estat
+  isExpanded?: boolean;
+  onToggle?: () => void;
   id?: string;
   headerClassName?: string;
   contentClassName?: string;
@@ -48,29 +49,31 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   }, [defaultOpen, isExpanded]);
 
   return (
-    <div className="mb-2 bg-white dark:bg-gray-800 shadow rounded-lg">
-      <div
-        id={buttonId}
-        onClick={handleToggle}
-        className={`w-full flex justify-between items-center p-3 text-left font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-t-lg cursor-pointer ${headerClassName}`}
-        aria-expanded={isOpen}
-        aria-controls={contentId}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleToggle();
-          }
-        }}
-      >
-        <div className="flex items-center gap-2">
-          {icon && <React.Fragment>{icon}</React.Fragment>}
-          <span>{title}</span>
+    <div className="mb-2 bg-card shadow rounded-lg border-2 border-border"> 
+      <Tooltip text={`Replegar/Expandir secció ${title}`}>
+        <div
+          id={buttonId}
+          onClick={handleToggle}
+          className={`w-full flex justify-between items-center p-3 text-left font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring rounded-t-lg cursor-pointer ${headerClassName}`}
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleToggle();
+            }
+          }}
+        >
+          <div className="flex items-center gap-2">
+            {icon && <React.Fragment>{icon}</React.Fragment>}
+            <span>{title}</span>
+          </div>
+          {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
         </div>
-        {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-      </div>
-      {isOpen && <div id={contentId} className={`p-4 border-t border-gray-200 dark:border-gray-700 ${contentClassName}`}>{children}</div>}
+      </Tooltip>
+      {isOpen && <div id={contentId} className={`p-4 border-t border-border ${contentClassName}`}>{children}</div>}
     </div>
   );
 };

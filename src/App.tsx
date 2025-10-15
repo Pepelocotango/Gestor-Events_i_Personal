@@ -39,6 +39,7 @@ const CreateCalendarModal = lazy(() => import('./components/modals/CreateCalenda
 const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/UpdateFromAssignmentsModal'));
 const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairModal'));
 const HistoryModal = lazy(() => import('./components/modals/HistoryModal'));
+const GoogleEventDetailsModal = lazy(() => import('./components/modals/GoogleEventDetailsModal'));
 
 
 import { useRef } from 'react';
@@ -779,6 +780,15 @@ const handleSaveDocument = async (): Promise<boolean> => {
                   }}
                   showToast={showToast}
                 />;
+
+      case 'confirmDelete':
+        return <ConfirmDeleteModal
+                  onClose={closeModal}
+                  itemType={data!.itemType!}
+                  itemName={data!.itemName!}
+                  onConfirm={data!.onConfirm!}
+                  showToast={showToast}
+                />;
                 
       case 'confirmDeleteAssignment':
         return <ConfirmDeleteModal
@@ -854,6 +864,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
                 />;
       case 'history':
         return <HistoryModal />;
+      case 'googleEventDetails':
+        return <GoogleEventDetailsModal />;
       default:
         return null;
     }
@@ -865,6 +877,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
         return data.titleOverride;
     }
     switch (type) {
+      case 'googleEventDetails': return "Detalls de l'Esdeveniment de Google";
       case 'addEventFrame': return "Afegir Nou Marc d'Esdeveniment";
       case 'editEventFrame': return "Editar Marc d'Esdeveniment";
       case 'addAssignment': return `Nova Assignació per a: ${data?.eventFrame?.name || ''}`;
@@ -879,6 +892,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
+      case 'confirmDelete':
         return "Confirmar Eliminació";
       case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
       default: return "Diàleg";
@@ -894,6 +908,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
       case 'editAssignment':
       case 'eventFrameDetails':
         return '4xl';
+      case 'googleEventDetails':
+        return '2xl';
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmHardReset':
@@ -921,9 +937,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
   return (
       <HashRouter>
         <ErrorBoundary>
-          <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+          <div className="min-h-screen flex flex-col bg-background text-foreground">
             {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
-            <header className="sticky top-0 z-40 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-sm border-b border-border">
             <CustomMenuBar
               canUndo={canUndo}
               canRedo={canRedo}
@@ -933,12 +949,11 @@ const handleSaveDocument = async (): Promise<boolean> => {
               hasUnsavedChanges={hasUnsavedChanges}
               recentFiles={recentFiles}
             />
-            <div className="container mx-auto p-2">
+            <div className="px-1 py-1">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   theme={theme}
                   toggleTheme={toggleTheme}
-                  showToast={showToast}
                   currentFilePath={currentFilePath}
                 />
               </Suspense>
@@ -948,7 +963,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             </div>
           </header>
 
-          <main className="container mx-auto p-1 flex-grow">
+          <main className="flex-grow px-1 pt-2">
             {!isDocumentOpen ? (
               <WelcomeScreen
                 recentFiles={recentFiles}
@@ -976,7 +991,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
             )}
           </main>
 
-          <footer className="bg-white dark:bg-gray-800 p-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t dark:border-gray-700">
+
+          <footer className="bg-secondary p-4 text-center text-sm text-muted-foreground border-t border-border">
+
             <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.1.0. Llicència MIT (codi lliure). </span>
             <span>Si vols col·laborar, pots fer-ho al <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">projecte de GitHub</a> o amb una aportació a <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>.</span>
           </footer>
@@ -995,24 +1012,15 @@ const handleSaveDocument = async (): Promise<boolean> => {
           <Toaster
             position="top-right"
             toastOptions={{
+              className: 'bg-popover text-popover-foreground border-border border p-4 rounded-lg shadow-lg',
               duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
               success: {
                 duration: 3000,
-                iconTheme: {
-                  primary: '#4ade80',
-                  secondary: '#fff',
-                },
+                className: 'bg-success text-success-foreground border-border border p-4 rounded-lg shadow-lg',
               },
               error: {
                 duration: 5000,
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
-                },
+                className: 'bg-destructive text-destructive-foreground border-border border p-4 rounded-lg shadow-lg',
               },
             }}
           />
@@ -1022,21 +1030,21 @@ const handleSaveDocument = async (): Promise<boolean> => {
           </Suspense>
 
           {isLoadingOverlayVisible && !syncProgress.visible && (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
-              <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex flex-col justify-center items-center z-[9998]" aria-live="assertive" role="alert">
+              <svg className="animate-spin h-10 w-10 text-foreground mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-white text-lg">{loadingOverlayMessage || "Processant..."}</p>
+              <p className="text-foreground text-lg">{loadingOverlayMessage || "Processant..."}</p>
             </div>
           )}
           {isUpdatingMaterial && (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col justify-center items-center z-[9999]" aria-live="assertive" role="alert">
-              <svg className="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex flex-col justify-center items-center z-[9999]" aria-live="assertive" role="alert">
+              <svg className="animate-spin h-10 w-10 text-foreground mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-white text-lg">Actualitzant material a tota l'aplicació...</p>
+              <p className="text-foreground text-lg">Actualitzant material a tota l'aplicació...</p>
             </div>
           )}
           </div>

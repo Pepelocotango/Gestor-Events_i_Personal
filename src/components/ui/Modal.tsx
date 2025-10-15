@@ -31,25 +31,25 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
 
   return (
     <div
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50"
+      className="fixed inset-0 bg-background/80 overflow-y-auto h-full w-full flex justify-center items-center z-50"
       // L'onClick de l'overlay s'ha eliminat per evitar tancaments accidentals.
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
       <div
-        className={`relative p-5 border shadow-lg rounded-md bg-white dark:bg-gray-800 w-full ${sizeClasses[size]} mx-4`}
+        className={`relative p-5 border border-border shadow-lg rounded-md bg-popover text-popover-foreground w-full ${sizeClasses[size]} mx-4`}
         // Aquest onClick evita que un clic dins del contingut es propagui a elements externs,
         // tot i que amb l'eliminació de l'onClick de l'overlay, el seu efecte principal aquí és menys crític.
         onClick={e => {
           e.stopPropagation();
         }}
       >
-        <div className="flex justify-between items-center pb-3 border-b dark:border-gray-700">
-          <h3 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
+        <div className="flex justify-between items-center pb-3 border-b border-border">
+          <h3 id="modal-title" className="text-xl font-semibold">{title}</h3>
           <button
             onClick={onClose} // Aquest onClose és per al botó X
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Tancar modal"
           >
             <XMarkIcon className="w-6 h-6" />

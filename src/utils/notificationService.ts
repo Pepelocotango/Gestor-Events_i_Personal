@@ -12,22 +12,14 @@ export const notificationService = {
   info: (message: string) => {
     toast(message, {
       icon: 'ℹ️',
-      style: {
-        borderRadius: '10px',
-        background: '#3B82F6',
-        color: '#fff',
-      },
+      className: 'bg-info text-info-foreground border-border border p-4 rounded-lg shadow-lg',
     });
   },
   
   warning: (message: string) => {
     toast(message, {
       icon: '⚠️',
-      style: {
-        borderRadius: '10px',
-        background: '#F59E0B',
-        color: '#fff',
-      },
+      className: 'bg-warning text-warning-foreground border-border border p-4 rounded-lg shadow-lg',
     });
   },
   

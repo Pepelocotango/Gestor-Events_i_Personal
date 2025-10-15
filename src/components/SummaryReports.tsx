@@ -1,19 +1,30 @@
 import React, { useMemo } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
-import { AssignmentStatus, SummaryRow, ShowToastFunction } from '../types';
+import { AssignmentStatus, SummaryRow, ShowToastFunction, EventFrame } from '../types';
 import { CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import { formatDateDMY, formatDateRangeDMY } from '../utils/dateFormat';
 import { getStatusSummaryText } from '../utils/statusUtils';
 import { exportSummariesToPdf } from '../utils/pdfGenerator';
 import { escapeCsvCell } from '../utils/csvUtils';
+import { generateFileName } from '../utils/fileNameUtils';
 import Tooltip from './ui/Tooltip';
+
+type ActiveFilters = {
+  filterText?: string | null;
+  filterStatus?: string | null;
+  filterDate?: string | null;
+  localFilterUIPerson?: string | null;
+  filterPlace?: string | null;
+  filterUIEventFrame?: string | null;
+};
 
 interface SummaryReportsProps {
   setToastMessage: ShowToastFunction;
+  filteredEventFrames: EventFrame[];
+  activeFilters: ActiveFilters;
 }
 
-const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
-  const eventFrames = useEventDataStore(state => state.eventFrames);
+const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filteredEventFrames, activeFilters }) => {
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -26,10 +37,10 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
     console.log(`[TOAST] ${type?.toUpperCase()}: ${message}`);
   };
 
-  // --- LÒGICA DE DADES (sense canvis) ---
+  // --- LÒGICA DE DADES (ara basada en dades filtrades) ---
   const allAssignmentsSummary = useMemo((): SummaryRow[] => {
     const summary: SummaryRow[] = [];
-    eventFrames.forEach(ef => {
+    filteredEventFrames.forEach(ef => {
       ef.assignments.forEach(a => {
         const personName = peopleMap.get(a.personGroupId);
         summary.push({
@@ -52,7 +63,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
       });
     });
     return summary;
-  }, [eventFrames, peopleMap]);
+  }, [filteredEventFrames, peopleMap]);
 
   // Estat d'ordre per als resums
   const [summarySortOrder, setSummarySortOrder] = React.useState<'asc' | 'desc'>('desc');
@@ -169,29 +180,32 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
   };
 
   const handleExportPdf = async (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person') => {
-    await exportSummariesToPdf(title, data, dataType, showToast);
+    // Nota: La generació del nom del fitxer es farà dins de exportSummariesToPdf
+    await exportSummariesToPdf(title, data, dataType, showToast, activeFilters, filteredEventFrames);
   };
 
   const handleExportCsv = async (dataType: 'event-name' | 'start-date' | 'person', groupKey: string | null = null) => {
     const csvContent = generateDetailedCsv(dataType, groupKey);
-    const dateSuffix = new Date().toISOString().slice(0, 10);
-    const keySuffix = groupKey ? `_${groupKey.replace(/[^a-zA-Z0-9]/g, '-')}` : '';
-    const filename = `resum_${dataType}${keySuffix}_${dateSuffix}.csv`;
+
+    // Utilitza la nova lògica per generar el nom del fitxer
+    const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
+    const filename = generateFileName(prefix, activeFilters, filteredEventFrames, 'csv');
+
     await downloadCsv(csvContent, filename);
   };
   
   // --- RENDERITZAT (amb la correcció) ---
 
   const renderSummaryCard = (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person', showSortButton: boolean) => (
-    <div className="bg-white dark:bg-gray-700/80 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-      <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200 dark:border-gray-600">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{title}</h3>
+    <div className="bg-card p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-border">
+        <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
         <div className="flex items-center gap-3">
           {showSortButton && (
             <Tooltip text={`Ordena per data ${summarySortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
               <button
                 onClick={() => setSummarySortOrder(summarySortOrder === 'asc' ? 'desc' : 'asc')}
-                className="flex items-center gap-1 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 text-xs font-medium"
+                className="flex items-center gap-1 px-2 py-1 rounded border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
               >
                 {summarySortOrder === 'asc' ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />} Ordena
               </button>
@@ -201,7 +215,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
             <Tooltip text="Exportar a CSV">
               <button
                   onClick={() => handleExportCsv(dataType)}
-                  className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700/60"
+                  className="p-1.5 rounded-full bg-success/10 text-success hover:bg-success/20"
                   aria-label={`Exportar tot el resum ${title} a CSV`}
               > <CsvIcon className="w-4 h-4" />
               </button>
@@ -209,7 +223,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
             <Tooltip text="Exportar a PDF">
               <button
                   onClick={() => handleExportPdf(title, data, dataType)}
-                  className="p-1.5 rounded-full bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700/60"
+                  className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
                   aria-label={`Exportar tot el resum ${title} a PDF`}
               > <PdfIcon className="w-4 h-4" />
               </button>
@@ -217,19 +231,19 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
           </div>
         </div>
       </div>
-      {Array.from(data.entries()).length === 0 ? <p className="text-sm text-gray-500 dark:text-gray-400">No hi ha dades per aquest resum.</p> : null}
+      {Array.from(data.entries()).length === 0 ? <p className="text-sm text-muted-foreground">No hi ha dades per aquest resum.</p> : null}
       <div className="space-y-4 max-h-96 overflow-y-auto pr-2"> 
         {Array.from(data.entries()).map(([groupKey, assignments]) => (
           <div key={groupKey}>
-            <div className="flex justify-between items-center mb-1 sticky top-0 bg-white dark:bg-gray-700/80 py-1 z-10">
-              <h4 className="font-medium text-md text-indigo-700 dark:text-indigo-400 flex-grow">{groupKey}</h4>
+            <div className="flex justify-between items-center mb-1 sticky top-0 bg-card/80 backdrop-blur-sm py-1 z-10">
+              <h4 className="font-medium text-md text-primary flex-grow">{groupKey}</h4>
               <div className="flex items-center">
                 <Tooltip text={`Exportar només "${groupKey}" a CSV`}>
                   <button
                     onClick={() => handleExportCsv(dataType, groupKey)}
-                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 flex-shrink-0 ml-2"
+                    className="p-1 rounded-full hover:bg-accent flex-shrink-0 ml-2"
                   >
-                    <CsvIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <CsvIcon className="w-4 h-4 text-success" />
                   </button>
                 </Tooltip>
                 <Tooltip text={`Exportar només "${groupKey}" a PDF`}>
@@ -238,9 +252,9 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
                       const singleGroupMap = new Map([[groupKey, assignments]]);
                       handleExportPdf(groupKey, singleGroupMap, dataType);
                     }}
-                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 flex-shrink-0 ml-1"
+                    className="p-1 rounded-full hover:bg-accent flex-shrink-0 ml-1"
                   >
-                    <PdfIcon className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    <PdfIcon className="w-4 h-4 text-primary" />
                   </button>
                 </Tooltip>
               </div>
@@ -248,10 +262,10 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
             <ul className="list-disc list-inside pl-4 space-y-1 text-sm">
               {assignments.map(a => {
                 const statusColors: { [key in AssignmentStatus]: string } = {
-                  [AssignmentStatus.Yes]: 'text-green-600 dark:text-green-400',
-                  [AssignmentStatus.Pending]: 'text-yellow-600 dark:text-yellow-400',
-                  [AssignmentStatus.No]: 'text-red-600 dark:text-red-400',
-                  [AssignmentStatus.Mixed]: 'text-fuchsia-600 dark:text-fuchsia-400',
+                  [AssignmentStatus.Yes]: 'text-success',
+                  [AssignmentStatus.Pending]: 'text-warning',
+                  [AssignmentStatus.No]: 'text-destructive',
+                  [AssignmentStatus.Mixed]: 'text-primary',
                 };
                 
                 const getLabel = () => {
@@ -261,7 +275,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage }) => {
                 };
 
                 return (
-                <li key={a.id} className="text-gray-700 dark:text-gray-300">
+                <li key={a.id} className="text-muted-foreground">
                   {getLabel()}
                   {' - '}
                   

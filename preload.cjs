@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCalendarList: () => ipcRenderer.invoke('google-get-calendar-list'),
   saveGoogleConfig: (config) => ipcRenderer.invoke('save-google-config', config),
   getGoogleEvents: () => ipcRenderer.invoke('get-google-events'),
+  getEventDetails: (calendarId, eventId) => ipcRenderer.invoke('google-get-event-details', { calendarId, eventId }),
   syncWithGoogle: (payload) => ipcRenderer.invoke('sync-with-google', payload),
   onSyncProgress: (callback) => {
     const subscription = (event, ...args) => callback(...args);
