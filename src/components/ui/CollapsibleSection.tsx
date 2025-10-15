@@ -49,7 +49,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   }, [defaultOpen, isExpanded]);
 
   return (
-    <div className="mb-2 bg-card shadow rounded-lg">
+    <div className="mb-2 bg-card shadow rounded-lg border-2 border-border"> 
       <Tooltip text={`Replegar/Expandir secció ${title}`}>
         <div
           id={buttonId}

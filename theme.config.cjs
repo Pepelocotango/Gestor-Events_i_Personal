@@ -7,42 +7,46 @@
 const themeConfig = {
   // Colors amb variants per al tema clar i fosc.
   // Els valors són strings HSL "H S% L%".
-  light: {
-    // --- BASE DE GRISOS CÀLIDS UNIFICADA (to groc/marronós molt subtil) ---
-    'background':           '40 9% 95%', // Color de fons principal de l'aplicació.
-    'card':                 '40 9% 92%', // Color de fons per a components tipus "targeta" (cards), com els formularis o les cel·les del calendari.
-    'popover':              '40 9% 92%', // Color de fons per a elements emergents (popovers), com els menús desplegables o tooltips.
-    'secondary':            '40 9% 89%', // Color per a fons secundaris, com la barra de menú superior o capçaleres.
-    'muted':                '40 9% 89%', // Color de fons per a elements amb menys èmfasi o desactivats.
-    'border':               '40 9% 68%', // Color per a les vores de contenidors i controls d'input.
-    'input':                '40 9% 86%', // Color de fons per als camps d'entrada (inputs). Lligat a 'border'.
-    'accent':               '40 9% 83%', // Color utilitzat per a l'efecte "hover" (passar el ratolí per sobre) en llistes i botons.
-    
-    // --- TEXTOS ---
-    'foreground':           '80 5% 15%', // Color principal del text a tota l'aplicació.
-    'card-foreground':      '40 5% 15%', // Color del text dins de les "targetes". Garanteix el contrast amb 'card'.
-    'popover-foreground':   '40 5% 15%', // Color del text dins dels "popovers". Garanteix el contrast amb 'popover'.
-    'secondary-foreground': '40 5% 15%', // Color del text sobre fons 'secondary'.
-    'muted-foreground':     '40 4% 45%', // Color per a textos secundaris, menys importants o atenuats.
-    'accent-foreground':    '40 5% 15%', // Color del text sobre fons 'accent'.
-    'primary-foreground':   '40 5% 98%', // Color del text que va sobre els botons amb fons 'primary', generalment blanc o molt clar.
+ 
 
-    // --- COLORS D'ACCIÓ (ajustats per a la coherència) ---
-    'primary':              '221.2 76% 53.3%', // Color principal per a botons i elements interactius destacats.
-    'destructive':          '0 78% 60.2%',    // Color per a accions perilloses o de supressió (ex: botó "Eliminar").
-    'success':              '142.1 65% 45.3%',// Color per a indicar èxit o estats positius (ex: notificació "Guardat correctament").
-    'warning':              '47.9 88% 55%',   // Color per a advertències o estats que requereixen atenció.
-    'info':                 '221.2 76% 53.3%',// Color per a missatges informatius. Per defecte, igual que 'primary'.
-    'mixed-status':         '283 75% 58%',    // Color personalitzat per a estats mixts, com en els informes de material.
-    'ring':                 '221.2 83.2% 53.3%',// Color de l'anell de focus que apareix en seleccionar un element interactiu (focus ring).
+  // NOVA PALETA DE COLORS PER AL TEMA CLAR (Càlid, Fons Foscos, Text Saturat - "Taller d'Artesà")
+light: {
+  // --- BASE DE FONS CÀLIDA (SENSE CANVIS, MANTENIM "TALLER D'ARTESÀ") ---
+  'background':           '35 25% 92%',
+  'card':                 '35 15% 85%',
+  'popover':              '35 15% 85%',
+  'secondary':            '35 15% 82%',
+  'muted':                '35 15% 82%',
+  'border':               '35 10% 70%',
+  'input':                '35 15% 88%',
+  'accent':               '35 15% 83%',
+  
+  // --- TEXTOS AMB BASE GRIS/NEGRE (MÉS FOSCOS I NEUTRES) ---
+  'foreground':           '240 10% 10%', // Text principal quasi negre, amb un to fred subtil.
+  'card-foreground':      '240 10% 10%',
+  'popover-foreground':   '240 10% 10%',
+  'secondary-foreground': '240 8% 25%',
+  'muted-foreground':     '240 5% 40%',  // Text secundari més fosc per a millor contrast.
+  'accent-foreground':    '240 10% 10%',
+  'primary-foreground':   '210 40% 98%',
 
-    // --- TEXTOS SOBRE COLORS D'ACCIÓ ---
-    'destructive-foreground': '0 0% 98%',   // Color del text sobre fons 'destructive'.
-    'success-foreground':   '0 0% 98%',     // Color del text sobre fons 'success'.
-    'warning-foreground':   '0 0% 98%',   // CANVIAT: Ara és un color clar (blanc) per a la consistència.
-    'info-foreground':      '0 0% 98%',     // Color del text sobre fons 'info'.
-    'mixed-status-foreground':'0 0% 98%', // Color del text sobre fons 'mixed-status'.
-  },
+  // --- COLORS D'ACCIÓ HARMONITZATS (SENSE CANVIS) ---
+  'primary':              '220 35% 25%',
+  'destructive':          '0 75% 55%',
+  'success':              '140 65% 40%',
+  'warning':              '45 85% 55%',
+  'info':                 '210 70% 45%',
+  'mixed-status':         '280 40% 55%',
+  'ring':                 '220 35% 45%',
+
+  // --- TEXTOS SOBRE COLORS D'ACCIÓ (AJUSTATS A LA NOVA BASE NEUTRA) ---
+  'destructive-foreground': '30 100% 98%',
+  'success-foreground':   '140 100% 98%',
+  'warning-foreground':   '240 10% 10%', // Text principal fosc per a màxima llegibilitat sobre groc.
+  'info-foreground':      '210 100% 98%',
+  'mixed-status-foreground':'280 100% 98%',
+},
+  
   dark: {
     // --- BASE DE GRISOS CÀLIDS FOSCOS UNIFICADA ---
     'background':           '40 6% 10%', // Color de fons principal de l'aplicació en mode fosc.

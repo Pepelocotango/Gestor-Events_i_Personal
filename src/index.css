@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 40 9% 95%;
-    --card: 40 9% 92%;
-    --popover: 40 9% 92%;
-    --secondary: 40 9% 89%;
-    --muted: 40 9% 89%;
-    --border: 40 9% 68%;
-    --input: 40 9% 86%;
-    --accent: 40 9% 83%;
-    --foreground: 80 5% 15%;
-    --card-foreground: 40 5% 15%;
-    --popover-foreground: 40 5% 15%;
-    --secondary-foreground: 40 5% 15%;
-    --muted-foreground: 40 4% 45%;
-    --accent-foreground: 40 5% 15%;
-    --primary-foreground: 40 5% 98%;
-    --primary: 221.2 76% 53.3%;
-    --destructive: 0 78% 60.2%;
-    --success: 142.1 65% 45.3%;
-    --warning: 47.9 88% 55%;
-    --info: 221.2 76% 53.3%;
-    --mixed-status: 283 75% 58%;
-    --ring: 221.2 83.2% 53.3%;
-    --destructive-foreground: 0 0% 98%;
-    --success-foreground: 0 0% 98%;
-    --warning-foreground: 0 0% 98%;
-    --info-foreground: 0 0% 98%;
-    --mixed-status-foreground: 0 0% 98%;
+    --background: 35 25% 92%;
+    --card: 35 15% 85%;
+    --popover: 35 15% 85%;
+    --secondary: 35 15% 82%;
+    --muted: 35 15% 82%;
+    --border: 35 10% 70%;
+    --input: 35 15% 88%;
+    --accent: 35 15% 83%;
+    --foreground: 240 10% 10%;
+    --card-foreground: 240 10% 10%;
+    --popover-foreground: 240 10% 10%;
+    --secondary-foreground: 240 8% 25%;
+    --muted-foreground: 240 5% 40%;
+    --accent-foreground: 240 10% 10%;
+    --primary-foreground: 210 40% 98%;
+    --primary: 220 35% 25%;
+    --destructive: 0 75% 55%;
+    --success: 140 65% 40%;
+    --warning: 45 85% 55%;
+    --info: 210 70% 45%;
+    --mixed-status: 280 40% 55%;
+    --ring: 220 35% 45%;
+    --destructive-foreground: 30 100% 98%;
+    --success-foreground: 140 100% 98%;
+    --warning-foreground: 240 10% 10%;
+    --info-foreground: 210 100% 98%;
+    --mixed-status-foreground: 280 100% 98%;
     --radius: 0.5rem;
 
     /* Colors per a fons de files (estil DEV, sòlid i viu) */
