@@ -37,7 +37,7 @@ L'aplicació ofereix les següents eines:
     *   El sistema comprova la disponibilitat de l'estoc en temps real en assignar material a una fitxa de bolo.
 
 *   **Connectivitat i Gestió de Dades:**
-    *   **Integració amb Google Calendar:** Sincronitza els esdeveniments de l'aplicació a un calendari dedicat de Google i visualitza altres calendaris teus en mode de només lectura.
+    *   **Integració amb Google Calendar:** Sincronitza els esdeveniments a un calendari de Google. La descripció de l'esdeveniment s'enriqueix automàticament amb un resum de les assignacions de personal, notes i horaris de la fitxa tècnica. Visualitza també altres calendaris teus en mode de només lectura.
         > **AVÍS IMPORTANT:** La integració amb Google Calendar està actualment en **mode de proves**. Perquè la sincronització funcioni, Google requereix que el desenvolupador afegeixi manualment el teu correu electrònic a la llista de "testers" autoritzats del projecte. Si vols utilitzar aquesta funcionalitat, si us plau, contacta amb l'autor.
     *   **Importació/Exportació:** Desa i carrega totes les dades de l'aplicació en format JSON. La càrrega de dades de personal i material permet fusionar o reemplaçar la informació existent.
     *   **Exportació a PDF/CSV:** Exporta resums, llistes de personal, inventaris i fitxes de bolo a formats professionals com PDF i CSV.
