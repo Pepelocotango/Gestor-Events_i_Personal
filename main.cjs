@@ -753,9 +753,9 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
           if (assignment.status !== 'Mixt' || !assignment.dailyStatuses) {
             statusLine = `${prefix} ${person.name} (Estat: ${assignment.status})`;
           } else {
-            const groupedByStatus = assignment.dailyStatuses.reduce((acc, daily) => {
-              if (!acc[daily.status]) acc[daily.status] = [];
-              acc[daily.status].push(formatDateDDMM(daily.date));
+            const groupedByStatus = Object.entries(assignment.dailyStatuses).reduce((acc, [date, status]) => {
+              if (!acc[status]) acc[status] = [];
+              acc[status].push(formatDateDDMM(date));
               return acc;
             }, {});
 
