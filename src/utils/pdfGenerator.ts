@@ -426,7 +426,7 @@ export const exportTechSheetToPdf = async (
     const subHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
 
     const checkPageBreak = (currentY: number): number => {
-        if (currentY > 280) {
+        if (currentY > 290) {
             pdf.addPage();
             return 10;
         }
