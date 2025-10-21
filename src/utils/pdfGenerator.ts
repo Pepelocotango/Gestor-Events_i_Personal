@@ -442,7 +442,14 @@ export const exportTechSheetToPdf = async (
         [{ content: 'HORA:', styles: labelStyles }, sane(formData.showTime)],
         [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
     ];
-    autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, pageBreak: 'avoid' });
+    autoTable(pdf, { 
+      body: headerBody, 
+      theme: 'grid', 
+      startY: y, 
+      pageBreak: 'avoid',
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
     y = (pdf as any).lastAutoTable.finalY + 5;
 
     // ... (rest of the function remains the same, just applying the color conversion)
@@ -453,7 +460,11 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'NOTES GENERALS DE LA FITXA', styles: headStyles }]],
             body: [[sane(formData.generalNotes)]],
-            startY: y, theme: 'grid', pageBreak: 'avoid'
+            startY: y, 
+            theme: 'grid', 
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 }
         });
         y = (pdf as any).lastAutoTable.finalY + 5;
     }
@@ -466,12 +477,18 @@ export const exportTechSheetToPdf = async (
       autoTable(pdf, {
           head: [[{ content: 'PÀRQUING', styles: headStyles }]],
           body: [[parkingDetails]],
-          startY: y, theme: 'grid', pageBreak: 'avoid'
+          startY: y, 
+          theme: 'grid', 
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 }
       });
       y = (pdf as any).lastAutoTable.finalY + 8;
     }
 
     const personnelBody: any[][] = [];
+    let hasAnyNotes = false;
+
     if (formData.technicalProviders && formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
         const person = getPersonGroupById(provider.personGroupId);
@@ -480,6 +497,7 @@ export const exportTechSheetToPdf = async (
             if (sane(role.role) !== '-' || sane(role.quantity) !== '-') {
                 const row = [sane(role.quantity), sane(role.role), sane(person?.name)];
                 if (role.printNotes && sane(role.notes) !== '-') {
+                    hasAnyNotes = true;
                     row.push(sane(role.notes));
                 }
                 personnelBody.push(row);
@@ -491,19 +509,27 @@ export const exportTechSheetToPdf = async (
     if (personnelBody.length > 0) {
         y = checkPageBreak(y);
         const tableBody: any[][] = [];
+        const totalColumns = hasAnyNotes ? 4 : 3;
+
         if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
-            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: 4, styles: { fontStyle: 'italic' as 'italic', halign: 'left' as 'left' } }]);
+            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: totalColumns, styles: { fontStyle: 'italic' as 'italic', halign: 'left' as 'left' } }]);
         }
         personnelBody.forEach(row => tableBody.push(row));
 
         autoTable(pdf, {
-            head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
+            head: [[{ content: 'PERSONAL TÈCNIC', colSpan: totalColumns, styles: headStyles }]],
             body: tableBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             headStyles: { ...headStyles, halign: 'center' as 'center' },
-            columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
+            columnStyles: hasAnyNotes 
+                ? { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
+                : { 0: { cellWidth: 15, halign: 'right' as 'right' } }
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     if (formData.preAssembly?.status === 'yes') {
@@ -511,9 +537,13 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'PREMUNTATGE', styles: headStyles }]],
             body: [[sane(formData.preAssembly.details)]],
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 }
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     if (formData.schedule?.status === 'yes' && formData.schedule.data && formData.schedule.data.length > 0) {
@@ -549,14 +579,19 @@ export const exportTechSheetToPdf = async (
             startY: y,
             theme: 'grid',
             pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 40 } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     const logisticsBody: any[][] = [];
     if (formData.dressingRooms?.status === 'yes') {
-        logisticsBody.push(['Camerinos', sane(formData.dressingRooms.details) !== '-' ? sane(formData.dressingRooms.details) : 'SI', '']);
+        logisticsBody.push([
+            { content: 'Camerinos', styles: { cellWidth: 40 } },
+            { content: sane(formData.dressingRooms.details) !== '-' ? sane(formData.dressingRooms.details) : 'SI', colSpan: 2 }
+        ]);
     }
     if (formData.actorsInfo?.status === 'yes') {
         logisticsBody.push(['Actors', sane(formData.actorsInfo.data?.number), sane(formData.actorsInfo.data?.names)]);
@@ -570,10 +605,14 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
             body: logisticsBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     const needsBody: any[][] = [];
@@ -614,10 +653,14 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
             body: needsBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     const otherDetailsBody = [];
@@ -628,7 +671,11 @@ export const exportTechSheetToPdf = async (
       autoTable(pdf, {
           head: [[{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }]],
           body: otherDetailsBody,
-          startY: y, theme: 'grid', pageBreak: 'avoid',
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 }
       });
       y = (pdf as any).lastAutoTable.finalY + 8;
     }
@@ -647,10 +694,14 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'CONTACTES COMPANYIA', colSpan: 3, styles: headStyles }]],
             body: contactBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 50 }, 2: { cellWidth: 'auto' } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     if (sane(formData.observations) !== '-') {
@@ -658,7 +709,11 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'OBSERVACIONS', styles: headStyles }]],
             body: [[sane(formData.observations)]],
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 }
         });
     }
 
