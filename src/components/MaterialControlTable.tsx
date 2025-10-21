@@ -32,13 +32,13 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
       <table className="min-w-full divide-y divide-border">
         <thead className="bg-muted">
           <tr>
-            <th scope="col" className="w-10 px-2 py-3"></th>
+            <th scope="col" className="w-8 px-1 py-3"></th>
             <th scope="col" className="px-2 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <Tooltip text="Quantitat inicial de material disponible.">
                 <span>Estoc</span>
               </Tooltip>
             </th>
-            <th scope="col" className="px-2 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th scope="col" className="px-2 pl-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <Tooltip text="Nom del material">
                 <span>Nom</span>
               </Tooltip>
@@ -58,7 +58,7 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
                 <span>Demanada</span>
               </Tooltip>
             </th>
-            <th scope="col" className="px-2 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th scope="col" className="px-2 pr-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <Tooltip text="Balanç final del material (Estoc - Demanada).">
                 <span>Balanç</span>
               </Tooltip>
@@ -74,7 +74,7 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
             return (
               <React.Fragment key={row.item.id}>
                 <tr className={`hover:bg-accent ${balanceIsNegative ? 'bg-destructive/10' : ''}`}>
-                  <td className="px-2 py-3 text-center">
+                  <td className="px-1 py-3 text-center">
                     {hasBreakdown && (
                       <button onClick={() => toggleRow(row.item.id)} className="p-1 rounded-full hover:bg-secondary">
                         {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronRightIcon className="w-5 h-5" />}
@@ -82,14 +82,14 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
                     )}
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">{row.item.stock}</td>
-                  <td className="px-2 py-3 whitespace-nowrap">
+                  <td className="px-2 pl-4 py-3 whitespace-nowrap">
                     <div className="font-medium text-foreground">{row.item.name}</div>
                     {row.item.notes && <div className="text-xs text-muted-foreground">{row.item.notes}</div>}
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-sm text-muted-foreground">{row.item.category}</td>
                   <td className="px-2 py-3 whitespace-nowrap text-sm text-muted-foreground">{row.item.location}</td>
                   <td className="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">{row.totalDemand}</td>
-                  <td className={`px-2 py-3 whitespace-nowrap text-right text-sm font-bold ${balanceIsNegative ? 'text-destructive' : 'text-success'}`}>
+                  <td className={`px-2 pr-4 py-3 whitespace-nowrap text-right text-sm font-bold ${balanceIsNegative ? 'text-destructive' : 'text-success'}`}>
                     {row.balance}
                   </td>
                 </tr>
