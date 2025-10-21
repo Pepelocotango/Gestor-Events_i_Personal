@@ -74,11 +74,11 @@ export const exportSummariesToPdf = async (
     let pageCount = 1;
 
     const addPageIfNeeded = (currentY: number) => {
-      if (currentY > 270) {
+      if (currentY > 280) {
         addFooter(pdf, pageCount);
         pdf.addPage();
         pageCount++;
-        return 20; // Y inicial per a la nova pàgina
+        return 10; // Y inicial per a la nova pàgina
       }
       return currentY;
     };
@@ -418,7 +418,7 @@ export const exportTechSheetToPdf = async (
 ) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    let y = 15;
+    let y = 10;
 
     const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
     const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
@@ -426,9 +426,9 @@ export const exportTechSheetToPdf = async (
     const subHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
 
     const checkPageBreak = (currentY: number): number => {
-        if (currentY > 260) {
+        if (currentY > 280) {
             pdf.addPage();
-            return 15;
+            return 10;
         }
         return currentY;
     };
@@ -443,7 +443,7 @@ export const exportTechSheetToPdf = async (
         [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
     ];
     autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, pageBreak: 'avoid' });
-    y = (pdf as any).lastAutoTable.finalY + 8;
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
     // ... (rest of the function remains the same, just applying the color conversion)
 
@@ -455,7 +455,7 @@ export const exportTechSheetToPdf = async (
             body: [[sane(formData.generalNotes)]],
             startY: y, theme: 'grid', pageBreak: 'avoid'
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     if (formData.parking?.status === 'yes' || formData.parking?.status === 'no') {
