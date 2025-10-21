@@ -357,7 +357,7 @@ const MainDisplay = React.forwardRef<
             <FullCalendar
                   ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
-                initialView="multiMonth2"
+                initialView="dayGridMonth"
                 views={{
                   dayGridMonth: { buttonText: 'Mes' },
                   timeGridWeek: { buttonText: 'Setmana' },
