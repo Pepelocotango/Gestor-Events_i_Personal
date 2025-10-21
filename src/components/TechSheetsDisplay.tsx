@@ -1,5 +1,5 @@
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
-import { useEventDataStore, selectMaterialControlData } from '../stores/eventDataStore';
+import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
@@ -43,24 +43,6 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
     return eventFrames.find((ef: EventFrame) => ef.id === selectedEventFrameId);
   }, [eventFrames, selectedEventFrameId]);
 
-  const availabilityMap = useMemo(() => {
-    if (!selectedEventFrame) return new Map();
-
-    const fullState = useEventDataStore.getState();
-    const controlData = selectMaterialControlData(fullState, {
-      dateRange: { start: selectedEventFrame.startDate, end: selectedEventFrame.endDate }
-    });
-
-    return controlData.reduce((acc, row) => {
-      acc.set(row.item.id, {
-        available: row.item.stock - row.totalDemand,
-        total: row.item.stock,
-      });
-      return acc;
-    }, new Map<string, { available: number, total: number }>());
-
-  }, [selectedEventFrame]);
-
   useEffect(() => {
     if (selectedEventFrameId && !sortedEventFrames.some(ef => ef.id === selectedEventFrameId)) {
       setSelectedEventFrameId('');
@@ -100,7 +82,6 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
               key={selectedEventFrame.id}
               eventFrame={selectedEventFrame}
               showToast={showToast}
-              availabilityMap={availabilityMap}
             />
           </Suspense>
         ) : (

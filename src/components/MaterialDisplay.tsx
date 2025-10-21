@@ -185,17 +185,15 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   return (
     <div className="space-y-4">
       <CollapsibleSection
-        title={editingItem ? 'Editar Material' : 'Afegir Nou Material'}
+        title="Gestor de Material"
         defaultOpen={true}
       >
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna del formulari (25%) */}
           <div className="lg:col-span-1 bg-card text-card-foreground p-6 rounded-lg shadow-md">
             <h4 className="text-lg font-medium mb-4">
               {editingItem ? 'Editar Material' : 'Afegir Nou Material'}
             </h4>
-
             <MaterialForm
               key={editingItem ? editingItem.id : 'new'}
               initialData={editingItem || {}}
@@ -206,8 +204,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
               locations={locations}
               materialItems={materialItems}
             />
-        </div>
-      </CollapsibleSection>
+          </div>
 
           {/* Columna de la llista (75%) */}
           <div className="lg:col-span-2 bg-card text-card-foreground p-6 rounded-lg shadow-md">
@@ -295,6 +292,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
               ) : <p className="text-center text-muted-foreground">No s'ha trobat material o l'inventari està buit.</p>}
             </div>
           </div>
+        </div>
       </CollapsibleSection>
 
       <CollapsibleSection

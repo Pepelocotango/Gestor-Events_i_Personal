@@ -15,10 +15,9 @@ import ConditionalFormControl from './ConditionalFormControl';
 interface TechSheetFormProps {
   eventFrame: EventFrame;
   showToast: ShowToastFunction;
-  availabilityMap: Map<string, { available: number; total: number }>;
 }
 
-const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, availabilityMap }) => {
+const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) => {
   const { peopleGroups, materialItems, addOrUpdateTechSheet, getMaterialAvailability } = useEventDataStore.getState();
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -719,7 +718,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         materialItems={materialItems}
         eventFrame={eventFrame}
         getMaterialAvailability={getMaterialAvailability}
-        availabilityMap={availabilityMap}
       />
     </ConditionalFormControl>
   );

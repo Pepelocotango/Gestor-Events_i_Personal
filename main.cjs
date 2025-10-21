@@ -1,5 +1,4 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron');
-const { formatDateDDMM } = require('./shared/dateUtils.cjs');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -736,41 +735,6 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
       let descriptionParts = [];
       if (localFrame.generalNotes) {
         descriptionParts.push(localFrame.generalNotes);
-      }
-
-      // --- NOVA SECCIÓ: ASSIGNACIONS ---
-      const frameAssignments = localData.assignments?.filter(a => a.eventFrameId === localFrame.id) || [];
-      if (frameAssignments.length > 0) {
-        const assignmentLines = [];
-        for (const assignment of frameAssignments) {
-          const person = getPersonGroupById(assignment.personGroupId);
-          if (!person) continue;
-
-          let statusLine = '';
-          const statusPrefixes = { "Sí": "[✓]", "No": "[X]", "Pendent": "[?]", "Mixt": "[~]" };
-          const prefix = statusPrefixes[assignment.status] || `[${assignment.status}]`;
-
-          if (assignment.status !== 'Mixt' || !assignment.dailyStatuses) {
-            statusLine = `${prefix} ${person.name} (Estat: ${assignment.status})`;
-          } else {
-            const groupedByStatus = Object.entries(assignment.dailyStatuses).reduce((acc, [date, status]) => {
-              if (!acc[status]) acc[status] = [];
-              acc[status].push(formatDateDDMM(date));
-              return acc;
-            }, {});
-
-            const details = Object.entries(groupedByStatus)
-              .map(([status, dates]) => `${status} [${dates.join(', ')}]`)
-              .join(' ');
-
-            statusLine = `${prefix} ${person.name} (Estat: Mixt - ${details})`;
-          }
-          assignmentLines.push(statusLine);
-        }
-
-        if (assignmentLines.length > 0) {
-          descriptionParts.push(`--- ASSIGNACIONS ---\n${assignmentLines.join('\n')}`);
-        }
       }
 
       // Secció de Personal
