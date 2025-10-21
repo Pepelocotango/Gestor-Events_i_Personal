@@ -204,9 +204,9 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
       title="Gestor de Contactes"
       defaultOpen={true}
     >
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            {/* Columna del formulari (25%) */}
-            <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-20 gap-4">
+            {/* Columna del formulari (35%) */}
+            <div className="lg:col-span-7">
               <CollapsibleSection
                 title={editingContact ? 'Editar Contacte' : 'Afegir Nou Contacte'}
                 defaultOpen={true}
@@ -287,8 +287,8 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
               </CollapsibleSection>
             </div>
 
-            {/* Columna de la llista (75%) */}
-            <div className="lg:col-span-3">
+            {/* Columna de la llista (65%) */}
+            <div className="lg:col-span-13">
               <CollapsibleSection
                 title="Llista de Contactes"
                 defaultOpen={true}
