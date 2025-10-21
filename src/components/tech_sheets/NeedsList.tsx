@@ -18,6 +18,7 @@ interface NeedsListProps {
   onMoveItemDown: (listName: string, index: number) => void;
   onSortByOrigin: (listName: string) => void;
   originSuggestions: string[];
+  availabilityMap: Map<string, { available: number; total: number }>;
 }
 
 const NeedsList: React.FC<NeedsListProps> = ({
@@ -34,9 +35,18 @@ const NeedsList: React.FC<NeedsListProps> = ({
   onMoveItemDown,
   onSortByOrigin,
   originSuggestions,
+  availabilityMap,
 }) => {
   const { openModal } = useModalStore();
-  const materialSuggestions = React.useMemo(() => materialItems.map(item => item.name), [materialItems]);
+  const materialSuggestions = React.useMemo(() => {
+    return materialItems.map(item => {
+      const availability = availabilityMap.get(item.id);
+      if (availability) {
+        return `${item.name} [Disp: ${availability.available} / Estoc: ${availability.total}]`;
+      }
+      return `${item.name} [Estoc: ${item.stock}]`;
+    });
+  }, [materialItems, availabilityMap]);
 
   return (
     <>
@@ -90,7 +100,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 <TechSheetField
                   id={`${listName}-desc-${index}`}
                   label=""
-                  value={need.description}
+                  value={selectedMaterial ? selectedMaterial.name : need.description}
                   onChange={e => onListChange(listName, index, 'description', e.target.value)}
                   suggestions={materialSuggestions}
                   infoText={availabilityInfo}
