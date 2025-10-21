@@ -22,8 +22,6 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── templates/                # Plantilles utilitzades pels scripts.
 │   │   └── index.css.template    # Plantilla per a l'arxiu index.css, amb marcadors per a les variables de tema.
 │   └── build-theme.cjs           # Script per generar automàticament els fitxers de tema (CSS i TS) a partir de la configuració.
-├── shared/                       # **NOU** Codi compartit entre el backend (main.cjs) i altres scripts.
-│   └── dateUtils.cjs             # Utilitats de format de dates.
 ├── src/
 │   ├── assets/                   # Actius (imatges, etc.) que són importats directament pel codi font.
 │   │   └── splash/               # Imatges per a l'animació de la pantalla de benvinguda.

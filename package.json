@@ -78,7 +78,6 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
-      "shared/**/*",
       "google-credentials.json",
       "service-account.json"
     ],
