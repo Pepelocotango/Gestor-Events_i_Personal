@@ -533,7 +533,7 @@ El model híbrid es manté:
 5.  **[Backend]** El gestor `sync-with-google` a `main.cjs` executa la lògica:
     a. **Verificació i Autoreparació:** Comprova si `targetCalendarId` encara existeix a Google. Si rep un error `404 Not Found`, l'elimina de la llista `managedAppCalendars` a la configuració local i retorna un error `CALENDAR_NOT_FOUND` al frontend.
     b. **Confirmació de l'Usuari:** Mostra un diàleg advertint que l'operació sobreescriurà les dades.
-    c. **Buidatge i Càrrega:** Si es confirma, buida completament el calendari de destinació i hi puja tots els esdeveniments locals, enriquint la descripció amb dades de la fitxa de bolo.
+    c. **Buidatge i Càrrega:** Si es confirma, buida completament el calendari de destinació i hi puja tots els esdeveniments locals, enriquint la descripció amb dades de la fitxa de bolo i un nou resum detallat de les assignacions de personal.
     d. **Actualització del Calendari Actiu:** Després d'una sincronització amb èxit, actualitza `activeAppCalendarId` al fitxer de configuració amb el `targetCalendarId` que s'acaba d'utilitzar.
 6.  **[Frontend]** El frontend gestiona la resposta:
     -   En cas d'èxit, actualitza les dades i mostra una notificació.
@@ -576,6 +576,12 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
         -   S'ha afegit una icona de "drag handle" a cada proveïdor per iniciar l'arrossegament.
         -   L'esdeveniment `onDragEnd` calcula el nou ordre i crida a l'acció `reorderTechnicalProviders` de l'store `eventDataStore.ts`.
     -   **Flux de Dades:** `onDragEnd` -> `reorderTechnicalProviders` (Zustand) -> Actualització de l'estat -> Re-renderitzat de la llista.
+
+-   **Pre-càlcul de Disponibilitat de Material per a Suggeriments:** Per millorar l'experiència d'usuari, la disponibilitat del material es mostra directament a la llista de suggeriments.
+    -   **Càlcul Eficient:** Quan un usuari selecciona un esdeveniment a `TechSheetsDisplay.tsx`, un `useMemo` recalcula la disponibilitat per a **tot l'inventari** utilitzant el selector `selectMaterialControlData`.
+    -   **Pas de Dades (Prop Drilling):** El resultat, un `Map` amb la disponibilitat, es passa com a `prop` a través de `TechSheetForm.tsx` fins a `NeedsList.tsx`.
+    -   **UI Intel·ligent:** A `NeedsList.tsx`, el `useMemo` que genera els `materialSuggestions` utilitza aquest mapa per formatar el text del suggeriment (p. ex., "[Nom de l'ítem] [Disp: X / Estoc: Y]").
+    -   **Neteja d'Entrada:** El controlador `onChange` del camp de text s'ha modificat per eliminar la informació de disponibilitat abans de desar el valor a l'estat, garantint que només es desi el nom net de l'ítem.
 
 -  **Actualització Interactiva des d'Assignacions:** Per donar un control més gran a l'usuari, el botó **`⟳ Actualitza des d'assignacions`** ja no modifica directament la fitxa, sinó que obre un diàleg de confirmació.
     1.  **Càlcul de Canvis:** En fer clic, la lògica a `TechnicalPersonnelSection.tsx` compara el personal actual de la fitxa amb les assignacions confirmades i genera tres llistes: personal per afegir, personal per eliminar i personal per mantenir.
