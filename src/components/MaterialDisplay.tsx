@@ -185,15 +185,10 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   return (
     <div className="space-y-4">
       <CollapsibleSection
-        title="Gestor de Material"
+        title={editingItem ? 'Editar Material' : 'Afegir Nou Material'}
         defaultOpen={true}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Columna del formulari */}
-          <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
-            <h4 className="text-lg font-medium mb-4">
-              {editingItem ? 'Editar Material' : 'Afegir Nou Material'}
-            </h4>
+        <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
             <MaterialForm
               key={editingItem ? editingItem.id : 'new'}
               initialData={editingItem || {}}
@@ -204,27 +199,28 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
               locations={locations}
               materialItems={materialItems}
             />
-          </div>
+        </div>
+      </CollapsibleSection>
 
-          {/* Columna de la llista */}
-          <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-medium">Inventari</h4>
-              <div className="flex items-center gap-2">
-                  <Tooltip text="Cercar per nom, categoria o ubicació">
-                    <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
-                  </Tooltip>
-                  <Tooltip text="Exportar llista a PDF">
-                    <button
-                      onClick={handleExportPdf}
-                      className="p-2 rounded-md bg-primary/10 text-primary hover:bg-primary/20"
-                      aria-label="Exportar llista de material a PDF"
-                      disabled={filteredItems.length === 0}
-                    >
-                      <PdfIcon className="w-5 h-5" />
-                    </button>
-                  </Tooltip>
-              </div>
+      <CollapsibleSection
+        title="Inventari"
+        defaultOpen={true}
+      >
+        <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
+            <div className="flex items-center justify-end mb-4 gap-2">
+                <Tooltip text="Cercar per nom, categoria o ubicació">
+                  <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
+                </Tooltip>
+                <Tooltip text="Exportar llista a PDF">
+                  <button
+                    onClick={handleExportPdf}
+                    className="p-2 rounded-md bg-primary/10 text-primary hover:bg-primary/20"
+                    aria-label="Exportar llista de material a PDF"
+                    disabled={filteredItems.length === 0}
+                  >
+                    <PdfIcon className="w-5 h-5" />
+                  </button>
+                </Tooltip>
             </div>
 
             <div className="flex items-center gap-4 mb-3 border-b border-border pb-3">
@@ -292,7 +288,6 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
               ) : <p className="text-center text-muted-foreground">No s'ha trobat material o l'inventari està buit.</p>}
             </div>
           </div>
-        </div>
       </CollapsibleSection>
 
       <CollapsibleSection
