@@ -419,6 +419,10 @@ export const exportTechSheetToPdf = async (
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = 10;
+    let pageCount = 1;
+
+    // Define vertical spacing between sections
+    const VERTICAL_SPACING = 3;
 
     const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
     const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
@@ -427,7 +431,9 @@ export const exportTechSheetToPdf = async (
 
     const checkPageBreak = (currentY: number): number => {
         if (currentY > 290) {
+            addFooter(pdf, pageCount);
             pdf.addPage();
+            pageCount++;
             return 10;
         }
         return currentY;
@@ -450,7 +456,7 @@ export const exportTechSheetToPdf = async (
       margin: { left: 10, right: 10 },
       styles: { cellPadding: 2 }
     });
-    y = (pdf as any).lastAutoTable.finalY + 5;
+    y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
 
     // ... (rest of the function remains the same, just applying the color conversion)
 
@@ -483,7 +489,7 @@ export const exportTechSheetToPdf = async (
           margin: { left: 10, right: 10 },
           styles: { cellPadding: 2 }
       });
-      y = (pdf as any).lastAutoTable.finalY + 8;
+      y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
     }
 
     const personnelBody: any[][] = [];
@@ -529,7 +535,7 @@ export const exportTechSheetToPdf = async (
                 ? { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
                 : { 0: { cellWidth: 15, halign: 'right' as 'right' } }
         });
-        y = (pdf as any).lastAutoTable.finalY + 5;
+        y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
     }
 
     if (formData.preAssembly?.status === 'yes') {
@@ -612,7 +618,7 @@ export const exportTechSheetToPdf = async (
             styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 5;
+        y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
     }
 
     const needsBody: any[][] = [];
@@ -677,7 +683,7 @@ export const exportTechSheetToPdf = async (
           margin: { left: 10, right: 10 },
           styles: { cellPadding: 2 }
       });
-      y = (pdf as any).lastAutoTable.finalY + 8;
+      y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
     }
 
     const contactBody: any[][] = [];
@@ -716,6 +722,9 @@ export const exportTechSheetToPdf = async (
             styles: { cellPadding: 2 }
         });
     }
+
+    // Add page number to the last page
+    addFooter(pdf, pageCount);
 
     const fileName = generateTechSheetFileName(eventName, formData.date || '');
     await savePdfWithDialog(pdf, fileName, showToast);
