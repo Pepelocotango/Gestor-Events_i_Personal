@@ -29,9 +29,10 @@ const createPdfHeader = (pdf: jsPDF, title: string): number => {
 
 // Funció genèrica per gestionar el peu de pàgina
 const addFooter = (pdf: jsPDF, pageCount: number) => {
+  const pageW = pdf.internal.pageSize.getWidth();
   pdf.setFontSize(8);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(`${pageCount}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+  pdf.text(`${pageCount}`, pageW - 14, pdf.internal.pageSize.getHeight() - 15, { align: 'right' });
 };
 
 // Funció d'ajuda per al desat dual
