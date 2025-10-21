@@ -188,9 +188,9 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
         title="Gestor de Material"
         defaultOpen={true}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-20 gap-8">
-          {/* Columna del formulari (35%) */}
-          <div className="lg:col-span-7 bg-card text-card-foreground p-6 rounded-lg shadow-md">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Columna del formulari (25%) */}
+          <div className="lg:col-span-1 bg-card text-card-foreground p-6 rounded-lg shadow-md">
             <h4 className="text-lg font-medium mb-4">
               {editingItem ? 'Editar Material' : 'Afegir Nou Material'}
             </h4>
@@ -206,8 +206,8 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
             />
           </div>
 
-          {/* Columna de la llista (65%) */}
-          <div className="lg:col-span-13 bg-card text-card-foreground p-6 rounded-lg shadow-md">
+          {/* Columna de la llista (75%) */}
+          <div className="lg:col-span-3 bg-card text-card-foreground p-6 rounded-lg shadow-md">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-medium">Inventari</h4>
               <div className="flex items-center gap-2">
