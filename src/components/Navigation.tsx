@@ -19,7 +19,7 @@ const Navigation: React.FC = () => {
 
   return (
     <nav className="flex justify-center">
-      <div className="flex space-x-2 bg-muted p-1 rounded-lg">
+      <div className="flex space-x-2 bg-muted p-1 rounded-lg border border-border">
         <Tooltip text="Anar a la vista principal del calendari i llista d'esdeveniments">
           <NavLink to="/" className={getLinkClassName}>
             <CalendarIcon className="h-5 w-5" />

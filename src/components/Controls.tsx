@@ -94,7 +94,7 @@ const Controls: React.FC<ControlsProps> = ({
           </div>
 
           <div className="flex items-center justify-end w-full">
-            <div className="flex items-center gap-0.5">
+            <div className="border border-border rounded-lg p-1 flex items-center gap-0.5">
               <Tooltip text="Sincronitzar manualment amb Google Calendar">
                 <button
                   onClick={syncWithGoogle}
