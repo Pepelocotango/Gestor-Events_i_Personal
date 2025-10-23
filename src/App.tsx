@@ -937,7 +937,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
   return (
       <HashRouter>
         <ErrorBoundary>
-          <div className="min-h-screen flex flex-col bg-background text-foreground">
+          <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
             {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
             <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
             <CustomMenuBar
@@ -963,7 +963,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             </div>
           </header>
 
-          <main className="flex-grow px-1 pt-2">
+          <main className="flex-grow px-1 pt-2 overflow-y-auto">
             {!isDocumentOpen ? (
               <WelcomeScreen
                 recentFiles={recentFiles}
