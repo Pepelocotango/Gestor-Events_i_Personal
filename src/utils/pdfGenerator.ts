@@ -29,9 +29,10 @@ const createPdfHeader = (pdf: jsPDF, title: string): number => {
 
 // Funció genèrica per gestionar el peu de pàgina
 const addFooter = (pdf: jsPDF, pageCount: number) => {
+  const pageW = pdf.internal.pageSize.getWidth();
   pdf.setFontSize(8);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(`Pàgina ${pageCount}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+  pdf.text(`${pageCount}`, pageW - 14, pdf.internal.pageSize.getHeight() - 15, { align: 'right' });
 };
 
 // Funció d'ajuda per al desat dual
@@ -74,11 +75,11 @@ export const exportSummariesToPdf = async (
     let pageCount = 1;
 
     const addPageIfNeeded = (currentY: number) => {
-      if (currentY > 270) {
+      if (currentY > 280) {
         addFooter(pdf, pageCount);
         pdf.addPage();
         pageCount++;
-        return 20; // Y inicial per a la nova pàgina
+        return 10; // Y inicial per a la nova pàgina
       }
       return currentY;
     };
@@ -123,14 +124,17 @@ export const exportSummariesToPdf = async (
           theme: 'striped',
           styles: { fontSize: 9, cellPadding: 2 },
           headStyles: { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
-          didDrawPage: (_data: any) => {
-            addFooter(pdf, pageCount);
-          },
           margin: { top: 15, bottom: 15 }
         });
 
         y = (pdf as any).lastAutoTable.finalY + 10;
       });
+    }
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
     }
 
     const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
@@ -148,7 +152,6 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = createPdfHeader(pdf, 'Llista de Material');
-    let pageCount = 1;
 
     const head = [['Nom', 'Estoc', 'Ubicació', 'Notes']];
     
@@ -182,13 +185,18 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
       styles: { fontSize: 10, cellPadding: 2.5 },
       headStyles: { fillColor: hslToRgb(...themeHslColors.success), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       didDrawPage: (_data: any) => {
-        addFooter(pdf, pageCount);
         if (_data.pageNumber > 1) {
             createPdfHeader(pdf, 'Llista de Material');
         }
       },
       margin: { top: 30, bottom: 15 }
     });
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
+    }
 
     const fileName = `Llista_Material_${new Date().toISOString().slice(0, 10)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
@@ -206,7 +214,6 @@ export const exportMaterialControlSummaryPdf = async (
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = createPdfHeader(pdf, 'Resum de Control de Material');
-    let pageCount = 1;
 
     const head = [['Nom', 'Origen', 'Estoc', 'Balanç', 'Demanada']];
     const body: any[][] = [];
@@ -266,10 +273,15 @@ export const exportMaterialControlSummaryPdf = async (
         if (data.pageNumber > 1) {
           createPdfHeader(pdf, 'Resum de Control de Material');
         }
-        addFooter(pdf, pageCount++);
       },
       margin: { top: 30, bottom: 15 }
     });
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
+    }
 
     const fileName = `Resum_Control_Material_${new Date().toISOString().slice(0, 10)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
@@ -286,7 +298,6 @@ export const exportMaterialControlDetailedPdf = async (
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = createPdfHeader(pdf, 'Detall de Control de Material');
-    let pageCount = 1;
 
     const eventMap = new Map(eventFrames.map(ef => [ef.id, ef]));
 
@@ -318,7 +329,6 @@ export const exportMaterialControlDetailedPdf = async (
       const eventDetails = eventMap.get(eventId);
 
       if (y > 250) {
-        addFooter(pdf, pageCount++);
         pdf.addPage();
         y = createPdfHeader(pdf, 'Detall de Control de Material');
       }
@@ -340,11 +350,6 @@ export const exportMaterialControlDetailedPdf = async (
         theme: 'striped',
         styles: { fontSize: 9, cellPadding: 2 },
         headStyles: { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
-        didDrawPage: (data: any) => {
-            if (data.pageNumber > pageCount) {
-                pageCount = data.pageNumber;
-            }
-        },
       });
 
       y = (pdf as any).lastAutoTable.finalY + 10;
@@ -369,7 +374,6 @@ export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: 
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = createPdfHeader(pdf, "Llibreta d'Adreces");
-    let pageCount = 1;
 
     const head = [['Nom', 'Rol', 'Contacte', 'Notes']];
     const body = peopleGroups.map(p => {
@@ -394,13 +398,18 @@ export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: 
         3: { cellWidth: 'auto' }
       },
       didDrawPage: (_data: any) => {
-        addFooter(pdf, pageCount);
         if (_data.pageNumber > 1) {
             createPdfHeader(pdf, "Llibreta d'Adreces");
         }
       },
       margin: { top: 30, bottom: 15 }
     });
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
+    }
 
     const fileName = `Llibreta_Adreces_${new Date().toISOString().slice(0, 10)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
@@ -418,7 +427,10 @@ export const exportTechSheetToPdf = async (
 ) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    let y = 15;
+    let y = 10;
+
+    // Define vertical spacing between sections
+    const VERTICAL_SPACING = 3;
 
     const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
     const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
@@ -426,9 +438,9 @@ export const exportTechSheetToPdf = async (
     const subHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
 
     const checkPageBreak = (currentY: number): number => {
-        if (currentY > 260) {
+        if (currentY > 290) {
             pdf.addPage();
-            return 15;
+            return 10;
         }
         return currentY;
     };
@@ -442,8 +454,15 @@ export const exportTechSheetToPdf = async (
         [{ content: 'HORA:', styles: labelStyles }, sane(formData.showTime)],
         [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
     ];
-    autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, pageBreak: 'avoid' });
-    y = (pdf as any).lastAutoTable.finalY + 8;
+    autoTable(pdf, { 
+      body: headerBody, 
+      theme: 'grid', 
+      startY: y, 
+      pageBreak: 'avoid',
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
 
     // ... (rest of the function remains the same, just applying the color conversion)
 
@@ -453,9 +472,13 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'NOTES GENERALS DE LA FITXA', styles: headStyles }]],
             body: [[sane(formData.generalNotes)]],
-            startY: y, theme: 'grid', pageBreak: 'avoid'
+            startY: y, 
+            theme: 'grid', 
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 }
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     if (formData.parking?.status === 'yes' || formData.parking?.status === 'no') {
@@ -466,12 +489,18 @@ export const exportTechSheetToPdf = async (
       autoTable(pdf, {
           head: [[{ content: 'PÀRQUING', styles: headStyles }]],
           body: [[parkingDetails]],
-          startY: y, theme: 'grid', pageBreak: 'avoid'
+          startY: y, 
+          theme: 'grid', 
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 }
       });
-      y = (pdf as any).lastAutoTable.finalY + 8;
+      y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
     }
 
     const personnelBody: any[][] = [];
+    let hasAnyNotes = false;
+
     if (formData.technicalProviders && formData.technicalProviders.length > 0) {
       formData.technicalProviders.forEach(provider => {
         const person = getPersonGroupById(provider.personGroupId);
@@ -480,6 +509,7 @@ export const exportTechSheetToPdf = async (
             if (sane(role.role) !== '-' || sane(role.quantity) !== '-') {
                 const row = [sane(role.quantity), sane(role.role), sane(person?.name)];
                 if (role.printNotes && sane(role.notes) !== '-') {
+                    hasAnyNotes = true;
                     row.push(sane(role.notes));
                 }
                 personnelBody.push(row);
@@ -491,19 +521,27 @@ export const exportTechSheetToPdf = async (
     if (personnelBody.length > 0) {
         y = checkPageBreak(y);
         const tableBody: any[][] = [];
+        const totalColumns = hasAnyNotes ? 4 : 3;
+
         if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
-            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: 4, styles: { fontStyle: 'italic' as 'italic', halign: 'left' as 'left' } }]);
+            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: totalColumns, styles: { fontStyle: 'italic' as 'italic', halign: 'left' as 'left' } }]);
         }
         personnelBody.forEach(row => tableBody.push(row));
 
         autoTable(pdf, {
-            head: [[{ content: 'PERSONAL TÈCNIC', colSpan: 4, styles: headStyles }]],
+            head: [[{ content: 'PERSONAL TÈCNIC', colSpan: totalColumns, styles: headStyles }]],
             body: tableBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             headStyles: { ...headStyles, halign: 'center' as 'center' },
-            columnStyles: { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
+            columnStyles: hasAnyNotes 
+                ? { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
+                : { 0: { cellWidth: 15, halign: 'right' as 'right' } }
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
     }
 
     if (formData.preAssembly?.status === 'yes') {
@@ -511,9 +549,13 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'PREMUNTATGE', styles: headStyles }]],
             body: [[sane(formData.preAssembly.details)]],
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 }
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     if (formData.schedule?.status === 'yes' && formData.schedule.data && formData.schedule.data.length > 0) {
@@ -549,14 +591,19 @@ export const exportTechSheetToPdf = async (
             startY: y,
             theme: 'grid',
             pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 40 } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     const logisticsBody: any[][] = [];
     if (formData.dressingRooms?.status === 'yes') {
-        logisticsBody.push(['Camerinos', sane(formData.dressingRooms.details) !== '-' ? sane(formData.dressingRooms.details) : 'SI', '']);
+        logisticsBody.push([
+            { content: 'Camerinos', styles: { cellWidth: 40 } },
+            { content: sane(formData.dressingRooms.details) !== '-' ? sane(formData.dressingRooms.details) : 'SI', colSpan: 2 }
+        ]);
     }
     if (formData.actorsInfo?.status === 'yes') {
         logisticsBody.push(['Actors', sane(formData.actorsInfo.data?.number), sane(formData.actorsInfo.data?.names)]);
@@ -570,10 +617,14 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
             body: logisticsBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
     }
 
     const needsBody: any[][] = [];
@@ -614,10 +665,14 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
             body: needsBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     const otherDetailsBody = [];
@@ -628,9 +683,13 @@ export const exportTechSheetToPdf = async (
       autoTable(pdf, {
           head: [[{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }]],
           body: otherDetailsBody,
-          startY: y, theme: 'grid', pageBreak: 'avoid',
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 }
       });
-      y = (pdf as any).lastAutoTable.finalY + 8;
+      y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
     }
 
     const contactBody: any[][] = [];
@@ -647,10 +706,14 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'CONTACTES COMPANYIA', colSpan: 3, styles: headStyles }]],
             body: contactBody,
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 },
             columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 50 }, 2: { cellWidth: 'auto' } },
         });
-        y = (pdf as any).lastAutoTable.finalY + 8;
+        y = (pdf as any).lastAutoTable.finalY + 5;
     }
 
     if (sane(formData.observations) !== '-') {
@@ -658,8 +721,18 @@ export const exportTechSheetToPdf = async (
         autoTable(pdf, {
             head: [[{ content: 'OBSERVACIONS', styles: headStyles }]],
             body: [[sane(formData.observations)]],
-            startY: y, theme: 'grid', pageBreak: 'avoid',
+            startY: y,
+            theme: 'grid',
+            pageBreak: 'avoid',
+            margin: { left: 10, right: 10 },
+            styles: { cellPadding: 2 }
         });
+    }
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
     }
 
     const fileName = generateTechSheetFileName(eventName, formData.date || '');
@@ -679,7 +752,6 @@ export const exportEventListToPdf = async (
   try {
     const pdf = new jsPDF('l', 'mm', 'a4'); // 'l' per a format apaïsat (landscape)
     let y = createPdfHeader(pdf, "Llista d'Esdeveniments");
-    let pageCount = 1;
 
     const head = [['Nom Esdeveniment', 'Lloc', 'Dates', 'Personal Assignat i Notes', 'Estat', 'Notes Generals']];
     const body = eventFrames.map(ef => {
@@ -716,13 +788,18 @@ export const exportEventListToPdf = async (
         5: { cellWidth: 60 }
       },
       didDrawPage: (_data: any) => {
-        addFooter(pdf, pageCount);
         if (_data.pageNumber > 1) {
             createPdfHeader(pdf, "Llista d'Esdeveniments");
         }
       },
       margin: { top: 30, bottom: 15 }
     });
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
+    }
 
     const fileName = generateFileName('Llista_Esdeveniments', activeFilters, eventFrames, 'pdf');
     await savePdfWithDialog(pdf, fileName, showToast);
