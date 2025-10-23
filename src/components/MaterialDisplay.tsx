@@ -283,7 +283,9 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
                       headerClassName="bg-muted/50 text-md"
                       contentClassName="space-y-2"
                     >
-                      {items.map(renderItemRow)}
+                      <ul className="space-y-2 list-none">
+                        {items.map(renderItemRow)}
+                      </ul>
                     </CollapsibleSection>
                   ))
                 ) : (
