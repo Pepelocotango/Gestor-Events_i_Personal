@@ -312,7 +312,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                       <Tooltip text="Cercar per nom, rol, email o telèfon">
                         <input
                         type="search"
-                        className="block w-full px-2 py-1 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
+                        className="block w-full px-2 py-1 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
                         placeholder="Cerca per nom, rol, email, tel..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}

@@ -69,7 +69,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
