@@ -939,7 +939,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
         <ErrorBoundary>
           <div className="min-h-screen flex flex-col bg-background text-foreground">
             {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
-            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-sm border-b border-border">
+            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
             <CustomMenuBar
               canUndo={canUndo}
               canRedo={canRedo}
@@ -949,7 +949,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
               hasUnsavedChanges={hasUnsavedChanges}
               recentFiles={recentFiles}
             />
-            <div className="px-1 py-1">
+            <div className="px-1 py-1 border-t border-border">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   theme={theme}

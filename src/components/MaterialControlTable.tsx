@@ -24,11 +24,11 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
   };
 
   if (data.length === 0) {
-    return <div className="text-center p-8 text-muted-foreground bg-card rounded-lg shadow">No s'han trobat resultats amb els filtres aplicats.</div>;
+    return <div className="text-center p-8 text-muted-foreground bg-card rounded-lg border border-border">No s'han trobat resultats amb els filtres aplicats.</div>;
   }
 
   return (
-    <div className="overflow-x-auto shadow rounded-lg">
+    <div className="overflow-x-auto border border-border rounded-lg">
       <table className="min-w-full divide-y divide-border">
         <thead className="bg-muted">
           <tr>

@@ -9,7 +9,7 @@
     --popover: 35 15% 85%;
     --secondary: 35 15% 82%;
     --muted: 35 15% 82%;
-    --border: 35 10% 70%;
+    --border: 35 10% 50%;
     --input: 35 15% 88%;
     --accent: 35 15% 83%;
     --foreground: 240 10% 10%;
@@ -52,7 +52,7 @@
     --background: 40 6% 10%;
     --card: 40 6% 15%;
     --popover: 40 6% 15%;
-    --border: 40 6% 21%;
+    --border: 40 6% 50%;
     --input: 40 6% 21%;
     --secondary: 40 6% 25%;
     --muted: 40 6% 25%;

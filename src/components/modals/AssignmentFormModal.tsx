@@ -122,7 +122,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
     performSubmit(false);
   };
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm disabled:opacity-50";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm disabled:opacity-50";
 
   const statusValue = isEditingMixed ? AssignmentStatus.Pending : formData.status;
 

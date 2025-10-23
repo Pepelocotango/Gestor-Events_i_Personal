@@ -17,7 +17,7 @@ light: {
   'popover':              '35 15% 85%',
   'secondary':            '35 15% 82%',
   'muted':                '35 15% 82%',
-  'border':               '35 10% 70%',
+  'border':               '35 10% 50%',
   'input':                '35 15% 88%',
   'accent':               '35 15% 83%',
   
@@ -52,7 +52,7 @@ light: {
     'background':           '40 6% 10%', // Color de fons principal de l'aplicació en mode fosc.
     'card':                 '40 6% 15%', // Color de fons per a "targetes" en mode fosc.
     'popover':              '40 6% 15%', // Color de fons per a "popovers" en mode fosc.
-    'border':               '40 6% 21%', // Color per a les vores en mode fosc.
+    'border':               '40 6% 50%', // Color per a les vores en mode fosc.
     'input':                '40 6% 21%', // Color de fons per als camps d'entrada en mode fosc.
     'secondary':            '40 6% 25%', // Color per a fons secundaris en mode fosc.
     'muted':                '40 6% 25%', // Color de fons per a elements atenuats en mode fosc.
