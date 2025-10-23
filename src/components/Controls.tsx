@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useEventDataStore, useTemporalStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { startGoogleAuthFlow } from '../stores/googleConfigStore';
-import { SunIcon, MoonIcon, InfoIcon, GoogleIcon, SyncIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ClockIcon } from '../constants';
+import { SunIcon, MoonIcon, InfoIcon, GoogleIcon, CloudArrowUpIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ClockIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 
 interface ControlsProps {
@@ -111,7 +111,7 @@ const Controls: React.FC<ControlsProps> = ({
                     </>
                   ) : (
                     <>
-                      <SyncIcon />
+                      <CloudArrowUpIcon />
                       <span>Sincronitzar</span>
                     </>
                   )}
