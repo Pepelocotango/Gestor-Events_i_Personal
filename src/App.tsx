@@ -994,7 +994,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
           <footer className="bg-secondary p-4 text-center text-sm text-muted-foreground border-t border-border">
 
-            <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.1.0. Llicència MIT (codi lliure). </span>
+            <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.2.0. Llicència MIT (codi lliure). </span>
             <span>Si vols col·laborar, pots fer-ho al <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">projecte de GitHub</a> o amb una aportació a <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>.</span>
           </footer>
 
