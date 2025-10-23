@@ -83,7 +83,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                         name="activeCalendar"
                         checked={cal.id === activeCalendarId}
                         onChange={() => useGoogleConfigStore.getState().setActiveCalendarId(cal.id)}
-                        className="h-4 w-4 text-primary focus:ring-ring border-border"
+                        className="h-4 w-4 text-primary focus:ring-ring border-input"
                       />
                     </Tooltip>
                     <div className="ml-3">
@@ -105,14 +105,14 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                 </div>
                 <div className="mt-2 pl-7">
                     <div className="flex rounded-md shadow-sm">
-                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-border bg-muted text-muted-foreground text-xs">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-xs">
                         ID
                       </span>
                       <input
                         type="text"
                         readOnly
                         value={cal.id}
-                        className="flex-1 min-w-0 block w-full px-2 py-1 rounded-none bg-secondary border-border text-xs"
+                        className="flex-1 min-w-0 block w-full px-2 py-1 rounded-none bg-secondary border-input text-xs"
                       />
                       <Tooltip text="Copiar l'ID del calendari al porta-retalls">
                         <button
@@ -120,7 +120,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                             navigator.clipboard.writeText(cal.id);
                             showToast('ID del calendari copiat!', 'success');
                           }}
-                          className="inline-flex items-center px-3 py-1 border border-l-0 border-border rounded-r-md bg-secondary text-xs hover:bg-accent"
+                          className="inline-flex items-center px-3 py-1 border border-l-0 border-input rounded-r-md bg-secondary text-xs hover:bg-accent"
                         >
                           Copiar
                         </button>
@@ -153,7 +153,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                     id={cal.id}
                     checked={selectedIds.includes(cal.id)}
                     onChange={() => useGoogleConfigStore.getState().toggleExternalCalendar(cal.id)}
-                    className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
+                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                     style={{ accentColor: cal.backgroundColor }}
                   />
                 </Tooltip>

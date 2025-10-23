@@ -446,7 +446,7 @@ const MainDisplay = React.forwardRef<
                         id="showArchived"
                         checked={showArchived}
                         onChange={(e) => setShowArchived(e.target.checked)}
-                        className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-ring"
+                        className="h-4 w-4 rounded border-input bg-background text-primary focus:ring-ring"
                     />
                     <label htmlFor="showArchived" className="ml-2 text-sm font-medium text-foreground">
                         Mostrar arxivats

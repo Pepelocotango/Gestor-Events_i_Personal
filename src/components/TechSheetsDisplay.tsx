@@ -85,7 +85,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
               id="event-selector"
               value={selectedEventFrameId}
               onChange={(e) => setSelectedEventFrameId(e.target.value)}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-background text-foreground border-border border focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm rounded-md"
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-background text-foreground border-input border focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm rounded-md"
             >
               <option value="" disabled>-- Tria un esdeveniment --</option>
               {sortedEventFrames.map((event) => (
