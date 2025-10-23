@@ -17,7 +17,7 @@ export const themeHslColors = {
   foregroundMuted: [240, 5, 40],
   foregroundWhite: [210, 40, 98],
   grayDark: [40, 6, 25],
-  grayBorder: [35, 10, 15],
+  grayBorder: [35, 10, 50],
   grayMuted: [35, 15, 82],
   grayMedium: [75, 85, 99],
   graySubtle: [240, 5, 92],
