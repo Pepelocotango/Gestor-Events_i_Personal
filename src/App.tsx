@@ -949,7 +949,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
               hasUnsavedChanges={hasUnsavedChanges}
               recentFiles={recentFiles}
             />
-            <div className="px-1 py-1">
+            <div className="px-1 py-1 border-t border-border">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   theme={theme}
