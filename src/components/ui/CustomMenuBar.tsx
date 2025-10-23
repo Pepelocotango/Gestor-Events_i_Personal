@@ -149,7 +149,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   ];
 
   const DropdownMenu: React.FC<{ items: MenuItem[] }> = ({ items }) => (
-    <div className="absolute top-full left-0 mt-1 py-1 bg-popover text-popover-foreground border border-border rounded-md shadow-lg z-50 min-w-[240px]">
+    <div className="absolute top-full left-0 mt-1 py-1 bg-popover text-popover-foreground border border-border rounded-md z-50 min-w-[240px]">
       {items.map((item, index) => {
         if (item.separator) {
           return <div key={`separator-${index}`} className="h-px bg-border my-1" />;
@@ -161,7 +161,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
                 <span>{item.label}</span>
                 <svg className="w-4 h-4 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
               </div>
-              <div className="absolute left-full -top-1 mt-0 py-1 bg-popover border border-border rounded-md shadow-lg hidden group-hover:block min-w-max">
+              <div className="absolute left-full -top-1 mt-0 py-1 bg-popover border border-border rounded-md hidden group-hover:block min-w-max">
                 {item.submenu.map(subItem => (
                    <button
                       key={subItem.label}

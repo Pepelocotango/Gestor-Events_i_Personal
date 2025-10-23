@@ -39,7 +39,7 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   className = '',
   tooltipText,
 }) => {
-  const baseClasses = "mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm resize-none overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed read-only:bg-muted/50";
+  const baseClasses = "mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm resize-none overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed read-only:bg-muted/50";
 
   const finalClassName = `${baseClasses} ${className}`.trim();
 

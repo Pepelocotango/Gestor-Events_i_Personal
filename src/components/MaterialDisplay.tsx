@@ -29,7 +29,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
 
   const categories = useMemo(() => Array.from(new Set(materialItems.map((item: MaterialItem) => item.category))).sort((a,b) => a.localeCompare(b, 'ca', { sensitivity: 'base' })), [materialItems]);
   const locations = useMemo(() => Array.from(new Set(materialItems.map((item: MaterialItem) => item.location).filter(Boolean))).sort((a,b) => a.localeCompare(b, 'ca', { sensitivity: 'base' })), [materialItems]);

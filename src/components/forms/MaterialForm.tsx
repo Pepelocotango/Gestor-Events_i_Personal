@@ -31,7 +31,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
 
   // Efecte per omplir el formulari quan initialData canvia (mode edició)
   useEffect(() => {

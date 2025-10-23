@@ -939,7 +939,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
         <ErrorBoundary>
           <div className="min-h-screen flex flex-col bg-background text-foreground">
             {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
-            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-sm border border-border">
+            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
             <CustomMenuBar
               canUndo={canUndo}
               canRedo={canRedo}

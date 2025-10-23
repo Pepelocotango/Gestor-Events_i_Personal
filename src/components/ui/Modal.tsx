@@ -38,7 +38,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
       aria-labelledby="modal-title"
     >
       <div
-        className={`relative p-5 border border-border shadow-lg rounded-md bg-popover text-popover-foreground w-full ${sizeClasses[size]} mx-4`}
+        className={`relative p-5 border border-border rounded-md bg-popover text-popover-foreground w-full ${sizeClasses[size]} mx-4`}
         // Aquest onClick evita que un clic dins del contingut es propagui a elements externs,
         // tot i que amb l'eliminació de l'onClick de l'overlay, el seu efecte principal aquí és menys crític.
         onClick={e => {
