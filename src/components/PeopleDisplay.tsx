@@ -73,7 +73,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
     setSortConfig({ key, direction });
   };
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm disabled:opacity-50";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm disabled:opacity-50";
 
   const resetForm = () => {
     setName('');
