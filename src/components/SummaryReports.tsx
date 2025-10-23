@@ -197,7 +197,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
   // --- RENDERITZAT (amb la correcció) ---
 
   const renderSummaryCard = (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person', showSortButton: boolean) => (
-    <div className="bg-card p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-card p-4 rounded-lg border border-border">
       <div className="flex justify-between items-center mb-3 pb-2 border-b border-border">
         <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
         <div className="flex items-center gap-3">
