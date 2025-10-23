@@ -107,7 +107,7 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
                   type="checkbox"
                   checked={selectedIds.has(change.id)}
                   onChange={() => handleToggle(change.id)}
-                  className="h-5 w-5 rounded border-input text-primary focus:ring-ring mr-3"
+                  className="h-5 w-5 rounded border-border text-primary focus:ring-ring mr-3"
                 />
                 <div>
                   <span className="font-semibold text-foreground">{change.label}</span>

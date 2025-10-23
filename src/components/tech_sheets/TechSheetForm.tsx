@@ -785,7 +785,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
                 <label htmlFor="generalNotes" className="block text-sm font-medium text-muted-foreground">Notes Generals de la Fitxa Tècnica</label>
                 <Tooltip text="Marca aquesta casella per incloure les notes generals en exportar la fitxa a PDF.">
                     <div className="flex items-center gap-2">
-                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-input accent-primary focus:ring-ring"/>
+                        <input type="checkbox" id="showGeneralNotesInPdf" name="showGeneralNotesInPdf" checked={formData.showGeneralNotesInPdf || false} onChange={handleChange} className="h-4 w-4 rounded border-border accent-primary focus:ring-ring"/>
                         <label htmlFor="showGeneralNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                     </div>
                 </Tooltip>
@@ -897,7 +897,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
                                 name="showScheduleNotesInPdf"
                                 checked={formData.showScheduleNotesInPdf ?? true}
                                 onChange={handleChange}
-                                className="h-4 w-4 rounded border-input accent-primary focus:ring-ring"
+                                className="h-4 w-4 rounded border-border accent-primary focus:ring-ring"
                             />
                             <label htmlFor="showScheduleNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                         </div>
@@ -1122,7 +1122,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
                             name="showTechnicalNeedsNotesInPdf"
                             checked={formData.showTechnicalNeedsNotesInPdf ?? true}
                             onChange={handleChange}
-                            className="h-4 w-4 rounded border-input accent-primary focus:ring-ring"
+                            className="h-4 w-4 rounded border-border accent-primary focus:ring-ring"
                         />
                         <label htmlFor="showTechnicalNeedsNotesInPdf" className="text-sm font-medium text-foreground">Imprimir al PDF</label>
                     </div>
