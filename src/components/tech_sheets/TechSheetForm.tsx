@@ -476,6 +476,37 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     markAsDirty();
   };
 
+  const handleShowTimeChange = (index: number, value: string) => {
+    setFormData(prev => {
+      const newShowTimes = [...(prev.showTimes || [])];
+      // Si l'array és buit i l'usuari escriu, es crea el primer element.
+      if (newShowTimes.length === 0 && index === 0) {
+        newShowTimes.push({ id: generateLocalId(), time: value });
+      } else if (newShowTimes[index]) {
+        newShowTimes[index] = { ...newShowTimes[index], time: value };
+      }
+      return { ...prev, showTimes: newShowTimes };
+    });
+    markAsDirty();
+  };
+
+  const addShowTime = () => {
+    const newItem = { id: generateLocalId(), time: '' };
+    setFormData(prev => ({
+      ...prev,
+      showTimes: [...(prev.showTimes || []), newItem],
+    }));
+    markAsDirty();
+  };
+
+  const removeShowTime = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      showTimes: (prev.showTimes || []).filter(item => item.id !== id),
+    }));
+    markAsDirty();
+  };
+
   const handleProviderChange = useCallback((providerIndex: number, personGroupId: string) => {
     setFormData(prev => {
       const newProviders = (prev.technicalProviders || []).map((provider, index) => {
@@ -768,7 +799,47 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         <TechSheetField id="eventName" label="NOM DEL ESDEVENIMENT:" value={formData.eventName} onChange={handleChange} required tooltipText="El nom de l'esdeveniment es sincronitza automàticament amb el nom del 'Event Frame'."/>
         <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} tooltipText="El lloc de l'esdeveniment. També es sincronitza des del 'Event Frame'."/>
         <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} tooltipText="La data o rang de dates de l'esdeveniment. Sincronitzat des del 'Event Frame'."/>
-        <TechSheetField id="showTime" label="HORA:" value={formData.showTime} onChange={handleChange} type="time" tooltipText="Hora d'inici de la funció o acte principal."/>
+
+        {/* HORA / GESTIÓ DE SESSIONS */}
+        <div className="col-span-1">
+          <label className="block text-sm font-medium text-muted-foreground mb-1">HORA:</label>
+          {(formData.showTimes?.length || 0) <= 1 ? (
+            <div className="flex items-center gap-2">
+              <TechSheetField
+                id="showTime-0"
+                label=""
+                value={formData.showTimes?.[0]?.time || ''}
+                onChange={(e) => handleShowTimeChange(0, e.target.value)}
+                type="time"
+                tooltipText="Hora d'inici de la funció o acte principal."
+              />
+              <Tooltip text="Afegeix una nova sessió horària">
+                <button type="button" onClick={addShowTime} className="add-item-button px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 text-xs">+ Afegir Sessió</button>
+              </Tooltip>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {formData.showTimes?.map((item, index) => (
+                <div key={item.id} className="flex items-center gap-2">
+                  <TechSheetField
+                    id={`showTime-${index}`}
+                    label=""
+                    value={item.time}
+                    onChange={(e) => handleShowTimeChange(index, e.target.value)}
+                    type="time"
+                  />
+                  <Tooltip text="Eliminar aquesta sessió">
+                    <button type="button" onClick={() => removeShowTime(item.id)} className="remove-item-button text-destructive hover:bg-destructive/10 rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold no-print">×</button>
+                  </Tooltip>
+                </div>
+              ))}
+              <Tooltip text="Afegeix una nova sessió horària">
+                <button type="button" onClick={addShowTime} className="add-item-button px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 text-xs">+ Afegir Sessió</button>
+              </Tooltip>
+            </div>
+          )}
+        </div>
+
         <TechSheetField id="showDuration" label="DURADA ESPECTACLE:" value={formData.showDuration} onChange={handleChange} placeholder="XX min" tooltipText="Durada aproximada de l'espectacle en minuts."/>
 
         {eventFrame.generalNotes && (
