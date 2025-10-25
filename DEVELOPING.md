@@ -28,7 +28,7 @@ const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 
 ```
 - **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Això optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
 
-**Shortcuts de teclat segons plataforma:** La UI ara mostra els shortcuts adequats segons la plataforma (Windows/Linux vs macOS). El menú personalitzat detecta la plataforma i mostra "Ctrl" o "⌘" segons correspongui, millorant la usabilitat a cada sistema operatiu.
+**Shortcuts de teclat segons plataforma:** La UI ara mostra els shortcuts adequats segons la plataforma (Windows/Linux vs macOS). La detecció de la plataforma s'ha centralitzat a `App.tsx` per a una major fiabilitat, passant la tecla modificadora ("Ctrl" o "⌘") com a `prop` als components fills com el menú personalitzat.
 
 Consulta les seccions corresponents per a detalls i exemples complets.
 
@@ -1142,6 +1142,25 @@ Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
 5.  Això és tot. L'script actualitzarà automàticament tots els fitxers necessaris. El comando `npm run build` també executa aquest script, de manera que els canvis sempre estaran sincronitzats en fer una nova compilació.
 
 ---
+
+### 9.6. Detecció de Plataforma Centralitzada per a Dreceres de Teclat
+
+Per garantir que les dreceres de teclat es mostrin de manera consistent i correcta a tota l'aplicació (p. ex., "⌘" a macOS i "Ctrl" a Windows/Linux), la lògica de detecció del sistema operatiu s'ha centralitzat.
+
+-   **Font de la Veritat (`App.tsx`):** El component arrel `App.tsx` és ara l'únic responsable de detectar la plataforma.
+    -   Utilitza un `useEffect` que, en muntar-se el component, crida a `window.electronAPI.getPlatform()`.
+    -   El resultat s'emmagatzema en un estat de React: `const [platformModifierKey, setPlatformModifierKey] = useState('Ctrl');`.
+    -   Aquest estat s'actualitza a "⌘" si la plataforma és `darwin` (macOS).
+
+-   **Propagació mitjançant Props:**
+    -   El valor de `platformModifierKey` es passa com a `prop` (`modifierKey`) als components fills que ho necessiten, com `CustomMenuBar.tsx`.
+
+-   **Component Fill (`CustomMenuBar.tsx`):**
+    -   El component del menú ja no conté cap lògica pròpia per detectar la plataforma.
+    -   Simplement rep la `prop` `modifierKey` i la utilitza directament per renderitzar la drecera de teclat correcta.
+
+Aquest patró millora la mantenibilitat, elimina codi duplicat i assegura que tota la UI reaccioni de manera consistent a la plataforma en què s'executa l'aplicació.
+
 ## Arquitectura General (Resum)
 
 - **Frontend:** React amb Vite.

@@ -26,6 +26,7 @@ interface CustomMenuBarProps {
   onUndo: () => void;
   onRedo: () => void;
   onOpenHistory: () => void;
+  modifierKey: string;
 }
 
 const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
@@ -41,20 +42,10 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   onUndo,
   onRedo,
   onOpenHistory,
+  modifierKey,
 }) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [modifierKey, setModifierKey] = useState('Ctrl');
-
-  useEffect(() => {
-    const fetchPlatform = async () => {
-      if (window.electronAPI?.getPlatform) {
-        const platform = await window.electronAPI.getPlatform();
-        setModifierKey(platform === 'darwin' ? '⌘' : 'Ctrl');
-      }
-    };
-    fetchPlatform();
-  }, []);
 
   const handleAction = (action?: string, role?: string) => {
     if (window.electronAPI) {

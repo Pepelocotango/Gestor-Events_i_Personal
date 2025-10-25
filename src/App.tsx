@@ -48,6 +48,7 @@ let globalInitialLoadAttempted = false;
 
 const App: React.FC = () => {
   const mainDisplayRef = useRef<{ resize: () => void }>(null);
+  const [platformModifierKey, setPlatformModifierKey] = useState('Ctrl');
   
   const [showSplash, setShowSplash] = useState(true);
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
@@ -116,6 +117,16 @@ const App: React.FC = () => {
   useEffect(() => {
     // Inicialitza els listeners de la store de Google un sol cop
     initializeGoogleAuthListeners();
+  }, []);
+
+  useEffect(() => {
+    const fetchPlatform = async () => {
+      if (window.electronAPI?.getPlatform) {
+        const platform = await window.electronAPI.getPlatform();
+        setPlatformModifierKey(platform === 'darwin' ? '⌘' : 'Ctrl');
+      }
+    };
+    fetchPlatform();
   }, []);
 
 
@@ -941,6 +952,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
             <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
             <CustomMenuBar
+              modifierKey={platformModifierKey}
               canUndo={canUndo}
               canRedo={canRedo}
               splashScreenEnabled={splashScreenEnabled}
