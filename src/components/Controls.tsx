@@ -11,11 +11,7 @@ interface ControlsProps {
   currentFilePath: string | null;
 }
 
-const Controls: React.FC<ControlsProps> = ({
-    theme,
-    toggleTheme,
-    currentFilePath,
-}) => {
+const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
   const { syncWithGoogle } = useEventDataStore.getState();
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const { openModal } = useModalStore.getState();
