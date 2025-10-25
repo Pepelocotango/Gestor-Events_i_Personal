@@ -948,6 +948,11 @@ const handleSaveDocument = async (): Promise<boolean> => {
               isDocumentOpen={isDocumentOpen}
               hasUnsavedChanges={hasUnsavedChanges}
               recentFiles={recentFiles}
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              onUndo={() => useEventDataStore.getState().undoWithToast()}
+              onRedo={() => useEventDataStore.getState().redoWithToast()}
+              onOpenHistory={() => openModalFromStore('history')}
             />
             <div className="px-1 py-1 border-t border-border">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>

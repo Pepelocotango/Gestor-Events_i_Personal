@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useEventDataStore, useTemporalStore } from '../stores/eventDataStore';
+import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { startGoogleAuthFlow } from '../stores/googleConfigStore';
-import { SunIcon, MoonIcon, InfoIcon, GoogleIcon, CloudArrowUpIcon, ChevronDownIcon, ChevronUpIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ClockIcon } from '../constants';
+import { GoogleIcon, CloudArrowUpIcon, ChevronDownIcon, ChevronUpIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 
 interface ControlsProps {
@@ -17,11 +17,7 @@ const Controls: React.FC<ControlsProps> = ({
     currentFilePath,
 }) => {
   const { syncWithGoogle } = useEventDataStore.getState();
-  const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
   const isSyncing = useEventDataStore(state => state.isSyncing);
-  const canUndo = useTemporalStore(state => state.pastStates.length > 0);
-  const canRedo = useTemporalStore(state => state.futureStates.length > 0);
-  const { undo, redo } = useEventDataStore.temporal.getState();
   const { openModal } = useModalStore.getState();
 
   const [isExpanded, setIsExpanded] = useState(true);
@@ -60,39 +56,6 @@ const Controls: React.FC<ControlsProps> = ({
 
       {isExpanded && (
         <div className="pt-2 mt-2 border-t border-border flex flex-col gap-1">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-0.5">
-              <Tooltip text="Desfer (Ctrl+Z)">
-                <button onClick={() => undo()} disabled={!canUndo} className="p-1 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
-                  <ArrowUturnLeftIcon className="w-5 h-5" />
-                </button>
-              </Tooltip>
-              <Tooltip text="Refer (Ctrl+Y)">
-                <button onClick={() => redo()} disabled={!canRedo} className="p-1 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
-                  <ArrowUturnRightIcon className="w-5 h-5" />
-                </button>
-              </Tooltip>
-              <Tooltip text="Historial de canvis">
-                <button onClick={() => openModal('history')} disabled={!canUndo && !canRedo} className="p-1 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
-                  <ClockIcon className="w-5 h-5" />
-                </button>
-              </Tooltip>
-
-            </div>
-
-            {hasUnsavedChanges && (
-              <div className="text-sm text-warning flex items-center gap-1 font-semibold animate-pulse">
-                <InfoIcon className="w-4 h-4" /> Canvis sense desar
-              </div>
-            )}
-
-            <Tooltip text={theme === 'dark' ? 'Canviar a tema clar' : 'Canviar a tema fosc'}>
-              <button data-testid="theme-toggle" onClick={toggleTheme} className="rounded-full p-1 bg-secondary hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-ring">
-                  {theme === 'dark' ? <SunIcon className="w-5 h-5 text-warning" /> : <MoonIcon className="w-5 h-5 text-foreground" />}
-              </button>
-            </Tooltip>
-          </div>
-
           <div className="flex items-center justify-end w-full">
             <div className="border border-border rounded-lg p-1 flex items-center gap-0.5">
               <Tooltip text="Sincronitzar manualment amb Google Calendar">

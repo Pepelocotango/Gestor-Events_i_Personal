@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { SunIcon, MoonIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ClockIcon } from '../../constants';
 
 // Define the structure of menu items
 interface MenuItem {
@@ -20,6 +21,11 @@ interface CustomMenuBarProps {
   isDocumentOpen: boolean;
   hasUnsavedChanges: boolean;
   recentFiles: string[];
+  theme: string;
+  onToggleTheme: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onOpenHistory: () => void;
 }
 
 const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
@@ -30,6 +36,11 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   isDocumentOpen,
   hasUnsavedChanges,
   recentFiles,
+  theme,
+  onToggleTheme,
+  onUndo,
+  onRedo,
+  onOpenHistory,
 }) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -108,9 +119,8 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
             { label: 'Restaurar Configuració de Fàbrica...', action: 'factory-reset' },
           ]
         },
-        { label: 'Tema Clar/Fosc', action: 'toggle-theme' },
-        { separator: true },
-        { label: 'Sortir', action: 'quit' },
+        {separator: true},
+        {label: 'Sortir', action: 'quit'},
       ],
     },
     {
@@ -203,7 +213,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   );
 
   return (
-    <div ref={menuRef} className="relative flex h-8 bg-secondary text-secondary-foreground w-full" style={{ userSelect: 'none' }}>
+    <div ref={menuRef} className="relative flex h-8 bg-secondary text-secondary-foreground w-full justify-between" style={{ userSelect: 'none' }}>
       <div className="flex">
         {menuData.map(menu => (
           <div key={menu.label} className="relative">
@@ -217,6 +227,41 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
             {openMenu === menu.label && <DropdownMenu items={menu.items} />}
           </div>
         ))}
+      </div>
+      
+      {/* Icones de desfer/refer/historial i tema a la dreta */}
+      <div className="flex items-center gap-1 px-2">
+        <button
+          onClick={onUndo}
+          disabled={!canUndo}
+          className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Desfer (Ctrl+Z)"
+        >
+          <ArrowUturnLeftIcon className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onRedo}
+          disabled={!canRedo}
+          className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Refer (Ctrl+Y)"
+        >
+          <ArrowUturnRightIcon className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onOpenHistory}
+          disabled={!canUndo && !canRedo}
+          className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Historial de canvis"
+        >
+          <ClockIcon className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onToggleTheme}
+          className="p-1 rounded hover:bg-accent focus:outline-none"
+          title={theme === 'dark' ? 'Canviar a tema clar' : 'Canviar a tema fosc'}
+        >
+          {theme === 'dark' ? <SunIcon className="w-5 h-5 text-warning" /> : <MoonIcon className="w-5 h-5" />}
+        </button>
       </div>
     </div>
   );
