@@ -267,7 +267,7 @@ Per solucionar un bug de renderitzat del menú natiu d'Electron en configuracion
     -   **Accions del Procés Principal:** Les accions que requereixen accés a les API d'Electron o Node.js (com obrir diàlegs de fitxers, gestionar el zoom de la finestra o tancar l'aplicació) són gestionades directament dins d'aquest listener.
     -   **Accions del Procés de Renderitzat:** Les accions que afecten l'estat de la UI (com canviar de tema, desar dades, obrir modals, o executar desfer/refer) es redirigeixen al procés de renderitzat a través del canal IPC existent `'menu-action'`, on són gestionades pel listener corresponent a `App.tsx`.
 
-Aquest enfocament no només soluciona el bug original, sinó que també proporciona un control total sobre l'aparença i el comportament del menú, permetent una integració més profunda amb el disseny de l'aplicació. El menú "Edita" s'ha afegit seguint aquest mateix patró.
+Aquest enfocament no només soluciona el bug original, sinó que també proporciona un control total sobre l'aparença i el comportament del menú, permetent una integració més profunda amb el disseny de l'aplicació. El menú "Edita" s'ha afegit seguint aquest mateix patró. Les dreceres de teclat per a accions comunes com "Eines de Desenvolupament" i "Pantalla Completa" s'han actualitzat per mostrar els estàndards de cada plataforma (`⌘+⌥+I` i `⌃+⌘+F` a macOS respectivament).
 
 ### 3.4. API Interna: Gestors d'IPC (Inter-Process Communication)
 

@@ -143,13 +143,13 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
       items: [
         { label: 'Recarregar', role: 'reload', accelerator: 'CmdOrCtrl+R' },
         { label: 'Forçar Recàrrega', role: 'forceReload', accelerator: 'CmdOrCtrl+Shift+R' },
-        { label: 'Eines de Desenvolupament', role: 'toggleDevTools', accelerator: 'CmdOrCtrl+Shift+I' },
+        { label: 'Eines de Desenvolupament', role: 'toggleDevTools', accelerator: modifierKey === '⌘' ? '⌘+⌥+I' : 'Ctrl+Shift+I' },
         { separator: true },
         { label: 'Restablir Zoom', role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
         { label: 'Apropar Zoom', role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
         { label: 'Allunyar Zoom', role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
         { separator: true },
-        { label: 'Pantalla Completa', role: 'togglefullscreen', accelerator: 'F11' },
+        { label: 'Pantalla Completa', role: 'togglefullscreen', accelerator: modifierKey === '⌘' ? '⌃+⌘+F' : 'F11' },
         { separator: true },
         {
           label: "Mostrar Animació d'Inici",
@@ -207,7 +207,9 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
               <span className="w-4 mr-2 text-center">{item.checked ? '✓' : ''}</span>
               <span>{item.label}</span>
             </span>
-            {item.accelerator && <span className="text-xs text-muted-foreground">{item.accelerator.replace('CmdOrCtrl', modifierKey)}</span>}
+            {item.accelerator && <span className="text-xs text-muted-foreground">
+              {item.accelerator.includes('CmdOrCtrl') ? item.accelerator.replace('CmdOrCtrl', modifierKey) : item.accelerator}
+            </span>}
           </button>
         );
       })}
