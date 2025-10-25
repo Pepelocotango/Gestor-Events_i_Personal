@@ -28,6 +28,8 @@ const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 
 ```
 - **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Això optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
 
+**Shortcuts de teclat segons plataforma:** La UI ara mostra els shortcuts adequats segons la plataforma (Windows/Linux vs macOS). El menú personalitzat detecta la plataforma i mostra "Ctrl" o "⌘" segons correspongui, millorant la usabilitat a cada sistema operatiu.
+
 Consulta les seccions corresponents per a detalls i exemples complets.
 
 ## 1. Visió General i Pila Tecnològica

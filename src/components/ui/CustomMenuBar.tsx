@@ -44,6 +44,17 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
 }) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [modifierKey, setModifierKey] = useState('Ctrl');
+
+  useEffect(() => {
+    const fetchPlatform = async () => {
+      if (window.electronAPI?.getPlatform) {
+        const platform = await window.electronAPI.getPlatform();
+        setModifierKey(platform === 'darwin' ? '⌘' : 'Ctrl');
+      }
+    };
+    fetchPlatform();
+  }, []);
 
   const handleAction = (action?: string, role?: string) => {
     if (window.electronAPI) {
@@ -126,14 +137,14 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
     {
       label: 'Edita',
       items: [
-        { label: 'Desfer', action: 'undo', accelerator: 'Ctrl+Z', disabled: !canUndo },
-        { label: 'Refer', action: 'redo', accelerator: 'Ctrl+Y', disabled: !canRedo },
+        { label: 'Desfer', action: 'undo', accelerator: 'CmdOrCtrl+Z', disabled: !canUndo },
+        { label: 'Refer', action: 'redo', accelerator: 'CmdOrCtrl+Y', disabled: !canRedo },
         { separator: true },
-        { label: 'Tallar', role: 'cut', accelerator: 'Ctrl+X' },
-        { label: 'Copiar', role: 'copy', accelerator: 'Ctrl+C' },
-        { label: 'Enganxar', role: 'paste', accelerator: 'Ctrl+V' },
+        { label: 'Tallar', role: 'cut', accelerator: 'CmdOrCtrl+X' },
+        { label: 'Copiar', role: 'copy', accelerator: 'CmdOrCtrl+C' },
+        { label: 'Enganxar', role: 'paste', accelerator: 'CmdOrCtrl+V' },
         { separator: true },
-        { label: 'Seleccionar tot', role: 'selectAll', accelerator: 'Ctrl+A' },
+        { label: 'Seleccionar tot', role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
       ],
     },
     {
@@ -205,7 +216,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
               <span className="w-4 mr-2 text-center">{item.checked ? '✓' : ''}</span>
               <span>{item.label}</span>
             </span>
-            {item.accelerator && <span className="text-xs text-muted-foreground">{item.accelerator}</span>}
+            {item.accelerator && <span className="text-xs text-muted-foreground">{item.accelerator.replace('CmdOrCtrl', modifierKey)}</span>}
           </button>
         );
       })}

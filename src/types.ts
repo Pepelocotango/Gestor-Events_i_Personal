@@ -491,6 +491,7 @@ export interface ElectronAPI {
   onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
   onSyncError: (callback: (error: string) => void) => () => void;
   onSyncSuccess: (callback: (message: string) => void) => () => void;
+  getPlatform: () => Promise<'win32' | 'darwin' | 'linux'>;
 }
 
 declare global {
