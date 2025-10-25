@@ -120,7 +120,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
           ]
         },
         {separator: true},
-        {label: 'Sortir', action: 'quit'},
+        {label: 'Sortir', action: 'quit', accelerator: 'Ctrl+Q'},
       ],
     },
     {
@@ -139,15 +139,15 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
     {
       label: 'Veure',
       items: [
-        { label: 'Recarregar', role: 'reload' },
-        { label: 'Forçar Recàrrega', role: 'forceReload' },
-        { label: 'Eines de Desenvolupament', role: 'toggleDevTools' },
+        { label: 'Recarregar', role: 'reload', accelerator: 'Ctrl+R' },
+        { label: 'Forçar Recàrrega', role: 'forceReload', accelerator: 'Ctrl+Shift+R' },
+        { label: 'Eines de Desenvolupament', role: 'toggleDevTools', accelerator: 'Ctrl+Shift+I' },
         { separator: true },
-        { label: 'Restablir Zoom', role: 'resetZoom' },
-        { label: 'Apropar Zoom', role: 'zoomIn' },
-        { label: 'Allunyar Zoom', role: 'zoomOut' },
+        { label: 'Restablir Zoom', role: 'resetZoom', accelerator: 'Ctrl+0' },
+        { label: 'Apropar Zoom', role: 'zoomIn', accelerator: 'Ctrl+Plus' },
+        { label: 'Allunyar Zoom', role: 'zoomOut', accelerator: 'Ctrl+-' },
         { separator: true },
-        { label: 'Pantalla Completa', role: 'togglefullscreen' },
+        { label: 'Pantalla Completa', role: 'togglefullscreen', accelerator: 'F11' },
         { separator: true },
         {
           label: "Mostrar Animació d'Inici",
