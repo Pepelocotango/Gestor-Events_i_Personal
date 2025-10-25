@@ -79,6 +79,31 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
     };
   }, []);
 
+  const formatAccelerator = (acc?: string) => {
+    if (!acc) return '';
+    // If it already contains symbol characters, return as-is to avoid double-translating
+    if (/[⌘⌥⌃]/.test(acc)) return acc;
+
+    let s = acc;
+    // Replace the generic token with the platform modifier (Cmd or Ctrl)
+    s = s.replace(/CmdOrCtrl/g, modifierKey);
+
+    // Normalize some token names to display-friendly symbols on mac
+    if (modifierKey === '⌘') {
+      s = s.replace(/\bAlt\b/g, '⌥');
+      s = s.replace(/\bOption\b/g, '⌥');
+      s = s.replace(/\bCtrl\b/g, '⌃');
+      s = s.replace(/\bPlus\b/g, '+');
+      s = s.replace(/\bMinus\b/g, '-');
+    } else {
+      // Non-mac: make small token normalizations
+      s = s.replace(/\bPlus\b/g, '+');
+      s = s.replace(/\bMinus\b/g, '-');
+    }
+
+    return s;
+  };
+
   const menuData: { label: string; items: MenuItem[] }[] = [
     {
       label: 'Arxiu',
@@ -143,13 +168,14 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
       items: [
         { label: 'Recarregar', role: 'reload', accelerator: 'CmdOrCtrl+R' },
         { label: 'Forçar Recàrrega', role: 'forceReload', accelerator: 'CmdOrCtrl+Shift+R' },
-        { label: 'Eines de Desenvolupament', role: 'toggleDevTools', accelerator: modifierKey === '⌘' ? '⌘+⌥+I' : 'Ctrl+Shift+I' },
+  // Use tokenized accelerator so we can format it consistently for each platform
+  { label: 'Eines de Desenvolupament', role: 'toggleDevTools', accelerator: 'CmdOrCtrl+Alt+I' },
         { separator: true },
         { label: 'Restablir Zoom', role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
         { label: 'Apropar Zoom', role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
         { label: 'Allunyar Zoom', role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
         { separator: true },
-        { label: 'Pantalla Completa', role: 'togglefullscreen', accelerator: modifierKey === '⌘' ? '⌃+⌘+F' : 'F11' },
+  { label: 'Pantalla Completa', role: 'togglefullscreen', accelerator: modifierKey === '⌘' ? 'Ctrl+CmdOrCtrl+F' : 'F11' },
         { separator: true },
         {
           label: "Mostrar Animació d'Inici",
@@ -208,7 +234,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
               <span>{item.label}</span>
             </span>
             {item.accelerator && <span className="text-xs text-muted-foreground">
-              {item.accelerator.includes('CmdOrCtrl') ? item.accelerator.replace('CmdOrCtrl', modifierKey) : item.accelerator}
+              {formatAccelerator(item.accelerator)}
             </span>}
           </button>
         );
