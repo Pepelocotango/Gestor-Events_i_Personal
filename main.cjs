@@ -1087,11 +1087,6 @@ ipcMain.handle('factory-reset', async () => {
   
   let success = true;
 
-// Gestor per obtenir la plataforma
-ipcMain.handle('get-platform', () => {
-  console.log("[IPC_IN] Rebut 'get-platform'.");
-  return process.platform;
-});
   let messages = [];
 
   const eliminarFitxerDeFormaSegura = (filePath, fileNameForMessage) => {

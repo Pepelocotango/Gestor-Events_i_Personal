@@ -48,7 +48,9 @@ let globalInitialLoadAttempted = false;
 
 const App: React.FC = () => {
   const mainDisplayRef = useRef<{ resize: () => void }>(null);
-  const [platformModifierKey, setPlatformModifierKey] = useState('Ctrl');
+  // Determina la tecla modificadora de la plataforma de forma síncrona a l'inici.
+  // Això evita el parpelleig de la UI que passava amb l'enfocament asíncron anterior.
+  const platformModifierKey = window.electronAPI?.getPlatformSync() === 'darwin' ? '⌘' : 'Ctrl';
   
   const [showSplash, setShowSplash] = useState(true);
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
@@ -118,19 +120,6 @@ const App: React.FC = () => {
     // Inicialitza els listeners de la store de Google un sol cop
     initializeGoogleAuthListeners();
   }, []);
-
-  useEffect(() => {
-    const fetchPlatform = async () => {
-      if (window.electronAPI?.getPlatform) {
-        const platform = await window.electronAPI.getPlatform();
-        setPlatformModifierKey(platform === 'darwin' ? '⌘' : 'Ctrl');
-      }
-    };
-    fetchPlatform();
-  }, []);
-
-
-
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 12500);

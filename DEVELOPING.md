@@ -1147,13 +1147,13 @@ Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
 
 Per garantir que les dreceres de teclat es mostrin de manera consistent i correcta a tota l'aplicació (p. ex., "⌘" a macOS i "Ctrl" a Windows/Linux), la lògica de detecció del sistema operatiu s'ha centralitzat.
 
--   **Font de la Veritat (`App.tsx`):** El component arrel `App.tsx` és ara l'únic responsable de detectar la plataforma.
-    -   Utilitza un `useEffect` que, en muntar-se el component, crida a `window.electronAPI.getPlatform()`.
-    -   El resultat s'emmagatzema en un estat de React: `const [platformModifierKey, setPlatformModifierKey] = useState('Ctrl');`.
-    -   Aquest estat s'actualitza a "⌘" si la plataforma és `darwin` (macOS).
+-   **Font de la Veritat (`App.tsx`):** El component arrel `App.tsx` és ara l'únic responsable de determinar la tecla modificadora específica de la plataforma.
+    -   Realitza una única crida **síncrona** a `window.electronAPI.getPlatformSync()` en el moment de la renderització inicial.
+    -   El resultat s'assigna a una **constant** local: `const platformModifierKey = window.electronAPI?.getPlatformSync() === 'darwin' ? '⌘' : 'Ctrl';`.
+    -   Aquest enfocament elimina la necessitat de `useState` i `useEffect`, evitant qualsevol parpelleig visual o estat intermedi incorrecte.
 
 -   **Propagació mitjançant Props:**
-    -   El valor de `platformModifierKey` es passa com a `prop` (`modifierKey`) als components fills que ho necessiten, com `CustomMenuBar.tsx`.
+    -   La constant `platformModifierKey` es passa com a `prop` (`modifierKey`) als components fills que ho necessiten, com ara `CustomMenuBar.tsx`.
 
 -   **Component Fill (`CustomMenuBar.tsx`):**
     -   El component del menú ja no conté cap lògica pròpia per detectar la plataforma.
