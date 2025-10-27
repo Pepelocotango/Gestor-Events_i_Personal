@@ -48,7 +48,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
 
   return (
-    <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-1 rounded-lg shadow-sm overflow-hidden bg-card text-card-foreground border border-border" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
+    <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-1 rounded-lg overflow-hidden bg-card text-card-foreground border border-border" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
       <div
         className="px-1 py-0.5 bg-muted cursor-pointer border-b border-border"
         onClick={(e) => {

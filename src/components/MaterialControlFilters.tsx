@@ -21,8 +21,8 @@ interface CheckboxListProps {
   idProp: string;
 }
 
-const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
-const commonCheckboxContainerClass = "max-h-40 overflow-y-auto p-2 border border-input rounded-md bg-muted/50";
+const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
+const commonCheckboxContainerClass = "max-h-40 overflow-y-auto p-2 border border-border rounded-md bg-muted/50";
 const commonLabelClass = "flex items-center space-x-2 cursor-pointer hover:bg-accent rounded p-1";
 
 const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
@@ -101,7 +101,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
               type="checkbox"
               checked={filters[field]?.includes(item[idProp])}
               onChange={() => handleMultiSelectChange(field, item[idProp])}
-              className="rounded border-input text-primary focus:ring-ring"
+              className="rounded border-border text-primary focus:ring-ring"
             />
             <span className="text-foreground">{item[displayProp]}</span>
           </label>

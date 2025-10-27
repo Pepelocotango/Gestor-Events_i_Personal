@@ -11,7 +11,7 @@ const createDefaultTechSheetForMigration = (eventFrame: EventFrame): TechSheetDa
     eventName: eventFrame.name,
     location: eventFrame.place || '',
     date: formatDateDMY(eventFrame.startDate),
-    showTime: '',
+    showTimes: [],
     showDuration: '',
     technicalProviders: [],
     generalNotes: '',
@@ -84,7 +84,7 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
         eventName: oldData.eventName || eventFrame.name,
         location: oldData.location || eventFrame.place || '',
         date: oldData.date || (eventFrame.startDate === eventFrame.endDate ? formatDateDMY(eventFrame.startDate) : `${formatDateDMY(eventFrame.startDate)} - ${formatDateDMY(eventFrame.endDate)}`),
-        showTime: oldData.showTime || '',
+        showTimes: oldData.showTime ? [{ id: 'migrated-time-1', time: oldData.showTime }] : [],
         showDuration: oldData.showDuration || '',
         technicalProviders: (oldData.technicalProviders || []).map((p: any) => ({
             ...p,

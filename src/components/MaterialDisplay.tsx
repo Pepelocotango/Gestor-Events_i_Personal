@@ -29,7 +29,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
+  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
 
   const categories = useMemo(() => Array.from(new Set(materialItems.map((item: MaterialItem) => item.category))).sort((a,b) => a.localeCompare(b, 'ca', { sensitivity: 'base' })), [materialItems]);
   const locations = useMemo(() => Array.from(new Set(materialItems.map((item: MaterialItem) => item.location).filter(Boolean))).sort((a,b) => a.localeCompare(b, 'ca', { sensitivity: 'base' })), [materialItems]);
@@ -158,7 +158,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   };
 
   const renderItemRow = (item: MaterialItem) => (
-    <div key={item.id} className="p-3 border border-border rounded-md bg-muted/50">
+    <li key={item.id} className="p-2 border border-border rounded-md bg-muted/50 hover:bg-accent transition-colors">
       <div className="flex justify-between items-start gap-2">
         <div className="w-2/5">
           <p className="font-semibold text-foreground">{item.name}</p>
@@ -179,7 +179,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
           </Tooltip>
         </div>
       </div>
-    </div>
+    </li>
   );
 
   return (
@@ -188,29 +188,33 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
         title="Gestor de Material"
         defaultOpen={true}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Columna del formulari (25%) */}
-          <div className="lg:col-span-1 bg-card text-card-foreground p-6 rounded-lg shadow-md">
-            <h4 className="text-lg font-medium mb-4">
-              {editingItem ? 'Editar Material' : 'Afegir Nou Material'}
-            </h4>
-            <MaterialForm
-              key={editingItem ? editingItem.id : 'new'}
-              initialData={editingItem || {}}
-              onSubmit={handleSubmit}
-              onCancel={editingItem ? resetForm : undefined}
-              submitButtonText={editingItem ? 'Actualitzar' : 'Afegir'}
-              categories={categories}
-              locations={locations}
-              materialItems={materialItems}
-            />
+          <div className="lg:col-span-1">
+            <CollapsibleSection
+              title={editingItem ? 'Editar Material' : 'Afegir Nou Material'}
+              defaultOpen={true}
+            >
+              <MaterialForm
+                key={editingItem ? editingItem.id : 'new'}
+                initialData={editingItem || {}}
+                onSubmit={handleSubmit}
+                onCancel={editingItem ? resetForm : undefined}
+                submitButtonText={editingItem ? 'Actualitzar' : 'Afegir'}
+                categories={categories}
+                locations={locations}
+                materialItems={materialItems}
+              />
+            </CollapsibleSection>
           </div>
 
           {/* Columna de la llista (75%) */}
-          <div className="lg:col-span-2 bg-card text-card-foreground p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-medium">Inventari</h4>
-              <div className="flex items-center gap-2">
+          <div className="lg:col-span-2">
+            <CollapsibleSection
+              title="Inventari"
+              defaultOpen={true}
+            >
+              <div className="flex items-center justify-end mb-2 gap-2">
                   <Tooltip text="Cercar per nom, categoria o ubicació">
                     <input type="search" placeholder="Cerca..." value={search} onChange={e => setSearch(e.target.value)} className={`${commonInputClass} mt-0 w-auto`} />
                   </Tooltip>
@@ -225,9 +229,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
                     </button>
                   </Tooltip>
               </div>
-            </div>
-
-            <div className="flex items-center gap-4 mb-3 border-b border-border pb-3">
+              <div className="flex items-center gap-4 mb-3 border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold">Ordenar per:</span>
                 <Tooltip text="Agrupar per categoria i ordenar dins de cada grup">
@@ -281,16 +283,19 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
                       headerClassName="bg-muted/50 text-md"
                       contentClassName="space-y-2"
                     >
-                      {items.map(renderItemRow)}
+                      <ul className="space-y-2 list-none">
+                        {items.map(renderItemRow)}
+                      </ul>
                     </CollapsibleSection>
                   ))
                 ) : (
-                  <div className="space-y-2">
+                  <ul className="space-y-2">
                     {(sortedItems as MaterialItem[]).map(renderItemRow)}
-                  </div>
+                  </ul>
                 )
               ) : <p className="text-center text-muted-foreground">No s'ha trobat material o l'inventari està buit.</p>}
             </div>
+          </CollapsibleSection>
           </div>
         </div>
       </CollapsibleSection>

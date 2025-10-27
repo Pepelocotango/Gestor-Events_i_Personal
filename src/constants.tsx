@@ -228,3 +228,9 @@ export const RestoreIcon: FC<{ className?: string }> = ({ className = "w-5 h-5" 
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
     </svg>
 );
+
+export const CloudArrowUpIcon: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M17.25 8.25c0 3.105-2.686 5.625-6 5.625S5.25 11.355 5.25 8.25 7.936 2.625 11.25 2.625s6 2.686 6 5.625z" />
+  </svg>
+);

@@ -451,7 +451,7 @@ export const exportTechSheetToPdf = async (
         [{ content: 'NOM DEL BOLO:', styles: labelStyles }, sane(formData.eventName)],
         [{ content: 'LLOC:', styles: labelStyles }, sane(formData.location)],
         [{ content: 'DATA:', styles: labelStyles }, sane(formData.date)],
-        [{ content: 'HORA:', styles: labelStyles }, sane(formData.showTime)],
+        [{ content: 'HORA:', styles: labelStyles }, formData.showTimes && formData.showTimes.length > 0 ? formData.showTimes.map(st => st.time).join(', ') : '-'],
         [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
     ];
     autoTable(pdf, { 

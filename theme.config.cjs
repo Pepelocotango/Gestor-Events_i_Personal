@@ -15,11 +15,11 @@ light: {
   'background':           '35 25% 92%',
   'card':                 '35 15% 85%',
   'popover':              '35 15% 85%',
-  'secondary':            '35 15% 82%',
-  'muted':                '35 15% 82%',
-  'border':               '35 10% 70%',
+  'secondary': '35 20% 88%',
+  'muted': '35 10% 83%',
+  'border':               '35 10% 50%',
   'input':                '35 15% 88%',
-  'accent':               '35 15% 83%',
+  'accent': '220 15% 86%',
   
   // --- TEXTOS AMB BASE GRIS/NEGRE (MÉS FOSCOS I NEUTRES) ---
   'foreground':           '240 10% 10%', // Text principal quasi negre, amb un to fred subtil.
@@ -52,11 +52,11 @@ light: {
     'background':           '40 6% 10%', // Color de fons principal de l'aplicació en mode fosc.
     'card':                 '40 6% 15%', // Color de fons per a "targetes" en mode fosc.
     'popover':              '40 6% 15%', // Color de fons per a "popovers" en mode fosc.
-    'border':               '40 6% 21%', // Color per a les vores en mode fosc.
+    'border':               '40 6% 50%', // Color per a les vores en mode fosc.
     'input':                '40 6% 21%', // Color de fons per als camps d'entrada en mode fosc.
-    'secondary':            '40 6% 25%', // Color per a fons secundaris en mode fosc.
-    'muted':                '40 6% 25%', // Color de fons per a elements atenuats en mode fosc.
-    'accent':               '40 6% 25%', // Color per a l'efecte "hover" en mode fosc.
+    'secondary': '40 6% 20%',
+    'muted': '40 4% 17%',
+    'accent': '220 10% 22%',
     
     // --- TEXTOS ---
     'foreground':           '40 5% 96%', // Color principal del text en mode fosc.
