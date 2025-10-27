@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { SunIcon, MoonIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ClockIcon } from '../../constants';
 
 // Define the structure of menu items
 interface MenuItem {
@@ -20,6 +21,12 @@ interface CustomMenuBarProps {
   isDocumentOpen: boolean;
   hasUnsavedChanges: boolean;
   recentFiles: string[];
+  theme: string;
+  onToggleTheme: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onOpenHistory: () => void;
+  modifierKey: string;
 }
 
 const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
@@ -30,6 +37,12 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   isDocumentOpen,
   hasUnsavedChanges,
   recentFiles,
+  theme,
+  onToggleTheme,
+  onUndo,
+  onRedo,
+  onOpenHistory,
+  modifierKey,
 }) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,6 +78,31 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const formatAccelerator = (acc?: string) => {
+    if (!acc) return '';
+    // If it already contains symbol characters, return as-is to avoid double-translating
+    if (/[⌘⌥⌃]/.test(acc)) return acc;
+
+    let s = acc;
+    // Replace the generic token with the platform modifier (Cmd or Ctrl)
+    s = s.replace(/CmdOrCtrl/g, modifierKey);
+
+    // Normalize some token names to display-friendly symbols on mac
+    if (modifierKey === '⌘') {
+      s = s.replace(/\bAlt\b/g, '⌥');
+      s = s.replace(/\bOption\b/g, '⌥');
+      s = s.replace(/\bCtrl\b/g, '⌃');
+      s = s.replace(/\bPlus\b/g, '+');
+      s = s.replace(/\bMinus\b/g, '-');
+    } else {
+      // Non-mac: make small token normalizations
+      s = s.replace(/\bPlus\b/g, '+');
+      s = s.replace(/\bMinus\b/g, '-');
+    }
+
+    return s;
+  };
 
   const menuData: { label: string; items: MenuItem[] }[] = [
     {
@@ -108,36 +146,36 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
             { label: 'Restaurar Configuració de Fàbrica...', action: 'factory-reset' },
           ]
         },
-        { label: 'Tema Clar/Fosc', action: 'toggle-theme' },
-        { separator: true },
-        { label: 'Sortir', action: 'quit' },
+        {separator: true},
+        {label: 'Sortir', action: 'quit', accelerator: 'CmdOrCtrl+Q'},
       ],
     },
     {
       label: 'Edita',
       items: [
-        { label: 'Desfer', action: 'undo', accelerator: 'Ctrl+Z', disabled: !canUndo },
-        { label: 'Refer', action: 'redo', accelerator: 'Ctrl+Y', disabled: !canRedo },
+        { label: 'Desfer', action: 'undo', accelerator: 'CmdOrCtrl+Z', disabled: !canUndo },
+        { label: 'Refer', action: 'redo', accelerator: 'CmdOrCtrl+Y', disabled: !canRedo },
         { separator: true },
-        { label: 'Tallar', role: 'cut', accelerator: 'Ctrl+X' },
-        { label: 'Copiar', role: 'copy', accelerator: 'Ctrl+C' },
-        { label: 'Enganxar', role: 'paste', accelerator: 'Ctrl+V' },
+        { label: 'Tallar', role: 'cut', accelerator: 'CmdOrCtrl+X' },
+        { label: 'Copiar', role: 'copy', accelerator: 'CmdOrCtrl+C' },
+        { label: 'Enganxar', role: 'paste', accelerator: 'CmdOrCtrl+V' },
         { separator: true },
-        { label: 'Seleccionar tot', role: 'selectAll', accelerator: 'Ctrl+A' },
+        { label: 'Seleccionar tot', role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
       ],
     },
     {
       label: 'Veure',
       items: [
-        { label: 'Recarregar', role: 'reload' },
-        { label: 'Forçar Recàrrega', role: 'forceReload' },
-        { label: 'Eines de Desenvolupament', role: 'toggleDevTools' },
+        { label: 'Recarregar', role: 'reload', accelerator: 'CmdOrCtrl+R' },
+        { label: 'Forçar Recàrrega', role: 'forceReload', accelerator: 'CmdOrCtrl+Shift+R' },
+  // Use tokenized accelerator so we can format it consistently for each platform
+  { label: 'Eines de Desenvolupament', role: 'toggleDevTools', accelerator: 'CmdOrCtrl+Alt+I' },
         { separator: true },
-        { label: 'Restablir Zoom', role: 'resetZoom' },
-        { label: 'Apropar Zoom', role: 'zoomIn' },
-        { label: 'Allunyar Zoom', role: 'zoomOut' },
+        { label: 'Restablir Zoom', role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
+        { label: 'Apropar Zoom', role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
+        { label: 'Allunyar Zoom', role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
         { separator: true },
-        { label: 'Pantalla Completa', role: 'togglefullscreen' },
+  { label: 'Pantalla Completa', role: 'togglefullscreen', accelerator: modifierKey === '⌘' ? 'Ctrl+CmdOrCtrl+F' : 'F11' },
         { separator: true },
         {
           label: "Mostrar Animació d'Inici",
@@ -149,7 +187,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   ];
 
   const DropdownMenu: React.FC<{ items: MenuItem[] }> = ({ items }) => (
-    <div className="absolute top-full left-0 mt-1 py-1 bg-popover text-popover-foreground border border-border rounded-md shadow-lg z-50 min-w-[240px]">
+    <div className="absolute top-full left-0 mt-1 py-1 bg-popover text-popover-foreground border border-border rounded-md z-50 min-w-[240px]">
       {items.map((item, index) => {
         if (item.separator) {
           return <div key={`separator-${index}`} className="h-px bg-border my-1" />;
@@ -161,7 +199,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
                 <span>{item.label}</span>
                 <svg className="w-4 h-4 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
               </div>
-              <div className="absolute left-full -top-1 mt-0 py-1 bg-popover border border-border rounded-md shadow-lg hidden group-hover:block min-w-max">
+              <div className="absolute left-full -top-1 mt-0 py-1 bg-popover border border-border rounded-md hidden group-hover:block min-w-max">
                 {item.submenu.map(subItem => (
                    <button
                       key={subItem.label}
@@ -195,7 +233,9 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
               <span className="w-4 mr-2 text-center">{item.checked ? '✓' : ''}</span>
               <span>{item.label}</span>
             </span>
-            {item.accelerator && <span className="text-xs text-muted-foreground">{item.accelerator}</span>}
+            {item.accelerator && <span className="text-xs text-muted-foreground">
+              {formatAccelerator(item.accelerator)}
+            </span>}
           </button>
         );
       })}
@@ -203,7 +243,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   );
 
   return (
-    <div ref={menuRef} className="relative flex h-8 bg-secondary text-secondary-foreground w-full" style={{ userSelect: 'none' }}>
+    <div ref={menuRef} className="relative flex h-8 bg-secondary text-secondary-foreground w-full justify-between" style={{ userSelect: 'none' }}>
       <div className="flex">
         {menuData.map(menu => (
           <div key={menu.label} className="relative">
@@ -217,6 +257,41 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
             {openMenu === menu.label && <DropdownMenu items={menu.items} />}
           </div>
         ))}
+      </div>
+      
+      {/* Icones de desfer/refer/historial i tema a la dreta */}
+      <div className="flex items-center gap-1 px-2">
+        <button
+          onClick={onUndo}
+          disabled={!canUndo}
+          className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Desfer (Ctrl+Z)"
+        >
+          <ArrowUturnLeftIcon className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onRedo}
+          disabled={!canRedo}
+          className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Refer (Ctrl+Y)"
+        >
+          <ArrowUturnRightIcon className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onOpenHistory}
+          disabled={!canUndo && !canRedo}
+          className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Historial de canvis"
+        >
+          <ClockIcon className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onToggleTheme}
+          className="p-1 rounded hover:bg-accent focus:outline-none"
+          title={theme === 'dark' ? 'Canviar a tema clar' : 'Canviar a tema fosc'}
+        >
+          {theme === 'dark' ? <SunIcon className="w-5 h-5 text-warning" /> : <MoonIcon className="w-5 h-5" />}
+        </button>
       </div>
     </div>
   );

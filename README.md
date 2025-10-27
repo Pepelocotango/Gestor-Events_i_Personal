@@ -3,6 +3,7 @@
 ### NOVA BRANCA DESENVOLUPAMENT --> DEV
  CHECKPOINT_V1.2.0
 
+
 ### `README.md`**
 
 # Gestor d'Esdeveniments i Personal V1.2.0
@@ -67,7 +68,6 @@ L'aplicació es construeix amb Electron 38, la qual cosa defineix els següents 
 
 ---
 
-
 ### Instruccions per Plataforma
 
 #### 🪟 **Windows**
@@ -89,7 +89,14 @@ Oferim dues versions per a Windows:
 
 Per a macOS, la distribució es fa a través d'un fitxer `.dmg`:
 
-> **Nota IMPORTANT per a macOS:** Com que l'aplicació no està descarregada des de l'App Store ni està notariada per Apple, macOS la bloquejarà per defecte. Per obrir-la per primera vegada, has de fer **clic dret (o Ctrl+clic) sobre la icona de l'aplicació, seleccionar "Obrir"** i confirmar l'acció al diàleg de seguretat que apareixerà. Aquest pas només és necessari la primera vegada.
+> **Nota IMPORTANT per a macOS:** Com que l'aplicació no està signada ni notariada per Apple, el sistema de seguretat (Gatekeeper) la bloquejarà per defecte. Aquest és un comportament esperat. Per obrir-la per primera vegada, segueix aquests passos amb atenció:
+>
+> 1.  **Intent d'Obertura Inicial:** Després de copiar l'aplicació a la teva carpeta d'Aplicacions, fes **clic-dret** (o **Ctrl+clic**) sobre la seva icona i selecciona **"Obrir"**.
+> 2.  **Primer Avís:** És molt probable que macOS mostri un avís dient que no pot verificar el desenvolupador i només et doni l'opció de "Cancel·lar" o "Moure a la Paperera". Simplement, fes clic a **"Cancel·lar"**.
+> 3.  **Segon Intent (Confirmació):** Torna a fer **clic-dret** (o **Ctrl+clic**) sobre la icona de l'aplicació i selecciona **"Obrir"** un altre cop.
+> 4.  **Obertura Final:** Ara, l'avís que apareixerà serà diferent i inclourà un botó per **"Obrir"** l'aplicació. Fes clic en aquest botó per executar-la.
+>
+> Aquest procés només és necessari la primera vegada. Després d'això, podràs obrir l'aplicació amb un doble clic normal.
 
 *   Descarrega el fitxer `...-macOS-10.15+.dmg`.
 *   Fes-hi doble clic per obrir-lo. S'obrirà una finestra del Finder.
@@ -104,7 +111,6 @@ Per a Linux, utilitzem el format `AppImage`, que no requereix instal·lació:
 *   **Dona-li permisos d'execució.** La manera més fàcil és fent clic dret sobre el fitxer > Propietats > Permisos > i marcar la casella "Permet executar el fitxer com un programa".
     *   Alternativament, des de la terminal: `chmod +x GestorEsdeveniments-*.AppImage`
 *   Fes doble clic sobre el fitxer per executar l'aplicació.
-
 ---
 
 

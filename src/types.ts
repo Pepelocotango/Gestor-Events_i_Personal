@@ -84,9 +84,9 @@ export interface TechSheetData {
   eventName: string;
   location: string;
   date: string;
-  showTime: string;
   showDuration: string;
   technicalProviders: TechSheetProvider[];
+  showTimes?: { id: string; time: string }[];
 
   // --- NEW FIELDS (optional for backwards compatibility) ---
   generalNotes?: string;
@@ -491,6 +491,7 @@ export interface ElectronAPI {
   onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
   onSyncError: (callback: (error: string) => void) => () => void;
   onSyncSuccess: (callback: (message: string) => void) => () => void;
+  getPlatformSync: () => string;
 }
 
 declare global {

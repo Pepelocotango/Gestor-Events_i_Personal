@@ -28,6 +28,8 @@ const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 
 ```
 - **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Això optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
 
+**Shortcuts de teclat segons plataforma:** La UI ara mostra els shortcuts adequats segons la plataforma (Windows/Linux vs macOS). La detecció de la plataforma s'ha centralitzat a `App.tsx` per a una major fiabilitat, passant la tecla modificadora ("Ctrl" o "⌘") com a `prop` als components fills com el menú personalitzat.
+
 Consulta les seccions corresponents per a detalls i exemples complets.
 
 ## 1. Visió General i Pila Tecnològica
@@ -265,7 +267,7 @@ Per solucionar un bug de renderitzat del menú natiu d'Electron en configuracion
     -   **Accions del Procés Principal:** Les accions que requereixen accés a les API d'Electron o Node.js (com obrir diàlegs de fitxers, gestionar el zoom de la finestra o tancar l'aplicació) són gestionades directament dins d'aquest listener.
     -   **Accions del Procés de Renderitzat:** Les accions que afecten l'estat de la UI (com canviar de tema, desar dades, obrir modals, o executar desfer/refer) es redirigeixen al procés de renderitzat a través del canal IPC existent `'menu-action'`, on són gestionades pel listener corresponent a `App.tsx`.
 
-Aquest enfocament no només soluciona el bug original, sinó que també proporciona un control total sobre l'aparença i el comportament del menú, permetent una integració més profunda amb el disseny de l'aplicació. El menú "Edita" s'ha afegit seguint aquest mateix patró.
+Aquest enfocament no només soluciona el bug original, sinó que també proporciona un control total sobre l'aparença i el comportament del menú, permetent una integració més profunda amb el disseny de l'aplicació. El menú "Edita" s'ha afegit seguint aquest mateix patró. Les dreceres de teclat per a accions comunes com "Eines de Desenvolupament" i "Pantalla Completa" s'han actualitzat per mostrar els estàndards de cada plataforma (`⌘+⌥+I` i `⌃+⌘+F` a macOS respectivament).
 
 ### 3.4. API Interna: Gestors d'IPC (Inter-Process Communication)
 
@@ -1140,6 +1142,25 @@ Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
 5.  Això és tot. L'script actualitzarà automàticament tots els fitxers necessaris. El comando `npm run build` també executa aquest script, de manera que els canvis sempre estaran sincronitzats en fer una nova compilació.
 
 ---
+
+### 9.6. Detecció de Plataforma Centralitzada per a Dreceres de Teclat
+
+Per garantir que les dreceres de teclat es mostrin de manera consistent i correcta a tota l'aplicació (p. ex., "⌘" a macOS i "Ctrl" a Windows/Linux), la lògica de detecció del sistema operatiu s'ha centralitzat.
+
+-   **Font de la Veritat (`App.tsx`):** El component arrel `App.tsx` és ara l'únic responsable de determinar la tecla modificadora específica de la plataforma.
+    -   Realitza una única crida **síncrona** a `window.electronAPI.getPlatformSync()` en el moment de la renderització inicial.
+    -   El resultat s'assigna a una **constant** local: `const platformModifierKey = window.electronAPI?.getPlatformSync() === 'darwin' ? '⌘' : 'Ctrl';`.
+    -   Aquest enfocament elimina la necessitat de `useState` i `useEffect`, evitant qualsevol parpelleig visual o estat intermedi incorrecte.
+
+-   **Propagació mitjançant Props:**
+    -   La constant `platformModifierKey` es passa com a `prop` (`modifierKey`) als components fills que ho necessiten, com ara `CustomMenuBar.tsx`.
+
+-   **Component Fill (`CustomMenuBar.tsx`):**
+    -   El component del menú ja no conté cap lògica pròpia per detectar la plataforma.
+    -   Simplement rep la `prop` `modifierKey` i la utilitza directament per renderitzar la drecera de teclat correcta.
+
+Aquest patró millora la mantenibilitat, elimina codi duplicat i assegura que tota la UI reaccioni de manera consistent a la plataforma en què s'executa l'aplicació.
+
 ## Arquitectura General (Resum)
 
 - **Frontend:** React amb Vite.

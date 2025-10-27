@@ -1086,6 +1086,7 @@ ipcMain.handle('factory-reset', async () => {
   console.log("Iniciant Restauració de Fàbrica...");
   
   let success = true;
+
   let messages = [];
 
   const eliminarFitxerDeFormaSegura = (filePath, fileNameForMessage) => {

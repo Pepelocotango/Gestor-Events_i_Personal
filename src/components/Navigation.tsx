@@ -13,13 +13,13 @@ const Navigation: React.FC = () => {
   const getLinkClassName = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-1 px-1.5 text-xs font-medium rounded-md transition-colors ${
       isActive
-        ? 'bg-primary text-primary-foreground shadow'
+        ? 'bg-primary text-primary-foreground'
         : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
     }`;
 
   return (
     <nav className="flex justify-center">
-      <div className="flex space-x-0.5 bg-muted p-1 rounded-lg">
+      <div className="flex space-x-2 bg-muted p-1 rounded-lg border border-border">
         <Tooltip text="Anar a la vista principal del calendari i llista d'esdeveniments">
           <NavLink to="/" className={getLinkClassName}>
             <CalendarIcon className="h-5 w-5" />

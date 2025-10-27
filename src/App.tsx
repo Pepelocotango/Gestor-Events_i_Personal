@@ -48,6 +48,9 @@ let globalInitialLoadAttempted = false;
 
 const App: React.FC = () => {
   const mainDisplayRef = useRef<{ resize: () => void }>(null);
+  // Determina la tecla modificadora de la plataforma de forma síncrona a l'inici.
+  // Això evita el parpelleig de la UI que passava amb l'enfocament asíncron anterior.
+  const platformModifierKey = window.electronAPI?.getPlatformSync() === 'darwin' ? '⌘' : 'Ctrl';
   
   const [showSplash, setShowSplash] = useState(true);
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
@@ -117,9 +120,6 @@ const App: React.FC = () => {
     // Inicialitza els listeners de la store de Google un sol cop
     initializeGoogleAuthListeners();
   }, []);
-
-
-
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 12500);
@@ -937,10 +937,11 @@ const handleSaveDocument = async (): Promise<boolean> => {
   return (
       <HashRouter>
         <ErrorBoundary>
-          <div className="min-h-screen flex flex-col bg-background text-foreground">
+          <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
             {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
-            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-sm border-b border-border">
+            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
             <CustomMenuBar
+              modifierKey={platformModifierKey}
               canUndo={canUndo}
               canRedo={canRedo}
               splashScreenEnabled={splashScreenEnabled}
@@ -948,8 +949,13 @@ const handleSaveDocument = async (): Promise<boolean> => {
               isDocumentOpen={isDocumentOpen}
               hasUnsavedChanges={hasUnsavedChanges}
               recentFiles={recentFiles}
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              onUndo={() => useEventDataStore.getState().undoWithToast()}
+              onRedo={() => useEventDataStore.getState().redoWithToast()}
+              onOpenHistory={() => openModalFromStore('history')}
             />
-            <div className="px-1 py-1">
+            <div className="px-1 py-1 border-t border-border">
               <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
                 <Controls
                   theme={theme}
@@ -963,7 +969,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             </div>
           </header>
 
-          <main className="flex-grow px-1 pt-2">
+          <main className="flex-grow px-1 pt-2 overflow-y-auto">
             {!isDocumentOpen ? (
               <WelcomeScreen
                 recentFiles={recentFiles}

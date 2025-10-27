@@ -59,4 +59,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   factoryReset: () => ipcRenderer.invoke('factory-reset'),
   log: (message, data) => ipcRenderer.send('log-message', message, data),
   loadAppData: () => ipcRenderer.invoke('load-app-data'),
+  getPlatformSync: () => process.platform,
 });
