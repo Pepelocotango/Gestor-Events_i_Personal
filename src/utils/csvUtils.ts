@@ -86,6 +86,7 @@ export const exportEventListToCsv = async (
         defaultPath: fileName,
         filters: [{ name: 'CSV', extensions: ['csv'] }],
         data: "\uFEFF" + csvContent,
+        isDocumentSave: false, // Indica al backend que això NO és un desat de document
       });
       if (result.success) {
         showToast('CSV desat amb èxit!', 'success');
@@ -139,6 +140,7 @@ export const exportMaterialControlCsv = async (
         defaultPath: fileName,
         filters: [{ name: 'CSV', extensions: ['csv'] }],
         data: csvContent,
+        isDocumentSave: false, // Indica al backend que això NO és un desat de document
       });
       if (result.success) {
         showToast('CSV desat amb èxit!', 'success');

@@ -42,13 +42,13 @@ jobs:
 
       - name: 8. Creació del paquet ZIP per a macOS
         run: |
-          DMG_NAME="GestorEsdevenimentsPersonal_V1.2.0-macOS-10.15+.dmg"
-          ZIP_NAME="GestorEsdevenimentsPersonal_V1.2.0-macOS.zip"
+          DMG_NAME="GestorEsdevenimentsPersonal_V1.3.0-macOS-10.15+.dmg"
+          ZIP_NAME="GestorEsdevenimentsPersonal_V1.3.0-macOS.zip"
           mv "dist/${DMG_NAME}" .
           zip -r "${ZIP_NAME}" "${DMG_NAME}" LICENSE README.md DEVELOPING.md "examples json"
 
       - name: 9. Pujada del ZIP de macOS com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdevenimentsPersonal_V1.2.0-macOS.zip
-          path: GestorEsdevenimentsPersonal_V1.2.0-macOS.zip
+          name: GestorEsdevenimentsPersonal_V1.3.0-macOS.zip
+          path: GestorEsdevenimentsPersonal_V1.3.0-macOS.zip

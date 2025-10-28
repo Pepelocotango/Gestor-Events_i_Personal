@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveSessionData: (key, value) => ipcRenderer.invoke('save-session-data', { key, value }),
   getRecentFiles: () => ipcRenderer.invoke('get-recent-files'),
   addRecentFile: (filePath) => ipcRenderer.invoke('add-recent-file', filePath),
+  getAppMetadata: () => ipcRenderer.invoke('get-app-metadata'),
 
   // Google Integration
   loadGoogleConfig: () => ipcRenderer.invoke('load-google-config'),
@@ -57,7 +58,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Misc & Obsolete
   factoryReset: () => ipcRenderer.invoke('factory-reset'),
-  log: (message, data) => ipcRenderer.send('log-message', message, data),
   loadAppData: () => ipcRenderer.invoke('load-app-data'),
   getPlatformSync: () => process.platform,
+  openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
+  openBackupsFolder: () => ipcRenderer.invoke('open-backups-folder'),
 });
+
+// Expose electron-log to the renderer process
+const log = require('electron-log');
+contextBridge.exposeInMainWorld('electronLog', log.functions);

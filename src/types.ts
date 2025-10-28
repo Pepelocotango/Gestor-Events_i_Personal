@@ -252,6 +252,7 @@ export type ModalType =
   | 'confirmDelete'
   | 'history'
   | 'googleEventDetails'
+  | 'about'
   | null;
 
 export interface ModalData {
@@ -428,6 +429,7 @@ export interface ShowSaveDialogOptions {
   defaultPath: string;
   filters: { name: string; extensions: string[] }[];
   data: Buffer | string;
+  isDocumentSave?: boolean;
 }
 
 export interface ShowSaveDialogResult {
@@ -460,6 +462,7 @@ export interface ElectronAPI {
   saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;
   getRecentFiles: () => Promise<string[]>;
   addRecentFile: (filePath: string) => Promise<{ success: boolean; recentFiles: string[] }>;
+  getAppMetadata: () => Promise<{ name: string; version: string; description: string; }>;
 
   // Google Integration
   loadGoogleConfig: () => Promise<GoogleConfig | null>;
@@ -483,7 +486,8 @@ export interface ElectronAPI {
 
   // Misc & Obsolete
   factoryReset: () => Promise<{ success: boolean; message?: string }>;
-  log: (message: string, data?: any) => void;
+  openLogsFolder: () => Promise<{ success: boolean; message?: string }>;
+  openBackupsFolder: () => Promise<{ success: boolean; message?: string }>;
   // Obsolete - kept for safety, should be removed later
   loadAppData: () => Promise<any>;
   saveAppData: (data: AppData) => Promise<{ success: boolean; message?: string }>;
@@ -497,5 +501,11 @@ export interface ElectronAPI {
 declare global {
   interface Window {
     electronAPI?: ElectronAPI;
+    electronLog?: {
+      debug: (...args: any[]) => void;
+      info: (...args: any[]) => void;
+      warn: (...args: any[]) => void;
+      error: (...args: any[]) => void;
+    };
   }
 }

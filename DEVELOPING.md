@@ -1,12 +1,12 @@
 branca de desenvolupament * REFAC_OK-PER-REVISAR16-9-25 ## ->PROVES DE REFACTORITZACIÓ
-## DEVELOPING.md V1.2.0
+## DEVELOPING.md V1.3.0
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
-# NOVETATS V1.2.0 (Setembre 2025)
+# NOVETATS V1.3.0 (Octubre 2025)
 
 **Resum de canvis tècnics recents:**
 - Refactorització completa de la gestió d'estat amb Zustand i zundo: stores independents, historial desfer/refer, partialize memoitzada per evitar bucles infinits.
@@ -161,22 +161,33 @@ Les rutes principals es defineixen com a constants a l'inici del fitxer:
     - `managedAppCalendars`: Una llista de tots els calendaris que l'aplicació ha creat i sobre els quals té permís d'escriptura.
     - `selectedCalendarIds`: Una llista d'IDs de calendaris (tant gestionats com externs) que l'usuari vol visualitzar al calendari principal.
 
-#### Logs de Sessió
+#### Logs de Sessió amb `electron-log`
 
-Per facilitar la depuració, l'aplicació implementa un sistema de logging robust:
+Per facilitar la depuració i mantenir uns registres nets en producció, l'aplicació utilitza la llibreria estàndard `electron-log`.
 
--   **Creació de Logs:** A cada inici, es crea un nou fitxer de log a `LOGS_DIR` amb el format `app-<timestamp>.log`.
--   **Redirecció de Consola:** Totes les crides a `console.log`, `console.warn` i `console.error` des del procés principal són interceptades i redirigides a la funció `logToFile`, que les escriu al fitxer de log de la sessió actual i les mostra simultàniament a la terminal.
--   **Logs del Frontend:** Els missatges de log generats al frontend (a través del servei `logger.ts`) s'envien al backend mitjançant el canal IPC `log-message` i s'escriuen al mateix fitxer, prefixats amb `[FRONTEND]`.
--   **Rotació Automàtica:** La funció `rotateLogs` s'executa a l'inici per garantir que només es conservin els 20 fitxers de log més recents, evitant l'acumulació excessiva d'arxius.
+-   **Nivells de Log:** S'ha implementat un sistema de nivells de log semàntics:
+    -   `debug`: Informació detallada només rellevant per al desenvolupament (p. ex., "[IPC_IN] Rebut 'accio'"). Aquest nivell està desactivat per defecte en producció.
+    -   `info`: Esdeveniments importants del flux normal (p. ex., "Fitxer desat correctament").
+    -   `warn`: Situacions inesperades que no aturen l'aplicació (p. ex., "El fitxer service-account.json no es troba").
+    -   `error`: Errors crítics que han provocat una fallada.
+-   **Configuració per Entorn:**
+    -   **Desenvolupament:** Es registren tots els nivells (`debug` i superiors) tant a la consola com al fitxer.
+    -   **Producció:** Només es registren els nivells `info`, `warn` i `error` al fitxer, per mantenir-lo concís i rellevant.
+-   **Integració Transparent:** `electron-log` sobreescriu automàticament els mètodes de `console` (`log`, `error`, etc.). Això permet que les crides de log des del frontend siguin capturades pel backend i escrites al fitxer de log sense necessitat de cap canal IPC personalitzat.
+-   **Accés per a l'Usuari:** S'ha afegit una opció de menú ("Ajuda -> Obrir Carpeta de Logs") que obre directament el directori on es desen els fitxers de log, facilitant a l'usuari final l'enviament de registres per a la depuració.
+-   **Rotació per Mida:** En lloc de crear un fitxer nou a cada sessió, ara s'utilitza un fitxer principal (`main.log`). Quan aquest fitxer arriba a 1MB, es reanomena amb un timestamp (p. ex., `main.163...log`) i se'n crea un de nou.
+-   **Retenció Automàtica:** El sistema conserva un màxim de 10 fitxers de log (1 actiu i 9 arxivats), eliminant automàticament els més antics per optimitzar l'ús de disc.
 
-#### Còpies de Seguretat (Backups)
+#### Còpies de Seguretat Contextuals (Backups)
 
-Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de seguretat automàtic i millorat:
+El sistema de còpies de seguretat s'ha fet més intel·ligent per evitar backups innecessaris.
 
--   **Activació:** La funció `createBackup(filePath)` es crida automàticament des dels gestors IPC `save-file` i `show-save-dialog` cada vegada que un document es desa amb èxit.
--   **Nomenclatura:** Cada backup es desa a `BACKUP_DIR`. El nom del fitxer ara inclou el nom del document original per a una millor identificació (p. ex., `backup-ElMeuProjecte-2025-09-20T103000.json`), a més d'un timestamp per garantir que cada còpia sigui única.
--   **Neteja Automàtica:** La funció `cleanupOldBackups(filePath)` s'executa també després de cada desat. Revisa el directori de backups i elimina els més antics per a aquell document específic, conservant només els 5 més recents.
+-   **Activació Contextual:** Les còpies de seguretat només es creen quan es desa un **document de dades principal** (`.json`), i **no** quan s'exporten altres tipus de fitxers (PDF, CSV).
+-   **Implementació Tècnica:**
+    -   El gestor IPC `show-save-dialog` a `main.cjs` ara accepta un paràmetre booleà opcional: `isDocumentSave`.
+    -   La lògica de `createBackup()` només s'executa si `isDocumentSave` és `true`.
+    -   Totes les crides des del frontend (`App.tsx`, `pdfGenerator.ts`, etc.) han estat actualitzades per passar aquest flag correctament.
+-   **Nomenclatura i Neteja:** La nomenclatura (amb el nom del document original) i la neteja automàtica (conservant els 5 backups més recents per document) es mantenen.
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 
@@ -299,6 +310,7 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `google-disconnect`: Desconnecta el compte de Google i elimina tots els calendaris gestionats.
 
 -   **Accions de l'Aplicació:**
+    -   `get-app-metadata`: Retorna metadades de l'aplicació (nom, versió, descripció) llegides de `package.json` i `metadata.json`.
     -   `factory-reset`: Realitza una restauració de fàbrica eliminant els fitxers de configuració de l'aplicació.
     -   `quit-application`: Inicia el procés de tancament definitiu de l'aplicació.
 

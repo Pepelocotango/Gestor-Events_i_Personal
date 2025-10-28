@@ -1,12 +1,11 @@
 ![Captura de pantalla del gestor d'events i personal](imatges/en_construcció_GV.png)
 
 ### NOVA BRANCA DESENVOLUPAMENT --> DEV
- CHECKPOINT_V1.2.0
 
 
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal V1.2.0
+# Gestor d'Esdeveniments i Personal V1.3.0
 
 Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material amb control d'estoc.
 
@@ -39,7 +38,10 @@ L'aplicació ofereix les següents eines:
 
 *   **Connectivitat i Gestió de Dades:**
     *   **Integració amb Google Calendar:** Sincronitza els esdeveniments de l'aplicació a un calendari dedicat de Google i visualitza altres calendaris teus en mode de només lectura.
-        > **AVÍS IMPORTANT:** La integració amb Google Calendar està actualment en **mode de proves**. Perquè la sincronització funcioni, Google requereix que el desenvolupador afegeixi manualment el teu correu electrònic a la llista de "testers" autoritzats del projecte. Si vols utilitzar aquesta funcionalitat, si us plau, contacta amb l'autor.
+        
+        > **AVÍS IMPORTANT:** La integració amb Google Calendar requereix una autorització manual per part del desenvolupador.
+        Perquè la sincronització funcioni, Google requereix que el desenvolupador afegeixi manualment el teu correu electrònic a la llista de "testers" autoritzats del projecte. Si vols utilitzar aquesta funcionalitat, si us plau, contacta amb l'autor, per a que el teu compte de Google , sigui afegit a la llista d'usuaris permesos.
+
     *   **Importació/Exportació:** Desa i carrega totes les dades de l'aplicació en format JSON. La càrrega de dades de personal i material permet fusionar o reemplaçar la informació existent.
     *   **Exportació a PDF/CSV:** Exporta resums, llistes de personal, inventaris i fitxes de bolo a formats professionals com PDF i CSV.
 
@@ -165,9 +167,9 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
   * Estat global optimitzat amb selectors independents per evitar bucles infinits de renderitzat.
   * Historial desfer/refer interactiu amb modal, botons i descripcions clares d'acció.
 
-* **Backups i Tancament Intel·ligent:**
-  * Diàleg de sortida únic amb opcions clares: Desa, Desa com..., Tanca sense desar, Cancel·la.
-  * Backups automàtics incondicionals a cada desat o tancament, amb neteja i rotació intel·ligent.
+* **Backups i Logs Optimizats:**
+  * **Backups Contextuals:** El sistema ara només crea còpies de seguretat automàtiques en desar el fitxer de dades principal de l'aplicació, evitant generar backups innecessaris durant les exportacions a PDF o CSV.
+  * **Rotació de Logs Intel·ligent:** S'ha optimitzat el sistema de logs per limitar automàticament el nombre i la mida dels fitxers, reduint l'ús d'espai en disc sense perdre l'historial d'errors recent.
 
 * **Separació de Configuració Google:**
   * Configuració local (`google-config.json`) independent de la configuració de cada document.
@@ -180,6 +182,8 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
   * Substitució del menú natiu d'Electron per un component React, amb accions IPC centralitzades.
 
 * **Sistema d'Arxivatge:** Nova funcionalitat per arxivar esdeveniments antics, mantenint la llista principal neta i organitzada.
+
+*   **Finestra "Sobre l'aplicació":** Accessible des del menú "Ajuda", mostra informació rellevant sobre la versió, descripció i enllaços del projecte.
 
 * **Altres millores:**
   * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`npm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).
@@ -194,8 +198,8 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
 
 L'aplicació prioritza la integritat de les teves dades amb un sistema de desat i backups segur.
 
--   **Diàleg de Sortida Únic:** En intentar tancar l'aplicació amb canvis no desats, es mostra un únic diàleg que t'ofereix un control clar: `Desa`, `Desa com...`, `Tanca sense desar` o `Cancel·la`.
--   **Backups Automàtics en Desar:** Es crea automàticament un backup del teu document cada vegada que l'usuari realitza una acció de desat amb èxit (`Desa` o `Desa com...`). El sistema gestiona una rotació intel·ligent, conservant les còpies més recents per a cada document i proporcionant una xarxa de seguretat robusta contra la pèrdua de dades.
+-   **Diàleg de Sortida Únic:** En intentar tancar l'aplicació amb canvis no desats, es mostra un únic diàleg que t'ofereix un control clar: `Desa`, `Tanca sense desar` o `Cancel·la`.
+-   **Backups Automàtics Contextuals:** Es crea automàticament un backup del teu document cada vegada que el deses amb èxit (`Guardar` o `Guardar com...`). Aquest sistema és intel·ligent: només s'activa en desar el fitxer de dades principal, no en exportar PDFs o CSVs. El sistema gestiona una rotació, conservant les còpies més recents per a cada document.
 
 ## ⚡ Configuració de Google: Separació Local vs Document
 

@@ -25,6 +25,7 @@ import WelcomeScreen from './components/ui/WelcomeScreen';
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
 
+const AboutModal = lazy(() => import('./components/modals/AboutModal'));
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
 const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFormModal'));
 const AddMaterialFromTechSheetModal = lazy(() => import('./components/modals/AddMaterialFromTechSheetModal'));
@@ -59,6 +60,7 @@ const App: React.FC = () => {
   const [isDocumentOpen, setIsDocumentOpen] = useState<boolean>(false);
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [recentFiles, setRecentFiles] = useState<string[]>([]);
+  const [appMetadata, setAppMetadata] = useState<{ name: string; version: string; description: string; } | null>(null);
   const { openModal: openModalFromStore, closeModal } = useModalStore.getState();
   const isOpen = useModalStore(state => state.isOpen);
   const type = useModalStore(state => state.type);
@@ -119,10 +121,18 @@ const App: React.FC = () => {
   useEffect(() => {
     // Inicialitza els listeners de la store de Google un sol cop
     initializeGoogleAuthListeners();
+
+    const fetchMetadata = async () => {
+      if (window.electronAPI?.getAppMetadata) {
+        const metadata = await window.electronAPI.getAppMetadata();
+        setAppMetadata(metadata);
+      }
+    };
+    fetchMetadata();
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 12500);
+    const timer = setTimeout(() => setShowSplash(false), 3500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -206,6 +216,7 @@ const App: React.FC = () => {
             defaultPath: fileName || 'document.json',
             filters: [{ name: 'JSON', extensions: ['json'] }],
             data: jsonString,
+            isDocumentSave: true, // Indica al backend que això és un desat de document principal
         });
 
         if (result.success && result.filePath) {
@@ -375,6 +386,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
           defaultPath: filename,
           filters: [{ name: 'JSON', extensions: ['json'] }],
           data: jsonString,
+          isDocumentSave: false, // Indica al backend que això NO és un desat de document
         });
         if (result.success) {
           showToast(`Dades de ${type} exportades correctament.`, 'success');
@@ -715,6 +727,15 @@ const handleSaveDocument = async (): Promise<boolean> => {
           case 'toggle-theme':
             toggleTheme();
             break;
+          case 'open-logs-folder':
+            window.electronAPI?.openLogsFolder();
+            break;
+          case 'open-backups-folder':
+            window.electronAPI?.openBackupsFolder();
+            break;
+          case 'open-about-modal':
+            openModalFromStore('about');
+            break;
           default:
             break;
         }
@@ -866,6 +887,15 @@ const handleSaveDocument = async (): Promise<boolean> => {
         return <HistoryModal />;
       case 'googleEventDetails':
         return <GoogleEventDetailsModal />;
+      case 'about':
+        return appMetadata ? (
+          <AboutModal
+            name={appMetadata.name}
+            version={appMetadata.version}
+            description={appMetadata.description}
+            onClose={closeModal}
+          />
+        ) : null;
       default:
         return null;
     }
@@ -895,6 +925,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
       case 'confirmDelete':
         return "Confirmar Eliminació";
       case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
+      case 'about': return `Sobre ${appMetadata?.name || 'l\'Aplicació'}`;
       default: return "Diàleg";
     }
   };
@@ -999,8 +1030,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
 
           <footer className="bg-secondary p-4 text-center text-sm text-muted-foreground border-t border-border">
-
-            <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.2.0. Llicència MIT (codi lliure). </span>
+            <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.3.0. Llicència GNU GPL v3.0. </span>
             <span>Si vols col·laborar, pots fer-ho al <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">projecte de GitHub</a> o amb una aportació a <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>.</span>
           </footer>
 

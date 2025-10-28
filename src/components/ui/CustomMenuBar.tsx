@@ -184,6 +184,15 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
         },
       ],
     },
+    {
+      label: 'Ajuda',
+      items: [
+        { label: "Sobre l'aplicació...", action: 'open-about-modal' },
+        { separator: true },
+        { label: 'Obrir Carpeta de Còpies de Seguretat', action: 'open-backups-folder' },
+        { label: 'Obrir Carpeta de Logs', action: 'open-logs-folder' },
+      ],
+    },
   ];
 
   const DropdownMenu: React.FC<{ items: MenuItem[] }> = ({ items }) => (

@@ -1,42 +1,37 @@
+// Com que electron-log sobreescriu els mètodes de la consola al procés principal,
+// podem utilitzar directament els mètodes de la consola al renderer i electron-log
+// els capturarà automàticament a través del seu IPC.
+// Això simplifica enormement el codi i elimina la necessitat de mantenir un logger personalitzat.
+
 const logger = {
-  info: (message: string, data?: any) => {
-    console.log(message, data);
-    if (window.electronAPI?.log) {
-      try {
-        const clonableData = JSON.parse(JSON.stringify(data, (_key, value) =>
-          typeof value === 'function' ? undefined : value
-        ));
-        window.electronAPI.log(message, clonableData);
-      } catch (e) {
-        window.electronAPI.log(message, { ipcLogCloningError: "L'objecte de dades no s'ha pogut clonar." });
-      }
+  debug: (...args: any[]) => {
+    if (window.electronLog) {
+      window.electronLog.debug(...args);
+    } else {
+      console.debug(...args);
     }
   },
-  warn: (message: string, data?: any) => {
-    console.warn(message, data);
-    if (window.electronAPI?.log) {
-      try {
-        const clonableData = JSON.parse(JSON.stringify(data, (_key, value) =>
-          typeof value === 'function' ? undefined : value
-        ));
-        window.electronAPI.log(`[WARN] ${message}`, clonableData);
-      } catch (e) {
-        window.electronAPI.log(`[WARN] ${message}`, { ipcLogCloningError: "L'objecte de dades no s'ha pogut clonar." });
-      }
+  info: (...args: any[]) => {
+    if (window.electronLog) {
+      window.electronLog.info(...args);
+    } else {
+      console.log(...args);
     }
   },
-  error: (message: string, data?: any) => {
-    console.error(message, data);
-    if (window.electronAPI?.log) {
-      try {
-        const clonableData = JSON.parse(JSON.stringify(data, (_key, value) =>
-          typeof value === 'function' ? undefined : value
-        ));
-        window.electronAPI.log(`[ERROR] ${message}`, clonableData);
-      } catch (e) {
-        window.electronAPI.log(`[ERROR] ${message}`, { ipcLogCloningError: "L'objecte de dades no s'ha pogut clonar." });
-      }
+  warn: (...args: any[]) => {
+    if (window.electronLog) {
+      window.electronLog.warn(...args);
+    } else {
+      console.warn(...args);
+    }
+  },
+  error: (...args: any[]) => {
+    if (window.electronLog) {
+      window.electronLog.error(...args);
+    } else {
+      console.error(...args);
     }
   }
 };
+
 export default logger;

@@ -48,6 +48,7 @@ async function savePdfWithDialog(
       defaultPath: defaultFileName,
       filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
       data: pdfData as any, // Pass ArrayBuffer directly
+      isDocumentSave: false, // Indica al backend que això NO és un desat de document
     });
     if (result.success) {
       showToast('PDF desat amb èxit!', 'success');

@@ -30,6 +30,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── forms/                # Components reutilitzables de formularis.
 │   │   │   └── MaterialForm.tsx  # Formulari reutilitzable per crear/editar ítems de material.
 │   │   ├── modals/               # Sub-carpeta per a tots els diàlegs modals de l'aplicació.
+│   │   │   ├── AboutModal.tsx                  # Finestra que mostra la informació "Sobre l'aplicació".
 │   │   │   ├── AddMaterialFromTechSheetModal.tsx # Permet afegir un ítem a l'inventari des de la fitxa de bolo. [REFACTORITZAT: usa MaterialForm]
 │   │   │   ├── AssignmentFormModal.tsx         # Formulari per crear/editar una assignació. [REFACTORITZAT: usa modalStore]
 │   │   │   ├── ConfirmDeleteModal.tsx          # Modal genèric per a confirmacions d'eliminació.
@@ -55,7 +56,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   └── ui/                   # Components genèrics reutilitzables (botons, tooltips, etc.).
 │   │       ├── AutosizeTextarea.tsx            # Textarea que s'ajusta automàticament a l'alçada del contingut.
 │   │       ├── CollapsibleSection.tsx          # Component de secció genèrica que es pot expandir/col·lapsar.
-│   │       ├── CustomMenuBar.tsx               # Barra de menú personalitzada en React que substitueix la nativa.
+│   │       ├── CustomMenuBar.tsx               # Barra de menú personalitzada en React que substitueix la nativa. Inclou opcions d'accés ràpid a carpetes de logs i backups.
 │   │       ├── Modal.tsx                       # Component base per a tots els diàlegs modals.
 │   │       ├── SplashScreen.tsx                # Component que mostra una animació en iniciar l'app.
 │   │       ├── SyncProgressOverlay.tsx         # Overlay amb la barra de progrés per a la sincronització.
@@ -66,9 +67,6 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.
 │   │   ├── EventFrameCard.tsx      # Renderitza una targeta per a un esdeveniment marc a la llista. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── MainDisplay.tsx         # Vista principal. Gestiona la detecció de conflictes en modificar estats. [REFACTORITZAT: usa stores]
-│   │   ├── MaterialControlCenter.tsx # Component principal del Centre de Control de Material. Orquestra els filtres i la taula de dades.
-│   │   ├── MaterialControlFilters.tsx# Panell de filtres per data, esdeveniment, origen, categoria i text.
-│   │   ├── MaterialControlTable.tsx  # Taula de resultats que mostra el pic de demanda. Columnes i ordenació redissenyades per a anàlisi d'estoc.
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa MaterialForm]
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. [REFACTORITZAT: usa eventDataStore]
@@ -86,7 +84,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── dataMigration.ts      # Scripts per convertir formats de dades antics al format actual. Permet migració transparent i retrocompatibilitat amb versions anteriors.
 │   │   ├── dateFormat.ts         # Utilitats per a la conversió i format de dates.
 │   │   ├── dateRangeFormatter.ts # Utilitat per crear rangs de dates compactes (ex: 14/05-16/05).
-│   │   ├── fileNameUtils.ts      # **NOU** Mòdul centralitzat per a la generació intel·ligent de noms de fitxer per a exportacions.
+│   │   ├── fileNameUtils.ts      # Mòdul centralitzat per a la generació intel·ligent de noms de fitxer per a exportacions.
 │   │   ├── logger.ts             # Client de logging del frontend que envia missatges al backend.
 │   │   ├── pdfGenerator.ts       # Tota la lògica per crear els diferents documents PDF, ara utilitzant colors temàtics.
 │   │   ├── statusUtils.ts        # Funcions per gestionar i mostrar els estats de les assignacions.
