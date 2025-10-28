@@ -65,6 +65,15 @@ console.debug = log.debug.bind(log); // Afegim debug per a més granularitat
 // Inicialitza el logger per al procés principal. Això començarà a capturar logs.
 log.initialize();
 
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+const metadataJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'metadata.json'), 'utf8'));
+
+const appMetadata = {
+  name: packageJson.productName,
+  version: packageJson.version,
+  description: metadataJson.description,
+};
+
 app.disableHardwareAcceleration();
 
 console.log('**************************************************');
@@ -1399,6 +1408,10 @@ ipcMain.handle('open-backups-folder', async () => {
     console.error('Error obrint la carpeta de còpies de seguretat:', error);
     return { success: false, message: error.message };
   }
+});
+
+ipcMain.handle('get-app-metadata', async () => {
+  return appMetadata;
 });
 
 app.whenReady().then(() => {

@@ -310,6 +310,7 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `google-disconnect`: Desconnecta el compte de Google i elimina tots els calendaris gestionats.
 
 -   **Accions de l'Aplicació:**
+    -   `get-app-metadata`: Retorna metadades de l'aplicació (nom, versió, descripció) llegides de `package.json` i `metadata.json`.
     -   `factory-reset`: Realitza una restauració de fàbrica eliminant els fitxers de configuració de l'aplicació.
     -   `quit-application`: Inicia el procés de tancament definitiu de l'aplicació.
 

@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveSessionData: (key, value) => ipcRenderer.invoke('save-session-data', { key, value }),
   getRecentFiles: () => ipcRenderer.invoke('get-recent-files'),
   addRecentFile: (filePath) => ipcRenderer.invoke('add-recent-file', filePath),
+  getAppMetadata: () => ipcRenderer.invoke('get-app-metadata'),
 
   // Google Integration
   loadGoogleConfig: () => ipcRenderer.invoke('load-google-config'),

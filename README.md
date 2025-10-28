@@ -183,6 +183,8 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
 
 * **Sistema d'Arxivatge:** Nova funcionalitat per arxivar esdeveniments antics, mantenint la llista principal neta i organitzada.
 
+*   **Finestra "Sobre l'aplicació":** Accessible des del menú "Ajuda", mostra informació rellevant sobre la versió, descripció i enllaços del projecte.
+
 * **Altres millores:**
   * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`npm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).
   * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.

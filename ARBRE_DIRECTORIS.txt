@@ -30,6 +30,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── forms/                # Components reutilitzables de formularis.
 │   │   │   └── MaterialForm.tsx  # Formulari reutilitzable per crear/editar ítems de material.
 │   │   ├── modals/               # Sub-carpeta per a tots els diàlegs modals de l'aplicació.
+│   │   │   ├── AboutModal.tsx                  # Finestra que mostra la informació "Sobre l'aplicació".
 │   │   │   ├── AddMaterialFromTechSheetModal.tsx # Permet afegir un ítem a l'inventari des de la fitxa de bolo. [REFACTORITZAT: usa MaterialForm]
 │   │   │   ├── AssignmentFormModal.tsx         # Formulari per crear/editar una assignació. [REFACTORITZAT: usa modalStore]
 │   │   │   ├── ConfirmDeleteModal.tsx          # Modal genèric per a confirmacions d'eliminació.

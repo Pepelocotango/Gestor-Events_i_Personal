@@ -252,6 +252,7 @@ export type ModalType =
   | 'confirmDelete'
   | 'history'
   | 'googleEventDetails'
+  | 'about'
   | null;
 
 export interface ModalData {
@@ -461,6 +462,7 @@ export interface ElectronAPI {
   saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;
   getRecentFiles: () => Promise<string[]>;
   addRecentFile: (filePath: string) => Promise<{ success: boolean; recentFiles: string[] }>;
+  getAppMetadata: () => Promise<{ name: string; version: string; description: string; }>;
 
   // Google Integration
   loadGoogleConfig: () => Promise<GoogleConfig | null>;

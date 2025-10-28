@@ -25,6 +25,7 @@ import WelcomeScreen from './components/ui/WelcomeScreen';
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
 
+const AboutModal = lazy(() => import('./components/modals/AboutModal'));
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
 const AssignmentFormModal = lazy(() => import('./components/modals/AssignmentFormModal'));
 const AddMaterialFromTechSheetModal = lazy(() => import('./components/modals/AddMaterialFromTechSheetModal'));
@@ -59,6 +60,7 @@ const App: React.FC = () => {
   const [isDocumentOpen, setIsDocumentOpen] = useState<boolean>(false);
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [recentFiles, setRecentFiles] = useState<string[]>([]);
+  const [appMetadata, setAppMetadata] = useState<{ name: string; version: string; description: string; } | null>(null);
   const { openModal: openModalFromStore, closeModal } = useModalStore.getState();
   const isOpen = useModalStore(state => state.isOpen);
   const type = useModalStore(state => state.type);
@@ -119,6 +121,14 @@ const App: React.FC = () => {
   useEffect(() => {
     // Inicialitza els listeners de la store de Google un sol cop
     initializeGoogleAuthListeners();
+
+    const fetchMetadata = async () => {
+      if (window.electronAPI?.getAppMetadata) {
+        const metadata = await window.electronAPI.getAppMetadata();
+        setAppMetadata(metadata);
+      }
+    };
+    fetchMetadata();
   }, []);
 
   useEffect(() => {
@@ -723,6 +733,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
           case 'open-backups-folder':
             window.electronAPI?.openBackupsFolder();
             break;
+          case 'open-about-modal':
+            openModalFromStore('about');
+            break;
           default:
             break;
         }
@@ -874,6 +887,15 @@ const handleSaveDocument = async (): Promise<boolean> => {
         return <HistoryModal />;
       case 'googleEventDetails':
         return <GoogleEventDetailsModal />;
+      case 'about':
+        return appMetadata ? (
+          <AboutModal
+            name={appMetadata.name}
+            version={appMetadata.version}
+            description={appMetadata.description}
+            onClose={closeModal}
+          />
+        ) : null;
       default:
         return null;
     }
@@ -903,6 +925,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
       case 'confirmDelete':
         return "Confirmar Eliminació";
       case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
+      case 'about': return `Sobre ${appMetadata?.name || 'l\'Aplicació'}`;
       default: return "Diàleg";
     }
   };
