@@ -428,6 +428,7 @@ export interface ShowSaveDialogOptions {
   defaultPath: string;
   filters: { name: string; extensions: string[] }[];
   data: Buffer | string;
+  isDocumentSave?: boolean;
 }
 
 export interface ShowSaveDialogResult {

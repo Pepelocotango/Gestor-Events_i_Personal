@@ -8,6 +8,53 @@ const http = require('http');
 const log = require('electron-log');
 
 // --- CONFIGURACIÓ DE LOGS AMB ELECTRON-LOG ---
+// Configura la rotació de logs per mida per evitar fitxers excessivament grans
+// i un nombre excessiu de fitxers de log.
+log.transports.file.fileName = 'main.log'; // Nom de fitxer estàtic
+log.transports.file.maxSize = 1048576; // 1 MB
+
+// Lògica personalitzada per arxivar i netejar logs antics
+log.transports.file.archiveLog = (file) => {
+  const logDir = path.dirname(file.path);
+  // Utilitzem un timestamp per assegurar noms únics i poder ordenar-los
+  const archiveName = `main.${Date.now()}.log`;
+  const archivePath = path.join(logDir, archiveName);
+
+  try {
+    // 1. Renombra el fitxer de log actual a un nom d'arxiu
+    fs.renameSync(file.path, archivePath);
+
+    // 2. Neteja els arxius de log més antics si se supera el límit
+    const MAX_ARCHIVES = 9; // Mantenim 9 arxius + el 'main.log' actiu, sumant un total de 10.
+    const files = fs.readdirSync(logDir);
+
+    const logArchives = files
+      // Filtrem per fitxers que coincideixin amb el nostre patró d'arxiu
+      .filter(f => f.startsWith('main.') && f.endsWith('.log'))
+      // Els ordenem del més antic al més nou basant-nos en el timestamp
+      .sort((a, b) => {
+        const timeA = parseInt(a.split('.')[1] || '0');
+        const timeB = parseInt(b.split('.')[1] || '0');
+        return timeA - timeB;
+      });
+
+    // Si el nombre d'arxius supera el límit, eliminem els més antics
+    if (logArchives.length > MAX_ARCHIVES) {
+      const filesToDelete = logArchives.slice(0, logArchives.length - MAX_ARCHIVES);
+      filesToDelete.forEach(f => {
+        try {
+          fs.unlinkSync(path.join(logDir, f));
+          console.debug(`Arxiu de log antic eliminat: ${f}`);
+        } catch (unlinkErr) {
+          console.error(`Error eliminant l'arxiu de log antic ${f}:`, unlinkErr);
+        }
+      });
+    }
+  } catch (err) {
+    console.error('S\'ha produït un error durant la rotació de logs:', err);
+  }
+};
+
 // Nivell de log: 'debug' en desenvolupament, 'info' en producció.
 log.level = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
 // Sobreescriu els mètodes de la consola per redirigir-los a electron-log.
@@ -1111,7 +1158,8 @@ ipcMain.handle('show-unsaved-changes-dialog', async (event, { message, buttons }
 });
 
 ipcMain.handle('show-save-dialog', async (event, options) => {
-  const { title, defaultPath, filters, data } = options;
+  // Afegeix 'isDocumentSave' per a la lògica condicional de backup
+  const { title, defaultPath, filters, data, isDocumentSave } = options;
   const focusedWindow = BrowserWindow.getFocusedWindow();
   if (!focusedWindow) {
     return { success: false, message: 'No hi ha cap finestra activa.' };
@@ -1132,9 +1180,14 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
     const buffer = Buffer.from(data);
     fs.writeFileSync(result.filePath, buffer);
 
-    // Create backup after successful save
-    await createBackup(result.filePath);
-    await cleanupOldBackups(result.filePath);
+    // Només crea un backup si s'està desant un document principal
+    if (isDocumentSave) {
+      console.info('Desant un document principal. Es crearà una còpia de seguretat.');
+      await createBackup(result.filePath);
+      await cleanupOldBackups(result.filePath);
+    } else {
+      console.info('Desant un fitxer exportat (PDF/CSV). No es crearà cap còpia de seguretat.');
+    }
 
     return { success: true, filePath: result.filePath };
   } catch (error) {

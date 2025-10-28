@@ -206,6 +206,7 @@ const App: React.FC = () => {
             defaultPath: fileName || 'document.json',
             filters: [{ name: 'JSON', extensions: ['json'] }],
             data: jsonString,
+            isDocumentSave: true, // Indica al backend que això és un desat de document principal
         });
 
         if (result.success && result.filePath) {
@@ -375,6 +376,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
           defaultPath: filename,
           filters: [{ name: 'JSON', extensions: ['json'] }],
           data: jsonString,
+          isDocumentSave: false, // Indica al backend que això NO és un desat de document
         });
         if (result.success) {
           showToast(`Dades de ${type} exportades correctament.`, 'success');
