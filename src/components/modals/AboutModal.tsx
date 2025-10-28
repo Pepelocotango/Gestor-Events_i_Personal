@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@/components/ui/Button';
 import { ExternalLink } from 'lucide-react';
 
 interface AboutModalProps {
@@ -54,9 +53,12 @@ const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onC
       </div>
 
       <div className="mt-6 flex justify-end">
-        <Button onClick={onClose} variant="outline">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border"
+        >
           Tancar
-        </Button>
+        </button>
       </div>
     </div>
   );
