@@ -14,15 +14,15 @@ log.transports.file.fileName = 'main.log'; // Nom de fitxer estàtic
 log.transports.file.maxSize = 1048576; // 1 MB
 
 // Lògica personalitzada per arxivar i netejar logs antics
-log.transports.file.archiveLog = (file) => {
-  const logDir = path.dirname(file.path);
+log.transports.file.archiveLogFn = (oldLogFile) => {
+  const logDir = path.dirname(oldLogFile.path);
   // Utilitzem un timestamp per assegurar noms únics i poder ordenar-los
   const archiveName = `main.${Date.now()}.log`;
   const archivePath = path.join(logDir, archiveName);
 
   try {
     // 1. Renombra el fitxer de log actual a un nom d'arxiu
-    fs.renameSync(file.path, archivePath);
+    fs.renameSync(oldLogFile.path, archivePath);
 
     // 2. Neteja els arxius de log més antics si se supera el límit
     const MAX_ARCHIVES = 9; // Mantenim 9 arxius + el 'main.log' actiu, sumant un total de 10.
