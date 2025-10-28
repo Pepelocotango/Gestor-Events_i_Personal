@@ -86,7 +86,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── dataMigration.ts      # Scripts per convertir formats de dades antics al format actual. Permet migració transparent i retrocompatibilitat amb versions anteriors.
 │   │   ├── dateFormat.ts         # Utilitats per a la conversió i format de dates.
 │   │   ├── dateRangeFormatter.ts # Utilitat per crear rangs de dates compactes (ex: 14/05-16/05).
-│   │   ├── fileNameUtils.ts      # **NOU** Mòdul centralitzat per a la generació intel·ligent de noms de fitxer per a exportacions.
+│   │   ├── fileNameUtils.ts      # Mòdul centralitzat per a la generació intel·ligent de noms de fitxer per a exportacions.
 │   │   ├── logger.ts             # Client de logging del frontend que envia missatges al backend.
 │   │   ├── pdfGenerator.ts       # Tota la lògica per crear els diferents documents PDF, ara utilitzant colors temàtics.
 │   │   ├── statusUtils.ts        # Funcions per gestionar i mostrar els estats de les assignacions.

@@ -483,7 +483,7 @@ export interface ElectronAPI {
 
   // Misc & Obsolete
   factoryReset: () => Promise<{ success: boolean; message?: string }>;
-  log: (message: string, data?: any) => void;
+  openLogsFolder: () => Promise<{ success: boolean; message?: string }>;
   // Obsolete - kept for safety, should be removed later
   loadAppData: () => Promise<any>;
   saveAppData: (data: AppData) => Promise<{ success: boolean; message?: string }>;
@@ -497,5 +497,11 @@ export interface ElectronAPI {
 declare global {
   interface Window {
     electronAPI?: ElectronAPI;
+    electronLog?: {
+      debug: (...args: any[]) => void;
+      info: (...args: any[]) => void;
+      warn: (...args: any[]) => void;
+      error: (...args: any[]) => void;
+    };
   }
 }

@@ -184,6 +184,12 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
         },
       ],
     },
+    {
+      label: 'Ajuda',
+      items: [
+        { label: 'Obrir Carpeta de Logs', action: 'open-logs-folder' },
+      ],
+    },
   ];
 
   const DropdownMenu: React.FC<{ items: MenuItem[] }> = ({ items }) => (

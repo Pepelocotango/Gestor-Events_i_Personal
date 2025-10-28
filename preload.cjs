@@ -57,7 +57,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Misc & Obsolete
   factoryReset: () => ipcRenderer.invoke('factory-reset'),
-  log: (message, data) => ipcRenderer.send('log-message', message, data),
   loadAppData: () => ipcRenderer.invoke('load-app-data'),
   getPlatformSync: () => process.platform,
+  openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
 });
+
+// Expose electron-log to the renderer process
+const log = require('electron-log');
+contextBridge.exposeInMainWorld('electronLog', log.functions);

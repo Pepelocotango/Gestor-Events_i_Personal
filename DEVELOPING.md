@@ -161,14 +161,21 @@ Les rutes principals es defineixen com a constants a l'inici del fitxer:
     - `managedAppCalendars`: Una llista de tots els calendaris que l'aplicació ha creat i sobre els quals té permís d'escriptura.
     - `selectedCalendarIds`: Una llista d'IDs de calendaris (tant gestionats com externs) que l'usuari vol visualitzar al calendari principal.
 
-#### Logs de Sessió
+#### Logs de Sessió amb `electron-log`
 
-Per facilitar la depuració, l'aplicació implementa un sistema de logging robust:
+Per facilitar la depuració i mantenir uns registres nets en producció, l'aplicació utilitza la llibreria estàndard `electron-log`.
 
--   **Creació de Logs:** A cada inici, es crea un nou fitxer de log a `LOGS_DIR` amb el format `app-<timestamp>.log`.
--   **Redirecció de Consola:** Totes les crides a `console.log`, `console.warn` i `console.error` des del procés principal són interceptades i redirigides a la funció `logToFile`, que les escriu al fitxer de log de la sessió actual i les mostra simultàniament a la terminal.
--   **Logs del Frontend:** Els missatges de log generats al frontend (a través del servei `logger.ts`) s'envien al backend mitjançant el canal IPC `log-message` i s'escriuen al mateix fitxer, prefixats amb `[FRONTEND]`.
--   **Rotació Automàtica:** La funció `rotateLogs` s'executa a l'inici per garantir que només es conservin els 20 fitxers de log més recents, evitant l'acumulació excessiva d'arxius.
+-   **Nivells de Log:** S'ha implementat un sistema de nivells de log semàntics:
+    -   `debug`: Informació detallada només rellevant per al desenvolupament (p. ex., "[IPC_IN] Rebut 'accio'"). Aquest nivell està desactivat per defecte en producció.
+    -   `info`: Esdeveniments importants del flux normal (p. ex., "Fitxer desat correctament").
+    -   `warn`: Situacions inesperades que no aturen l'aplicació (p. ex., "El fitxer service-account.json no es troba").
+    -   `error`: Errors crítics que han provocat una fallada.
+-   **Configuració per Entorn:**
+    -   **Desenvolupament:** Es registren tots els nivells (`debug` i superiors) tant a la consola com al fitxer.
+    -   **Producció:** Només es registren els nivells `info`, `warn` i `error` al fitxer, per mantenir-lo concís i rellevant.
+-   **Integració Transparent:** `electron-log` sobreescriu automàticament els mètodes de `console` (`log`, `error`, etc.). Això permet que les crides de log des del frontend siguin capturades pel backend i escrites al fitxer de log sense necessitat de cap canal IPC personalitzat.
+-   **Accés per a l'Usuari:** S'ha afegit una opció de menú ("Ajuda -> Obrir Carpeta de Logs") que obre directament el directori on es desen els fitxers de log, facilitant a l'usuari final l'enviament de registres per a la depuració.
+-   **Rotació Automàtica:** La llibreria gestiona automàticament la rotació de fitxers, limitant la mida i el nombre de fitxers de log antics.
 
 #### Còpies de Seguretat (Backups)
 

@@ -5,51 +5,26 @@ const os = require('os');
 const { google } = require('googleapis');
 const url = require('url');
 const http = require('http');
+const log = require('electron-log');
+
+// --- CONFIGURACIÓ DE LOGS AMB ELECTRON-LOG ---
+// Nivell de log: 'debug' en desenvolupament, 'info' en producció.
+log.level = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
+// Sobreescriu els mètodes de la consola per redirigir-los a electron-log.
+console.log = log.info.bind(log);
+console.error = log.error.bind(log);
+console.warn = log.warn.bind(log);
+console.debug = log.debug.bind(log); // Afegim debug per a més granularitat
+// Inicialitza el logger per al procés principal. Això començarà a capturar logs.
+log.initialize();
 
 app.disableHardwareAcceleration();
-
-// --- LOGS DE SESSIÓ PER DESENVOLUPAMENT ---
-const LOGS_DIR = path.join(app.getPath('userData'), 'logs');
-if (!fs.existsSync(LOGS_DIR)) fs.mkdirSync(LOGS_DIR, { recursive: true });
-function rotateLogs() {
-  const files = fs.readdirSync(LOGS_DIR)
-    .filter(f => f.startsWith('app-') && f.endsWith('.log'))
-    .sort((a, b) => fs.statSync(path.join(LOGS_DIR, b)).mtime - fs.statSync(path.join(LOGS_DIR, a)).mtime);
-  while (files.length >= 20) {
-    fs.unlinkSync(path.join(LOGS_DIR, files.pop()));
-  }
-}
-const sessionLogFile = path.join(LOGS_DIR, `app-${Date.now()}.log`);
-rotateLogs();
-function logToFile(...args) {
-  const filteredArgs = args.filter(arg => arg !== undefined);
-
-  const formattedArgs = filteredArgs.map(arg => {
-    if (typeof arg === 'object' && arg !== null) {
-      try {
-        return JSON.stringify(arg, (key, value) => {
-          if (key.startsWith('_')) return undefined;
-          return value;
-        }, 2);
-      } catch (e) {
-        return `[Objecte no serialitzable: ${e.message}. Claus: ${Object.keys(arg).join(', ')}]`;
-      }
-    }
-    return String(arg);
-  });
-
-  const msg = `[${new Date().toISOString()}] ${formattedArgs.join(' ')}\n`;
-  fs.appendFileSync(sessionLogFile, msg);
-  process.stdout.write(msg);
-}
-console.log = logToFile;
-console.error = logToFile;
-console.warn = logToFile;
 
 console.log('**************************************************');
 console.log('*** INICIANT PROCÉS PRINCIPAL DE L\'APLICACIÓ ***');
 console.log('**************************************************');
-console.log('Sessió Electron iniciada. Tots els logs d\'aquesta sessió s\'emmagatzemen a:', sessionLogFile);
+// Log del fitxer on es desa la informació
+console.log('Tots els logs d\'aquesta sessió s\'emmagatzemen a:', log.transports.file.getFile().path);
 
 const APP_ID = 'com.gestorevents.app';
 app.setAppUserModelId(APP_ID);
@@ -94,7 +69,7 @@ let googleServiceAccountClient;
 // Aquesta funció ja no és necessària.
 
 ipcMain.handle('open-file-dialog', async () => {
-  console.log("[IPC_IN] Rebut 'open-file-dialog'.");
+  console.debug("[IPC_IN] Rebut 'open-file-dialog'.");
   if (!mainWindow) return { success: false, message: 'No hi ha cap finestra activa.' };
 
   try {
@@ -109,7 +84,7 @@ ipcMain.handle('open-file-dialog', async () => {
     }
 
     const filePath = result.filePaths[0];
-    console.log(`Fitxer seleccionat per obrir: ${filePath}`);
+    console.debug(`Fitxer seleccionat per obrir: ${filePath}`);
     return { success: true, filePath };
   } catch (error) {
     console.error('Error en el diàleg per obrir fitxer:', error);
@@ -118,7 +93,7 @@ ipcMain.handle('open-file-dialog', async () => {
 });
 
 ipcMain.handle('read-file', async (event, filePath) => {
-  console.log(`[IPC_IN] Rebut 'read-file' per a: ${filePath}`);
+  console.debug(`[IPC_IN] Rebut 'read-file' per a: ${filePath}`);
   if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
   try {
     const content = fs.readFileSync(filePath, 'utf8');
@@ -130,11 +105,11 @@ ipcMain.handle('read-file', async (event, filePath) => {
 });
 
 ipcMain.handle('save-file', async (event, { filePath, data }) => {
-  console.log(`[IPC_IN] Rebut 'save-file' per a: ${filePath}`);
+  console.debug(`[IPC_IN] Rebut 'save-file' per a: ${filePath}`);
   if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
   try {
     fs.writeFileSync(filePath, data, 'utf8');
-    console.log(`Fitxer desat correctament a: ${filePath}`);
+    console.info(`Fitxer desat correctament a: ${filePath}`);
 
     // Create backup after successful save
     await createBackup(filePath);
@@ -197,7 +172,7 @@ async function loadServiceAccountCredentials() {
   try {
     const serviceAccountPath = path.join(__dirname, 'service-account.json');
     if (!fs.existsSync(serviceAccountPath)) {
-      console.warn('ADVERTÈNCIA: El fitxer service-account.json no es troba. Les funcionalitats avançades de Google Calendar estaran desactivades.');
+      console.warn('El fitxer service-account.json no es troba. Les funcionalitats avançades de Google Calendar estaran desactivades.');
       return false;
     }
 
@@ -211,7 +186,7 @@ async function loadServiceAccountCredentials() {
   scopes: ['https://www.googleapis.com/auth/calendar'],
   }).getClient();
 
-    console.log("Client del Compte de Servei de Google inicialitzat i autoritzat correctament.");
+    console.info("Client del Compte de Servei de Google inicialitzat i autoritzat correctament.");
     return true;
 
   } catch (err) {
@@ -264,7 +239,7 @@ async function saveDataWithErrorHandling(filePath, data) {
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
     if (!checkWritePermissions(dirPath)) throw new Error(`No hi ha permisos d'escriptura a ${dirPath}`);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    console.log(`Dades desades correctament a ${filePath}`);
+    console.info(`Dades desades correctament a ${filePath}`);
     return true;
   } catch (error) {
     console.error(`Error guardant a ${filePath}:`, error);
@@ -291,7 +266,7 @@ async function createBackup(sourceFilePath) {
       const backupFile = path.join(BACKUP_DIR, `backup-${sourceFileName}-${timestamp}.json`);
 
       fs.copyFileSync(sourceFilePath, backupFile);
-      console.log(`Còpia de seguretat creada a: ${backupFile}`);
+      console.info(`Còpia de seguretat creada a: ${backupFile}`);
       return true;
     }
   } catch (error) {
@@ -309,7 +284,7 @@ async function cleanupOldBackups(sourceFilePath) {
   const backupPrefix = `backup-${sourceFileName}-`;
 
   try {
-    console.log(`Netejant backups antics per a ${sourceFileName}...`);
+    console.debug(`Netejant backups antics per a ${sourceFileName}...`);
     const backupFiles = fs.readdirSync(BACKUP_DIR)
       .filter(file => file.startsWith(backupPrefix) && file.endsWith('.json'))
       .map(file => {
@@ -326,19 +301,19 @@ async function cleanupOldBackups(sourceFilePath) {
       .sort((a, b) => b.time - a.time);
 
     if (backupFiles.length > MAX_BACKUPS_TO_KEEP) {
-      console.log(`Trobats ${backupFiles.length} backups. Conservant els ${MAX_BACKUPS_TO_KEEP} més recents.`);
+      console.debug(`Trobats ${backupFiles.length} backups. Conservant els ${MAX_BACKUPS_TO_KEEP} més recents.`);
       const backupsToDelete = backupFiles.slice(MAX_BACKUPS_TO_KEEP);
       
       backupsToDelete.forEach(backup => {
         try {
           fs.unlinkSync(path.join(BACKUP_DIR, backup.name));
-          console.log(`Backup eliminat: ${backup.name}`);
+          console.debug(`Backup eliminat: ${backup.name}`);
         } catch (unlinkError) {
           console.error(`Error eliminant el backup ${backup.name}:`, unlinkError);
         }
       });
     } else {
-      console.log(`Trobats ${backupFiles.length} backups. No cal neteja.`);
+      console.debug(`Trobats ${backupFiles.length} backups. No cal neteja.`);
     }
   } catch (error) {
     console.error('Error durant la neteja de backups:', error);
@@ -363,15 +338,15 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
     let wasNewlyCreated = false; // Per saber si cal notificar
 
     // Pas 1: Comprovar si ja existeix un calendari amb aquest nom
-    console.log("SA: Buscant calendaris existents per evitar duplicats...");
+    console.debug("SA: Buscant calendaris existents per evitar duplicats...");
     const calendarList = await calendarService.calendarList.list();
     const existingCalendar = calendarList.data.items.find(cal => cal.summary === finalCalendarName);
 
     if (existingCalendar) {
-      console.log(`SA: Trobat calendari existent amb nom "${finalCalendarName}". ID: ${existingCalendar.id}.`);
+      console.debug(`SA: Trobat calendari existent amb nom "${finalCalendarName}". ID: ${existingCalendar.id}.`);
       calendarId = existingCalendar.id;
     } else {
-      console.log(`SA: No s'ha trobat cap calendari existent. Creant un de nou amb el nom: "${finalCalendarName}"`);
+      console.info(`SA: No s'ha trobat cap calendari existent. Creant un de nou amb el nom: "${finalCalendarName}"`);
       const newCalendar = await calendarService.calendars.insert({
         requestBody: {
           summary: finalCalendarName,
@@ -381,7 +356,7 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
       });
       calendarId = newCalendar.data.id;
       wasNewlyCreated = true; // Marquem que s'ha creat ara
-      console.log(`SA: Calendari creat amb ID: ${calendarId}`);
+      console.info(`SA: Calendari creat amb ID: ${calendarId}`);
     }
 
     // Pas 2: Compartir el calendari (nou o existent) amb l'usuari
@@ -389,7 +364,7 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
       throw new Error("L'email de l'usuari és necessari per compartir el calendari.");
     }
 
-    console.log(`SA: Assegurant que el calendari ${calendarId} està compartit amb ${userEmail}...`);
+    console.debug(`SA: Assegurant que el calendari ${calendarId} està compartit amb ${userEmail}...`);
     await calendarService.acl.insert({
       calendarId: calendarId,
       sendNotifications: wasNewlyCreated, // Només notifiquem si el calendari és nou
@@ -399,7 +374,7 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
       },
     });
 
-    console.log('SA: Permisos del calendari verificats/actualitzats amb èxit.');
+    console.info('SA: Permisos del calendari verificats/actualitzats amb èxit.');
     return calendarId;
 
   } catch (error) {
@@ -409,15 +384,15 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
 }
 
 async function createWindow() {
-  console.log('[Startup] Iniciant createWindow...');
+  console.debug('[Startup] Iniciant createWindow...');
   ensureDirectoriesExist();
-  console.log('[Startup] Directoris assegurats.');
+  console.debug('[Startup] Directoris assegurats.');
   loadGoogleCredentials(); 
-  console.log('[Startup] Credencials de Google carregades (si existeixen).');
+  console.debug('[Startup] Credencials de Google carregades (si existeixen).');
   await loadServiceAccountCredentials();
-  console.log('[Startup] Credencials del compte de servei carregades (si existeixen).');
+  console.debug('[Startup] Credencials del compte de servei carregades (si existeixen).');
   const sessionData = loadSessionData();
-  console.log('[Startup] Dades de la sessió anterior carregades.');
+  console.debug('[Startup] Dades de la sessió anterior carregades.');
 
   mainWindow = new BrowserWindow({
     width: sessionData.width || 1200,
@@ -440,20 +415,20 @@ async function createWindow() {
   });
 
   const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
-console.log('[Startup] Mode de desenvolupament:', isDev);
-console.log('[Startup] NODE_ENV:', process.env.NODE_ENV);
-console.log('[Startup] app.isPackaged:', app.isPackaged);
+console.debug('[Startup] Mode de desenvolupament:', isDev);
+console.debug('[Startup] NODE_ENV:', process.env.NODE_ENV);
+console.debug('[Startup] app.isPackaged:', app.isPackaged);
 
 if (isDev) {
   const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
-  console.log('[Startup] Carregant des del servidor de desenvolupament:', devUrl);
+  console.debug('[Startup] Carregant des del servidor de desenvolupament:', devUrl);
   mainWindow.loadURL(devUrl).catch(err => {
     console.error('Error loading dev URL:', devUrl, err);
     dialog.showErrorBox('Error de Desenvolupament', `No s'ha pogut carregar ${devUrl}: ${err.message}`);
   });
 } else {
   const indexPath = path.resolve(__dirname, 'dist', 'index.html');
-  console.log('[Startup] Carregant des del fitxer de producció:', indexPath);
+  console.info('[Startup] Carregant des del fitxer de producció:', indexPath);
   mainWindow.loadFile(indexPath).catch(err => {
     console.error('Error loading production index file:', indexPath, err);
     dialog.showErrorBox('Error de Càrrega', `No s'ha pogut carregar l'aplicació: ${error.message}`);
@@ -500,11 +475,11 @@ if (isDev) {
 
   // const menu = Menu.buildFromTemplate(template);
   // Menu.setApplicationMenu(menu);
-  console.log('[Startup] Menú de l\'aplicació configurat (actualment desactivat en favor de la UI).');
+  console.debug('[Startup] Menú de l\'aplicació configurat (actualment desactivat en favor de la UI).');
 
   // >>> CANVI PRINCIPAL EN LA LÒGICA DE TANCAMENT <<<
   mainWindow.on('close', (event) => {
-    console.log(`[Exit Flow] Event 'close' rebut a la finestra. isQuitting: ${isQuitting}`);
+    console.debug(`[Exit Flow] Event 'close' rebut a la finestra. isQuitting: ${isQuitting}`);
     if (!isQuitting) {
       event.preventDefault(); // Prevenim que la finestra es tanqui directament
       app.quit(); // Iniciem el flux de sortida de l'aplicació
@@ -530,7 +505,7 @@ app.on('web-contents-created', (event, contents) => {
 });
 
 app.on('before-quit', async (event) => {
-  console.log(`[Exit Flow] Event 'before-quit' rebut. isQuitting: ${isQuitting}`);
+  console.debug(`[Exit Flow] Event 'before-quit' rebut. isQuitting: ${isQuitting}`);
   if (isQuitting) return; // Evita bucles de tancament
 
   event.preventDefault(); // Prevenim la sortida immediata per donar control al frontend
@@ -545,13 +520,13 @@ app.on('before-quit', async (event) => {
       y: windowBounds.y
     });
 
-    console.log('[Exit Flow] Estat de la finestra desat. Enviant senyal de confirmació al frontend...');
+    console.info('[Exit Flow] Estat de la finestra desat. Enviant senyal de confirmació al frontend...');
     // Envia el senyal al frontend perquè gestioni la lògica de desat/backup
     mainWindow.webContents.send('confirm-quit-signal');
 
   } else {
     // Si no hi ha finestra, no cal esperar el frontend.
-    console.log('[Exit Flow] No hi ha finestra principal, sortint directament.');
+    console.info('[Exit Flow] No hi ha finestra principal, sortint directament.');
     isQuitting = true;
     app.quit();
   }
@@ -564,32 +539,29 @@ app.on('window-all-closed', () => {
 });
 
 
-console.log('[Startup] Configurant gestors de IPC...');
+console.debug('[Startup] Configurant gestors de IPC...');
 
 ipcMain.handle('quit-application', () => {
-  console.log("[Exit Flow] Rebut 'quit-application'. Sortint de l'aplicació.");
+  console.info("[Exit Flow] Rebut 'quit-application'. Sortint de l'aplicació.");
   isQuitting = true;
   app.quit();
-});
-ipcMain.on('log-message', (event, message, data) => {
-  logToFile(`[FRONTEND] ${message}`, data);
 });
 
 ipcMain.handle('load-app-data', async () => {
   // REFACCIÓ: Aquesta funció ara només serveix per indicar a l'App que pot començar.
   // La càrrega de dades es gestiona a través de les accions de l'usuari (Obrir, Recents).
-  console.log("[IPC_IN] Rebut 'load-app-data'. L'aplicació començarà amb un estat buit.");
+  console.debug("[IPC_IN] Rebut 'load-app-data'. L'aplicació començarà amb un estat buit.");
   return null;
 });
 
 ipcMain.handle('get-recent-files', async () => {
-  console.log("[IPC_IN] Rebut 'get-recent-files'.");
+  console.debug("[IPC_IN] Rebut 'get-recent-files'.");
   const sessionData = loadSessionData();
   return sessionData.recentFiles || [];
 });
 
 ipcMain.handle('add-recent-file', async (event, filePath) => {
-  console.log(`[IPC_IN] Rebut 'add-recent-file' per a: ${filePath}`);
+  console.debug(`[IPC_IN] Rebut 'add-recent-file' per a: ${filePath}`);
   if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
 
   try {
@@ -607,7 +579,7 @@ ipcMain.handle('add-recent-file', async (event, filePath) => {
     }
 
     await saveSessionData({ recentFiles });
-    console.log("Fitxers recents actualitzats:", recentFiles);
+    console.debug("Fitxers recents actualitzats:", recentFiles);
     return { success: true, recentFiles };
   } catch (error) {
     console.error('Error afegint a fitxers recents:', error);
@@ -616,7 +588,7 @@ ipcMain.handle('add-recent-file', async (event, filePath) => {
 });
 
 ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }) => {
-  console.log(`[IPC_IN] Iniciant 'sync-with-google' cap a ${targetCalendarId}.`);
+  console.info(`[IPC_IN] Iniciant 'sync-with-google' cap a ${targetCalendarId}.`);
   if (!googleServiceAccountClient) {
     console.error("SYNC ERROR: El client del compte de servei de Google no està inicialitzat.");
     return { success: false, message: 'El client del compte de servei de Google no està inicialitzat. Assegura\'t que el fitxer "service-account.json" existeix i és correcte.' };
@@ -642,9 +614,9 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
 
   // Pas 5: Gestió de calendaris eliminats
   try {
-    console.log(`SA: Verificant existència del calendari a Google: ${targetCalendarId}`);
+    console.debug(`SA: Verificant existència del calendari a Google: ${targetCalendarId}`);
     await calendar.calendars.get({ calendarId: targetCalendarId });
-    console.log('SA: El calendari existeix.');
+    console.debug('SA: El calendari existeix.');
   } catch (err) {
     if (err.code === 404) {
       console.warn(`SA: El calendari amb ID ${targetCalendarId} no s'ha trobat. Ha estat eliminat per l'usuari.`);
@@ -679,7 +651,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
   });
 
   if (choice.response !== 0) {
-    console.log("Sincronització cancel·lada per l'usuari.");
+    console.info("Sincronització cancel·lada per l'usuari.");
     return { success: false, message: 'Sincronització cancel·lada.' };
   }
 
@@ -703,13 +675,13 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
     };
 
     // FASE 1: BUIDAR COMPLETAMENT EL CALENDARI
-    console.log(`Buidant el calendari de l'app a Google: ${targetCalendarId}`);
+    console.info(`Buidant el calendari de l'app a Google: ${targetCalendarId}`);
     if (eventsToDelete.length > 0) {
-      console.log(`Trobats ${eventsToDelete.length} esdeveniments per eliminar...`);
+      console.debug(`Trobats ${eventsToDelete.length} esdeveniments per eliminar...`);
       for (const event of eventsToDelete) {
         currentProgressStep++;
         const progressMessage = `Eliminant ${currentProgressStep} de ${totalProgressSteps}: "${event.summary || 'Esdeveniment sense títol'}"`;
-        console.log(progressMessage);
+        console.debug(progressMessage);
         sendProgress(progressMessage);
         try {
           await calendar.events.delete({ calendarId: targetCalendarId, eventId: event.id });
@@ -721,12 +693,12 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
     }
 
     // FASE 2: PUJAR TOTS ELS ESDEVENIMENTS DES DE L'APP LOCAL
-    console.log(`Pujant ${localFramesToUpload.length} esdeveniments locals al calendari de l'app...`);
+    console.info(`Pujant ${localFramesToUpload.length} esdeveniments locals al calendari de l'app...`);
     
     for (const localFrame of localFramesToUpload) {
       currentProgressStep++;
       const progressMessage = `Pujant ${currentProgressStep} de ${totalProgressSteps}: "${localFrame.name}"`;
-      console.log(progressMessage);
+      console.debug(progressMessage);
       sendProgress(progressMessage);
 
       const getPersonGroupById = (id) => localData.peopleGroups.find(p => p.id === id);
@@ -778,7 +750,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
         localFrame.googleCalendarId = targetCalendarId;
         localFrame.lastModified = newGoogleEvent.data.updated;
         localFrame.lastSync = new Date().toISOString();
-        console.log(`  -> Esdeveniment "${localFrame.name}" pujat amb èxit. ID de Google: ${newGoogleEvent.data.id}`);
+        console.debug(`  -> Esdeveniment "${localFrame.name}" pujat amb èxit. ID de Google: ${newGoogleEvent.data.id}`);
       } catch (err) {
         console.error(`Error creant "${localFrame.name}" a Google:`, err.message, err.response?.data);
       }
@@ -786,12 +758,12 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
     }
 
     // FASE 3: ACTUALITZAR L'ACTIVE CALENDAR ID I DESAR LA CONFIGURACIÓ
-    console.log(`Sincronització amb ${targetCalendarId} completada. Establint-lo com a calendari actiu.`);
+    console.info(`Sincronització amb ${targetCalendarId} completada. Establint-lo com a calendari actiu.`);
     config.activeAppCalendarId = targetCalendarId;
     fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
 
     // FASE 4: RETORNAR LES DADES LOCALS ACTUALITZADES
-    console.log("SYNC: Sincronització completada amb èxit.");
+    console.info("SYNC: Sincronització completada amb èxit.");
     return { success: true, message: 'Sincronització completada amb èxit.', data: localData };
 
   } catch (error) {
@@ -804,7 +776,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
 });
 
 ipcMain.handle('google-auth-start', async () => {
-  console.log("[IPC_IN] Iniciant 'google-auth-start'.");
+  console.info("[IPC_IN] Iniciant 'google-auth-start'.");
 
   if (isAuthenticating) {
     console.warn("AUTH WARN: Ja hi ha un procés d'autenticació en curs.");
@@ -846,7 +818,7 @@ ipcMain.handle('google-auth-start', async () => {
         state: state,
       });
       
-      console.log(`Servidor d'autenticació escoltant al port ${port}. Obrint URL d'autenticació.`);
+      console.debug(`Servidor d'autenticació escoltant al port ${port}. Obrint URL d'autenticació.`);
       require('electron').shell.openExternal(authUrl);
     });
 
@@ -865,18 +837,18 @@ ipcMain.handle('google-auth-start', async () => {
       }
       
       if (!code) {
-        console.warn("Callback d'autenticació rebut sense codi.");
+        console.warn("Callback d'autenticació rebut sense codi. L'usuari podria haver cancel·lat.");
         res.end('<h1>Esperant codi...</h1>');
         return;
       }
       
-      console.log("Callback rebut amb codi d'autorització. Obtenint tokens...");
+      console.debug("Callback rebut amb codi d'autorització. Obtenint tokens...");
 
       try {
         const { tokens } = await googleAuthClient.getToken(code);
         googleAuthClient.setCredentials(tokens);
         fs.writeFileSync(GOOGLE_TOKENS_PATH, JSON.stringify(tokens));
-        console.log("Tokens de Google obtinguts i desats correctament.");
+        console.info("Tokens de Google obtinguts i desats correctament.");
 
         // NOU PAS: Obtenir l'email de l'usuari
         const people = google.people({ version: 'v1', auth: googleAuthClient });
@@ -889,7 +861,7 @@ ipcMain.handle('google-auth-start', async () => {
         if (!primaryEmail) {
             throw new Error("No s'ha pogut obtenir l'adreça de correu principal de l'usuari.");
         }
-        console.log(`Correu de l'usuari obtingut: ${primaryEmail}`);
+        console.info(`Correu de l'usuari obtingut: ${primaryEmail}`);
 
         // NOU PAS: Desar l'email i inicialitzar la configuració
         let config = loadGoogleConfigFromFile() || {};
@@ -900,7 +872,7 @@ ipcMain.handle('google-auth-start', async () => {
         if (!config.selectedCalendarIds) config.selectedCalendarIds = [];
 
         fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-        console.log("Correu de l'usuari desat i estructura de configuració inicialitzada.");
+        console.info("Correu de l'usuari desat i estructura de configuració inicialitzada.");
 
         mainWindow.webContents.send('google-auth-success');
         res.end('<h1>Autenticació completada!</h1><p>Pots tancar aquesta pestanya.</p>');
@@ -926,12 +898,12 @@ ipcMain.handle('google-auth-start', async () => {
 });
 
 ipcMain.handle('load-google-config', async () => {
-  console.log("[IPC_IN] Rebut 'load-google-config'.");
+  console.debug("[IPC_IN] Rebut 'load-google-config'.");
   return loadGoogleConfigFromFile();
 });
 
 ipcMain.handle('save-google-config', async (event, config) => {
-  console.log("[IPC_IN] Rebut 'save-google-config' amb:", config);
+  console.debug("[IPC_IN] Rebut 'save-google-config' amb:", config);
   try {
     const existingConfig = loadGoogleConfigFromFile() || {};
     // La llista de calendaris gestionats només es modifica a través de 'create' i 'delete'.
@@ -939,7 +911,7 @@ ipcMain.handle('save-google-config', async (event, config) => {
     const mergedConfig = { ...existingConfig, ...config };
 
     fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(mergedConfig, null, 2));
-    console.log("Configuració de Google desada correctament:", mergedConfig);
+    console.info("Configuració de Google desada correctament:", mergedConfig);
     return { success: true, data: mergedConfig };
   } catch (err) {
     console.error('Error desant configuració de Google:', err);
@@ -948,7 +920,7 @@ ipcMain.handle('save-google-config', async (event, config) => {
 });
 
 ipcMain.handle('google-get-calendar-list', async () => {
-  console.log("[IPC_IN] Rebut 'google-get-calendar-list'.");
+  console.debug("[IPC_IN] Rebut 'google-get-calendar-list'.");
   try {
     if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
         throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
@@ -971,11 +943,11 @@ ipcMain.handle('google-get-calendar-list', async () => {
 });
 
 ipcMain.handle('get-google-events', async () => {
-  console.log("[IPC_IN] Rebut 'get-google-events'.");
+  console.debug("[IPC_IN] Rebut 'get-google-events'.");
   try {
     const config = loadGoogleConfigFromFile();
     if (!config?.selectedCalendarIds?.length) {
-      console.log("No hi ha calendaris de Google seleccionats per mostrar, retornant llista buida.");
+      console.debug("No hi ha calendaris de Google seleccionats per mostrar, retornant llista buida.");
       return { success: true, events: [] };
     }
     if (!googleAuthClient?.credentials?.access_token) {
@@ -991,7 +963,7 @@ ipcMain.handle('get-google-events', async () => {
     const availableCalendars = calendarListResponse.data.items || [];
     const managedIds = new Set(config.managedAppCalendars?.map(c => c.id) || []);
 
-    console.log(`Iniciant la cerca d'esdeveniments per a ${config.selectedCalendarIds.length} calendaris.`);
+    console.info(`Iniciant la cerca d'esdeveniments per a ${config.selectedCalendarIds.length} calendaris.`);
     for (const calendarId of config.selectedCalendarIds) {
       try {
         const res = await calendar.events.list({
@@ -1019,14 +991,14 @@ ipcMain.handle('get-google-events', async () => {
           extendedProps: { type: 'google', calendarId: calendarId }
         })) || [];
         
-        console.log(`  -> Trobat(s) ${events.length} esdeveniment(s) per al calendari ${calendarId}.`);
+        console.debug(`  -> Trobat(s) ${events.length} esdeveniment(s) per al calendari ${calendarId}.`);
         allEvents.push(...events);
 
       } catch (loopError) {
         console.error(`Error obtenint esdeveniments del calendari ${calendarId}:`, loopError);
       }
     }
-    console.log(`Total d'esdeveniments de Google recuperats: ${allEvents.length}.`);
+    console.info(`Total d'esdeveniments de Google recuperats: ${allEvents.length}.`);
     return { success: true, events: allEvents };
   } catch (error) {
     console.error('Error general a get-google-events:', error);
@@ -1035,7 +1007,7 @@ ipcMain.handle('get-google-events', async () => {
 });
 
 ipcMain.handle('google-get-event-details', async (event, { calendarId, eventId }) => {
-  console.log(`[IPC_IN] Rebut 'google-get-event-details' per a: calendarId=${calendarId}, eventId=${eventId}`);
+  console.debug(`[IPC_IN] Rebut 'google-get-event-details' per a: calendarId=${calendarId}, eventId=${eventId}`);
   try {
     if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
         throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
@@ -1051,7 +1023,7 @@ ipcMain.handle('google-get-event-details', async (event, { calendarId, eventId }
       eventId: eventId,
     });
 
-    console.log(`  -> Detalls de l'esdeveniment obtinguts amb èxit per a ${eventId}.`);
+    console.debug(`  -> Detalls de l'esdeveniment obtinguts amb èxit per a ${eventId}.`);
     return { success: true, event: res.data };
 
   } catch (error) {
@@ -1065,14 +1037,9 @@ let hasShownUncaughtExceptionDialog = false;
 process.on('uncaughtException', (error) => {
   const errorMsg = `Excepció no capturada: ${JSON.stringify(error, null, 2)}\n`;
   
-  try {
-    if (fs.existsSync(sessionLogFile)) {
-      fs.appendFileSync(sessionLogFile, `[${new Date().toISOString()}] ${errorMsg}`);
-    }
-  } catch (fsError) {
-    process.stderr.write(`No s'ha pogut escriure l'error al fitxer de log: ${fsError}\n`);
-    process.stderr.write(errorMsg);
-  }
+  // Utilitzem electron-log per registrar l'excepció no capturada
+  log.error('Excepció no capturada:', error);
+
 
   if (!hasShownUncaughtExceptionDialog) {
     hasShownUncaughtExceptionDialog = true;
@@ -1082,8 +1049,8 @@ process.on('uncaughtException', (error) => {
 });
 
 ipcMain.handle('factory-reset', async () => {
-  console.log("[IPC_IN] Rebut 'factory-reset'.");
-  console.log("Iniciant Restauració de Fàbrica...");
+  console.info("[IPC_IN] Rebut 'factory-reset'.");
+  console.info("Iniciant Restauració de Fàbrica...");
   
   let success = true;
 
@@ -1094,7 +1061,7 @@ ipcMain.handle('factory-reset', async () => {
       try {
         fs.unlinkSync(filePath);
         messages.push(`${fileNameForMessage} eliminat.`);
-        console.log(`${fileNameForMessage} eliminat: ${filePath}`);
+        console.info(`${fileNameForMessage} eliminat: ${filePath}`);
       } catch (err) {
         success = false;
         messages.push(`Error eliminant ${fileNameForMessage}: ${err.message}`);
@@ -1102,7 +1069,7 @@ ipcMain.handle('factory-reset', async () => {
       }
     } else {
       messages.push(`${fileNameForMessage} no existia.`);
-      console.log(`${fileNameForMessage} no existia: ${filePath}`);
+      console.debug(`${fileNameForMessage} no existia: ${filePath}`);
     }
   };
 
@@ -1112,12 +1079,12 @@ ipcMain.handle('factory-reset', async () => {
 
   if (googleAuthClient) {
     googleAuthClient.setCredentials(null);
-    console.log("Credencials de googleAuthClient en memòria netejades.");
+    console.info("Credencials de googleAuthClient en memòria netejades.");
     messages.push("Credencials de Google en memòria netejades.");
   }
   
   if (success) {
-    console.log("Reset de fàbrica del backend completat.");
+    console.info("Reset de fàbrica del backend completat.");
     return { success: true, message: `Reset completat:\n${messages.join('\n')}` };
   } else {
     console.error("El reset de fàbrica ha fallat en alguns passos.");
@@ -1127,7 +1094,7 @@ ipcMain.handle('factory-reset', async () => {
 
 ipcMain.handle('show-unsaved-changes-dialog', async (event, { message, buttons }) => {
   if (!mainWindow) return { response: buttons.length - 1 }; // Cancel·lar per defecte
-  console.log("[IPC_IN] Mostrant diàleg de sortida personalitzat.");
+  console.debug("[IPC_IN] Mostrant diàleg de sortida personalitzat.");
 
   const result = await dialog.showMessageBox(mainWindow, {
     type: 'question',
@@ -1138,7 +1105,7 @@ ipcMain.handle('show-unsaved-changes-dialog', async (event, { message, buttons }
     message: message, // El missatge dinàmic rebut del frontend
   });
 
-  console.log(`[IPC_OUT] Opció de diàleg seleccionada: ${result.response}`);
+  console.debug(`[IPC_OUT] Opció de diàleg seleccionada: ${result.response}`);
   // El frontend ara és responsable de gestionar l'índex directament.
   return { response: result.response };
 });
@@ -1177,16 +1144,16 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
 });
 
 ipcMain.handle('google-disconnect', async () => {
-  console.log("[IPC_IN] Rebut 'google-disconnect'.");
+  console.info("[IPC_IN] Rebut 'google-disconnect'.");
   try {
     const config = loadGoogleConfigFromFile();
 
     if (config?.managedAppCalendars?.length > 0 && googleServiceAccountClient) {
       const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
-      console.log(`Eliminant ${config.managedAppCalendars.length} calendaris de l'app de Google...`);
+      console.info(`Eliminant ${config.managedAppCalendars.length} calendaris de l'app de Google...`);
       for (const cal of config.managedAppCalendars) {
         try {
-          console.log(`  -> Eliminant ${cal.name} (${cal.id})`);
+          console.debug(`  -> Eliminant ${cal.name} (${cal.id})`);
           await calendar.calendars.delete({ calendarId: cal.id });
         } catch (err) {
           if (err.code === 404 || err.code === 410) {
@@ -1202,18 +1169,18 @@ ipcMain.handle('google-disconnect', async () => {
         }
       }
     } else {
-      console.log("No hi ha calendaris gestionats per eliminar, o el client de servei no està disponible.");
+      console.debug("No hi ha calendaris gestionats per eliminar, o el client de servei no està disponible.");
     }
 
     if (googleAuthClient && googleAuthClient.credentials.access_token) {
         await googleAuthClient.revokeCredentials();
-        console.log("Tokens de l'usuari revocats correctament.");
+        console.info("Tokens de l'usuari revocats correctament.");
     }
 
     const eliminarFitxer = (filePath, fileName) => {
       if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
-          console.log(`Fitxer local eliminat: ${fileName}`);
+          console.info(`Fitxer local eliminat: ${fileName}`);
       }
     };
 
@@ -1232,13 +1199,13 @@ ipcMain.handle('google-disconnect', async () => {
 });
 
 ipcMain.handle('create-new-app-calendar', async (event, suffix) => {
-    console.log(`[IPC_IN] Rebut 'create-new-app-calendar' amb sufix: "${suffix}"`);
+    console.info(`[IPC_IN] Rebut 'create-new-app-calendar' amb sufix: "${suffix}"`);
     if (!googleServiceAccountClient) {
         return { success: false, message: 'El client del compte de servei de Google no està inicialitzat.' };
     }
 
     const config = loadGoogleConfigFromFile();
-    console.log("Configuració de Google actual carregada:", config);
+    console.debug("Configuració de Google actual carregada:", config);
 
     if (!config) {
         return { success: false, message: 'El fitxer de configuració de Google no existeix. Si us plau, connecta\'t a Google primer.' };
@@ -1274,7 +1241,7 @@ ipcMain.handle('create-new-app-calendar', async (event, suffix) => {
 
         fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
 
-        console.log(`Nou calendari de l'app creat i afegit a la configuració:`, newCalendarObject);
+        console.info(`Nou calendari de l'app creat i afegit a la configuració:`, newCalendarObject);
         return { success: true, data: { managedAppCalendars: config.managedAppCalendars, activeAppCalendarId: config.activeAppCalendarId } };
 
     } catch (error) {
@@ -1302,7 +1269,7 @@ ipcMain.handle('save-session-data', async (event, { key, value }) => {
 });
 
 ipcMain.handle('delete-app-calendar', async (event, calendarIdToDelete) => {
-  console.log(`[IPC_IN] Rebut 'delete-app-calendar' per a l'ID: ${calendarIdToDelete}`);
+  console.info(`[IPC_IN] Rebut 'delete-app-calendar' per a l'ID: ${calendarIdToDelete}`);
 
   if (!googleServiceAccountClient) {
     return { success: false, message: 'El client del compte de servei de Google no està inicialitzat.' };
@@ -1319,9 +1286,9 @@ ipcMain.handle('delete-app-calendar', async (event, calendarIdToDelete) => {
 
   try {
     const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
-    console.log(`Eliminant el calendari de Google: ${calendarIdToDelete}`);
+    console.debug(`Eliminant el calendari de Google: ${calendarIdToDelete}`);
     await calendar.calendars.delete({ calendarId: calendarIdToDelete });
-    console.log('Calendari eliminat correctament de Google.');
+    console.info('Calendari eliminat correctament de Google.');
   } catch (err) {
     if (err.code === 404 || err.code === 410) {
       console.warn(`El calendari ${calendarIdToDelete} no s'ha trobat a Google (potser ja estava eliminat).`);
@@ -1345,13 +1312,26 @@ ipcMain.handle('delete-app-calendar', async (event, calendarIdToDelete) => {
   }
 
   fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-  console.log('Calendari eliminat de la configuració local.');
+  console.info('Calendari eliminat de la configuració local.');
 
   return { success: true, message: 'El calendari ha estat eliminat correctament.', data: { managedAppCalendars: config.managedAppCalendars, activeAppCalendarId: config.activeAppCalendarId } };
 });
 
+ipcMain.handle('open-logs-folder', async () => {
+  console.info("[IPC_IN] Rebut 'open-logs-folder'.");
+  try {
+    const logFilePath = log.transports.file.getFile().path;
+    const logDirPath = path.dirname(logFilePath);
+    await shell.openPath(logDirPath);
+    return { success: true };
+  } catch (error) {
+    console.error('Error obrint la carpeta de logs:', error);
+    return { success: false, message: error.message };
+  }
+});
+
 app.whenReady().then(() => {
-  console.log('[Startup] App està llesta, cridant a createWindow...');
+  console.debug('[Startup] App està llesta, cridant a createWindow...');
   createWindow();
 });
 

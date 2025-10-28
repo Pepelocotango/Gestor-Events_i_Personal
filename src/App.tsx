@@ -715,6 +715,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
           case 'toggle-theme':
             toggleTheme();
             break;
+          case 'open-logs-folder':
+            window.electronAPI?.openLogsFolder();
+            break;
           default:
             break;
         }
