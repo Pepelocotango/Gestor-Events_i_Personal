@@ -175,15 +175,19 @@ Per facilitar la depuració i mantenir uns registres nets en producció, l'aplic
     -   **Producció:** Només es registren els nivells `info`, `warn` i `error` al fitxer, per mantenir-lo concís i rellevant.
 -   **Integració Transparent:** `electron-log` sobreescriu automàticament els mètodes de `console` (`log`, `error`, etc.). Això permet que les crides de log des del frontend siguin capturades pel backend i escrites al fitxer de log sense necessitat de cap canal IPC personalitzat.
 -   **Accés per a l'Usuari:** S'ha afegit una opció de menú ("Ajuda -> Obrir Carpeta de Logs") que obre directament el directori on es desen els fitxers de log, facilitant a l'usuari final l'enviament de registres per a la depuració.
--   **Rotació Automàtica:** La llibreria gestiona automàticament la rotació de fitxers, limitant la mida i el nombre de fitxers de log antics.
+-   **Rotació per Mida:** En lloc de crear un fitxer nou a cada sessió, ara s'utilitza un fitxer principal (`main.log`). Quan aquest fitxer arriba a 1MB, es reanomena amb un timestamp (p. ex., `main.163...log`) i se'n crea un de nou.
+-   **Retenció Automàtica:** El sistema conserva un màxim de 10 fitxers de log (1 actiu i 9 arxivats), eliminant automàticament els més antics per optimitzar l'ús de disc.
 
-#### Còpies de Seguretat (Backups)
+#### Còpies de Seguretat Contextuals (Backups)
 
-Per prevenir la pèrdua de dades, s'ha implementat un sistema de còpies de seguretat automàtic i millorat:
+El sistema de còpies de seguretat s'ha fet més intel·ligent per evitar backups innecessaris.
 
--   **Activació:** La funció `createBackup(filePath)` es crida automàticament des dels gestors IPC `save-file` i `show-save-dialog` cada vegada que un document es desa amb èxit.
--   **Nomenclatura:** Cada backup es desa a `BACKUP_DIR`. El nom del fitxer ara inclou el nom del document original per a una millor identificació (p. ex., `backup-ElMeuProjecte-2025-09-20T103000.json`), a més d'un timestamp per garantir que cada còpia sigui única.
--   **Neteja Automàtica:** La funció `cleanupOldBackups(filePath)` s'executa també després de cada desat. Revisa el directori de backups i elimina els més antics per a aquell document específic, conservant només els 5 més recents.
+-   **Activació Contextual:** Les còpies de seguretat només es creen quan es desa un **document de dades principal** (`.json`), i **no** quan s'exporten altres tipus de fitxers (PDF, CSV).
+-   **Implementació Tècnica:**
+    -   El gestor IPC `show-save-dialog` a `main.cjs` ara accepta un paràmetre booleà opcional: `isDocumentSave`.
+    -   La lògica de `createBackup()` només s'executa si `isDocumentSave` és `true`.
+    -   Totes les crides des del frontend (`App.tsx`, `pdfGenerator.ts`, etc.) han estat actualitzades per passar aquest flag correctament.
+-   **Nomenclatura i Neteja:** La nomenclatura (amb el nom del document original) i la neteja automàtica (conservant els 5 backups més recents per document) es mantenen.
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 

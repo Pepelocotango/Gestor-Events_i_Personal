@@ -168,9 +168,9 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
   * Estat global optimitzat amb selectors independents per evitar bucles infinits de renderitzat.
   * Historial desfer/refer interactiu amb modal, botons i descripcions clares d'acció.
 
-* **Backups i Tancament Intel·ligent:**
-  * Diàleg de sortida únic amb opcions clares: Desa, Desa com..., Tanca sense desar, Cancel·la.
-  * Backups automàtics incondicionals a cada desat o tancament, amb neteja i rotació intel·ligent.
+* **Backups i Logs Optimizats:**
+  * **Backups Contextuals:** El sistema ara només crea còpies de seguretat automàtiques en desar el fitxer de dades principal de l'aplicació, evitant generar backups innecessaris durant les exportacions a PDF o CSV.
+  * **Rotació de Logs Intel·ligent:** S'ha optimitzat el sistema de logs per limitar automàticament el nombre i la mida dels fitxers, reduint l'ús d'espai en disc sense perdre l'historial d'errors recent.
 
 * **Separació de Configuració Google:**
   * Configuració local (`google-config.json`) independent de la configuració de cada document.
@@ -197,8 +197,8 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
 
 L'aplicació prioritza la integritat de les teves dades amb un sistema de desat i backups segur.
 
--   **Diàleg de Sortida Únic:** En intentar tancar l'aplicació amb canvis no desats, es mostra un únic diàleg que t'ofereix un control clar: `Desa`, `Desa com...`, `Tanca sense desar` o `Cancel·la`.
--   **Backups Automàtics en Desar:** Es crea automàticament un backup del teu document cada vegada que l'usuari realitza una acció de desat amb èxit (`Desa` o `Desa com...`). El sistema gestiona una rotació intel·ligent, conservant les còpies més recents per a cada document i proporcionant una xarxa de seguretat robusta contra la pèrdua de dades.
+-   **Diàleg de Sortida Únic:** En intentar tancar l'aplicació amb canvis no desats, es mostra un únic diàleg que t'ofereix un control clar: `Desa`, `Tanca sense desar` o `Cancel·la`.
+-   **Backups Automàtics Contextuals:** Es crea automàticament un backup del teu document cada vegada que el deses amb èxit (`Guardar` o `Guardar com...`). Aquest sistema és intel·ligent: només s'activa en desar el fitxer de dades principal, no en exportar PDFs o CSVs. El sistema gestiona una rotació, conservant les còpies més recents per a cada document.
 
 ## ⚡ Configuració de Google: Separació Local vs Document
 

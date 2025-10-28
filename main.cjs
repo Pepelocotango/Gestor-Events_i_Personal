@@ -158,7 +158,9 @@ ipcMain.handle('save-file', async (event, { filePath, data }) => {
     fs.writeFileSync(filePath, data, 'utf8');
     console.info(`Fitxer desat correctament a: ${filePath}`);
 
-    // Create backup after successful save
+    // La crida a 'save-file' sempre prové del desat del document principal,
+    // per tant, sempre creem una còpia de seguretat.
+    console.info('Desant un document principal via save-file. Es crearà una còpia de seguretat.');
     await createBackup(filePath);
     await cleanupOldBackups(filePath);
 
