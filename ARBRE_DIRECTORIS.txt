@@ -55,7 +55,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   └── ui/                   # Components genèrics reutilitzables (botons, tooltips, etc.).
 │   │       ├── AutosizeTextarea.tsx            # Textarea que s'ajusta automàticament a l'alçada del contingut.
 │   │       ├── CollapsibleSection.tsx          # Component de secció genèrica que es pot expandir/col·lapsar.
-│   │       ├── CustomMenuBar.tsx               # Barra de menú personalitzada en React que substitueix la nativa.
+│   │       ├── CustomMenuBar.tsx               # Barra de menú personalitzada en React que substitueix la nativa. Inclou opcions d'accés ràpid a carpetes de logs i backups.
 │   │       ├── Modal.tsx                       # Component base per a tots els diàlegs modals.
 │   │       ├── SplashScreen.tsx                # Component que mostra una animació en iniciar l'app.
 │   │       ├── SyncProgressOverlay.tsx         # Overlay amb la barra de progrés per a la sincronització.
@@ -66,9 +66,6 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.
 │   │   ├── EventFrameCard.tsx      # Renderitza una targeta per a un esdeveniment marc a la llista. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── MainDisplay.tsx         # Vista principal. Gestiona la detecció de conflictes en modificar estats. [REFACTORITZAT: usa stores]
-│   │   ├── MaterialControlCenter.tsx # Component principal del Centre de Control de Material. Orquestra els filtres i la taula de dades.
-│   │   ├── MaterialControlFilters.tsx# Panell de filtres per data, esdeveniment, origen, categoria i text.
-│   │   ├── MaterialControlTable.tsx  # Taula de resultats que mostra el pic de demanda. Columnes i ordenació redissenyades per a anàlisi d'estoc.
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa MaterialForm]
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. [REFACTORITZAT: usa eventDataStore]

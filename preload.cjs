@@ -60,6 +60,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadAppData: () => ipcRenderer.invoke('load-app-data'),
   getPlatformSync: () => process.platform,
   openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
+  openBackupsFolder: () => ipcRenderer.invoke('open-backups-folder'),
 });
 
 // Expose electron-log to the renderer process

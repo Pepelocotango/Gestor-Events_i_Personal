@@ -1385,6 +1385,22 @@ ipcMain.handle('open-logs-folder', async () => {
   }
 });
 
+ipcMain.handle('open-backups-folder', async () => {
+  console.info("[IPC_IN] Rebut 'open-backups-folder'.");
+  try {
+    // Assegurar que el directori existeix abans d'obrir-lo
+    if (!fs.existsSync(BACKUP_DIR)) {
+      console.debug(`El directori de backups no existeix, creant-lo a: ${BACKUP_DIR}`);
+      fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    }
+    await shell.openPath(BACKUP_DIR);
+    return { success: true };
+  } catch (error) {
+    console.error('Error obrint la carpeta de còpies de seguretat:', error);
+    return { success: false, message: error.message };
+  }
+});
+
 app.whenReady().then(() => {
   console.debug('[Startup] App està llesta, cridant a createWindow...');
   createWindow();

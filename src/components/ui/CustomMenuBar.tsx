@@ -187,6 +187,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
     {
       label: 'Ajuda',
       items: [
+        { label: 'Obrir Carpeta de Còpies de Seguretat', action: 'open-backups-folder' },
         { label: 'Obrir Carpeta de Logs', action: 'open-logs-folder' },
       ],
     },

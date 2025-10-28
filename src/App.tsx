@@ -720,6 +720,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
           case 'open-logs-folder':
             window.electronAPI?.openLogsFolder();
             break;
+          case 'open-backups-folder':
+            window.electronAPI?.openBackupsFolder();
+            break;
           default:
             break;
         }
