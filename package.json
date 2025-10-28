@@ -80,6 +80,7 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
+      "metadata.json",
       "google-credentials.json",
       "service-account.json"
     ],
