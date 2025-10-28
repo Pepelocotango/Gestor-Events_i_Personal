@@ -55,7 +55,14 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
       <div>
         <h3 className="text-lg font-medium text-foreground">Configuració de Google Calendar</h3>
         <div className="mt-2 text-sm space-y-2 p-3 bg-warning/10 border-l-4 border-warning">
-          <p><strong className="font-semibold">Important:</strong> La sincronització és <strong>unidireccional</strong>: les dades de l'app sobreescriuen les del calendari seleccionat a Google. Qualsevol canvi fet directament a Google en aquests calendaris <strong>es perdrà</strong>.</p>
+          <h4 className="font-semibold text-warning-foreground">AVÍS IMPORTANT: Com Funciona la Integració amb Google</h4>
+          <p>Aquesta aplicació interactua amb Google Calendar de dues maneres diferents per protegir la teva privacitat:</p>
+          <ul className="list-disc list-inside space-y-1 pl-2">
+            <li><strong>Sincronització (Escriptura):</strong> L'aplicació <strong>NOMÉS</strong> pot escriure i sobreescriure les dades dels calendaris que ella mateixa ha creat (els de la llista "Calendaris de l'App Gestionats").</li>
+            <li><strong>Visualització (Només Lectura):</strong> Els teus altres calendaris de Google es mostren només per a visualització. Aquesta aplicació <strong>MAI modificarà ni esborrarà res</strong> dels teus calendaris personals.</li>
+          </ul>
+          <p className="font-semibold pt-2">Requisit per a la Sincronització:</p>
+          <p>Per poder utilitzar aquesta funcionalitat, has de contactar amb l'autor per a que el teu compte de Google sigui afegit a la llista d'usuaris permesos.</p>
         </div>
       </div>
 
