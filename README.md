@@ -39,7 +39,10 @@ L'aplicació ofereix les següents eines:
 
 *   **Connectivitat i Gestió de Dades:**
     *   **Integració amb Google Calendar:** Sincronitza els esdeveniments de l'aplicació a un calendari dedicat de Google i visualitza altres calendaris teus en mode de només lectura.
-        > **AVÍS IMPORTANT:** La integració amb Google Calendar està actualment en **mode de proves**. Perquè la sincronització funcioni, Google requereix que el desenvolupador afegeixi manualment el teu correu electrònic a la llista de "testers" autoritzats del projecte. Si vols utilitzar aquesta funcionalitat, si us plau, contacta amb l'autor.
+        
+        > **AVÍS IMPORTANT:** La integració amb Google Calendar requereix una autorització manual per part del desenvolupador.
+        Perquè la sincronització funcioni, Google requereix que el desenvolupador afegeixi manualment el teu correu electrònic a la llista de "testers" autoritzats del projecte. Si vols utilitzar aquesta funcionalitat, si us plau, contacta amb l'autor, per a que el teu compte de Google , sigui afegit a la llista d'usuaris permesos.
+
     *   **Importació/Exportació:** Desa i carrega totes les dades de l'aplicació en format JSON. La càrrega de dades de personal i material permet fusionar o reemplaçar la informació existent.
     *   **Exportació a PDF/CSV:** Exporta resums, llistes de personal, inventaris i fitxes de bolo a formats professionals com PDF i CSV.
 

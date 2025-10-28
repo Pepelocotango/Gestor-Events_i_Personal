@@ -4,6 +4,7 @@
   "version": "1.2.0",
   "description": "Una aplicació per gestionar esdeveniments i personal",
   "author": "Pep",
+  "license": "GPL-3.0-or-later",
   "main": "main.cjs",
   "type": "module",
   "scripts": {
