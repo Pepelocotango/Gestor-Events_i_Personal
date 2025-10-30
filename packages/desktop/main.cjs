@@ -65,6 +65,11 @@ console.debug = log.debug.bind(log); // Afegim debug per a més granularitat
 // Inicialitza el logger per al procés principal. Això començarà a capturar logs.
 log.initialize();
 
+// Defineix una ruta base a l'inici del fitxer
+const appBasePath = app.isPackaged
+? path.dirname(app.getAppPath())
+: path.join(__dirname, '..', '..'); // Puja dos nivells per arribar a l'arrel del monorepo en desenvolupament
+
 const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 const metadataJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'metadata.json'), 'utf8'));
 
@@ -208,7 +213,7 @@ function ensureDirectoriesExist() {
 
 function loadGoogleCredentials() {
   try {
-    const credentialsPath = path.join(__dirname, 'google-credentials.json');
+    const credentialsPath = path.join(appBasePath, 'packages', 'desktop', 'google-credentials.json');
     if (!fs.existsSync(credentialsPath)) return false;
 
     const content = fs.readFileSync(credentialsPath);
@@ -228,7 +233,7 @@ function loadGoogleCredentials() {
 
 async function loadServiceAccountCredentials() {
   try {
-    const serviceAccountPath = path.join(__dirname, 'service-account.json');
+    const serviceAccountPath = path.join(appBasePath, 'packages', 'desktop', 'service-account.json');
     if (!fs.existsSync(serviceAccountPath)) {
       console.warn('El fitxer service-account.json no es troba. Les funcionalitats avançades de Google Calendar estaran desactivades.');
       return false;
