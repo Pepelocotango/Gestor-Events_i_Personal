@@ -1,5 +1,5 @@
 import React from 'react';
-import { SyncProgressState } from '../../types';
+import { SyncProgressState } from '@gep/core';
 
 interface SyncProgressOverlayProps {
   progress: SyncProgressState;

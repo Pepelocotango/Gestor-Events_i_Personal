@@ -1,11 +1,8 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { useEventDataStore } from '../../stores/eventDataStore';
-import { Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
+import { useEventDataStore, useModalStore, Assignment, AssignmentStatus, ShowToastFunction, formatDateDMY } from '@gep/core';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../constants';
-import { formatDateDMY } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
-import { useModalStore } from '../../stores/modalStore';
 
 interface AssignmentFormModalProps {
   onClose: () => void;
@@ -32,7 +29,6 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
   const [isEditingMixed, setIsEditingMixed] = useState(isEditing && formData.status === AssignmentStatus.Mixed);
 
   useEffect(() => {
-    // This effect now only resets errors when the modal context changes.
     setErrors({});
   }, [isEditing, data.assignmentToEdit?.id, data.eventFrame?.id]);
 

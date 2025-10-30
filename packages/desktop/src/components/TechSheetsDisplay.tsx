@@ -1,6 +1,5 @@
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
-import { useEventDataStore, selectMaterialControlData } from '../stores/eventDataStore';
-import { EventFrame, ShowToastFunction } from '../types';
+import { useEventDataStore, selectMaterialControlData, EventFrame, ShowToastFunction } from '@gep/core';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
 

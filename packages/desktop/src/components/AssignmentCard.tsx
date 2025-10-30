@@ -1,9 +1,8 @@
 import React, { useRef, useMemo } from 'react';
-import { useEventDataStore } from '../stores/eventDataStore';
-import { EventFrame, Assignment, AssignmentStatus } from '../types';
+import { useEventDataStore, EventFrame, Assignment, AssignmentStatus } from '@gep/core';
 import { EditIcon, TrashIcon } from '../constants';
-import { formatDateDMY, formatDateRangeDMY } from '../utils/dateFormat';
-import { getStatusSummaryText } from '../utils/statusUtils';
+import { formatDateDMY, formatDateRangeDMY } from '@gep/core';
+import { getStatusSummaryText } from '@gep/core';
 import Tooltip from './ui/Tooltip';
 
 const getDaysInRange = (startDateStr: string, endDateStr: string): string[] => {
@@ -51,7 +50,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     console.error(`PersonGroup not found for ID: ${assignment.personGroupId}`);
   }
 
-  // Ensure assignment and eventFrame are valid
   if (!assignment || !eventFrame) {
     console.error('Invalid assignment or eventFrame passed to AssignmentCard:', { assignment, eventFrame });
     return null;
@@ -80,7 +78,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   const liClasses = useMemo(() => {
     const base = 'rounded-lg';
-    // La vora per 'Mixt' utilitzarà el color 'primary' per defecte
     const borderClassForMixed = 'border-l-primary'; 
     const borderClasses = `border-l-4 ${borderClass}`;
 
@@ -92,8 +89,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       case AssignmentStatus.No:
         return `${base} bg-destructive/15 ${borderClasses}`;
       case AssignmentStatus.Mixed:
-        // Només apliquem la classe del degradat. La transparència la definirem al CSS.
-        // Afegim la vora per consistència visual.
         return `${base} bg-gradient-mixed border-l-4 ${borderClassForMixed}`; 
       default:
         return `${base} bg-card ${borderClasses}`;
@@ -178,9 +173,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               const currentDailyStatus = assignment.dailyStatuses?.[date] || (assignment.status !== AssignmentStatus.Mixed ? assignment.status : AssignmentStatus.Pending);
               
               const statusRowClasses: { [key in AssignmentStatus]?: string } = {
-                [AssignmentStatus.Yes]: 'bg-success/60',      // Fons verd al 60%
-                [AssignmentStatus.No]: 'bg-destructive/60',   // Fons vermell al 60%
-                [AssignmentStatus.Pending]: 'bg-warning/60',   // Fons groc al 60%
+                [AssignmentStatus.Yes]: 'bg-success/60',
+                [AssignmentStatus.No]: 'bg-destructive/60',
+                [AssignmentStatus.Pending]: 'bg-warning/60',
               };
               const rowClass = statusRowClasses[currentDailyStatus] || 'bg-muted/50';
 

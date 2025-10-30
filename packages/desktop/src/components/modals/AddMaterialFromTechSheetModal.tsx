@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useEventDataStore } from '../../stores/eventDataStore';
-import { useModalStore } from '../../stores/modalStore';
-import { MaterialItem } from '../../types';
+import { useEventDataStore, useModalStore, MaterialItem } from '@gep/core';
 import MaterialForm from '../forms/MaterialForm';
 
 const AddMaterialFromTechSheetModal: React.FC = () => {
@@ -12,10 +10,8 @@ const AddMaterialFromTechSheetModal: React.FC = () => {
   const name = modalData?.name;
   const onAdd = modalData?.onAdd;
 
-  // Llista de categories existents per a l'autocompletat
   const categories = useMemo(() => Array.from(new Set(materialItems.map(item => item.category))), [materialItems]);
 
-  // Si les dades necessàries no estan presents, tanca el modal.
   useEffect(() => {
     if (!name || typeof onAdd !== 'function') {
       console.warn('AddMaterialFromTechSheetModal opened with invalid data, closing.');
@@ -29,7 +25,6 @@ const AddMaterialFromTechSheetModal: React.FC = () => {
       closeModal();
       return;
     }
-    // Assegurem que el nom no es perdi
     const finalData = { ...itemData, name: name || itemData.name };
     const newItem = addMaterialItem(finalData);
 
@@ -40,7 +35,6 @@ const AddMaterialFromTechSheetModal: React.FC = () => {
     closeModal();
   };
 
-  // No renderitzar res si les dades no són vàlides (useEffect s'encarregarà de tancar)
   if (!name || typeof onAdd !== 'function') {
     return null;
   }

@@ -13,13 +13,11 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment, TechSheetData } from '../../types';
+import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment, TechSheetData, ShowToastFunction, useModalStore, formatDateDMY } from '@gep/core';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
 import Tooltip from '../ui/Tooltip';
-import { useModalStore } from '../../stores/modalStore';
-import { formatDateDMY } from '@gep/core';
 import SortableProvider from './SortableProvider';
 
 interface TechnicalPersonnelSectionProps {

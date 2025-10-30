@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import { EventFrame } from '../types';
-import { MaterialControlFilters as FiltersState } from '../stores/eventDataStore';
+import { EventFrame, MaterialControlFilters as FiltersState } from '@gep/core';
 import CollapsibleSection from './ui/CollapsibleSection';
 import Tooltip from './ui/Tooltip';
 

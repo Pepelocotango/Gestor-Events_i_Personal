@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConditionalStatus } from '../../types';
+import { ConditionalStatus } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 
 interface ConditionalFormControlProps {

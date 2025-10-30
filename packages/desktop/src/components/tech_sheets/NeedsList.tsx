@@ -1,8 +1,7 @@
 import React, { memo } from 'react';
 import TechSheetField from './TechSheetField';
-import { MaterialItem } from '../../types';
+import { MaterialItem, useModalStore } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
-import { useModalStore } from '../../stores/modalStore';
 
 interface NeedsListProps {
   needs: any[];

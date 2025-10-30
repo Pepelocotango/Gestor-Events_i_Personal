@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { generateDefaultFileName, notificationService, initializeGoogleAuthListeners, initializeEventDataStore, logger } from '@gep/core';
-import ElectronPersistenceAdapterImpl from './ElectronPersistenceAdapter';
+import { generateDefaultFileName, notificationService, initializeGoogleAuthListeners, initializeEventDataStore, logger, useEventDataStore, useModalStore } from '@gep/core';
+import ElectronPersistenceAdapter from './ElectronPersistenceAdapter';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
-import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
-import { useModalStore } from './stores/modalStore';
-import { useEventDataStore } from './stores/eventDataStore';
+import { ShowToastFunction, PersonGroup, MaterialItem } from '@gep/core';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
-// notificationService is now imported from @gep/core above
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
@@ -41,25 +38,12 @@ const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairM
 const HistoryModal = lazy(() => import('./components/modals/HistoryModal'));
 const GoogleEventDetailsModal = lazy(() => import('./components/modals/GoogleEventDetailsModal'));
 
-
-// (initialized above)
+initializeEventDataStore(ElectronPersistenceAdapter);
 
 let globalInitialLoadAttempted = false;
 
 const App: React.FC = () => {
-  // Inicialitza l'adaptador d'persistència perquè l'store no cridi directament a window.electronAPI
-  useEffect(() => {
-    try {
-      const adapter = new ElectronPersistenceAdapterImpl();
-      initializeEventDataStore(adapter as any);
-      logger.info('[Startup] Persistence adapter inicialitzat.');
-    } catch (err) {
-      logger.warn('[Startup] No s\'ha pogut inicialitzar l\'adaptador de persistència:', err);
-    }
-  }, []);
   const mainDisplayRef = useRef<{ resize: () => void }>(null);
-  // Determina la tecla modificadora de la plataforma de forma síncrona a l'inici.
-  // Això evita el parpelleig de la UI que passava amb l'enfocament asíncron anterior.
   const platformModifierKey = window.electronAPI?.getPlatformSync() === 'darwin' ? '⌘' : 'Ctrl';
   
   const [showSplash, setShowSplash] = useState(true);
@@ -75,11 +59,7 @@ const App: React.FC = () => {
   const type = useModalStore(state => state.type);
   const data = useModalStore(state => state.data);
 
-  // --- State from Zustand Store (Reactive) ---
-  // Subscribe to only the pieces of state that cause re-renders.
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
-
-  // Ref to track the latest state of hasUnsavedChanges to avoid stale state in listeners.
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   useEffect(() => {
     hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -91,9 +71,6 @@ const App: React.FC = () => {
   const canUndo = useStore(useEventDataStore.temporal, state => state.pastStates.length > 0);
   const canRedo = useStore(useEventDataStore.temporal, state => state.futureStates.length > 0);
 
-  // --- Actions from Zustand Store (Non-reactive) ---
-  // Actions are stable functions, so we can get them once with getState().
-  // This avoids re-running useEffects that depend on them.
   const {
     loadData: loadDataFromManager,
     exportData: exportDataFromManager,
@@ -128,12 +105,6 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Inicialitza l'adaptador de persistència i els listeners de la store de Google un sol cop
-    try {
-      const adapter = new ElectronPersistenceAdapterImpl();
-      initializeEventDataStore(adapter);
-      // eslint-disable-next-line no-empty
-    } catch (err) {}
     initializeGoogleAuthListeners();
 
     const fetchMetadata = async () => {
@@ -536,8 +507,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
     }
   }, []);
 
-  // Lògica de sortida refactoritzada per eliminar el backup de sessió.
-  // El tancament ara és gestionat per un IPC handler simple que no crea backups.
   const quitLogicRef = useRef<() => Promise<void>>();
   useEffect(() => {
     quitLogicRef.current = async () => {
@@ -550,7 +519,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
       };
 
       if (hasUnsavedChangesRef.current) {
-        // Cas 1: Hi ha canvis no desats
         if (window.electronAPI?.showUnsavedChangesDialog) {
           const fileName = currentFilePath
             ? currentFilePath.split(/[/\\]/).pop()
@@ -561,30 +529,29 @@ const handleSaveDocument = async (): Promise<boolean> => {
           const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
 
           switch (response) {
-            case 0: // Desa
+            case 0:
               if (await handleSaveDocument()) {
                 quitApp();
               } else {
                 showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
               }
               break;
-            case 1: // Tanca sense desar
+            case 1:
               quitApp();
               break;
-            case 2: // Cancel·la
+            case 2:
             default:
               logger.info("Sortida cancel·lada per l'usuari.");
               break;
           }
         }
       } else {
-        // Cas 2: No hi ha canvis, però igualment es demana confirmació
         if (window.electronAPI?.showUnsavedChangesDialog) {
           const { response } = await window.electronAPI.showUnsavedChangesDialog({
             message: 'Estàs segur que vols sortir de l\'aplicació?',
             buttons: ['Sortir', 'Cancel·lar'],
           });
-          if (response === 0) { // 0: Sortir
+          if (response === 0) {
             quitApp();
           } else {
             logger.info("Sortida cancel·lada per l'usuari.");
@@ -594,15 +561,12 @@ const handleSaveDocument = async (): Promise<boolean> => {
     };
   });
 
-  // El listener de 'confirm-quit' es registra un sol cop, garantint que no hi ha múltiples listeners.
-  // Crida a la versió més recent de la lògica de sortida a través de la ref.
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
       const cleanup = window.electronAPI.onConfirmQuit(() => {
         quitLogicRef.current?.();
       });
 
-      // Neteja el listener quan el component es desmunta, per higiene.
       return cleanup;
     }
   }, []);
@@ -624,7 +588,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
     }
   }, [showToast]);
 
-  // Listener per al progrés de sincronització
   useEffect(() => {
     if (window.electronAPI?.onSyncProgress) {
       const { setSyncProgress } = useEventDataStore.getState();
@@ -635,12 +598,10 @@ const handleSaveDocument = async (): Promise<boolean> => {
     }
   }, []);
 
-  // Listeners per a notificacions del backend
   useEffect(() => {
     if (window.electronAPI) {
       const cleanupFunctions: (() => void)[] = [];
 
-      // Listener per a l'aplicació que es reiniciarà després del reset
       if (window.electronAPI.onAppWillRelaunchAfterReset) {
         const cleanup = window.electronAPI.onAppWillRelaunchAfterReset(() => {
           showToast('L\'aplicació es reiniciarà després del reset...', 'info');
@@ -648,7 +609,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
         cleanupFunctions.push(cleanup);
       }
 
-      // Listener per a errors de sincronització
       if (window.electronAPI.onSyncError) {
         const cleanup = window.electronAPI.onSyncError((error: string) => {
           showToast(`Error de sincronització: ${error}`, 'error');
@@ -656,7 +616,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
         cleanupFunctions.push(cleanup);
       }
 
-      // Listener per a èxits de sincronització
       if (window.electronAPI.onSyncSuccess) {
         const cleanup = window.electronAPI.onSyncSuccess((message: string) => {
           showToast(message || 'Sincronització completada', 'success');
@@ -664,7 +623,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
         cleanupFunctions.push(cleanup);
       }
 
-      // Listener per a notificacions generals del backend
       if (window.electronAPI.onBackendNotification) {
         const cleanup = window.electronAPI.onBackendNotification((notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => {
           showToast(notification.message, notification.type);
@@ -677,9 +635,6 @@ const handleSaveDocument = async (): Promise<boolean> => {
       };
     }
   }, [showToast]);
-
-  // Obsolete functions for file handling have been removed.
-  // The new logic is in handleOpenDocument, handleSaveDocument, etc.
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
@@ -763,9 +718,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
     canUndo,
     canRedo,
     hasUnsavedChanges,
-    currentFilePath, // Added to deps
-    isDocumentOpen,  // Added to deps
-    recentFiles      // Added to deps
+    currentFilePath,
+    isDocumentOpen,
+    recentFiles
   ]);
 
 

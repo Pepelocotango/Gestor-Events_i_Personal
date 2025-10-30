@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ManagedAppCalendar } from '@/types';
+import { ManagedAppCalendar } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 
 interface SelectSyncCalendarModalProps {
@@ -18,7 +18,6 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(activeCalendarId);
 
   useEffect(() => {
-    // Pre-select the active calendar, or the first one if no active one is set.
     if (activeCalendarId && managedCalendars.some(c => c.id === activeCalendarId)) {
       setSelectedCalendarId(activeCalendarId);
     } else if (managedCalendars.length > 0) {

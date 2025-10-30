@@ -8,17 +8,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    # 1. Descarrega el codi del teu repositori
     - name: Checkout del codi
       uses: actions/checkout@v4
 
-    # 2. Configura l'entorn de Node.js per poder utilitzar npm
     - name: Configuració de Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20' # Utilitzem una versió recent de Node.js
+        node-version: '18.x'
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
 
-    # 3. Instal·la totes les dependències del package.json
     - name: Instal·lació de dependències del projecte
       run: npm install
       
@@ -44,13 +43,9 @@ jobs:
             echo "El fitxer google-credentials.json està buit o massa petit!" && exit 1
           )
 
-    # 4. PAS CLAU: Executa el teu script "build:electron"
-    # Aquesta única comanda s'encarrega de compilar el teu codi React i empaquetar-lo amb Electron.
-    # Els paràmetres --win --x64 asseguren que es construeixi per a Windows 64-bit.
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
-    # 5. Creació del paquet ZIP per a Windows
     - name: Crear paquet ZIP de Windows
       id: zip_windows
       shell: pwsh
@@ -64,7 +59,6 @@ jobs:
 
         Compress-Archive -Path $filesToZip -DestinationPath $zipName
 
-    # 6. Pujada de l'artefacte ZIP de Windows
     - name: Pujada del ZIP de Windows
       uses: actions/upload-artifact@v4
       with:

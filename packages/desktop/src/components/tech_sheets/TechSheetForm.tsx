@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useEventDataStore, EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '@gep/core';
+import { useEventDataStore, EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction, formatDateDMY, exportTechSheetToPdf } from '@gep/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
-import { formatDateDMY, exportTechSheetToPdf } from '@gep/core';
 import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';
@@ -135,15 +134,12 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     };
   }, [saveData]);
 
-  // Aquest useEffect és clau per sincronitzar l'estat local amb el global
   useEffect(() => {
     const newProviders = eventFrame.techSheet?.technicalProviders || [];
-    // Comprovem si l'array de proveïdors a l'estat local és diferent del de l'estat global.
-    // Això passa després que l'acció de reordenació actualitzi la store.
     if (JSON.stringify(formData.technicalProviders) !== JSON.stringify(newProviders)) {
       setFormData(prev => ({ ...prev, technicalProviders: newProviders }));
     }
-  }, [eventFrame.techSheet?.technicalProviders]); // S'executa cada cop que els proveïdors a la store canvien
+  }, [eventFrame.techSheet?.technicalProviders]);
 
   if (!formData) {
     return <div>Carregant dades de la fitxa tècnica...</div>;
@@ -211,7 +207,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
 
       const newSchedule = sortedDates.flatMap(date => groupedByDate[date]);
 
-      // Keep 'Sense data' items at the end
       if (groupedByDate['Sense data']) {
         newSchedule.push(...groupedByDate['Sense data']);
       }
@@ -227,9 +222,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
       const scheduleData = prev.schedule?.data || [];
       const newSchedule = [...scheduleData];
 
-      // Find the indices of the items for the given date
       const startIndex = newSchedule.findIndex(item => item.date === date);
-      if (startIndex === -1) return prev; // No items for this date
+      if (startIndex === -1) return prev;
 
       let endIndex = startIndex;
       for (let i = startIndex + 1; i < newSchedule.length; i++) {
@@ -240,7 +234,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         }
       }
 
-      // Extract the day's items, sort them by time, and splice them back in
       const dayItems = newSchedule.slice(startIndex, endIndex + 1);
       dayItems.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
       newSchedule.splice(startIndex, dayItems.length, ...dayItems);
@@ -280,7 +273,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
       if (index === -1 || index === scheduleData.length - 1) return prev;
 
       const currentItem = scheduleData[index];
-      // Since the array is sorted, the next item's date determines if we can move down.
       const nextItem = scheduleData[index + 1];
 
       if (nextItem && nextItem.date === currentItem.date) {
@@ -302,19 +294,14 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
       const currentField = prev[fieldName] as ConditionalSection<any> || { status: 'unset', details: ''};
       const updatedField = { ...currentField, ...fieldValue };
 
-        // INICI DE LA CORRECCIÓ
         if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
           if (updatedField.data) {
-            // CORRECCIÓ: Creem un nou objecte 'data' en lloc de mutar l'existent.
-            // Això soluciona l'error amb la propietat 'needs'.
             updatedField.data = { ...updatedField.data, needs: [] };
           }
-          // La lògica per a 'schedule' ja era correcta, però la mantenim per consistència.
           if (fieldName === 'schedule' && updatedField.data) {
             updatedField.data = [];
           }
         }
-        // FI DE LA CORRECCIÓ
 
       return { ...prev, [fieldName]: updatedField };
     });
@@ -421,7 +408,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
       let newSchedule = [...scheduleData];
 
       if (date) {
-        // If a date is provided, add the new item to the end of that day's group
         let lastIndexForDate = -1;
         for (let i = newSchedule.length - 1; i >= 0; i--) {
           if (newSchedule[i].date === date) {
@@ -433,11 +419,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         if (lastIndexForDate !== -1) {
           newSchedule.splice(lastIndexForDate + 1, 0, newItem);
         } else {
-          // This case should not happen if the button is only shown for existing dates, but as a fallback:
           newSchedule.push(newItem);
         }
       } else {
-        // If no date is provided, add it to the end (it will be in the "Sense data" group)
         newSchedule.push(newItem);
       }
 
@@ -477,7 +461,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
   const handleShowTimeChange = (index: number, value: string) => {
     setFormData(prev => {
       const newShowTimes = [...(prev.showTimes || [])];
-      // Si l'array és buit i l'usuari escriu, es crea el primer element.
       if (newShowTimes.length === 0 && index === 0) {
         newShowTimes.push({ id: generateLocalId(), time: value });
       } else if (newShowTimes[index]) {
@@ -617,7 +600,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     setFormData(prev => {
       const initialProviders = prev.technicalProviders || [];
 
-      // 1. Process removals immutably
       const providersAfterRemoval = initialProviders
         .map(p => ({
           ...p,
@@ -625,7 +607,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         }))
         .filter(p => p.roles.length > 0 || p.isManual);
 
-      // 2. Process updates immutably
       const providersAfterUpdate = providersAfterRemoval.map(p => {
         const updatesForProvider = toUpdate.filter(update => p.roles.some(r => r.id === update.currentRole.id));
         if (updatesForProvider.length === 0) {
@@ -640,7 +621,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         };
       });
 
-      // 3. Process additions immutably
       let providersAfterAddition = [...providersAfterUpdate];
       const newProvidersToAdd: TechSheetProvider[] = [];
 
@@ -670,7 +650,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         const existingProviderIndex = providersAfterAddition.findIndex(p => p.personGroupId === personGroupId);
 
         if (existingProviderIndex !== -1) {
-          // Update existing provider immutably
           providersAfterAddition = providersAfterAddition.map((p, index) => {
             if (index === existingProviderIndex) {
               return { ...p, roles: [...p.roles, newRole] };
@@ -678,7 +657,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
             return p;
           });
         } else {
-          // Check if it's already staged to be added
           const stagedProviderIndex = newProvidersToAdd.findIndex(p => p.personGroupId === personGroupId);
           if (stagedProviderIndex !== -1) {
             newProvidersToAdd[stagedProviderIndex] = {
@@ -714,10 +692,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
       const newIndex = formData.technicalProviders.findIndex(p => p.id === over.id);
       const reorderedProviders = arrayMove(formData.technicalProviders, oldIndex, newIndex);
 
-      // Actualitzem l'estat local per a una resposta visual immediata
       setFormData(prev => ({ ...prev, technicalProviders: reorderedProviders }));
 
-      // Cridem l'acció de la store per persistir el canvi a l'estat global
       reorderTechnicalProviders(eventFrame.id, reorderedProviders);
     }
   };
@@ -757,7 +733,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
 
   return (
     <div className="p-2 bg-background rounded-lg shadow space-y-4 tech-sheet-form-container">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <Tooltip text="Fes doble clic per expandir/replegar totes les seccions.">
           <h2
@@ -787,7 +762,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         <p className="text-sm text-muted-foreground">Edita els detalls tècnics de l'esdeveniment. Els canvis es desen automàticament.</p>
       </div>
 
-      {/* General Info */}
       <TechSheetSection
         title="Informació General"
         layout="grid-2"
@@ -798,7 +772,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         <TechSheetField id="location" label="LLOC:" value={formData.location} onChange={handleChange} tooltipText="El lloc de l'esdeveniment. També es sincronitza des del 'Event Frame'."/>
         <TechSheetField id="date" label="DATA:" value={formData.date} onChange={handleChange} tooltipText="La data o rang de dates de l'esdeveniment. Sincronitzat des del 'Event Frame'."/>
 
-        {/* HORA / GESTIÓ DE SESSIONS */}
         <div className="col-span-1">
           <label className="block text-sm font-medium text-muted-foreground mb-1">HORA:</label>
           {(formData.showTimes?.length || 0) <= 1 ? (
@@ -891,7 +864,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         </div>
       </TechSheetSection>
 
-      {/* Personnel */}
       <TechSheetSection
         title="Personal Tècnic"
         layout="single-column"
@@ -917,7 +889,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         />
       </TechSheetSection>
 
-      {/* Pre-assembly */}
       <TechSheetSection
         title="Premuntatge"
         isOpen={expandedSections.preAssembly}
@@ -942,7 +913,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         </ConditionalFormControl>
       </TechSheetSection>
 
-      {/* Schedule */}
       <TechSheetSection
         title="Horaris"
         isOpen={expandedSections.schedule}
@@ -1082,7 +1052,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         </ConditionalFormControl>
       </TechSheetSection>
 
-      {/* Logistics */}
       <TechSheetSection
         title="Logística"
         layout="single-column"
@@ -1174,7 +1143,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         </ConditionalFormControl>
       </TechSheetSection>
 
-      {/* Technical Needs */}
       <TechSheetSection
         title="Necessitats Tècniques"
         isOpen={expandedSections.technicalNeeds}
@@ -1222,7 +1190,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         {renderNeedsSection('Transport', 'transport')}
       </TechSheetSection>
 
-      {/* Other Details */}
       <TechSheetSection
         title="Altres Detalls"
         isOpen={expandedSections.otherDetails}
@@ -1232,7 +1199,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         <TechSheetField id="blueprints" label="PLÀNOLS:" value={formData.blueprints || ''} onChange={handleChange} as="textarea" rows={3} placeholder="Adjunts, link dels plànols, in situ...." tooltipText="Enllaços o referències als plànols tècnics de l'esdeveniment (escenari, llums, etc.)."/>
       </TechSheetSection>
 
-      {/* Contacts & Observations */}
       <TechSheetSection
         title="Contacte i Observacions"
         isOpen={expandedSections.contactsObservations}

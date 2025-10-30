@@ -43,6 +43,7 @@ En aquesta refactorització s'ha començat la migració cap a una estructura de 
 
 El `core` exposa una interfície d'adaptador de persistència (`PersistenceAdapter`) i l'store principal pot rebre una instància d'aquest adaptador per interactuar amb la plataforma (lectura/escriptura de fitxers, diàlegs). Això desacobla la lògica d'estat del mecanisme d'IPC d'Electron i permet reutilitzar el mateix codi en entorns no-Electron en el futur.
 
+L'adaptador de persistència s'injecta a l'store mitjançant una funció d'inicialització a `App.tsx`. D'aquesta manera, el `core` no té cap dependència directa de l'entorn d'execució, la qual cosa el fa portable.
 
 ### Visió General del Projecte
 

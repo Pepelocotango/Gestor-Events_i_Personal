@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShowToastFunction } from '../../types';
+import { ShowToastFunction } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 
 interface CommonFormProps {

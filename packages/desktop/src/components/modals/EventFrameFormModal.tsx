@@ -1,9 +1,6 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { useEventDataStore } from '../../stores/eventDataStore';
-import { EventFrame, ShowToastFunction, AssignmentStatus } from '../../types';
-import { formatDateDMY } from '@gep/core';
+import { useEventDataStore, useModalStore, EventFrame, ShowToastFunction, AssignmentStatus, formatDateDMY } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
-import { useModalStore } from '../../stores/modalStore';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface EventFrameFormModalProps {
@@ -75,7 +72,6 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
 
     if (isEditing) {
       onClose();
-      // Since it's already created, we can just open the assignment modal
       openModal('addAssignment', { eventFrame: data.eventFrameToEdit as EventFrame });
     } else {
       const eventData = { name: formData.name!, place: formData.place || '', startDate: formData.startDate!, endDate: formData.endDate!, generalNotes: formData.generalNotes || '' };
@@ -84,7 +80,6 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
       onClose(); 
       openModal('addAssignment', {
         eventFrame: newEventFrame,
-        // Pre-fill assignment form as well
         personGroupId: peopleGroups[0]?.id || '',
         startDate: newEventFrame.startDate,
         endDate: newEventFrame.endDate,
@@ -154,7 +149,6 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
                   if (data.eventFrameToEdit?.id) {
                     showAndHighlightEvent(data.eventFrameToEdit.id);
                   }
-                  // No tanquem el modal per evitar condicions de cursa
                 }}
                 className="px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md"
               >

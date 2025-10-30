@@ -1,16 +1,6 @@
 import React, { useEffect } from 'react';
-import { ShowToastFunction, GoogleCalendar, ManagedAppCalendar } from '@/types';
+import { ShowToastFunction, GoogleCalendar, ManagedAppCalendar, useEventDataStore, useModalStore, useGoogleConfigStore, fetchAndLoadConfig, saveConfig, deleteCalendar, disconnectGoogle, logger } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
-import { useEventDataStore } from '@/stores/eventDataStore';
-import { useModalStore } from '@/stores/modalStore';
-import {
-  useGoogleConfigStore,
-  fetchAndLoadConfig,
-  saveConfig,
-  deleteCalendar,
-  disconnectGoogle,
-} from '@/stores/googleConfigStore';
-import logger from '@/utils/logger';
 
 interface GoogleSettingsModalProps {
   onClose: () => void;

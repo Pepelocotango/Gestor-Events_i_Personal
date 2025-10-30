@@ -1,9 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useEventDataStore } from '../stores/eventDataStore';
-import { selectMaterialControlData, selectAvailableOrigins, MaterialControlFilters as FiltersState } from '../stores/eventDataStore';
-import { ShowToastFunction } from '../types';
-import { exportMaterialControlSummaryPdf, exportMaterialControlDetailedPdf } from '../utils/pdfGenerator';
-import { exportMaterialControlCsv } from '../utils/csvUtils';
+import { useEventDataStore, selectMaterialControlData, selectAvailableOrigins, MaterialControlFilters as FiltersState, ShowToastFunction, exportMaterialControlSummaryPdf, exportMaterialControlDetailedPdf, exportMaterialControlCsv } from '@gep/core';
 import MaterialControlFilters from './MaterialControlFilters';
 import MaterialControlTable from './MaterialControlTable';
 import Tooltip from './ui/Tooltip';

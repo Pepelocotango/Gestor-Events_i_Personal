@@ -1,10 +1,7 @@
 import React, { useState, FormEvent, useMemo } from 'react';
 import { saveAs } from 'file-saver';
-import { useEventDataStore } from '../stores/eventDataStore';
-import { useModalStore } from '../stores/modalStore';
-import { PersonGroup, ShowToastFunction } from '../types';
+import { useEventDataStore, useModalStore, PersonGroup, ShowToastFunction, exportPeopleToPdf, escapeCsvCell } from '@gep/core';
 import { TrashIcon, EditIcon, CsvIcon, PdfIcon } from '../constants';
-import { exportPeopleToPdf, escapeCsvCell } from '@gep/core';
 import Tooltip from './ui/Tooltip';
 import AutosizeTextarea from './ui/AutosizeTextarea';
 import CollapsibleSection from './ui/CollapsibleSection';

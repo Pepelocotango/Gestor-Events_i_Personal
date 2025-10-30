@@ -1,6 +1,5 @@
 import React from 'react';
-import { useTemporalStore, useEventDataStore } from '../../stores/eventDataStore';
-import { useModalStore } from '../../stores/modalStore';
+import { useTemporalStore, useEventDataStore, useModalStore } from '@gep/core';
 import { XMarkIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '@heroicons/react/24/solid';
 
 const HistoryModal: React.FC = () => {
@@ -22,7 +21,6 @@ const HistoryModal: React.FC = () => {
   const reversedFutureStates = [...futureStates].reverse();
   const reversedPastStates = [...pastStates].reverse();
 
-  // Obtenim la descripció de l'acció de l'estat actual directament des de l'store.
   const currentActionDescription = useEventDataStore.getState().lastActionDescription;
 
   return (

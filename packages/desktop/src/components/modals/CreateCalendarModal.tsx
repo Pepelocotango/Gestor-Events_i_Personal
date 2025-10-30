@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { ShowToastFunction } from '@/types';
-import { createNewCalendar } from '@/stores/googleConfigStore';
+import { ShowToastFunction, createNewCalendar } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 
 interface CreateCalendarModalProps {

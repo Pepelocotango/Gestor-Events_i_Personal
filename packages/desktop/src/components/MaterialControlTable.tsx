@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { MaterialControlRow } from '../types';
+import { MaterialControlRow, formatDateRangeDMY } from '@gep/core';
 import { ChevronDownIcon, ChevronRightIcon } from '../constants';
-import { formatDateRangeDMY } from '@gep/core';
 import Tooltip from './ui/Tooltip';
 
 interface MaterialControlTableProps {

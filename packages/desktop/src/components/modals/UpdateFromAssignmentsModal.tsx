@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { TechSheetRoleItem, Assignment, PersonGroup } from '../../types';
+import { TechSheetRoleItem, Assignment, PersonGroup } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 
 interface ChangeItem {

@@ -1,11 +1,7 @@
 import { forwardRef, useMemo } from 'react';
-import logger from '@/utils/logger';
-import { useModalStore } from '@/stores/modalStore';
-import { useEventDataStore } from '@/stores/eventDataStore';
-import { EventFrame, Assignment, AssignmentStatus } from '@/types';
-import { PersonAddIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, GoogleIcon, RestoreIcon } from '@/constants';
+import { logger, useModalStore, useEventDataStore, EventFrame, Assignment, AssignmentStatus, formatDateRangeDMY } from '@gep/core';
+import { PersonAddIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, GoogleIcon, RestoreIcon } from '../constants';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { formatDateRangeDMY } from '@/utils/dateFormat';
 import AssignmentCard from './AssignmentCard';
 import Tooltip from './ui/Tooltip';
 
@@ -53,8 +49,6 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
         className="px-1 py-0.5 bg-muted cursor-pointer border-b border-border"
         onClick={(e) => {
           e.stopPropagation();
-          // Only toggle expand if the click is not on an interactive element like a button.
-          // Those elements have their own onClick handlers with e.stopPropagation().
           if ((e.target as HTMLElement).closest('button, input, select, a')) {
             return;
           }

@@ -14,8 +14,9 @@ jobs:
       - name: 2. Configuració de Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18.x'
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: 3. Instal·lació de dependències del projecte (npm)
         run: npm install

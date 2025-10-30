@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useEventDataStore } from '../stores/eventDataStore';
-import { useModalStore } from '../stores/modalStore';
-import { startGoogleAuthFlow } from '../stores/googleConfigStore';
+import { useEventDataStore, useModalStore, startGoogleAuthFlow } from '@gep/core';
 import { GoogleIcon, CloudArrowUpIcon, ChevronDownIcon, ChevronUpIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 
@@ -35,7 +33,6 @@ const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
           tabIndex={0}
           className="flex justify-between items-center w-full cursor-pointer"
         >
-          {/* Aquest div atura la propagació de l'esdeveniment onMouseEnter per evitar que es mostrin dos tooltips alhora */}
           <div onMouseEnter={(e) => e.stopPropagation()}>
             <Tooltip text={currentFilePath || 'Cap fitxer carregat'}>
               <div className="text-xs text-muted-foreground truncate">

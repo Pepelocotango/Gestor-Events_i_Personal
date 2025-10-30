@@ -1,9 +1,8 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { MaterialItem } from '../../types';
+import { MaterialItem } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 
-// Defineix les propietats que el component acceptarà
 export interface MaterialFormProps {
   initialData?: Partial<MaterialItem>;
   onSubmit: (data: Omit<MaterialItem, 'id'>) => void;
@@ -11,7 +10,7 @@ export interface MaterialFormProps {
   submitButtonText?: string;
   categories?: string[];
   locations?: string[];
-  materialItems?: MaterialItem[]; // Llista completa per a la validació
+  materialItems?: MaterialItem[];
 }
 
 const MaterialForm: React.FC<MaterialFormProps> = ({
@@ -23,7 +22,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   locations = [],
   materialItems = [],
 }) => {
-  // Estats interns per als camps del formulari
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [stock, setStock] = useState(1);
@@ -33,7 +31,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
 
   const commonInputClass = "mt-1 block w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm";
 
-  // Efecte per omplir el formulari quan initialData canvia (mode edició)
   useEffect(() => {
     if (initialData) {
       setName(initialData.name || '');
@@ -42,7 +39,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
       setLocation(initialData.location || '');
       setNotes(initialData.notes || '');
     } else {
-      // Reseteja el formulari si no hi ha dades inicials
       setName('');
       setCategory('');
       setStock(1);
@@ -51,7 +47,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
     }
   }, [initialData]);
 
-  // Funció de validació
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     if (!name.trim()) {
@@ -71,7 +66,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  // Gestor de l'enviament del formulari
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
