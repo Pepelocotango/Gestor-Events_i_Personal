@@ -5,7 +5,13 @@
     "packages/core",
     "packages/desktop"
   ],
-  "dependencies": {
+  "scripts": {
+    "build:electron": "npm run build --workspace=@gep/desktop && electron-builder --projectDir packages/desktop",
+    "build:mac": "npm run build:electron -- --mac --x64 --publish never",
+    "build:linux": "npm run build:electron -- --linux --x64 --publish never",
+    "build:win": "npm run build:electron -- --win --x64 --publish never"
+  },
+  "devDependencies": {
     "electron-builder": "^26.0.12"
   }
 }

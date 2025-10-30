@@ -19,12 +19,7 @@
     "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
     "start": "npm run build:theme && npm run wait && npm run electron-dev",
     "clean": "rm -rf dist node_modules/.vite",
-    "fresh-start": "npm run clean && npm start",
-    "build:electron": "npm run build && electron-builder",
-    "dist": "electron-builder",
-    "build:mac": "npm run build && electron-builder --mac --x64 --publish never",
-    "build:linux": "npm run build && electron-builder --linux --x64 --publish never",
-    "build:win": "npm run build && electron-builder --win --x64 --publish never"
+    "fresh-start": "npm run clean && npm start"
   },
   "dependencies": {
     "@gep/core": "file:../core",
