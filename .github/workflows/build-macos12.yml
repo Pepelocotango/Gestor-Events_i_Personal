@@ -39,14 +39,14 @@ jobs:
           fi
 
       - name: 7. Compilació de l'aplicació per a macOS
-        run: npm run build:mac
+        run: npm run build:mac --workspace=@gep/desktop
 
       - name: 8. Creació del paquet ZIP per a macOS
         run: |
           DMG_NAME="GestorEsdevenimentsPersonal_V1.3.0-macOS-10.15+.dmg"
           ZIP_NAME="GestorEsdevenimentsPersonal_V1.3.0-macOS.zip"
-          mv "dist/${DMG_NAME}" .
-          zip -r "${ZIP_NAME}" "${DMG_NAME}" LICENSE README.md DEVELOPING.md "examples json"
+          mv "packages/desktop/dist/${DMG_NAME}" .
+          zip -r "${ZIP_NAME}" "${DMG_NAME}" LICENSE README.md DEVELOPING.md "packages/desktop/examples json"
 
       - name: 9. Pujada del ZIP de macOS com a artefacte
         uses: actions/upload-artifact@v4

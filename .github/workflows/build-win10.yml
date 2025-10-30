@@ -44,15 +44,15 @@ jobs:
           )
 
     - name: Compilació i empaquetat de l'aplicació
-      run: npm run build:electron -- --win --x64 --publish never
+      run: npm run build:electron --workspace=@gep/desktop -- --win --x64 --publish never
 
     - name: Crear paquet ZIP de Windows
       id: zip_windows
       shell: pwsh
       run: |
-        $filesToZip = Get-ChildItem -Path "dist" -Filter "*.exe" | ForEach-Object { $_.FullName }
+        $filesToZip = Get-ChildItem -Path "packages/desktop/dist" -Filter "*.exe" | ForEach-Object { $_.FullName }
         $filesToZip += @("LICENSE", "README.md", "DEVELOPING.md")
-        $filesToZip += Get-ChildItem -Path "examples json" -Recurse | ForEach-Object { $_.FullName }
+        $filesToZip += Get-ChildItem -Path "packages/desktop/examples json" -Recurse | ForEach-Object { $_.FullName }
 
         $zipName = "GestorEsdevenimentsPersonal_V1.3.0-Windows.zip"
         echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT

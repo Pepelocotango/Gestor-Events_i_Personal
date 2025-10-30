@@ -72,21 +72,21 @@ jobs:
         shell: bash
 
       - name: 5. Compilació de l'aplicació per a Linux
-        run: npm run build:electron -- --linux --x64 --publish never
+        run: npm run build:electron --workspace=@gep/desktop -- --linux --x64 --publish never
 
       - name: 6. Creació del paquet ZIP per a Linux
         id: zip_creation
         run: |
-          APPIMAGE_FILE=$(find dist -name "*.AppImage" -type f -printf "%f\n")
+          APPIMAGE_FILE=$(find packages/desktop/dist -name "*.AppImage" -type f -printf "%f\n")
           echo "Found AppImage: ${APPIMAGE_FILE}"
 
           ZIP_NAME="GestorEsdevenimentsPersonal_V1.3.0-Linux.zip"
           echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
 
-          cd dist
-          zip -r "../${ZIP_NAME}" "${APPIMAGE_FILE}"
-          cd ..
-          zip -r "${ZIP_NAME}" LICENSE README.md DEVELOPING.md "examples json"
+          cd packages/desktop/dist
+          zip -r "../../../${ZIP_NAME}" "${APPIMAGE_FILE}"
+          cd ../..
+          zip -r "${ZIP_NAME}" LICENSE README.md DEVELOPING.md "packages/desktop/examples json"
 
       - name: 7. Pujada del ZIP de Linux com a artefacte
         uses: actions/upload-artifact@v4
