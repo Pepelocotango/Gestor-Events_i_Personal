@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { logger } from '@gep/core';
+import logger from '../utils/logger';
 
 export const loggingMiddleware = <T extends object>(
   f: StateCreator<T>,

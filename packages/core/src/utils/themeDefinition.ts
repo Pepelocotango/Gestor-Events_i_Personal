@@ -1,0 +1,16 @@
+export const themeHslColors = {
+  primary: [220, 35, 25],
+  success: [140, 65, 40],
+  warning: [45, 85, 55],
+  destructive: [0, 75, 55],
+  foreground: [240, 10, 10],
+  foregroundMuted: [240, 5, 40],
+  foregroundWhite: [210, 40, 98],
+  grayDark: [40, 6, 20],
+  grayBorder: [35, 10, 50],
+  grayMuted: [35, 10, 83],
+  grayMedium: [75, 85, 99],
+  graySubtle: [240, 5, 92],
+  grayLightest: [240, 5, 98],
+  orange: [25, 95, 53],
+} as const;

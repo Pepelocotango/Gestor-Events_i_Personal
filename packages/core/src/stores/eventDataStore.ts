@@ -1,12 +1,10 @@
-
-
 import { create } from 'zustand';
 // import eliminat: useStoreWithEqualityFn
 import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
-import type { PersistenceAdapter } from '@gep/core';
+import type { PersistenceAdapter } from '../persistenceAdapter';
 
 // Persistence adapter (set during app init)
 let persistenceAdapter: PersistenceAdapter | null = null;
@@ -14,9 +12,13 @@ let persistenceAdapter: PersistenceAdapter | null = null;
 export const initializeEventDataStore = (adapter: PersistenceAdapter) => {
     persistenceAdapter = adapter;
 };
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '@gep/core';
-import { formatDateDMY, migrateTechSheetData, validateData, repairData, notificationService, logger } from '@gep/core';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
+import { formatDateDMY } from '../utils/dateFormat';
+import { migrateTechSheetData } from '../utils/techSheetMigration';
+import { validateData, repairData } from '../utils/dataIntegrity';
+import logger from '../utils/logger';
 import { immer } from 'zustand/middleware/immer';
+import { notificationService } from '../utils/notificationService';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -125,7 +127,7 @@ interface EventDataActions {
     updateMaterialItem: (updatedItem: MaterialItem) => void;
     deleteMaterialItem: (itemId: string) => void;
     addMaterialItemsFromFile: (newItems: MaterialItem[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
-    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string) => { available: number, total: number };
     mergePeopleGroups: (newPeople: PersonGroup[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
     replacePeopleGroups: (newPeople: PersonGroup[]) => void;
     replaceMaterialItems: (newItems: MaterialItem[]) => void;

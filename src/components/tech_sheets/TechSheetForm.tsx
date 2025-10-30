@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useEventDataStore } from '../../stores/eventDataStore';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
+import { useEventDataStore, EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '@gep/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
-import { formatDateDMY } from '../../utils/dateFormat';
-import { exportTechSheetToPdf } from '../../utils/pdfGenerator';
+import { formatDateDMY, exportTechSheetToPdf } from '@gep/core';
 import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';

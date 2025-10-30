@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo, useImperativeHandle } from 'react';
-import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../types';
-import { useEventDataStore } from '../stores/eventDataStore';
-import { useModalStore } from '../stores/modalStore';
+import {
+  Assignment,
+  AssignmentStatus,
+  ShowToastFunction,
+  EventFrame,
+  useEventDataStore,
+  useModalStore
+} from '@gep/core';
 import Tooltip from './ui/Tooltip';
 import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
@@ -12,12 +17,8 @@ import interactionPlugin from '@fullcalendar/interaction';
 import multiMonthPlugin from '@fullcalendar/multimonth';
 import caLocale from '@fullcalendar/core/locales/ca';
 import SummaryReports from './SummaryReports';
-import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
-import { exportEventListToPdf } from '../utils/pdfGenerator';
-import { exportEventListToCsv } from '../utils/csvUtils';
+import { addDaysISO, formatDateDMY, exportEventListToPdf, exportEventListToCsv, selectFilteredEventFrames, logger } from '@gep/core';
 import EventFrameCard from './EventFrameCard';
-import { selectFilteredEventFrames } from '../utils/selectors';
-import logger from '../utils/logger';
 
 import CollapsibleSection from './ui/CollapsibleSection';
 

@@ -1,0 +1,78 @@
+import { AppData } from '../types';
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+}
+
+export interface ValidationError {
+  type: 'broken_assignment_reference';
+  message: string;
+  assignmentId: string;
+  eventFrameId: string;
+  personGroupId: string;
+}
+
+export const validateData = (data: AppData): ValidationResult => {
+  const errors: ValidationError[] = [];
+  const eventFrameIds = new Set(data.eventFrames.map(ef => ef.id));
+  const personGroupIds = new Set(data.peopleGroups.map(pg => pg.id));
+
+  (data.assignments || []).forEach(assignment => {
+    if (!eventFrameIds.has(assignment.eventFrameId)) {
+      errors.push({
+        type: 'broken_assignment_reference',
+        message: `L'assignació '${assignment.id}' fa referència a un esdeveniment que no existeix (${assignment.eventFrameId}).`,
+        assignmentId: assignment.id,
+        eventFrameId: assignment.eventFrameId,
+        personGroupId: assignment.personGroupId,
+      });
+    }
+    if (!personGroupIds.has(assignment.personGroupId)) {
+      errors.push({
+        type: 'broken_assignment_reference',
+        message: `L'assignació '${assignment.id}' fa referència a una persona/grup que no existeix (${assignment.personGroupId}).`,
+        assignmentId: assignment.id,
+        eventFrameId: assignment.eventFrameId,
+        personGroupId: assignment.personGroupId,
+      });
+    }
+  });
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+};
+
+export interface RepairResult {
+  repairedData: AppData;
+  fixes: string[];
+}
+
+export const repairData = (data: AppData, errors: ValidationError[]): RepairResult => {
+  const repairedData = { ...data };
+  const fixes: string[] = [];
+  const assignmentsToRemove = new Set<string>();
+
+  errors.forEach(error => {
+    if (error.type === 'broken_assignment_reference') {
+      if (!assignmentsToRemove.has(error.assignmentId)) {
+        assignmentsToRemove.add(error.assignmentId);
+        fixes.push(`S'ha eliminat una assignació trencada (ID: ${error.assignmentId}).`);
+      }
+    }
+  });
+
+  if (assignmentsToRemove.size > 0) {
+    repairedData.assignments = (repairedData.assignments || []).filter(
+      assignment => !assignmentsToRemove.has(assignment.id)
+    );
+  }
+
+  return {
+    repairedData,
+    fixes,
+  };
+};
+// (original src implementation no longer re-exported here)

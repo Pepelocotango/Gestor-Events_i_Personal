@@ -1,7 +1,7 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { EventFrame, ShowToastFunction, AssignmentStatus } from '../../types';
-import { formatDateDMY } from '../../utils/dateFormat';
+import { formatDateDMY } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 import { useModalStore } from '../../stores/modalStore';
 import AutosizeTextarea from '../ui/AutosizeTextarea';

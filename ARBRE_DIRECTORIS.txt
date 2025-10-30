@@ -1,4 +1,7 @@
 enllaç a Gestor-Events_i_Personal/
+├── packages/                     # Monorepo packages
+│   ├── core/                     # Codi compartit (types, stores i utils) utilitzable per altres apps
+│   └── desktop/                  # Aplicació d'escriptori (Electron + React)
 ├── .github/
 │   └── workflows/                # CI/CD: Conté els scripts per a la compilació automàtica a GitHub.
 │       ├── build-linuxv20-04.yml # Script per compilar la versió per a Linux (AppImage).
