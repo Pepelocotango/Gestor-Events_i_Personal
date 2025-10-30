@@ -19,7 +19,7 @@ import TechSheetField from './TechSheetField';
 import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
 import Tooltip from '../ui/Tooltip';
 import { useModalStore } from '../../stores/modalStore';
-import { formatDateDMY } from '@gep/core';
+import { formatDateDMY } from '../../utils/dateFormat';
 import SortableProvider from './SortableProvider';
 
 interface TechnicalPersonnelSectionProps {

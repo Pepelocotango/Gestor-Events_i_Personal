@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, Suspense, lazy, useRef } from 'react';
+import { generateDefaultFileName } from './utils/dateFormat';
+import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { generateDefaultFileName, notificationService, initializeGoogleAuthListeners, initializeEventDataStore, logger } from '@gep/core';
-import ElectronPersistenceAdapterImpl from './ElectronPersistenceAdapter';
+import logger from './utils/logger';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
 import { ShowToastFunction, PersonGroup, MaterialItem } from './types';
@@ -10,7 +11,7 @@ import { useEventDataStore } from './stores/eventDataStore';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
-// notificationService is now imported from @gep/core above
+import { notificationService } from './utils/notificationService';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
@@ -42,21 +43,11 @@ const HistoryModal = lazy(() => import('./components/modals/HistoryModal'));
 const GoogleEventDetailsModal = lazy(() => import('./components/modals/GoogleEventDetailsModal'));
 
 
-// (initialized above)
+import { useRef } from 'react';
 
 let globalInitialLoadAttempted = false;
 
 const App: React.FC = () => {
-  // Inicialitza l'adaptador d'persistència perquè l'store no cridi directament a window.electronAPI
-  useEffect(() => {
-    try {
-      const adapter = new ElectronPersistenceAdapterImpl();
-      initializeEventDataStore(adapter as any);
-      logger.info('[Startup] Persistence adapter inicialitzat.');
-    } catch (err) {
-      logger.warn('[Startup] No s\'ha pogut inicialitzar l\'adaptador de persistència:', err);
-    }
-  }, []);
   const mainDisplayRef = useRef<{ resize: () => void }>(null);
   // Determina la tecla modificadora de la plataforma de forma síncrona a l'inici.
   // Això evita el parpelleig de la UI que passava amb l'enfocament asíncron anterior.
@@ -128,12 +119,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Inicialitza l'adaptador de persistència i els listeners de la store de Google un sol cop
-    try {
-      const adapter = new ElectronPersistenceAdapterImpl();
-      initializeEventDataStore(adapter);
-      // eslint-disable-next-line no-empty
-    } catch (err) {}
+    // Inicialitza els listeners de la store de Google un sol cop
     initializeGoogleAuthListeners();
 
     const fetchMetadata = async () => {

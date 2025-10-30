@@ -7,10 +7,6 @@
   "license": "GPL-3.0-or-later",
   "main": "main.cjs",
   "type": "module",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "dev": "vite --force --clearScreen false",
     "build:theme": "node scripts/build-theme.cjs",

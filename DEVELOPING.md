@@ -34,16 +34,6 @@ Consulta les seccions corresponents per a detalls i exemples complets.
 
 ## 1. Visió General i Pila Tecnològica
 
-## Monorepo i paquet `core` (nova estructura)
-
-En aquesta refactorització s'ha començat la migració cap a una estructura de **monorepo**. S'ha afegit la carpeta `packages/` a l'arrel amb, com a mínim, dos paquets previstos:
-
-- `packages/core`: paquet que conté codi compartit (tipus, lògica d'estat i utilitats) pensat per ser reutilitzat per altres aplicacions (per exemple una app mòbil futura).
-- `packages/desktop`: paquet que contindrà l'aplicació d'escriptori (Electron + React).
-
-El `core` exposa una interfície d'adaptador de persistència (`PersistenceAdapter`) i l'store principal pot rebre una instància d'aquest adaptador per interactuar amb la plataforma (lectura/escriptura de fitxers, diàlegs). Això desacobla la lògica d'estat del mecanisme d'IPC d'Electron i permet reutilitzar el mateix codi en entorns no-Electron en el futur.
-
-
 ### Visió General del Projecte
 
 El "Gestor d'Esdeveniments i Personal" és una aplicació d'escriptori multiplataforma construïda amb Electron i React. El seu objectiu és oferir una solució integral per a la gestió d'esdeveniments, cobrint tot el cicle de vida:

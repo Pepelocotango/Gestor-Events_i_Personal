@@ -24,15 +24,12 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
-      "@/*" :  ["./src/*"],
-      "@gep/core": ["./packages/core/src"],
-      "@gep/core/*": ["./packages/core/src/*"]
+      "@/*" :  ["./src/*"]
     }
   },
   // LÍNIES AFEGIDES:
   "include": [
     "src",
-    "packages/*/src",
     "vite.config.ts",
     "tailwind.config.cjs",
     "postcss.config.cjs",

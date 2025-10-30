@@ -6,17 +6,13 @@ import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
-import type { PersistenceAdapter } from '@gep/core';
-
-// Persistence adapter (set during app init)
-let persistenceAdapter: PersistenceAdapter | null = null;
-
-export const initializeEventDataStore = (adapter: PersistenceAdapter) => {
-    persistenceAdapter = adapter;
-};
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '@gep/core';
-import { formatDateDMY, migrateTechSheetData, validateData, repairData, notificationService, logger } from '@gep/core';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
+import { formatDateDMY } from '../utils/dateFormat';
+import { migrateTechSheetData } from '../utils/techSheetMigration';
+import { validateData, repairData } from '../utils/dataIntegrity';
+import logger from '../utils/logger';
 import { immer } from 'zustand/middleware/immer';
+import { notificationService } from '../utils/notificationService';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -300,8 +296,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
                 useGoogleConfigStore.setState(newMergedConfig);
 
-                if (persistenceAdapter?.saveGoogleConfig) {
-                    await persistenceAdapter.saveGoogleConfig({
+                if (window.electronAPI?.saveGoogleConfig) {
+                    await window.electronAPI.saveGoogleConfig({
                         activeAppCalendarId: newMergedConfig.activeCalendarId,
                         managedAppCalendars: newMergedConfig.managedCalendars,
                     });
@@ -321,8 +317,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);
         const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }: EventFrame) => restOfFrame);
         let googleConfigForExport: AppData['googleConfig'] = undefined;
-        if (persistenceAdapter?.loadGoogleConfig) {
-            const fullConfig = await persistenceAdapter.loadGoogleConfig();
+        if (window.electronAPI) {
+            const fullConfig = await window.electronAPI.loadGoogleConfig();
             if (fullConfig) {
                 googleConfigForExport = { userEmail: fullConfig.userEmail, activeAppCalendarId: fullConfig.activeAppCalendarId, managedAppCalendars: fullConfig.managedAppCalendars };
             }
@@ -729,8 +725,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
     // GOOGLE & SYNC
         refreshGoogleEvents: async () => {
-                if (persistenceAdapter?.getGoogleEvents) {
-                    const result = await persistenceAdapter.getGoogleEvents();
+                if (window.electronAPI?.getGoogleEvents) {
+                    const result = await window.electronAPI.getGoogleEvents();
                     if (result.success && result.events) {
                         set({ googleEvents: result.events });
                         return { success: true };
@@ -738,14 +734,14 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                         return { success: false, message: result.message, type: 'error' };
                     }
                 }
-                return { success: false, message: 'Adapter de persistència no disponible.', type: 'error' };
+                return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
             },
     syncWithGoogle: async () => {
         const { openModal, closeModal } = useModalStore.getState();
         const { executeSync } = get();
 
-        if (persistenceAdapter?.loadGoogleConfig) {
-            const config = await persistenceAdapter.loadGoogleConfig();
+        if (window.electronAPI?.loadGoogleConfig) {
+            const config = await window.electronAPI.loadGoogleConfig();
             if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
                 openModal('googleSettings');
                 return;
@@ -768,19 +764,19 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
         set({ isSyncing: true, syncProgress: { current: 0, total: 0, message: 'Iniciant...', visible: true } });
 
-                if (persistenceAdapter?.syncWithGoogle) {
-                    const localData = await exportData();
-                    const result = await persistenceAdapter.syncWithGoogle({ localData, targetCalendarId });
+        if (window.electronAPI) {
+          const localData = await exportData();
+          const result = await window.electronAPI.syncWithGoogle({ localData, targetCalendarId });
 
-                    if (result && result.success && result.data) {
-                        await loadData(result.data);
-                        await refreshGoogleEvents();
-                        finalResult = { success: true, message: result.message || 'Sincronització completada.', type: 'success' };
-                    } else {
-                        await refreshGoogleEvents();
-                        finalResult = { success: false, message: (result && result.message) || 'Error desconegut durant la sincronització.', type: 'error', code: result?.code };
-                    }
-                }
+          if (result.success && result.data) {
+            await loadData(result.data);
+            await refreshGoogleEvents();
+            finalResult = { success: true, message: result.message || 'Sincronització completada.', type: 'success' };
+          } else {
+            await refreshGoogleEvents();
+            finalResult = { success: false, message: result.message || 'Error desconegut durant la sincronització.', type: 'error', code: result.code };
+          }
+        }
 
         set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
         return finalResult;

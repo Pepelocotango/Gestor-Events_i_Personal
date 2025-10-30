@@ -2,7 +2,7 @@ import React, { useState, useEffect, FormEvent } from 'react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { Assignment, AssignmentStatus, ShowToastFunction } from '../../types';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../constants';
-import { formatDateDMY } from '@gep/core';
+import { formatDateDMY } from '../../utils/dateFormat';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { useModalStore } from '../../stores/modalStore';

@@ -1,5 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { logger } from '@gep/core';
+import logger from '../utils/logger';
 
 interface Props {
   children: ReactNode;

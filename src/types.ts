@@ -447,5 +447,65 @@ export interface FileLoadedData {
   message?: string;
 }
 
-// Electron API type is provided by the central core package. Re-export its type here
-export type { ElectronAPI } from '@gep/core';
+export interface ElectronAPI {
+  // Document Management
+  openFileDialog: () => Promise<{ success: boolean; canceled?: boolean; filePath?: string; message?: string; }>;
+  readFile: (filePath: string) => Promise<{ success: boolean; content?: string; message?: string; }>;
+  saveFile: (options: { filePath: string, data: string }) => Promise<{ success: boolean; message?: string; }>;
+  showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
+  showUnsavedChangesDialog: (options: { message: string; buttons: string[] }) => Promise<{ response: number }>;
+
+  // Session & App Lifecycle
+  onConfirmQuit: (callback: () => void) => () => void;
+  quitApplication: () => void;
+  getSessionData: () => Promise<any>;
+  saveSessionData: (key: string, value: any) => Promise<{ success: boolean; message?: string }>;
+  getRecentFiles: () => Promise<string[]>;
+  addRecentFile: (filePath: string) => Promise<{ success: boolean; recentFiles: string[] }>;
+  getAppMetadata: () => Promise<{ name: string; version: string; description: string; }>;
+
+  // Google Integration
+  loadGoogleConfig: () => Promise<GoogleConfig | null>;
+  startGoogleAuth: () => Promise<{ success: boolean; message?: string }>;
+  onGoogleAuthSuccess: (callback: () => void) => () => void;
+  onGoogleAuthError: (callback: (errorMessage: string) => void) => () => void;
+  getCalendarList: () => Promise<{ success: boolean, calendars?: GoogleCalendar[], message?: string }>;
+  saveGoogleConfig: (config: Partial<GoogleConfig>) => Promise<{ success: boolean, data?: GoogleConfig, message?: string }>;
+  getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
+  getEventDetails: (calendarId: string, eventId: string) => Promise<{ success: boolean, event?: any, message?: string }>;
+  syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
+  onSyncProgress: (callback: (progress: Omit<SyncProgressState, 'visible'>) => void) => () => void;
+  googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
+  deleteAppCalendar: (calendarId: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
+  createNewAppCalendar: (suffix: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
+
+  // Menu and Notifications
+  onMenuAction: (callback: (action: string) => void) => () => void;
+  triggerMenuAction: (action: string) => void;
+  onBackendNotification: (callback: (notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void) => () => void;
+
+  // Misc & Obsolete
+  factoryReset: () => Promise<{ success: boolean; message?: string }>;
+  openLogsFolder: () => Promise<{ success: boolean; message?: string }>;
+  openBackupsFolder: () => Promise<{ success: boolean; message?: string }>;
+  // Obsolete - kept for safety, should be removed later
+  loadAppData: () => Promise<any>;
+  saveAppData: (data: AppData) => Promise<{ success: boolean; message?: string }>;
+  getDefaultDataPath: () => Promise<string>;
+  onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
+  onSyncError: (callback: (error: string) => void) => () => void;
+  onSyncSuccess: (callback: (message: string) => void) => () => void;
+  getPlatformSync: () => string;
+}
+
+declare global {
+  interface Window {
+    electronAPI?: ElectronAPI;
+    electronLog?: {
+      debug: (...args: any[]) => void;
+      info: (...args: any[]) => void;
+      warn: (...args: any[]) => void;
+      error: (...args: any[]) => void;
+    };
+  }
+}
