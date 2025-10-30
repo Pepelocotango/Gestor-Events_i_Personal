@@ -1018,16 +1018,22 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
 
 ### Scripts `npm` Disponibles
 
-A l'arrel del monorepo:
--   `npm install`: Instal·la les dependències de tots els paquets.
+#### Scripts executats des de l'arrel del monorepo
+-   `npm install`: Instal·la les dependències de tots els paquets de l'espai de treball.
+-   `npm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron per a la plataforma actual.
+-   `npm run build:linux`, `npm run build:win`, `npm run build:mac`: Scripts específics per compilar i empaquetar l'aplicació per a cada sistema operatiu.
 
-Dins de `packages/desktop`:
+#### Scripts específics del paquet `packages/desktop`
+Aquests scripts es poden executar des de la carpeta `packages/desktop`, o des de l'arrel utilitzant el flag `--workspace=@gep/desktop`.
+
+-   `npm run start`: Llança el servidor de desenvolupament i Electron simultàniament. És l'àlies recomanat per a `electron-dev`.
+-   `npm run clean`: Elimina les carpetes de compilació (`dist`, `build`) per fer una neteja.
+-   `npm run fresh-start`: Executa `clean` i després `start` per un inici de desenvolupament completament net.
+-   `npm run build:theme`: Genera els fitxers de tema (CSS i TS) a partir de `theme.config.cjs`.
 -   `npm run dev`: Inicia el servidor de desenvolupament de Vite. (Normalment no s'utilitza sol).
 -   `npm run electron`: Inicia l'aplicació Electron esperant que el servidor de Vite estigui actiu. (Normalment no s'utilitza sol).
--   `npm run electron-dev`: El comandament principal per al desenvolupament. Llança Vite i Electron simultàniament amb recàrrega en calent (`hot-reloading`).
--   `npm run build`: Compila el codi TypeScript i el frontend amb Vite a la carpeta `dist`.
--   `npm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron.
--   `npm run build:linux`, `npm run build:win`, `npm run build:mac`: Scripts específics per compilar l'aplicació per a cada sistema operatiu.
+-   `npm run electron-dev`: Ordre principal per al desenvolupament. Llança Vite i Electron simultàniament.
+-   `npm run build`: Compila el codi TypeScript i el frontend amb Vite. Aquesta comanda és cridada internament pels scripts de compilació principals.
 
 ### Depuració (Debugging)
 
