@@ -1,19 +1,19 @@
 
-import type { AppData, GoogleConfig, SyncPayload, SyncResult, GoogleEvent, SaveDialogOptions, SaveResult, OpenDialogResult, FileReadResult, UnsavedChangesDialogOptions, UnsavedChangesDialogResult, NotificationPayload, SyncProgressState } from './types';
+import type { GoogleConfig, ShowSaveDialogOptions, ShowSaveDialogResult, SyncProgressState, AppData } from './types';
 
 export interface PersistenceAdapter {
   // Gestió de dades i fitxers
-  readFile(filePath: string): Promise<FileReadResult>;
-  saveFile(options: { filePath: string; data: string }): Promise<SaveResult>;
-  showSaveDialog(options: SaveDialogOptions): Promise<SaveResult>;
-  openFileDialog(): Promise<OpenDialogResult>;
-  showUnsavedChangesDialog(options: UnsavedChangesDialogOptions): Promise<UnsavedChangesDialogResult>;
+  readFile(filePath: string): Promise<{ success: boolean; content?: string; message?: string; }>;
+  saveFile(options: { filePath: string; data: string; }): Promise<{ success: boolean; message?: string; }>;
+  showSaveDialog(options: ShowSaveDialogOptions): Promise<ShowSaveDialogResult>;
+  openFileDialog(): Promise<{ success: boolean; canceled?: boolean; filePath?: string; message?: string; }>;
+  showUnsavedChangesDialog(options: { message: string, buttons: string[] }): Promise<{ response: number }>;
 
   // Integració amb Google
   saveGoogleConfig(config: Partial<GoogleConfig>): Promise<{ success: boolean }>;
   loadGoogleConfig(): Promise<GoogleConfig | null>;
-  getGoogleEvents(): Promise<{ success: boolean; events?: GoogleEvent[]; message?: string }>;
-  syncWithGoogle(payload: SyncPayload): Promise<SyncResult>;
+  getGoogleEvents(): Promise<{ success: boolean; events?: any[]; message?: string }>;
+  syncWithGoogle(payload: { localData: AppData, targetCalendarId: string }): Promise<any>;
   startGoogleAuth(): Promise<{ success: boolean; message?: string }>;
 
   // Cicle de vida i metadades de l'aplicació
@@ -40,6 +40,6 @@ export interface PersistenceAdapter {
   onAppWillRelaunchAfterReset(callback: () => void): () => void;
   onSyncError(callback: (error: string) => void): () => void;
   onSyncSuccess(callback: (message: string) => void): () => void;
-  onBackendNotification(callback: (notification: NotificationPayload) => void): () => void;
+  onBackendNotification(callback: (notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void): () => void;
   onMenuAction(callback: (action: string) => void): () => void;
 }

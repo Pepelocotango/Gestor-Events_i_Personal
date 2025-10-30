@@ -3,7 +3,7 @@
 // els capturarà automàticament a través del seu IPC.
 // Això simplifica enormement el codi i elimina la necessitat de mantenir un logger personalitzat.
 
-const logger = {
+export const logger = {
   debug: (...args: any[]) => {
     if (window.electronLog) {
       window.electronLog.debug(...args);
@@ -33,5 +33,3 @@ const logger = {
     }
   }
 };
-
-export default logger;

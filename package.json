@@ -4,5 +4,8 @@
   "workspaces": [
     "packages/core",
     "packages/desktop"
-  ]
+  ],
+  "dependencies": {
+    "electron-builder": "^26.0.12"
+  }
 }

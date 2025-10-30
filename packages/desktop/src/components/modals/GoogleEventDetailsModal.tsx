@@ -1,5 +1,5 @@
 import React from 'react';
-import { useModalStore } from '../../stores/modalStore';
+import { useModalStore } from '@gep/core';
 import { CalendarIcon, UsersIcon } from '../../constants';
 import { MapPinIcon, VideoCameraIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 

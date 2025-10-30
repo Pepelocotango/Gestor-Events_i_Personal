@@ -1,7 +1,7 @@
 // @ts-ignore - React is used in JSX
 import React, { FC } from 'react';
 import { ArrowUturnLeftIcon as OutlineArrowUturnLeftIcon, ArrowUturnRightIcon as OutlineArrowUturnRightIcon, DocumentArrowDownIcon as OutlineDocumentArrowDownIcon } from '@heroicons/react/24/outline';
-import { AssignmentStatus } from './types';
+import { AssignmentStatus } from '@gep/core';
 
 export const APP_TITLE = "Gestor de Esdeveniments i Personal v0.2";
 export const THEME_STORAGE_KEY = 'eventManagementAppTheme';

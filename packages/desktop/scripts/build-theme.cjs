@@ -1,11 +1,11 @@
 // scripts/build-theme.js
 const fs = require('fs');
 const path = require('path');
-const { themeConfig } = require('../../../theme.config.cjs');
+const { themeConfig } = require(path.join(__dirname, '..', '..', '..', 'theme.config.cjs'));
 
 // --- Paths ---
 const CSS_OUTPUT_PATH = path.join(__dirname, '../src/index.css');
-const TS_OUTPUT_PATH = path.join(__dirname, '../../../core/src/utils/themeDefinition.ts');
+const TS_OUTPUT_PATH = path.resolve(__dirname, '..', '..', '..', 'packages', 'core', 'src', 'utils', 'themeDefinition.ts');
 const CSS_TEMPLATE_PATH = path.join(__dirname, 'templates/index.css.template');
 
 // --- Helpers ---

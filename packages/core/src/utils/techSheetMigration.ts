@@ -1,6 +1,6 @@
 import { TechSheetData, EventFrame, ConditionalStatus, NeedItem } from '../types';
 import { formatDateDMY } from './dateFormat';
-import logger from './logger';
+import { logger } from './logger';
 
 const isObject = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 

@@ -3,7 +3,7 @@ export * from './types';
 
 // Utils
 export * from './utils/dateFormat';
-export { default as logger } from './utils/logger';
+export * from './utils/logger';
 export * from './utils/notificationService';
 export * from './utils/selectors';
 export * from './utils/statusUtils';

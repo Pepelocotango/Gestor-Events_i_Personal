@@ -14,9 +14,15 @@ export default defineConfig(() => {
       define: {
         'process.env.NODE_ENV': JSON.stringify('development'),
       },
+      optimizeDeps: {
+        include: ['@gep/core'],
+      },
       build: {
         outDir: 'dist',
         emptyOutDir: true,
+        commonjsOptions: {
+          transformMixedEsModules: true,
+        },
         sourcemap: true,
         minify: false,
         rollupOptions: {

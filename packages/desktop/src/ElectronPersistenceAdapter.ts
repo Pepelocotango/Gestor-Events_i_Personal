@@ -1,169 +1,134 @@
 
-import type { PersistenceAdapter, GoogleConfig, SyncPayload, SaveDialogOptions, UnsavedChangesDialogOptions, NotificationPayload, SyncProgressState, AppData } from '@gep/core';
+import type { PersistenceAdapter, GoogleConfig, ShowSaveDialogOptions, SyncProgressState, AppData } from '@gep/core';
 
-// Aquest objecte implementa la interfície PersistenceAdapter definida al paquet @gep/core.
-// La seva única responsabilitat és delegar cada crida a la funció corresponent
-// de l'API d'Electron exposada a través de l'objecte `window.electronAPI` pel preload script.
-// Això manté la lògica de l'aplicació (stores) completament aïllada de l'entorn d'execució.
+// Helper function to create a "no-op" or "not available" response.
+const notAvailable = <T>(feature: string, returnValue: T): Promise<T> => {
+    console.warn(`[ElectronPersistenceAdapter] ${feature} is not available.`);
+    return Promise.resolve(returnValue);
+};
+
+// No-op function for listeners when API is not available
+const noOpListener = () => () => {};
 
 const ElectronPersistenceAdapter: PersistenceAdapter = {
-  // --- Gestió de dades i fitxers ---
-
-  // Llegeix el contingut d'un fitxer de forma asíncrona.
+  // --- File and Data Management ---
   readFile: (filePath: string) => {
+    if (!window.electronAPI?.readFile) return notAvailable('readFile', { success: false, message: 'API no disponible.' });
     return window.electronAPI.readFile(filePath);
   },
-
-  // Desa dades a un fitxer específic.
   saveFile: (options: { filePath: string; data: string; }) => {
+    if (!window.electronAPI?.saveFile) return notAvailable('saveFile', { success: false, message: 'API no disponible.' });
     return window.electronAPI.saveFile(options);
   },
-
-  // Mostra un diàleg per desar un fitxer i opcionalment hi escriu les dades.
-  showSaveDialog: (options: SaveDialogOptions) => {
+  showSaveDialog: (options: ShowSaveDialogOptions) => {
+    if (!window.electronAPI?.showSaveDialog) return notAvailable('showSaveDialog', { success: false, canceled: true, message: 'API no disponible.' });
     return window.electronAPI.showSaveDialog(options);
   },
-
-  // Mostra un diàleg per obrir un fitxer.
   openFileDialog: () => {
+    if (!window.electronAPI?.openFileDialog) return notAvailable('openFileDialog', { success: false, canceled: true, message: 'API no disponible.' });
     return window.electronAPI.openFileDialog();
   },
-
-  // Mostra un diàleg de confirmació per a canvis no desats.
-  showUnsavedChangesDialog: (options: UnsavedChangesDialogOptions) => {
+  showUnsavedChangesDialog: (options: { message: string, buttons: string[] }) => {
+    if (!window.electronAPI?.showUnsavedChangesDialog) return notAvailable('showUnsavedChangesDialog', { response: 2 }); // Default to 'Cancel'
     return window.electronAPI.showUnsavedChangesDialog(options);
   },
 
-  // --- Integració amb Google ---
-
-  // Desa la configuració de Google de l'usuari.
+  // --- Google Integration ---
   saveGoogleConfig: (config: Partial<GoogleConfig>) => {
+    if (!window.electronAPI?.saveGoogleConfig) return notAvailable('saveGoogleConfig', { success: false, message: 'API no disponible.' });
     return window.electronAPI.saveGoogleConfig(config);
   },
-
-  // Carrega la configuració de Google de l'usuari.
   loadGoogleConfig: () => {
+    if (!window.electronAPI?.loadGoogleConfig) return notAvailable('loadGoogleConfig', null);
     return window.electronAPI.loadGoogleConfig();
   },
-
-  // Obté els esdeveniments del calendari de Google.
   getGoogleEvents: () => {
+    if (!window.electronAPI?.getGoogleEvents) return notAvailable('getGoogleEvents', { success: false, message: 'API no disponible.' });
     return window.electronAPI.getGoogleEvents();
   },
-
-  // Inicia el procés de sincronització amb Google Calendar.
-  syncWithGoogle: (payload: SyncPayload) => {
-    // La referència directa a `exportData` i `loadData` es gestiona dins de l'store.
-    // L'adaptador només ha de passar les dades i opcions al procés principal.
+  syncWithGoogle: (payload: { localData: AppData; targetCalendarId: string; }) => {
+    if (!window.electronAPI?.syncWithGoogle) return notAvailable('syncWithGoogle', { success: false, message: 'API no disponible.' });
     return window.electronAPI.syncWithGoogle(payload);
   },
-
-  // Inicia el flux d'autenticació amb Google.
   startGoogleAuth: () => {
+    if (!window.electronAPI?.startGoogleAuth) return notAvailable('startGoogleAuth', { success: false, message: 'API no disponible.' });
     return window.electronAPI.startGoogleAuth();
   },
 
-  // --- Cicle de vida i metadades de l'aplicació ---
-
-  // Obté les metadades de l'aplicació (nom, versió, etc.).
+  // --- App Lifecycle & Metadata ---
   getAppMetadata: () => {
+    if (!window.electronAPI?.getAppMetadata) return notAvailable('getAppMetadata', { name: 'N/A', version: 'N/A', description: 'N/A' });
     return window.electronAPI.getAppMetadata();
   },
-
-  // Obté la plataforma actual de forma síncrona.
   getPlatformSync: () => {
-    return window.electronAPI.getPlatformSync();
+    return (window.electronAPI?.getPlatformSync() || 'linux') as 'darwin' | 'win32' | 'linux';
   },
-
-  // Tanca l'aplicació.
   quitApplication: () => {
-    window.electronAPI.quitApplication();
+    window.electronAPI?.quitApplication();
   },
-
-  // Restaura la configuració de fàbrica.
   factoryReset: () => {
+    if (!window.electronAPI?.factoryReset) return notAvailable('factoryReset', { success: false, message: 'API no disponible.' });
     return window.electronAPI.factoryReset();
   },
 
-  // --- Sessió i configuració ---
-
-  // Afegeix un fitxer a la llista de fitxers recents.
+  // --- Session & Config ---
   addRecentFile: (filePath: string) => {
+    if (!window.electronAPI?.addRecentFile) return notAvailable('addRecentFile', { success: false, recentFiles: [] });
     return window.electronAPI.addRecentFile(filePath);
   },
-
-  // Obté la llista de fitxers recents.
   getRecentFiles: () => {
+    if (!window.electronAPI?.getRecentFiles) return notAvailable('getRecentFiles', []);
     return window.electronAPI.getRecentFiles();
   },
-
-  // Obté dades de la sessió actual.
   getSessionData: () => {
+    if (!window.electronAPI?.getSessionData) return notAvailable('getSessionData', {});
     return window.electronAPI.getSessionData();
   },
-
-  // Desa dades a la sessió actual.
   saveSessionData: (key: string, value: any) => {
+    if (!window.electronAPI?.saveSessionData) return notAvailable('saveSessionData', { success: false });
     return window.electronAPI.saveSessionData(key, value);
   },
 
-  // --- Utilitats ---
-
-  // Obre la carpeta de logs.
+  // --- Utilities ---
   openLogsFolder: () => {
+    if (!window.electronAPI?.openLogsFolder) return notAvailable('openLogsFolder', { success: false, message: 'API no disponible.' });
     return window.electronAPI.openLogsFolder();
   },
-
-  // Obre la carpeta de backups.
   openBackupsFolder: () => {
+    if (!window.electronAPI?.openBackupsFolder) return notAvailable('openBackupsFolder', { success: false, message: 'API no disponible.' });
     return window.electronAPI.openBackupsFolder();
   },
 
   // --- Event Listeners (IPC) ---
-
-  // Registra un callback per a l'esdeveniment de confirmació de tancament.
   onConfirmQuit: (callback: () => void) => {
-    return window.electronAPI.onConfirmQuit(callback);
+    return window.electronAPI?.onConfirmQuit(callback) || noOpListener();
   },
-
-  // Registra un callback per a l'èxit de l'autenticació de Google.
   onGoogleAuthSuccess: (callback: () => void) => {
-    return window.electronAPI.onGoogleAuthSuccess(callback);
+    return window.electronAPI?.onGoogleAuthSuccess(callback) || noOpListener();
   },
-
-  // Registra un callback per a l'error de l'autenticació de Google.
   onGoogleAuthError: (callback: (message: string) => void) => {
-    return window.electronAPI.onGoogleAuthError(callback);
+    return window.electronAPI?.onGoogleAuthError(callback) || noOpListener();
   },
-
-  // Registra un callback per al progrés de la sincronització.
   onSyncProgress: (callback: (progress: SyncProgressState) => void) => {
-    return window.electronAPI.onSyncProgress(callback);
+    // Note: The original error was that the callback in the API expected Omit<SyncProgressState, 'visible'>
+    // We adjust the adapter's public interface to match the core definition for consistency.
+    const wrapper = (progress: Omit<SyncProgressState, 'visible'>) => callback({ ...progress, visible: true });
+    return window.electronAPI?.onSyncProgress(wrapper) || noOpListener();
   },
-
-  // Registra un callback per quan l'app es reiniciarà.
   onAppWillRelaunchAfterReset: (callback: () => void) => {
-    return window.electronAPI.onAppWillRelaunchAfterReset(callback);
+    return window.electronAPI?.onAppWillRelaunchAfterReset(callback) || noOpListener();
   },
-
-  // Registra un callback per a errors de sincronització.
   onSyncError: (callback: (error: string) => void) => {
-    return window.electronAPI.onSyncError(callback);
+    return window.electronAPI?.onSyncError(callback) || noOpListener();
   },
-
-  // Registra un callback per a èxits de sincronització.
   onSyncSuccess: (callback: (message: string) => void) => {
-    return window.electronAPI.onSyncSuccess(callback);
+    return window.electronAPI?.onSyncSuccess(callback) || noOpListener();
   },
-
-  // Registra un callback per a notificacions generals del backend.
-  onBackendNotification: (callback: (notification: NotificationPayload) => void) => {
-    return window.electronAPI.onBackendNotification(callback);
+  onBackendNotification: (callback: (notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void) => {
+    return window.electronAPI?.onBackendNotification(callback) || noOpListener();
   },
-
-  // Registra un callback per a les accions del menú personalitzat.
   onMenuAction: (callback: (action: string) => void) => {
-    return window.electronAPI.onMenuAction(callback);
+    return window.electronAPI?.onMenuAction(callback) || noOpListener();
   },
 };
 

@@ -45,6 +45,8 @@ El `core` exposa una interfície d'adaptador de persistència (`PersistenceAdapt
 
 L'adaptador de persistència s'injecta a l'store mitjançant una funció d'inicialització a `App.tsx`. D'aquesta manera, el `core` no té cap dependència directa de l'entorn d'execució, la qual cosa el fa portable.
 
+**Nota important sobre la configuració de Vite:** Perquè l'aplicació `desktop` pugui importar i transpilar correctament el codi TypeScript del paquet `core`, és crucial afegir `@gep/core` a la secció `optimizeDeps.include` del fitxer `packages/desktop/vite.config.ts`. Això indica a Vite que ha de pre-processar aquest paquet local.
+
 ### Visió General del Projecte
 
 El "Gestor d'Esdeveniments i Personal" és una aplicació d'escriptori multiplataforma construïda amb Electron i React. El seu objectiu és oferir una solució integral per a la gestió d'esdeveniments, cobrint tot el cicle de vida:
