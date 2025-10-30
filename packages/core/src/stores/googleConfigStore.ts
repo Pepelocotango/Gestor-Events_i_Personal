@@ -1,10 +1,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { GoogleCalendar, ManagedAppCalendar, GoogleConfig } from '../types';
+import { GoogleCalendar, ManagedAppCalendar, GoogleConfig, notificationService, logger } from '@gep/core';
 import { useEventDataStore } from './eventDataStore';
 import { useModalStore } from './modalStore';
-import { notificationService } from '../utils/notificationService';
-import logger from '../utils/logger';
 
 // --- STATE AND TYPES ---
 

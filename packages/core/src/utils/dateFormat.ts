@@ -39,4 +39,3 @@ export function generateDefaultFileName(): string {
 
   return `dades_GEP_${day}-${month}-${year}_${hours}-${minutes}.json`;
 }
-// (original src implementation no longer re-exported here)

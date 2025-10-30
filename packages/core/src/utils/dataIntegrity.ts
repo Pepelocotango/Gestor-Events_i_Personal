@@ -75,4 +75,3 @@ export const repairData = (data: AppData, errors: ValidationError[]): RepairResu
     fixes,
   };
 };
-// (original src implementation no longer re-exported here)

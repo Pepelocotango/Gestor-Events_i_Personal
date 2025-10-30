@@ -1,17 +1,132 @@
 {
-  "name": "@gep/desktop",
-  "version": "1.0.0",
-  "private": true,
+  "name": "gestor-esdeveniments-personal",
+  "productName": "GestorEsdevenimentsPersonal",
+  "version": "1.3.0",
+  "description": "Una aplicació per gestionar esdeveniments i personal",
+  "author": "Pep",
+  "license": "GPL-3.0-or-later",
   "main": "main.cjs",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite --force --clearScreen false",
-    "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
+    "build:theme": "node scripts/build-theme.cjs",
+    "wait": "node -e \"setTimeout(() => process.exit(0), 500)\"",
+    "build": "npm run build:theme && tsc && vite build",
+    "preview": "vite preview",
     "electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
-    "start": "npm run dev",
-    "build": "tsc && vite build",
-    "build:linux": "npm run build && electron-builder --linux --x64 --publish never"
+    "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
+    "start": "npm run build:theme && npm run wait && npm run electron-dev",
+    "clean": "rm -rf dist node_modules/.vite",
+    "fresh-start": "npm run clean && npm start",
+    "build:electron": "npm run build && electron-builder",
+    "dist": "electron-builder",
+    "build:mac": "npm run build && electron-builder --mac --x64 --publish never",
+    "build:linux": "npm run build && electron-builder --linux --x64 --publish never",
+    "build:win": "npm run build && electron-builder --win --x64 --publish never"
   },
   "dependencies": {
-    "@gep/core": "workspace:*"
+    "@dnd-kit/core": "6.1.0",
+    "@dnd-kit/sortable": "8.0.0",
+    "@dnd-kit/utilities": "3.2.2",
+    "@fullcalendar/core": "6.1.17",
+    "@fullcalendar/daygrid": "6.1.17",
+    "@fullcalendar/interaction": "6.1.17",
+    "@fullcalendar/list": "6.1.17",
+    "@fullcalendar/multimonth": "6.1.17",
+    "@fullcalendar/react": "6.1.17",
+    "@fullcalendar/timegrid": "6.1.17",
+    "@heroicons/react": "2.2.0",
+    "@types/react-router-dom": "5.3.3",
+    "electron-log": "^5.4.3",
+    "file-saver": "2.0.5",
+    "googleapis": "150.0.1",
+    "html2canvas": "1.4.1",
+    "immer": "10.1.3",
+    "jspdf": "3.0.2",
+    "jspdf-autotable": "5.0.2",
+    "lucide-react": "0.417.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-hot-toast": "2.6.0",
+    "react-router-dom": "7.6.3",
+    "use-sync-external-store": "^1.5.0",
+    "zundo": "2.3.0",
+    "zustand": "5.0.8"
+  },
+  "devDependencies": {
+    "@types/file-saver": "2.0.7",
+    "@types/node": "20.14.12",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "@vitejs/plugin-react": "4.5.0",
+    "autoprefixer": "10.4.21",
+    "concurrently": "8.2.2",
+    "cross-env": "^10.1.0",
+    "electron": "38.1.1",
+    "electron-builder": "24.13.3",
+    "postcss": "8.5.4",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.5.3",
+    "vite": "6.3.6",
+    "wait-on": "7.2.0"
+  },
+  "build": {
+    "appId": "com.gestorevents.app",
+    "productName": "GestorEsdevenimentsPersonal",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dist/**/*",
+      "main.cjs",
+      "preload.cjs",
+      "metadata.json",
+      "google-credentials.json",
+      "service-account.json"
+    ],
+    "extraResources": [
+      {
+        "from": "examples json",
+        "to": "examples json"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "README.md",
+        "to": "README.md"
+      },
+      {
+        "from": "DEVELOPING.md",
+        "to": "DEVELOPING.md"
+      }
+    ],
+    "linux": {
+      "target": "AppImage",
+      "category": "Office",
+      "artifactName": "${productName}_v${version}-Linux-Ubuntu18.04+.${ext}"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "public/icon.ico"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "public/icon.icns",
+      "identity": null,
+      "artifactName": "${productName}_v${version}-macOS-10.15+.${ext}"
+    }
   }
 }

@@ -1,8 +1,9 @@
+import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame } from '../types';
 import { formatDateDMY } from './dateFormat';
 
 // Tipus per a l'objecte de filtres, extret de l'estat de Zustand
-export type ActiveFilters = {
+type ActiveFilters = {
   filterText?: string | null;
   filterStatus?: string | null;
   filterDate?: string | null;
@@ -30,41 +31,46 @@ const formatDateRangeFromData = (data: EventFrame[]): string => {
 
 /**
  * Genera un descriptor intel·ligent per al nom del fitxer basat en els filtres actius.
+ * @param filters - L'objecte que conté tots els filtres actius.
+ * @param data - El conjunt de dades (EventFrame[]) que s'exportarà.
+ * @returns Un string que descriu el contingut basat en els filtres.
  */
 const generateSmartDescriptor = (filters: ActiveFilters, data: EventFrame[]): string => {
-  // Use the provided data (event frames) rather than reaching into a global store.
+  const { peopleGroups, eventFrames } = useEventDataStore.getState();
+
+  // Prioritat Alta: Filtres més restrictius i comuns
   if (filters.filterUIEventFrame) {
-    const eventName = data.find((ef: EventFrame) => ef.id === filters.filterUIEventFrame)?.name;
+    const eventName = eventFrames.find(ef => ef.id === filters.filterUIEventFrame)?.name;
     return `Esdeveniment_${eventName?.replace(/[^a-zA-Z0-9]/g, '-') || 'Desconegut'}`;
   }
 
   if (filters.localFilterUIPerson) {
-    // We don't have direct access to peopleGroups in this helper (no global store here).
-    // Try to infer a name from the provided event frames (search assignments), else fall back to the id.
-    let inferredName: string | undefined;
-    for (const ef of data) {
-      const assignment = ef.assignments.find((a: any) => a.personGroupId === filters.localFilterUIPerson);
-      if (assignment) {
-        inferredName = assignment.personGroupId; // fallback to id if no mapping available
-        break;
-      }
-    }
-    const personLabel = inferredName || filters.localFilterUIPerson;
-    return `Persona_${personLabel?.toString().replace(/[^a-zA-Z0-9]/g, '-') || 'Desconegut'}`;
+    const personName = peopleGroups.find(p => p.id === filters.localFilterUIPerson)?.name;
+    return `Persona_${personName?.replace(/[^a-zA-Z0-9]/g, '-') || 'Desconegut'}`;
   }
 
   if (filters.filterDate) {
     return `Data_${formatDateDMY(filters.filterDate)}`;
   }
 
+  // Comportament sense filtres prioritaris: Descriure el rang de dates
   const isAnyFilterActive = filters.filterText || filters.filterStatus || filters.filterPlace;
   if (!isAnyFilterActive) {
     return formatDateRangeFromData(data);
   }
 
+  // Si hi ha filtres secundaris però no primaris, retorna un descriptor genèric
   return `Seleccio_Filtrada`;
 };
 
+/**
+ * Funció principal per a construir el nom complet del fitxer d'exportació.
+ * @param prefix - El prefix del fitxer (p. ex., 'Llista_Esdeveniments', 'Resum_Per_Persona').
+ * @param filters - L'objecte amb l'estat dels filtres actius.
+ * @param data - Les dades que s'exportaran, per a determinar el rang de dates si no hi ha filtres.
+ * @param extension - L'extensió del fitxer (p. ex., 'pdf', 'csv').
+ * @returns El nom de fitxer complet i sanejat.
+ */
 export const generateFileName = (
   prefix: string,
   filters: ActiveFilters,
@@ -73,6 +79,7 @@ export const generateFileName = (
 ): string => {
   const descriptor = generateSmartDescriptor(filters, data);
 
+  // Comprova si s'han aplicat filtres secundaris (menys específics)
   const hasSecondaryFilters = !!(filters.filterText || filters.filterPlace || filters.filterStatus);
   const secondaryIndicator = (filters.filterUIEventFrame || filters.localFilterUIPerson || filters.filterDate) && hasSecondaryFilters
     ? '_+Filtres'
@@ -80,11 +87,19 @@ export const generateFileName = (
 
   const finalDescriptor = `${descriptor}${secondaryIndicator}`;
 
+  // Neteja final per a assegurar un nom de fitxer vàlid
   const saneDescriptor = finalDescriptor.replace(/[^a-zA-Z0-9_-]/g, '_');
 
   return `${prefix}_${saneDescriptor}.${extension}`;
 };
 
+/**
+ * Genera el nom de fitxer per a la Fitxa de Bolo.
+ * Aquest format és especial i no depèn dels filtres generals.
+ * @param eventName - El nom de l'esdeveniment.
+ * @param eventDateOrRange - La data o rang de dates de l'esdeveniment.
+ * @returns El nom de fitxer formatejat.
+ */
 export const generateTechSheetFileName = (eventName: string, eventDateOrRange: string): string => {
     const saneEventName = eventName.replace(/[^a-zA-Z0-9_-]/g, '_');
     const saneDate = eventDateOrRange.replace(/[^a-zA-Z0-9_-]/g, '_');

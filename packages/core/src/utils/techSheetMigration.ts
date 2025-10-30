@@ -4,6 +4,7 @@ import logger from './logger';
 
 const isObject = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 
+// This is a minimal version of createDefaultTechSheet to avoid circular dependencies
 const createDefaultTechSheetForMigration = (eventFrame: EventFrame): TechSheetData => {
   const defaultConditional = () => ({ status: 'unset' as const, details: '', data: { needs: [] } });
   return {
@@ -48,6 +49,7 @@ const createDefaultTechSheetForMigration = (eventFrame: EventFrame): TechSheetDa
 
 export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechSheetData => {
   try {
+    // Check if data is already in the new format
     if (data && isObject(data.lighting) && isObject(data.sound)) {
         return data as TechSheetData;
     }
@@ -71,6 +73,7 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
         const needs = (Array.isArray(oldNeeds) ? oldNeeds : []) as NeedItem[];
         const details = extractDetails(oldDetails);
         const status = fromStringToStatus(oldDetails);
+        // If there are needs but status is unset, make it 'yes'
         const finalStatus = (status === 'unset' && needs.length > 0) ? 'yes' : status;
         return { status: finalStatus, details, data: { needs } };
     };
@@ -136,4 +139,3 @@ export const migrateTechSheetData = (data: any, eventFrame: EventFrame): TechShe
     return createDefaultTechSheetForMigration(eventFrame);
   }
 };
-// (original src implementation no longer re-exported here)
