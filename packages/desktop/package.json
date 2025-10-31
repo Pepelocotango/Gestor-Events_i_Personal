@@ -78,11 +78,17 @@
       "dist/**/*",
       "main.cjs",
       "preload.cjs",
-      "metadata.json",
-      "google-credentials.json",
-      "service-account.json"
+      "metadata.json"
     ],
     "extraResources": [
+      {
+        "from": "./google-credentials.json",
+        "to": "."
+      },
+      {
+        "from": "./service-account.json",
+        "to": "."
+      },
       {
         "from": "./examples json",
         "to": "examples json"

@@ -983,8 +983,9 @@ Tots els workflows s'activen manualment (`workflow_dispatch`) i segueixen un pat
 La clau `build` del `package.json` conté la configuració per a `electron-builder`:
 
 -   `appId`: Identificador únic de l'aplicació.
--   `files`: Especifica quins fitxers i directoris s'han d'incloure a l'empaquetat final. És important que `dist/**/*` (el frontend compilat), `main.cjs`, `preload.cjs` i `google-credentials.json` estiguin aquí.
+-   `files`: Especifica quins fitxers i directoris s'han d'incloure a l'empaquetat final. És important que `dist/**/*` (el frontend compilat), `main.cjs` i `preload.cjs` estiguin aquí.
 -   `extraResources`: Permet incloure fitxers addicionals (com exemples o la llicència) que seran accessibles des de l'aplicació instal·lada.
+-   **Gestió de Credencials en Producció (`extraResources`):** Per garantir que els fitxers de credencials (`google-credentials.json`, `service-account.json`) siguin accessibles en l'aplicació empaquetada (producció), s'han mogut de la clau `files` a `extraResources`. Això fa que `electron-builder` extregui aquests fitxers de l'arxiu `app.asar` i els col·loqui a l'arrel del directori de recursos de l'aplicació. El backend (`main.cjs`) utilitza `process.resourcesPath` per trobar-los en entorns de producció, assegurant una ruta d'accés fiable.
 -   **Configuracions per Plataforma (`linux`, `win`, `mac`):** Defineixen les opcions específiques per a cada sistema operatiu, com els formats de sortida (`AppImage`, `nsis`, `dmg`) i les icones.
 
 ---

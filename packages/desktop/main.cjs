@@ -209,7 +209,8 @@ function ensureDirectoriesExist() {
 
 function loadGoogleCredentials() {
   try {
-    const credentialsPath = path.join(__dirname, 'google-credentials.json');
+    const basePath = app.isPackaged ? process.resourcesPath : __dirname;
+    const credentialsPath = path.join(basePath, 'google-credentials.json');
     if (!fs.existsSync(credentialsPath)) return false;
 
     const content = fs.readFileSync(credentialsPath);
@@ -229,7 +230,8 @@ function loadGoogleCredentials() {
 
 async function loadServiceAccountCredentials() {
   try {
-    const serviceAccountPath = path.join(__dirname, 'service-account.json');
+    const basePath = app.isPackaged ? process.resourcesPath : __dirname;
+    const serviceAccountPath = path.join(basePath, 'service-account.json');
     if (!fs.existsSync(serviceAccountPath)) {
       console.warn('El fitxer service-account.json no es troba. Les funcionalitats avançades de Google Calendar estaran desactivades.');
       return false;
