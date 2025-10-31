@@ -115,22 +115,22 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
         -   Implementar tota la lògica de negoci del client (filtratge de dades, validacions de formularis, detecció de conflictes).
         -   Invocar les funcions exposades pel backend a través de `window.electronAPI` per a qualsevol operació que requereixi accés al sistema (desar un fitxer, sincronitzar amb Google, etc.).
 
-### Diagrama de Flux de Dades: Exemple d'una Acció de "Guardar"
+### Diagrama de Flux de Dades: Exemple d'una Sincronització amb Google
 
-Per il·lustrar com col·laboren aquestes capes, analitzem el flux quan un usuari desa totes les dades:
+Per il·lustrar la nova arquitectura i el paper central del paquet `@gep/core`, analitzem el flux d'una sincronització amb Google Calendar:
 
-1.  **[Frontend]** L'usuari fa clic al botó "Guardar Tot" al component `packages/desktop/src/components/Controls.tsx`.
-2.  **[Frontend]** S'activa una funció que crida a l'acció `exportData()` de l'store de Zustand (`useEventDataStore`).
-3.  **[Frontend - Zustand]** L'store recopila totes les dades del seu estat actual (`eventFrames`, `peopleGroups`, etc.) i les retorna com un objecte `AppData`.
-4.  **[Frontend]** La funció crida a `window.electronAPI.showSaveDialog()` amb les dades serialitzades en format JSON.
-5.  **[Pont]** `packages/desktop/preload.cjs` rep la crida i, de forma segura, envia una petició IPC (`ipcRenderer.invoke`) al backend a través del canal `'show-save-dialog'`.
-6.  **[Backend]** El gestor `ipcMain.handle('show-save-dialog', ...)` a `packages/desktop/main.cjs` rep la petició.
-7.  **[Backend]** Utilitzant el mòdul `dialog` d'Electron, obre una finestra de diàleg nativa del sistema operatiu perquè l'usuari triï on desar el fitxer.
-8.  **[Backend]** Un cop l'usuari confirma, utilitza el mòdul `fs` de Node.js per escriure les dades rebudes al disc.
-9.  **[Backend -> Pont -> Frontend]** El resultat de l'operació (èxit o error) es retorna a través de la `Promise` de `ipcRenderer.invoke`.
-10. **[Frontend]** El component que va iniciar l'acció rep el resultat i mostra una notificació (toast) a l'usuari.
+1.  **[Frontend]** L'usuari fa clic al botó "Sincronitzar" a `packages/desktop/src/components/Controls.tsx`.
+2.  **[Frontend]** Es crida a l'acció `syncWithGoogle()` de l'store `useEventDataStore` (que pertany al paquet `@gep/core`).
+3.  **[Core - Zustand]** L'acció `syncWithGoogle` orquestra el procés. Un cop l'usuari selecciona el calendari de destinació, es crida a `executeSync(targetCalendarId)`.
+4.  **[Core - Zustand]** L'acció `executeSync` recopila totes les dades locals (`exportData()`).
+5.  **[Core - Lògica de Negoci]** Itera sobre cada esdeveniment i crida a la funció `generateGoogleEventDescription()` (de `packages/core/src/utils/googleCalendarUtils.ts`) per construir la descripció enriquida de l'esdeveniment.
+6.  **[Core -> Adaptador]** Amb les dades ja enriquides, crida a la funció `syncWithGoogle()` de l'adaptador de persistència (`persistenceAdapter`).
+7.  **[Desktop - Adaptador]** La implementació de l'adaptador (`ElectronPersistenceAdapter.ts`) crida a `window.electronAPI.syncWithGoogle()`, passant les dades ja processades al backend.
+8.  **[Pont]** `packages/desktop/preload.cjs` envia la petició IPC al backend.
+9.  **[Backend]** El gestor `ipcMain.handle('sync-with-google', ...)` a `packages/desktop/main.cjs` rep les dades. La seva única responsabilitat és comunicar-se amb l'API de Google, sense contenir cap lògica de negoci sobre com es generen les dades.
+10. **[Backend -> ... -> Core]** La resposta de l'API de Google es retorna a través de tota la cadena fins a l'store de `@gep/core`, que actualitza l'estat de l'aplicació.
 
-Aquest flux demostra la clara separació de responsabilitats: el frontend gestiona la UI i l'estat, mentre que el backend s'encarrega de les operacions a nivell de sistema, garantint seguretat i un rendiment natiu.
+Aquest flux demostra l'aïllament complet: la lògica de negoci resideix a `@gep/core`, el frontend (`desktop`) gestiona la UI, i el backend (`main.cjs`) actua només com un servei per a operacions de sistema i API externes.
 
 
 
@@ -347,7 +347,7 @@ El frontend (`packages/desktop/src`) és una Single Page Application (SPA) const
 
 L'estat global del frontend es gestiona a través de *stores* de Zustand, la qual cosa desacobla la lògica de l'estat dels components de React i millora el rendiment.
 
-#### Stores de Zustand (`packages/desktop/src/stores/`)
+#### Stores de Zustand (`packages/core/src/stores/`)
 
 1.  **`eventDataStore.ts`**:
     -   **Descripció:** És la **font única de veritat** per a totes les dades principals de l'aplicació (esdeveniments, contactes, material).
@@ -376,7 +376,7 @@ El projecte inclou un middleware de Zustand personalitzat a `packages/desktop/sr
 - **Funcionalitat:** Quan s'aplica a un store, aquest middleware registra automàticament cada acció que es crida, l'estat *abans* del canvi, i l'estat *després* del canvi. Això és extremadament útil durant el desenvolupament per traçar com i per què canvia l'estat.
 - **Ús:** Actualment, aquest middleware **no està actiu** a cap dels stores de producció per evitar sobrecarregar la consola. No obstant això, un desenvolupador pot activar-lo fàcilment per depurar un store específic.
 
-Per exemple, per activar-lo a `packages/desktop/src/stores/eventDataStore.ts`, s'hauria d'importar i embolcallar la definició de l'store:
+Per exemple, per activar-lo a `packages/core/src/stores/eventDataStore.ts`, s'hauria d'importar i embolcallar la definició de l'store:
 
 ```typescript
 import { loggingMiddleware } from './loggingMiddleware';
@@ -460,7 +460,7 @@ Per donar resposta a la necessitat que les àrees de text s'ajustin al seu conti
 -   **Gestió de `ref` (Ref Forwarding):** Per solucionar l'advertència de React "Function components cannot be given refs", el component està embolicat amb `React.forwardRef`. Això li permet rebre una `ref` d'un component pare (com el component `Tooltip`, que la necessita per posicionar-se) i passar-la directament a l'element `<textarea>` intern. La lògica de `useLayoutEffect` també ha estat actualitzada per utilitzar aquesta `ref` reenviada.
 -   **Integració:** Per aplicar aquest canvi de manera eficient, el component genèric `packages/desktop/src/components/tech_sheets/TechSheetField.tsx` ha estat modificat per renderitzar `AutosizeTextarea` quan se li passa la propietat `as="textarea"`. La resta de formularis de l'aplicació també han estat actualitzats per utilitzar aquest nou component.
 
-### 4.4. Model de Dades i Tipus (`packages/desktop/src/types.ts`)
+### 4.4. Model de Dades i Tipus (`packages/core/src/types.ts`)
 
 Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les estructures de dades clau mitjançant interfícies de TypeScript.
 
@@ -764,7 +764,7 @@ S'han implementat millores significatives a les funcions d'exportació del Centr
     -   La nova lògica a `MaterialControlCenter.tsx` dedueix quins esdeveniments són rellevants directament de les dades filtrades (`filteredData`). Itera sobre el desglossament de cada fila, recull tots els `eventFrameId` únics en un `Set`, i filtra la llista completa d'esdeveniments amb aquest conjunt.
     -   Això garanteix que el PDF detallat sempre contingui la informació dels esdeveniments associats a les dades que l'usuari està veient a la taula.
 
-La lògica d'exportació de les Fitxes de Bolo a PDF (`packages/desktop/src/utils/pdfGenerator.ts`) ha estat optimitzada per crear documents nets i rellevants:
+La lògica d'exportació de les Fitxes de Bolo a PDF (`packages/core/src/utils/pdfGenerator.ts`) ha estat optimitzada per crear documents nets i rellevants:
 
 -   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
 -   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
@@ -774,9 +774,9 @@ La lògica d'exportació de les Fitxes de Bolo a PDF (`packages/desktop/src/util
 
 Per millorar dràsticament la utilitat dels fitxers exportats (PDF/CSV), s'ha implementat un sistema de nomenclatura intel·ligent i contextual que fa que els noms dels fitxers siguin auto-descriptius.
 
-#### Lògica Centralitzada (`packages/desktop/src/utils/fileNameUtils.ts`)
+#### Lògica Centralitzada (`packages/core/src/utils/fileNameUtils.ts`)
 
--   **Mòdul Dedicat:** S'ha creat un nou mòdul a `packages/desktop/src/utils/fileNameUtils.ts` que centralitza tota la lògica de generació de noms de fitxer.
+-   **Mòdul Dedicat:** S'ha creat un nou mòdul a `packages/core/src/utils/fileNameUtils.ts` que centralitza tota la lògica de generació de noms de fitxer.
 -   **Funció Principal (`generateFileName`):** Aquesta funció construeix el nom del fitxer basant-se en una jerarquia de prioritat dels filtres actius:
     1.  **Prioritat Alta:** Filtres restrictius com **Esdeveniment específic**, **Persona** o **Data concreta** formen la part principal del nom (p. ex., `Llista_Esdeveniments_Persona_Pep`).
     2.  **Indicador Secundari:** Si s'apliquen filtres addicionals menys específics (com text lliure), s'afegeix un indicador genèric (`_+Filtres`) per a indicar que el contingut està més acotat.
@@ -786,7 +786,7 @@ Per millorar dràsticament la utilitat dels fitxers exportats (PDF/CSV), s'ha im
 #### Integració i Coherència de Dades
 
 -   **Flux de Dades a `SummaryReports`:** El component `packages/desktop/src/components/SummaryReports.tsx` ha estat refactoritzat per a rebre el conjunt de dades ja filtrat com a `props` des de `packages/desktop/src/components/MainDisplay.tsx`. Això garanteix que els resums i les seves exportacions es basen exactament en les mateixes dades que l'usuari veu a la llista principal.
--   **Actualització dels Mòduls d'Exportació:** Les funcions a `packages/desktop/src/utils/pdfGenerator.ts` i `packages/desktop/src/utils/csvUtils.ts` han estat actualitzades per a acceptar l'estat dels filtres i cridar a `generateFileName`, assegurant que tots els fitxers exportats segueixin la nova convenció de nomenclatura.
+-   **Actualització dels Mòduls d'Exportació:** Les funcions a `packages/core/src/utils/pdfGenerator.ts` i `packages/core/src/utils/csvUtils.ts` han estat actualitzades per a acceptar l'estat dels filtres i cridar a `generateFileName`, assegurant que tots els fitxers exportats segueixin la nova convenció de nomenclatura.
 ---------
 
 
@@ -794,7 +794,7 @@ Per millorar dràsticament la utilitat dels fitxers exportats (PDF/CSV), s'ha im
 
  Per garantir la consistència i evitar la duplicació de codi (principi DRY), la lògica de formatació de cel·les CSV ha estat refactoritzada:
 
- 1.  **Mòdul Dedicat:** S'ha creat el fitxer **`packages/desktop/src/utils/csvUtils.ts`**.
+ 1.  **Mòdul Dedicat:** S'ha creat el fitxer **`packages/core/src/utils/csvUtils.ts`**.
  2.  **Funció d'Escapament (`escapeCsvCell`):** Aquest mòdul exporta una funció reutilitzable, `escapeCsvCell`, que s'encarrega de gestionar correctament els caràcters especials (comes, cometes dobles, salts de línia) dins d'una cel·la. La funció embolcalla el contingut amb cometes dobles si és necessari i escapa les cometes internes segons l'estàndard CSV.
  3.  **Implementació:** Components com `packages/desktop/src/components/PeopleDisplay.tsx` i `packages/desktop/src/components/SummaryReports.tsx` importen i utilitzen `escapeCsvCell` per formatar cada cel·la abans de construir el fitxer CSV final.
 
@@ -803,9 +803,9 @@ Per millorar dràsticament la utilitat dels fitxers exportats (PDF/CSV), s'ha im
 
 Per garantir la retrocompatibilitat amb versions anteriors de l'estructura de dades, s'ha implementat un sistema de migració transparent.
 
--   **Fitxer Clau:** `packages/desktop/src/utils/dataMigration.ts`.
+-   **Fitxer Clau:** `packages/core/src/utils/dataMigration.ts`.
 -   **Funció `migrateData`:** Aquesta funció accepta objectes de dades amb l'estructura antiga (p. ex., amb `people` en lloc de `peopleGroups`, ID numèrics, etc.) i els transforma a l'estructura `AppData` moderna.
--   **Activació:** La lògica de migració i validació ara es troba centralitzada dins de l'acció **`loadData`** al fitxer **`packages/desktop/src/stores/eventDataStore.ts`**.
+-   **Activació:** La lògica de migració i validació ara es troba centralitzada dins de l'acció **`loadData`** al fitxer **`packages/core/src/stores/eventDataStore.ts`**.
 
 ---
 
@@ -815,7 +815,7 @@ L'aplicació permet marcar un esdeveniment marc com a "completat" a nivell de pe
 
 #### El Model de Dades
 
-La "font de veritat" d'aquest estat és la propietat booleana `personnelComplete` dins de la interfície `EventFrame` a `packages/desktop/src/types.ts`. Si és `true`, l'esdeveniment es considera complet; si és `false` o no està definit, es considera incomplet.
+La "font de veritat" d'aquest estat és la propietat booleana `personnelComplete` dins de la interfície `EventFrame` a `packages/core/src/types.ts`. Si és `true`, l'esdeveniment es considera complet; si és `false` o no està definit, es considera incomplet.
 
 #### La Interfície d'Usuari (UI)
 
@@ -844,7 +844,7 @@ Per mantenir la interfície neta i centrada en els esdeveniments actuals, s'ha i
 
 -   **`EventFrame`**: S'ha afegit una nova propietat opcional `isArchived?: boolean` a la interfície. Si és `true`, l'esdeveniment es considera arxivat.
 
-#### Lògica a l'Store (`packages/desktop/src/stores/eventDataStore.ts`)
+#### Lògica a l'Store (`packages/core/src/stores/eventDataStore.ts`)
 
 S'han afegit tres noves accions per gestionar el cicle de vida de l'arxivatge:
 -   **`archiveOldEventFrames()`**: Aquesta acció no modifica l'estat. Escaneja tots els `eventFrames` i retorna una llista d'aquells que van finalitzar fa més d'un mes i que encara no estan arxivats.
@@ -889,11 +889,11 @@ L'aplicació utilitza deliberadament dos formats de data diferents per a dues fi
 
 La conversió entre aquests dos formats es gestiona de manera centralitzada per garantir la consistència.
 
--   **Utilitat Centralitzada:** El mòdul **`packages/desktop/src/utils/dateFormat.ts`** conté les funcions `formatDateDMY` i `formatDateRangeDMY`, que són les úniques responsables de realitzar aquesta conversió de format per a la presentació.
+-   **Utilitat Centralitzada:** El mòdul **`packages/core/src/utils/dateFormat.ts`** conté les funcions `formatDateDMY` i `formatDateRangeDMY`, que són les úniques responsables de realitzar aquesta conversió de format per a la presentació.
 
 -   **Ús a l'Aplicació:**
     -   **Entrada de Dades:** Els formularis amb camps de data utilitzen `<input type="date">`, que internament treballa amb el format `YYYY-MM-DD`. Aquest és el format que es desa a l'estat de React.
-    -   **Visualització de Dades:** Tots els components que mostren una data a l'usuari (les targetes d'esdeveniments, els modals de detalls, els resums, etc.) importen i utilitzen les funcions de `dateFormat.ts` per mostrar-les en format `DD/MM/YYYY`. De la mateixa manera, el generador de documents (`packages/desktop/src/utils/pdfGenerator.ts`) utilitza aquestes funcions per garantir que els PDF exportats siguin fàcilment llegibles.
+    -   **Visualització de Dades:** Tots els components que mostren una data a l'usuari (les targetes d'esdeveniments, els modals de detalls, els resums, etc.) importen i utilitzen les funcions de `dateFormat.ts` per mostrar-les en format `DD/MM/YYYY`. De la mateixa manera, el generador de documents (`packages/core/src/utils/pdfGenerator.ts`) utilitza aquestes funcions per garantir que els PDF exportats siguin fàcilment llegibles.
 
 ---
 
@@ -917,11 +917,11 @@ El sistema es basa en una jerarquia de "fonts de veritat" per assegurar la màxi
     -   **Descripció:** El fitxer de configuració de Tailwind s'ha modificat per consumir les variables CSS definides a `index.css`.
     -   **Implementació:** Això permet que les classes d'utilitat de Tailwind (com `bg-background`, `text-primary`) apliquin automàticament el color correcte segons el tema actiu.
 
-4.  **Coherència en PDFs (`packages/desktop/src/utils/colorUtils.ts` i `packages/desktop/src/utils/pdfGenerator.ts`):**
+4.  **Coherència en PDFs (`packages/core/src/utils/colorUtils.ts` i `packages/core/src/utils/pdfGenerator.ts`):**
     -   **Problema:** La llibreria `jspdf-autotable` requereix colors en format RGB, no HSL.
     -   **Solució:**
-        -   S'ha creat una funció d'utilitat a **`packages/desktop/src/utils/colorUtils.ts`** anomenada `hslToRgb` que converteix els colors.
-        -   El generador de PDFs (`packages/desktop/src/utils/pdfGenerator.ts`) ara importa els colors des del fitxer auto-generat `themeDefinition.ts` i els converteix a RGB al moment.
+        -   S'ha creat una funció d'utilitat a **`packages/core/src/utils/colorUtils.ts`** anomenada `hslToRgb` que converteix els colors.
+        -   El generador de PDFs (`packages/core/src/utils/pdfGenerator.ts`) ara importa els colors des del fitxer auto-generat `themeDefinition.ts` i els converteix a RGB al moment.
     -   **Resultat:** Això garanteix que els colors dels PDFs exportats siguin sempre una representació fidel del tema de l'aplicació.
 
 ### Avantatges d'Aquesta Arquitectura

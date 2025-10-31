@@ -13,6 +13,9 @@ export * from './utils/dataIntegrity';
 export * from './utils/csvUtils';
 export * from './utils/fileNameUtils';
 export * from './utils/pdfGenerator';
+export * from './utils/colorUtils';
+export * from './utils/dataMigration';
+export * from './utils/dateRangeFormatter';
 
 // Stores (optional exports)
 export * from './stores/eventDataStore';

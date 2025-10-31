@@ -14,11 +14,19 @@ DEV_monorepo/
 │   │   │   │   ├── googleConfigStore.ts
 │   │   │   │   └── modalStore.ts
 │   │   │   ├── utils/            # Funcions d'utilitat compartides (dates, validació, etc.).
+│   │   │   │   ├── colorUtils.ts
+│   │   │   │   ├── csvUtils.ts
 │   │   │   │   ├── dataIntegrity.ts
+│   │   │   │   ├── dataMigration.ts
 │   │   │   │   ├── dateFormat.ts
+│   │   │   │   ├── dateRangeFormatter.ts
 │   │   │   │   ├── fileNameUtils.ts
+│   │   │   │   ├── googleCalendarUtils.ts
 │   │   │   │   ├── logger.ts
 │   │   │   │   ├── notificationService.ts
+│   │   │   │   ├── pdfGenerator.ts
+│   │   │   │   ├── selectors.ts
+│   │   │   │   ├── statusUtils.ts
 │   │   │   │   └── techSheetMigration.ts
 │   │   │   ├── index.ts          # Punt d'entrada del paquet 'core'.
 │   │   │   ├── persistenceAdapter.ts # Interfície per a la capa de persistència.

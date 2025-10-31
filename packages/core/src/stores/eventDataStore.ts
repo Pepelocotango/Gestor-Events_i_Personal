@@ -17,6 +17,7 @@ export const initializeEventDataStore = (adapter: PersistenceAdapter) => {
 import { AssignmentStatus } from '../types';
 import type { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
+import { generateGoogleEventDescription } from '../utils/googleCalendarUtils';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import { notificationService } from '../utils/notificationService';
@@ -775,7 +776,16 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
                 if (persistenceAdapter?.syncWithGoogle) {
                     const localData = await exportData();
-                    const result = await persistenceAdapter.syncWithGoogle({ localData, targetCalendarId });
+
+                    // Enriquir les dades amb la descripció de Google abans de passar-les
+                    const enrichedEventFrames = localData.eventFrames.map(frame => ({
+                        ...frame,
+                        googleDescription: generateGoogleEventDescription(frame as EventFrame, get().peopleGroups),
+                    }));
+
+                    const enrichedLocalData = { ...localData, eventFrames: enrichedEventFrames };
+
+                    const result = await persistenceAdapter.syncWithGoogle({ localData: enrichedLocalData, targetCalendarId });
 
                     if (result && result.success && result.data) {
                         await loadData(result.data);
