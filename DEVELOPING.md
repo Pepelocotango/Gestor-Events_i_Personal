@@ -1001,6 +1001,26 @@ La clau `build` del `package.json` conté la configuració per a `electron-build
 -   **Gestió de Credencials en Producció (`extraResources`):** Per garantir que els fitxers de credencials (`google-credentials.json`, `service-account.json`) siguin accessibles en l'aplicació empaquetada (producció), s'han mogut de la clau `files` a `extraResources`. Això fa que `electron-builder` extregui aquests fitxers de l'arxiu `app.asar` i els col·loqui a l'arrel del directori de recursos de l'aplicació. El backend (`main.cjs`) utilitza `process.resourcesPath` per trobar-los en entorns de producció, assegurant una ruta d'accés fiable.
 -   **Configuracions per Plataforma (`linux`, `win`, `mac`):** Defineixen les opcions específiques per a cada sistema operatiu, com els formats de sortida (`AppImage`, `nsis`, `dmg`) i les icones.
 
+### Exportació a PDF i CSV (Arquitectura Desacoblada)
+
+El sistema d'exportació ha estat refactoritzat per desacoblar la **generació de dades** (responsabilitat del paquet `@gep/core`) de l'acció de **desar el fitxer** (responsabilitat del paquet `@gep/desktop`).
+
+-   **Generació de Contingut (`@gep/core`):**
+    -   Les funcions d'utilitat com `exportSummariesToPdf` (`packages/core/src/utils/pdfGenerator.ts`) i `exportEventListToCsv` (`packages/core/src/utils/csvUtils.ts`) ja no interactuen amb el sistema de fitxers.
+    -   La seva única responsabilitat és generar el contingut del document (un objecte `jsPDF` o una cadena de text `CSV`).
+    -   Un cop generat, retornen un objecte amb el contingut i un nom de fitxer suggerit. Per exemple: `return { pdfDoc, fileName };`.
+
+-   **Desat del Fitxer (`@gep/desktop`):**
+    -   S'ha creat una nova utilitat centralitzada: `packages/desktop/src/utils/fileSaver.ts`.
+    -   Aquesta utilitat exporta la funció `saveFileWithDialog`, que actua com a pont amb l'API d'Electron.
+    -   Rep les dades del fitxer (ja sigui un `ArrayBuffer` per a PDF o un `string` per a CSV), les opcions del diàleg (títol, nom per defecte) i gestiona la interacció amb l'usuari i l'escriptura al disc.
+
+-   **Flux de Dades als Components de la UI:**
+    1.  Un component de React (p. ex., `MainDisplay.tsx`) crida a una funció d'exportació del `@gep/core` (p. ex., `exportEventListToPdf`).
+    2.  El component rep l'objecte amb el document generat (`pdfDoc`) i el nom del fitxer (`fileName`).
+    3.  El component crida a `saveFileWithDialog`, passant-li les dades rebudes. `saveFileWithDialog` s'encarrega de la resta del procés.
+
+Aquesta arquitectura millora la portabilitat del paquet `@gep/core`, que ara no té cap dependència de l'entorn d'Electron.
 ---
 
 ## 8. Guia per a Desenvolupadors

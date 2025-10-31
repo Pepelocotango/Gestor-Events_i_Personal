@@ -428,7 +428,7 @@ export interface ShowSaveDialogOptions {
   title:string;
   defaultPath: string;
   filters: { name: string; extensions: string[] }[];
-  data: Buffer | string;
+  data: Buffer | string | ArrayBuffer;
   isDocumentSave?: boolean;
 }
 

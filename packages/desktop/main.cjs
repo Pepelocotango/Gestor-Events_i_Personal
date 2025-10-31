@@ -1191,6 +1191,8 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
   }
 
   try {
+    // Les dades poden arribar com a string (CSV) o com un objecte semblant a ArrayBuffer (PDF).
+    // Node.js Buffer.from() pot gestionar ambdós casos correctament.
     const buffer = Buffer.from(data);
     fs.writeFileSync(result.filePath, buffer);
 

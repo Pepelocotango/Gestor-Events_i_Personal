@@ -23,14 +23,11 @@ export async function saveFileWithDialog(
   // Comprova si l'API d'Electron està disponible.
   if (window.electronAPI?.showSaveDialog) {
     try {
-      const dataToSend = options.data instanceof ArrayBuffer
-        ? Buffer.from(options.data)
-        : options.data;
-
       // Crida a la funció del procés principal per mostrar el diàleg i desar el fitxer.
+      // Les dades (ArrayBuffer | string) s'envien directament. La conversió a Buffer
+      // es farà al procés principal (backend) on l'API de Node.js està disponible.
       const result = await window.electronAPI.showSaveDialog({
-        ...options,
-        data: dataToSend,
+        ...options, // options ja conté 'data', així que s'enviarà directament.
         isDocumentSave: false, // Això sempre és `false` per a exportacions.
       });
 
