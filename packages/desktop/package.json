@@ -82,11 +82,11 @@
     ],
     "extraResources": [
       {
-        "from": "./google-credentials.json",
+        "from": "../../google-credentials.json",
         "to": "."
       },
       {
-        "from": "./service-account.json",
+        "from": "../../service-account.json",
         "to": "."
       },
       {

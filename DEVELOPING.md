@@ -450,7 +450,7 @@ El modal d'historial mostra ara la descripció de l'acció que es desfarà/refer
 ### 4.3. Menú d'Aplicació i UI
 -   **`WelcomeScreen.tsx`**: Nou component que actua com a pantalla d'inici, oferint accés ràpid a les accions de fitxer.
 -   **`CustomMenuBar.tsx`**: El menú s'ha reestructurat per reflectir les accions estàndard de gestió de fitxers. Està connectat a l'estat d'`App.tsx` per activar/desactivar opcions de manera dinàmica (p. ex., "Guardar" només està actiu si hi ha canvis no desats).
--   **`Controls.tsx`**: Aquest component mostra ara la ruta del fitxer actiu (`currentFilePath`). La seva funcionalitat de càrrega/desat s'ha tornat redundant amb el nou menú, però es manté de moment.
+-   **`Controls.tsx`**: Aquest component mostra ara la ruta del fitxer actiu (`currentFilePath`). La sua funcionalitat de càrrega/desat s'ha tornat redundant amb el nou menú, però es manté de moment.
 
 ### 4.4. Component Reutilitzable: `AutosizeTextarea`
 
