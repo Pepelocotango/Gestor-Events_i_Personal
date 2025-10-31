@@ -38,6 +38,8 @@ DEV_monorepo/
 │       │   │   ├── modals/       # Components per a cada finestra modal.
 │       │   │   ├── tech_sheets/  # Components específics per a la gestió de fitxes tècniques.
 │       │   │   └── ui/           # Components d'UI genèrics i reutilitzables (botons, tooltips...).
+│       │   ├── utils/            # Funcions d'utilitat específiques del frontend.
+│       │   │   └── fileSaver.ts  # Utilitat per gestionar el desat de fitxers (PDF, CSV).
 │       │   ├── App.tsx           # Component arrel de React, orquestra la UI i la lògica de documents.
 │       │   ├── ElectronPersistenceAdapter.ts # Implementació de la interfície de persistència per a Electron.
 │       │   ├── calendar-styles.d.ts # Definicions de tipus per a estils de calendari.

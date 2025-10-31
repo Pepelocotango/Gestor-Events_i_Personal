@@ -8,6 +8,7 @@ import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';
 import ConditionalFormControl from './ConditionalFormControl';
+import { saveFileWithDialog } from '../../utils/fileSaver';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
@@ -579,12 +580,28 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     }
   };
 
-  const handleExportToPdf = () => {
+  const handleExportToPdf = async () => {
     if (isDirtyRef.current) {
         showToast('Desant canvis pendents abans d\'exportar...', 'info');
         saveData(true);
     }
-  exportTechSheetToPdf(formData, eventFrame.name, (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' }), showToast);
+    try {
+      const getPersonGroupById = (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' });
+      const { pdfDoc, fileName } = exportTechSheetToPdf(formData, eventFrame.name, getPersonGroupById);
+      const pdfData = pdfDoc.output('arraybuffer');
+
+      await saveFileWithDialog(
+        {
+          title: 'Desar Fitxa Tècnica en PDF',
+          defaultPath: fileName,
+          filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
+          data: pdfData,
+        },
+        showToast
+      );
+    } catch (error) {
+      showToast(`Error en exportar a PDF: ${(error as Error).message}`, 'error');
+    }
   };
 
   const handleConfirmUpdateFromAssignments = (selectedChanges?: any[]) => {

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useEventDataStore, AssignmentStatus, SummaryRow, ShowToastFunction, EventFrame, formatDateDMY, formatDateRangeDMY, getStatusSummaryText, exportSummariesToPdf, escapeCsvCell, generateFileName } from '@gep/core';
 import { CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
+import { saveFileWithDialog } from '../utils/fileSaver';
 
 type ActiveFilters = {
   filterText?: string | null;
@@ -25,9 +26,6 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
     peopleGroups.forEach(p => m.set(p.id, p.name));
     return m;
   }, [peopleGroups]);
-  const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
-    console.log(`[TOAST] ${type?.toUpperCase()}: ${message}`);
-  };
 
   const allAssignmentsSummary = useMemo((): SummaryRow[] => {
     const summary: SummaryRow[] = [];
@@ -100,35 +98,22 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
     return new Map([...map.entries()].sort((a, b) => a[0].localeCompare(b[0])));
   }, [allAssignmentsSummary]);
 
-  const downloadCsv = async (csvContent: string, filename: string) => {
-    if (!csvContent.trim() || csvContent.split('\n').length <= 1) {
-        setToastMessage("No hi ha dades per exportar en aquest resum.", 'info');
-        return;
-    }
+  const handleExportPdf = async (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person') => {
+    try {
+      const { pdfDoc, fileName } = exportSummariesToPdf(title, data, dataType, activeFilters, filteredEventFrames);
+      const pdfData = pdfDoc.output('arraybuffer');
 
-    if (window.electronAPI?.showSaveDialog) {
-        const result = await window.electronAPI.showSaveDialog({
-            title: 'Desar CSV',
-            defaultPath: filename,
-            filters: [{ name: 'CSV', extensions: ['csv'] }],
-            data: "\uFEFF" + csvContent,
-        });
-        if (result.success) {
-            setToastMessage(`Resum "${filename}" exportat a CSV.`, 'success');
-        } else if (!result.canceled) {
-            setToastMessage(`Error en desar el CSV: ${result.message}`, 'error');
-        }
-    } else {
-        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        setToastMessage(`Resum "${filename}" exportat a CSV.`, 'success');
+      await saveFileWithDialog(
+        {
+          title: 'Desar PDF',
+          defaultPath: fileName,
+          filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
+          data: pdfData,
+        },
+        setToastMessage
+      );
+    } catch (error) {
+      setToastMessage(`Error generant PDF: ${(error as Error).message}`, 'error');
     }
   };
 
@@ -169,15 +154,29 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
     return csvRows.map(row => row.map(escapeCsvCell).join(',')).join('\n');
   };
 
-  const handleExportPdf = async (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person') => {
-    await exportSummariesToPdf(title, data, dataType, showToast, activeFilters, filteredEventFrames);
-  };
-
   const handleExportCsv = async (dataType: 'event-name' | 'start-date' | 'person', groupKey: string | null = null) => {
-    const csvContent = generateDetailedCsv(dataType, groupKey);
-    const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
-    const filename = generateFileName(prefix, activeFilters, filteredEventFrames, 'csv');
-    await downloadCsv(csvContent, filename);
+    try {
+        const csvContent = generateDetailedCsv(dataType, groupKey);
+        const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
+        const fileName = generateFileName(prefix, activeFilters, filteredEventFrames, 'csv');
+
+        if (!csvContent.trim() || csvContent.split('\n').length <= 1) {
+            setToastMessage("No hi ha dades per exportar en aquest resum.", 'info');
+            return;
+        }
+
+        await saveFileWithDialog(
+          {
+            title: 'Desar CSV',
+            defaultPath: fileName,
+            filters: [{ name: 'CSV', extensions: ['csv'] }],
+            data: "\uFEFF" + csvContent,
+          },
+          setToastMessage
+        );
+    } catch (error) {
+        setToastMessage(`Error generant CSV: ${(error as Error).message}`, 'error');
+    }
   };
   
   const renderSummaryCard = (title: string, data: Map<string, SummaryRow[]>, dataType: 'event-name' | 'start-date' | 'person', showSortButton: boolean) => (

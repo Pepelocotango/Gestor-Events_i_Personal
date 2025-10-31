@@ -1,10 +1,10 @@
 import React, { useState, FormEvent, useMemo } from 'react';
-import { saveAs } from 'file-saver';
 import { useEventDataStore, useModalStore, PersonGroup, ShowToastFunction, exportPeopleToPdf, escapeCsvCell } from '@gep/core';
 import { TrashIcon, EditIcon, CsvIcon, PdfIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 import AutosizeTextarea from './ui/AutosizeTextarea';
 import CollapsibleSection from './ui/CollapsibleSection';
+import { saveFileWithDialog } from '../utils/fileSaver';
 
 interface PeopleDisplayProps {
   showToast: ShowToastFunction;
@@ -155,44 +155,56 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
   };
 
   const exportPeopleToCSV = async () => {
-    const header = ['Nom', 'Rol', 'Telèfon 1', 'Telèfon 2', 'Email', 'Web', 'Notes'];
-    const rows = filteredContacts.map(p => [
-      p.name,
-      p.role,
-      p.tel1,
-      p.tel2,
-      p.email,
-      p.web,
-      p.notes
-    ]);
+    try {
+      const header = ['Nom', 'Rol', 'Telèfon 1', 'Telèfon 2', 'Email', 'Web', 'Notes'];
+      const rows = filteredContacts.map(p => [
+        p.name,
+        p.role,
+        p.tel1,
+        p.tel2,
+        p.email,
+        p.web,
+        p.notes
+      ]);
 
-    const csvContent = [header, ...rows]
-      .map(row => row.map(escapeCsvCell).join(','))
-      .join('\n');
+      const csvContent = [header, ...rows]
+        .map(row => row.map(escapeCsvCell).join(','))
+        .join('\n');
 
-    const today = new Date().toISOString().slice(0, 10);
-    const filename = `llista_contactes_${today}.csv`;
+      const today = new Date().toISOString().slice(0, 10);
+      const filename = `llista_contactes_${today}.csv`;
 
-    if (window.electronAPI?.showSaveDialog) {
-      const result = await window.electronAPI.showSaveDialog({
-        title: 'Desar CSV',
-        defaultPath: filename,
-        filters: [{ name: 'CSV', extensions: ['csv'] }],
-        data: "\uFEFF" + csvContent,
-      });
-      if (result.success) {
-        showToast('CSV desat amb èxit!', 'success');
-      } else if (!result.canceled) {
-        showToast(`Error en desar el CSV: ${result.message}`, 'error');
-      }
-    } else {
-      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8' });
-      saveAs(blob, filename);
+      await saveFileWithDialog(
+        {
+          title: 'Desar Llibreta d\'Adreces en CSV',
+          defaultPath: filename,
+          filters: [{ name: 'CSV', extensions: ['csv'] }],
+          data: "\uFEFF" + csvContent,
+        },
+        showToast
+      );
+    } catch (error) {
+      showToast(`Error en exportar a CSV: ${(error as Error).message}`, 'error');
     }
   };
 
   const exportToPdf = async () => {
-    await exportPeopleToPdf(filteredContacts, showToast);
+    try {
+      const { pdfDoc, fileName } = exportPeopleToPdf(filteredContacts);
+      const pdfData = pdfDoc.output('arraybuffer');
+
+      await saveFileWithDialog(
+        {
+          title: 'Desar Llibreta d\'Adreces en PDF',
+          defaultPath: fileName,
+          filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
+          data: pdfData,
+        },
+        showToast
+      );
+    } catch (error) {
+      showToast(`Error en exportar a PDF: ${(error as Error).message}`, 'error');
+    }
   };
 
   return (

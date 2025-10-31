@@ -5,6 +5,7 @@ import { TrashIcon, EditIcon, PdfIcon } from '../constants';
 import CollapsibleSection from './ui/CollapsibleSection';
 import Tooltip from './ui/Tooltip';
 import MaterialForm from './forms/MaterialForm';
+import { saveFileWithDialog } from '../utils/fileSaver';
 
 const SortArrow = ({ direction }: { direction: 'ascending' | 'descending' | null }) => {
   if (!direction) return null;
@@ -65,8 +66,23 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
     });
   };
 
-  const handleExportPdf = () => {
-    exportMaterialToPdf(filteredItems, showToast);
+  const handleExportPdf = async () => {
+    try {
+      const { pdfDoc, fileName } = exportMaterialToPdf(filteredItems);
+      const pdfData = pdfDoc.output('arraybuffer');
+
+      await saveFileWithDialog(
+        {
+          title: 'Desar Llista de Material en PDF',
+          defaultPath: fileName,
+          filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
+          data: pdfData,
+        },
+        showToast
+      );
+    } catch (error) {
+      showToast(`Error en exportar a PDF: ${(error as Error).message}`, 'error');
+    }
   };
 
   const requestSort = useCallback((key: keyof MaterialItem) => {

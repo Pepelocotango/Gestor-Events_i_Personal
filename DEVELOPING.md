@@ -726,13 +726,26 @@ L'aplicació ofereix múltiples opcions per externalitzar i internalitzar dades,
     4.  Depenent del botó que es premi, s'executa una de les funcions del context: `mergePeopleGroups`, `replacePeopleGroups`, `addMaterialItemsFromFile` (per a fusió de material) o `replaceMaterialItems`.
 -   **Lògica de Fusió (`useEventDataStore.ts`):** La fusió es realitza dins de les accions `mergePeopleGroups` i `addMaterialItemsFromFile` de l'store, comparant els noms per evitar duplicats.
 
-#### Exportació a PDF i CSV
+#### Exportació a PDF i CSV (Arquitectura Desacoblada)
 
--   **Lògica Centralitzada:** Tota la lògica de generació de documents es troba a **`packages/desktop/src/utils/pdfGenerator.ts`** per als PDF i a **`packages/desktop/src/utils/csvUtils.ts`** per a les utilitats de CSV. Aquesta centralització fa que el manteniment dels formats d'exportació sigui més senzill.
--   **Exportació de Vistes Filtrades:**
-    -   `packages/desktop/src/components/MainDisplay.tsx` manté un estat (`currentlyDisplayedFrames`) que reflecteix la llista d'esdeveniments actualment visibles segons els filtres aplicats.
-    -   Quan l'usuari clica "Exportar a CSV/PDF", aquesta llista filtrada és la que es passa a les funcions d'exportació, assegurant que l'arxiu generat sigui un reflex fidel del que l'usuari veu a la pantalla.
--   **Compatibilitat amb Excel (BOM):** Per garantir la correcta visualització d'accents i caràcters especials en programes com Microsoft Excel, els components que generen fitxers CSV (com `packages/desktop/src/components/PeopleDisplay.tsx`) afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut del fitxer.
+El sistema d'exportació ha estat refactoritzat per desacoblar la **generació de dades** (responsabilitat del paquet `@gep/core`) de l'acció de **desar el fitxer** (responsabilitat del paquet `@gep/desktop`).
+
+-   **Generació de Contingut (`@gep/core`):**
+    -   Les funcions d'utilitat com `exportSummariesToPdf` (`packages/core/src/utils/pdfGenerator.ts`) i `exportEventListToCsv` (`packages/core/src/utils/csvUtils.ts`) ja no interactuen amb el sistema de fitxers.
+    -   La seva única responsabilitat és generar el contingut del document (un objecte `jsPDF` o una cadena de text `CSV`).
+    -   Un cop generat, retornen un objecte amb el contingut i un nom de fitxer suggerit. Per exemple: `return { pdfDoc, fileName };`.
+
+-   **Desat del Fitxer (`@gep/desktop`):**
+    -   S'ha creat una nova utilitat centralitzada: `packages/desktop/src/utils/fileSaver.ts`.
+    -   Aquesta utilitat exporta la funció `saveFileWithDialog`, que actua com a pont amb l'API d'Electron.
+    -   Rep les dades del fitxer (ja sigui un `ArrayBuffer` per a PDF o un `string` per a CSV), les opcions del diàleg (títol, nom per defecte) i gestiona la interacció amb l'usuari i l'escriptura al disc.
+
+-   **Flux de Dades als Components de la UI:**
+    1.  Un component de React (p. ex., `MainDisplay.tsx`) crida a una funció d'exportació del `@gep/core` (p. ex., `exportEventListToPdf`).
+    2.  El component rep l'objecte amb el document generat (`pdfDoc`) i el nom del fitxer (`fileName`).
+    3.  El component crida a `saveFileWithDialog`, passant-li les dades rebudes. `saveFileWithDialog` s'encarrega de la resta del procés.
+
+Aquesta arquitectura millora la portabilitat del paquet `@gep/core`, que ara no té cap dependència de l'entorn d'Electron.
 
 ##### Millores a les Exportacions del Centre de Control de Material
 S'han implementat millores significatives a les funcions d'exportació del Centre de Control de Material per augmentar-ne la claredat i la fiabilitat.

@@ -3,6 +3,7 @@ import { useEventDataStore, selectMaterialControlData, selectAvailableOrigins, M
 import MaterialControlFilters from './MaterialControlFilters';
 import MaterialControlTable from './MaterialControlTable';
 import Tooltip from './ui/Tooltip';
+import { saveFileWithDialog } from '../utils/fileSaver';
 
 interface MaterialControlCenterProps {
   showToast: ShowToastFunction;
@@ -52,21 +53,35 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
   }, [eventFrames, materialItems, filters, isUpdatingMaterial]);
 
 
-  const handleExportSummaryPdf = () => {
+  const handleExportSummaryPdf = async () => {
     if (filteredData.length === 0) {
         showToast('No hi ha dades per exportar.', 'warning');
         return;
     }
-    exportMaterialControlSummaryPdf(filteredData, showToast);
+    try {
+      const { pdfDoc, fileName } = exportMaterialControlSummaryPdf(filteredData);
+      const pdfData = pdfDoc.output('arraybuffer');
+
+      await saveFileWithDialog(
+        {
+          title: 'Desar Resum de Control de Material en PDF',
+          defaultPath: fileName,
+          filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
+          data: pdfData,
+        },
+        showToast
+      );
+    } catch (error) {
+      showToast(`Error en exportar a PDF: ${(error as Error).message}`, 'error');
+    }
   };
 
-  const handleExportDetailedPdf = () => {
+  const handleExportDetailedPdf = async () => {
     if (filteredData.length === 0) {
       showToast('No hi ha dades per exportar.', 'warning');
       return;
     }
 
-    // Deduce relevant events from the filtered data that is being displayed
     const relevantEventIds = new Set<string>();
     filteredData.forEach(row => {
       row.breakdown.forEach(bd => {
@@ -81,15 +96,44 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
 
     const eventsToExport = eventFrames.filter(ef => relevantEventIds.has(ef.id));
 
-    exportMaterialControlDetailedPdf(filteredData, eventsToExport, showToast);
+    try {
+      const { pdfDoc, fileName } = exportMaterialControlDetailedPdf(filteredData, eventsToExport);
+      const pdfData = pdfDoc.output('arraybuffer');
+
+      await saveFileWithDialog(
+        {
+          title: 'Desar Detall de Control de Material en PDF',
+          defaultPath: fileName,
+          filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
+          data: pdfData,
+        },
+        showToast
+      );
+    } catch (error) {
+      showToast(`Error en exportar a PDF: ${(error as Error).message}`, 'error');
+    }
   };
 
-  const handleExportCsv = () => {
+  const handleExportCsv = async () => {
      if (filteredData.length === 0) {
         showToast('No hi ha dades per exportar.', 'warning');
         return;
     }
-    exportMaterialControlCsv(filteredData, showToast);
+    try {
+      const { csvContent, fileName } = exportMaterialControlCsv(filteredData);
+
+      await saveFileWithDialog(
+        {
+          title: 'Desar Control de Material en CSV',
+          defaultPath: fileName,
+          filters: [{ name: 'CSV', extensions: ['csv'] }],
+          data: csvContent,
+        },
+        showToast
+      );
+    } catch (error) {
+      showToast(`Error en exportar a CSV: ${(error as Error).message}`, 'error');
+    }
   };
 
   const activeEventFrames = useMemo(() => {

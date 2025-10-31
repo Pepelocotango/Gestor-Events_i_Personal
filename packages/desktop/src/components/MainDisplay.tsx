@@ -21,6 +21,7 @@ import { addDaysISO, formatDateDMY, exportEventListToPdf, exportEventListToCsv, 
 import EventFrameCard from './EventFrameCard';
 
 import CollapsibleSection from './ui/CollapsibleSection';
+import { saveFileWithDialog } from '../utils/fileSaver';
 
 interface MainDisplayProps {
   setToastMessage: ShowToastFunction;
@@ -347,6 +348,45 @@ const MainDisplay = React.forwardRef<
     }
   };
 
+  const handleExportPdf = async () => {
+    try {
+      const activeFilters = { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame };
+      const { pdfDoc, fileName } = exportEventListToPdf(filteredAndSortedEventFrames, peopleGroups, activeFilters);
+      const pdfData = pdfDoc.output('arraybuffer');
+
+      await saveFileWithDialog(
+        {
+          title: 'Desar Llista d\'Esdeveniments en PDF',
+          defaultPath: fileName,
+          filters: [{ name: 'Documents PDF', extensions: ['pdf'] }],
+          data: pdfData,
+        },
+        setToastMessage
+      );
+    } catch (error) {
+      setToastMessage(`Error en exportar a PDF: ${(error as Error).message}`, 'error');
+    }
+  };
+
+  const handleExportCsv = async () => {
+    try {
+      const activeFilters = { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame };
+      const { csvContent, fileName } = exportEventListToCsv(filteredAndSortedEventFrames, peopleGroups, activeFilters);
+
+      await saveFileWithDialog(
+        {
+          title: 'Desar Llista d\'Esdeveniments en CSV',
+          defaultPath: fileName,
+          filters: [{ name: 'CSV', extensions: ['csv'] }],
+          data: csvContent,
+        },
+        setToastMessage
+      );
+    } catch (error) {
+      setToastMessage(`Error en exportar a CSV: ${(error as Error).message}`, 'error');
+    }
+  };
+
     return (
     <CollapsibleSection
       title="Calendari i Llista"
@@ -497,12 +537,7 @@ const MainDisplay = React.forwardRef<
             </Tooltip>
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
                 <button
-                  onClick={() => exportEventListToPdf(
-                    filteredAndSortedEventFrames,
-                    peopleGroups,
-                    setToastMessage,
-                    { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
-                  )}
+                  onClick={handleExportPdf}
                   className="flex items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" /> PDF
@@ -510,12 +545,7 @@ const MainDisplay = React.forwardRef<
               </Tooltip>
               <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
                 <button
-                  onClick={() => exportEventListToCsv(
-                    filteredAndSortedEventFrames,
-                    peopleGroups,
-                    setToastMessage,
-                    { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
-                  )}
+                  onClick={handleExportCsv}
                   className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" /> CSV
