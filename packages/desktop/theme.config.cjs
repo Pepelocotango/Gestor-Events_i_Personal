@@ -2,7 +2,7 @@
 // Aquesta és l'única font de veritat per a la paleta de colors de l'aplicació.
 // Aquest fitxer és utilitzat per l'script 'scripts/build-theme.js' per generar automàticament:
 // 1. Les variables CSS a 'src/index.css' per als temes clar i fosc.
-// 2. L'objecte JavaScript a 'src/utils/themeDefinition.ts' per a la generació de PDFs.
+// 2. L'objecte JavaScript a 'src/utils/themeDefinition.ts' per a la generació de PDFs...
 
 const themeConfig = {
   // Colors amb variants per al tema clar i fosc.
