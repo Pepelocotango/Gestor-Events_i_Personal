@@ -1,4 +1,3 @@
-DEV_monorepo/
 ├── .github/
 │   └── workflows/                # CI/CD: Scripts per a la compilació automàtica a GitHub.
 │       ├── build-linuxv20-04.yml # Script per compilar la versió per a Linux (AppImage).

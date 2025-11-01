@@ -194,18 +194,15 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
 ---
 ## Desenvolupament
 
-## 🔒 Tancament Intel·ligent i Backups
+Si vols contribuir al projecte, aquí tens els passos bàsics per començar:
 
-L'aplicació prioritza la integritat de les teves dades amb un sistema de desat i backups segur.
+1.  **Instal·la les dependències:** Assegura't d'executar aquesta comanda des de l'arrel del monorepo.
+    ```bash
+    npm install
+    ```
+2.  **Inicia l'entorn de desenvolupament:** Aquesta comanda llançarà l'aplicació en mode de desenvolupament amb recàrrega automàtica.
+    ```bash
+    npm run start --workspace=@gep/desktop
+    ```
 
--   **Diàleg de Sortida Únic:** En intentar tancar l'aplicació amb canvis no desats, es mostra un únic diàleg que t'ofereix un control clar: `Desa`, `Tanca sense desar` o `Cancel·la`.
--   **Backups Automàtics Contextuals:** Es crea automàticament un backup del teu document cada vegada que el deses amb èxit (`Guardar` o `Guardar com...`). Aquest sistema és intel·ligent: només s'activa en desar el fitxer de dades principal, no en exportar PDFs o CSVs. El sistema gestiona una rotació, conservant les còpies més recents per a cada document.
-
-## ⚡ Configuració de Google: Separació Local vs Document
-
-La configuració de Google Calendar es gestiona de forma separada:
-- La configuració local (`google-config.json`) manté calendaris gestionats, calendaris externs i preferències de l'usuari.
-- Quan obres un document, només s'actualitzen els calendaris gestionats i l'ID actiu; la resta de preferències romanen intactes.
-- Això garanteix que la configuració personal no es perdi ni se sobreescrigui accidentalment.
-
-Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](DEVELOPING.md) per obtenir informació sobre com configurar l'entorn i entendre els canvis recents.
+Per a una guia tècnica completa sobre l'arquitectura del projecte, la gestió de l'estat, els scripts de compilació i altres detalls, consulta la nostra [**guia de desenvolupament (DEVELOPING.md)**](DEVELOPING.md).

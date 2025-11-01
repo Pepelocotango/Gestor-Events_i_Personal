@@ -36,16 +36,12 @@ Consulta les seccions corresponents per a detalls i exemples complets.
 
 ## Monorepo i paquet `core` (nova estructura)
 
-En aquesta refactorització s'ha començat la migració cap a una estructura de **monorepo**. S'ha afegit la carpeta `packages/` a l'arrel amb, com a mínim, dos paquets previstos:
+El projecte s'ha reestructurat en un **monorepo** per separar les responsabilitats i millorar la reutilització del codi. L'estructura principal es divideix en dos paquets dins de la carpeta `packages/`:
 
-- `packages/core`: paquet que conté codi compartit (tipus, lògica d'estat i utilitats) pensat per ser reutilitzat per altres aplicacions (per exemple una app mòbil futura).
-- `packages/desktop`: paquet que contindrà l'aplicació d'escriptori (Electron + React).
+- **`packages/core`**: Conté tota la lògica de negoci compartida i agnòstica de la plataforma. Això inclou els stores de dades (Zustand), les definicions de tipus (TypeScript), i les funcions d'utilitat que no depenen de cap entorn específic.
+- **`packages/desktop`**: Conté l'aplicació d'escriptori, construïda amb Electron i React. Aquest paquet s'encarrega de la interfície d'usuari, la comunicació amb les API natives del sistema operatiu i la implementació específica de la persistència de dades.
 
-El `core` exposa una interfície d'adaptador de persistència (`PersistenceAdapter`) i l'store principal pot rebre una instància d'aquest adaptador per interactuar amb la plataforma (lectura/escriptura de fitxers, diàlegs). Això desacobla la lògica d'estat del mecanisme d'IPC d'Electron i permet reutilitzar el mateix codi en entorns no-Electron en el futur.
-
-L'adaptador de persistència s'injecta a l'store mitjançant una funció d'inicialització a `App.tsx`. D'aquesta manera, el `core` no té cap dependència directa de l'entorn d'execució, la qual cosa el fa portable.
-
-**Nota important sobre la configuració de Vite:** Perquè l'aplicació `desktop` pugui importar i transpilar correctament el codi TypeScript del paquet `core`, és crucial afegir `@gep/core` a la secció `optimizeDeps.include` del fitxer `packages/desktop/vite.config.ts`. Això indica a Vite que ha de pre-processar aquest paquet local.
+Per desacoblar la lògica de l'entorn, el paquet `core` defineix una interfície anomenada `PersistenceAdapter`. El paquet `desktop` proporciona una implementació concreta d'aquesta interfície que utilitza IPC d'Electron per llegir i escriure fitxers. Aquest adaptador s'injecta a la lògica del `core` en temps d'execució, permetent que el nucli de l'aplicació sigui portable i es pugui reutilitzar en altres plataformes (com una futura aplicació web o mòbil) sense modificacions.
 
 ### Visió General del Projecte
 
@@ -119,20 +115,14 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
 
 Per il·lustrar la nova arquitectura i el paper central del paquet `@gep/core`, analitzem el flux d'una sincronització amb Google Calendar:
 
-1.  **[Frontend]** L'usuari fa clic al botó "Sincronitzar" a `packages/desktop/src/components/Controls.tsx`.
-2.  **[Frontend]** Es crida a l'acció `syncWithGoogle()` de l'store `useEventDataStore` (que pertany al paquet `@gep/core`).
-3.  **[Core - Zustand]** L'acció `syncWithGoogle` orquestra el procés. Un cop l'usuari selecciona el calendari de destinació, es crida a `executeSync(targetCalendarId)`.
-4.  **[Core - Zustand]** L'acció `executeSync` recopila totes les dades locals (`exportData()`).
-5.  **[Core - Lògica de Negoci]** Itera sobre cada esdeveniment i crida a la funció `generateGoogleEventDescription()` (de `packages/core/src/utils/googleCalendarUtils.ts`) per construir la descripció enriquida de l'esdeveniment.
-6.  **[Core -> Adaptador]** Amb les dades ja enriquides, crida a la funció `syncWithGoogle()` de l'adaptador de persistència (`persistenceAdapter`).
-7.  **[Desktop - Adaptador]** La implementació de l'adaptador (`ElectronPersistenceAdapter.ts`) crida a `window.electronAPI.syncWithGoogle()`, passant les dades ja processades al backend.
-8.  **[Pont]** `packages/desktop/preload.cjs` envia la petició IPC al backend.
-9.  **[Backend]** El gestor `ipcMain.handle('sync-with-google', ...)` a `packages/desktop/main.cjs` rep les dades. La seva única responsabilitat és comunicar-se amb l'API de Google, sense contenir cap lògica de negoci sobre com es generen les dades.
-10. **[Backend -> ... -> Core]** La resposta de l'API de Google es retorna a través de tota la cadena fins a l'store de `@gep/core`, que actualitza l'estat de l'aplicació.
+1.  **[UI - Desktop]** L'usuari fa clic al botó "Sincronitzar" a `packages/desktop/src/components/Controls.tsx`.
+2.  **[Stores - Core]** Es crida a una acció de l'store, com `syncWithGoogle()` a `useEventDataStore`.
+3.  **[Adapter - Core]** L'store utilitza el `PersistenceAdapter` per demanar una operació a la plataforma, sense saber com s'implementarà.
+4.  **[Adapter Impl. - Desktop]** La implementació `ElectronPersistenceAdapter` tradueix la crida a una invocació d'IPC a través de `window.electronAPI.syncWithGoogle(...)`.
+5.  **[IPC - Pont]** El `preload.cjs` transmet de manera segura la petició al procés principal.
+6.  **[Backend - main.cjs]** El gestor a `main.cjs` rep la petició, realitza l'operació amb l'API de Google i retorna el resultat.
 
 Aquest flux demostra l'aïllament complet: la lògica de negoci resideix a `@gep/core`, el frontend (`desktop`) gestiona la UI, i el backend (`main.cjs`) actua només com un servei per a operacions de sistema i API externes.
-
-
 
 ---
 
@@ -341,11 +331,11 @@ Aquesta secció ha estat refactoritzada per suportar múltiples calendaris. Per 
 
 ## 4. Frontend: Gestió d'Estat i Lògica de la UI (React)
 
-El frontend (`packages/desktop/src`) és una Single Page Application (SPA) construïda amb React i TypeScript. La seva arquitectura ha estat refactoritzada per utilitzar **Zustand** com a eina principal per a la gestió de l'estat global.
+El frontend (`packages/desktop/src`) és una Single Page Application (SPA) construïda amb React i TypeScript. La seva arquitectura ha estat refactoritzada per utilitzar **Zustand** per a la gestió de l'estat global, amb una separació clara entre la lògica de negoci (`@gep/core`) i la capa de presentació (`@gep/desktop`).
 
 ### 4.1. Gestió d'Estat Centralitzada amb Zustand
 
-L'estat global del frontend es gestiona a través de *stores* de Zustand, la qual cosa desacobla la lògica de l'estat dels components de React i millora el rendiment.
+L'estat global de l'aplicació resideix al paquet `@gep/core` i es gestiona a través de *stores* de Zustand. Aquesta centralització desacobla la lògica de l'estat dels components de React, millora el rendiment i garanteix que la lògica de negoci sigui portable.
 
 #### Stores de Zustand (`packages/core/src/stores/`)
 
@@ -400,6 +390,8 @@ export const useEventDataStore = create<...>()(
 
 -   **Accés a l'Estat (Reactiu):** Els components se subscriuen de manera selectiva només a les porcions (`slices`) de l'estat que necessiten per renderitzar-se. Això evita re-renderitzats innecessaris.
     ```tsx
+    import { useEventDataStore } from '@gep/core';
+
     // Aquest component només es tornarà a renderitzar quan `hasUnsavedChanges` canviï.
     const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
     ```
@@ -728,24 +720,13 @@ L'aplicació ofereix múltiples opcions per externalitzar i internalitzar dades,
 
 #### Exportació a PDF i CSV (Arquitectura Desacoblada)
 
-El sistema d'exportació ha estat refactoritzat per desacoblar la **generació de dades** (responsabilitat del paquet `@gep/core`) de l'acció de **desar el fitxer** (responsabilitat del paquet `@gep/desktop`).
+L'arquitectura d'exportació de fitxers ha estat redissenyada per separar completament les responsabilitats, millorant la portabilitat del codi.
 
--   **Generació de Contingut (`@gep/core`):**
-    -   Les funcions d'utilitat com `exportSummariesToPdf` (`packages/core/src/utils/pdfGenerator.ts`) i `exportEventListToCsv` (`packages/core/src/utils/csvUtils.ts`) ja no interactuen amb el sistema de fitxers.
-    -   La seva única responsabilitat és generar el contingut del document (un objecte `jsPDF` o una cadena de text `CSV`).
-    -   Un cop generat, retornen un objecte amb el contingut i un nom de fitxer suggerit. Per exemple: `return { pdfDoc, fileName };`.
+-   **`@gep/core` (Generació de Contingut):** Les funcions d'utilitat (`pdfGenerator.ts`, `csvUtils.ts`) s'encarreguen exclusivament de crear el contingut del document (PDF o CSV) i retornar-lo com un objecte en memòria (p. ex., un `ArrayBuffer`). Aquest paquet no té cap coneixement de l'entorn d'execució ni de com es desarà el fitxer.
 
--   **Desat del Fitxer (`@gep/desktop`):**
-    -   S'ha creat una nova utilitat centralitzada: `packages/desktop/src/utils/fileSaver.ts`.
-    -   Aquesta utilitat exporta la funció `saveFileWithDialog`, que actua com a pont amb l'API d'Electron.
-    -   Rep les dades del fitxer (ja sigui un `ArrayBuffer` per a PDF o un `string` per a CSV), les opcions del diàleg (títol, nom per defecte) i gestiona la interacció amb l'usuari i l'escriptura al disc.
+-   **`@gep/desktop` (Desat del Fitxer):** Una utilitat centralitzada, `packages/desktop/src/utils/fileSaver.ts`, rep el contingut generat pel `@gep/core`. Aquesta utilitat és l'única que interactua amb l'API d'Electron per mostrar el diàleg de desat natiu i escriure el fitxer al disc.
 
--   **Flux de Dades als Components de la UI:**
-    1.  Un component de React (p. ex., `MainDisplay.tsx`) crida a una funció d'exportació del `@gep/core` (p. ex., `exportEventListToPdf`).
-    2.  El component rep l'objecte amb el document generat (`pdfDoc`) i el nom del fitxer (`fileName`).
-    3.  El component crida a `saveFileWithDialog`, passant-li les dades rebudes. `saveFileWithDialog` s'encarrega de la resta del procés.
-
-Aquesta arquitectura millora la portabilitat del paquet `@gep/core`, que ara no té cap dependència de l'entorn d'Electron.
+Aquest desacoblament permet que tota la lògica de generació de documents resideixi al paquet `core` i pugui ser reutilitzada en altres plataformes sense canvis.
 
 ##### Millores a les Exportacions del Centre de Control de Material
 S'han implementat millores significatives a les funcions d'exportació del Centre de Control de Material per augmentar-ne la claredat i la fiabilitat.
@@ -997,30 +978,9 @@ La clau `build` del `package.json` conté la configuració per a `electron-build
 
 -   `appId`: Identificador únic de l'aplicació.
 -   `files`: Especifica quins fitxers i directoris s'han d'incloure a l'empaquetat final. És important que `dist/**/*` (el frontend compilat), `main.cjs` i `preload.cjs` estiguin aquí.
--   `extraResources`: Permet incloure fitxers addicionals (com exemples o la llicència) que seran accessibles des de l'aplicació instal·lada.
--   **Gestió de Credencials en Producció (`extraResources`):** Per garantir que els fitxers de credencials (`google-credentials.json`, `service-account.json`) siguin accessibles en l'aplicació empaquetada (producció), s'han mogut de la clau `files` a `extraResources`. Això fa que `electron-builder` extregui aquests fitxers de l'arxiu `app.asar` i els col·loqui a l'arrel del directori de recursos de l'aplicació. El backend (`main.cjs`) utilitza `process.resourcesPath` per trobar-los en entorns de producció, assegurant una ruta d'accés fiable.
+-   `extraResources`: Permet incloure fitxers addicionals (com la llicència o, crucialment, les credencials de Google) que seran accessibles des de l'aplicació instal·lada. **Nota:** Els fitxers de credencials (`google-credentials.json`, `service-account.json`) s'inclouen a través d'aquesta opció al `packages/desktop/package.json` per assegurar que es col·loquen al directori de recursos correcte en producció.
 -   **Configuracions per Plataforma (`linux`, `win`, `mac`):** Defineixen les opcions específiques per a cada sistema operatiu, com els formats de sortida (`AppImage`, `nsis`, `dmg`) i les icones.
 
-### Exportació a PDF i CSV (Arquitectura Desacoblada)
-
-El sistema d'exportació ha estat refactoritzat per desacoblar la **generació de dades** (responsabilitat del paquet `@gep/core`) de l'acció de **desar el fitxer** (responsabilitat del paquet `@gep/desktop`).
-
--   **Generació de Contingut (`@gep/core`):**
-    -   Les funcions d'utilitat com `exportSummariesToPdf` (`packages/core/src/utils/pdfGenerator.ts`) i `exportEventListToCsv` (`packages/core/src/utils/csvUtils.ts`) ja no interactuen amb el sistema de fitxers.
-    -   La seva única responsabilitat és generar el contingut del document (un objecte `jsPDF` o una cadena de text `CSV`).
-    -   Un cop generat, retornen un objecte amb el contingut i un nom de fitxer suggerit. Per exemple: `return { pdfDoc, fileName };`.
-
--   **Desat del Fitxer (`@gep/desktop`):**
-    -   S'ha creat una nova utilitat centralitzada: `packages/desktop/src/utils/fileSaver.ts`.
-    -   Aquesta utilitat exporta la funció `saveFileWithDialog`, que actua com a pont amb l'API d'Electron.
-    -   Rep les dades del fitxer (ja sigui un `ArrayBuffer` per a PDF o un `string` per a CSV), les opcions del diàleg (títol, nom per defecte) i gestiona la interacció amb l'usuari i l'escriptura al disc.
-
--   **Flux de Dades als Components de la UI:**
-    1.  Un component de React (p. ex., `MainDisplay.tsx`) crida a una funció d'exportació del `@gep/core` (p. ex., `exportEventListToPdf`).
-    2.  El component rep l'objecte amb el document generat (`pdfDoc`) i el nom del fitxer (`fileName`).
-    3.  El component crida a `saveFileWithDialog`, passant-li les dades rebudes. `saveFileWithDialog` s'encarrega de la resta del procés.
-
-Aquesta arquitectura millora la portabilitat del paquet `@gep/core`, que ara no té cap dependència de l'entorn d'Electron.
 ---
 
 ## 8. Guia per a Desenvolupadors
@@ -1052,22 +1012,23 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
 
 ### Scripts `npm` Disponibles
 
-#### Scripts executats des de l'arrel del monorepo
--   `npm install`: Instal·la les dependències de tots els paquets de l'espai de treball.
--   `npm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron per a la plataforma actual.
--   `npm run build:linux`, `npm run build:win`, `npm run build:mac`: Scripts específics per compilar i empaquetar l'aplicació per a cada sistema operatiu.
+Amb l'estructura de monorepo, la gestió dels scripts ha canviat per utilitzar els workspaces de npm.
 
-#### Scripts específics del paquet `packages/desktop`
-Aquests scripts es poden executar des de la carpeta `packages/desktop`, o des de l'arrel utilitzant el flag `--workspace=@gep/desktop`.
+#### Scripts a l'Arrel (`package.json` principal)
 
--   `npm run start`: Llança el servidor de desenvolupament i Electron simultàniament. És l'àlies recomanat per a `electron-dev`.
--   `npm run clean`: Elimina les carpetes de compilació (`dist`, `build`) per fer una neteja.
--   `npm run fresh-start`: Executa `clean` i després `start` per un inici de desenvolupament completament net.
--   `npm run build:theme`: Genera els fitxers de tema (CSS i TS) a partir de `theme.config.cjs`.
--   `npm run dev`: Inicia el servidor de desenvolupament de Vite. (Normalment no s'utilitza sol).
--   `npm run electron`: Inicia l'aplicació Electron esperant que el servidor de Vite estigui actiu. (Normalment no s'utilitza sol).
--   `npm run electron-dev`: Ordre principal per al desenvolupament. Llança Vite i Electron simultàniament.
--   `npm run build`: Compila el codi TypeScript i el frontend amb Vite. Aquesta comanda és cridada internament pels scripts de compilació principals.
+Aquests són els scripts principals que s'han d'executar des de la carpeta arrel del projecte:
+
+-   `npm install`: Instal·la les dependències de **tots** els paquets (`core` i `desktop`). S'ha d'executar sempre des de l'arrel.
+-   `npm run build:linux`: Comanda principal per compilar l'aplicació per a Linux. Aquesta comanda s'encarrega d'orquestrar els passos de compilació de cada paquet.
+-   Altres scripts de compilació per a diferents plataformes (`build:win`, `build:mac`) segueixen la mateixa lògica.
+
+#### Scripts Específics d'un Paquet (Workspace)
+
+Per executar un script que només pertany a un dels paquets (majoritàriament a `@gep/desktop`), s'ha d'utilitzar el flag `--workspace` des de l'arrel:
+
+-   `npm run start --workspace=@gep/desktop`: **És la comanda principal per iniciar l'entorn de desenvolupament.** Llança el servidor de Vite i l'aplicació Electron.
+-   `npm run build --workspace=@gep/desktop`: Executa només el procés de compilació del paquet `desktop` (generar el tema, transpilar TypeScript i construir amb Vite).
+-   `npm run build:theme --workspace=@gep/desktop`: Executa només el script que genera els fitxers de tema a partir de la configuració.
 
 ### Depuració (Debugging)
 
