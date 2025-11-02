@@ -112,4 +112,31 @@
   .bg-gradient-mixed {
     background-image: linear-gradient(to right, hsla(var(--success) / 0.3), hsla(var(--warning) / 0.3), hsla(var(--destructive) / 0.3));
   }
+
+  /*
+   * =============================================================================
+   * Estils d'alta especificitat per a FullCalendar
+   * =============================================================================
+   * Aquesta secció centralitza els estils per sobreescriure les regles per
+   * defecte de FullCalendar i garantir la coherència amb el tema de l'aplicació.
+   * Utilitzem selectors més específics (ex: `.fc .fc-col-header`) per
+   * evitar conflictes.
+   */
+  .fc .fc-col-header,
+  .fc .fc-list-day-cushion,
+  .fc .fc-multimonth-month {
+    background-color: hsl(var(--secondary));
+  }
+
+  .fc .fc-col-header-cell-cushion,
+  .fc .fc-list-day-text,
+  .fc .fc-multimonth-title {
+    color: hsl(var(--muted-foreground));
+    font-weight: 600;
+  }
+
+  .fc .fc-daygrid-day {
+    background-color: hsl(var(--card));
+    overflow: visible;
+  }
 }

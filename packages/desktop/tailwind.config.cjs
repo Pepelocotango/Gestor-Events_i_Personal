@@ -105,16 +105,9 @@ module.exports = {
             color: 'hsl(var(--muted-foreground))',
             textDecoration: 'none',
           },
-          '.fc-col-header, .fc-popover-header': {
+          '.fc-popover-header': {
             backgroundColor: 'hsl(var(--secondary))',
             color: 'hsl(var(--card-foreground))',
-          },
-          '.fc-list-day-cushion, .fc-multimonth-month': {
-            backgroundColor: 'hsl(var(--muted))',
-          },
-          '.fc-daygrid-day': {
-            backgroundColor: 'hsl(var(--card))',
-            overflow: 'visible',
           },
           '.fc-popover': {
             backgroundColor: 'hsl(var(--popover))',

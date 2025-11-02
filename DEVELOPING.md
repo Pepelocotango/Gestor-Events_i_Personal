@@ -904,6 +904,8 @@ El sistema es basa en una jerarquia de "fonts de veritat" per assegurar la màxi
         -   S'ha creat una funció d'utilitat a **`packages/core/src/utils/colorUtils.ts`** anomenada `hslToRgb` que converteix els colors.
         -   El generador de PDFs (`packages/core/src/utils/pdfGenerator.ts`) ara importa els colors des del fitxer auto-generat `themeDefinition.ts` i els converteix a RGB al moment.
     -   **Resultat:** Això garanteix que els colors dels PDFs exportats siguin sempre una representació fidel del tema de l'aplicació.
+-   **Personalització de Components de Tercers (FullCalendar):**
+    -    Per garantir la màxima especificitat i evitar conflictes amb els estils per defecte de llibreries externes com FullCalendar, les regles CSS personalitzades es centralitzen a `packages/desktop/scripts/templates/index.css.template`. Aquest enfocament permet sobreescriure els estils de manera fiable i mantenir la coherència visual amb el tema de l'aplicació.
 
 ### Avantatges d'Aquesta Arquitectura
 
