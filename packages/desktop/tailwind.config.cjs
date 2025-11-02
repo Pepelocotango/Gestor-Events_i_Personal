@@ -101,7 +101,7 @@ module.exports = {
             color: 'hsl(var(--primary-foreground))',
             borderColor: 'hsl(var(--primary))',
           },
-          '.fc-col-header-cell-cushion, .fc-daygrid-day-number, .fc-list-event-title a, .fc-list-table, .fc-list-event td, .fc-multimonth-title, .fc-popover-body': {
+          '.fc-list-event-title a, .fc-list-table, .fc-list-event td, .fc-popover-body': {
             color: 'hsl(var(--muted-foreground))',
             textDecoration: 'none',
           },
