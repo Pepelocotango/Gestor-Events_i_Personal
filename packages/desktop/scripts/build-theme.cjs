@@ -1,7 +1,7 @@
 // scripts/build-theme.js
 const fs = require('fs');
 const path = require('path');
-const THEME_CONFIG_PATH = path.resolve(__dirname, '..', 'theme.config.cjs');
+const THEME_CONFIG_PATH = path.resolve(__dirname, '..', '..', '..', 'theme.config.cjs');
 const { themeConfig } = require(THEME_CONFIG_PATH);
 
 // --- Paths ---

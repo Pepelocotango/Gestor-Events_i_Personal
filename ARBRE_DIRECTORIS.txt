@@ -61,7 +61,6 @@
 │       ├── preload.cjs           # Pont de seguretat entre el backend (main.cjs) i el frontend (src).
 │       ├── package.json          # Dependències i scripts de l'app desktop.
 │       ├── tailwind.config.cjs   # Configuració de Tailwind CSS.
-│       ├── theme.config.cjs      # Enllaç simbòlic al fitxer de tema de l'arrel.
 │       ├── tsconfig.json         # Configuració del compilador de TypeScript per al frontend.
 │       └── vite.config.ts        # Configuració de Vite (eina de compilació del frontend).
 ├── ARBRE_DIRECTORIS.txt          # Aquest mateix fitxer, descriu l'estructura del projecte.
