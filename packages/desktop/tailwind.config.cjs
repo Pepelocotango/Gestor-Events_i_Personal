@@ -65,26 +65,6 @@ module.exports = {
       }
     },
   },
-  plugins: [
-    plugin(function({ addBase }) {
-      addBase({
-        // --- Estils per als esdeveniments (ARA AMB ESTIL FOSC FIX) ---
-        '.event-complete': {
-          backgroundColor: 'hsl(var(--calendar-event-bg))',
-          borderColor: 'hsl(var(--success))',
-          borderWidth: '3px',
-          color: 'hsl(var(--calendar-event-fg))',
-        },
-        '.event-incomplete': {
-          backgroundColor: 'hsl(var(--calendar-event-bg))',
-          borderColor: 'hsl(var(--warning))',
-          borderWidth: '3px',
-          color: 'hsl(var(--calendar-event-fg))',
-        },
-
-        // --- Estils Generals de FullCalendar (ARA DINÀMICS) ---
-
-      });
-    })
-  ],
+  // La gestió d'estils de FullCalendar s'ha mogut a `index.css.template`
+  plugins: [],
 }
