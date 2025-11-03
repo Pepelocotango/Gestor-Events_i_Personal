@@ -66,5 +66,22 @@ module.exports = {
     },
   },
   // La gestió d'estils de FullCalendar s'ha mogut a `index.css.template`
-  plugins: [],
+  plugins: [
+    plugin(function({ addBase }) {
+      addBase({
+        '.event-complete': {
+          backgroundColor: 'var(--calendar-event-bg)',
+          borderColor: 'hsl(var(--success))',
+          borderWidth: '3px',
+          color: 'var(--calendar-event-fg)',
+        },
+        '.event-incomplete': {
+          backgroundColor: 'var(--calendar-event-bg)',
+          borderColor: 'hsl(var(--warning))',
+          borderWidth: '3px',
+          color: 'var(--calendar-event-fg)',
+        },
+      });
+    }),
+  ],
 }
