@@ -172,3 +172,18 @@
   top: 50%;
   transform: translateY(-50%);
 }
+
+@layer base {
+  .event-complete {
+    background-color: hsl(var(--calendar-event-bg));
+    border-color: hsl(var(--success));
+    border-width: 3px;
+    color: hsl(var(--calendar-event-fg));
+  }
+  .event-incomplete {
+    background-color: hsl(var(--calendar-event-bg));
+    border-color: hsl(var(--warning));
+    border-width: 3px;
+    color: hsl(var(--calendar-event-fg));
+  }
+}
