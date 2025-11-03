@@ -112,4 +112,66 @@
   .bg-gradient-mixed {
     background-image: linear-gradient(to right, hsla(var(--success) / 0.3), hsla(var(--warning) / 0.3), hsla(var(--destructive) / 0.3));
   }
+
+  .fc {
+    --fc-border-color: hsl(var(--border));
+    --fc-today-bg-color: hsla(var(--accent) / 0.5);
+    --fc-list-event-hover-bg-color: hsl(var(--accent));
+    .fc-button {
+      background-color: hsl(var(--secondary));
+      color: hsl(var(--secondary-foreground));
+      border-color: hsl(var(--border));
+    }
+    .fc-button:hover {
+      background-color: hsl(var(--accent));
+    }
+    .fc-button-primary:not(:disabled).fc-button-active {
+      background-color: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      border-color: hsl(var(--primary));
+    }
+    .fc-col-header-cell-cushion, .fc-daygrid-day-number, .fc-list-event-title a, .fc-list-table, .fc-list-event td, .fc-multimonth-title, .fc-popover-body {
+      color: hsl(var(--muted-foreground));
+      text-decoration: none;
+    }
+    .fc-popover-header {
+      background-color: hsl(var(--secondary));
+      color: hsl(var(--card-foreground));
+    }
+    .fc-popover {
+      background-color: hsl(var(--popover));
+      border-color: hsl(var(--border));
+    }
+    .fc-popover-header {
+        color: hsl(var(--popover-foreground));
+    }
+  }
+
+  /*
+    Regles d'alta especificitat per a FullCalendar.
+    S'apliquen aquí per sobreescriure els estils per defecte
+    amb una especificitat més gran.
+  */
+  .fc .fc-col-header,
+  .fc .fc-list-day-cushion,
+  .fc .fc-multimonth-month {
+    background-color: hsl(var(--secondary));
+  }
+
+  .fc .fc-daygrid-day:hover {
+    background-color: hsla(var(--accent) / 0.3);
+  }
+
+  .fc-day-today .fc-daygrid-day-number {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 9999px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 2px;
+  }
 }
