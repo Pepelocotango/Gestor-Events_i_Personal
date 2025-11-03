@@ -1,0 +1,229 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 35 25% 92%;
+    --card: 35 15% 85%;
+    --popover: 35 15% 85%;
+    --secondary: 35 20% 88%;
+    --muted: 35 10% 83%;
+    --border: 35 10% 50%;
+    --input: 35 15% 88%;
+    --accent: 220 15% 86%;
+    --foreground: 240 10% 10%;
+    --card-foreground: 240 10% 10%;
+    --popover-foreground: 240 10% 10%;
+    --secondary-foreground: 240 8% 25%;
+    --muted-foreground: 240 5% 40%;
+    --accent-foreground: 240 10% 10%;
+    --primary-foreground: 210 40% 98%;
+    --primary: 220 35% 25%;
+    --destructive: 0 75% 55%;
+    --success: 140 65% 40%;
+    --warning: 45 85% 55%;
+    --info: 210 70% 45%;
+    --mixed-status: 280 40% 55%;
+    --ring: 220 35% 45%;
+    --destructive-foreground: 30 100% 98%;
+    --success-foreground: 140 100% 98%;
+    --warning-foreground: 240 10% 10%;
+    --info-foreground: 210 100% 98%;
+    --mixed-status-foreground: 280 100% 98%;
+    --radius: 0.5rem;
+
+    /* Colors per a fons de files (estil DEV, sòlid i viu) */
+    --daily-row-yes-bg: hsl(var(--success));
+    --daily-row-no-bg: hsl(var(--destructive));
+    --daily-row-pending-bg: hsl(var(--warning));
+    --daily-row-mixed-bg: hsla(var(--muted) / 0.5);
+
+    /* Altres (ara derivats del tema) */
+    --highlight-bg: var(--warning);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+
+    /* Variables fixes per als esdeveniments del calendari (estil fosc permanent) */
+    --calendar-event-bg: 240 5.9% 19%; /* Correspon a --card en dark mode */
+    --calendar-event-fg: 210 40% 98%;   /* Correspon a --card-foreground en dark mode */
+  }
+
+  .dark {
+    --background: 40 6% 10%;
+    --card: 40 6% 15%;
+    --popover: 40 6% 15%;
+    --border: 40 6% 50%;
+    --input: 40 6% 21%;
+    --secondary: 40 6% 20%;
+    --muted: 40 4% 17%;
+    --accent: 220 10% 22%;
+    --foreground: 40 5% 96%;
+    --card-foreground: 40 5% 96%;
+    --popover-foreground: 40 5% 96%;
+    --secondary-foreground: 40 5% 96%;
+    --muted-foreground: 40 4% 65%;
+    --accent-foreground: 40 5% 96%;
+    --primary: 221.2 76% 53.3%;
+    --destructive: 0 68% 50.6%;
+    --success: 142.1 65% 45.3%;
+    --warning: 47.9 88% 55%;
+    --info: 215 68% 48%;
+    --mixed-status: 283 65% 50%;
+    --ring: 221.2 83.2% 53.3%;
+    --primary-foreground: 220 13% 97%;
+    --destructive-foreground: 210 20% 98%;
+    --success-foreground: 145 60% 98%;
+    --warning-foreground: 48 95% 98%;
+    --info-foreground: 210 20% 98%;
+    --mixed-status-foreground: 280 60% 98%;
+
+    /* Colors per a fons de files - Dark Mode (estil DEV, sòlid i viu) */
+    --daily-row-yes-bg: hsl(var(--success));
+    --daily-row-no-bg: hsl(var(--destructive));
+    --daily-row-pending-bg: hsl(var(--warning));
+    --daily-row-mixed-bg: hsla(var(--muted) / 0.5);
+
+    /* Altres - Dark Mode (ara derivats del tema) */
+    --highlight-bg: var(--warning);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@keyframes highlight-fade {
+  from {
+    background-color: hsla(var(--highlight-bg), 0.5);
+    outline: 2px solid hsla(var(--highlight-bg), 0.8);
+  }
+  to {
+    background-color: transparent;
+    outline: 2px solid transparent;
+  }
+}
+
+.highlight-event-frame {
+  animation: highlight-fade 3s ease-out forwards;
+}
+
+.section {
+  margin-bottom: 5px;
+  padding: 4px;
+}
+
+/* Reducir espaciado en pantallas medianas */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .section { margin-bottom: 5px; padding: 4px; }
+  .form-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .form-group { margin-bottom: 6px; }
+  .modal-content { padding: 16px; max-width: 95%; }
+  .table-responsive { margin: 0; }
+  #events-table th, #events-table td { padding: 4px 6px; }
+  .calendar-wrapper { padding: 0.25rem; }
+  input[type="text"], input[type="date"], input[type="search"], input[type="email"], input[type="tel"], input[type="url"], select, textarea { padding: 6px 8px; }
+  .btn { padding: 6px 12px; }
+}
+
+@layer components {
+  /* Fons per a cada fila diària */
+  .daily-row-yes { background-color: var(--daily-row-yes-bg); }
+  .daily-row-no { background-color: var(--daily-row-no-bg); }
+  .daily-row-pending { background-color: var(--daily-row-pending-bg); }
+  .daily-row-mixed { background-color: var(--daily-row-mixed-bg); }
+
+  /* Estils per als botons de canvi d'estat (píndoles) */
+  .status-pill { @apply px-2.5 py-0.5 text-xs font-bold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring focus:ring-offset-background; }
+  .status-pill-selected-yes { background-color: hsl(var(--success)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-yes:focus { --tw-ring-color: hsl(var(--success)); }
+  .status-pill-selected-no { background-color: hsl(var(--destructive)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-no:focus { --tw-ring-color: hsl(var(--destructive)); }
+  .status-pill-selected-pending { background-color: hsl(var(--warning)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-pending:focus { --tw-ring-color: hsl(var(--warning)); }
+  .status-pill-selected-mixed { background-color: hsl(var(--mixed-status)); box-shadow: var(--shadow-md); }
+  .status-pill-selected-mixed:focus { --tw-ring-color: hsl(var(--mixed-status)); }
+  .status-pill-unselected { @apply bg-secondary text-secondary-foreground/70 hover:bg-accent hover:text-accent-foreground; }
+
+  /* Portal Tooltip Styles */
+  .tooltip-portal {
+    position: absolute;
+    transform: translate(-50%, calc(-100% - 8px));
+    padding: 4px 8px;
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 10000;
+    pointer-events: none;
+    white-space: normal;
+    max-width: 250px;
+    box-shadow: var(--shadow-md);
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .bg-gradient-mixed {
+    background-image: linear-gradient(to right, hsla(var(--success) / 0.3), hsla(var(--warning) / 0.3), hsla(var(--destructive) / 0.3));
+  }
+
+  .fc {
+    --fc-border-color: hsl(var(--border));
+    --fc-today-bg-color: hsla(var(--accent) / 0.5);
+    --fc-list-event-hover-bg-color: hsl(var(--accent));
+    .fc-button {
+      background-color: hsl(var(--secondary));
+      color: hsl(var(--secondary-foreground));
+      border-color: hsl(var(--border));
+    }
+    .fc-button:hover {
+      background-color: hsl(var(--accent));
+    }
+    .fc-button-primary:not(:disabled).fc-button-active {
+      background-color: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      border-color: hsl(var(--primary));
+    }
+    .fc-col-header-cell-cushion, .fc-daygrid-day-number, .fc-list-event-title a, .fc-list-table, .fc-list-event td, .fc-multimonth-title, .fc-popover-body {
+      color: hsl(var(--muted-foreground));
+      text-decoration: none;
+    }
+    .fc-popover-header {
+      background-color: hsl(var(--secondary));
+      color: hsl(var(--card-foreground));
+    }
+    .fc-popover {
+      background-color: hsl(var(--popover));
+      border-color: hsl(var(--border));
+    }
+    .fc-popover-header {
+        color: hsl(var(--popover-foreground));
+    }
+  }
+
+  /*
+    Regles d'alta especificitat per a FullCalendar.
+    S'apliquen aquí per sobreescriure els estils per defecte
+    amb una especificitat més gran.
+  */
+  .fc .fc-col-header,
+  .fc .fc-list-day-cushion,
+  .fc .fc-multimonth-month {
+    background-color: hsl(var(--warning));
+  }
+
+  .fc .fc-daygrid-day:hover {
+    background-color: hsla(var(--accent) / 0.3);
+  }
+
+  .fc-day-today .fc-daygrid-day-number {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 9999px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 2px;
+  }
+}
