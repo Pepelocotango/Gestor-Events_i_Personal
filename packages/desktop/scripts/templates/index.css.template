@@ -155,7 +155,7 @@
   .fc .fc-col-header,
   .fc .fc-list-day-cushion,
   .fc .fc-multimonth-month {
-    background-color: hsl(var(--secondary));
+    background-color: hsl(var(--warning));
   }
 
   .fc .fc-daygrid-day:hover {
