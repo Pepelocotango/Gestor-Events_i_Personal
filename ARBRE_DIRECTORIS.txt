@@ -1,72 +1,110 @@
-├── .github/
-│   └── workflows/                # CI/CD: Scripts per a la compilació automàtica a GitHub.
-│       ├── build-linuxv20-04.yml # Script per compilar la versió per a Linux (AppImage).
-│       ├── build-macos12.yml     # Script per compilar la versió per a macOS (DMG).
-│       └── build-win10.yml       # Script per compilar la versió per a Windows (EXE).
-├── imatges/                      # Conté imatges i captures de pantalla per a la documentació.
-│   └── en_construcció_GV.png     # Imatge d'exemple.
-├── packages/                     # Paquets del monorepo (workspaces de npm).
-│   ├── core/                     # Lògica de negoci compartida (agnòstica de la plataforma).
+# ARBRE DE DIRECTORIS DEL PROJECTE
+
+Aquest document descriu l'estructura de fitxers i carpetes del projecte, així com els fitxers exclosos del control de versions.
+
+## Estructura Principal
+
+├── .github/                      # Configuració d'Integració Contínua i Desplegament Continu (CI/CD).
+│   └── workflows/                # Conté els scripts que s'executen automàticament a GitHub Actions.
+│       ├── build-linuxv20-04.yml # Script per compilar la versió per a Linux (AppImage) en Ubuntu 20.04.
+│       ├── build-macos12.yml     # Script per compilar la versió per a macOS 12 (DMG).
+│       └── build-win10.yml       # Script per compilar la versió per a Windows 10 (EXE).
+├── imatges/                      # Conté imatges, captures de pantalla i altres actius visuals per a la documentació.
+│   └── en_construcció_GV.png     # Imatge d'exemple utilitzada a la documentació.
+├── packages/                     # Cor del projecte, organitzat com a monorepo amb workspaces de npm.
+│   ├── core/                     # Lògica de negoci compartida, independent de la plataforma (Electron, web, etc.).
 │   │   ├── src/
-│   │   │   ├── stores/           # Stores de Zustand amb la lògica central de dades.
-│   │   │   │   ├── eventDataStore.ts
-│   │   │   │   ├── googleConfigStore.ts
-│   │   │   │   └── modalStore.ts
-│   │   │   ├── utils/            # Funcions d'utilitat compartides (dates, validació, etc.).
-│   │   │   │   ├── colorUtils.ts
-│   │   │   │   ├── csvUtils.ts
-│   │   │   │   ├── dataIntegrity.ts
-│   │   │   │   ├── dataMigration.ts
-│   │   │   │   ├── dateFormat.ts
-│   │   │   │   ├── dateRangeFormatter.ts
-│   │   │   │   ├── fileNameUtils.ts
-│   │   │   │   ├── googleCalendarUtils.ts
-│   │   │   │   ├── logger.ts
-│   │   │   │   ├── notificationService.ts
-│   │   │   │   ├── pdfGenerator.ts
-│   │   │   │   ├── selectors.ts
-│   │   │   │   ├── statusUtils.ts
-│   │   │   │   └── techSheetMigration.ts
-│   │   │   ├── index.ts          # Punt d'entrada del paquet 'core'.
-│   │   │   ├── persistenceAdapter.ts # Interfície per a la capa de persistència.
-│   │   │   └── types.ts          # Definicions de tipus centrals (EventFrame, Assignment, etc.).
-│   │   └── package.json          # Dependències i configuració del paquet 'core'.
+│   │   │   ├── stores/           # Stores de Zustand per a la gestió d'estat global.
+│   │   │   │   ├── eventDataStore.ts      # Gestiona les dades principals (esdeveniments, assignacions, etc.).
+│   │   │   │   ├── googleConfigStore.ts # Gestiona la configuració de l'API de Google Calendar.
+│   │   │   │   └── modalStore.ts        # Controla l'estat de les finestres modals.
+│   │   │   ├── utils/            # Funcions d'utilitat compartides.
+│   │   │   │   ├── ...           # (Diversos fitxers amb funcions per a colors, CSV, dates, PDF, etc.).
+│   │   │   ├── index.ts          # Punt d'entrada del paquet 'core', exporta els mòduls principals.
+│   │   │   ├── persistenceAdapter.ts # Defineix la interfície per desar i carregar dades, abstractant l'emmagatzematge.
+│   │   │   └── types.ts          # Definicions de tipus de TypeScript centrals (EventFrame, Assignment, etc.).
+│   │   └── package.json          # Defineix les dependències i scripts del paquet 'core'.
 │   └── desktop/                  # Codi específic de l'aplicació d'escriptori (Electron + React).
-│       ├── examples json/        # Exemples de fitxers JSON per a proves.
-│       ├── public/               # Actius estàtics (icones, etc.) que es copien a la compilació.
-│       ├── scripts/              # Scripts d'utilitat per al procés de desenvolupament.
+│       ├── examples json/        # Conté fitxers JSON d'exemple per a proves manuals.
+│       ├── public/               # Actius estàtics (icones, fonts) que es copien directament a la compilació final.
+│       ├── scripts/              # Scripts utilitzats durant el procés de desenvolupament i compilació.
 │       │   ├── templates/
-│       │   │   └── index.css.template # Plantilla per generar el fitxer d'estils.
-│       │   └── build-theme.cjs   # Script per generar automàticament els fitxers de tema.
-│       ├── src/                  # Codi font del frontend (React).
-│       │   ├── assets/           # Actius (imatges) importats directament pel codi font.
-│       │   ├── components/       # Components de React que formen la UI.
-│       │   │   ├── forms/        # Formularis reutilitzables.
-│       │   │   ├── modals/       # Components per a cada finestra modal.
-│       │   │   ├── tech_sheets/  # Components específics per a la gestió de fitxes tècniques.
-│       │   │   └── ui/           # Components d'UI genèrics i reutilitzables (botons, tooltips...).
+│       │   │   └── index.css.template # Plantilla base per generar el fitxer d'estils principal.
+│       │   └── build-theme.cjs   # Script que llegeix `theme.config.cjs` per generar els estils i tipus de tema.
+│       ├── src/                  # Codi font del frontend (interfície d'usuari amb React).
+│       │   ├── assets/           # Actius (imatges, logos) que s'importen directament des del codi React.
+│       │   ├── components/       # Components de React que construeixen la interfície.
+│   │   │   │   ├── forms/        # Formularis reutilitzables per a la creació i edició de dades.
+│   │   │   │   ├── modals/       # Components específics per a cada finestra modal.
+│   │   │   │   ├── tech_sheets/  # Components per a la gestió de fitxes tècniques.
+│   │   │   │   └── ui/           # Components d'UI genèrics (botons, menús, tooltips...).
 │       │   ├── utils/            # Funcions d'utilitat específiques del frontend.
-│       │   │   └── fileSaver.ts  # Utilitat per gestionar el desat de fitxers (PDF, CSV).
-│       │   ├── App.tsx           # Component arrel de React, orquestra la UI i la lògica de documents.
-│       │   ├── ElectronPersistenceAdapter.ts # Implementació de la interfície de persistència per a Electron.
-│       │   ├── calendar-styles.d.ts # Definicions de tipus per a estils de calendari.
-│       │   ├── constants.tsx     # Constants utilitzades al frontend.
-│       │   ├── images.d.ts       # Definicions de tipus per a la importació d'imatges.
-│       │   ├── index.css         # [AUTO-GENERAT] Fitxer principal d'estils.
-│       │   └── index.tsx         # Punt d'entrada de React que renderitza App.tsx.
-│       ├── index.html            # Plantilla HTML principal de l'aplicació.
-│       ├── main.cjs              # !! EL CERVELL DEL BACKEND !! Procés principal d'Electron.
-│       ├── metadata.json         # Metadades addicionals de l'aplicació (descripció, etc.).
-│       ├── postcss.config.cjs    # Configuració de PostCSS.
-│       ├── preload.cjs           # Pont de seguretat entre el backend (main.cjs) i el frontend (src).
-│       ├── package.json          # Dependències i scripts de l'app desktop.
-│       ├── tailwind.config.cjs   # Configuració de Tailwind CSS.
-│       ├── tsconfig.json         # Configuració del compilador de TypeScript per al frontend.
-│       └── vite.config.ts        # Configuració de Vite (eina de compilació del frontend).
-├── ARBRE_DIRECTORIS.txt          # Aquest mateix fitxer, descriu l'estructura del projecte.
-├── DEVELOPING.md                 # Documentació tècnica detallada per a desenvolupadors.
+│       │   │   └── fileSaver.ts  # Utilitat que gestiona el diàleg de desat i l'escriptura de fitxers (PDF, CSV).
+│       │   ├── App.tsx           # Component arrel de React, gestiona l'estat principal i la càrrega de dades.
+│       │   ├── ElectronPersistenceAdapter.ts # Implementació de `persistenceAdapter` que utilitza l'API d'Electron.
+│       │   ├── ...               # (Altres fitxers de configuració i punts d'entrada de React).
+│       ├── index.html            # Plantilla HTML sobre la qual es munta l'aplicació de React.
+│       ├── main.cjs              # !! EL CERVELL DEL BACKEND !! Procés principal d'Electron que gestiona la finestra, IPC, etc.
+│       ├── metadata.json         # Metadades addicionals de l'aplicació (descripció, autor) llegides per `main.cjs`.
+│       ├── preload.cjs           # Pont de seguretat que exposa funcionalitats del backend al frontend de manera controlada.
+│       ├── package.json          # Dependències i scripts específics de l'aplicació d'escriptori.
+│       ├── ...                   # (Fitxers de configuració de Tailwind, PostCSS, TypeScript, Vite).
+├── .gitattributes                # Fitxer de configuració de Git per a atributs de fitxers.
+├── .gitignore                    # Especifica els fitxers i carpetes que Git ha d'ignorar.
+├── ARBRE_DIRECTORIS.txt          # Aquest mateix fitxer.
+├── DEVELOPING.md                 # Documentació tècnica per a desenvolupadors.
 ├── LICENSE                       # Llicència del projecte.
-├── README.md                     # Documentació principal i guia d'usuari del projecte.
-├── package-lock.json             # Fitxer de bloqueig de versions de dependències de npm.
-├── package.json                  # Configuració del monorepo i gestió de workspaces.
-└── theme.config.cjs              # !! FONT ÚNICA DE LA VERITAT PER ALS COLORS !!
+├── README.md                     # Documentació principal i guia d'inici del projecte.
+├── package-lock.json             # Registre exacte de les versions de les dependències instal·lades.
+├── package.json                  # Configuració del projecte a nivell arrel (workspaces, scripts generals).
+└── theme.config.cjs              # !! FONT ÚNICA DE LA VERITAT PER ALS COLORS !! Defineix el tema de colors de l'aplicació.
+
+---
+
+## Fitxers i Carpetes Exclosos (via .gitignore)
+
+A continuació es detallen els elements que no formen part del control de versions i la seva justificació.
+
+### Dependències
+- `node_modules/`
+  - **Descripció:** Conté totes les dependències de Node.js.
+  - **Motiu:** Es regenera automàticament executant `npm install` o `npm ci` a partir de `package-lock.json`. El seu contingut és molt extens i no és codi font del projecte.
+
+### Fitxers de Compilació
+- `dist/`
+  - **Descripció:** Carpeta de sortida dels fitxers compilats i empaquetats de l'aplicació.
+  - **Motiu:** Són artefactes generats automàticament pel procés de compilació (`npm run build`). El codi font real es troba a `packages/desktop/src` i `packages/core/src`.
+
+### Variables d'Entorn i Secrets
+- `.env`, `.env.local`, `.env.*.local`
+  - **Descripció:** Fitxers que contenen variables d'entorn locals, com claus d'API o configuracions sensibles.
+  - **Motiu:** ¡MOLT IMPORTANT! Contenen informació sensible i secrets que no han de ser compartits públicament al repositori. Cada desenvolupador ha de crear el seu propi fitxer localment.
+- `google-credentials.json`, `service-account.json`
+  - **Descripció:** Fitxers de credencials per a l'autenticació amb les API de Google.
+  - **Motiu:** Contenen secrets d'autenticació i són altament sensibles.
+
+### Fitxers Auto-generats
+- `packages/desktop/src/index.css`
+  - **Descripció:** El fitxer CSS final utilitzat per l'aplicació.
+  - **Motiu:** Es genera automàticament a partir de la plantilla `index.css.template` i la configuració de Tailwind mitjançant el script `npm run build:theme`.
+- `packages/core/src/utils/themeDefinition.ts`
+  - **Descripció:** Fitxer de TypeScript amb les definicions de tipus per al tema de colors.
+  - **Motiu:** Es genera automàticament a partir de `theme.config.cjs` mitjançant el script `npm run build:theme`.
+
+### Logs
+- `logs/`, `*.log`, `npm-debug.log*`, etc.
+  - **Descripció:** Fitxers de registre (logs) generats per l'aplicació o les eines de desenvolupament.
+  - **Motiu:** Són fitxers temporals i específics de cada execució. No són rellevants per al codi font.
+
+### Configuració d'IDE i Sistema Operatiu
+- `.vscode/`, `*.code-workspace`, `.idea/`
+  - **Descripció:** Configuracions específiques de l'entorn de desenvolupament (IDE) de cada usuari.
+  - **Motiu:** Són preferències personals i no han d'imposar-se a altres col·laboradors.
+- `.DS_Store`, `Thumbs.db`
+  - **Descripció:** Fitxers de metadades generats automàticament per macOS i Windows, respectivament.
+  - **Motiu:** No tenen cap relació amb el projecte i només generen "soroll" al repositori.
+
+### Altres
+- `__pycache__/`, `*.pyc`
+  - **Descripció:** Cache de bytecode generada per Python.
+  - **Motiu:** Artefactes de compilació de scripts d'ajuda que no han d'estar al control de versions.
