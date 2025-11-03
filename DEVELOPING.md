@@ -813,7 +813,7 @@ La interacció i la representació visual d'aquest estat es gestionen de manera 
 
 #### Els Estils
 
-Les classes CSS esmentades no són classes de Tailwind per defecte. Estan definides dins del **plugin personalitzat** a `tailwind.config.cjs`. Aquest plugin injecta CSS pur que estableix el color de la vora dels esdeveniments al calendari: una **vora verda** per als completats i una **vora groga** per als incomplets.
+Les classes CSS esmentades (`event-complete` i `event-incomplete`) no són classes de Tailwind per defecte. Estan definides directament al fitxer `packages/desktop/scripts/templates/index.css.template`. Aquestes regles estableixen el color de la vora dels esdeveniments al calendari: una **vora verda** per als completats i una **vora groga** per als incomplets.
 
 Aquesta arquitectura connecta de manera eficient una simple dada booleana amb múltiples representacions visuals a tota la UI, proporcionant un feedback clar i immediat a l'usuari.
 
