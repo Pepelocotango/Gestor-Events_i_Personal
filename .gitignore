@@ -39,8 +39,13 @@ Thumbs.db
 # Cache de Python (pels teus scripts auxiliars)
 __pycache__/
 *.pyc
-### FINAL FITXER: .gitignore ###
+
+# Fitxers generats automàticament
+packages/desktop/src/index.css
+packages/core/src/utils/themeDefinition.ts
 
 # Credencials de Google
 google-credentials.json
 service-account.json
+
+### FINAL FITXER: .gitignore ###
