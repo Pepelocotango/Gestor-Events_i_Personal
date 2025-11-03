@@ -113,3 +113,62 @@
     background-image: linear-gradient(to right, hsla(var(--success) / 0.3), hsla(var(--warning) / 0.3), hsla(var(--destructive) / 0.3));
   }
 }
+
+/* ==========================================================================
+   FullCalendar Custom Styles
+   ========================================================================== */
+.fc {
+  --fc-border-color: hsl(var(--border));
+  --fc-today-bg-color: hsla(var(--accent) / 0.5);
+  --fc-page-bg-color: hsl(var(--background));
+  --fc-list-even-row-bg-color: hsl(var(--secondary));
+  --fc-list-odd-row-bg-color: hsl(var(--background)); /* O el que consideris */
+}
+
+.fc .fc-button {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border: 1px solid hsl(var(--border));
+  transition: background-color 0.2s;
+}
+
+.fc .fc-button:hover {
+  background-color: hsl(var(--accent));
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  color: hsl(var(--muted-foreground));
+}
+
+.fc .fc-popover {
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+}
+
+.fc .fc-popover-header {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+/* Estil especial per al dia actual */
+.fc .fc-day-today .fc-daygrid-day-number {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: 50%;
+  width: 2em;
+  height: 2em;
+  line-height: 2em;
+  text-align: center;
+  margin: auto; /* Per centrar si el contenidor és més gran */
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
