@@ -1,51 +1,55 @@
-### INICI FITXER: .gitignore ###
-#carpetes i fitxers personals
-gestor-d'esdeveniments_react_vite_gemini BUILD.code-workspace
-chekpoints/
-RELASES/
+# Fitxer .gitignore optimitzat per a un monorepo amb Electron, React i TypeScript.
 
-
-# Dependències de Node.js
-# Aquesta carpeta es regenera amb 'npm install'
+### Entorn i Dependències ###
+# Ignora les dependències locals de Node.js. Es restauren amb `npm ci`.
 node_modules/
-
-# Sortida de la compilació (build)
-# Aquesta carpeta es genera amb 'npm run build' o 'npm run build:electron'
-dist/
-
-# Fitxers de variables d'entorn locals
-# ¡MOLT IMPORTANT! Contenen claus secretes i no han de ser a GitHub.
+# Fitxers de variables d'entorn locals. Contenen secrets.
 .env
 .env.local
 .env.*.local
 
-# Fitxers de log
-logs
+### Logs ###
+# Ignora els fitxers de log generats per l'aplicació o per eines de desenvolupament.
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Fitxers de l'editor de codi i IDE
+### Artefactes de Compilació i Distribució ###
+# Ignora els directoris de sortida de compilació.
+dist/
+dist-*
+# Directori de sortida específic de la compilació d'Electron.
+packages/desktop/dist/
+# Directori on es generen els paquets d'instal·lació (releases).
+release/
+# Ignora la memòria cau de Vite.
+.vite/
+
+### Fitxers Auto-generats ###
+# Aquests fitxers són generats per l'script 'build-theme' i no s'han d'editar manualment.
+packages/desktop/src/index.css
+packages/core/src/utils/themeDefinition.ts
+
+### Configuració d'IDE i Editors de Codi ###
+# Ignora les configuracions personals de l'entorn de desenvolupament.
 .vscode/
 *.code-workspace
 .idea/
 
-# Fitxers del sistema operatiu
-.DS_Store
-Thumbs.db
-
-# Cache de Python (pels teus scripts auxiliars)
-__pycache__/
-*.pyc
-
-# Fitxers generats automàticament
-packages/desktop/src/index.css
-packages/core/src/utils/themeDefinition.ts
-
-# Credencials de Google
+### Credencials i Secrets ###
+# Ignora els fitxers de credencials de serveis externs. Són altament sensibles.
 google-credentials.json
 service-account.json
 
-### FINAL FITXER: .gitignore ###
+### Fitxers del Sistema Operatiu ###
+# Fitxers de metadades generats per macOS i Windows.
+.DS_Store
+Thumbs.db
+
+### Altres ###
+# Ignora la memòria cau de Python (per a scripts auxiliars).
+__pycache__/
+*.pyc
