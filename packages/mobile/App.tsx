@@ -3,7 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import { initializeEventDataStore, useEventDataStore } from '@gep/core/stores/eventDataStore';
 import type { AppData } from '@gep/core/types';
 import MobilePersistenceAdapter from './src/MobilePersistenceAdapter';
-import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 
 export default function App() {
@@ -12,53 +11,29 @@ export default function App() {
   useEffect(() => {
     const setupAndLoadData = async () => {
       try {
-        // 1. Inicialitza l'store amb l'adaptador de persistència mòbil
+        // 1. Inicialitza l'store amb l'adaptador
         initializeEventDataStore(MobilePersistenceAdapter);
         setStatusMessage('Store inicialitzat.');
 
-        // 2. Defineix la ruta del fitxer de dades de l'usuari
-        // @ts-ignore: Ignorem l'error de tipus de FileSystem.documentDirectory
-        const userDataPath = (FileSystem.documentDirectory || '') + 'user_data.json';
-        console.log('Ruta del fitxer de dades:', userDataPath);
+        // 2. Descarrega l'actiu d'exemple
+        const asset = Asset.fromModule(require('./assets/example_all.json'));
+        await asset.downloadAsync();
+        setStatusMessage('Actiu d\'exemple preparat.');
 
-        // 3. Comprova si el fitxer de dades ja existeix
-        const fileInfo = await FileSystem.getInfoAsync(userDataPath);
+        // 3. Demana a l'adaptador que s'asseguri que el fitxer existeix i ens retorni la ruta
+        const { path: userDataPath, message: ensureMessage } = await MobilePersistenceAdapter.ensureDataFileExists(asset);
+        setStatusMessage(ensureMessage);
 
-        // 4. Si no existeix, copia'l des dels assets
-        if (!fileInfo.exists) {
-          setStatusMessage('El fitxer de dades no existeix. Copiant exemple...');
-
-          const asset = Asset.fromModule(require('./assets/example_all.json'));
-          await asset.downloadAsync();
-
-          console.log('Actiu descarregat a:', asset.localUri);
-
-          if (asset.localUri) {
-            await FileSystem.copyAsync({
-              from: asset.localUri,
-              to: userDataPath,
-            });
-            setStatusMessage('Fitxer d\'exemple copiat correctament.');
-          } else {
-            throw new Error("No s'ha pogut obtenir la URI local de l'actiu.");
-          }
-        } else {
-            setStatusMessage('El fitxer de dades ja existeix.');
-        }
-
-        // 5. Llegeix el contingut del fitxer, el parseja i el carrega a l'store
+        // 4. Llegeix i carrega les dades des de la ruta obtinguda
         setStatusMessage('Llegint i carregant dades...');
-        const { success, content, message } = await MobilePersistenceAdapter.readFile(userDataPath);
+        const { success, content, message: readMessage } = await MobilePersistenceAdapter.readFile(userDataPath);
 
         if (!success || !content) {
-            throw new Error(`No s'ha pogut llegir el fitxer de dades: ${message}`);
+          throw new Error(`No s'ha pogut llegir el fitxer de dades: ${readMessage}`);
         }
 
         const dataToLoad: AppData = JSON.parse(content);
-
         const result = await useEventDataStore.getState().loadData(dataToLoad);
-
-        // 6. Actualitza el missatge d'estat amb el resultat
         setStatusMessage(result.message || 'Procés finalitzat.');
 
       } catch (error) {

@@ -1,5 +1,5 @@
 import type { PersistenceAdapter, AppData, ShowSaveDialogOptions, ShowSaveDialogResult } from '@gep/core/types';
-import * as FileSystem from 'expo-file-system';
+import { getInfoAsync, readAsStringAsync, writeAsStringAsync, copyAsync, documentDirectory, EncodingType } from 'expo-file-system/legacy';
 
 // Aquesta implementació completa de PersistenceAdapter està dissenyada per a l'entorn mòbil.
 // Els mètodes que no són rellevants per a la plataforma mòbil llancen un error
@@ -8,9 +8,8 @@ import * as FileSystem from 'expo-file-system';
 class MobilePersistenceAdapter implements Omit<PersistenceAdapter, 'on' | 'off' | 'removeAllListeners'> {
   async readFile(filePath: string): Promise<{ success: boolean; content?: string; message?: string; }> {
     try {
-      const content = await FileSystem.readAsStringAsync(filePath, {
-        // @ts-ignore: Ignorem l'error de tipus de FileSystem.EncodingType
-        encoding: FileSystem.EncodingType.UTF8,
+      const content = await readAsStringAsync(filePath, {
+        encoding: EncodingType.UTF8,
       });
       return { success: true, content };
     } catch (error) {
@@ -21,9 +20,8 @@ class MobilePersistenceAdapter implements Omit<PersistenceAdapter, 'on' | 'off' 
 
   async saveFile({ filePath, data }: { filePath: string; data: string }): Promise<{ success: boolean; message?: string; }> {
     try {
-      await FileSystem.writeAsStringAsync(filePath, data, {
-        // @ts-ignore: Ignorem l'error de tipus de FileSystem.EncodingType
-        encoding: FileSystem.EncodingType.UTF8,
+      await writeAsStringAsync(filePath, data, {
+        encoding: EncodingType.UTF8,
       });
       return { success: true };
     } catch (error) {
@@ -32,14 +30,23 @@ class MobilePersistenceAdapter implements Omit<PersistenceAdapter, 'on' | 'off' 
     }
   }
 
-  async fileExists(filePath: string): Promise<boolean> {
-    const fileInfo = await FileSystem.getInfoAsync(filePath);
-    return fileInfo.exists;
-  }
+  async ensureDataFileExists(asset: any): Promise<{ path: string; message: string }> {
+    const userDataPath = (documentDirectory || '') + 'user_data.json';
+    const fileInfo = await getInfoAsync(userDataPath);
 
-  async copyFile(sourcePath: string, destinationPath: string): Promise<void> {
-    await FileSystem.copyAsync({ from: sourcePath, to: destinationPath });
-  }
+    if (!fileInfo.exists) {
+      if (asset.localUri) {
+        await copyAsync({
+          from: asset.localUri,
+          to: userDataPath,
+        });
+        return { path: userDataPath, message: 'Fitxer d\'exemple copiat correctament.' };
+      } else {
+        throw new Error("No s'ha pogut obtenir la URI local de l'actiu per copiar.");
+      }
+    }
+    return { path: userDataPath, message: 'El fitxer de dades ja existeix.' };
+    }
 
   // --- Mètodes no implementats (per a compatibilitat de tipus) ---
 
