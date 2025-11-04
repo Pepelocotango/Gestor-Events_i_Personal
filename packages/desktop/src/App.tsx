@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { generateDefaultFileName, notificationService, initializeGoogleAuthListeners, initializeEventDataStore, logger, useEventDataStore, useModalStore } from '@gep/core';
+import { generateDefaultFileName, initializeGoogleAuthListeners, initializeEventDataStore, logger, useEventDataStore, useModalStore } from '@gep/core';
 import ElectronPersistenceAdapter from './ElectronPersistenceAdapter';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
 import { ShowToastFunction, PersonGroup, MaterialItem } from '@gep/core';
 import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
@@ -88,19 +88,19 @@ const App: React.FC = () => {
   const showToast: ShowToastFunction = useCallback((message, type = 'success') => {
     switch (type) {
       case 'success':
-        notificationService.success(message);
+        toast.success(message);
         break;
       case 'error':
-        notificationService.error(message);
+        toast.error(message);
         break;
       case 'info':
-        notificationService.info(message);
+        toast(message, { icon: 'ℹ️' });
         break;
       case 'warning':
-        notificationService.warning(message);
+        toast(message, { icon: '⚠️' });
         break;
       default:
-        notificationService.success(message);
+        toast.success(message);
     }
   }, []);
 
@@ -122,7 +122,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const { undoWithToast, redoWithToast } = useEventDataStore.getState();
+    const { undoAndGetDescription, redoAndGetDescription } = useEventDataStore.getState();
     const handleKeyDown = (event: KeyboardEvent) => {
         const target = event.target as HTMLElement;
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
@@ -131,16 +131,26 @@ const App: React.FC = () => {
         if (event.ctrlKey || event.metaKey) {
             if (event.key.toLowerCase() === 'z' && !event.shiftKey) {
                 event.preventDefault();
-                undoWithToast();
+                const result = undoAndGetDescription();
+                if (result.undoneActionDescription) {
+                    showToast(`Desfeta l'acció: ${result.undoneActionDescription}`, 'info');
+                } else {
+                    showToast('Acció desfeta.', 'info');
+                }
             } else if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
                 event.preventDefault();
-                redoWithToast();
+                const result = redoAndGetDescription();
+                if (result.redoneActionDescription) {
+                    showToast(`Refeta l'acció: ${result.redoneActionDescription}`, 'info');
+                } else {
+                    showToast('Acció refeta.', 'info');
+                }
             }
         }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [showToast]);
 
   logger.info('App.tsx - Component renderitzat.');
 
@@ -638,7 +648,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
-    const { undoWithToast, redoWithToast } = useEventDataStore.getState();
+    const { undoAndGetDescription, redoAndGetDescription } = useEventDataStore.getState();
 
     if (window.electronAPI) {
       const cleanup = window.electronAPI.onMenuAction((action) => {
@@ -652,10 +662,20 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
         switch (action) {
           case 'undo':
-            undoWithToast();
+            const undoResult = undoAndGetDescription();
+            if (undoResult.undoneActionDescription) {
+                showToast(`Desfeta l'acció: ${undoResult.undoneActionDescription}`, 'info');
+            } else {
+                showToast('Acció desfeta.', 'info');
+            }
             break;
           case 'redo':
-            redoWithToast();
+            const redoResult = redoAndGetDescription();
+            if (redoResult.redoneActionDescription) {
+                showToast(`Refeta l'acció: ${redoResult.redoneActionDescription}`, 'info');
+            } else {
+                showToast('Acció refeta.', 'info');
+            }
             break;
           case 'new-document':
             handleNewDocument();
@@ -951,8 +971,22 @@ const handleSaveDocument = async (): Promise<boolean> => {
               recentFiles={recentFiles}
               theme={theme}
               onToggleTheme={toggleTheme}
-              onUndo={() => useEventDataStore.getState().undoWithToast()}
-              onRedo={() => useEventDataStore.getState().redoWithToast()}
+              onUndo={() => {
+                const { undoneActionDescription } = useEventDataStore.getState().undoAndGetDescription();
+                if (undoneActionDescription) {
+                  showToast(`Desfeta l'acció: ${undoneActionDescription}`, 'info');
+                } else {
+                  showToast('Acció desfeta.', 'info');
+                }
+              }}
+              onRedo={() => {
+                const { redoneActionDescription } = useEventDataStore.getState().redoAndGetDescription();
+                if (redoneActionDescription) {
+                  showToast(`Refeta l'acció: ${redoneActionDescription}`, 'info');
+                } else {
+                  showToast('Acció refeta.', 'info');
+                }
+              }}
               onOpenHistory={() => openModalFromStore('history')}
             />
             <div className="px-1 py-1 border-t border-border">

@@ -862,7 +862,7 @@ ipcMain.handle('google-auth-start', async () => {
         res.writeHead(400);
         res.end('<h1>Error: Petició invàlida (CSRF detectat)</h1>');
         req.socket.destroy();
-        closeServerAndResolve({ success: false, message: 'Error de validació de l\'estat (CSRF).' });
+        closeServerAndResolve({ success: false, message: 'Error de validació de l\'estat (CSRF).', type: 'error' });
         return;
       }
       
@@ -907,7 +907,7 @@ ipcMain.handle('google-auth-start', async () => {
         mainWindow.webContents.send('google-auth-success');
         res.end('<h1>Autenticació completada!</h1><p>Pots tancar aquesta pestanya.</p>');
         req.socket.destroy();
-        closeServerAndResolve({ success: true });
+        closeServerAndResolve({ success: true, message: 'Autenticació completada amb èxit.', type: 'success' });
 
       } catch (e) {
         console.error("Error en el callback d'autenticació:", e.message, e.response?.data);
@@ -915,14 +915,14 @@ ipcMain.handle('google-auth-start', async () => {
         res.writeHead(500);
         res.end('<h1>Error d\'autenticació</h1>');
         req.socket.destroy();
-        closeServerAndResolve({ success: false, message: e.message });
+        closeServerAndResolve({ success: false, message: e.message, type: 'error' });
       }
     });
 
     server.on('error', (err) => {
       console.error("Error del servidor d'autenticació:", err);
       dialog.showErrorBox('Error de Servidor', `No s'ha pogut iniciar el servidor d'autenticació: ${err.message}`);
-      closeServerAndResolve({ success: false, message: err.message });
+      closeServerAndResolve({ success: false, message: err.message, type: 'error' });
     });
   });
 });

@@ -56,11 +56,10 @@ export default function App() {
 
         const dataToLoad: AppData = JSON.parse(content);
 
-        await useEventDataStore.getState().loadData(dataToLoad);
+        const result = await useEventDataStore.getState().loadData(dataToLoad);
 
         // 6. Actualitza el missatge d'estat amb el resultat
-        const eventFrames = useEventDataStore.getState().eventFrames;
-        setStatusMessage(`Carregats ${eventFrames.length} esdeveniments.`);
+        setStatusMessage(result.message || 'Procés finalitzat.');
 
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);

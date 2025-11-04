@@ -20,7 +20,6 @@ import { formatDateDMY } from '../utils/dateFormat';
 import { generateGoogleEventDescription } from '../utils/googleCalendarUtils';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
-import { notificationService } from '../utils/notificationService';
 import { logger } from '../utils/logger';
 import { immer } from 'zustand/middleware/immer';
 
@@ -138,8 +137,8 @@ interface EventDataActions {
     _applyDataToState: (data: AppData) => void;
     clearDataRepairInfo: () => void;
     setIsUpdatingMaterial: (isUpdating: boolean) => void;
-    undoWithToast: () => void;
-    redoWithToast: () => void;
+    undoAndGetDescription: () => { undoneActionDescription: string | null };
+    redoAndGetDescription: () => { redoneActionDescription: string | null };
     archiveOldEventFrames: () => EventFrame[];
     confirmArchiveEventFrames: (eventFrameIds: string[]) => void;
     restoreEventFrame: (eventFrameId: string) => void;
@@ -177,32 +176,18 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
         setIsUpdatingMaterial: (isUpdating: boolean) => set({ isUpdatingMaterial: isUpdating }),
 
-        undoWithToast: () => {
+        undoAndGetDescription: () => {
             const { temporal } = useEventDataStore;
-            // Get the description of the action that is about to be undone.
             const currentDescription = get().lastActionDescription;
-
             temporal.getState().undo();
-
-            if (currentDescription) {
-                notificationService.info(`Desfeta l'acció: ${currentDescription}`);
-            } else {
-                notificationService.info('Acció desfeta.');
-            }
+            return { undoneActionDescription: currentDescription };
         },
 
-        redoWithToast: () => {
+        redoAndGetDescription: () => {
             const { temporal } = useEventDataStore;
-
             temporal.getState().redo();
-
-            // After redoing, the current state has the description of the redone action.
             const newDescription = get().lastActionDescription;
-            if (newDescription) {
-                notificationService.info(`Refeta l'acció: ${newDescription}`);
-            } else {
-                notificationService.info('Acció refeta.');
-            }
+            return { redoneActionDescription: newDescription };
         },
 
         clearDataRepairInfo: () => set({ dataRepairInfo: null }),

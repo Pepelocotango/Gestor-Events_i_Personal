@@ -36,7 +36,6 @@ Aquest document descriu l'estructura completa de fitxers i carpetes del projecte
 │   │           ├── fileNameUtils.ts       # Utilitat per a generar noms de fitxer descriptius.
 │   │           ├── googleCalendarUtils.ts # Funcions per interactuar amb l'API de Google Calendar.
 │   │           ├── logger.ts              # Servei de logging centralitzat.
-│   │           ├── notificationService.ts # Servei per a la gestió de notificacions a l'usuari.
 │   │           ├── pdfGenerator.ts        # Utilitats per a la creació de documents PDF.
 │   │           ├── selectors.ts           # Funcions selectores per a consultar l'estat de Zustand de manera eficient.
 │   │           ├── statusUtils.ts         # Utilitats per a gestionar i calcular estats (p. ex., d'assignacions).

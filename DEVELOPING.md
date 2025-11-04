@@ -360,9 +360,12 @@ L'estat global de l'aplicació resideix al paquet `@gep/core` i es gestiona a tr
         -   **Accions:** Centralitza tota la interacció amb el backend per a la configuració de Google, incloent `fetchAndLoadConfig`, `saveConfig`, `createNewCalendar`, `deleteCalendar` i `disconnectGoogle`.
 
 3.  **`modalStore.ts`**:
-    -   **Descripció:** Gestiona quin modal està obert (`type`), les dades inicials amb què es va obrir (`data`) i si és visible (`isOpen`). També actua com un vehicle per a funcionalitats globals com les notificacions.
-    -   **Contingut:**
-        -   **`showToast`**: Manté una referència a la funció `showToast` creada a `App.tsx`. Això permet que altres stores (com `googleConfigStore`) puguin disparar notificacions a la UI de manera desacoblada.
+    -   **Descripció:** Gestiona quin modal està obert (`type`), les dades inicials amb què es va obrir (`data`) i si és visible (`isOpen`).
+
+- **Nou Patró d'Accions d'Store:**
+  - **Accions Pures:** Les accions dels stores (especialment les asíncrones) ja no produeixen efectes secundaris visuals directes (com mostrar notificacions).
+  - **Retorn de Resultats:** En lloc d'això, les accions retornen un objecte `ActionResult` (`{ success: boolean, message: string, type: 'success' | 'error' }`).
+  - **Gestió a la UI:** La capa d'interfície d'usuari (els components de React) és ara l'única responsable de cridar a aquestes accions, esperar el resultat i, basant-se en aquest, mostrar les notificacions a l'usuari. Això desacobla completament la lògica de negoci de la presentació.
 
 #### Middleware de Depuració (`loggingMiddleware.ts`)
 

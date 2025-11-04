@@ -92,8 +92,12 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
                     </div>
                   </div>
                   <Tooltip text={`Eliminar el calendari '${cal.name}' de Google i de l'app`}>
-                    <button
-                      onClick={() => deleteCalendar(cal)}
+                                      <button
+                      onClick={() =>
+                        deleteCalendar(cal, (result) => {
+                          showToast(result.message, result.type);
+                        })
+                      }
                       className="ml-4 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 rounded"
                     >
                       Eliminar
@@ -170,7 +174,14 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
       <div className="flex justify-between items-center pt-4 border-t border-border">
         <Tooltip text={managedCalendars.length === 0 ? "No hi ha cap compte de Google connectat" : "Desconnecta el teu compte de Google i elimina les dades relacionades"}>
           <button
-            onClick={disconnectGoogle}
+            onClick={() =>
+              disconnectGoogle((result) => {
+                showToast(result.message, result.type);
+                if (result.success) {
+                  onClose();
+                }
+              })
+            }
             className="px-4 py-2 text-sm font-medium text-destructive-foreground bg-destructive hover:bg-destructive/90 rounded-md disabled:opacity-50"
             disabled={managedCalendars.length === 0 || isSyncing}
           >

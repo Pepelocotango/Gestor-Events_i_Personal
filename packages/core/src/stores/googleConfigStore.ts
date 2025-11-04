@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { GoogleCalendar, ManagedAppCalendar, GoogleConfig } from '../types';
-import { notificationService } from '../utils/notificationService';
 import { logger } from '../utils/logger';
 import { useEventDataStore } from './eventDataStore';
 import { useModalStore } from './modalStore';
@@ -80,13 +79,11 @@ export const initializeGoogleAuthListeners = () => {
     window.electronAPI.onGoogleAuthSuccess(() => {
       logger.info("Rebut 'google-auth-success' a la store. Refrescant configuració.");
       fetchAndLoadConfig();
-      notificationService.success('Connectat a Google Calendar amb èxit!');
     });
   }
   if (window.electronAPI?.onGoogleAuthError) {
     window.electronAPI.onGoogleAuthError((errorMessage) => {
         logger.error("Rebut 'google-auth-error' a la store.", { errorMessage });
-        notificationService.error(`Error d'autenticació: ${errorMessage}`);
     });
   }
 };
@@ -94,18 +91,13 @@ export const initializeGoogleAuthListeners = () => {
 /**
  * Initiates the Google authentication flow via the main process.
  */
-export const startGoogleAuthFlow = async () => {
-  logger.info('[UI] Iniciant flux d\'autenticació amb Google.');
-  if (window.electronAPI?.startGoogleAuth) {
-    const result = await window.electronAPI.startGoogleAuth();
-    if (result.success) {
-      notificationService.info('Obrint el navegador per autenticar-se amb Google...');
+export const startGoogleAuthFlow = async (): Promise<ActionResult> => {
+    logger.info('[UI] Iniciant flux d\'autenticació amb Google.');
+    if (window.electronAPI?.startGoogleAuth) {
+        return await window.electronAPI.startGoogleAuth() as ActionResult;
     } else {
-      notificationService.error(result.message || "No s'ha pogut iniciar l'autenticació.");
+        return { success: false, message: 'Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.', type: 'warning' };
     }
-  } else {
-    notificationService.warning('Aquesta funcionalitat només està disponible a l\'aplicació d\'escriptori.');
-  }
 };
 
 /**
@@ -172,7 +164,7 @@ export const saveConfig = async (): Promise<ActionResult> => {
 /**
  * Creates a new Google Calendar managed by the application.
  */
-export const createNewCalendar = async (suffix: string): Promise<ActionResult | undefined> => {
+export const createNewCalendar = async (suffix: string): Promise<ActionResult> => {
     if (window.electronAPI?.createNewAppCalendar) {
         const result = await window.electronAPI.createNewAppCalendar(suffix);
         if (result.success && result.data) {
@@ -188,12 +180,13 @@ export const createNewCalendar = async (suffix: string): Promise<ActionResult | 
             return { success: false, message: result.message || 'Error creant el calendari.', type: 'error' };
         }
     }
+    return { success: false, message: 'API d\'Electron no disponible.', type: 'error' };
 };
 
 /**
  * Deletes a managed Google Calendar permanently.
  */
-export const deleteCalendar = (calendar: ManagedAppCalendar) => {
+export const deleteCalendar = (calendar: ManagedAppCalendar, onConfirm: (result: ActionResult) => void) => {
   const { openModal } = useModalStore.getState();
   openModal('confirmHardReset', {
     titleOverride: "Confirmar Eliminació de Calendari",
@@ -204,20 +197,23 @@ export const deleteCalendar = (calendar: ManagedAppCalendar) => {
         try {
           const result = await window.electronAPI.deleteAppCalendar(calendar.id);
           if (result.success && result.data) {
-            notificationService.success(result.message || 'Calendari eliminat correctament.');
             useGoogleConfigStore.setState({
-                managedCalendars: result.data.managedAppCalendars,
-                activeCalendarId: result.data.activeAppCalendarId,
+              managedCalendars: result.data.managedAppCalendars,
+              activeCalendarId: result.data.activeAppCalendarId,
             });
             setTimeout(() => {
-                fetchAndLoadConfig();
-                useEventDataStore.getState().refreshGoogleEvents();
+              fetchAndLoadConfig();
+              useEventDataStore.getState().refreshGoogleEvents();
             }, 0);
-          } else {
-            notificationService.error(result.message || "Hi ha hagut un error durant l'eliminació.");
           }
+          onConfirm({
+            success: result.success,
+            message: result.message ?? '',
+            type: result.success ? 'success' : 'error',
+          });
         } catch (err) {
-            notificationService.error((err as Error).message);
+          const errorResult: ActionResult = { success: false, message: (err as Error).message, type: 'error' };
+          onConfirm(errorResult);
         }
       }
     },
@@ -227,7 +223,7 @@ export const deleteCalendar = (calendar: ManagedAppCalendar) => {
 /**
  * Disconnects the Google account, deleting all managed calendars and revoking access.
  */
-export const disconnectGoogle = () => {
+export const disconnectGoogle = (onConfirm: (result: ActionResult) => void) => {
     const { openModal, closeModal } = useModalStore.getState();
     openModal('confirmHardReset', {
       titleOverride: "Confirmar Desconnexió de Google",
@@ -243,17 +239,20 @@ export const disconnectGoogle = () => {
           try {
             const result = await window.electronAPI.googleDisconnect();
             if (result.success) {
-              notificationService.success('Compte de Google desconnectat correctament.');
               setTimeout(() => {
                   useEventDataStore.getState().refreshGoogleEvents();
                   fetchAndLoadConfig();
               }, 0);
               closeModal();
-            } else {
-              notificationService.error(result.message || 'Hi ha hagut un error durant la desconnexió.');
             }
+            onConfirm({
+                success: result.success,
+                message: result.message ?? '',
+                type: result.success ? 'success' : 'error'
+            });
           } catch (err) {
-            notificationService.error((err as Error).message);
+            const errorResult: ActionResult = { success: false, message: (err as Error).message, type: 'error' };
+            onConfirm(errorResult);
           }
         }
       },

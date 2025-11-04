@@ -4,7 +4,6 @@ export * from './types';
 // Utils
 export * from './utils/dateFormat';
 export * from './utils/logger';
-export * from './utils/notificationService';
 export * from './utils/selectors';
 export * from './utils/statusUtils';
 export * from './utils/techSheetMigration';
