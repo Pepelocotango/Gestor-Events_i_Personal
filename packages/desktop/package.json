@@ -1,7 +1,7 @@
 {
   "name": "@gep/desktop",
   "productName": "GestorEsdevenimentsPersonal",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Una aplicació per gestionar esdeveniments i personal",
   "author": "Pep",
   "license": "GPL-3.0-or-later",
