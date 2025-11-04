@@ -21,6 +21,8 @@ pnpm-debug.log*
 # Ignora els directoris de sortida de compilació.
 dist/
 dist-*
+# Fitxers de compilació i artefactes específics
+*.apk
 # Directori de sortida específic de la compilació d'Electron.
 packages/desktop/dist/
 # Directori on es generen els paquets d'instal·lació (releases).
