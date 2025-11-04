@@ -1103,19 +1103,21 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 
 ### Importacions Específiques (Deep Imports) per a Mòbil
 
-Per garantir la compatibilitat i evitar errors d'execució, l'aplicació mòbil (`packages/mobile`) no ha d'importar mòduls directament des de l'arrel del paquet `@gep/core`. El fitxer d'entrada (`index.ts`) de `@gep/core` exporta funcionalitats dissenyades exclusivament per a l'entorn d'escriptori, com el generador de PDF (`jspdf`), que són incompatibles amb React Native.
+L'error fatal d'execució `ReferenceError: Property 'document' doesn't exist` a l'aplicació mòbil confirma que s'estaven intentant carregar mòduls incompatibles amb React Native. Aquest problema sorgeix perquè el punt d'entrada principal del paquet (`@gep/core`) exporta funcionalitats dissenyades exclusivament per a l'entorn d'escriptori, com el generador de PDF (`jspdf`), que depèn d'API del navegador no disponibles a l'entorn mòbil.
 
-Per evitar carregar aquestes dependències, s'han d'utilitzar **importacions específiques (deep imports)** que apuntin directament al fitxer intern necessari.
+Per solucionar aquest problema de manera definitiva, és obligatori que **tots els fitxers** dins de `packages/mobile` utilitzin **importacions específiques (deep imports)** per accedir als mòduls de `@gep/core`. Aquesta pràctica garanteix que només es carregui el codi estrictament necessari, evitant dependències conflictives.
 
-**Exemple:**
+**Exemples clars:**
 
-❌ **Incorrecte (carrega tot, incloent dependències d'escriptori):**
-`import { useEventDataStore } from '@gep/core';`
+- **Per a stores de Zustand:** Cal apuntar directament al fitxer de l'store.
+  - ❌ **Incorrecte:** `import { useEventDataStore } from '@gep/core';`
+  - ✅ **Correcte:** `import { useEventDataStore } from '@gep/core/stores/eventDataStore';`
 
-✅ **Correcte (carrega només l'store necessari):**
-`import { useEventDataStore } from '@gep/core/stores/eventDataStore';`
+- **Per a definicions de tipus (TypeScript):** Cal apuntar al mòdul de tipus i utilitzar `import type` per assegurar que no s'inclogui cap codi executable en el *bundle* final.
+  - ❌ **Incorrecte:** `import { AppData } from '@gep/core';`
+  - ✅ **Correcte:** `import type { AppData } from '@gep/core/types';`
 
-Aquesta pràctica és crucial per mantenir la base de codi mòbil lleugera i funcional.
+Aquesta convenció és crucial per mantenir la base de codi mòbil lleugera, funcional i lliure d'errors d'execució.
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
 

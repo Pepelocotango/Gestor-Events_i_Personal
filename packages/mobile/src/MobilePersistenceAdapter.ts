@@ -1,4 +1,4 @@
-import { PersistenceAdapter, AppData, ShowSaveDialogOptions, ShowSaveDialogResult } from '@gep/core';
+import type { PersistenceAdapter, AppData, ShowSaveDialogOptions, ShowSaveDialogResult } from '@gep/core/types';
 import * as FileSystem from 'expo-file-system';
 
 // Aquesta implementació completa de PersistenceAdapter està dissenyada per a l'entorn mòbil.
