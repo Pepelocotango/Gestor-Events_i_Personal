@@ -1025,6 +1025,18 @@ Per solucionar-ho, utilitzem un sistema d'**enllaços simbòlics (symlinks)** au
 
 Això "enganya" a Metro fent-li creure que `@gep/core` és una dependència local dins de `node_modules`, solucionant el problema de resolució de camins de manera neta i mantenint l'estructura del monorepo intacta.
 
+### Resolució d'Errors de Compilació a EAS Build
+
+Durant la compilació amb EAS Build, pot aparèixer l'error `Unable to resolve module ./utils/themeDefinition`. Aquest problema és causat perquè el fitxer `themeDefinition.ts` és un fitxer auto-generat pel paquet `@gep/desktop` i no existeix per defecte a l'entorn d'execució net d'EAS.
+
+La solució ha estat encadenar l'script de generació de temes abans de la comanda de compilació d'EAS. Això s'ha implementat directament a l'script `build:android-dev` del `packages/mobile/package.json`:
+
+```json
+"build:android-dev": "npm run build:theme --workspace=@gep/desktop && npx eas build --platform android --profile development"
+```
+
+Aquesta modificació assegura que el fitxer `themeDefinition.ts` sempre es genera abans d'iniciar el procés de compilació mòbil, garantint que la dependència es resolgui correctament.
+
 ---
 
 ## 8. Guia per a Desenvolupadors
