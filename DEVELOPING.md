@@ -996,7 +996,7 @@ Aquesta secció descriu els processos específics per al desenvolupament i compi
 
 ### Flux de treball per a la compilació i proves en dispositiu físic
 
-Per compilar l'aplicació mòbil en un fitxer `.apk` instal·lable i provar-la en un dispositiu Android físic, s'utilitza **EAS (Expo Application Services) Build**.
+Per compilar l'aplicació mòbil en un fitxer `.apk` instal·lable i provar-la en un dispositiu Android físic, s'utilitza **EAS (Expo Application Services) Build**. L'eina `eas-cli` està inclosa com a dependència de desenvolupament del projecte.
 
 El procés és el següent:
 
@@ -1004,9 +1004,9 @@ El procés és el següent:
     ```bash
     cd packages/mobile
     ```
-2.  Executar l'script de compilació de desenvolupament:
+2.  Executar l'script de compilació de desenvolupament des de l'arrel del projecte:
     ```bash
-    npm run build:android-dev
+    npm run build:android-dev --workspace=@gep/mobile
     ```
 3.  Un cop finalitzada la compilació, la terminal proporcionarà un enllaç per descarregar el fitxer `.apk` generat.
 4.  Instal·lar l'APK al dispositiu de proves connectat mitjançant Android Debug Bridge (adb):
