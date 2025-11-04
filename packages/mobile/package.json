@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:android-dev": "eas build --platform android --profile development"
   },
   "dependencies": {
     "@gep/core": "1.0.0",

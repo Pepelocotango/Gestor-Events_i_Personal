@@ -990,6 +990,32 @@ La clau `build` del `package.json` conté la configuració per a `electron-build
 
 ---
 
+## Aplicació Mòbil (`packages/mobile`)
+
+Aquesta secció descriu els processos específics per al desenvolupament i compilació de l'aplicació mòbil.
+
+### Flux de treball per a la compilació i proves en dispositiu físic
+
+Per compilar l'aplicació mòbil en un fitxer `.apk` instal·lable i provar-la en un dispositiu Android físic, s'utilitza **EAS (Expo Application Services) Build**.
+
+El procés és el següent:
+
+1.  Navegar al directori del paquet mòbil:
+    ```bash
+    cd packages/mobile
+    ```
+2.  Executar l'script de compilació de desenvolupament:
+    ```bash
+    npm run build:android-dev
+    ```
+3.  Un cop finalitzada la compilació, la terminal proporcionarà un enllaç per descarregar el fitxer `.apk` generat.
+4.  Instal·lar l'APK al dispositiu de proves connectat mitjançant Android Debug Bridge (adb):
+    ```bash
+    adb install nom_del_fitxer.apk
+    ```
+
+---
+
 ## 8. Guia per a Desenvolupadors
 
 * nota * Per mantenir una alta qualitat i robustesa del codi, la configuració de TypeScript a `packages/desktop/tsconfig.json` és estricta. Les següents regles estan activades (`true`):
