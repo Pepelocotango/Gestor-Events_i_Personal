@@ -1,0 +1,177 @@
+{
+  "peopleGroups": [
+    { "id": "person-01", "name": "Joan Garcia", "role": "Cap Tècnic / Regidor", "tel1": "600111222", "tel2": "931112233", "email": "joan.garcia@tecnicsevent.com", "web": "https://www.joangarcia.cat", "notes": "Expert en coordinació d'equips grans. Prefereix contacte per telèfon per urgències." },
+    { "id": "person-02", "name": "Maria Soler", "role": "Tècnic de So", "tel1": "600333444", "email": "maria.soler@email.com", "notes": "Especialista en taules de so digitals Yamaha i Midas. Molt resolutiva." },
+    { "id": "person-03", "name": "Carles Puig", "role": "Tècnic d'Il·luminació", "tel1": "600555666", "email": "carles.puig@email.com", "notes": "Controlador de GrandMA2 i Avolites. Creatiu i eficient." },
+    { "id": "person-04", "name": "Laura Vidal", "role": "Tècnic de Vídeo / Projeccions", "tel1": "600777888", "email": "laura.vidal@email.com", "notes": "Experta en Resolume Arena i sistemes de projecció Barco." },
+    { "id": "person-05", "name": "Albert Pons", "role": "Maquinista / Tècnic d'escenari", "tel1": "600999000", "email": "albert.pons@email.com", "notes": "Fort i amb experiència en muntatges complexos de truss i tarimes." },
+    { "id": "person-06", "name": "Sandra Roca", "role": "Ajudant de Producció", "tel1": "600123456", "email": "sandra.roca@email.com", "notes": "Estudiant en pràctiques. Molt organitzada i proactiva. Ideal per a tasques de suport." },
+    { "id": "person-07", "name": "David Ferrer", "role": "Tècnic Auxiliar / Rigger", "tel1": "600654321", "email": "david.ferrer@email.com", "notes": "Certificat IRATA nivell 1. Disponible per a feines d'alçada." },
+    { "id": "person-08", "name": "Clara Martí", "role": "Coordinadora de Logística", "tel1": "600987654", "email": "clara.marti@logisticafest.es", "notes": "Responsable de voluntaris, acreditacions i transport." },
+    { "id": "person-09", "name": "Jordi Serra", "role": "Conductor / Transportista", "tel1": "600112233", "email": "jordi.serra@transport.com", "notes": "Carnet C+E. Furgoneta pròpia de 3500kg." },
+    { "id": "person-10", "name": "Marta Bosch", "role": "Tècnic de So (Monitors)", "tel1": "600445566", "email": "marta.bosch@email.com", "notes": "Especialista en monitors d'escenari i sistemes in-ear." },
+    { "id": "company-01", "name": "FocusPro Serveis Audiovisuals", "role": "Proveïdor Il·luminació i So", "tel1": "937891234", "tel2": "610111222", "email": "contacte@focuspro.com", "web": "https://www.focuspro.com", "notes": "Empresa de lloguer de material. Cal contractar amb 2 setmanes d'antelació. Contacte principal: Robert." },
+    { "id": "company-02", "name": "Estructures metàl·liques SL", "role": "Proveïdor Estructures i Escenaris", "tel1": "936667788", "email": "info@estructuresmetaliques.com", "web": "https://www.estructuresmetaliques.com", "notes": "Especialistes en escenaris grans i layher. Demanar plànols i certificats de muntatge." },
+    { "id": "company-03", "name": "Càtering L'Àpat", "role": "Proveïdor Càtering", "tel1": "935554433", "email": "reserves@cateringlapat.cat", "web": "https://www.cateringlapat.cat", "notes": "Ofereixen menús per a equips tècnics i artistes. Opcions vegetarianes i sense gluten disponibles." },
+    { "id": "company-04", "name": "Vigilants de Seguretat Pro", "role": "Proveïdor Seguretat", "tel1": "932109876", "email": "info@vigilantspro.es", "notes": "Equips de seguretat per a control d'accessos i vigilància de recintes." },
+    { "id": "company-05", "name": "WC Lloguer Express", "role": "Proveïdor Sanitaris Portàtils", "tel1": "931231231", "email": "contacte@wcexpress.com", "notes": "Lloguer i manteniment de cabines de WC químiques." }
+  ],
+  "materialItems": [
+    { "id": "mat-L-001", "name": "Focus PC 1kW Robert Juliat", "category": "Il·luminació", "stock": 24, "location": "Magatzem 1 - Prestatge A3", "notes": "Inclou garres i portafiltres." },
+    { "id": "mat-L-002", "name": "Focus Retall ETC Source Four 25-50", "category": "Il·luminació", "stock": 16, "location": "Magatzem 1 - Prestatge A4", "notes": "Disponibles 8 lents de 19º i 8 de 36º." },
+    { "id": "mat-L-003", "name": "Focus LED PAR (RGBW)", "category": "Il·luminació", "stock": 48, "location": "Magatzem 1 - Prestatge B1", "notes": "Apte per a exteriors (IP65)." },
+    { "id": "mat-L-004", "name": "Cap mòbil Martin MAC Aura", "category": "Il·luminació", "stock": 12, "location": "Magatzem 2 - Robòtica", "notes": "Tipus Wash. Flightcase de 4 unitats." },
+    { "id": "mat-L-005", "name": "Taula de control GrandMA2 Light", "category": "Il·luminació", "stock": 2, "location": "Control Central", "notes": "Inclou flightcase i llum de sobretaula." },
+    { "id": "mat-L-006", "name": "Cegadora 4x100W halògena", "category": "Il·luminació", "stock": 8, "location": "Magatzem 1 - Prestatge C2", "notes": "Connectors schuko." },
+    { "id": "mat-S-001", "name": "Taula de so Yamaha CL5", "category": "So", "stock": 2, "location": "Control Central", "notes": "Inclou flightcase i doghouse. Requereix 2 persones." },
+    { "id": "mat-S-002", "name": "Altaveu Meyer Sound UPA-1P", "category": "So", "stock": 12, "location": "Magatzem So - Prestatge A1", "notes": "Altaveu autoamplificat. Inclou funda." },
+    { "id": "mat-S-003", "name": "Subwoofer Meyer Sound USW-1P", "category": "So", "stock": 6, "location": "Magatzem So - Prestatge A2", "notes": "Subwoofer autoamplificat. Inclou funda." },
+    { "id": "mat-S-004", "name": "Micròfon Shure SM58", "category": "So", "stock": 20, "location": "Calaix de micros A", "notes": "Micròfon dinàmic per a veu. Inclou pinça." },
+    { "id": "mat-S-005", "name": "Micròfon de diadema DPA 4066", "category": "So", "stock": 8, "location": "Calaix de micros B", "notes": "Color beige. Connector Mini-XLR per a petaca Shure." },
+    { "id": "mat-S-006", "name": "Sistema In-Ear Shure PSM1000", "category": "So", "stock": 4, "location": "Rack de Ràdios", "notes": "Sistema complet amb transmissor i 4 petacas receptores." },
+    { "id": "mat-V-001", "name": "Projector Panasonic PT-RZ12K", "category": "Vídeo", "stock": 2, "location": "Magatzem 2 - Equip delicat", "notes": "12.000 lúmens, làser. Llogat habitualment." },
+    { "id": "mat-V-002", "name": "Pantalla de projecció 6x4m (frontal)", "category": "Vídeo", "stock": 1, "location": "Magatzem 2 - Material voluminós", "notes": "Muntatge amb truss. Inclou faldons negres." },
+    { "id": "mat-V-003", "name": "Ordinador portàtil MacBook Pro M2", "category": "Vídeo", "stock": 3, "location": "Oficina Tècnica", "notes": "Amb licències de Resolume, QLab i ProPresenter." },
+    { "id": "mat-V-004", "name": "Càmera Blackmagic Studio Camera 4K", "category": "Vídeo", "stock": 4, "location": "Magatzem 2 - Càmeres", "notes": "Inclou trípode i òptica bàsica." },
+    { "id": "mat-E-001", "name": "Pota d'escenari 2x1m", "category": "Estructures", "stock": 40, "location": "Pati - Zona de tarimes", "notes": "Marca Rosco. Potes regulables de 80 a 120cm." },
+    { "id": "mat-E-002", "name": "Grada mòbil (mòdul 10 persones)", "category": "Estructures", "stock": 10, "location": "Pati - Grades", "notes": "Mòduls de 2.5m d'ample." },
+    { "id": "mat-E-003", "name": "Truss Prolyte H30V - Tram 2m", "category": "Estructures", "stock": 30, "location": "Magatzem 1 - Zona Truss", "notes": "Revisar unió de cargols." },
+    { "id": "mat-E-004", "name": "Motor de cadena 1T (24m)", "category": "Maquinària", "stock": 8, "location": "Magatzem 1 - Motors", "notes": "Marca CM Lodestar. Control a 8 canals disponible." },
+    { "id": "mat-C-001", "name": "Rotllo de cinta americana (negra)", "category": "Consumibles", "stock": 50, "location": "Consumibles - Calaix A", "notes": "Marca TESA." },
+    { "id": "mat-C-002", "name": "Bridas de plàstic (negres, 20cm)", "category": "Consumibles", "stock": 2, "location": "Consumibles - Calaix B", "notes": "Stock en bosses de 100 unitats." },
+    { "id": "mat-P-001", "name": "Tarima de fusta 2x1m", "category": "Plataformes", "stock": 30, "location": "Pati - Zona de tarimes", "notes": "Superfície antilliscant." },
+    { "id": "mat-T-001", "name": "Cortina de fons negra (10x6m)", "category": "Telons", "stock": 2, "location": "Magatzem Textil", "notes": "Cotó ignífug. Ullals cada 25cm." },
+    { "id": "mat-EL-001", "name": "Quadre elèctric 63A trifàsic", "category": "Elèctric", "stock": 2, "location": "Magatzem Elèctric", "notes": "Sortides a CETAC 32A, 16A i Schuko." },
+    { "id": "mat-TR-001", "name": "Furgoneta Mercedes Sprinter", "category": "Transport", "stock": 1, "location": "Pàrquing", "notes": "Capacitat de 12m³. Requereix carnet B." },
+    { "id": "mat-O-001", "name": "Tanca de seguretat (tipus 'heavy')", "category": "Altres", "stock": 100, "location": "Pati Exterior", "notes": "Panells de 2.2m d'ample." },
+    { "id": "mat-O-002", "name": "Extintor de CO2 (5kg)", "category": "Altres", "stock": 10, "location": "Punt de Seguretat", "notes": "Revisar data de caducitat abans de cada ús." }
+  ],
+  "eventFrames": [
+    {
+      "id": "event-simple-01",
+      "name": "Reunió de Producció Setmanal",
+      "place": "Oficina Central - Sala de Juntes",
+      "startDate": "2025-10-06",
+      "endDate": "2025-10-06",
+      "generalNotes": "Reunió de seguiment dels projectes en curs. Portar els informes d'estat.",
+      "personnelComplete": true
+    },
+    {
+      "id": "event-medium-02",
+      "name": "Conferència Tech-Innovate 2025",
+      "place": "Centre de Convencions Internacional de Barcelona (CCIB)",
+      "startDate": "2025-11-20",
+      "endDate": "2025-11-20",
+      "generalNotes": "Esdeveniment corporatiu per a 300 assistents. Muntatge el dia anterior.",
+      "personnelComplete": false,
+      "techSheet": {
+        "eventName": "Conferència Tech-Innovate 2025",
+        "location": "CCIB - Sala 112",
+        "date": "2025-11-20",
+        "showTime": "09:00 - 18:00",
+        "showDuration": "9 hores",
+        "technicalProviders": [],
+        "logistics": { "status": "yes", "details": "Accés per moll de càrrega 2. Contacte: Miquel (Logística CCIB)." },
+        "dressingRooms": "2 camerinos dobles al costat de l'escenari.",
+        "sound": {
+          "status": "yes",
+          "details": "Sistema de PA per a veu. 4 micròfons de diadema i 2 de mà.",
+          "data": { "needs": [
+            { "id": "need-s-1", "materialItemId": "mat-S-005", "quantity": 4, "description": "Micròfons de diadema per a ponents", "origin": "Magatzem" },
+            { "id": "need-s-2", "materialItemId": "mat-S-004", "quantity": 2, "description": "Micròfons de mà per a preguntes del públic", "origin": "Magatzem" },
+            { "id": "need-s-3", "materialItemId": null, "quantity": 1, "description": "Taula de so digital petita (tipus QU-16)", "origin": "Lloguer" }
+          ]}
+        },
+        "video": {
+          "status": "yes",
+          "details": "Pantalla de projecció de 6x4m. Projector de 12.000 lúmens. 2 TVs de 55\" per a reforç.",
+          "data": { "needs": [
+            { "id": "need-v-1", "materialItemId": "mat-V-001", "quantity": 1, "description": "Projector principal", "origin": "Magatzem" },
+            { "id": "need-v-2", "materialItemId": "mat-V-002", "quantity": 1, "description": "Pantalla 6x4m", "origin": "Magatzem" },
+            { "id": "need-v-3", "materialItemId": "mat-V-003", "quantity": 1, "description": "MacBook Pro per a llançar vídeos", "origin": "Magatzem" }
+          ]}
+        }
+      }
+    },
+    {
+      "id": "event-complex-03",
+      "name": "Festival de Música 'Nits d'Estiu'",
+      "place": "Parc del Fòrum, Barcelona",
+      "startDate": "2025-07-18",
+      "endDate": "2025-07-20",
+      "generalNotes": "Festival de 3 dies amb 2 escenaris. Cal coordinar tots els proveïdors externs. Muntatge comença el 2025-07-14.",
+      "personnelComplete": false,
+      "techSheet": {
+        "eventName": "Festival de Música 'Nits d'Estiu'",
+        "location": "Parc del Fòrum, Barcelona",
+        "date": "18, 19 i 20 de Juliol de 2025",
+        "showTime": "19:00 - 03:00",
+        "showDuration": "8 hores / dia",
+        "generalNotes": "Aforament: 15.000 persones. Important complir amb la normativa de soroll.",
+        "showGeneralNotesInPdf": true,
+        "technicalProviders": [
+          { "id": "prov-1", "personGroupId": "company-01", "roles": [
+              { "id": "role-1", "role": "Disseny i operació de llums", "quantity": 2, "printNotes": true, "notes": "Operador per a l'escenari principal." },
+              { "id": "role-2", "role": "Tècnic de So PA", "quantity": 2, "printNotes": true, "notes": "Tècnic per a l'escenari principal." }
+          ]},
+          { "id": "prov-2", "personGroupId": "company-02", "roles": [
+              { "id": "role-3", "role": "Muntatge escenari principal", "quantity": "Equip de 8", "printNotes": false }
+          ]}
+        ],
+        "parking": { "status": "yes", "details": "Zona reservada per a 5 furgonetes i 2 camions al moll de càrrega. Cal llista de matrícules." },
+        "preAssembly": { "status": "yes", "details": "Muntatge general del 14 al 17 de Juliol. Horari de 08:00 a 20:00." },
+        "schedule": {
+          "status": "yes", "details": "Horari de muntatge i proves de so.",
+          "data": [
+            { "id": "sch-1", "date": "2025-07-17", "time": "10:00-14:00", "description": "Proves de so Escenari Principal" },
+            { "id": "sch-2", "date": "2025-07-17", "time": "16:00-18:00", "description": "Proves de so Escenari B" },
+            { "id": "sch-3", "date": "2025-07-18", "time": "17:00", "description": "Obertura de portes" }
+          ]
+        },
+        "logistics": { "status": "yes", "details": "Coordinació amb Clara Martí. Es necessiten 20 tanques heavy-duty per a la separació de públic." },
+        "dressingRooms": "4 camerinos grans amb dutxa. 2 oficines de producció.",
+        "actorsNumber": "15 bandes", "actors": "Detall en el full de contactes.",
+        "companyTechniciansNumber": 40, "companyTechnicians": "Tècnics de les bandes i de l'organització.",
+        "lighting": { "status": "yes", "details": "Disseny a càrrec de FocusPro.", "data": { "needs": [
+          { "id": "need-l-1", "materialItemId": "mat-L-004", "quantity": 24, "description": "Caps mòbils per a l'escenari principal", "origin": "Proveïdor" },
+          { "id": "need-l-2", "materialItemId": "mat-L-005", "quantity": 1, "description": "GrandMA2 per a control", "origin": "Magatzem" }
+        ]}},
+        "sound": { "status": "yes", "details": "Sistema Line Array per a 15.000 persones.", "data": { "needs": [
+          { "id": "need-s-1", "materialItemId": null, "quantity": 1, "description": "Sistema PA L-Acoustics K2", "origin": "Proveïdor" },
+          { "id": "need-s-2", "materialItemId": "mat-S-001", "quantity": 2, "description": "Yamaha CL5 per a FOH i Monitors", "origin": "Magatzem" }
+        ]}},
+        "structures": { "status": "yes", "details": "Escenari principal de 20x15m. Torre de FOH.", "data": { "needs": [
+          { "id": "need-e-1", "materialItemId": null, "quantity": 1, "description": "Escenari Layher 20x15m amb coberta", "origin": "Proveïdor" }
+        ]}},
+        "controlLocation": "Torre de FOH a 40m de l'escenari. Plataforma per a discapacitats al costat.",
+        "contacts": [
+          { "id": "con-1", "name": "Robert (FocusPro)", "role": "Cap Tècnic Proveïdor", "phone": "610111222", "email": "robert@focuspro.com" },
+          { "id": "con-2", "name": "Anna (Ajuntament)", "role": "Gerent de Permisos", "phone": "931234567", "email": "anna@bcn.cat" }
+        ],
+        "observations": "Compte amb el vent! La zona del Fòrum és molt exposada.",
+        "showLogistics": true, "showSchedule": true, "showNeeds": true
+      }
+    }
+  ],
+  "assignments": [
+    { "id": "assign-s-01", "personGroupId": "person-01", "eventFrameId": "event-simple-01", "startDate": "2025-10-06", "endDate": "2025-10-06", "status": "Sí", "notes": "Lidera la reunió." },
+    { "id": "assign-s-02", "personGroupId": "person-08", "eventFrameId": "event-simple-01", "startDate": "2025-10-06", "endDate": "2025-10-06", "status": "Sí", "notes": "Pren acta." },
+    { "id": "assign-m-01", "personGroupId": "person-01", "eventFrameId": "event-medium-02", "startDate": "2025-11-19", "endDate": "2025-11-20", "status": "Sí", "notes": "Regidor de l'esdeveniment. Muntatge inclòs." },
+    { "id": "assign-m-02", "personGroupId": "person-02", "eventFrameId": "event-medium-02", "startDate": "2025-11-20", "endDate": "2025-11-20", "status": "Sí", "notes": "Tècnic de so." },
+    { "id": "assign-m-03", "personGroupId": "person-04", "eventFrameId": "event-medium-02", "startDate": "2025-11-20", "endDate": "2025-11-20", "status": "Pendent", "notes": "Pendent de confirmar disponibilitat." },
+    { "id": "assign-m-04", "personGroupId": "person-06", "eventFrameId": "event-medium-02", "startDate": "2025-11-19", "endDate": "2025-11-20", "status": "No", "notes": "Té un altre esdeveniment." },
+    { "id": "assign-c-01", "personGroupId": "person-01", "eventFrameId": "event-complex-03", "startDate": "2025-07-14", "endDate": "2025-07-20", "status": "Sí", "notes": "Cap tècnic del festival. Supervisió general." },
+    { "id": "assign-c-02", "personGroupId": "person-08", "eventFrameId": "event-complex-03", "startDate": "2025-07-14", "endDate": "2025-07-20", "status": "Sí", "notes": "Coordinadora de logística i proveïdors." },
+    { "id": "assign-c-03", "personGroupId": "company-01", "eventFrameId": "event-complex-03", "startDate": "2025-07-15", "endDate": "2025-07-20", "status": "Sí", "notes": "Proveïdor principal de llum i so." },
+    { "id": "assign-c-04", "personGroupId": "company-02", "eventFrameId": "event-complex-03", "startDate": "2025-07-14", "endDate": "2025-07-17", "status": "Sí", "notes": "Proveïdor de l'escenari principal." },
+    { "id": "assign-c-05", "personGroupId": "person-03", "eventFrameId": "event-complex-03", "startDate": "2025-07-18", "endDate": "2025-07-20", "status": "Mixt", "notes": "Disponible divendres i dissabte, però no diumenge.", "dailyStatuses": { "2025-07-18": "Sí", "2025-07-19": "Sí", "2025-07-20": "No" } }
+  ],
+  "googleConfig": {
+    "userEmail": "usuari.exemple@gmail.com",
+    "activeAppCalendarId": "cal-app-01",
+    "managedAppCalendars": [
+      { "id": "cal-app-01", "name": "Tècnics App Calendar", "suffix": " (TAC)" },
+      { "id": "cal-app-02", "name": "Producció App Calendar", "suffix": " (PAC)" }
+    ]
+  }
+}

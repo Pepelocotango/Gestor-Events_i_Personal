@@ -100,6 +100,15 @@ Aquest document descriu l'estructura completa de fitxers i carpetes del projecte
 │       ├── tailwind.config.cjs   # Configuració de Tailwind CSS.
 │       ├── tsconfig.json         # Configuració del compilador de TypeScript per al frontend.
 │       └── vite.config.ts        # Configuració de Vite (eina de compilació del frontend).
+│   └── mobile/                   # Paquet de l'aplicació mòbil (React Native + Expo).
+│       ├── App.tsx               # Component arrel de l'aplicació mòbil.
+│       ├── assets/               # Recursos estàtics de l'aplicació mòbil.
+│       │   └── example_all.json  # Dades d'exemple per a la prova de concepte.
+│       ├── metro.config.js       # Configuració de Metro, el bundler de React Native, per al monorepo.
+│       ├── package.json          # Dependències i scripts de l'aplicació mòbil.
+│       ├── src/                  # Codi font de l'aplicació mòbil.
+│       │   └── MobilePersistenceAdapter.ts # Implementació de 'persistenceAdapter' per a la plataforma mòbil.
+│       └── tsconfig.json         # Configuració de TypeScript per a l'aplicació mòbil.
 └── theme.config.cjs              # FONT ÚNICA DE LA VERITAT PER ALS COLORS: Defineix la paleta de colors de l'app.
 ```
 

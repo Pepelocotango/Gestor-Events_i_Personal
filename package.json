@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "packages/core",
-    "packages/desktop"
+    "packages/desktop",
+    "packages/mobile"
   ],
   "scripts": {
     "build:electron": "npm run build --workspace=@gep/desktop && electron-builder --projectDir packages/desktop",

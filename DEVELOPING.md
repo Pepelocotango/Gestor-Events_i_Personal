@@ -40,8 +40,13 @@ El projecte s'ha reestructurat en un **monorepo** per separar les responsabilita
 
 - **`packages/core`**: Conté tota la lògica de negoci compartida i agnòstica de la plataforma. Això inclou els stores de dades (Zustand), les definicions de tipus (TypeScript), i les funcions d'utilitat que no depenen de cap entorn específic.
 - **`packages/desktop`**: Conté l'aplicació d'escriptori, construïda amb Electron i React. Aquest paquet s'encarrega de la interfície d'usuari, la comunicació amb les API natives del sistema operatiu i la implementació específica de la persistència de dades.
+- **`packages/mobile`**: Conté la nova aplicació mòbil, construïda amb React Native i Expo. Aquest paquet té com a objectiu oferir una versió lleugera i portàtil de l'aplicació per a dispositius mòbils.
 
-Per desacoblar la lògica de l'entorn, el paquet `core` defineix una interfície anomenada `PersistenceAdapter`. El paquet `desktop` proporciona una implementació concreta d'aquesta interfície que utilitza IPC d'Electron per llegir i escriure fitxers. Aquest adaptador s'injecta a la lògica del `core` en temps d'execució, permetent que el nucli de l'aplicació sigui portable i es pugui reutilitzar en altres plataformes (com una futura aplicació web o mòbil) sense modificacions.
+Per desacoblar la lògica de l'entorn, el paquet `core` defineix una interfície anomenada `PersistenceAdapter`. Cada paquet de plataforma (`desktop` i `mobile`) proporciona una implementació concreta d'aquesta interfície:
+-   **`ElectronPersistenceAdapter`**: Utilitza IPC d'Electron per llegir i escriure fitxers al sistema de fitxers de l'ordinador.
+-   **`MobilePersistenceAdapter`**: Utilitza les API de `expo-file-system` per interactuar amb el sistema de fitxers del dispositiu mòbil.
+
+Aquest adaptador s'injecta a la lògica del `core` en temps d'execució, permetent que el nucli de l'aplicació sigui completament portable i reutilitzable entre plataformes sense modificacions.
 
 ### Visió General del Projecte
 
