@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { initializeEventDataStore, useEventDataStore, AppData } from '@gep/core';
+import { initializeEventDataStore, useEventDataStore } from '@gep/core/stores/eventDataStore';
+import type { AppData } from '@gep/core/types';
 import MobilePersistenceAdapter from './src/MobilePersistenceAdapter';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';

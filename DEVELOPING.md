@@ -1101,6 +1101,22 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 -   **Ús de Modals Interns per a Confirmacions**: Per evitar bugs de pèrdua de focus i mantenir una experiència d'usuari consistent, s'ha estandarditzat l'ús del sistema de modals interns de l'aplicació (`useModalStore`) en lloc de les funcions natives del navegador com `window.confirm()`. Qualsevol nova acció que requereixi confirmació de l'usuari ha d'implementar un modal a través d'aquest sistema.
 
+### Importacions Específiques (Deep Imports) per a Mòbil
+
+Per garantir la compatibilitat i evitar errors d'execució, l'aplicació mòbil (`packages/mobile`) no ha d'importar mòduls directament des de l'arrel del paquet `@gep/core`. El fitxer d'entrada (`index.ts`) de `@gep/core` exporta funcionalitats dissenyades exclusivament per a l'entorn d'escriptori, com el generador de PDF (`jspdf`), que són incompatibles amb React Native.
+
+Per evitar carregar aquestes dependències, s'han d'utilitzar **importacions específiques (deep imports)** que apuntin directament al fitxer intern necessari.
+
+**Exemple:**
+
+❌ **Incorrecte (carrega tot, incloent dependències d'escriptori):**
+`import { useEventDataStore } from '@gep/core';`
+
+✅ **Correcte (carrega només l'store necessari):**
+`import { useEventDataStore } from '@gep/core/stores/eventDataStore';`
+
+Aquesta pràctica és crucial per mantenir la base de codi mòbil lleugera i funcional.
+
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
 
 Per garantir la màxima robustesa i evitar pèrdues de dades o bloquejos de l'aplicació a causa de fitxers de dades corruptes o amb formats antics, s'ha implementat un pipeline de càrrega de dades de diversos passos. Aquest sistema prioritza una experiència d'usuari ràpida per a dades vàlides (el "camí feliç") mentre proporciona una xarxa de seguretat per a dades que requereixen correccions.

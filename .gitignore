@@ -53,3 +53,7 @@ Thumbs.db
 # Ignora la memòria cau de Python (per a scripts auxiliars).
 __pycache__/
 *.pyc
+
+# Directroris natius generats per Expo Prebuild
+/packages/mobile/android
+/packages/mobile/ios
