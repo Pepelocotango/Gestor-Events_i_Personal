@@ -1014,6 +1014,17 @@ El procés és el següent:
     adb install nom_del_fitxer.apk
     ```
 
+### Resolució de Paquets del Monorepo (Enllaços Simbòlics)
+
+Un dels reptes tècnics en un monorepo de React Native és la resolució de paquets. El compilador Metro, per defecte, no pot accedir a fitxers que es troben fora del seu directori arrel (`packages/mobile`). Com que el nostre paquet compartit `@gep/core` es troba a `packages/core`, la compilació falla, especialment en entorns estrictes com EAS Build.
+
+Per solucionar-ho, utilitzem un sistema d'**enllaços simbòlics (symlinks)** automatitzat:
+
+1.  **Script de Creació:** El fitxer `scripts/create-symlinks.js` s'encarrega de crear un enllaç simbòlic a `packages/mobile/node_modules/@gep/core` que apunta directament al codi font de `packages/core`.
+2.  **Automatització `postinstall`:** El `package.json` de l'arrel del projecte té un script `postinstall` que executa automàticament `create-symlinks.js` cada vegada que s'executa `npm install`.
+
+Això "enganya" a Metro fent-li creure que `@gep/core` és una dependència local dins de `node_modules`, solucionant el problema de resolució de camins de manera neta i mantenint l'estructura del monorepo intacta.
+
 ---
 
 ## 8. Guia per a Desenvolupadors
