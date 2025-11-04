@@ -1,14 +1,21 @@
 {
-"build": {
-"development": {
-"distribution": "internal",
-"android": {
-"buildType": "apk"
-}
-},
-"preview": {
-"distribution": "internal"
-},
-"production": {}
-}
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "developmentClient": true
+    },
+    "poc": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {}
+  }
 }
