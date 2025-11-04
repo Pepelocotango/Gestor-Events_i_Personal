@@ -102,9 +102,17 @@ Aquest document descriu l'estructura completa de fitxers i carpetes del projecte
 │       └── vite.config.ts        # Configuració de Vite (eina de compilació del frontend).
 │   └── mobile/                   # Paquet de l'aplicació mòbil (React Native + Expo).
 │       ├── App.tsx               # Component arrel de l'aplicació mòbil.
+│       ├── app.json              # Configuració específica d'Expo per a l'app (nom, icona, etc.).
 │       ├── assets/               # Recursos estàtics de l'aplicació mòbil.
-│       │   └── example_all.json  # Dades d'exemple per a la prova de concepte.
+│       │   ├── adaptive-icon.png # Icona adaptativa per a Android.
+│       │   ├── example_all.json  # Dades d'exemple per a la prova de concepte.
+│       │   ├── favicon.png       # Icona per a la versió web de l'app (PWA).
+│       │   ├── icon.png          # Icona principal de l'aplicació.
+│       │   └── splash-icon.png   # Imatge per a la pantalla de càrrega (splash screen).
+│       ├── eas.json              # Configuració per a Expo Application Services (EAS) Build.
+│       ├── index.ts              # Punt d'entrada principal registrat per Expo.
 │       ├── metro.config.js       # Configuració de Metro, el bundler de React Native, per al monorepo.
+│       ├── package-lock.json     # Fitxer de bloqueig de dependències del paquet mòbil.
 │       ├── package.json          # Dependències i scripts de l'aplicació mòbil.
 │       ├── src/                  # Codi font de l'aplicació mòbil.
 │       │   └── MobilePersistenceAdapter.ts # Implementació de 'persistenceAdapter' per a la plataforma mòbil.
