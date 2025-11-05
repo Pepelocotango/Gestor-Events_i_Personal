@@ -12,14 +12,14 @@
   "scripts": {
     "dev": "vite --force --clearScreen false",
     "build:theme": "node scripts/build-theme.cjs",
-    "wait": "node -e \"setTimeout(() => process.exit(0), 500)\"",
-    "build": "npm run build:theme && tsc && vite build",
-    "preview": "vite preview",
-    "electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
-    "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
-    "start": "npm run build:theme && npm run wait && npm run electron-dev",
-    "clean": "rm -rf dist node_modules/.vite",
-    "fresh-start": "npm run clean && npm start"
+  "wait": "node -e \"setTimeout(() => process.exit(0), 500)\"",
+  "build": "npm run build:theme && tsc && vite build",
+  "preview": "vite preview",
+  "electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
+  "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
+  "start": "npm run build:theme && npm run wait && npm run electron-dev",
+  "clean": "rimraf dist node_modules/.vite",
+  "fresh-start": "npm run clean && npm start"
   },
   "dependencies": {
     "@gep/core": "file:../core",
@@ -67,6 +67,8 @@
     "typescript": "5.5.3",
     "vite": "6.3.6",
     "wait-on": "7.2.0"
+  ,
+  "rimraf": "^5.0.0"
   },
   "build": {
     "appId": "com.gestorevents.app",
