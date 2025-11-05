@@ -1,15 +1,14 @@
-import type { PersistenceAdapter, AppData, ShowSaveDialogOptions, ShowSaveDialogResult } from '@gep/core/types';
-import { getInfoAsync, readAsStringAsync, writeAsStringAsync, copyAsync, documentDirectory, EncodingType } from 'expo-file-system/legacy';
+import type { PersistenceAdapter, AppData, ShowSaveDialogOptions, ShowSaveDialogResult, GoogleConfig, SyncProgressState } from '@gep/core/types';
+import * as FileSystem from 'expo-file-system';
 
-// Aquesta implementació completa de PersistenceAdapter està dissenyada per a l'entorn mòbil.
-// Els mètodes que no són rellevants per a la plataforma mòbil llancen un error
-// per indicar que no estan implementats, però existeixen per satisfer el contracte de la interfície.
+// Aquesta és una implementació parcial de PersistenceAdapter per a la Prova de Concepte (POC) mòbil.
+// Només s'implementen els mètodes necessaris per llegir i escriure dades localment.
 
-class MobilePersistenceAdapter implements Omit<PersistenceAdapter, 'on' | 'off' | 'removeAllListeners'> {
+class MobilePersistenceAdapterImpl {
   async readFile(filePath: string): Promise<{ success: boolean; content?: string; message?: string; }> {
     try {
-      const content = await readAsStringAsync(filePath, {
-        encoding: EncodingType.UTF8,
+      const content = await FileSystem.readAsStringAsync(filePath, {
+        encoding: FileSystem.EncodingType.UTF8,
       });
       return { success: true, content };
     } catch (error) {
@@ -20,8 +19,8 @@ class MobilePersistenceAdapter implements Omit<PersistenceAdapter, 'on' | 'off' 
 
   async saveFile({ filePath, data }: { filePath: string; data: string }): Promise<{ success: boolean; message?: string; }> {
     try {
-      await writeAsStringAsync(filePath, data, {
-        encoding: EncodingType.UTF8,
+      await FileSystem.writeAsStringAsync(filePath, data, {
+        encoding: FileSystem.EncodingType.UTF8,
       });
       return { success: true };
     } catch (error) {
@@ -30,146 +29,145 @@ class MobilePersistenceAdapter implements Omit<PersistenceAdapter, 'on' | 'off' 
     }
   }
 
-  async ensureDataFileExists(asset: any): Promise<{ path: string; message: string }> {
-    const userDataPath = (documentDirectory || '') + 'user_data.json';
-    const fileInfo = await getInfoAsync(userDataPath);
+  // --- Mètodes no implementats per a la POC ---
+  // Aquests mètodes formen part de la interfície PersistenceAdapter però no són
+  // necessaris per a la funcionalitat bàsica de la versió mòbil en aquesta fase.
+  // Es deixen comentats com a referència per a futures implementacions.
 
-    if (!fileInfo.exists) {
-      if (asset.localUri) {
-        await copyAsync({
-          from: asset.localUri,
-          to: userDataPath,
-        });
-        return { path: userDataPath, message: 'Fitxer d\'exemple copiat correctament.' };
-      } else {
-        throw new Error("No s'ha pogut obtenir la URI local de l'actiu per copiar.");
-      }
-    }
-    return { path: userDataPath, message: 'El fitxer de dades ja existeix.' };
-    }
+  // async ensureDataFileExists(asset: any): Promise<{ path: string; message: string }> {
+  //   const userDataPath = (FileSystem.documentDirectory || '') + 'user_data.json';
+  //   const fileInfo = await FileSystem.getInfoAsync(userDataPath);
+  //
+  //   if (!fileInfo.exists) {
+  //     if (asset.localUri) {
+  //       await FileSystem.copyAsync({
+  //         from: asset.localUri,
+  //         to: userDataPath,
+  //       });
+  //       return { path: userDataPath, message: 'Fitxer d\'exemple copiat correctament.' };
+  //     } else {
+  //       throw new Error("No s'ha pogut obtenir la URI local de l'actiu per copiar.");
+  //     }
+  //   }
+  //   return { path: userDataPath, message: 'El fitxer de dades ja existeix.' };
+  // }
 
-  // --- Mètodes no implementats (per a compatibilitat de tipus) ---
-
-  async openFileDialog(): Promise<{ success: boolean; canceled?: boolean; filePath?: string; message?: string; }> {
-    throw new Error('openFileDialog no està implementat a la plataforma mòbil.');
-  }
-
-  async showSaveDialog(options: ShowSaveDialogOptions): Promise<ShowSaveDialogResult> {
-    throw new Error('showSaveDialog no està implementat a la plataforma mòbil.');
-  }
-
-  async showUnsavedChangesDialog(options: { message: string; buttons: string[] }): Promise<{ response: number; }> {
-    throw new Error('showUnsavedChangesDialog no està implementat a la plataforma mòbil.');
-  }
-
-  async logInfo(message: string): Promise<void> {
-    console.log(message);
-  }
-
-  async logError(message: string): Promise<void> {
-    console.error(message);
-  }
-
-  // Afegeix la resta de mètodes de la interfície amb implementacions buides o que llancin errors
-  onConfirmQuit(callback: () => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  quitApplication(): void {
-    throw new Error('Method not implemented.');
-  }
-  getSessionData(): Promise<any> {
-    throw new Error('Method not implemented.');
-  }
-  saveSessionData(key: string, value: any): Promise<{ success: boolean; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  getRecentFiles(): Promise<string[]> {
-     throw new Error('Method not implemented.');
-  }
-  addRecentFile(filePath: string): Promise<{ success: boolean; recentFiles: string[]; }> {
-    throw new Error('Method not implemented.');
-  }
-  getAppMetadata(): Promise<{ name: string; version: string; description: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  loadGoogleConfig(): Promise<any> {
-    throw new Error('Method not implemented.');
-  }
-  startGoogleAuth(): Promise<{ success: boolean; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  onGoogleAuthSuccess(callback: () => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  onGoogleAuthError(callback: (errorMessage: string) => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  getCalendarList(): Promise<{ success: boolean; calendars?: any[]; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  saveGoogleConfig(config: any): Promise<{ success: boolean; data?: any; message?: string; }> {
-    throw new Error('Method not implementat.');
-  }
-  getGoogleEvents(): Promise<{ success: boolean; events?: any[]; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  getEventDetails(calendarId: string, eventId: string): Promise<{ success: boolean; event?: any; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  syncWithGoogle(payload: any): Promise<any> {
-    throw new Error('Method not implemented.');
-  }
-  onSyncProgress(callback: (progress: any) => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  googleDisconnect(): Promise<{ success: boolean; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  deleteAppCalendar(calendarId: string): Promise<{ success: boolean; message?: string; data?: any; }> {
-    throw new Error('Method not implemented.');
-  }
-  createNewAppCalendar(suffix: string): Promise<{ success: boolean; message?: string; data?: any; }> {
-    throw new Error('Method not implemented.');
-  }
-  onMenuAction(callback: (action: string) => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  triggerMenuAction(action: string): void {
-    throw new Error('Method not implemented.');
-  }
-  onBackendNotification(callback: (notification: any) => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  factoryReset(): Promise<{ success: boolean; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  openLogsFolder(): Promise<{ success: boolean; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  openBackupsFolder(): Promise<{ success: boolean; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  loadAppData(): Promise<any> {
-    throw new Error('Method not implemented.');
-  }
-  saveAppData(data: AppData): Promise<{ success: boolean; message?: string; }> {
-    throw new Error('Method not implemented.');
-  }
-  getDefaultDataPath(): Promise<string> {
-    throw new Error('Method not implemented.');
-  }
-  onAppWillRelaunchAfterReset(callback: () => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  onSyncError(callback: (error: string) => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  onSyncSuccess(callback: (message: string) => void): () => void {
-    throw new Error('Method not implemented.');
-  }
-  getPlatformSync(): "darwin" | "win32" | "linux" {
-    throw new Error('Method not implemented.');
-  }
+  // // Gestió de dades i fitxers
+  // async openFileDialog(): Promise<{ success: boolean; canceled?: boolean; filePath?: string; message?: string; }> {
+  //   throw new Error('openFileDialog no està implementat a la plataforma mòbil.');
+  // }
+  //
+  // async showSaveDialog(options: ShowSaveDialogOptions): Promise<ShowSaveDialogResult> {
+  //   throw new Error('showSaveDialog no està implementat a la plataforma mòbil.');
+  // }
+  //
+  // async showUnsavedChangesDialog(options: { message: string; buttons: string[] }): Promise<{ response: number; }> {
+  //   throw new Error('showUnsavedChangesDialog no està implementat a la plataforma mòbil.');
+  // }
+  //
+  // // Integració amb Google
+  // async saveGoogleConfig(config: Partial<GoogleConfig>): Promise<{ success: boolean }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async loadGoogleConfig(): Promise<GoogleConfig | null> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async getGoogleEvents(): Promise<{ success: boolean; events?: any[]; message?: string }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async syncWithGoogle(payload: { localData: AppData, targetCalendarId: string }): Promise<any> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async startGoogleAuth(): Promise<{ success: boolean; message?: string }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // // Cicle de vida i metadades de l'aplicació
+  // async getAppMetadata(): Promise<{ name: string; version: string; description: string; }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // getPlatformSync(): 'darwin' | 'win32' | 'linux' {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // quitApplication(): void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async factoryReset(): Promise<{ success: boolean; message?: string }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // // Sessió i configuració
+  // async addRecentFile(filePath: string): Promise<{ success: boolean; recentFiles: string[] }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async getRecentFiles(): Promise<string[]> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async getSessionData(): Promise<{ [key: string]: any; }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async saveSessionData(key: string, value: any): Promise<{ success: boolean; }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // // Utilitats
+  // async openLogsFolder(): Promise<{ success: boolean; message?: string }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // async openBackupsFolder(): Promise<{ success: boolean; message?: string }> {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // // Event listeners (IPC)
+  // onConfirmQuit(callback: () => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // onGoogleAuthSuccess(callback: () => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // onGoogleAuthError(callback: (message: string) => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // onSyncProgress(callback: (progress: SyncProgressState) => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // onAppWillRelaunchAfterReset(callback: () => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // onSyncError(callback: (error: string) => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // onSyncSuccess(callback: (message: string) => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // onBackendNotification(callback: (notification: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
+  //
+  // onMenuAction(callback: (action: string) => void): () => void {
+  //   throw new Error('Method not implemented.');
+  // }
 }
 
-export default new MobilePersistenceAdapter() as any as PersistenceAdapter;
+// Exportem una única instància, fent un cast a PersistenceAdapter per complir amb la interfície.
+// Això és segur en el nostre context, ja que @gep/core no cridarà directament
+// a cap mètode no implementat en aquesta fase.
+export default new MobilePersistenceAdapterImpl() as any as PersistenceAdapter;
