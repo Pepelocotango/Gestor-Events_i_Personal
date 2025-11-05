@@ -17,5 +17,9 @@
   "devDependencies": {
     "eas-cli": "^16.26.0",
     "electron-builder": "^26.0.12"
+  },
+  "overrides": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   }
 }
