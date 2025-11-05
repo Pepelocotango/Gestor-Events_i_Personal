@@ -6,10 +6,16 @@ const workspaceRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
+// 1. Vigilar tot el monorepo
 config.watchFolders = [workspaceRoot];
+
+// 2. Resoldre mòduls des de l'arrel i des del paquet local
 config.resolver.nodeModulesPaths = [
 path.resolve(projectRoot, 'node_modules'),
 path.resolve(workspaceRoot, 'node_modules'),
 ];
+
+// 3. (NOVA LÍNIA CLAU) Assegurar que Metro resol els enllaços simbòlics
+config.resolver.resolveSymlinks = true;
 
 module.exports = config;

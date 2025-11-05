@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": false,
     "noImplicitAny": false,
+    "sourceMap": true,
     "paths": {
       "@gep/core": ["../core/src"],
       "@gep/core/*": ["../core/src/*"]
