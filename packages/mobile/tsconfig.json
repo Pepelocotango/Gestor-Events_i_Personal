@@ -4,12 +4,14 @@
     "strict": false,
     "noImplicitAny": false,
     "sourceMap": true,
-    "paths": {
-      "@gep/core": ["../core/src"],
-      "@gep/core/*": ["../core/src/*"]
-    }
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true
   },
   "exclude": [
     "../core/src/utils/pdfGenerator.ts"
+  ],
+  "references": [
+    { "path": "../core" }
   ]
 }
