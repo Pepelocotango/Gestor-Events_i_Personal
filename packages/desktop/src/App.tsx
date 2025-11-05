@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { generateDefaultFileName, initializeGoogleAuthListeners, initializeEventDataStore, logger, useEventDataStore, useModalStore } from '@gep/core';
+import { generateDefaultFileName, initializeGoogleAuthListeners, initializeEventDataStore, initializeDesktopActions, logger, useEventDataStore, useModalStore, syncWithGoogle } from '@gep/core';
 import ElectronPersistenceAdapter from './ElectronPersistenceAdapter';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
@@ -39,6 +39,7 @@ const HistoryModal = lazy(() => import('./components/modals/HistoryModal'));
 const GoogleEventDetailsModal = lazy(() => import('./components/modals/GoogleEventDetailsModal'));
 
 initializeEventDataStore(ElectronPersistenceAdapter);
+initializeDesktopActions(ElectronPersistenceAdapter);
 
 let globalInitialLoadAttempted = false;
 
@@ -705,7 +706,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             handleFactoryReset();
             break;
           case 'sync-google':
-            useEventDataStore.getState().syncWithGoogle();
+            syncWithGoogle();
             break;
           case 'config-google':
             openModalFromStore('googleSettings');

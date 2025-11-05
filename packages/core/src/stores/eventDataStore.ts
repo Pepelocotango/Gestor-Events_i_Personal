@@ -5,7 +5,6 @@ import { create } from 'zustand';
 import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
-import { useGoogleConfigStore } from './googleConfigStore';
 import type { PersistenceAdapter } from '../persistenceAdapter';
 
 // Persistence adapter (set during app init)
@@ -17,7 +16,6 @@ export const initializeEventDataStore = (adapter: PersistenceAdapter) => {
 import { AssignmentStatus } from '../types';
 import type { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
-import { generateGoogleEventDescription } from '../utils/googleCalendarUtils';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
 import { logger } from '../utils/logger';
@@ -121,9 +119,6 @@ interface EventDataActions {
     exportData: () => Promise<AppData>;
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
     setHasUnsavedChanges: (value: boolean) => void;
-    refreshGoogleEvents: () => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
-    syncWithGoogle: () => Promise<void>;
-    executeSync: (targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
     reorderTechnicalProviders: (eventFrameId: string, reorderedProviders: TechSheetProvider[]) => void;
     addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => MaterialItem;
@@ -277,33 +272,10 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         }
       },
     loadGoogleConfigFromDataFile: async (data: AppData) => {
-        const { refreshGoogleEvents } = get();
+        // Nota: La lògica de Google s'ha mogut a desktopActions.ts per trencar el cicle de dependències
+        // Aquesta funció només retorna un missatge informatiu si hi ha configuració de Google al fitxer
         if (data?.googleConfig) {
-            try {
-                const { activeAppCalendarId, managedAppCalendars } = data.googleConfig;
-                const prevConfig = useGoogleConfigStore.getState();
-
-                const newMergedConfig = {
-                    activeCalendarId: activeAppCalendarId ?? prevConfig.activeCalendarId,
-                    managedCalendars: managedAppCalendars ?? prevConfig.managedCalendars,
-                    selectedIds: prevConfig.selectedIds, // Preserve existing selections
-                };
-
-                useGoogleConfigStore.setState(newMergedConfig);
-
-                if (persistenceAdapter?.saveGoogleConfig) {
-                    await persistenceAdapter.saveGoogleConfig({
-                        activeAppCalendarId: newMergedConfig.activeCalendarId,
-                        managedAppCalendars: newMergedConfig.managedCalendars,
-                    });
-                }
-
-                await refreshGoogleEvents();
-                return { success: true, message: 'Configuració de Google carregada i desada correctament.', type: 'success' };
-            } catch (error) {
-                logger.error("Error actualitzant la configuració de Google des del fitxer:", { error });
-                return { success: false, message: "No s'ha pogut actualitzar la configuració de Google des del fitxer.", type: 'error' };
-            }
+            return { success: true, message: 'Configuració de Google detectada al fitxer. Utilitza les funcions de desktopActions per gestionar-la.', type: 'info' };
         }
         return { success: true, message: 'No hi havia configuració de Google per carregar.', type: 'info' };
     },
@@ -718,73 +690,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return { total: materialItem.stock, available: minAvailable - committedInCurrentEvent };
     },
 
-    // GOOGLE & SYNC
-        refreshGoogleEvents: async () => {
-                if (persistenceAdapter?.getGoogleEvents) {
-                    const result = await persistenceAdapter.getGoogleEvents();
-                    if (result.success && result.events) {
-                        set({ googleEvents: result.events });
-                        return { success: true };
-                    } else if (result.message) {
-                        return { success: false, message: result.message, type: 'error' };
-                    }
-                }
-                return { success: false, message: 'Adapter de persistència no disponible.', type: 'error' };
-            },
-    syncWithGoogle: async () => {
-        const { openModal, closeModal } = useModalStore.getState();
-        const { executeSync } = get();
-
-        if (persistenceAdapter?.loadGoogleConfig) {
-            const config = await persistenceAdapter.loadGoogleConfig();
-            if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
-                openModal('googleSettings');
-                return;
-            }
-            openModal('selectSyncCalendar', {
-                managedCalendars: config.managedAppCalendars,
-                activeCalendarId: config.activeAppCalendarId,
-                onConfirmSync: (targetCalendarId: string) => {
-                    closeModal();
-                    executeSync(targetCalendarId);
-                }
-            });
-        } else {
-            logger.warn("L'API d'Electron per a Google Config no està disponible.");
-        }
-    },
-    executeSync: async (targetCalendarId) => {
-        const { exportData, loadData, refreshGoogleEvents } = get();
-        let finalResult: any = { success: false, message: 'La sincronització no es va completar.', type: 'error' };
-
-        set({ isSyncing: true, syncProgress: { current: 0, total: 0, message: 'Iniciant...', visible: true } });
-
-                if (persistenceAdapter?.syncWithGoogle) {
-                    const localData = await exportData();
-
-                    // Enriquir les dades amb la descripció de Google abans de passar-les
-                    const enrichedEventFrames = localData.eventFrames.map(frame => ({
-                        ...frame,
-                        googleDescription: generateGoogleEventDescription(frame as EventFrame, get().peopleGroups),
-                    }));
-
-                    const enrichedLocalData = { ...localData, eventFrames: enrichedEventFrames };
-
-                    const result = await persistenceAdapter.syncWithGoogle({ localData: enrichedLocalData, targetCalendarId });
-
-                    if (result && result.success && result.data) {
-                        await loadData(result.data);
-                        await refreshGoogleEvents();
-                        finalResult = { success: true, message: result.message || 'Sincronització completada.', type: 'success' };
-                    } else {
-                        await refreshGoogleEvents();
-                        finalResult = { success: false, message: (result && result.message) || 'Error desconegut durant la sincronització.', type: 'error', code: result?.code };
-                    }
-                }
-
-        set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
-        return finalResult;
-      },
+    // Nota: Les funcions relacionades amb Google (refreshGoogleEvents, syncWithGoogle, executeSync)
+    // s'han mogut a desktopActions.ts per trencar el cicle de dependències i mantenir aquest store agnòstic de la plataforma
 
     // ARCHIVING
     archiveOldEventFrames: () => {

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ShowToastFunction, GoogleCalendar, ManagedAppCalendar, useEventDataStore, useModalStore, useGoogleConfigStore, fetchAndLoadConfig, saveConfig, deleteCalendar, disconnectGoogle, logger } from '@gep/core';
+import { ShowToastFunction, GoogleCalendar, ManagedAppCalendar, useEventDataStore, useModalStore, useGoogleConfigStore, fetchAndLoadConfig, saveConfig, deleteCalendar, disconnectGoogle, logger, executeSync } from '@gep/core';
 import Tooltip from '../ui/Tooltip';
 
 interface GoogleSettingsModalProps {
@@ -8,7 +8,6 @@ interface GoogleSettingsModalProps {
 }
 
 const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, showToast }) => {
-  const executeSync = useEventDataStore(state => state.executeSync);
   const isEventDataSyncing = useEventDataStore(state => state.isSyncing);
   const openModal = useModalStore(state => state.openModal);
 
