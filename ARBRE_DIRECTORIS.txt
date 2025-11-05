@@ -114,6 +114,8 @@ Aquest document descriu l'estructura completa de fitxers i carpetes del projecte
 │       ├── package-lock.json     # Fitxer de bloqueig de dependències del paquet mòbil.
 │       ├── package.json          # Dependències i scripts de l'aplicació mòbil.
 │       ├── src/                  # Codi font de l'aplicació mòbil.
+│       │   ├── components/       # Components de React per a la UI de l'app mòbil.
+│       │   │   └── DataSummary.tsx # Component que mostra un resum de les dades.
 │       │   └── MobilePersistenceAdapter.ts # Implementació de 'persistenceAdapter' per a la plataforma mòbil.
 │       └── tsconfig.json         # Configuració de TypeScript per a l'aplicació mòbil.
 └── theme.config.cjs              # FONT ÚNICA DE LA VERITAT PER ALS COLORS: Defineix la paleta de colors de l'app.
