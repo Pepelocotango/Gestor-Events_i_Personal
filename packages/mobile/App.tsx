@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View, SafeAreaView, Platform, StatusBar } from 'react-native';
-import { initializeEventDataStore, useEventDataStore } from '@gep/core/stores/eventDataStore';
+import { initializeEventDataStore, useEventDataStore } from '@gep/core/stores/eventDataStore.mobile';
 import type { AppData } from '@gep/core/types';
 import MobilePersistenceAdapter from './src/MobilePersistenceAdapter';
 import exampleData from './assets/example_all.json';

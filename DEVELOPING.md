@@ -48,12 +48,12 @@ Per desacoblar la lògica de l'entorn, el paquet `core` defineix una interfície
 
 Aquest adaptador s'injecta a la lògica del `core` en temps d'execució, permetent que el nucli de l'aplicació sigui completament portable i reutilitzable entre plataformes sense modificacions.
 
-#### Punt d'Entrada Específic per a Mòbil
+#### Aïllament de Dependències per a Mòbil (`eventDataStore.mobile.ts`)
 
-Per garantir que l'aplicació mòbil només importi codi compatible amb React Native i eviti mòduls d'escriptori (com `jspdf` o la lògica de Google Calendar), el paquet `core` exposa un punt d'entrada dedicat:
+Per resoldre errors de dependències transitives a React Native, s'ha adoptat una estratègia d'aïllament total per a la lògica d'estat més complexa.
 
-- **`packages/core/src/mobile.ts`**: Aquest fitxer actua com un "filtre" o API pública per a consumidors mòbils. Re-exporta de manera explícita només els stores, tipus i funcions que són segurs per executar en un entorn de React Native.
-- **Importació a l'App Mòbil:** En lloc d'importar des de `@gep/core`, l'aplicació mòbil sempre ha d'importar des de `@gep/core/mobile` per assegurar que no s'introdueixin dependències incompatibles.
+- **`packages/core/src/stores/eventDataStore.mobile.ts`**: Aquest fitxer és una còpia simplificada de `eventDataStore.ts`, dissenyada exclusivament per a l'entorn mòbil. S'han eliminat totes les importacions i funcionalitats que depenen de mòduls incompatibles amb React Native, com `pdfGenerator`, la integració amb Google Calendar, o les utilitats de sistema de fitxers de Node.js. Aquest *store* conté només la lògica essencial de gestió de l'estat.
+- **Importació Directa a l'App Mòbil:** L'aplicació mòbil (`packages/mobile`) importa l'store directament des d'aquesta versió específica per garantir que el compilador Metro no intenti resoldre dependències transitives conflictives.
 
 ### Visió General del Projecte
 
@@ -1122,21 +1122,21 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 -   **Ús de Modals Interns per a Confirmacions**: Per evitar bugs de pèrdua de focus i mantenir una experiència d'usuari consistent, s'ha estandarditzat l'ús del sistema de modals interns de l'aplicació (`useModalStore`) en lloc de les funcions natives del navegador com `window.confirm()`. Qualsevol nova acció que requereixi confirmació de l'usuari ha d'implementar un modal a través d'aquest sistema.
 
-### Patró d'Importació per a Mòbil (Entry Point Dedicat)
+### Patró d'Importació per a Mòbil (Aïllament de Dependències)
 
-Per solucionar de manera robusta els errors d'execució a l'aplicació mòbil (`ReferenceError: Property 'document' doesn't exist`), s'ha implementat un **punt d'entrada dedicat** que garanteix que només es carreguin mòduls compatibles amb React Native.
+Per solucionar de manera robusta els errors de dependències transitives a l'aplicació mòbil, s'ha implementat un sistema d'aïllament de fitxers.
 
-**La pràctica d'utilitzar importacions específiques (`deep imports`) ha quedat obsoleta i s'ha de considerar incorrecta.**
+**La pràctica d'utilitzar un punt d'entrada comú (`@gep/core/mobile`) ha quedat obsoleta, ja que no resolia el problema de les dependències indirectes.**
 
-Totes les importacions des del paquet `@gep/mobile` cap a `@gep/core` s'han de fer a través del punt d'entrada `mobile`. Aquest fitxer actua com una API segura que només exposa el codi compatible.
+Totes les importacions de lògica d'estat complexa des del paquet `@gep/mobile` cap a `@gep/core` s'han de fer apuntant a fitxers específics per a mòbil.
 
 **Exemples:**
 
-- **Importació de Stores i Tipus:**
+- **Importació de l'Store Principal:**
   - ❌ **Obsolet i Incorrecte:** `import { useEventDataStore } from '@gep/core/stores/eventDataStore';`
-  - ✅ **Correcte:** `import { useEventDataStore, type AppData } from '@gep/core/mobile';`
+  - ✅ **Correcte:** `import { useEventDataStore } from '@gep/core/stores/eventDataStore.mobile';`
 
-Aquesta convenció centralitza la lògica de compatibilitat, simplifica les importacions i prevé de manera efectiva que mòduls d'escriptori (com `jspdf` o `googleConfigStore`) s'incloguin accidentalment al *bundle* de l'aplicació mòbil.
+Aquesta convenció garanteix que només s'inclogui al *bundle* de l'aplicació mòbil el codi que és explícitament compatible, evitant la càrrega de mòduls d'escriptori (com `jspdf` o `googleConfigStore`) a través de dependències indirectes.
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useEventDataStore } from '@gep/core/stores/eventDataStore';
+import { useEventDataStore } from '@gep/core/stores/eventDataStore.mobile';
 import type { EventFrame, PersonGroup, MaterialItem } from '@gep/core/types';
 
 
