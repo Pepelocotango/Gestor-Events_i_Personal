@@ -12,4 +12,7 @@ path.resolve(projectRoot, 'node_modules'),
 path.resolve(workspaceRoot, 'node_modules'),
 ];
 
+// Requerit per a monorepos per resoldre correctament els paquets enllaçats.
+config.resolver.resolveSymlinks = true;
+
 module.exports = config;
