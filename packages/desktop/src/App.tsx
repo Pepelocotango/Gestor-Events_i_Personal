@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { generateDefaultFileName, initializeGoogleAuthListeners, initializeEventDataStore, logger, useEventDataStore, useModalStore } from '@gep/core';
+import { generateDefaultFileName, initializeGoogleAuthListeners, initializeEventDataStore, logger, useEventDataStore, useModalStore, useGoogleConfigStore } from '@gep/core';
 import ElectronPersistenceAdapter from './ElectronPersistenceAdapter';
 import { THEME_STORAGE_KEY } from './constants';
 import Modal from './components/ui/Modal';
@@ -82,7 +82,6 @@ const App: React.FC = () => {
     addMaterialItemsFromFile,
     replacePeopleGroups,
     replaceMaterialItems,
-    loadGoogleConfigFromDataFile,
   } = useEventDataStore.getState();
 
   const showToast: ShowToastFunction = useCallback((message, type = 'success') => {
@@ -333,9 +332,27 @@ const handleSaveDocument = async (): Promise<boolean> => {
                 return;
             }
 
-            if (data.googleConfig) {
-                logger.info("Trobada configuració de Google al fitxer, restaurant-la...");
-                await loadGoogleConfigFromDataFile(data);
+            if (data.googleConfig && window.electronAPI?.saveGoogleConfig) {
+                try {
+                    logger.info("Trobada configuració de Google al fitxer, restaurant-la...");
+                    const { activeAppCalendarId, managedAppCalendars } = data.googleConfig;
+                    const prevConfig = useGoogleConfigStore.getState();
+                    const newMergedConfig = {
+                        activeCalendarId: activeAppCalendarId ?? prevConfig.activeCalendarId,
+                        managedCalendars: managedAppCalendars ?? prevConfig.managedCalendars,
+                        selectedIds: prevConfig.selectedIds,
+                    };
+                    useGoogleConfigStore.setState(newMergedConfig);
+                    await window.electronAPI.saveGoogleConfig({
+                        activeAppCalendarId: newMergedConfig.activeCalendarId,
+                        managedAppCalendars: newMergedConfig.managedCalendars,
+                    });
+                    await useEventDataStore.getState().refreshGoogleEvents();
+                    showToast('Configuració de Google restaurada del fitxer.', 'success');
+                } catch (error) {
+                    logger.error("Error restaurant la configuració de Google des del fitxer:", { error });
+                    showToast("No s'ha pogut restaurar la configuració de Google.", 'error');
+                }
             }
 
             setCurrentFilePath(filePath);

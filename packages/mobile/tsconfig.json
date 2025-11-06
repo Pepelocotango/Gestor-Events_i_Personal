@@ -7,8 +7,5 @@
       "@gep/core": ["../core/src"],
       "@gep/core/*": ["../core/src/*"]
     }
-  },
-  "exclude": [
-    "../core/src/utils/pdfGenerator.ts"
-  ]
+  }
 }

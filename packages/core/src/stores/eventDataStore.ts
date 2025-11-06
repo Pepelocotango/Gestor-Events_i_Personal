@@ -5,7 +5,6 @@ import { create } from 'zustand';
 import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
-import { useGoogleConfigStore } from './googleConfigStore';
 import type { PersistenceAdapter } from '../persistenceAdapter';
 
 // Persistence adapter (set during app init)
@@ -117,7 +116,6 @@ interface EventDataActions {
     deleteAssignment: (eventFrameId: string, assignmentId: string) => void;
     getAssignmentById: (eventFrameId: string, assignmentId: string) => Assignment | undefined;
     loadData: (data: AppData | null) => Promise<{ status: 'ok' | 'needs_confirmation' | 'error'; fixes?: string[], message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
-    loadGoogleConfigFromDataFile: (data: AppData) => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     exportData: () => Promise<AppData>;
     setPersonnelComplete: (eventFrameId: string, complete: boolean) => void;
     setHasUnsavedChanges: (value: boolean) => void;
@@ -276,37 +274,6 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
           return { status: 'needs_confirmation', fixes };
         }
       },
-    loadGoogleConfigFromDataFile: async (data: AppData) => {
-        const { refreshGoogleEvents } = get();
-        if (data?.googleConfig) {
-            try {
-                const { activeAppCalendarId, managedAppCalendars } = data.googleConfig;
-                const prevConfig = useGoogleConfigStore.getState();
-
-                const newMergedConfig = {
-                    activeCalendarId: activeAppCalendarId ?? prevConfig.activeCalendarId,
-                    managedCalendars: managedAppCalendars ?? prevConfig.managedCalendars,
-                    selectedIds: prevConfig.selectedIds, // Preserve existing selections
-                };
-
-                useGoogleConfigStore.setState(newMergedConfig);
-
-                if (persistenceAdapter?.saveGoogleConfig) {
-                    await persistenceAdapter.saveGoogleConfig({
-                        activeAppCalendarId: newMergedConfig.activeCalendarId,
-                        managedAppCalendars: newMergedConfig.managedCalendars,
-                    });
-                }
-
-                await refreshGoogleEvents();
-                return { success: true, message: 'Configuració de Google carregada i desada correctament.', type: 'success' };
-            } catch (error) {
-                logger.error("Error actualitzant la configuració de Google des del fitxer:", { error });
-                return { success: false, message: "No s'ha pogut actualitzar la configuració de Google des del fitxer.", type: 'error' };
-            }
-        }
-        return { success: true, message: 'No hi havia configuració de Google per carregar.', type: 'info' };
-    },
     exportData: async () => {
         const { eventFrames, peopleGroups, materialItems } = get();
         const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);
