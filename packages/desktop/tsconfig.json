@@ -17,10 +17,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true
+    "paths": {
+      "@gep/core": ["../core/src"],
+      "@gep/core/*": ["../core/src/*"]
+    }
   },
   "include": [
     "src",
@@ -33,8 +33,5 @@
   "exclude": [
     "node_modules",
     "dist"
-  ],
-  "references": [
-    { "path": "../core" }
   ]
 }

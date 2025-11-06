@@ -11,8 +11,7 @@ export * from './utils/themeDefinition';
 export * from './utils/dataIntegrity';
 export * from './utils/csvUtils';
 export * from './utils/fileNameUtils';
-// pdfGenerator només s'utilitza a desktop i depèn de fitxers generats, no s'exporta per mobile
-// export * from './utils/pdfGenerator';
+export * from './utils/pdfGenerator';
 export * from './utils/colorUtils';
 export * from './utils/dataMigration';
 export * from './utils/dateRangeFormatter';
