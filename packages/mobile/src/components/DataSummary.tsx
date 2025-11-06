@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useEventDataStore, type EventFrame, type PersonGroup, type MaterialItem } from '@gep/core/mobile';
+import { useEventDataStore } from '@gep/core/stores/eventDataStore';
+import type { EventFrame, PersonGroup, MaterialItem } from '@gep/core/types';
+
 
 const DataSummary: React.FC = () => {
   // Utilitzem selectors individuals per optimitzar els re-renders

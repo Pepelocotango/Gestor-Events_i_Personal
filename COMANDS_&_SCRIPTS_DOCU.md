@@ -1,3 +1,78 @@
+### **Llista de Comandes del Projecte**
+
+#### **1. Preparació Inicial (Només una vegada) o Neteja Completa**
+
+Aquesta seqüència s'executa quan clones el projecte per primer cop o quan necessites una reinstal·lació totalment neta per resoldre problemes de dependències o memòria cau.
+
+1.  **
+`rm -rf node_modules packages/*/node_modules *-lock.json packages/*/*-lock.json`
+** (o equivalent a Windows)
+    *   **Què fa:** Elimina totes les dependències i fitxers de bloqueig de l'entorn. És el "reset" complet.
+2.  **`npm install`**
+    *   **Què fa:** Reinstal·la totes les dependències des de zero per a tots els paquets (`core`, `desktop`, `mobile`) i crea els enllaços simbòlics necessaris.
+
+---
+
+#### **2. Flux de Desenvolupament (Treball diari)**
+
+Aquestes comandes són per treballar en el codi i veure els canvis a l'instant. S'executen des de l'arrel del projecte.
+
+*   **Per treballar en l'Aplicació d'Escriptori:**
+    1.  **`npm run start --workspace=@gep/desktop`**
+        *   **Què fa:** Inicia el servidor de desenvolupament (Vite) i llança l'aplicació Electron en mode de recàrrega en calent.
+
+*   #### **Aplicació Mòbil (`mobile`)**
+
+    Per al desenvolupament mòbil, és important entendre la diferència entre l'inici normal i l'inici amb neteja de memòria cau.
+
+    1.  **Inici estàndard (Recomanat per al dia a dia):**
+        *   **Comanda:** `npm run start --workspace=@gep/mobile`
+        *   **Què fa:** Genera els fitxers de tema necessaris i inicia el servidor de desenvolupament (Metro) aprofitant la seva memòria cau per a un inici més ràpid. Utilitza aquesta comanda per al treball habitual.
+
+    2.  **Inici amb Neteja de Memòria Cau (Per resoldre problemes):**
+        *   **Comanda:** `npm run start:clear --workspace=@gep/mobile`
+        *   **Què fa:** Fa el mateix que l'anterior, però **força la neteja completa de la memòria cau de Metro**. Aquesta és la teva eina per solucionar errors estranys, comportaments inesperats o quan has fet canvis importants a la configuració.
+        *   **Quan utilitzar-la:** Fes-la servir la primera vegada que llances el projecte, després d'instal·lar noves dependències, o si l'aplicació no es comporta com esperes.
+
+---
+
+Aquest fragment és més clar, explica el "perquè" de cada comanda i estableix una bona pràctica per al flux de treball mòbil, la qual cosa serà molt útil per a tu o per a qualsevol altra persona que treballi en el projecte.
+---
+
+
+
+
+
+
+
+
+
+#### **3. Flux de Compilació Final (Per a Distribució)**
+
+Aquestes comandes s'utilitzen quan una versió està acabada i vols crear els fitxers executables per als usuaris finals. S'executen des de l'arrel del projecte.
+
+*   **Per compilar la versió final d'Escriptori:**
+    *   **Per a Windows:** `npm run build:win`
+    *   **Per a macOS:** `npm run build:mac`
+    *   **Per a Linux:** `npm run build:linux`
+        *   **Què fan:** Compilen el codi de l'aplicació d'escriptori i l'empaqueten en un instal·lador o executable (`.exe`, `.dmg`, `.AppImage`) per a la plataforma especificada.
+
+*   **Per compilar la versió final Mòbil (exemple per Android):**
+    *   **Per a desenvolupament/proves (local):** `npm run build:android-dev --workspace=@gep/mobile`
+        *   **Què fa:** Crea un fitxer `.apk` localment per a proves, utilitzant EAS Build.
+    *   **Per a la botiga (al núvol):** `eas build -p android --profile production`
+        *   **Què fa:** Puja el codi als servidors d'Expo (EAS) per compilar un fitxer `.aab` optimitzat i llest per a la Google Play Store.
+
+### executar app desktop linux: 
+`cd packages/desktop/dist && ./GestorEsdevenimentsPersonal_v1.4.0-Linux-Ubuntu18.04+.AppImage`
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------------
 # Documentació de comandes i scripts — Gestor Esdeveniments i Personal
 
 Aquest document explica les comandes disponibles, com executar-les (incloent exemples per PowerShell a Windows), i les recomanacions pràctiques per desenvolupament i distribució.
