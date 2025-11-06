@@ -18,7 +18,8 @@ Aquest document descriu l'estructura completa de fitxers i carpetes del projecte
 │   ├── core/                     # Paquet amb la lògica de negoci compartida, independent de la plataforma.
 │   │   ├── package.json          # Dependències i scripts del paquet 'core'.
 │   │   └── src/                  # Codi font del paquet 'core'.
-│   │       ├── index.ts          # Punt d'entrada que exporta les funcionalitats públiques del paquet.
+│   │       ├── index.ts          # Punt d'entrada principal que exporta totes les funcionalitats del paquet.
+│   │       ├── mobile.ts         # PUNT D'ENTRADA PER A MÒBIL: Exporta només funcionalitats compatibles amb React Native.
 │   │       ├── persistenceAdapter.ts # Defineix la interfície per a desar i carregar dades (abstracció de l'emmagatzematge).
 │   │       ├── stores/           # Gestors d'estat global amb Zustand.
 │   │       │   ├── eventDataStore.ts      # Gestiona l'estat dels esdeveniments, assignacions i dades principals.

@@ -48,6 +48,13 @@ Per desacoblar la lògica de l'entorn, el paquet `core` defineix una interfície
 
 Aquest adaptador s'injecta a la lògica del `core` en temps d'execució, permetent que el nucli de l'aplicació sigui completament portable i reutilitzable entre plataformes sense modificacions.
 
+#### Punt d'Entrada Específic per a Mòbil
+
+Per garantir que l'aplicació mòbil només importi codi compatible amb React Native i eviti mòduls d'escriptori (com `jspdf` o la lògica de Google Calendar), el paquet `core` exposa un punt d'entrada dedicat:
+
+- **`packages/core/src/mobile.ts`**: Aquest fitxer actua com un "filtre" o API pública per a consumidors mòbils. Re-exporta de manera explícita només els stores, tipus i funcions que són segurs per executar en un entorn de React Native.
+- **Importació a l'App Mòbil:** En lloc d'importar des de `@gep/core`, l'aplicació mòbil sempre ha d'importar des de `@gep/core/mobile` per assegurar que no s'introdueixin dependències incompatibles.
+
 ### Visió General del Projecte
 
 El "Gestor d'Esdeveniments i Personal" és una aplicació d'escriptori multiplataforma construïda amb Electron i React. El seu objectiu és oferir una solució integral per a la gestió d'esdeveniments, cobrint tot el cicle de vida:
@@ -1028,6 +1035,17 @@ Per solucionar-ho, utilitzem un sistema d'**enllaços simbòlics (symlinks)** au
 
 Això "enganya" a Metro fent-li creure que `@gep/core` és una dependència local dins de `node_modules`, solucionant el problema de resolució de camins de manera neta i mantenint l'estructura del monorepo intacta.
 
+#### Configuració de Metro per a Monorepos
+
+Perquè la resolució d'enllaços simbòlics funcioni correctament, és imprescindible que el fitxer `packages/mobile/metro.config.js` contingui la següent configuració:
+
+```javascript
+// ... (altra configuració)
+config.resolver.resolveSymlinks = true;
+```
+
+Aquesta línia indica a Metro que ha de resoldre la ruta real dels paquets enllaçats simbòlicament, una opció crucial per evitar errors de `TypeError` en temps d'execució quan s'importen mòduls des d'altres paquets de l'espai de treball.
+
 ### Resolució d'Errors de Compilació a EAS Build
 
 Durant la compilació amb EAS Build, pot aparèixer l'error `Unable to resolve module ./utils/themeDefinition`. Aquest problema és causat perquè el fitxer `themeDefinition.ts` és un fitxer auto-generat pel paquet `@gep/desktop` i no existeix per defecte a l'entorn d'execució net d'EAS.
@@ -1104,23 +1122,21 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 -   **Ús de Modals Interns per a Confirmacions**: Per evitar bugs de pèrdua de focus i mantenir una experiència d'usuari consistent, s'ha estandarditzat l'ús del sistema de modals interns de l'aplicació (`useModalStore`) en lloc de les funcions natives del navegador com `window.confirm()`. Qualsevol nova acció que requereixi confirmació de l'usuari ha d'implementar un modal a través d'aquest sistema.
 
-### Importacions Específiques (Deep Imports) per a Mòbil
+### Patró d'Importació per a Mòbil (Entry Point Dedicat)
 
-L'error fatal d'execució `ReferenceError: Property 'document' doesn't exist` a l'aplicació mòbil confirma que s'estaven intentant carregar mòduls incompatibles amb React Native. Aquest problema sorgeix perquè el punt d'entrada principal del paquet (`@gep/core`) exporta funcionalitats dissenyades exclusivament per a l'entorn d'escriptori, com el generador de PDF (`jspdf`), que depèn d'API del navegador no disponibles a l'entorn mòbil.
+Per solucionar de manera robusta els errors d'execució a l'aplicació mòbil (`ReferenceError: Property 'document' doesn't exist`), s'ha implementat un **punt d'entrada dedicat** que garanteix que només es carreguin mòduls compatibles amb React Native.
 
-Per solucionar aquest problema de manera definitiva, és obligatori que **tots els fitxers** dins de `packages/mobile` utilitzin **importacions específiques (deep imports)** per accedir als mòduls de `@gep/core`. Aquesta pràctica garanteix que només es carregui el codi estrictament necessari, evitant dependències conflictives.
+**La pràctica d'utilitzar importacions específiques (`deep imports`) ha quedat obsoleta i s'ha de considerar incorrecta.**
 
-**Exemples clars:**
+Totes les importacions des del paquet `@gep/mobile` cap a `@gep/core` s'han de fer a través del punt d'entrada `mobile`. Aquest fitxer actua com una API segura que només exposa el codi compatible.
 
-- **Per a stores de Zustand:** Cal apuntar directament al fitxer de l'store.
-  - ❌ **Incorrecte:** `import { useEventDataStore } from '@gep/core';`
-  - ✅ **Correcte:** `import { useEventDataStore } from '@gep/core/stores/eventDataStore';`
+**Exemples:**
 
-- **Per a definicions de tipus (TypeScript):** Cal apuntar al mòdul de tipus i utilitzar `import type` per assegurar que no s'inclogui cap codi executable en el *bundle* final.
-  - ❌ **Incorrecte:** `import { AppData } from '@gep/core';`
-  - ✅ **Correcte:** `import type { AppData } from '@gep/core/types';`
+- **Importació de Stores i Tipus:**
+  - ❌ **Obsolet i Incorrecte:** `import { useEventDataStore } from '@gep/core/stores/eventDataStore';`
+  - ✅ **Correcte:** `import { useEventDataStore, type AppData } from '@gep/core/mobile';`
 
-Aquesta convenció és crucial per mantenir la base de codi mòbil lleugera, funcional i lliure d'errors d'execució.
+Aquesta convenció centralitza la lògica de compatibilitat, simplifica les importacions i prevé de manera efectiva que mòduls d'escriptori (com `jspdf` o `googleConfigStore`) s'incloguin accidentalment al *bundle* de l'aplicació mòbil.
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
 
