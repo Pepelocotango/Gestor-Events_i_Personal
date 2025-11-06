@@ -21,6 +21,5 @@ export * from './stores/eventDataStore';
 export * from './stores/googleConfigStore';
 export * from './stores/modalStore';
 export * from './stores/loggingMiddleware';
-export * from './stores/desktopActions';
 
 export * from './persistenceAdapter';

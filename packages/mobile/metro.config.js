@@ -15,11 +15,7 @@ path.resolve(projectRoot, 'node_modules'),
 path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// 3. Assegurar que Metro resol els enllaços simbòlics
+// 3. (NOVA LÍNIA CLAU) Assegurar que Metro resol els enllaços simbòlics
 config.resolver.resolveSymlinks = true;
-
-// 4. Configuració de source maps per a depuració fiable
-// Metro genera source maps per defecte, però assegurem que funcionin correctament amb el monorepo
-// Els source maps permetran que els stack traces a les DevTools apuntin al codi font original (.tsx)
 
 module.exports = config;

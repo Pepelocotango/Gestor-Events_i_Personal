@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEventDataStore, useModalStore, startGoogleAuthFlow, syncWithGoogle } from '@gep/core';
+import { useEventDataStore, useModalStore, startGoogleAuthFlow } from '@gep/core';
 import { GoogleIcon, CloudArrowUpIcon, ChevronDownIcon, ChevronUpIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 
@@ -10,6 +10,7 @@ interface ControlsProps {
 }
 
 const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
+  const { syncWithGoogle } = useEventDataStore.getState();
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const { openModal } = useModalStore.getState();
 
