@@ -1,25 +1,28 @@
 // Re-exports for convenience
-export * from './types';
+export * from './platform-agnostic/types';
 
-// Utils
-export * from './utils/dateFormat';
-export * from './utils/logger';
-export * from './utils/selectors';
-export * from './utils/statusUtils';
-export * from './utils/techSheetMigration';
-export * from './utils/themeDefinition';
-export * from './utils/dataIntegrity';
-export * from './utils/csvUtils';
-export * from './utils/fileNameUtils';
+// Platform-Agnostic Utils
+export * from './platform-agnostic/utils/dateFormat';
+export * from './platform-agnostic/utils/logger';
+export * from './platform-agnostic/utils/selectors';
+export * from './platform-agnostic/utils/statusUtils';
+export * from './platform-agnostic/utils/techSheetMigration';
+export * from './platform-agnostic/utils/dataIntegrity';
+export * from './platform-agnostic/utils/csvUtils';
+export * from './platform-agnostic/utils/fileNameUtils';
+export * from './platform-agnostic/utils/colorUtils';
+export * from './platform-agnostic/utils/dataMigration';
+export * from './platform-agnostic/utils/dateRangeFormatter';
+
+// Desktop-Specific Utils (to be moved later)
 export * from './utils/pdfGenerator';
-export * from './utils/colorUtils';
-export * from './utils/dataMigration';
-export * from './utils/dateRangeFormatter';
+export * from './utils/googleCalendarUtils'; // Assuming this exists and was not moved
+export * from './utils/themeDefinition'; // Auto-generated, stays here
 
-// Stores (optional exports)
+// Stores
 export * from './stores/eventDataStore';
 export * from './stores/googleConfigStore';
-export * from './stores/modalStore';
-export * from './stores/loggingMiddleware';
+export * from './platform-agnostic/stores/modalStore';
+export * from './platform-agnostic/stores/loggingMiddleware';
 
-export * from './persistenceAdapter';
+export * from './platform-agnostic/persistenceAdapter';

@@ -1,4 +1,4 @@
-import type { EventFrame, PersonGroup } from '../types';
+import type { EventFrame, PersonGroup } from '../platform-agnostic/types';
 
 /**
  * Genera una descripció de text enriquit per a un esdeveniment de Google Calendar

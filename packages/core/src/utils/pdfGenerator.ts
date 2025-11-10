@@ -1,11 +1,12 @@
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, EventFrame, Assignment, NeedItem, MaterialControlRow } from '../types';
-import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
-import { getStatusSummaryText } from './statusUtils';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, EventFrame, Assignment, NeedItem, MaterialControlRow } from '../platform-agnostic/types';
+import { formatDateDMY, formatDateRangeDMY } from '../platform-agnostic/utils/dateFormat';
+import { getStatusSummaryText } from '../platform-agnostic/utils/statusUtils';
 import { themeHslColors } from './themeDefinition';
-import { hslToRgb } from './colorUtils';
-import { generateFileName, generateTechSheetFileName } from './fileNameUtils';
+import { hslToRgb } from '../platform-agnostic/utils/colorUtils';
+import { generateFileName, generateTechSheetFileName } from '../platform-agnostic/utils/fileNameUtils';
+import { useEventDataStore } from '../stores/eventDataStore';
 
 // Define ActiveFilters type locally for this module
 type ActiveFilters = {
@@ -111,7 +112,8 @@ export const exportSummariesToPdf = (
   }
 
   const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
-  const fileName = generateFileName(prefix, activeFilters, filteredEventFrames, 'pdf');
+  const { eventFrames, peopleGroups } = useEventDataStore.getState();
+  const fileName = generateFileName(prefix, activeFilters, filteredEventFrames, 'pdf', eventFrames, peopleGroups);
 
   return { pdfDoc: pdf, fileName };
 };
@@ -745,7 +747,7 @@ export const exportEventListToPdf = (
     pdf.setPage(i);
     addFooter(pdf, i);
   }
-
-  const fileName = generateFileName('Llista_Esdeveniments', activeFilters, eventFrames, 'pdf');
+  const { eventFrames: allEventFrames, peopleGroups: allPeopleGroups } = useEventDataStore.getState();
+  const fileName = generateFileName('Llista_Esdeveniments', activeFilters, eventFrames, 'pdf', allEventFrames, allPeopleGroups);
   return { pdfDoc: pdf, fileName };
 };

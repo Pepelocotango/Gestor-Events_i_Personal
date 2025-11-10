@@ -1,4 +1,4 @@
-import type { ShowToastFunction } from '@gep/core/types';
+import type { ShowToastFunction } from '@gep/core';
 
 /**
  * Opcions per al diàleg de desat de fitxers.

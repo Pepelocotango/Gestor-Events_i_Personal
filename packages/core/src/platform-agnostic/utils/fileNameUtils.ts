@@ -1,5 +1,4 @@
-import { useEventDataStore } from '../stores/eventDataStore';
-import { EventFrame } from '../types';
+import { EventFrame, PersonGroup } from '../types';
 import { formatDateDMY } from './dateFormat';
 
 // Tipus per a l'objecte de filtres, extret de l'estat de Zustand
@@ -33,19 +32,24 @@ const formatDateRangeFromData = (data: EventFrame[]): string => {
  * Genera un descriptor intel·ligent per al nom del fitxer basat en els filtres actius.
  * @param filters - L'objecte que conté tots els filtres actius.
  * @param data - El conjunt de dades (EventFrame[]) que s'exportarà.
+ * @param allEventFrames - Llistat complet de tots els event frames per a buscar noms.
+ * @param allPeopleGroups - Llistat complet de tots els grups de persones per a buscar noms.
  * @returns Un string que descriu el contingut basat en els filtres.
  */
-const generateSmartDescriptor = (filters: ActiveFilters, data: EventFrame[]): string => {
-  const { peopleGroups, eventFrames } = useEventDataStore.getState();
-
+const generateSmartDescriptor = (
+  filters: ActiveFilters,
+  data: EventFrame[],
+  allEventFrames: EventFrame[],
+  allPeopleGroups: PersonGroup[]
+): string => {
   // Prioritat Alta: Filtres més restrictius i comuns
   if (filters.filterUIEventFrame) {
-    const eventName = eventFrames.find(ef => ef.id === filters.filterUIEventFrame)?.name;
+    const eventName = allEventFrames.find(ef => ef.id === filters.filterUIEventFrame)?.name;
     return `Esdeveniment_${eventName?.replace(/[^a-zA-Z0-9]/g, '-') || 'Desconegut'}`;
   }
 
   if (filters.localFilterUIPerson) {
-    const personName = peopleGroups.find(p => p.id === filters.localFilterUIPerson)?.name;
+    const personName = allPeopleGroups.find(p => p.id === filters.localFilterUIPerson)?.name;
     return `Persona_${personName?.replace(/[^a-zA-Z0-9]/g, '-') || 'Desconegut'}`;
   }
 
@@ -75,9 +79,11 @@ export const generateFileName = (
   prefix: string,
   filters: ActiveFilters,
   data: EventFrame[],
-  extension: 'pdf' | 'csv'
+  extension: 'pdf' | 'csv',
+  allEventFrames: EventFrame[],
+  allPeopleGroups: PersonGroup[]
 ): string => {
-  const descriptor = generateSmartDescriptor(filters, data);
+  const descriptor = generateSmartDescriptor(filters, data, allEventFrames, allPeopleGroups);
 
   // Comprova si s'han aplicat filtres secundaris (menys específics)
   const hasSecondaryFilters = !!(filters.filterText || filters.filterPlace || filters.filterStatus);

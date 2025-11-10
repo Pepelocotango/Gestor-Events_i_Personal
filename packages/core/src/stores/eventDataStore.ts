@@ -4,8 +4,8 @@ import { create } from 'zustand';
 // import eliminat: useStoreWithEqualityFn
 import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
-import { useModalStore } from './modalStore';
-import type { PersistenceAdapter } from '../persistenceAdapter';
+import { useModalStore } from '../platform-agnostic/stores/modalStore';
+import type { PersistenceAdapter } from '../platform-agnostic/persistenceAdapter';
 
 // Persistence adapter (set during app init)
 let persistenceAdapter: PersistenceAdapter | null = null;
@@ -13,13 +13,13 @@ let persistenceAdapter: PersistenceAdapter | null = null;
 export const initializeEventDataStore = (adapter: PersistenceAdapter) => {
     persistenceAdapter = adapter;
 };
-import { AssignmentStatus } from '../types';
-import type { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
-import { formatDateDMY } from '../utils/dateFormat';
+import { AssignmentStatus } from '../platform-agnostic/types';
+import type { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../platform-agnostic/types';
+import { formatDateDMY } from '../platform-agnostic/utils/dateFormat';
 import { generateGoogleEventDescription } from '../utils/googleCalendarUtils';
-import { migrateTechSheetData } from '../utils/techSheetMigration';
-import { validateData, repairData } from '../utils/dataIntegrity';
-import { logger } from '../utils/logger';
+import { migrateTechSheetData } from '../platform-agnostic/utils/techSheetMigration';
+import { validateData, repairData } from '../platform-agnostic/utils/dataIntegrity';
+import { logger } from '../platform-agnostic/utils/logger';
 import { immer } from 'zustand/middleware/immer';
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);

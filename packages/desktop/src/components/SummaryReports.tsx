@@ -158,7 +158,8 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
     try {
         const csvContent = generateDetailedCsv(dataType, groupKey);
         const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
-        const fileName = generateFileName(prefix, activeFilters, filteredEventFrames, 'csv');
+        const { eventFrames, peopleGroups } = useEventDataStore.getState();
+        const fileName = generateFileName(prefix, activeFilters, filteredEventFrames, 'csv', eventFrames, peopleGroups);
 
         if (!csvContent.trim() || csvContent.split('\n').length <= 1) {
             setToastMessage("No hi ha dades per exportar en aquest resum.", 'info');

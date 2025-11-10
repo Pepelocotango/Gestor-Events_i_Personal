@@ -76,7 +76,7 @@ export const exportEventListToCsv = (
     ...rows.map(row => row.join(','))
   ].join('\n');
 
-  const fileName = generateFileName('Llista_Esdeveniments', activeFilters, eventFrames, 'csv');
+  const fileName = generateFileName('Llista_Esdeveniments', activeFilters, eventFrames, 'csv', eventFrames, peopleGroups);
 
   return { csvContent: "\uFEFF" + csvContent, fileName };
 };

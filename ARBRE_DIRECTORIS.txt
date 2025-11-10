@@ -23,32 +23,32 @@ Aquest document descriu l'estructura completa de fitxers i carpetes del projecte
 │   │       │   └── utils/        # (Conté .gitkeep per al rastreig de directoris buits)
 │   │       ├── index.ts          # Punt d'entrada principal que exporta totes les funcionalitats del paquet.
 │   │       ├── mobile.ts         # NOU: Punt d'entrada EXCLUSIU per a l'aplicació mòbil.
-│   │       ├── persistenceAdapter.ts # Defineix la interfície per a desar i carregar dades (abstracció de l'emmagatzematge).
 │   │       ├── platform-agnostic/ # NOU: Lògica 100% compartida, independent de la plataforma.
+│   │       │   ├── persistenceAdapter.ts # Defineix la interfície per a desar i carregar dades (abstracció de l'emmagatzematge).
+│   │       │   ├── types.ts          # Definicions de tipus de TypeScript compartides a tota l'aplicació.
 │   │       │   ├── stores/       #
-│   │       │   │   └── eventDataStore.base.ts # NOU: Fitxer base per a la lògica de l'eventDataStore.
+│   │       │   │   ├── eventDataStore.base.ts # NOU: Fitxer base per a la lògica de l'eventDataStore.
+│   │       │   │   ├── loggingMiddleware.ts # Middleware per a Zustand que registra les accions i canvis d'estat.
+│   │       │   │   └── modalStore.ts        # Gestiona l'estat de les finestres modals (quina està oberta, etc.).
 │   │       │   └── utils/        # (Conté .gitkeep per al rastreig de directoris buits)
+│   │       │       ├── colorUtils.ts          # Funcions per a la manipulació de colors.
+│   │       │       ├── csvUtils.ts            # Utilitats per a la generació de fitxers CSV.
+│   │       │       ├── dataIntegrity.ts       # Funcions per a la verificació de la integritat de les dades.
+│   │       │       ├── dataMigration.ts       # Scripts per a la migració de dades entre versions.
+│   │       │       ├── dateFormat.ts          # Utilitats per al formatatge de dates.
+│   │       │       ├── dateRangeFormatter.ts  # Eina per a formatar rangs de dates de manera llegible.
+│   │       │       ├── fileNameUtils.ts       # Utilitat per a generar noms de fitxer descriptius.
+│   │       │       ├── logger.ts              # Servei de logging centralitzat.
+│   │       │       ├── selectors.ts           # Funcions selectores per a consultar l'estat de Zustand de manera eficient.
+│   │       │       ├── statusUtils.ts         # Utilitats per a gestionar i calcular estats (p. ex., d'assignacions).
+│   │       │       └── techSheetMigration.ts  # Script específic per a la migració de dades de fitxes tècniques.
 │   │       ├── stores/           # Gestors d'estat global amb Zustand.
 │   │       │   ├── eventDataStore.ts      # Gestiona l'estat dels esdeveniments, assignacions i dades principals.
 │   │       │   ├── eventDataStore.mobile.ts # Versió simplificada de l'store, aïllada per a l'ús a React Native.
-│   │       │   ├── googleConfigStore.ts # Gestiona la configuració i estat de l'API de Google Calendar.
-│   │       │   ├── loggingMiddleware.ts # Middleware per a Zustand que registra les accions i canvis d'estat.
-│   │       │   └── modalStore.ts        # Gestiona l'estat de les finestres modals (quina està oberta, etc.).
-│   │       ├── types.ts          # Definicions de tipus de TypeScript compartides a tota l'aplicació.
+│   │       │   └── googleConfigStore.ts # Gestiona la configuració i estat de l'API de Google Calendar.
 │   │       └── utils/            # Funcions d'utilitat compartides.
-│   │           ├── colorUtils.ts          # Funcions per a la manipulació de colors.
-│   │           ├── csvUtils.ts            # Utilitats per a la generació de fitxers CSV.
-│   │           ├── dataIntegrity.ts       # Funcions per a la verificació de la integritat de les dades.
-│   │           ├── dataMigration.ts       # Scripts per a la migració de dades entre versions.
-│   │           ├── dateFormat.ts          # Utilitats per al formatatge de dates.
-│   │           ├── dateRangeFormatter.ts  # Eina per a formatar rangs de dates de manera llegible.
-│   │           ├── fileNameUtils.ts       # Utilitat per a generar noms de fitxer descriptius.
 │   │           ├── googleCalendarUtils.ts # Funcions per interactuar amb l'API de Google Calendar.
-│   │           ├── logger.ts              # Servei de logging centralitzat.
-│   │           ├── pdfGenerator.ts        # Utilitats per a la creació de documents PDF.
-│   │           ├── selectors.ts           # Funcions selectores per a consultar l'estat de Zustand de manera eficient.
-│   │           ├── statusUtils.ts         # Utilitats per a gestionar i calcular estats (p. ex., d'assignacions).
-│   │           └── techSheetMigration.ts  # Script específic per a la migració de dades de fitxes tècniques.
+│   │           └── pdfGenerator.ts        # Utilitats per a la creació de documents PDF.
 │   └── desktop/                  # Paquet de l'aplicació d'escriptori (Electron + React).
 │       ├── build/                # Recursos addicionals per a la compilació.
 │       │   └── icons/            # Icones per a la compilació.
