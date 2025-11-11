@@ -6,7 +6,7 @@ import { getStatusSummaryText } from '../platform-agnostic/utils/statusUtils';
 import { themeHslColors } from './themeDefinition';
 import { hslToRgb } from '../platform-agnostic/utils/colorUtils';
 import { generateFileName, generateTechSheetFileName } from '../platform-agnostic/utils/fileNameUtils';
-import { useEventDataStore } from '../stores/eventDataStore';
+import { useEventDataStore } from '../desktop-specific/stores/eventDataStore.desktop';
 
 // Define ActiveFilters type locally for this module
 type ActiveFilters = {

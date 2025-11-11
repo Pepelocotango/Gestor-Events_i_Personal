@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import type { GoogleCalendar, ManagedAppCalendar, GoogleConfig } from '../platform-agnostic/types';
 import { logger } from '../platform-agnostic/utils/logger';
 import { useModalStore } from '../platform-agnostic/stores/modalStore';
+import { useEventDataStore } from '../desktop-specific/stores/eventDataStore.desktop';
 
 // --- STATE AND TYPES ---
 
@@ -150,9 +151,10 @@ export const saveConfig = async (): Promise<ActionResult> => {
         const result = await window.electronAPI.saveGoogleConfig(configToSave);
         if (result.success) {
             // La responsabilitat de refrescar ara recau en la UI
-            // setTimeout(() => {
-            //     useEventDataStore.getState().refreshGoogleEvents();
-            // }, 0);
+            setTimeout(() => {
+                const { refreshGoogleEvents } = useEventDataStore.getState();
+                if (refreshGoogleEvents) refreshGoogleEvents();
+            }, 0);
             return { success: true, message: 'Configuració desada.', type: 'success' };
         } else {
             return { success: false, message: result.message || "No s'ha pogut desar la configuració.", type: 'error' };
@@ -203,7 +205,8 @@ export const deleteCalendar = (calendar: ManagedAppCalendar, onConfirm: (result:
             });
             setTimeout(() => {
               fetchAndLoadConfig();
-              // useEventDataStore.getState().refreshGoogleEvents();
+              const { refreshGoogleEvents } = useEventDataStore.getState();
+              if (refreshGoogleEvents) refreshGoogleEvents();
             }, 0);
           }
           onConfirm({
@@ -240,7 +243,8 @@ export const disconnectGoogle = (onConfirm: (result: ActionResult) => void) => {
             const result = await window.electronAPI.googleDisconnect();
             if (result.success) {
               setTimeout(() => {
-                  // useEventDataStore.getState().refreshGoogleEvents();
+                  const { refreshGoogleEvents } = useEventDataStore.getState();
+                  if (refreshGoogleEvents) refreshGoogleEvents();
                   fetchAndLoadConfig();
               }, 0);
               closeModal();

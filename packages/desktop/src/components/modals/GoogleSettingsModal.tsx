@@ -192,7 +192,7 @@ const GoogleSettingsModal: React.FC<GoogleSettingsModalProps> = ({ onClose, show
           <Tooltip text={!activeCalendarId ? "Selecciona un calendari actiu per poder sincronitzar" : "Forçar una sincronització manual ara"}>
             <button
               onClick={() => {
-                if (activeCalendarId) {
+                if (activeCalendarId && executeSync) {
                   executeSync(activeCalendarId);
                   onClose();
                 } else {

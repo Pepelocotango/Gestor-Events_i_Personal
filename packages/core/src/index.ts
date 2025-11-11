@@ -20,7 +20,7 @@ export * from './utils/googleCalendarUtils'; // Assuming this exists and was not
 export * from './utils/themeDefinition'; // Auto-generated, stays here
 
 // Stores
-export * from './stores/eventDataStore';
+export * from './desktop-specific/stores/eventDataStore.desktop';
 export * from './stores/googleConfigStore';
 export * from './platform-agnostic/stores/modalStore';
 export * from './platform-agnostic/stores/loggingMiddleware';

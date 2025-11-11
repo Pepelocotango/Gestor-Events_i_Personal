@@ -82,6 +82,7 @@ const App: React.FC = () => {
     addMaterialItemsFromFile,
     replacePeopleGroups,
     replaceMaterialItems,
+    syncWithGoogle,
   } = useEventDataStore.getState();
 
   const showToast: ShowToastFunction = useCallback((message, type = 'success') => {
@@ -104,7 +105,17 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const { refreshGoogleEvents } = useEventDataStore.getState();
+    if (refreshGoogleEvents) refreshGoogleEvents();
+
     initializeGoogleAuthListeners();
+
+    if (window.electronAPI?.onGoogleAuthSuccess) {
+        window.electronAPI.onGoogleAuthSuccess(() => {
+            const { refreshGoogleEvents } = useEventDataStore.getState();
+            if (refreshGoogleEvents) refreshGoogleEvents();
+        });
+    }
 
     const fetchMetadata = async () => {
       if (window.electronAPI?.getAppMetadata) {
@@ -347,7 +358,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
                         activeAppCalendarId: newMergedConfig.activeCalendarId,
                         managedAppCalendars: newMergedConfig.managedCalendars,
                     });
-                    await useEventDataStore.getState().refreshGoogleEvents();
+                    const { refreshGoogleEvents } = useEventDataStore.getState();
+                    if (refreshGoogleEvents) await refreshGoogleEvents();
                     showToast('Configuració de Google restaurada del fitxer.', 'success');
                 } catch (error) {
                     logger.error("Error restaurant la configuració de Google des del fitxer:", { error });
@@ -722,7 +734,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
             handleFactoryReset();
             break;
           case 'sync-google':
-            useEventDataStore.getState().syncWithGoogle();
+            if (syncWithGoogle) syncWithGoogle();
             break;
           case 'config-google':
             openModalFromStore('googleSettings');
