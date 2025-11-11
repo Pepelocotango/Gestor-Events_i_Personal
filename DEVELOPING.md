@@ -38,7 +38,9 @@ Consulta les seccions corresponents per a detalls i exemples complets.
 
 El projecte s'ha reestructurat en un **monorepo** per separar les responsabilitats i millorar la reutilització del codi. L'estructura principal es divideix en dos paquets dins de la carpeta `packages/`:
 
-- **`packages/core`**: Conté tota la lògica de negoci compartida i agnòstica de la plataforma. Això inclou els stores de dades (Zustand), les definicions de tipus (TypeScript), i les funcions d'utilitat que no depenen de cap entorn específic.
+- **`packages/core`**: Conté la lògica de negoci compartida. Per garantir un aïllament estricte entre plataformes, el seu codi font (`src/`) es divideix en dues carpetes principals:
+    -   **`platform-agnostic/`**: Inclou codi 100% portable que no depèn de cap entorn específic (Node.js o React Native). Aquí hi ha les definicions de tipus, la lògica base dels stores de Zustand i les utilitats pures (format de dates, càlculs, etc.).
+    -   **`desktop-specific/`**: Conté codi que, tot i ser part del nucli lògic, té dependències de l'entorn d'escriptori (p. ex., `fs` de Node.js o llibreries com `jspdf`). Això inclou extensions dels stores per a funcionalitats com la sincronització amb Google o la generació de PDFs.
 - **`packages/desktop`**: Conté l'aplicació d'escriptori, construïda amb Electron i React. Aquest paquet s'encarrega de la interfície d'usuari, la comunicació amb les API natives del sistema operatiu i la implementació específica de la persistència de dades.
 - **`packages/mobile`**: Conté la nova aplicació mòbil, construïda amb React Native i Expo. Aquest paquet té com a objectiu oferir una versió lleugera i portàtil de l'aplicació per a dispositius mòbils.
 
@@ -349,16 +351,19 @@ El frontend (`packages/desktop/src`) és una Single Page Application (SPA) const
 
 L'estat global de l'aplicació resideix al paquet `@gep/core` i es gestiona a través de *stores* de Zustand. Aquesta centralització desacobla la lògica de l'estat dels components de React, millora el rendiment i garanteix que la lògica de negoci sigui portable.
 
-#### Stores de Zustand (`packages/core/src/stores/`)
+#### Stores de Zustand (Nova Arquitectura Base + Extensió)
 
-1.  **`eventDataStore.ts`**:
-    -   **Descripció:** És la **font única de veritat** per a totes les dades principals de l'aplicació (esdeveniments, contactes, material).
-    -   **Contingut:**
-        -   **Estat:** Emmagatzema els arrays de `eventFrames`, `peopleGroups`, `materialItems`, l'estat de `hasUnsavedChanges`, etc.
-        -   **Accions:** Conté totes les funcions per manipular aquestes dades (CRUD: `addEventFrame`, `updateAssignment`, etc.), la lògica de negoci (detecció de conflictes, disponibilitat de material), i la interacció amb el backend per a la persistència de dades (`loadData`, `exportData`).
+Els stores segueixen un patró d'arquitectura que separa la lògica agnòstica de la plataforma de la lògica específica de l'escriptori.
+
+1.  **`eventDataStore` (Patró Base + Extensió):**
+    -   **`platform-agnostic/stores/eventDataStore.base.ts`**:
+        -   **Descripció:** Conté el nucli de l'store. És la **font única de veritat** per a les dades principals (esdeveniments, contactes, material) i defineix totes les accions de manipulació de dades (CRUD) que són independents de la plataforma. És la versió que consumeix l'aplicació mòbil.
+    -   **`desktop-specific/stores/eventDataStore.desktop.ts`**:
+        -   **Descripció:** Aquest fitxer **importa** l'store base i l'**estén**, afegint-hi funcionalitats que depenen de l'entorn d'escriptori.
+        -   **Accions Afegides:** Inclou accions com `syncWithGoogle()` o la generació de PDFs, que no són compatibles amb l'entorn mòbil. Aquesta és la versió que consumeix l'aplicació d'escriptori.
     -   **Middleware:**
-        -   **`immer`**: Permet escriure lògica de mutació d'estat de manera més senzilla i segura, com si es mutés l'estat directament.
-        -   **`temporal` (de `zundo`)**: Envolta l'store per afegir automàticament la funcionalitat de desfer/refer (`undo`/`redo`) a totes les modificacions de l'estat.
+        -   **`immer`**: S'utilitza per a una mutació d'estat segura i senzilla.
+        -   **`temporal` (de `zundo`)**: Proporciona la funcionalitat de desfer/refer.
 
 2.  **`googleConfigStore.ts`**:
     -   **Descripció:** Gestiona tot l'estat i la lògica relacionats amb la configuració de Google Calendar.
@@ -1122,21 +1127,20 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 -   **Ús de Modals Interns per a Confirmacions**: Per evitar bugs de pèrdua de focus i mantenir una experiència d'usuari consistent, s'ha estandarditzat l'ús del sistema de modals interns de l'aplicació (`useModalStore`) en lloc de les funcions natives del navegador com `window.confirm()`. Qualsevol nova acció que requereixi confirmació de l'usuari ha d'implementar un modal a través d'aquest sistema.
 
-### Patró d'Importació per a Mòbil (Aïllament de Dependències)
+### Patró d'Importació per a Mòbil (Punt d'Entrada Dedicat)
 
-Per solucionar de manera robusta els errors de dependències transitives a l'aplicació mòbil, s'ha implementat un sistema d'aïllament de fitxers.
+Per garantir un aïllament total i evitar errors de dependències transitives a React Native, s'ha implementat una arquitectura de "punt d'entrada dedicat".
 
-**La pràctica d'utilitzar un punt d'entrada comú (`@gep/core/mobile`) ha quedat obsoleta, ja que no resolia el problema de les dependències indirectes.**
+- **`packages/core/src/mobile.ts`**: Aquest fitxer actua com l'únic punt d'entrada per a l'aplicació mòbil. La seva única responsabilitat és re-exportar mòduls que resideixen exclusivament dins de la carpeta `platform-agnostic`.
 
-Totes les importacions de lògica d'estat complexa des del paquet `@gep/mobile` cap a `@gep/core` s'han de fer apuntant a fitxers específics per a mòbil.
+- **Importació Segura:** L'aplicació mòbil (`packages/mobile`) **només** ha d'importar codi del paquet `@gep/core` a través d'aquesta via. Això crea una barrera física que impedeix al compilador Metro "veure" o intentar resoldre qualsevol mòdul específic de l'escriptori.
 
-**Exemples:**
+**Exemple d'ús correcte a l'app mòbil:**
 
-- **Importació de l'Store Principal:**
-  - ❌ **Obsolet i Incorrecte:** `import { useEventDataStore } from '@gep/core/stores/eventDataStore';`
-  - ✅ **Correcte:** `import { useEventDataStore } from '@gep/core/stores/eventDataStore.mobile';`
+- ✅ **Correcte:** `import { useEventDataStore } from '@gep/core/mobile';`
+- ❌ **Incorrecte:** `import { useEventDataStore } from '@gep/core/platform-agnostic/stores/eventDataStore.base';`
 
-Aquesta convenció garanteix que només s'inclogui al *bundle* de l'aplicació mòbil el codi que és explícitament compatible, evitant la càrrega de mòduls d'escriptori (com `jspdf` o `googleConfigStore`) a través de dependències indirectes.
+Aquesta convenció assegura que l'app mòbil només consumeix codi garantit per ser compatible, resolent els problemes de compilació d'arrel.
 
 ### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
 
