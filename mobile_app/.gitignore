@@ -1,0 +1,16 @@
+# Expo
+.expo/
+npm-debug.*
+*.jks
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Local
+.env

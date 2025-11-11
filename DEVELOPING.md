@@ -1173,6 +1173,32 @@ Per garantir que les dreceres de teclat es mostrin de manera consistent i correc
 
 Aquest patró millora la mantenibilitat, elimina codi duplicat i assegura que tota la UI reaccioni de manera consistent a la plataforma en què s'executa l'aplicació.
 
+## 10. Aplicació Mòbil (React Native amb Expo)
+
+S'ha afegit al projecte una aplicació mòbil desenvolupada amb React Native i Expo. Aquesta aplicació es troba al directori `mobile_app/` i és independent de l'aplicació d'escriptori.
+
+### Pila Tecnològica
+
+-   **React Native:** Framework per a la creació d'aplicacions mòbils natives amb React.
+-   **Expo:** Plataforma i eines que simplifiquen el desenvolupament i la publicació d'aplicacions de React Native.
+-   **TypeScript:** Per a un codi més robust i mantenible.
+
+### Com executar l'aplicació mòbil
+
+1.  **Navega al directori de l'aplicació mòbil:**
+    ```bash
+    cd mobile_app
+    ```
+2.  **Instal·la les dependències:**
+    ```bash
+    npm install
+    ```
+3.  **Inicia el servidor de desenvolupament d'Expo:**
+    ```bash
+    npm start
+    ```
+Això obrirà el Metro Bundler al teu navegador. Pots executar l'aplicació en un dispositiu físic escanejant el codi QR amb l'aplicació Expo Go, o en un emulador/simulador d'Android o iOS.
+
 ## Arquitectura General (Resum)
 
 - **Frontend:** React amb Vite.

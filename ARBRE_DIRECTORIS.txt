@@ -16,6 +16,15 @@ enllaç a Gestor-Events_i_Personal/
 │   └── example_person.json       # JSON amb dades de contactes.
 ├── imatges/                      # Conté imatges i captures de pantalla per a la documentació.
 │   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
+├── mobile_app/                   # Projecte de l'aplicació mòbil (React Native amb Expo).
+│   ├── .expo/                    # Fitxers temporals generats per Expo.
+│   ├── node_modules/             # Dependències del projecte mòbil.
+│   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòbil.
+│   ├── App.tsx                   # Punt d'entrada de l'aplicació mòbil.
+│   ├── app.json                  # Fitxer de configuració d'Expo.
+│   ├── babel.config.js           # Fitxer de configuració de Babel.
+│   ├── package.json              # Dependències i scripts de l'aplicació mòbil.
+│   └── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil.
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
 │   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
 ├── scripts/                      # Scripts d'utilitat per al procés de desenvolupament i compilació.
