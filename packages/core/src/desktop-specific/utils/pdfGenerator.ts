@@ -1,12 +1,12 @@
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, EventFrame, Assignment, NeedItem, MaterialControlRow } from '../platform-agnostic/types';
-import { formatDateDMY, formatDateRangeDMY } from '../platform-agnostic/utils/dateFormat';
-import { getStatusSummaryText } from '../platform-agnostic/utils/statusUtils';
-import { themeHslColors } from './themeDefinition';
-import { hslToRgb } from '../platform-agnostic/utils/colorUtils';
-import { generateFileName, generateTechSheetFileName } from '../platform-agnostic/utils/fileNameUtils';
-import { useEventDataStore } from '../desktop-specific/stores/eventDataStore.desktop';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, EventFrame, Assignment, NeedItem, MaterialControlRow } from '../../platform-agnostic/types';
+import { formatDateDMY, formatDateRangeDMY } from '../../platform-agnostic/utils/dateFormat';
+import { getStatusSummaryText } from '../../platform-agnostic/utils/statusUtils';
+import { themeHslColors } from '../../utils/themeDefinition';
+import { hslToRgb } from '../../platform-agnostic/utils/colorUtils';
+import { generateFileName, generateTechSheetFileName } from '../../platform-agnostic/utils/fileNameUtils';
+import { useEventDataStore } from '../stores/eventDataStore.desktop';
 
 // Define ActiveFilters type locally for this module
 type ActiveFilters = {

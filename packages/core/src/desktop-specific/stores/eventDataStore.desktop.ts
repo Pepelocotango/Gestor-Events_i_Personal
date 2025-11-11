@@ -5,7 +5,7 @@ import { useModalStore } from '../../platform-agnostic/stores/modalStore';
 import { logger } from '../../platform-agnostic/utils/logger';
 import type { AppData, EventFrame, EventFrameForExport, Assignment } from '../../platform-agnostic/types';
 import type { PersistenceAdapter } from '../../platform-agnostic/persistenceAdapter';
-import { generateGoogleEventDescription } from '../../utils/googleCalendarUtils';
+import { generateGoogleEventDescription } from '../utils/googleCalendarUtils';
 
 // Re-exportem l'inicialitzador per mantenir la compatibilitat
 export const initializeEventDataStore = (adapter: PersistenceAdapter) => {

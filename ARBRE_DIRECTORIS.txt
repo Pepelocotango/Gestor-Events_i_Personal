@@ -19,19 +19,22 @@ Aquest document descriu l'estructura completa de fitxers i carpetes del projecte
 │   │   ├── package.json          # Dependències i scripts del paquet 'core'.
 │   │   └── src/                  # Codi font del paquet 'core'.
 │   │       ├── desktop-specific/ # NOU: Lògica que depèn de l'entorn d'escriptori (Node.js, Electron).
-│   │       │   ├── stores/       #
-│   │       │   │   └── eventDataStore.desktop.ts # Extensió de l'store base amb funcionalitats d'escriptori (Google Sync).
-│   │       │   └── utils/        # (Conté .gitkeep per al rastreig de directoris buits)
+│   │       │   ├── stores/       # Gestors d'estat específics per a l'escriptori.
+│   │       │   │   ├── eventDataStore.desktop.ts # Extensió de l'store base amb funcionalitats d'escriptori (Google Sync).
+│   │       │   │   └── googleConfigStore.ts # Gestiona la configuració i estat de l'API de Google Calendar.
+│   │       │   └── utils/        # Utilitats específiques per a l'escriptori.
+│   │       │       ├── googleCalendarUtils.ts # Funcions per interactuar amb l'API de Google Calendar.
+│   │       │       └── pdfGenerator.ts        # Utilitats per a la creació de documents PDF.
 │   │       ├── index.ts          # Punt d'entrada principal que exporta totes les funcionalitats del paquet.
 │   │       ├── mobile.ts         # NOU: Punt d'entrada EXCLUSIU per a l'aplicació mòbil.
 │   │       ├── platform-agnostic/ # NOU: Lògica 100% compartida, independent de la plataforma.
 │   │       │   ├── persistenceAdapter.ts # Defineix la interfície per a desar i carregar dades (abstracció de l'emmagatzematge).
 │   │       │   ├── types.ts          # Definicions de tipus de TypeScript compartides a tota l'aplicació.
-│   │       │   ├── stores/       #
+│   │       │   ├── stores/       # Gestors d'estat globals agnòstics de plataforma.
 │   │       │   │   ├── eventDataStore.base.ts # Lògica central i agnòstica de la plataforma per a l'estat dels esdeveniments.
 │   │       │   │   ├── loggingMiddleware.ts # Middleware per a Zustand que registra les accions i canvis d'estat.
 │   │       │   │   └── modalStore.ts        # Gestiona l'estat de les finestres modals (quina està oberta, etc.).
-│   │       │   └── utils/        # (Conté .gitkeep per al rastreig de directoris buits)
+│   │       │   └── utils/        # Utilitats agnòstiques de plataforma.
 │   │       │       ├── colorUtils.ts          # Funcions per a la manipulació de colors.
 │   │       │       ├── csvUtils.ts            # Utilitats per a la generació de fitxers CSV.
 │   │       │       ├── dataIntegrity.ts       # Funcions per a la verificació de la integritat de les dades.
@@ -43,11 +46,8 @@ Aquest document descriu l'estructura completa de fitxers i carpetes del projecte
 │   │       │       ├── selectors.ts           # Funcions selectores per a consultar l'estat de Zustand de manera eficient.
 │   │       │       ├── statusUtils.ts         # Utilitats per a gestionar i calcular estats (p. ex., d'assignacions).
 │   │       │       └── techSheetMigration.ts  # Script específic per a la migració de dades de fitxes tècniques.
-│   │       ├── stores/           # Gestors d'estat global amb Zustand.
-│   │       │   └── googleConfigStore.ts # Gestiona la configuració i estat de l'API de Google Calendar.
 │   │       └── utils/            # Funcions d'utilitat compartides.
-│   │           ├── googleCalendarUtils.ts # Funcions per interactuar amb l'API de Google Calendar.
-│   │           └── pdfGenerator.ts        # Utilitats per a la creació de documents PDF.
+│   │           └── themeDefinition.ts        # (Auto-generat) Definicions de tipus per al tema de colors.
 │   └── desktop/                  # Paquet de l'aplicació d'escriptori (Electron + React).
 │       ├── build/                # Recursos addicionals per a la compilació.
 │       │   └── icons/            # Icones per a la compilació.

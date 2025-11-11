@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useEventDataStore } from '@gep/core/stores/eventDataStore.mobile';
-import type { EventFrame, PersonGroup, MaterialItem } from '@gep/core/types';
+import { useEventDataStore } from '@gep/core/mobile';
+import type { EventFrame, PersonGroup, MaterialItem } from '@gep/core/mobile';
 
 
 const DataSummary: React.FC = () => {

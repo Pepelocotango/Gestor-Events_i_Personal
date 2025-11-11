@@ -14,14 +14,14 @@ export * from './platform-agnostic/utils/colorUtils';
 export * from './platform-agnostic/utils/dataMigration';
 export * from './platform-agnostic/utils/dateRangeFormatter';
 
-// Desktop-Specific Utils (to be moved later)
-export * from './utils/pdfGenerator';
-export * from './utils/googleCalendarUtils'; // Assuming this exists and was not moved
+// Desktop-Specific Utils
+export * from './desktop-specific/utils/pdfGenerator';
+export * from './desktop-specific/utils/googleCalendarUtils';
 export * from './utils/themeDefinition'; // Auto-generated, stays here
 
 // Stores
 export * from './desktop-specific/stores/eventDataStore.desktop';
-export * from './stores/googleConfigStore';
+export * from './desktop-specific/stores/googleConfigStore';
 export * from './platform-agnostic/stores/modalStore';
 export * from './platform-agnostic/stores/loggingMiddleware';
 

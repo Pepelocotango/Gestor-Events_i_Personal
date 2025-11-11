@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { GoogleCalendar, ManagedAppCalendar, GoogleConfig } from '../platform-agnostic/types';
-import { logger } from '../platform-agnostic/utils/logger';
-import { useModalStore } from '../platform-agnostic/stores/modalStore';
-import { useEventDataStore } from '../desktop-specific/stores/eventDataStore.desktop';
+import type { GoogleCalendar, ManagedAppCalendar, GoogleConfig } from '../../platform-agnostic/types';
+import { logger } from '../../platform-agnostic/utils/logger';
+import { useModalStore } from '../../platform-agnostic/stores/modalStore';
+import { useEventDataStore } from './eventDataStore.desktop';
 
 // --- STATE AND TYPES ---
 
