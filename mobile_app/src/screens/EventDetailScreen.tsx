@@ -28,11 +28,12 @@ const formatDate = (dateString: string) =>
 
 export default function EventDetailScreen({ route }: Props) {
   const { eventId } = route.params;
-  const { eventFrames, isLoading, error } = useDataStore((state) => ({
-    eventFrames: state.eventFrames,
-    isLoading: state.isLoading,
-    error: state.error,
-  }));
+
+  // Selecciona cada part de l'estat de forma individual per evitar re-renderitzacions innecessàries.
+  const eventFrames = useDataStore((state) => state.eventFrames);
+  const isLoading = useDataStore((state) => state.isLoading);
+  const error = useDataStore((state) => state.error);
+  const peopleGroups = useDataStore((state) => state.peopleGroups);
 
   const event = eventFrames.find((e) => e.id === eventId);
 
@@ -60,8 +61,6 @@ export default function EventDetailScreen({ route }: Props) {
     );
   }
 
-  // Obtenir noms de persones per a les assignacions (suposant que peopleGroups està a la store)
-  const peopleGroups = useDataStore((state) => state.peopleGroups);
   const getPersonName = (personGroupId: string) => {
     const person = peopleGroups.find((p) => p.id === personGroupId);
     return person ? person.name : 'Desconegut';
@@ -72,7 +71,8 @@ export default function EventDetailScreen({ route }: Props) {
       <View style={styles.card}>
         <Text style={styles.title}>{event.name}</Text>
         <Text style={styles.detail}>
-          <Text style={styles.bold}>Lloc:</Text> {event.place || 'No especificat'}
+          <Text style={styles.bold}>Lloc:</Text>{' '}
+          {event.place || 'No especificat'}
         </Text>
         <Text style={styles.detail}>
           <Text style={styles.bold}>Inici:</Text> {formatDate(event.startDate)}
@@ -92,7 +92,9 @@ export default function EventDetailScreen({ route }: Props) {
           <View key={assignment.id} style={styles.assignmentContainer}>
             <Text>
               <Text style={styles.bold}>
-                {peopleGroups.find((p) => p.id === assignment.personGroupId)?.role || 'Rol'}:
+                {peopleGroups.find((p) => p.id === assignment.personGroupId)
+                  ?.role || 'Rol'}
+                :
               </Text>{' '}
               {getPersonName(assignment.personGroupId) || 'No assignat'}
             </Text>
