@@ -57,7 +57,7 @@ export default function HomeScreen({ navigation }: Props) {
             />
           )}
           <Button
-            onPress={() => navigation.navigate('EventForm')}
+            onPress={() => navigation.navigate('EventForm', {})}
             title="+"
           />
         </View>

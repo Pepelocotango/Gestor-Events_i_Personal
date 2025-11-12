@@ -35,7 +35,7 @@ export class DeviceFileService implements IFileService {
     try {
       const jsonString = JSON.stringify(data, null, 2); // Pretty-print JSON
       await FileSystem.writeAsStringAsync(uri, jsonString, {
-        encoding: FileSystem.EncodingType.UTF8,
+        encoding: 'utf8',
       });
     } catch (error) {
       console.error('Error en desar el fitxer al dispositiu:', error);
