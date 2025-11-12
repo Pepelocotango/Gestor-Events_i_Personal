@@ -27,14 +27,7 @@ type Props = {
 };
 
 export default function HomeScreen({ navigation }: Props) {
-  const { eventFrames, isLoading, error, loadInitialData } = useDataStore();
-
-  useEffect(() => {
-    // Carrega les dades només si no s'han carregat ja
-    if (eventFrames.length === 0) {
-      loadInitialData();
-    }
-  }, [loadInitialData, eventFrames.length]);
+  const { eventFrames, isLoading, error } = useDataStore();
 
   const handlePressEvent = (eventId: string) => {
     navigation.navigate('EventDetail', { eventId });
