@@ -7,16 +7,12 @@ export class DeviceFileService implements IFileService {
   public async loadData(): Promise<AppData> {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*', // Accepta qualsevol tipus de fitxer
+        type: 'application/json',
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        // Comprovació manual de l'extensió del fitxer
-        if (!asset.name.endsWith('.json')) {
-          throw new Error('El fitxer seleccionat no és un fitxer JSON.');
-        }
-        const fileContent = await FileSystem.readAsStringAsync(asset.uri);
+        const uri = result.assets[0].uri;
+        const fileContent = await FileSystem.readAsStringAsync(uri);
         return JSON.parse(fileContent);
       } else {
         // Llança un error si l'usuari cancel·la la selecció
