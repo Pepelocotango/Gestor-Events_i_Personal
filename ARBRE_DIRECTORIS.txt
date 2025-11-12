@@ -18,17 +18,16 @@ enllaç a Gestor-Events_i_Personal/
 │   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
 ├── mobile_app/                   # Projecte de l'aplicació mòbil (React Native amb Expo).
 │   ├── .expo/                    # Fitxers temporals generats per Expo.
-│   ├── assets/                   # Actius estàtics (dades d'exemple, imatges).
-│   │   └── data/                 # Dades estàtiques per a l'aplicació.
-│   │       └── example_all.json  # Fitxer JSON amb dades d'exemple.
+│   ├── assets/                   # Actius estàtics (imatges).
 │   ├── src/                      # Codi font de l'aplicació mòbil.
 │   │   ├── navigation.ts         # Defineix els tipus per a la pila de navegació (React Navigation).
 │   │   ├── screens/              # Pantalles principals de l'aplicació.
-│   │   │   ├── HomeScreen.tsx    # Pantalla que mostra la llista d'esdeveniments.
-│   │   │   └── EventDetailScreen.tsx # Pantalla que mostra els detalls d'un esdeveniment.
+│   │   │   ├── DataSourceScreen.tsx # Nova pantalla per seleccionar la font de dades (local o Dropbox).
+│   │   │   ├── HomeScreen.tsx      # Pantalla que mostra la llista d'esdeveniments.
+│   │   │   └── EventDetailScreen.tsx   # Pantalla que mostra els detalls d'un esdeveniment.
 │   │   ├── services/             # Lògica de negoci i accés a dades.
-│   │   │   ├── fileService.ts    # Interfície que defineix el contracte per als serveis de dades.
-│   │   │   └── LocalFileService.ts # Implementació del servei que carrega dades des d'un fitxer local.
+│   │   │   ├── fileService.ts      # Interfície que defineix el contracte per als serveis de dades.
+│   │   │   └── DeviceFileService.ts  # Implementació del servei que carrega dades des del dispositiu.
 │   │   ├── stores/               # Gestors d'estat global (Zustand).
 │   │   │   └── dataStore.ts      # Store per a l'estat de les dades de l'aplicació (esdeveniments, etc.).
 │   │   └── types/                # Definicions de tipus de TypeScript compartides.

@@ -1193,14 +1193,22 @@ L'aplicació mòbil segueix una arquitectura de capes dissenyada per a la separa
     -   **Tipus de Navegació (`src/navigation.ts`):** Per garantir la seguretat de tipus, es defineix un `RootStackParamList` que especifica les pantalles i els paràmetres que poden rebre (p. ex., `EventDetail: { eventId: string }`).
     -   **Pantalles (`src/screens/`):** Components com `HomeScreen.tsx` i `EventDetailScreen.tsx` són responsables de renderitzar la UI. Aquests components consumeixen dades de l'store de Zustand i gestionen les interaccions de l'usuari.
 
-2.  **Capa d'Estat (Gestió de Dades):**
-    -   **Store Central (`src/stores/dataStore.ts`):** Un store de Zustand actua com a **font única de veritat** per a les dades de l'aplicació (esdeveniments, contactes, etc.).
-    -   **Accions Asíncrones:** L'store exposa accions com `loadInitialData()` que orquestren la càrrega de dades, actualitzant els estats de `isLoading` i `error` per a un feedback clar a la UI.
-    -   **Hidratació de Dades:** Durant la càrrega, l'store és responsable de "hidratar" les dades. El fitxer de dades té llistes planes (`eventFrames`, `assignments`), i l'store les combina per crear els objectes `EventFrame` complets amb les seves assignacions niades, preparant les dades per a un ús eficient a les vistes.
+2.  **Capa de Presentació (UI):**
+    -   **Navegació (`App.tsx`):** El punt d'entrada de l'aplicació configura un `StackNavigator`. La pantalla inicial és ara `DataSourceScreen`, que permet a l'usuari triar la font de dades. Un cop les dades es carreguen correctament, l'aplicació navega a `HomeScreen` i reseteja la pila de navegació per evitar que l'usuari torni enrere.
+    -   **Pantalles (`src/screens/`):**
+        -   `DataSourceScreen.tsx`: Nova pantalla que ofereix a l'usuari l'opció de carregar dades des d'un fitxer local del dispositiu o (en el futur) connectar-se a Dropbox.
+        -   `HomeScreen.tsx` i `EventDetailScreen.tsx`: Són responsables de renderitzar la UI principal. Aquests components consumeixen dades de l'store de Zustand i gestionen les interaccions de l'usuari.
 
-3.  **Capa de Serveis (Accés a Dades):**
-    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` defineix un contracte clar (`loadData`, `saveData`) per a qualsevol servei que proporcioni dades. Aquesta abstracció desacobla la lògica de negoci de la implementació específica de l'emmagatzematge.
-    -   **Implementació (`src/services/LocalFileService.ts`):** Actualment, s'utilitza una implementació que carrega les dades des d'un fitxer JSON estàtic (`assets/data/example_all.json`). Aquesta capa es pot substituir fàcilment en el futur per un servei que accedeixi a una API, a l'emmagatzematge local del dispositiu o a un proveïdor al núvol.
+3.  **Capa d'Estat (Gestió de Dades):**
+    -   **Store Central (`src/stores/dataStore.ts`):** Un store de Zustand actua com a **font única de veritat**.
+    -   **Refactorització de la Càrrega:** La funció `loadInitialData` ha estat eliminada. En el seu lloc, `loadDataFromFile` rep el contingut de les dades com a paràmetre.
+    -   **Hidratació de Dades:** La nova funció s'encarrega de la "hidratació" de les dades (combinar `eventFrames` i `assignments`), preparant-les per a un ús eficient a les vistes.
+    -   **`dataSourceInfo`**: S'ha afegit un nou camp a l'estat per emmagatzemar metadades sobre la font de dades actual.
+
+4.  **Capa de Serveis (Accés a Dades):**
+    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` defineix el contracte per a qualsevol servei que proporcioni dades.
+    -   **Implementació (`src/services/DeviceFileService.ts`):** Aquesta nova classe implementa `IFileService` i utilitza `expo-document-picker` i `expo-file-system` per permetre a l'usuari seleccionar i llegir un fitxer `.json` des de l'emmagatzematge del dispositiu.
+    -   **Codi Obsolet Eliminat:** `LocalFileService.ts` i el fitxer de dades estàtic (`example_all.json`) han estat eliminats.
 
 4.  **Capa de Tipus (Model de Dades):**
     -   **Tipus Compartits (`src/types/index.ts`):** Aquest fitxer conté les definicions de tipus de TypeScript (`AppData`, `EventFrame`, `PersonGroup`, etc.). És una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades i puguin interoperar de manera consistent.

@@ -1,25 +1,31 @@
 import { create } from 'zustand';
-import { LocalFileService } from '../services/LocalFileService';
-import { EventFrame, PersonGroup, Assignment } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData } from '../types';
+
+interface DataSourceInfo {
+  type: 'device' | 'dropbox' | null;
+  uri?: string;
+  path?: string;
+  name?: string;
+}
 
 interface DataState {
   eventFrames: EventFrame[];
   peopleGroups: PersonGroup[];
   isLoading: boolean;
   error: string | null;
-  loadInitialData: () => Promise<void>;
+  dataSourceInfo: DataSourceInfo;
+  loadDataFromFile: (data: AppData, sourceInfo: Omit<DataSourceInfo, 'type'>) => void;
 }
 
 export const useDataStore = create<DataState>((set) => ({
   eventFrames: [],
   peopleGroups: [],
-  isLoading: true,
+  isLoading: false,
   error: null,
-  loadInitialData: async () => {
+  dataSourceInfo: { type: null },
+  loadDataFromFile: (data, sourceInfo) => {
     try {
       set({ isLoading: true, error: null });
-      const service = new LocalFileService();
-      const data = await service.loadData();
 
       // Combina eventFrames i assignments per crear els objectes EventFrame complets
       const hydratedEventFrames: EventFrame[] = data.eventFrames.map(
@@ -34,10 +40,11 @@ export const useDataStore = create<DataState>((set) => ({
       set({
         eventFrames: hydratedEventFrames,
         peopleGroups: data.peopleGroups,
+        dataSourceInfo: { type: 'device', ...sourceInfo },
         isLoading: false,
       });
     } catch (err) {
-      const errorMessage = 'Error en carregar les dades.';
+      const errorMessage = 'Error en processar les dades del fitxer.';
       set({ error: errorMessage, isLoading: false });
       console.error(err);
     }
