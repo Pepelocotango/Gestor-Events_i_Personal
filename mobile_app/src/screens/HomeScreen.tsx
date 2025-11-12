@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,9 +6,12 @@ import {
   FlatList,
   ActivityIndicator,
   SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useDataStore } from '../stores/dataStore';
 import { EventFrameForExport } from '../types';
-import { LocalFileService } from '../services/LocalFileService';
+import { RootStackParamList } from '../navigation';
 
 // Helper to format date ranges
 const formatDateRange = (start: string, end: string) => {
@@ -17,30 +20,31 @@ const formatDateRange = (start: string, end: string) => {
   return `${startDate} - ${endDate}`;
 };
 
-export default function HomeScreen() {
-  const [eventFrames, setEventFrames] = useState<EventFrameForExport[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+
+type Props = {
+  navigation: HomeScreenNavigationProp;
+};
+
+export default function HomeScreen({ navigation }: Props) {
+  const { eventFrames, isLoading, error, loadInitialData } = useDataStore();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const service = new LocalFileService();
-        const data = await service.loadData();
-        setEventFrames(data.eventFrames);
-      } catch (err) {
-        setError('Error en carregar les dades.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Carrega les dades només si no s'han carregat ja
+    if (eventFrames.length === 0) {
+      loadInitialData();
+    }
+  }, [loadInitialData, eventFrames.length]);
 
-    fetchData();
-  }, []);
+  const handlePressEvent = (eventId: string) => {
+    navigation.navigate('EventDetail', { eventId });
+  };
 
   const renderItem = ({ item }: { item: EventFrameForExport }) => (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => handlePressEvent(item.id)}
+    >
       <View style={styles.itemDetails}>
         <Text style={styles.itemName}>{item.name}</Text>
         <Text style={styles.itemDates}>
@@ -55,7 +59,7 @@ export default function HomeScreen() {
           },
         ]}
       />
-    </View>
+    </TouchableOpacity>
   );
 
   if (isLoading) {
@@ -90,7 +94,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5', // Lighter background for better contrast
+    backgroundColor: '#f5f5f5',
   },
   centerContainer: {
     flex: 1,
@@ -109,8 +113,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    elevation: 2, // Shadow for Android
-    shadowColor: '#000', // Shadow for iOS
+    elevation: 2,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
