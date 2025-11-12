@@ -7,7 +7,7 @@
 
 # Gestor d'Esdeveniments i Personal V1.3.0
 
-Aplicació d'escriptori multiplataforma (Electron, React, Vite) i aplicació mòbil (React Native, Expo) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material amb control d'estoc.
+Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que funciona com a visor de dades.
 
 El projecte està actualment en fase de desenvolupament actiu.
 

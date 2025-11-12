@@ -1175,15 +1175,37 @@ Aquest patró millora la mantenibilitat, elimina codi duplicat i assegura que to
 
 ## 10. Aplicació Mòbil (React Native amb Expo)
 
-S'ha afegit al projecte una aplicació mòbil desenvolupada amb React Native i Expo. Aquesta aplicació es troba al directori `mobile_app/` i és independent de l'aplicació d'escriptori.
+S'ha afegit al projecte una aplicació mòbil desenvolupada amb React Native i Expo. Aquesta aplicació es troba al directori `mobile_app/` i funciona com un visor de dades complementari a l'aplicació d'escriptori.
 
-### Pila Tecnològica
+### 10.1. Pila Tecnològica
 
--   **React Native:** Framework per a la creació d'aplicacions mòbils natives amb React.
--   **Expo:** Plataforma i eines que simplifiquen el desenvolupament i la publicació d'aplicacions de React Native.
+-   **React Native & Expo:** Framework i plataforma per al desenvolupament d'aplicacions mòbils natives amb React.
 -   **TypeScript:** Per a un codi més robust i mantenible.
+-   **React Navigation:** Llibreria per a la gestió de la navegació entre pantalles.
+-   **Zustand:** Gestor d'estat global per a una gestió de dades centralitzada i eficient.
 
-### Com executar l'aplicació mòbil
+### 10.2. Arquitectura General
+
+L'aplicació mòbil segueix una arquitectura de capes dissenyada per a la separació de responsabilitats i l'escalabilitat:
+
+1.  **Capa de Presentació (UI):**
+    -   **Navegació (`App.tsx`):** El punt d'entrada de l'aplicació configura un `StackNavigator` de React Navigation. Aquest gestiona la pila de pantalles, permetent la navegació des de la llista principal (`HomeScreen`) a la vista de detalls (`EventDetailScreen`).
+    -   **Tipus de Navegació (`src/navigation.ts`):** Per garantir la seguretat de tipus, es defineix un `RootStackParamList` que especifica les pantalles i els paràmetres que poden rebre (p. ex., `EventDetail: { eventId: string }`).
+    -   **Pantalles (`src/screens/`):** Components com `HomeScreen.tsx` i `EventDetailScreen.tsx` són responsables de renderitzar la UI. Aquests components consumeixen dades de l'store de Zustand i gestionen les interaccions de l'usuari.
+
+2.  **Capa d'Estat (Gestió de Dades):**
+    -   **Store Central (`src/stores/dataStore.ts`):** Un store de Zustand actua com a **font única de veritat** per a les dades de l'aplicació (esdeveniments, contactes, etc.).
+    -   **Accions Asíncrones:** L'store exposa accions com `loadInitialData()` que orquestren la càrrega de dades, actualitzant els estats de `isLoading` i `error` per a un feedback clar a la UI.
+    -   **Hidratació de Dades:** Durant la càrrega, l'store és responsable de "hidratar" les dades. El fitxer de dades té llistes planes (`eventFrames`, `assignments`), i l'store les combina per crear els objectes `EventFrame` complets amb les seves assignacions niades, preparant les dades per a un ús eficient a les vistes.
+
+3.  **Capa de Serveis (Accés a Dades):**
+    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` defineix un contracte clar (`loadData`, `saveData`) per a qualsevol servei que proporcioni dades. Aquesta abstracció desacobla la lògica de negoci de la implementació específica de l'emmagatzematge.
+    -   **Implementació (`src/services/LocalFileService.ts`):** Actualment, s'utilitza una implementació que carrega les dades des d'un fitxer JSON estàtic (`assets/data/example_all.json`). Aquesta capa es pot substituir fàcilment en el futur per un servei que accedeixi a una API, a l'emmagatzematge local del dispositiu o a un proveïdor al núvol.
+
+4.  **Capa de Tipus (Model de Dades):**
+    -   **Tipus Compartits (`src/types/index.ts`):** Aquest fitxer conté les definicions de tipus de TypeScript (`AppData`, `EventFrame`, `PersonGroup`, etc.). És una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades i puguin interoperar de manera consistent.
+
+### 10.3. Com executar l'aplicació mòbil
 
 1.  **Navega al directori de l'aplicació mòbil:**
     ```bash
@@ -1198,17 +1220,6 @@ S'ha afegit al projecte una aplicació mòbil desenvolupada amb React Native i E
     npm start
     ```
 Això obrirà el Metro Bundler al teu navegador. Pots executar l'aplicació en un dispositiu físic escanejant el codi QR amb l'aplicació Expo Go, o en un emulador/simulador d'Android o iOS.
-
-### Arquitectura de l'Aplicació Mòbil
-
-L'aplicació mòbil s'està construint amb una arquitectura modular i escalable per garantir la seva mantenibilitat i flexibilitat a llarg termini. L'estructura de directoris dins de `mobile_app/src/` és la següent:
-
--   **`screens/`**: Conté els components de React que representen una pantalla completa de l'aplicació, com ara `HomeScreen.tsx`. Aquesta carpeta organitza les vistes principals que l'usuari pot navegar.
--   **`services/`**: Allotja la lògica de negoci i l'accés a dades, aïllant-la completament de la interfície d'usuari. La peça central és la interfície `IFileService` (`fileService.ts`), que defineix un "contracte" abstracte per a la gestió de dades. Aquest disseny permetrà en el futur implementar diferents proveïdors de dades (emmagatzematge local, Dropbox, Google Drive) sense haver de modificar la lògica principal de l'aplicació. Simplement caldrà crear una nova classe que compleixi aquest contracte.
--   **`types/`**: Centralitza totes les definicions de tipus de TypeScript. El fitxer `index.ts` és una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades (`AppData`, `EventFrame`, etc.) i puguin interoperar de manera consistent.
--   **`components/`**: Destinada a components de React reutilitzables que es poden emprar en diferents pantalles, com ara botons personalitzats, llistes o elements de formulari.
-
-Aquesta estructura promou una clara separació de responsabilitats, fent que el codi sigui més fàcil d'entendre, provar i ampliar.
 
 ## Arquitectura General (Resum)
 
