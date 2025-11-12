@@ -22,43 +22,32 @@ const DataSourceScreen = ({ navigation }: Props) => {
     const fileService = new DeviceFileService();
     try {
       const data = await fileService.loadData();
-      if (data) {
-        // @ts-ignore
-        loadDataFromFile(data, { name: 'fitxer local' });
-        // Reseteja la pila de navegació i navega a Home
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: 'Home' }],
-          })
-        );
-      }
+      // @ts-ignore
+      loadDataFromFile(data, { name: 'fitxer local' });
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        })
+      );
     } catch (error: any) {
       if (error.message.includes('cancel·lada')) {
-        // No mostris cap alerta si l'usuari ha cancel·lat la selecció
         console.log(error.message);
+      } else if (error instanceof SyntaxError) {
+        Alert.alert('Error', 'El fitxer seleccionat no és un JSON vàlid.');
       } else {
-        Alert.alert('Error', 'No s\'ha pogut carregar el fitxer.');
+        Alert.alert('Error', error.message || 'No s\'ha pogut carregar el fitxer.');
         console.error(error);
       }
     }
   };
 
-  const handleConnectDropbox = () => {
-    // Lògica per iniciar el flux d'autenticació de Dropbox
-    Alert.alert('Pròximament', 'La connexió amb Dropbox encara no està implementada.');
-    console.log('Connectant amb Dropbox...');
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Selecciona una font de dades</Text>
+        <Text style={styles.title}>Selecciona el teu fitxer de dades</Text>
         <View style={styles.buttonContainer}>
-          <Button title="Obrir fitxer del dispositiu" onPress={handleOpenFile} />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button title="Connectar amb Dropbox" onPress={handleConnectDropbox} />
+          <Button title="Obrir Fitxer (.json)" onPress={handleOpenFile} />
         </View>
       </View>
     </SafeAreaView>
