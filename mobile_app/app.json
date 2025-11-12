@@ -2,6 +2,9 @@
   "expo": {
     "name": "gestor-events-mobile",
     "slug": "gestor-events-mobile",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

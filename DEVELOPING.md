@@ -1223,6 +1223,7 @@ L'aplicació mòbil segueix una arquitectura de capes dissenyada per a la separa
     ```bash
     npm install
     ```
+    > **Nota important:** Per afegir noves dependències, especialment aquelles que contenen codi natiu (com les llibreries d'Expo), es recomana utilitzar `npx expo install <nom-del-paquet>`. Aquesta eina s'assegura d'instal·lar una versió de la llibreria que sigui totalment compatible amb l'SDK d'Expo del projecte, evitant problemes d'enllaç natiu.
 3.  **Inicia el servidor de desenvolupament d'Expo:**
     ```bash
     npm start
