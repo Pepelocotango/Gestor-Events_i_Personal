@@ -27,9 +27,15 @@ export class DeviceFileService implements IFileService {
     }
   }
 
-  public saveData(data: AppData): Promise<void> {
-    // Aquesta funció no és necessària per a aquest servei
-    console.warn('La funció saveData no està implementada per a DeviceFileService.');
-    return Promise.resolve();
+  public async saveData(data: AppData, uri: string): Promise<void> {
+    try {
+      const jsonString = JSON.stringify(data, null, 2); // Pretty-print JSON
+      await FileSystem.writeAsStringAsync(uri, jsonString, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+    } catch (error) {
+      console.error('Error en desar el fitxer al dispositiu:', error);
+      throw new Error('No s’ha pogut desar el fitxer.');
+    }
   }
 }

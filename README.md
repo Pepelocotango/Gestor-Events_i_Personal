@@ -17,39 +17,38 @@ Aquesta aplicació està dissenyada per ser una solució integral per a professi
 
 L'aplicació ofereix les següents eines:
 
-*   **Gestió d'Esdeveniments i Assignacions:**
+*   **Gestió d'Esdeveniments i Assignacions (Escriptori):**
     *   Crea "esdeveniments marc" amb dates i notes generals.
     *   Assigna personal per dies concrets i controla'n l'estat (Confirmat, Pendent, No disponible, Mixt).
     *   El sistema detecta automàticament conflictes si una persona és assignada a múltiples llocs el mateix dia.
 
-*   **Planificació i Visualització:**
+*   **Planificació i Visualització (Escriptori):**
     *   **Calendari Avançat:** Visualitza tots els esdeveniments en múltiples formats (2, 4 o 6 mesos, mes, setmana i agenda). 
     *   **Llista Dinàmica:** Filtra i ordena els esdeveniments per nom, lloc, persona, estat o data per a una visió detallada.
 
-*   **Documentació Tècnica (Fitxes de Bolo):**
-    *   Genera fitxes tècniques completes per a cada esdeveniment.
+*   **Documentació Tècnica (Escriptori):**
+    *   Genera fitxes tècniques completes ("Fitxes de Bolo") per a cada esdeveniment.
     *   Gestiona el personal per proveïdors i rols, i les necessitats de material (il·luminació, so, vídeo, etc.).
-    *   **Reordena els proveïdors de personal amb drag-and-drop** per a una organització visual i lògica.
-    *   Pobla automàticament la llista de personal a partir de les assignacions confirmades.
+    *   **Reordena els proveïdors de personal amb drag-and-drop** per a una organització visual.
 
-*   **Inventari de Material:**
+*   **Inventari de Material (Escriptori):**
     *   Manté una base de dades centralitzada de material amb control d'estoc.
     *   El sistema comprova la disponibilitat de l'estoc en temps real en assignar material a una fitxa de bolo.
 
-*   **Connectivitat i Gestió de Dades:**
-    *   **Integració amb Google Calendar:** Sincronitza els esdeveniments de l'aplicació a un calendari dedicat de Google i visualitza altres calendaris teus en mode de només lectura.
-        
-        > **AVÍS IMPORTANT:** La integració amb Google Calendar requereix una autorització manual per part del desenvolupador.
-        Perquè la sincronització funcioni, Google requereix que el desenvolupador afegeixi manualment el teu correu electrònic a la llista de "testers" autoritzats del projecte. Si vols utilitzar aquesta funcionalitat, si us plau, contacta amb l'autor, per a que el teu compte de Google , sigui afegit a la llista d'usuaris permesos.
+*   **Connectivitat i Gestió de Dades (Escriptori):**
+    *   **Integració amb Google Calendar:** Sincronitza els esdeveniments a un calendari de Google i visualitza altres calendaris en mode de només lectura.
+    *   **Importació/Exportació:** Desa i carrega dades en format JSON. Permet fusionar o reemplaçar dades de personal i material.
+    *   **Exportació a PDF/CSV:** Exporta resums, llistes, inventaris i fitxes de bolo a formats professionals.
 
-    *   **Importació/Exportació:** Desa i carrega totes les dades de l'aplicació en format JSON. La càrrega de dades de personal i material permet fusionar o reemplaçar la informació existent.
-    *   **Exportació a PDF/CSV:** Exporta resums, llistes de personal, inventaris i fitxes de bolo a formats professionals com PDF i CSV.
+*   **Aplicació Mòbil (iOS/Android):**
+    *   **Gestió Completa d'Esdeveniments:** L'aplicació mòbil ara permet **crear, editar i eliminar** esdeveniments directament des del teu dispositiu.
+    *   **Control de Canvis No Desats:** Un sistema de "dirty flag" t'avisa si tens canvis pendents. Un botó "Guardar" només apareix quan és necessari.
+    *   **Desat Local:** Desa les teves modificacions directament al fitxer `.json` que has obert, mantenint la consistència amb l'aplicació d'escriptori.
+    *   **Alertes de Seguretat:** L'aplicació et preguntarà abans d'eliminar un esdeveniment o de sortir si tens canvis no desats, per evitar pèrdues accidentals de dades.
 
-> Per a una anàlisi tècnica detallada de l'arquitectura i les funcionalitats, consulta la nostra [**guia de desenvolupament (DEVELOPING.md)**](DEVELOPING.md).
+> Per a una anàlisi tècnica detallada de l'arquitectura, consulta la nostra [**guia de desenvolupament (DEVELOPING.md)**](DEVELOPING.md).
 
-
-
-## 💾 Descàrrega i Instal·lació
+## 💾 Descàrrega i Instal·lació (App Escriptori)
 
 Pots descarregar l'última versió de l'aplicació directament des de la nostra secció de [**Releases a GitHub**](https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases).
 

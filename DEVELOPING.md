@@ -1213,7 +1213,33 @@ L'aplicació mòbil segueix una arquitectura de capes dissenyada per a la separa
 4.  **Capa de Tipus (Model de Dades):**
     -   **Tipus Compartits (`src/types/index.ts`):** Aquest fitxer conté les definicions de tipus de TypeScript (`AppData`, `EventFrame`, `PersonGroup`, etc.). És una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades i puguin interoperar de manera consistent.
 
-### 10.3. Com executar l'aplicació mòbil
+### 10.3. Gestió de Dades: Funcionalitats CRUD i Control de Canvis
+
+L'aplicació mòbil ha evolucionat per permetre la gestió completa d'esdeveniments (Crear, Llegir, Actualitzar, Eliminar) i implementa un sistema robust per al control de canvis no desats.
+
+-   **Navegació Millorada:**
+    -   S'ha afegit una nova pantalla, `EventFormScreen.tsx`, a la pila de navegació. Aquesta pantalla rep un paràmetre opcional `eventId` per distingir entre el mode "edició" i el mode "creació".
+    -   El títol de la pantalla canvia dinàmicament a "Editar Esdeveniment" o "Nou Esdeveniment" segons el context.
+
+-   **Accions CRUD a `dataStore.ts`:**
+    -   `addEventFrame(data)`: Afegeix un nou esdeveniment a la llista, generant un ID únic amb `uuid`.
+    -   `updateEventFrame(eventId, data)`: Actualitza un esdeveniment existent.
+    -   `deleteEventFrame(eventId)`: Elimina un esdeveniment.
+    -   Cadascuna d'aquestes accions estableix el "dirty flag" `hasUnsavedChanges` a `true`.
+
+-   **Control de Canvis No Desats:**
+    -   **"Dirty Flag":** L'estat `hasUnsavedChanges: boolean` a `dataStore` és la font de veritat per saber si hi ha canvis pendents.
+    -   **Botó "Guardar" Condicional:** A `HomeScreen`, un botó "Guardar" a la capçalera només és visible i actiu si `hasUnsavedChanges` és `true`.
+    -   **Lògica de Desat:** L'acció `saveDataToFile` a l'store crida al mètode `saveData` del `DeviceFileService`, que utilitza `expo-file-system` per escriure les dades actualitzades a la `URI` del fitxer original. En cas d'èxit, `hasUnsavedChanges` es restableix a `false`.
+    -   **Alerta en Sortir:** `HomeScreen` utilitza el listener `beforeRemove` de `react-navigation`. Si `hasUnsavedChanges` és `true` quan l'usuari intenta navegar enrere, es mostra un diàleg de confirmació natiu per evitar la pèrdua accidental de dades.
+
+-   **Interfície d'Usuari a `HomeScreen.tsx`:**
+    -   **Botó d'Afegir:** Un botó "+" a la capçalera permet navegar a `EventFormScreen` en mode "creació".
+    -   **Botons d'Acció:** Cada ítem de la llista d'esdeveniments té ara botons "Editar" i "Eliminar".
+        -   "Editar" navega a `EventFormScreen` passant l'`eventId`.
+        -   "Eliminar" mostra un diàleg de confirmació (`Alert.alert`) abans de cridar l'acció `deleteEventFrame`.
+
+### 10.4. Com executar l'aplicació mòbil
 
 1.  **Navega al directori de l'aplicació mòbil:**
     ```bash
