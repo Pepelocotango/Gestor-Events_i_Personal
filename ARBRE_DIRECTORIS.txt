@@ -18,9 +18,18 @@ enllaç a Gestor-Events_i_Personal/
 │   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
 ├── mobile_app/                   # Projecte de l'aplicació mòbil (React Native amb Expo).
 │   ├── .expo/                    # Fitxers temporals generats per Expo.
+│   ├── src/                      # Codi font de l'aplicació mòbil.
+│   │   ├── components/           # Components de React reutilitzables.
+│   │   ├── screens/              # Pantalles principals de l'aplicació.
+│   │   │   └── HomeScreen.tsx    # Pantalla inicial de l'app.
+│   │   ├── services/             # Lògica de negoci i accés a dades.
+│   │   │   └── fileService.ts    # Interfície per als serveis de gestió de fitxers.
+│   │   └── types/                # Definicions de tipus de TypeScript compartides.
+│   │       └── index.ts          # Tipus de dades (AppData, EventFrame, etc.).
 │   ├── node_modules/             # Dependències del projecte mòbil.
 │   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòbil.
-│   ├── App.tsx                   # Punt d'entrada de l'aplicació mòbil.
+│   ├── App.tsx                   # Punt d'entrada principal que carrega les pantalles.
+│   ├── index.js                  # Punt de registre inicial de l'aplicació per a Expo.
 │   ├── app.json                  # Fitxer de configuració d'Expo.
 │   ├── babel.config.js           # Fitxer de configuració de Babel.
 │   ├── package.json              # Dependències i scripts de l'aplicació mòbil.

@@ -1199,6 +1199,17 @@ S'ha afegit al projecte una aplicació mòbil desenvolupada amb React Native i E
     ```
 Això obrirà el Metro Bundler al teu navegador. Pots executar l'aplicació en un dispositiu físic escanejant el codi QR amb l'aplicació Expo Go, o en un emulador/simulador d'Android o iOS.
 
+### Arquitectura de l'Aplicació Mòbil
+
+L'aplicació mòbil s'està construint amb una arquitectura modular i escalable per garantir la seva mantenibilitat i flexibilitat a llarg termini. L'estructura de directoris dins de `mobile_app/src/` és la següent:
+
+-   **`screens/`**: Conté els components de React que representen una pantalla completa de l'aplicació, com ara `HomeScreen.tsx`. Aquesta carpeta organitza les vistes principals que l'usuari pot navegar.
+-   **`services/`**: Allotja la lògica de negoci i l'accés a dades, aïllant-la completament de la interfície d'usuari. La peça central és la interfície `IFileService` (`fileService.ts`), que defineix un "contracte" abstracte per a la gestió de dades. Aquest disseny permetrà en el futur implementar diferents proveïdors de dades (emmagatzematge local, Dropbox, Google Drive) sense haver de modificar la lògica principal de l'aplicació. Simplement caldrà crear una nova classe que compleixi aquest contracte.
+-   **`types/`**: Centralitza totes les definicions de tipus de TypeScript. El fitxer `index.ts` és una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades (`AppData`, `EventFrame`, etc.) i puguin interoperar de manera consistent.
+-   **`components/`**: Destinada a components de React reutilitzables que es poden emprar en diferents pantalles, com ara botons personalitzats, llistes o elements de formulari.
+
+Aquesta estructura promou una clara separació de responsabilitats, fent que el codi sigui més fàcil d'entendre, provar i ampliar.
+
 ## Arquitectura General (Resum)
 
 - **Frontend:** React amb Vite.
