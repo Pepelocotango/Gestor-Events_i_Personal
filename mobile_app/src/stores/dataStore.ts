@@ -138,10 +138,14 @@ export const useDataStore = create<DataState>((set, get) => ({
         materialItems: [], // Placeholder
       };
 
-      await fileService.saveData(dataToSave, dataSourceInfo.uri);
+      const savedUri = await fileService.saveData(dataToSave, dataSourceInfo.uri);
 
-      // On success, reset the dirty flag
-      set({ hasUnsavedChanges: false, error: null });
+      // On success, reset the dirty flag and update the URI
+      set((state) => ({
+        hasUnsavedChanges: false,
+        error: null,
+        dataSourceInfo: { ...state.dataSourceInfo, uri: savedUri },
+      }));
     } catch (err) {
       const errorMessage = 'Error en desar les dades.';
       set({ error: errorMessage });
