@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   Button,
   Alert,
+  DevSettings,
+  BackHandler,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
@@ -158,6 +160,19 @@ export default function HomeScreen({ navigation }: Props) {
         keyExtractor={(item: EventFrame) => item.id}
         contentContainerStyle={styles.listContent}
       />
+      <View style={styles.footer}>
+        <Button
+          title="Recarregar App"
+          onPress={() => DevSettings.reload()}
+          color="#1E90FF"
+        />
+        <View style={styles.buttonSpacer} />
+        <Button
+          title="Sortir"
+          onPress={() => BackHandler.exitApp()}
+          color="#FF6347"
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -216,5 +231,13 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 16,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    backgroundColor: '#f5f5f5',
   },
 });
