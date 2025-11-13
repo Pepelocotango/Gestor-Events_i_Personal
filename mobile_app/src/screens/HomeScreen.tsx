@@ -46,26 +46,28 @@ const HomeScreen = ({ navigation }: Props) => {
   };
 
   const handleOpenFile = async () => {
+    const openAndSetData = async () => {
+      try {
+        const result = await fileService.openFile();
+        if (result) {
+          setData(result.content, result.uri, result.name);
+        }
+      } catch (error) {
+        Alert.alert("Error", "El fitxer seleccionat no és vàlid o està malmès.");
+      }
+    };
+
     if (hasUnsavedChanges) {
       Alert.alert(
         "Descartar canvis?",
         "Teniu canvis no desats. Esteu segur que voleu tancar el fitxer actual i descartar els canvis?",
         [
           { text: "Cancel·lar", style: "cancel" },
-          { text: "Descartar", style: "destructive", onPress: async () => {
-              const result = await fileService.openFile();
-              if (result) {
-                setData(result.content, result.uri, result.name);
-              }
-            }
-          },
+          { text: "Descartar", style: "destructive", onPress: openAndSetData },
         ]
       );
     } else {
-      const result = await fileService.openFile();
-      if (result) {
-        setData(result.content, result.uri, result.name);
-      }
+      await openAndSetData();
     }
   };
 

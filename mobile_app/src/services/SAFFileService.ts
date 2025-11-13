@@ -13,7 +13,7 @@ export class SAFFileService implements IFileService {
       const result = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: false, // Important for SAF URIs
         multiple: false,
-        type: 'application/json',
+        type: '*/*',
       });
 
       if (!result.canceled && result.assets.length > 0) {
