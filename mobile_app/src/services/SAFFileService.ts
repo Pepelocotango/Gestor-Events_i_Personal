@@ -13,13 +13,13 @@ export class SAFFileService implements IFileService {
       const result = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: false, // Important for SAF URIs
         multiple: false,
-        type: 'application/json',
+        type: '*/*',
       });
 
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
         const content = await FileSystem.readAsStringAsync(asset.uri, {
-          encoding: FileSystem.EncodingType.UTF8,
+          encoding: 'utf8',
         });
         const data = JSON.parse(content);
 
@@ -51,7 +51,7 @@ export class SAFFileService implements IFileService {
 
       if (uri) {
         await FileSystem.writeAsStringAsync(uri, jsonString, {
-          encoding: FileSystem.EncodingType.UTF8,
+          encoding: 'utf8',
         });
         return uri;
       }
@@ -66,7 +66,7 @@ export class SAFFileService implements IFileService {
     try {
       const jsonString = JSON.stringify(data, null, 2);
       await FileSystem.writeAsStringAsync(uri, jsonString, {
-        encoding: FileSystem.EncodingType.UTF8,
+        encoding: 'utf8',
       });
     } catch (error) {
       console.error('Error al desar el fitxer:', error);
