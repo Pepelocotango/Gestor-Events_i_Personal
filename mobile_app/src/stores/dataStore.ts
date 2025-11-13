@@ -29,6 +29,7 @@ interface DataState {
   error: string | null;
   dataSourceInfo: DataSourceInfo;
   hasUnsavedChanges: boolean; // Dirty flag
+  workspaceUri: string | null;
   loadDataFromFile: (
     data: AppData,
     sourceInfo: { uri: string; name: string }
@@ -40,6 +41,7 @@ interface DataState {
   ) => void;
   deleteEventFrame: (eventId: string) => void;
   saveDataToFile: () => Promise<void>;
+  setWorkspaceUri: (uri: string) => void;
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
@@ -49,6 +51,11 @@ export const useDataStore = create<DataState>((set, get) => ({
   error: null,
   dataSourceInfo: { type: null },
   hasUnsavedChanges: false, // Initial state for the dirty flag
+  workspaceUri: null,
+
+  setWorkspaceUri: (uri: string) => {
+    set({ workspaceUri: uri });
+  },
 
   loadDataFromFile: (data, sourceInfo) => {
     try {
@@ -112,7 +119,14 @@ export const useDataStore = create<DataState>((set, get) => ({
   },
 
   saveDataToFile: async () => {
-    const { eventFrames, peopleGroups } = get();
+    const { eventFrames, peopleGroups, dataSourceInfo } = get();
+
+    if (!dataSourceInfo.uri) {
+      const errorMessage = "No s'ha definit cap fitxer de destinació.";
+      set({ error: errorMessage });
+      console.error(errorMessage);
+      return;
+    }
 
     try {
       // Dehydrate data for saving
@@ -131,14 +145,14 @@ export const useDataStore = create<DataState>((set, get) => ({
         materialItems: [], // Placeholder
       };
 
-      const savedUri = await fileService.saveData(dataToSave);
+      // Pass the existing URI to overwrite the file
+      await fileService.saveData(dataToSave, dataSourceInfo.uri);
 
-      // On success, reset the dirty flag and update the URI
-      set((state) => ({
+      // On success, reset the dirty flag
+      set({
         hasUnsavedChanges: false,
         error: null,
-        dataSourceInfo: { ...state.dataSourceInfo, uri: savedUri },
-      }));
+      });
     } catch (err) {
       const errorMessage = 'Error en desar les dades.';
       set({ error: errorMessage });
