@@ -31,7 +31,7 @@ interface DataState {
   hasUnsavedChanges: boolean; // Dirty flag
   loadDataFromFile: (
     data: AppData,
-    sourceInfo: Omit<DataSourceInfo, 'type'>
+    sourceInfo: { uri: string; name: string }
   ) => void;
   addEventFrame: (data: NewEventData) => void;
   updateEventFrame: (
@@ -68,7 +68,11 @@ export const useDataStore = create<DataState>((set, get) => ({
       set({
         eventFrames: hydratedEventFrames,
         peopleGroups: data.peopleGroups,
-        dataSourceInfo: { type: 'device', ...sourceInfo },
+        dataSourceInfo: {
+          type: 'device',
+          uri: sourceInfo.uri,
+          name: sourceInfo.name,
+        },
         isLoading: false,
       });
     } catch (err) {
