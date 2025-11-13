@@ -35,12 +35,13 @@ export class DeviceFileService implements IFileService {
     }
   }
 
-  public async saveData(data: AppData, uri: string): Promise<void> {
+  public async saveData(data: AppData, uri: string): Promise<string> {
     try {
       const jsonString = JSON.stringify(data, null, 2); // Pretty-print JSON
       await FileSystem.writeAsStringAsync(uri, jsonString, {
         encoding: 'utf8',
       });
+      return uri;
     } catch (error) {
       console.error('Error en desar el fitxer al dispositiu:', error);
       throw new Error('No s’ha pogut desar el fitxer.');
