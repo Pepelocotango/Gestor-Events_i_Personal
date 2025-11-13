@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,17 +7,23 @@ import {
   ActivityIndicator,
   SafeAreaView,
   TouchableOpacity,
+  Button,
+  Alert,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
-import { EventFrameForExport } from '../types';
+import { EventFrame } from '../types';
 import { RootStackParamList } from '../navigation';
 
 // Helper to format date ranges
 const formatDateRange = (start: string, end: string) => {
-  const startDate = new Date(start).toLocaleDateString();
-  const endDate = new Date(end).toLocaleDateString();
-  return `${startDate} - ${endDate}`;
+  try {
+    const startDate = new Date(start).toLocaleDateString();
+    const endDate = new Date(end).toLocaleDateString();
+    return `${startDate} - ${endDate}`;
+  } catch (e) {
+    return 'Dates invàlides';
+  }
 };
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -27,32 +33,104 @@ type Props = {
 };
 
 export default function HomeScreen({ navigation }: Props) {
-  const { eventFrames, isLoading, error } = useDataStore();
+  const {
+    eventFrames,
+    isLoading,
+    error,
+    hasUnsavedChanges,
+    saveDataToFile,
+    deleteEventFrame,
+  } = useDataStore();
 
-  const handlePressEvent = (eventId: string) => {
-    navigation.navigate('EventDetail', { eventId });
+  // Configure header buttons
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerButtons}>
+          {hasUnsavedChanges && (
+            <Button
+              onPress={async () => {
+                await saveDataToFile();
+                Alert.alert('Èxit', 'Les dades s’han desat correctament.');
+              }}
+              title="Desar"
+            />
+          )}
+          <Button
+            onPress={() => navigation.navigate('EventForm', {})}
+            title="+"
+          />
+        </View>
+      ),
+    });
+  }, [navigation, hasUnsavedChanges, saveDataToFile]);
+
+  // Prevent leaving the screen with unsaved changes
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (!hasUnsavedChanges) {
+        return;
+      }
+
+      e.preventDefault();
+
+      Alert.alert(
+        'Descartar canvis?',
+        'Teniu canvis no desats. Esteu segur que voleu descartar-los i sortir?',
+        [
+          { text: 'No, quedar-se', style: 'cancel', onPress: () => {} },
+          {
+            text: 'Sí, descartar',
+            style: 'destructive',
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, hasUnsavedChanges]);
+
+  const handleEdit = (eventId: string) => {
+    navigation.navigate('EventForm', { eventId });
   };
 
-  const renderItem = ({ item }: { item: EventFrameForExport }) => (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      onPress={() => handlePressEvent(item.id)}
-    >
-      <View style={styles.itemDetails}>
+  const handleDelete = (eventId: string) => {
+    Alert.alert(
+      'Confirmar eliminació',
+      'Esteu segur que voleu eliminar aquest esdeveniment?',
+      [
+        { text: 'Cancel·lar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => deleteEventFrame(eventId),
+        },
+      ]
+    );
+  };
+
+  const renderItem = ({ item }: { item: EventFrame }) => (
+    <View style={styles.itemContainer}>
+      <TouchableOpacity
+        style={styles.itemDetails}
+        onPress={() => navigation.navigate('EventDetail', { eventId: item.id })}
+      >
         <Text style={styles.itemName}>{item.name}</Text>
         <Text style={styles.itemDates}>
           {formatDateRange(item.startDate, item.endDate)}
         </Text>
+      </TouchableOpacity>
+      <View style={styles.itemActions}>
+        <Button title="Editar" onPress={() => handleEdit(item.id)} />
+        <View style={styles.buttonSpacer} />
+        <Button
+          title="Eliminar"
+          onPress={() => handleDelete(item.id)}
+          color="#F44336"
+        />
       </View>
-      <View
-        style={[
-          styles.statusIndicator,
-          {
-            backgroundColor: item.personnelComplete ? '#4CAF50' : '#F44336', // Green if complete, Red if not
-          },
-        ]}
-      />
-    </TouchableOpacity>
+    </View>
   );
 
   if (isLoading) {
@@ -77,7 +155,7 @@ export default function HomeScreen({ navigation }: Props) {
       <FlatList
         data={eventFrames}
         renderItem={renderItem}
-        keyExtractor={(item: EventFrameForExport) => item.id.toString()}
+        keyExtractor={(item: EventFrame) => item.id}
         contentContainerStyle={styles.listContent}
       />
     </SafeAreaView>
@@ -93,6 +171,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    marginRight: 10,
   },
   listContent: {
     paddingVertical: 8,
@@ -124,11 +206,12 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  statusIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginLeft: 16,
+  itemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonSpacer: {
+    width: 10, // Adds space between buttons
   },
   errorText: {
     color: 'red',

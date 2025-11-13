@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './src/screens/HomeScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import DataSourceScreen from './src/screens/DataSourceScreen';
+import EventFormScreen from './src/screens/EventFormScreen'; // Importa la nova pantalla
 import { RootStackParamList } from './src/navigation';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -27,6 +28,13 @@ export default function App() {
           name="EventDetail"
           component={EventDetailScreen}
           options={{ title: 'Detalls de l\'Esdeveniment' }}
+        />
+        <Stack.Screen
+          name="EventForm"
+          component={EventFormScreen}
+          options={({ route }) => ({
+            title: route.params?.eventId ? 'Editar Esdeveniment' : 'Nou Esdeveniment',
+          })}
         />
       </Stack.Navigator>
     </NavigationContainer>

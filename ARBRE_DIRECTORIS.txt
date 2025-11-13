@@ -22,9 +22,10 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── src/                      # Codi font de l'aplicació mòbil.
 │   │   ├── navigation.ts         # Defineix els tipus per a la pila de navegació (React Navigation).
 │   │   ├── screens/              # Pantalles principals de l'aplicació.
-│   │   │   ├── DataSourceScreen.tsx # Nova pantalla per seleccionar la font de dades (local o Dropbox).
-│   │   │   ├── HomeScreen.tsx      # Pantalla que mostra la llista d'esdeveniments.
-│   │   │   └── EventDetailScreen.tsx   # Pantalla que mostra els detalls d'un esdeveniment.
+│   │   │   ├── DataSourceScreen.tsx # Pantalla per seleccionar la font de dades.
+│   │   │   ├── EventDetailScreen.tsx   # Pantalla que mostra els detalls d'un esdeveniment.
+│   │   │   ├── EventFormScreen.tsx   # Pantalla amb el formulari per crear/editar esdeveniments.
+│   │   │   └── HomeScreen.tsx      # Pantalla que mostra la llista d'esdeveniments.
 │   │   ├── services/             # Lògica de negoci i accés a dades.
 │   │   │   ├── fileService.ts      # Interfície que defineix el contracte per als serveis de dades.
 │   │   │   └── DeviceFileService.ts  # Implementació del servei que carrega dades des del dispositiu.
