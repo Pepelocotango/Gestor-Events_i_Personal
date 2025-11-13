@@ -28,7 +28,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   └── HomeScreen.tsx      # Pantalla que mostra la llista d'esdeveniments.
 │   │   ├── services/             # Lògica de negoci i accés a dades.
 │   │   │   ├── fileService.ts      # Interfície que defineix el contracte per als serveis de dades.
-│   │   │   └── DeviceFileService.ts  # Implementació del servei que carrega dades des del dispositiu.
+│   │   │   └── DeviceFileService.ts  # Implementació del servei que carrega i desa dades des del dispositiu.
 │   │   ├── stores/               # Gestors d'estat global (Zustand).
 │   │   │   └── dataStore.ts      # Store per a l'estat de les dades de l'aplicació (esdeveniments, etc.).
 │   │   └── types/                # Definicions de tipus de TypeScript compartides.
