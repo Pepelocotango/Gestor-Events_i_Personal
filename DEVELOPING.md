@@ -1204,9 +1204,9 @@ L'arquitectura de l'aplicació mòbil s'ha refactoritzat per adoptar el **Storag
 3.  **Capa de Serveis (Accés a Dades amb SAF):**
     -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` defineix un contracte clar per a les operacions de fitxers: `openFile`, `createFile`, `saveFile`.
     -   **Implementació (`src/services/SAFFileService.ts`):** Aquesta nova classe és el nucli de la interacció amb el sistema de fitxers:
-        -   `openFile`: Utilitza `expo-document-picker` per permetre a l'usuari seleccionar un fitxer JSON. Retorna l'URI, el nom i el contingut del fitxer.
+        -   `openFile`: Utilitza `expo-document-picker`. Per solucionar un problema de compatibilitat en llegir fitxers des d'ubicacions com "Descàrregues" o Google Drive, s'utilitza l'opció `copyToCacheDirectory: true`. Això crea una còpia local del fitxer (amb una URI `file://`) que es pot llegir de manera fiable. El mètode llegeix aquesta còpia, però retorna la **URI original i persistent** (`content://`) per garantir que les operacions de desat sobreescriguin el fitxer correcte.
         -   `createFile`: Utilitza `FileSystem.StorageAccessFramework.createFileAsync` per obrir el diàleg de "Desar com a" i crear un nou fitxer.
-        -   `saveFile`: Utilitza `FileSystem.writeAsStringAsync` per sobreescriure el contingut d'un fitxer existent a partir del seu URI.
+        -   `saveFile`: Utilitza `FileSystem.writeAsStringAsync` per sobreescriure el contingut d'un fitxer existent a partir de la seva URI persistent (`content://`), operació que sí que és compatible amb SAF.
     -   **Codi Obsolet Eliminat:** `DeviceFileService.ts` ha estat eliminat.
 
 4.  **Capa de Tipus (Model de Dades):**
