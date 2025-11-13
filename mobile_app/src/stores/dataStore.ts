@@ -1,91 +1,120 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  EventFrame,
-  PersonGroup,
-  Assignment,
-  AppData,
-  EventFrameForExport,
-} from '../types';
-import { DeviceFileService } from '../services/DeviceFileService';
+import { AppData, Assignment, EventFrame, EventFrameForExport, PersonGroup } from '../types';
+import { SAFFileService } from '../services/SAFFileService';
 
-// Define the file service instance
-const fileService = new DeviceFileService();
+const fileService = new SAFFileService();
 
-interface DataSourceInfo {
-  type: 'device' | 'dropbox' | null;
-  uri?: string;
-  path?: string;
-  name?: string;
-}
-
-// Define the shape of the data for a new event
 type NewEventData = Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete'>;
 
 interface DataState {
+  fileUri: string | null;
+  fileName: string | null;
   eventFrames: EventFrame[];
   peopleGroups: PersonGroup[];
+  hasUnsavedChanges: boolean;
   isLoading: boolean;
   error: string | null;
-  dataSourceInfo: DataSourceInfo;
-  hasUnsavedChanges: boolean; // Dirty flag
-  workspaceUri: string | null;
-  loadDataFromFile: (
-    data: AppData,
-    sourceInfo: { uri: string; name: string }
-  ) => void;
+
+  setData: (data: AppData, uri: string, name: string) => void;
+  clearData: () => void;
+  saveData: () => Promise<void>;
+  createFile: (fileName: string) => Promise<void>;
   addEventFrame: (data: NewEventData) => void;
-  updateEventFrame: (
-    eventId: string,
-    data: Partial<NewEventData>
-  ) => void;
+  updateEventFrame: (eventId: string, data: Partial<NewEventData>) => void;
   deleteEventFrame: (eventId: string) => void;
-  saveDataToFile: () => Promise<void>;
-  setWorkspaceUri: (uri: string) => void;
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
+  fileUri: null,
+  fileName: null,
   eventFrames: [],
   peopleGroups: [],
+  hasUnsavedChanges: false,
   isLoading: false,
   error: null,
-  dataSourceInfo: { type: null },
-  hasUnsavedChanges: false, // Initial state for the dirty flag
-  workspaceUri: null,
 
-  setWorkspaceUri: (uri: string) => {
-    set({ workspaceUri: uri });
-  },
-
-  loadDataFromFile: (data, sourceInfo) => {
+  setData: (data, uri, name) => {
+    set({ isLoading: true, error: null });
     try {
-      set({ isLoading: true, error: null, hasUnsavedChanges: false }); // Reset changes on new load
-
-      // Hydrate event frames with their assignments
-      const hydratedEventFrames: EventFrame[] = data.eventFrames.map(
-        (frame) => ({
-          ...frame,
-          assignments:
-            data.assignments.filter(
-              (a: Assignment) => a.eventFrameId === frame.id
-            ) || [],
-        })
-      );
-
+      const hydratedEventFrames: EventFrame[] = data.eventFrames.map((frame) => ({
+        ...frame,
+        assignments: data.assignments.filter((a: Assignment) => a.eventFrameId === frame.id) || [],
+      }));
       set({
         eventFrames: hydratedEventFrames,
         peopleGroups: data.peopleGroups,
-        dataSourceInfo: {
-          type: 'device',
-          uri: sourceInfo.uri,
-          name: sourceInfo.name,
-        },
+        fileUri: uri,
+        fileName: name,
+        hasUnsavedChanges: false,
         isLoading: false,
       });
     } catch (err) {
-      const errorMessage = 'Error en processar les dades del fitxer.';
-      set({ error: errorMessage, isLoading: false });
-      console.error(err);
+      set({ error: "Error en processar les dades.", isLoading: false });
+    }
+  },
+
+  clearData: () => {
+    set({
+      eventFrames: [],
+      peopleGroups: [],
+      fileUri: null,
+      fileName: null,
+      hasUnsavedChanges: false,
+    });
+  },
+
+  saveData: async () => {
+    const { fileUri, eventFrames, peopleGroups } = get();
+    if (!fileUri) {
+      throw new Error("No hi ha cap fitxer obert per desar.");
+    }
+
+    set({ isLoading: true, error: null });
+    try {
+      const allAssignments: Assignment[] = eventFrames.flatMap((frame) => frame.assignments || []);
+      const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...rest }) => rest);
+      const dataToSave: AppData = {
+        eventFrames: eventFramesForExport,
+        peopleGroups,
+        assignments: allAssignments,
+        materialItems: [], // Placeholder
+      };
+
+      await fileService.saveFile(fileUri, dataToSave);
+      set({ hasUnsavedChanges: false, isLoading: false });
+    } catch (err) {
+      set({ error: "No s'ha pogut desar el fitxer.", isLoading: false });
+      throw err;
+    }
+  },
+
+  createFile: async (fileName: string) => {
+    set({ isLoading: true, error: null });
+    try {
+        const initialData: AppData = {
+        eventFrames: [],
+        peopleGroups: [],
+        assignments: [],
+        materialItems: [],
+      };
+
+      const newUri = await fileService.createFile(initialData, fileName);
+      if (newUri) {
+        set({
+          fileUri: newUri,
+          fileName: fileName,
+          eventFrames: [],
+          peopleGroups: [],
+          hasUnsavedChanges: false,
+          isLoading: false,
+        });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (err) {
+      set({ error: "No s'ha pogut crear el fitxer.", isLoading: false });
+      throw err;
     }
   },
 
@@ -93,7 +122,7 @@ export const useDataStore = create<DataState>((set, get) => ({
     const newEvent: EventFrame = {
       ...data,
       id: uuidv4(),
-      assignments: [], // New events start with no assignments
+      assignments: [],
       personnelComplete: false,
     };
     set((state) => ({
@@ -116,47 +145,5 @@ export const useDataStore = create<DataState>((set, get) => ({
       eventFrames: state.eventFrames.filter((event) => event.id !== eventId),
       hasUnsavedChanges: true,
     }));
-  },
-
-  saveDataToFile: async () => {
-    const { eventFrames, peopleGroups, dataSourceInfo } = get();
-
-    if (!dataSourceInfo.uri) {
-      const errorMessage = "No s'ha definit cap fitxer de destinació.";
-      set({ error: errorMessage });
-      console.error(errorMessage);
-      return;
-    }
-
-    try {
-      // Dehydrate data for saving
-      const allAssignments: Assignment[] = eventFrames.flatMap(
-        (frame) => frame.assignments || []
-      );
-      const eventFramesForExport: EventFrameForExport[] = eventFrames.map(
-        ({ assignments, ...rest }) => rest
-      );
-
-      // We assume materialItems and googleConfig are not managed in the mobile app for now
-      const dataToSave: AppData = {
-        eventFrames: eventFramesForExport,
-        peopleGroups,
-        assignments: allAssignments,
-        materialItems: [], // Placeholder
-      };
-
-      // Pass the existing URI to overwrite the file
-      await fileService.saveData(dataToSave, dataSourceInfo.uri);
-
-      // On success, reset the dirty flag
-      set({
-        hasUnsavedChanges: false,
-        error: null,
-      });
-    } catch (err) {
-      const errorMessage = 'Error en desar les dades.';
-      set({ error: errorMessage });
-      console.error(err);
-    }
   },
 }));
