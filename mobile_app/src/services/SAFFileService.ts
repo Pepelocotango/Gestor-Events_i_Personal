@@ -18,7 +18,7 @@ export class SAFFileService implements IFileService {
 
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
-        const content = await FileSystem.StorageAccessFramework.readAsStringAsync(asset.uri, {
+        const content = await FileSystem.readAsStringAsync(asset.uri, {
           encoding: 'utf8',
         });
         const data = JSON.parse(content);
@@ -50,7 +50,7 @@ export class SAFFileService implements IFileService {
       );
 
       if (uri) {
-        await FileSystem.StorageAccessFramework.writeAsStringAsync(uri, jsonString, {
+        await FileSystem.writeAsStringAsync(uri, jsonString, {
           encoding: 'utf8',
         });
         return uri;
@@ -65,7 +65,7 @@ export class SAFFileService implements IFileService {
   public async saveFile(uri: string, data: AppData): Promise<void> {
     try {
       const jsonString = JSON.stringify(data, null, 2);
-      await FileSystem.StorageAccessFramework.writeAsStringAsync(uri, jsonString, {
+      await FileSystem.writeAsStringAsync(uri, jsonString, {
         encoding: 'utf8',
       });
     } catch (error) {
