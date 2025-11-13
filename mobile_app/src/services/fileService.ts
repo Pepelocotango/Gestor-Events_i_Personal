@@ -1,5 +1,7 @@
 import { AppData } from '../types';
 
 export interface IFileService {
-  saveData(data: AppData, uri: string): Promise<void>;
+  openFile(): Promise<{ uri: string; name: string; content: AppData } | null>;
+  createFile(data: AppData, fileName: string): Promise<string | null>;
+  saveFile(uri: string, data: AppData): Promise<void>;
 }

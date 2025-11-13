@@ -1,32 +1,12 @@
-import React, { useEffect, useLayoutEffect } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  ActivityIndicator,
-  SafeAreaView,
-  TouchableOpacity,
-  Button,
-  Alert,
-  DevSettings,
-  BackHandler,
-} from 'react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import React, { useLayoutEffect } from 'react';
+import { View, Text, Button, StyleSheet, FlatList, Alert } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
-import { EventFrame } from '../types';
+import { SAFFileService } from '../services/SAFFileService';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation';
+import { EventFrame } from '../types';
 
-// Helper to format date ranges
-const formatDateRange = (start: string, end: string) => {
-  try {
-    const startDate = new Date(start).toLocaleDateString();
-    const endDate = new Date(end).toLocaleDateString();
-    return `${startDate} - ${endDate}`;
-  } catch (e) {
-    return 'Dates invàlides';
-  }
-};
+const fileService = new SAFFileService();
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -34,210 +14,149 @@ type Props = {
   navigation: HomeScreenNavigationProp;
 };
 
-export default function HomeScreen({ navigation }: Props) {
+const HomeScreen = ({ navigation }: Props) => {
   const {
+    fileUri,
+    fileName,
     eventFrames,
-    isLoading,
-    error,
     hasUnsavedChanges,
-    saveDataToFile,
-    deleteEventFrame,
+    setData,
+    clearData,
+    saveData,
+    createFile,
   } = useDataStore();
 
-  // Configure header buttons
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <View style={styles.headerButtons}>
-          {hasUnsavedChanges && (
-            <Button
-              onPress={async () => {
-                await saveDataToFile();
-                Alert.alert('Èxit', 'Les dades s’han desat correctament.');
-              }}
-              title="Desar"
-            />
-          )}
-          <Button
-            onPress={() => navigation.navigate('EventForm', {})}
-            title="+"
-          />
-        </View>
-      ),
-    });
-  }, [navigation, hasUnsavedChanges, saveDataToFile]);
-
-  // Prevent leaving the screen with unsaved changes
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!hasUnsavedChanges) {
-        return;
-      }
-
-      e.preventDefault();
-
+  const handleOpenFile = async () => {
+    if (hasUnsavedChanges) {
       Alert.alert(
-        'Descartar canvis?',
-        'Teniu canvis no desats. Esteu segur que voleu descartar-los i sortir?',
+        "Descartar canvis?",
+        "Teniu canvis no desats. Esteu segur que voleu tancar el fitxer actual i descartar els canvis?",
         [
-          { text: 'No, quedar-se', style: 'cancel', onPress: () => {} },
-          {
-            text: 'Sí, descartar',
-            style: 'destructive',
-            onPress: () => navigation.dispatch(e.data.action),
+          { text: "Cancel·lar", style: "cancel" },
+          { text: "Descartar", style: "destructive", onPress: async () => {
+              const result = await fileService.openFile();
+              if (result) {
+                setData(result.content, result.uri, result.name);
+              }
+            }
           },
         ]
       );
+    } else {
+      const result = await fileService.openFile();
+      if (result) {
+        setData(result.content, result.uri, result.name);
+      }
+    }
+  };
+
+  const handleSaveFile = async () => {
+    if (fileUri) {
+      try {
+        await saveData();
+        Alert.alert("Èxit", "El fitxer s'ha desat correctament.");
+      } catch (e) {
+        Alert.alert("Error", "No s'ha pogut desar el fitxer.");
+      }
+    }
+  };
+
+  const handleSaveAs = async () => {
+    try {
+      await createFile("newEventData.json");
+      Alert.alert("Èxit", "El fitxer s'ha creat correctament.");
+    } catch (e) {
+      Alert.alert("Error", "No s'ha pogut crear el fitxer.");
+    }
+  };
+
+  const handleCloseFile = () => {
+    if (hasUnsavedChanges) {
+      Alert.alert(
+        "Descartar canvis?",
+        "Teniu canvis no desats. Esteu segur que voleu tancar el fitxer i descartar els canvis?",
+        [
+          { text: "Cancel·lar", style: "cancel" },
+          { text: "Descartar", style: "destructive", onPress: clearData },
+        ]
+      );
+    } else {
+      clearData();
+    }
+  };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: fileName || 'Gestor d\'Esdeveniments',
+      headerRight: () => (
+        <View style={styles.headerButtons}>
+          {fileUri ? (
+            <>
+              <Button title="Desar" onPress={handleSaveFile} disabled={!hasUnsavedChanges} />
+              <Button title="Desar Com a" onPress={handleSaveAs} />
+              <Button title="Tancar" onPress={handleCloseFile} />
+            </>
+          ) : (
+            <Button title="Obrir" onPress={handleOpenFile} />
+          )}
+        </View>
+      ),
     });
+  }, [navigation, fileUri, fileName, hasUnsavedChanges]);
 
-    return unsubscribe;
-  }, [navigation, hasUnsavedChanges]);
-
-  const handleEdit = (eventId: string) => {
-    navigation.navigate('EventForm', { eventId });
-  };
-
-  const handleDelete = (eventId: string) => {
-    Alert.alert(
-      'Confirmar eliminació',
-      'Esteu segur que voleu eliminar aquest esdeveniment?',
-      [
-        { text: 'Cancel·lar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => deleteEventFrame(eventId),
-        },
-      ]
-    );
-  };
-
-  const renderItem = ({ item }: { item: EventFrame }) => (
-    <View style={styles.itemContainer}>
-      <TouchableOpacity
-        style={styles.itemDetails}
-        onPress={() => navigation.navigate('EventDetail', { eventId: item.id })}
-      >
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemDates}>
-          {formatDateRange(item.startDate, item.endDate)}
-        </Text>
-      </TouchableOpacity>
-      <View style={styles.itemActions}>
-        <Button title="Editar" onPress={() => handleEdit(item.id)} />
-        <View style={styles.buttonSpacer} />
-        <Button
-          title="Eliminar"
-          onPress={() => handleDelete(item.id)}
-          color="#F44336"
-        />
-      </View>
-    </View>
-  );
-
-  if (isLoading) {
+  if (!fileUri) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Carregant esdeveniments...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={styles.centered}>
+        <Text style={styles.title}>Benvingut</Text>
+        <Text>Obriu un fitxer per començar a gestionar esdeveniments.</Text>
+        <Button title="Obrir Fitxer" onPress={handleOpenFile} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <FlatList
         data={eventFrames}
-        renderItem={renderItem}
         keyExtractor={(item: EventFrame) => item.id}
-        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <Text style={styles.itemText}>{item.name}</Text>
+          </View>
+        )}
       />
-      <View style={styles.footer}>
-        <Button
-          title="Recarregar App"
-          onPress={() => DevSettings.reload()}
-          color="#1E90FF"
-        />
-        <View style={styles.buttonSpacer} />
-        <Button
-          title="Sortir"
-          onPress={() => BackHandler.exitApp()}
-          color="#FF6347"
-        />
-      </View>
-    </SafeAreaView>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
-  centerContainer: {
+  centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
   headerButtons: {
     flexDirection: 'row',
+    gap: 10,
     marginRight: 10,
   },
-  listContent: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  item: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
-  itemContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  itemDates: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  itemActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  buttonSpacer: {
-    width: 10, // Adds space between buttons
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    backgroundColor: '#f5f5f5',
+  itemText: {
+    fontSize: 18,
   },
 });
+
+export default HomeScreen;
