@@ -21,9 +21,8 @@ const DataSourceScreen = ({ navigation }: Props) => {
   const handleOpenFile = async () => {
     const fileService = new DeviceFileService();
     try {
-      const data = await fileService.loadData();
-      // @ts-ignore
-      loadDataFromFile(data, { name: 'fitxer local' });
+      const result = await fileService.loadData();
+      loadDataFromFile(result.data, { uri: result.uri, name: result.name });
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
