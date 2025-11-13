@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { View, Text, Button, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, Text, Button, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { SAFFileService } from '../services/SAFFileService';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -24,7 +24,26 @@ const HomeScreen = ({ navigation }: Props) => {
     clearData,
     saveData,
     createFile,
+    deleteEventFrame,
   } = useDataStore();
+
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      "Eliminar Esdeveniment",
+      "Esteu segur que voleu eliminar aquest esdeveniment?",
+      [
+        {
+          text: "Cancel·lar",
+          style: "cancel"
+        },
+        {
+          text: "Eliminar",
+          onPress: () => deleteEventFrame(id),
+          style: 'destructive'
+        }
+      ]
+    );
+  };
 
   const handleOpenFile = async () => {
     if (hasUnsavedChanges) {
@@ -120,9 +139,22 @@ const HomeScreen = ({ navigation }: Props) => {
         data={eventFrames}
         keyExtractor={(item: EventFrame) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Text style={styles.itemText}>{item.name}</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate('EventDetail', { eventId: item.id })}
+          >
+            <View style={styles.itemContent}>
+              <Text style={styles.itemText}>{item.name}</Text>
+              <Text style={styles.itemSubText}>{new Date(item.startDate).toLocaleDateString()}</Text>
+              <Text style={item.personnelComplete ? styles.statusComplete : styles.statusIncomplete}>
+                {item.personnelComplete ? 'Complet' : 'Incomplet'}
+              </Text>
+            </View>
+            <View style={styles.itemActions}>
+              <Button title="Editar" onPress={() => navigation.navigate('EventForm', { eventId: item.id })} />
+              <Button title="Eliminar" onPress={() => handleDelete(item.id)} color="red" />
+            </View>
+          </TouchableOpacity>
         )}
       />
     </View>
@@ -150,12 +182,33 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
+  itemContent: {
+    flex: 1,
+  },
   itemText: {
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  itemSubText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  itemActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  statusComplete: {
+    color: 'green',
+  },
+  statusIncomplete: {
+    color: 'red',
   },
 });
 
