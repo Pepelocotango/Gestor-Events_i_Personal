@@ -112,14 +112,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   },
 
   saveDataToFile: async () => {
-    const { eventFrames, peopleGroups, dataSourceInfo } = get();
-
-    if (!dataSourceInfo.uri) {
-      console.error('No hi ha cap URI de destí per desar les dades.');
-      // Optionally, set an error state
-      set({ error: 'No es pot desar: no s’ha especificat cap fitxer.' });
-      return;
-    }
+    const { eventFrames, peopleGroups } = get();
 
     try {
       // Dehydrate data for saving
@@ -138,7 +131,7 @@ export const useDataStore = create<DataState>((set, get) => ({
         materialItems: [], // Placeholder
       };
 
-      const savedUri = await fileService.saveData(dataToSave, dataSourceInfo.uri);
+      const savedUri = await fileService.saveData(dataToSave);
 
       // On success, reset the dirty flag and update the URI
       set((state) => ({

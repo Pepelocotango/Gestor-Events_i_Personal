@@ -35,13 +35,32 @@ export class DeviceFileService implements IFileService {
     }
   }
 
-  public async saveData(data: AppData, uri: string): Promise<string> {
+  public async saveData(data: AppData): Promise<string> {
+    const permissions =
+      await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+    if (!permissions.granted) {
+      throw new Error("Selecció de directori cancel·lada per l'usuari.");
+    }
+
     try {
-      const jsonString = JSON.stringify(data, null, 2); // Pretty-print JSON
-      await FileSystem.writeAsStringAsync(uri, jsonString, {
-        encoding: 'utf8',
+      const directoryUri = permissions.directoryUri;
+      const fileName = `gp-app-data-${Date.now()}.json`;
+      const mimeType = 'application/json';
+
+      const fileUri =
+        await FileSystem.StorageAccessFramework.createFileAsync(
+          directoryUri,
+          fileName,
+          mimeType,
+        );
+
+      const jsonString = JSON.stringify(data, null, 2);
+
+      await FileSystem.writeAsStringAsync(fileUri, jsonString, {
+        encoding: FileSystem.EncodingType.UTF8,
       });
-      return uri;
+
+      return fileUri;
     } catch (error) {
       console.error('Error en desar el fitxer al dispositiu:', error);
       throw new Error('No s’ha pogut desar el fitxer.');
