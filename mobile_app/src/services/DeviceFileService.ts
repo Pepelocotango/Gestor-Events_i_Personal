@@ -4,7 +4,7 @@ import { IFileService } from './fileService';
 import { AppData } from '../types';
 
 export class DeviceFileService implements IFileService {
-  public async loadData(): Promise<AppData> {
+  public async loadData(): Promise<{ data: AppData; uri: string; name: string }> {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: '*/*', // Accepta qualsevol tipus de fitxer
@@ -17,10 +17,14 @@ export class DeviceFileService implements IFileService {
           throw new Error('El fitxer seleccionat no és un fitxer JSON.');
         }
         const fileContent = await FileSystem.readAsStringAsync(asset.uri);
-        return JSON.parse(fileContent);
+        return {
+          data: JSON.parse(fileContent),
+          uri: asset.uri,
+          name: asset.name,
+        };
       } else {
         // Llança un error si l'usuari cancel·la la selecció
-        throw new Error('Selecció de fitxer cancel·lada per l\'usuari.');
+        throw new Error("Selecció de fitxer cancel·lada per l'usuari.");
       }
     } catch (error) {
       if (error instanceof Error && error.message.includes('cancel·lada')) {
