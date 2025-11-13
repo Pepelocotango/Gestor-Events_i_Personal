@@ -41,10 +41,9 @@ L'aplicació ofereix les següents eines:
     *   **Exportació a PDF/CSV:** Exporta resums, llistes, inventaris i fitxes de bolo a formats professionals.
 
 *   **Aplicació Mòbil (iOS/Android):**
-    *   **Gestió Completa d'Esdeveniments:** L'aplicació mòbil ara permet **crear, editar i eliminar** esdeveniments directament des del teu dispositiu.
-    *   **Control de Canvis No Desats:** Un sistema de "dirty flag" t'avisa si tens canvis pendents. Un botó "Guardar" només apareix quan és necessari.
-    *   **Desat Local:** Desa les teves modificacions directament al fitxer `.json` que has obert, mantenint la consistència amb l'aplicació d'escriptori.
-    *   **Alertes de Seguretat:** L'aplicació et preguntarà abans d'eliminar un esdeveniment o de sortir si tens canvis no desats, per evitar pèrdues accidentals de dades.
+    *   **Visualitzador de Dades:** Obre i visualitza els teus fitxers de dades `.json` des de qualsevol lloc.
+    *   **Gestió de Fitxers Moderna:** Utilitza el selector de fitxers natiu del teu dispositiu per obrir arxius des de l'emmagatzematge local, Google Drive, Dropbox o qualsevol altre proveïdor de fitxers.
+    *   **Interfície Neta:** Un cop obert un fitxer, l'aplicació mostra una llista clara dels teus esdeveniments.
 
 > Per a una anàlisi tècnica detallada de l'arquitectura, consulta la nostra [**guia de desenvolupament (DEVELOPING.md)**](DEVELOPING.md).
 

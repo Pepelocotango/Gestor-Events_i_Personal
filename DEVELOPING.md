@@ -1184,31 +1184,30 @@ S'ha afegit al projecte una aplicació mòbil desenvolupada amb React Native i E
 -   **React Navigation:** Llibreria per a la gestió de la navegació entre pantalles.
 -   **Zustand:** Gestor d'estat global per a una gestió de dades centralitzada i eficient.
 
-### 10.2. Arquitectura General
+### 10.2. Arquitectura i Gestió de Fitxers amb SAF
 
-L'aplicació mòbil segueix una arquitectura de capes dissenyada per a la separació de responsabilitats i l'escalabilitat:
+L'arquitectura de l'aplicació mòbil s'ha refactoritzat per adoptar el **Storage Access Framework (SAF)** d'Android. Aquest canvi elimina el concepte de "workspace" (una carpeta de treball seleccionada per l'usuari) en favor d'un flux de gestió de fitxers més directe i estàndard, similar al d'un editor de documents clàssic.
 
 1.  **Capa de Presentació (UI):**
-    -   **Navegació (`App.tsx`):** El punt d'entrada de l'aplicació configura un `StackNavigator` de React Navigation. Aquest gestiona la pila de pantalles, permetent la navegació des de la llista principal (`HomeScreen`) a la vista de detalls (`EventDetailScreen`).
-    -   **Tipus de Navegació (`src/navigation.ts`):** Per garantir la seguretat de tipus, es defineix un `RootStackParamList` que especifica les pantalles i els paràmetres que poden rebre (p. ex., `EventDetail: { eventId: string }`).
-    -   **Pantalles (`src/screens/`):** Components com `HomeScreen.tsx` i `EventDetailScreen.tsx` són responsables de renderitzar la UI. Aquests components consumeixen dades de l'store de Zustand i gestionen les interaccions de l'usuari.
-
-2.  **Capa de Presentació (UI):**
-    -   **Navegació (`App.tsx`):** El punt d'entrada de l'aplicació configura un `StackNavigator`. La pantalla inicial és ara `DataSourceScreen`, que permet a l'usuari triar la font de dades. Un cop les dades es carreguen correctament, l'aplicació navega a `HomeScreen` i reseteja la pila de navegació per evitar que l'usuari torni enrere.
+    -   **Navegació (`App.tsx`):** El punt d'entrada configura un `StackNavigator` simple. La pantalla inicial és sempre `HomeScreen`. S'han eliminat `DataSourceScreen` i `FilePickerScreen`.
     -   **Pantalles (`src/screens/`):**
-        -   `DataSourceScreen.tsx`: Nova pantalla que ofereix a l'usuari l'opció de carregar dades des d'un fitxer local del dispositiu o (en el futur) connectar-se a Dropbox.
-        -   `HomeScreen.tsx` i `EventDetailScreen.tsx`: Són responsables de renderitzar la UI principal. Aquests components consumeixen dades de l'store de Zustand i gestionen les interaccions de l'usuari.
+        -   `HomeScreen.tsx`: S'ha convertit en la pantalla central. Si no hi ha cap fitxer obert, mostra una pantalla de benvinguda amb un botó per obrir-ne un. Quan un fitxer està obert, mostra la llista d'esdeveniments i una capçalera amb accions de gestió de fitxers ("Desar", "Desar com a", "Tancar").
+        -   `EventDetailScreen.tsx` i `EventFormScreen.tsx`: Mantenen la seva funcionalitat per visualitzar i editar esdeveniments.
 
-3.  **Capa d'Estat (Gestió de Dades):**
-    -   **Store Central (`src/stores/dataStore.ts`):** Un store de Zustand actua com a **font única de veritat**.
-    -   **Refactorització de la Càrrega:** La funció `loadInitialData` ha estat eliminada. En el seu lloc, `loadDataFromFile` rep el contingut de les dades com a paràmetre.
-    -   **Hidratació de Dades:** La nova funció s'encarrega de la "hidratació" de les dades (combinar `eventFrames` i `assignments`), preparant-les per a un ús eficient a les vistes.
-    -   **`dataSourceInfo`**: S'ha afegit un nou camp a l'estat per emmagatzemar metadades sobre la font de dades actual.
+2.  **Capa d'Estat (Gestió de Dades):**
+    -   **Store Central (`src/stores/dataStore.ts`):** L'store de Zustand s'ha modificat per emmagatzemar l'estat del fitxer actiu:
+        -   `fileUri: string | null`: Emmagatzema l'URI del fitxer obert, que és clau per a l'operació de "Desar".
+        -   `fileName: string | null`: Guarda el nom del fitxer per mostrar-lo a la UI.
+        -   `hasUnsavedChanges`: Segueix sent el "dirty flag" que controla si hi ha canvis pendents de desar.
+    -   Les accions de l'store (`setData`, `saveData`, `createFile`) orquestren les interaccions amb el servei de fitxers.
 
-4.  **Capa de Serveis (Accés a Dades):**
-    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` defineix el contracte per a qualsevol servei que proporcioni dades.
-    -   **Implementació (`src/services/DeviceFileService.ts`):** Aquesta nova classe implementa `IFileService` i utilitza `expo-document-picker` i `expo-file-system` per permetre a l'usuari seleccionar i llegir un fitxer `.json` des de l'emmagatzematge del dispositiu.
-    -   **Codi Obsolet Eliminat:** `LocalFileService.ts` i el fitxer de dades estàtic (`example_all.json`) han estat eliminats.
+3.  **Capa de Serveis (Accés a Dades amb SAF):**
+    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` defineix un contracte clar per a les operacions de fitxers: `openFile`, `createFile`, `saveFile`.
+    -   **Implementació (`src/services/SAFFileService.ts`):** Aquesta nova classe és el nucli de la interacció amb el sistema de fitxers:
+        -   `openFile`: Utilitza `expo-document-picker` per permetre a l'usuari seleccionar un fitxer JSON. Retorna l'URI, el nom i el contingut del fitxer.
+        -   `createFile`: Utilitza `FileSystem.StorageAccessFramework.createFileAsync` per obrir el diàleg de "Desar com a" i crear un nou fitxer.
+        -   `saveFile`: Utilitza `FileSystem.writeAsStringAsync` per sobreescriure el contingut d'un fitxer existent a partir del seu URI.
+    -   **Codi Obsolet Eliminat:** `DeviceFileService.ts` ha estat eliminat.
 
 4.  **Capa de Tipus (Model de Dades):**
     -   **Tipus Compartits (`src/types/index.ts`):** Aquest fitxer conté les definicions de tipus de TypeScript (`AppData`, `EventFrame`, `PersonGroup`, etc.). És una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades i puguin interoperar de manera consistent.
