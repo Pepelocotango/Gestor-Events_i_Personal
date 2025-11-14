@@ -2,6 +2,8 @@ import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import { AppData } from '../types';
 import { IFileService } from './fileService';
+import 'react-native-get-random-values'; // Polyfill per a uuid
+import { v4 as uuidv4 } from 'uuid';
 
 export class SAFFileService implements IFileService {
   public async openFile(): Promise<{
@@ -10,26 +12,43 @@ export class SAFFileService implements IFileService {
     content: AppData;
   } | null> {
     try {
+      // Pas 1: Obtenir la URI persistent amb DocumentPicker.
       const result = await DocumentPicker.getDocumentAsync({
-        copyToCacheDirectory: false, // Important for SAF URIs
+        copyToCacheDirectory: false, // Crucial per obtenir la URI original.
         multiple: false,
-        type: '*/*',
+        type: 'application/json',
       });
 
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
-        const content = await FileSystem.readAsStringAsync(asset.uri, {
+        const originalUri = asset.uri;
+
+        // Pas 2: Crear una ruta de destí única a la memòria cau.
+        const temporaryUri = `${FileSystem.cacheDirectory}${uuidv4()}-${asset.name}`;
+
+        // Pas 3: Copiar el fitxer a la ubicació temporal.
+        await FileSystem.copyAsync({
+          from: originalUri,
+          to: temporaryUri,
+        });
+
+        // Pas 4: Llegir el contingut des de la còpia temporal.
+        const content = await FileSystem.readAsStringAsync(temporaryUri, {
           encoding: 'utf8',
         });
         const data = JSON.parse(content);
 
+        // Neteja opcional del fitxer temporal després de llegir-lo.
+        await FileSystem.deleteAsync(temporaryUri, { idempotent: true });
+
+        // Pas 5: Retornar la URI original persistent juntament amb les dades.
         return {
-          uri: asset.uri,
+          uri: originalUri,
           name: asset.name,
           content: data,
         };
       }
-      return null;
+      return null; // L'usuari ha cancel·lat.
     } catch (error) {
       console.error("Error a l'obrir el fitxer:", error);
       throw new Error("No s'ha pogut obrir el fitxer.");
