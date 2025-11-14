@@ -1,5 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Sharing from 'expo-sharing';
 import { AppData } from '../types';
 import { IFileService } from './fileService';
 
@@ -11,20 +12,15 @@ export class SAFFileService implements IFileService {
   } | null> {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        copyToCacheDirectory: true, // Llegeix des d'una còpia local per a compatibilitat
+        copyToCacheDirectory: true,
         multiple: false,
         type: '*/*',
       });
 
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
-
-        // Determina quina URI utilitzar per a la lectura.
-        // `fileUri` (la còpia local) és la preferida per compatibilitat.
-        // Si no existeix, es fa un fallback a la `uri` original.
         const uriForReading = (asset as any).fileUri || asset.uri;
 
-        // Comprovació de seguretat per evitar passar `null` o `undefined`.
         if (!uriForReading) {
           throw new Error("No s'ha pogut obtenir una URI vàlida per llegir el fitxer.");
         }
@@ -35,7 +31,6 @@ export class SAFFileService implements IFileService {
         const data = JSON.parse(content);
 
         return {
-          // Per desar, retornem SEMPRE la URI original i persistent.
           uri: asset.uri,
           name: asset.name,
           content: data,
@@ -48,38 +43,19 @@ export class SAFFileService implements IFileService {
     }
   }
 
-  public async createFile(
-    data: AppData,
-    fileName: string
-  ): Promise<string | null> {
+  public async saveFileAs(jsonString: string, fileName: string): Promise<void> {
     try {
-      const jsonString = JSON.stringify(data, null, 2);
+      const temporaryFilePath = `${FileSystem.cacheDirectory}${fileName}`;
 
-      const uri = await FileSystem.StorageAccessFramework.createFileAsync(
-        '',
-        fileName,
-        'application/json'
-      );
-
-      if (uri) {
-        await FileSystem.writeAsStringAsync(uri, jsonString, {
-          encoding: 'utf8',
-        });
-        return uri;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error al crear el fitxer:', error);
-      throw new Error('No s’ha pogut crear el fitxer.');
-    }
-  }
-
-  public async saveFile(uri: string, data: AppData): Promise<void> {
-    try {
-      const jsonString = JSON.stringify(data, null, 2);
-      await FileSystem.writeAsStringAsync(uri, jsonString, {
+      await FileSystem.writeAsStringAsync(temporaryFilePath, jsonString, {
         encoding: 'utf8',
       });
+
+      await Sharing.shareAsync(temporaryFilePath, {
+        mimeType: 'application/json',
+        dialogTitle: 'Desar com a...',
+      });
+
     } catch (error) {
       console.error('Error al desar el fitxer:', error);
       throw new Error('No s’ha pogut desar el fitxer.');
