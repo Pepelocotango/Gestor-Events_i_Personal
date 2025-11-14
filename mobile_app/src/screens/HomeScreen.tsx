@@ -16,14 +16,12 @@ type Props = {
 
 const HomeScreen = ({ navigation }: Props) => {
   const {
-    fileUri,
     fileName,
     eventFrames,
     hasUnsavedChanges,
     setData,
     clearData,
     saveData,
-    createFile,
     deleteEventFrame,
   } = useDataStore();
 
@@ -50,7 +48,7 @@ const HomeScreen = ({ navigation }: Props) => {
       try {
         const result = await fileService.openFile();
         if (result) {
-          setData(result.content, result.uri, result.name);
+          setData(result.content, result.name);
         }
       } catch (error) {
         Alert.alert("Error", "El fitxer seleccionat no és vàlid o està malmès.");
@@ -72,22 +70,11 @@ const HomeScreen = ({ navigation }: Props) => {
   };
 
   const handleSaveFile = async () => {
-    if (fileUri) {
-      try {
-        await saveData();
-        Alert.alert("Èxit", "El fitxer s'ha desat correctament.");
-      } catch (e) {
-        Alert.alert("Error", "No s'ha pogut desar el fitxer.");
-      }
-    }
-  };
-
-  const handleSaveAs = async () => {
     try {
-      await createFile("newEventData.json");
-      Alert.alert("Èxit", "El fitxer s'ha creat correctament.");
+      await saveData();
+      Alert.alert("Èxit", "S'ha iniciat el procés de desat. Trieu on desar el fitxer.");
     } catch (e) {
-      Alert.alert("Error", "No s'ha pogut crear el fitxer.");
+      Alert.alert("Error", "No s'ha pogut desar el fitxer.");
     }
   };
 
@@ -111,10 +98,9 @@ const HomeScreen = ({ navigation }: Props) => {
       title: fileName || 'Gestor d\'Esdeveniments',
       headerRight: () => (
         <View style={styles.headerButtons}>
-          {fileUri ? (
+          {fileName ? (
             <>
               <Button title="Desar" onPress={handleSaveFile} disabled={!hasUnsavedChanges} />
-              <Button title="Desar Com a" onPress={handleSaveAs} />
               <Button title="Tancar" onPress={handleCloseFile} />
             </>
           ) : (
@@ -123,9 +109,9 @@ const HomeScreen = ({ navigation }: Props) => {
         </View>
       ),
     });
-  }, [navigation, fileUri, fileName, hasUnsavedChanges]);
+  }, [navigation, fileName, hasUnsavedChanges]);
 
-  if (!fileUri) {
+  if (!fileName) {
     return (
       <View style={styles.centered}>
         <Text style={styles.title}>Benvingut</Text>

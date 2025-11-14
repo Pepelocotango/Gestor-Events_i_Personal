@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import { AppData, Assignment, EventFrame, EventFrameForExport, PersonGroup } from '../types';
 import { SAFFileService } from '../services/SAFFileService';
@@ -8,7 +9,6 @@ const fileService = new SAFFileService();
 type NewEventData = Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete'>;
 
 interface DataState {
-  fileUri: string | null;
   fileName: string | null;
   eventFrames: EventFrame[];
   peopleGroups: PersonGroup[];
@@ -16,17 +16,15 @@ interface DataState {
   isLoading: boolean;
   error: string | null;
 
-  setData: (data: AppData, uri: string, name: string) => void;
+  setData: (data: AppData, name: string) => void;
   clearData: () => void;
   saveData: () => Promise<void>;
-  createFile: (fileName: string) => Promise<void>;
   addEventFrame: (data: NewEventData) => void;
   updateEventFrame: (eventId: string, data: Partial<NewEventData>) => void;
   deleteEventFrame: (eventId: string) => void;
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
-  fileUri: null,
   fileName: null,
   eventFrames: [],
   peopleGroups: [],
@@ -34,7 +32,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  setData: (data, uri, name) => {
+  setData: (data, name) => {
     set({ isLoading: true, error: null });
     try {
       const hydratedEventFrames: EventFrame[] = data.eventFrames.map((frame) => ({
@@ -44,7 +42,6 @@ export const useDataStore = create<DataState>((set, get) => ({
       set({
         eventFrames: hydratedEventFrames,
         peopleGroups: data.peopleGroups,
-        fileUri: uri,
         fileName: name,
         hasUnsavedChanges: false,
         isLoading: false,
@@ -58,17 +55,13 @@ export const useDataStore = create<DataState>((set, get) => ({
     set({
       eventFrames: [],
       peopleGroups: [],
-      fileUri: null,
       fileName: null,
       hasUnsavedChanges: false,
     });
   },
 
   saveData: async () => {
-    const { fileUri, eventFrames, peopleGroups } = get();
-    if (!fileUri) {
-      throw new Error("No hi ha cap fitxer obert per desar.");
-    }
+    const { fileName, eventFrames, peopleGroups } = get();
 
     set({ isLoading: true, error: null });
     try {
@@ -81,39 +74,12 @@ export const useDataStore = create<DataState>((set, get) => ({
         materialItems: [], // Placeholder
       };
 
-      await fileService.saveFile(fileUri, dataToSave);
+      const jsonString = JSON.stringify(dataToSave, null, 2);
+      await fileService.saveFileAs(jsonString, fileName || 'dades.json');
+
       set({ hasUnsavedChanges: false, isLoading: false });
     } catch (err) {
       set({ error: "No s'ha pogut desar el fitxer.", isLoading: false });
-      throw err;
-    }
-  },
-
-  createFile: async (fileName: string) => {
-    set({ isLoading: true, error: null });
-    try {
-        const initialData: AppData = {
-        eventFrames: [],
-        peopleGroups: [],
-        assignments: [],
-        materialItems: [],
-      };
-
-      const newUri = await fileService.createFile(initialData, fileName);
-      if (newUri) {
-        set({
-          fileUri: newUri,
-          fileName: fileName,
-          eventFrames: [],
-          peopleGroups: [],
-          hasUnsavedChanges: false,
-          isLoading: false,
-        });
-      } else {
-        set({ isLoading: false });
-      }
-    } catch (err) {
-      set({ error: "No s'ha pogut crear el fitxer.", isLoading: false });
       throw err;
     }
   },

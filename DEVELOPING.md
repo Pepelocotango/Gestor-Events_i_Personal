@@ -1184,30 +1184,32 @@ S'ha afegit al projecte una aplicació mòbil desenvolupada amb React Native i E
 -   **React Navigation:** Llibreria per a la gestió de la navegació entre pantalles.
 -   **Zustand:** Gestor d'estat global per a una gestió de dades centralitzada i eficient.
 
-### 10.2. Arquitectura i Gestió de Fitxers amb SAF
+### 10.2. Arquitectura i Gestió de Fitxers amb `expo-sharing`
 
-L'arquitectura de l'aplicació mòbil s'ha refactoritzat per adoptar el **Storage Access Framework (SAF)** d'Android. Aquest canvi elimina el concepte de "workspace" (una carpeta de treball seleccionada per l'usuari) en favor d'un flux de gestió de fitxers més directe i estàndard, similar al d'un editor de documents clàssic.
+Després d'una anàlisi de les limitacions del sistema de fitxers d'Android, s'ha confirmat que no és possible sobreescriure directament un fitxer obert des d'un proveïdor de núvol (com Google Drive) sense utilitzar APIs natives. Per solucionar-ho, l'arquitectura de desat s'ha redissenyat per utilitzar un flux de "Desar Com a" cada vegada, implementat amb la llibreria `expo-sharing`.
 
 1.  **Capa de Presentació (UI):**
-    -   **Navegació (`App.tsx`):** El punt d'entrada configura un `StackNavigator` simple. La pantalla inicial és sempre `HomeScreen`. S'han eliminat `DataSourceScreen` i `FilePickerScreen`.
-    -   **Pantalles (`src/screens/`):**
-        -   `HomeScreen.tsx`: S'ha convertit en la pantalla central. Si no hi ha cap fitxer obert, mostra una pantalla de benvinguda amb un botó per obrir-ne un. Quan un fitxer està obert, mostra la llista d'esdeveniments i una capçalera amb accions de gestió de fitxers ("Desar", "Desar com a", "Tancar").
-        -   `EventDetailScreen.tsx` i `EventFormScreen.tsx`: Mantenen la seva funcionalitat per visualitzar i editar esdeveniments.
+    -   **`HomeScreen.tsx`**: La interfície s'ha simplificat. Ara només hi ha un botó "Desar", que sempre activa el flux de "Desar Com a". Aquest botó està desactivat si no hi ha canvis pendents (`hasUnsavedChanges` és `false`). S'ha eliminat el botó "Desar Com a" per evitar redundància.
 
 2.  **Capa d'Estat (Gestió de Dades):**
-    -   **Store Central (`src/stores/dataStore.ts`):** L'store de Zustand s'ha modificat per emmagatzemar l'estat del fitxer actiu:
-        -   `fileUri: string | null`: Emmagatzema l'URI del fitxer obert, que és clau per a l'operació de "Desar".
-        -   `fileName: string | null`: Guarda el nom del fitxer per mostrar-lo a la UI.
-        -   `hasUnsavedChanges`: Segueix sent el "dirty flag" que controla si hi ha canvis pendents de desar.
-    -   Les accions de l'store (`setData`, `saveData`, `createFile`) orquestren les interaccions amb el servei de fitxers.
+    -   **Store Central (`src/stores/dataStore.ts`):** L'store s'ha simplificat significativament.
+        -   S'ha **eliminat** l'estat `fileUri`. Ja no es guarda cap URI persistent, ja que cada operació de desat és independent.
+        -   Només es conserva `fileName` per utilitzar-lo com a nom de fitxer suggerit.
+        -   L'acció `saveData` ara construeix l'objecte de dades, el converteix a un string JSON i crida al nou mètode `fileService.saveFileAs`, passant-li el contingut i el nom del fitxer. Després, restableix `hasUnsavedChanges` a `false`.
+        -   L'acció `createFile` ha estat eliminada.
 
-3.  **Capa de Serveis (Accés a Dades amb SAF):**
-    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` defineix un contracte clar per a les operacions de fitxers: `openFile`, `createFile`, `saveFile`.
-    -   **Implementació (`src/services/SAFFileService.ts`):** Aquesta nova classe és el nucli de la interacció amb el sistema de fitxers:
-        -   `openFile`: Utilitza `expo-document-picker`. Per solucionar errors de lectura amb URIs de tipus `content://`, s'empra una estratègia robusta: s'intenta llegir el fitxer des d'una còpia local a la memòria cau (`copyToCacheDirectory: true`). Si aquesta còpia no està disponible (la propietat `fileUri` és `null`), el sistema fa un fallback i intenta llegir directament des de la `uri` original. Aquesta lògica de doble intent assegura la màxima compatibilitat. Independentment del mètode de lectura, el mètode sempre retorna la **URI original i persistent** (`content://`) per garantir que les operacions de "Desar" sobreescriguin el fitxer correcte.
-        -   `createFile`: Utilitza `FileSystem.StorageAccessFramework.createFileAsync` per obrir el diàleg de "Desar com a" i crear un nou fitxer.
-        -   `saveFile`: Utilitza `FileSystem.writeAsStringAsync` per sobreescriure el contingut d'un fitxer existent a partir de la seva URI persistent (`content://`), operació que sí que és compatible amb SAF.
-    -   **Codi Obsolet Eliminat:** `DeviceFileService.ts` ha estat eliminat.
+3.  **Capa de Serveis (Accés a Dades amb `expo-sharing`):**
+    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` ara defineix només dos mètodes: `openFile` i `saveFileAs`.
+    -   **Implementació (`src/services/SAFFileService.ts`):**
+        -   El mètode `saveFile` ha estat eliminat.
+        -   El mètode `createFile` ha estat reanomenat a `saveFileAs` i la seva lògica s'ha reescrit completament:
+            1. Accepta el contingut de les dades (com a string JSON) i un nom de fitxer suggerit.
+            2. Crea un fitxer temporal al directori de cau de l'aplicació (`FileSystem.cacheDirectory`).
+            3. Escriu el contingut JSON en aquest fitxer temporal.
+            4. Invoca `Sharing.shareAsync()` amb la URI del fitxer temporal. Això obre el diàleg natiu del sistema operatiu ("Compartir" o "Desar a..."), donant a l'usuari el control total sobre la ubicació final del fitxer i la confirmació de sobreescriptura.
+        -   Aquest mètode ja no retorna cap URI, ja que el control passa a l'usuari.
+
+Aquest nou flux de treball és més robust i compatible amb les restriccions d'Android, garantint una experiència d'usuari previsible: cada vegada que es desa, l'usuari ha de seleccionar la ubicació i confirmar l'acció manualment.
 
 4.  **Capa de Tipus (Model de Dades):**
     -   **Tipus Compartits (`src/types/index.ts`):** Aquest fitxer conté les definicions de tipus de TypeScript (`AppData`, `EventFrame`, `PersonGroup`, etc.). És una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades i puguin interoperar de manera consistent.
