@@ -11,19 +11,31 @@ export class SAFFileService implements IFileService {
   } | null> {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        copyToCacheDirectory: false, // Important for SAF URIs
+        copyToCacheDirectory: true, // Llegeix des d'una còpia local per a compatibilitat
         multiple: false,
         type: '*/*',
       });
 
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
-        const content = await FileSystem.readAsStringAsync(asset.uri, {
+
+        // Determina quina URI utilitzar per a la lectura.
+        // `fileUri` (la còpia local) és la preferida per compatibilitat.
+        // Si no existeix, es fa un fallback a la `uri` original.
+        const uriForReading = (asset as any).fileUri || asset.uri;
+
+        // Comprovació de seguretat per evitar passar `null` o `undefined`.
+        if (!uriForReading) {
+          throw new Error("No s'ha pogut obtenir una URI vàlida per llegir el fitxer.");
+        }
+
+        const content = await FileSystem.readAsStringAsync(uriForReading, {
           encoding: 'utf8',
         });
         const data = JSON.parse(content);
 
         return {
+          // Per desar, retornem SEMPRE la URI original i persistent.
           uri: asset.uri,
           name: asset.name,
           content: data,
