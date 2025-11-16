@@ -3,18 +3,18 @@ import { View, Text, Button, StyleSheet, FlatList, Alert, TouchableOpacity } fro
 import { useDataStore } from '../stores/dataStore';
 import { SAFFileService } from '../services/SAFFileService';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation';
+import { EventsStackParamList } from '../navigation';
 import { EventFrame } from '../types';
 
 const fileService = new SAFFileService();
 
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+type EventsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventList'>;
 
 type Props = {
-  navigation: HomeScreenNavigationProp;
+  navigation: EventsScreenNavigationProp;
 };
 
-const HomeScreen = ({ navigation }: Props) => {
+const EventsScreen = ({ navigation }: Props) => {
   const {
     fileName,
     eventFrames,
@@ -200,4 +200,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default EventsScreen;

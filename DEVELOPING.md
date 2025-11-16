@@ -1175,16 +1175,37 @@ Aquest patró millora la mantenibilitat, elimina codi duplicat i assegura que to
 
 ## 10. Aplicació Mòbil (React Native amb Expo)
 
-S'ha afegit al projecte una aplicació mòbil desenvolupada amb React Native i Expo. Aquesta aplicació es troba al directori `mobile_app/` i funciona com un visor de dades complementari a l'aplicació d'escriptori.
+L'aplicació mòbil, situada a `mobile_app/`, ha evolucionat d'un simple visor a una eina de gestió de dades completa, permetent la gestió d'Esdeveniments, Persones i Material.
 
 ### 10.1. Pila Tecnològica
 
 -   **React Native & Expo:** Framework i plataforma per al desenvolupament d'aplicacions mòbils natives amb React.
 -   **TypeScript:** Per a un codi més robust i mantenible.
--   **React Navigation:** Llibreria per a la gestió de la navegació entre pantalles.
+-   **React Navigation:** Llibreria per a la gestió de la navegació. S'utilitza una combinació de `BottomTabNavigator` per a la navegació principal i `StackNavigator` per al flux intern de cada secció.
 -   **Zustand:** Gestor d'estat global per a una gestió de dades centralitzada i eficient.
 
-### 10.2. Arquitectura i Gestió de Fitxers amb `expo-sharing`
+### 10.2. Arquitectura de Navegació per Pestanyes
+
+L'arquitectura de navegació ha estat completament redissenyada per millorar l'experiència d'usuari i organitzar les funcionalitats de manera intuïtiva.
+
+-   **Navegador Principal (`BottomTabNavigator`):** El punt d'entrada de l'aplicació (`App.tsx`) ara utilitza un navegador de pestanyes a la part inferior de la pantalla, que permet canviar entre tres seccions principals:
+    1.  **Esdeveniments:** Conté tota la funcionalitat relacionada amb la gestió d'esdeveniments.
+    2.  **Persones:** Permet gestionar la llista de contactes i personal.
+    3.  **Material:** Permet gestionar l'inventari de material.
+
+-   **Piles de Navegació Independents (`StackNavigator`):** Cada pestanya no renderitza una única pantalla, sinó una pila de navegació independent (`StackNavigator`). Aquest enfocament permet un flux de navegació profund dins de cada secció. Per exemple, des de la llista d'esdeveniments, l'usuari pot navegar a la pantalla de detalls o al formulari d'edició sense sortir de la pestanya "Esdeveniments".
+
+### 10.3. Gestió de Dades: Funcionalitats CRUD i Control de Canvis
+
+El gestor d'estat (`dataStore.ts`) ha estat ampliat per donar suport a totes les entitats de dades.
+
+-   **Accions CRUD Completes:** L'store ara inclou accions per a Crear, Llegir, Actualitzar i Eliminar (CRUD) per a:
+    -   `EventFrame` (`addEventFrame`, `updateEventFrame`, `deleteEventFrame`)
+    -   `PersonGroup` (`addPersonGroup`, `updatePersonGroup`, `deletePersonGroup`)
+    -   `MaterialItem` (`addMaterialItem`, `updateMaterialItem`, `deleteMaterialItem`)
+-   **Control de Canvis No Desats:** Totes les accions que modifiquen l'estat (add, update, delete) estableixen automàticament el "dirty flag" `hasUnsavedChanges` a `true`, assegurant que l'usuari sigui notificat abans de perdre canvis.
+
+### 10.4. Arquitectura i Gestió de Fitxers amb `expo-sharing`
 
 Després d'una anàlisi de les limitacions del sistema de fitxers d'Android, s'ha confirmat que no és possible sobreescriure directament un fitxer obert des d'un proveïdor de núvol (com Google Drive) sense utilitzar APIs natives. Per solucionar-ho, l'arquitectura de desat s'ha redissenyat per utilitzar un flux de "Desar Com a" cada vegada, implementat amb la llibreria `expo-sharing`.
 

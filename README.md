@@ -41,9 +41,10 @@ L'aplicació ofereix les següents eines:
     *   **Exportació a PDF/CSV:** Exporta resums, llistes, inventaris i fitxes de bolo a formats professionals.
 
 *   **Aplicació Mòbil (iOS/Android):**
-    *   **Visualitzador de Dades:** Obre i visualitza els teus fitxers de dades `.json` des de qualsevol lloc.
-    *   **Gestió de Fitxers Moderna:** Utilitza el selector de fitxers natiu del teu dispositiu per obrir arxius des de l'emmagatzematge local, Google Drive, Dropbox o qualsevol altre proveïdor de fitxers.
-    *   **Interfície Neta:** Un cop obert un fitxer, l'aplicació mostra una llista clara dels teus esdeveniments.
+    *   **Gestió Completa de Dades:** Obre, visualitza i edita els teus fitxers de dades `.json` des de qualsevol lloc. L'aplicació ara permet la gestió integral d'Esdeveniments, Persones (contactes) i Material.
+    *   **Navegació per Pestanyes:** Una interfície intuïtiva amb pestanyes per accedir ràpidament a cada secció.
+    *   **Funcionalitats CRUD:** Afegeix, edita i elimina registres a cada secció directament des del teu dispositiu mòbil.
+    *   **Gestió de Fitxers Moderna:** Utilitza el selector de fitxers natiu per obrir arxius des de l'emmagatzematge local, Google Drive, Dropbox o qualsevol altre proveïdor.
 
 > Per a una anàlisi tècnica detallada de l'arquitectura, consulta la nostra [**guia de desenvolupament (DEVELOPING.md)**](DEVELOPING.md).
 
