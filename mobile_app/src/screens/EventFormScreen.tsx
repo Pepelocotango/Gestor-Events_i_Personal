@@ -11,14 +11,14 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
-import { RootStackParamList } from '../navigation';
+import { EventsStackParamList } from '../navigation';
 import { EventFrame } from '../types';
 
 type EventFormScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
+  EventsStackParamList,
   'EventForm'
 >;
-type EventFormScreenRouteProp = RouteProp<RootStackParamList, 'EventForm'>;
+type EventFormScreenRouteProp = RouteProp<EventsStackParamList, 'EventForm'>;
 
 type Props = {
   navigation: EventFormScreenNavigationProp;

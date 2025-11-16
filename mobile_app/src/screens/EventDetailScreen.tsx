@@ -9,12 +9,12 @@ import {
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
-import { RootStackParamList } from '../navigation';
+import { EventsStackParamList } from '../navigation';
 import { Assignment } from '../types';
 
-type EventDetailScreenRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
+type EventDetailScreenRouteProp = RouteProp<EventsStackParamList, 'EventDetail'>;
 type EventDetailScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
+  EventsStackParamList,
   'EventDetail'
 >;
 
