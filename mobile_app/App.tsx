@@ -75,11 +75,11 @@ export default function App() {
             let iconName;
 
             if (route.name === 'Events') {
-              iconName = focused ? 'ios-calendar' : 'ios-calendar-outline';
+              iconName = focused ? 'calendar' : 'calendar-outline';
             } else if (route.name === 'People') {
-              iconName = focused ? 'ios-people' : 'ios-people-outline';
+              iconName = focused ? 'people' : 'people-outline';
             } else if (route.name === 'Material') {
-              iconName = focused ? 'ios-cube' : 'ios-cube-outline';
+              iconName = focused ? 'cube' : 'cube-outline';
             }
 
             return <Ionicons name={iconName} size={size} color={color} />;
