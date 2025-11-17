@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -27,8 +27,11 @@ const formatDate = (dateString: string) =>
 export default function TechSheetListScreen({ navigation }: Props) {
   const isLoading = useDataStore((state) => state.isLoading);
   const error = useDataStore((state) => state.error);
-  const techSheets = useDataStore((state) =>
-    state.eventFrames.filter((ef) => ef.techSheet)
+  const eventFrames = useDataStore((state) => state.eventFrames);
+
+  const techSheets = useMemo(
+    () => eventFrames.filter((ef) => ef.techSheet),
+    [eventFrames]
   );
 
   if (isLoading) {
