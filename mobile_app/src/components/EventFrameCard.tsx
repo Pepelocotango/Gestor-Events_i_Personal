@@ -50,7 +50,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
 
           {eventFrame.generalNotes ? (
             <View style={styles.detailRow}>
-              <Icon name="text-subject" size={16} color="#555" />
+              <Icon name="note-text-outline" size={16} color="#555" />
               <Text style={styles.detailText}>{eventFrame.generalNotes}</Text>
             </View>
           ) : null}
