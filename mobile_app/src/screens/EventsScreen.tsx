@@ -35,7 +35,7 @@ const EventsScreen = ({ navigation }: Props) => {
   }, [peopleGroups]);
 
   const filteredEventFrames = useMemo(() => {
-    let filtered = eventFrames.filter(ef => ef.isArchived === showArchived);
+    let filtered = eventFrames.filter(ef => (ef.isArchived || false) === showArchived);
 
     if (filters.text) {
         const lowerCaseText = filters.text.toLowerCase();
