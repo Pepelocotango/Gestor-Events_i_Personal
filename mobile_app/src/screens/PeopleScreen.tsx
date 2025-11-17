@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity, Modal, Button } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { PeopleStackParamList } from '../navigation';
 import { PersonGroup } from '../types';
 import PeopleToolbar from '../components/PeopleToolbar';
+import PersonListItem from '../components/PersonListItem';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type PeopleScreenNavigationProp = StackNavigationProp<PeopleStackParamList, 'PersonList'>;
@@ -49,7 +50,7 @@ const PeopleScreen = ({ navigation }: Props) => {
     setSortModalVisible(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     Alert.alert(
       "Eliminar Persona",
       "Esteu segur que voleu eliminar aquesta persona?",
@@ -58,7 +59,7 @@ const PeopleScreen = ({ navigation }: Props) => {
         { text: "Eliminar", onPress: () => deletePersonGroup(id), style: 'destructive' }
       ]
     );
-  };
+  }, [deletePersonGroup]);
 
   const renderSortModal = () => (
     <Modal
@@ -89,22 +90,11 @@ const PeopleScreen = ({ navigation }: Props) => {
         data={sortedAndFilteredGroups}
         keyExtractor={(item: PersonGroup) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <View style={styles.itemContent}>
-              <Text style={styles.itemText}>{item.name}</Text>
-              {item.role ? <Text style={styles.itemSubText}>{item.role}</Text> : null}
-              {item.tel1 ? <Text style={styles.itemInfo}>{item.tel1}</Text> : null}
-              {item.email ? <Text style={styles.itemInfo}>{item.email}</Text> : null}
-            </View>
-            <View style={styles.itemActions}>
-              <TouchableOpacity onPress={() => navigation.navigate('PersonForm', { personId: item.id })}>
-                <Icon name="pencil" size={24} color="#007AFF" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                <Icon name="delete" size={24} color="#FF3B30" />
-              </TouchableOpacity>
-            </View>
-          </View>
+          <PersonListItem
+            item={item}
+            onEdit={(id) => navigation.navigate('PersonForm', { personId: id })}
+            onDelete={handleDelete}
+          />
         )}
         ListEmptyComponent={<Text style={styles.emptyList}>No s'han trobat contactes.</Text>}
         contentContainerStyle={{ paddingBottom: 80 }}

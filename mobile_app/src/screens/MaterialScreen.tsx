@@ -1,10 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SectionList, Alert, TouchableOpacity, Modal, Button } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MaterialStackParamList } from '../navigation';
 import { MaterialItem } from '../types';
 import MaterialToolbar from '../components/MaterialToolbar';
+import MaterialListItem from '../components/MaterialListItem';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type MaterialScreenNavigationProp = StackNavigationProp<MaterialStackParamList, 'MaterialList'>;
@@ -13,6 +14,24 @@ type Props = {
   navigation: MaterialScreenNavigationProp;
 };
 
+// Definim els tipus per a les props del component SectionHeader
+type SectionHeaderProps = {
+  title: string;
+  isExpanded: boolean;
+  sortMode: 'category' | 'name';
+  onToggle: (title: string) => void;
+};
+
+// Component memoitzat per a les capçaleres de secció
+const SectionHeader = React.memo<SectionHeaderProps>(({ title, isExpanded, sortMode, onToggle }) => (
+  <TouchableOpacity onPress={() => onToggle(title)} style={styles.sectionHeader}>
+    <Text style={styles.sectionHeaderText}>{title}</Text>
+    {sortMode === 'category' && (
+      <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color="#333" />
+    )}
+  </TouchableOpacity>
+));
+
 const MaterialScreen = ({ navigation }: Props) => {
   const { materialItems, deleteMaterialItem } = useDataStore();
   const [search, setSearch] = useState('');
@@ -20,7 +39,7 @@ const MaterialScreen = ({ navigation }: Props) => {
   const [isSortModalVisible, setSortModalVisible] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     Alert.alert(
       "Eliminar Material",
       "Esteu segur que voleu eliminar aquest ítem?",
@@ -29,7 +48,7 @@ const MaterialScreen = ({ navigation }: Props) => {
         { text: "Eliminar", onPress: () => deleteMaterialItem(id), style: 'destructive' }
       ]
     );
-  };
+  }, [deleteMaterialItem]);
 
   const sectionsData = useMemo(() => {
     const filtered = materialItems.filter(item => {
@@ -70,14 +89,13 @@ const MaterialScreen = ({ navigation }: Props) => {
     setExpandedCategories(new Set());
   };
 
-  // Expandeix totes les categories per defecte quan el component es munta o el mode d'ordenació canvia a 'category'
   useEffect(() => {
     if (sortMode === 'category') {
       handleExpandAll();
     }
   }, [sortMode, sectionsData]);
 
-  const toggleCategory = (category: string) => {
+  const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => {
       const newSet = new Set(prev);
       if (newSet.has(category)) {
@@ -87,8 +105,7 @@ const MaterialScreen = ({ navigation }: Props) => {
       }
       return newSet;
     });
-  };
-
+  }, []);
 
   const sectionsWithExpansion = useMemo(() => {
     if (sortMode !== 'category') {
@@ -99,7 +116,6 @@ const MaterialScreen = ({ navigation }: Props) => {
       data: expandedCategories.has(section.title) ? section.data : [],
     }));
   }, [sectionsData, expandedCategories, sortMode]);
-
 
   const renderSortModal = () => (
     <Modal
@@ -132,28 +148,19 @@ const MaterialScreen = ({ navigation }: Props) => {
         sections={sectionsWithExpansion}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <View style={styles.itemContent}>
-              <Text style={styles.itemText}>{item.name}</Text>
-              <Text style={styles.itemSubText}>Estoc: {item.stock} | Ubicació: {item.location}</Text>
-            </View>
-            <View style={styles.itemActions}>
-              <TouchableOpacity onPress={() => navigation.navigate('MaterialForm', { materialId: item.id })}>
-                <Icon name="pencil" size={24} color="#007AFF" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                <Icon name="delete" size={24} color="#FF3B30" />
-              </TouchableOpacity>
-            </View>
-          </View>
+          <MaterialListItem
+            item={item}
+            onEdit={(id) => navigation.navigate('MaterialForm', { materialId: id })}
+            onDelete={handleDelete}
+          />
         )}
         renderSectionHeader={({ section: { title } }) => (
-          <TouchableOpacity onPress={() => toggleCategory(title)} style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>{title}</Text>
-            {sortMode === 'category' && (
-              <Icon name={expandedCategories.has(title) ? 'chevron-up' : 'chevron-down'} size={24} color="#333" />
-            )}
-          </TouchableOpacity>
+          <SectionHeader
+            title={title}
+            isExpanded={expandedCategories.has(title)}
+            sortMode={sortMode}
+            onToggle={toggleCategory}
+          />
         )}
         ListEmptyComponent={<Text style={styles.emptyList}>No s'ha trobat material.</Text>}
         contentContainerStyle={{ paddingBottom: 80 }}

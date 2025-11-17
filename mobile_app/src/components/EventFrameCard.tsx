@@ -186,4 +186,4 @@ const styles = StyleSheet.create({
       },
 });
 
-export default EventFrameCard;
+export default React.memo(EventFrameCard);
