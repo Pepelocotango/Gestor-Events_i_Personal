@@ -1,68 +1,63 @@
 import React from 'react';
-import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { AssignmentStatus, PersonGroup, EventFrame } from '../types';
+import { PersonGroup, EventFrame } from '../types';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-interface FilterControlsProps {
-  filters: {
-    text: string;
-    person: string;
-    status: string;
-    date: string;
-    place: string;
-    eventFrame: string;
-  };
-  setFilters: React.Dispatch<React.SetStateAction<any>>;
+type FilterControlsProps = {
+  filters: { text: string; person: string; status: string; date: string; place: string; eventFrame: string };
+  setFilters: (filters: FilterControlsProps['filters']) => void;
   peopleGroups: PersonGroup[];
   eventFrames: EventFrame[];
   clearFilters: () => void;
-}
+};
 
-const FilterControls: React.FC<FilterControlsProps> = ({ filters, setFilters, peopleGroups, eventFrames, clearFilters }) => {
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters((prev: any) => ({ ...prev, [key]: value }));
+const FilterControls: React.FC<FilterControlsProps> = ({
+  filters,
+  setFilters,
+  peopleGroups,
+  eventFrames,
+  clearFilters,
+}) => {
+  const handleFilterChange = (key: keyof typeof filters, value: string) => {
+    setFilters({ ...filters, [key]: value });
   };
-
-  const allPlaces = Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort();
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Cerca general..."
-        value={filters.text}
-        onChangeText={(val) => handleFilterChange('text', val)}
-      />
-      <View style={styles.row}>
-        <View style={styles.pickerContainer}>
-          <Picker selectedValue={filters.eventFrame} onValueChange={(itemValue) => handleFilterChange('eventFrame', itemValue)}>
-            <Picker.Item label="-- Esdeveniment --" value="" />
-            {eventFrames.map(ef => <Picker.Item key={ef.id} label={ef.name} value={ef.id} />)}
-          </Picker>
-        </View>
-        <View style={styles.pickerContainer}>
-          <Picker selectedValue={filters.person} onValueChange={(itemValue) => handleFilterChange('person', itemValue)}>
-            <Picker.Item label="-- Persona --" value="" />
-            {peopleGroups.map(p => <Picker.Item key={p.id} label={p.name} value={p.id} />)}
-          </Picker>
-        </View>
+      <View style={styles.searchRow}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Cerca global..."
+          value={filters.text}
+          onChangeText={(value) => handleFilterChange('text', value)}
+        />
+        <TouchableOpacity onPress={clearFilters} style={styles.clearButton}>
+          <Icon name="filter-remove" size={24} color="#555" />
+        </TouchableOpacity>
       </View>
-      <View style={styles.row}>
-        <View style={styles.pickerContainer}>
-          <Picker selectedValue={filters.status} onValueChange={(itemValue) => handleFilterChange('status', itemValue)}>
-            <Picker.Item label="-- Estat --" value="" />
-            {Object.values(AssignmentStatus).map(s => <Picker.Item key={s} label={s} value={s} />)}
-          </Picker>
-        </View>
-        <View style={styles.pickerContainer}>
-            <Picker selectedValue={filters.place} onValueChange={(itemValue) => handleFilterChange('place', itemValue)}>
-                <Picker.Item label="-- Lloc --" value="" />
-                {allPlaces.map(p => <Picker.Item key={p} label={p} value={p} />)}
-            </Picker>
-        </View>
+      <View style={styles.pickerRow}>
+        <Picker
+          selectedValue={filters.person}
+          onValueChange={(itemValue) => handleFilterChange('person', itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Totes les persones" value="" />
+          {peopleGroups.map((p) => (
+            <Picker.Item key={p.id} label={p.name} value={p.id} />
+          ))}
+        </Picker>
+        <Picker
+          selectedValue={filters.eventFrame}
+          onValueChange={(itemValue) => handleFilterChange('eventFrame', itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Tots els esdeveniments" value="" />
+          {eventFrames.map((ef) => (
+            <Picker.Item key={ef.id} label={ef.name} value={ef.id} />
+          ))}
+        </Picker>
       </View>
-      {/* El filtre de data el gestionarem directament a EventsScreen, ja que requereix un DatePicker més complex */}
-      <Button title="Netejar Filtres" onPress={clearFilters} />
     </View>
   );
 };
@@ -70,26 +65,36 @@ const FilterControls: React.FC<FilterControlsProps> = ({ filters, setFilters, pe
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#ddd',
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   searchInput: {
-    backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
+    flex: 1,
+    height: 40,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    fontSize: 16,
   },
-  row: {
+  clearButton: {
+    marginLeft: 10,
+    padding: 5,
+  },
+  pickerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    gap: 10,
   },
-  pickerContainer: {
-    backgroundColor: 'white',
-    borderRadius: 5,
+  picker: {
     flex: 1,
-    marginHorizontal: 2,
+    height: 40,
+    backgroundColor: '#f0f0f0',
   },
 });
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { EventsStackParamList } from '../navigation';
@@ -7,6 +7,7 @@ import { EventFrame } from '../types';
 import EventFrameCard from '../components/EventFrameCard';
 import FilterControls from '../components/FilterControls';
 import ActionToolbar from '../components/ActionToolbar';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type EventsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventList'>;
 
@@ -34,12 +35,10 @@ const EventsScreen = ({ navigation }: Props) => {
   }, [peopleGroups]);
 
   const filteredEventFrames = useMemo(() => {
-    const { text, person, status, date, place, eventFrame } = filters;
-
     let filtered = eventFrames.filter(ef => ef.isArchived === showArchived);
 
-    if (text) {
-        const lowerCaseText = text.toLowerCase();
+    if (filters.text) {
+        const lowerCaseText = filters.text.toLowerCase();
         filtered = filtered.filter(frame =>
             frame.name.toLowerCase().includes(lowerCaseText) ||
             frame.place?.toLowerCase().includes(lowerCaseText) ||
@@ -47,11 +46,8 @@ const EventsScreen = ({ navigation }: Props) => {
             frame.assignments.some(a => peopleMap.get(a.personGroupId)?.toLowerCase().includes(lowerCaseText))
         );
     }
-    if (person) filtered = filtered.filter(frame => frame.assignments.some(a => a.personGroupId === person));
-    if (status) filtered = filtered.filter(frame => frame.assignments.some(a => a.status === status));
-    if (place) filtered = filtered.filter(frame => frame.place === place);
-    if (eventFrame) filtered = filtered.filter(frame => frame.id === eventFrame);
-    // Date filter logic would go here if we had a proper date picker
+    if (filters.person) filtered = filtered.filter(frame => frame.assignments.some(a => a.personGroupId === filters.person));
+    if (filters.eventFrame) filtered = filtered.filter(frame => frame.id === filters.eventFrame);
 
     return filtered.sort((a, b) => {
         const dateA = new Date(a.startDate).getTime();
@@ -133,7 +129,14 @@ const EventsScreen = ({ navigation }: Props) => {
           />
         )}
         ListEmptyComponent={<Text style={styles.emptyList}>No s'han trobat esdeveniments amb aquests filtres.</Text>}
+        contentContainerStyle={{ paddingBottom: 80 }}
       />
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('EventForm', {})}
+      >
+        <Icon name="plus" size={30} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -141,6 +144,7 @@ const EventsScreen = ({ navigation }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f0f2f5',
   },
   centered: {
     flex: 1,
@@ -152,12 +156,29 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
   },
   emptyList: {
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 50,
     fontSize: 16,
     color: '#666',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#007AFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });
 

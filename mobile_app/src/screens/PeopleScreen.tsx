@@ -1,9 +1,11 @@
-import React, { useLayoutEffect, useState, useMemo } from 'react';
-import { View, Text, Button, StyleSheet, FlatList, Alert, TextInput } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity, Modal, Button } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { PeopleStackParamList } from '../navigation';
 import { PersonGroup } from '../types';
+import PeopleToolbar from '../components/PeopleToolbar';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type PeopleScreenNavigationProp = StackNavigationProp<PeopleStackParamList, 'PersonList'>;
 
@@ -15,17 +17,8 @@ const PeopleScreen = ({ navigation }: Props) => {
   const { peopleGroups, deletePersonGroup } = useDataStore();
   const [search, setSearch] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof PersonGroup, direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Button
-          onPress={() => navigation.navigate('PersonForm', {})}
-          title="Afegir"
-        />
-      ),
-    });
-  }, [navigation]);
+  const [isSortModalVisible, setSortModalVisible] = useState(false);
+  const [isFilterModalVisible, setFilterModalVisible] = useState(false);
 
   const normalize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -53,6 +46,7 @@ const PeopleScreen = ({ navigation }: Props) => {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
+    setSortModalVisible(false);
   };
 
   const handleDelete = (id: string) => {
@@ -66,23 +60,31 @@ const PeopleScreen = ({ navigation }: Props) => {
     );
   };
 
+  const renderSortModal = () => (
+    <Modal
+      transparent={true}
+      visible={isSortModalVisible}
+      onRequestClose={() => setSortModalVisible(false)}
+    >
+      <TouchableOpacity style={styles.modalOverlay} onPress={() => setSortModalVisible(false)}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Ordenar per</Text>
+          <Button title={`Nom ${sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : ''}`} onPress={() => requestSort('name')} />
+          <Button title={`Rol ${sortConfig.key === 'role' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : ''}`} onPress={() => requestSort('role')} />
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
   return (
     <View style={styles.container}>
-       <TextInput
-        style={styles.searchBar}
-        placeholder="Cerca per nom, rol, email..."
-        value={search}
-        onChangeText={setSearch}
+      <PeopleToolbar
+        searchQuery={search}
+        onSearchChange={setSearch}
+        onSort={() => setSortModalVisible(true)}
+        onFilter={() => Alert.alert("WIP", "Filtres pròximament")}
       />
-      <View style={styles.sortContainer}>
-        <Text style={styles.sortLabel}>Ordenar per:</Text>
-        <Button title={`Nom ${sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : ''}`} onPress={() => requestSort('name')} />
-        <Button title={`Rol ${sortConfig.key === 'role' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : ''}`} onPress={() => requestSort('role')} />
-      </View>
-      <View style={styles.actionsContainer}>
-        <Button title="Importar" onPress={() => Alert.alert("WIP", "Importar pròximament")} />
-        <Button title="Exportar" onPress={() => Alert.alert("WIP", "Exportar pròximament")} />
-      </View>
+      {renderSortModal()}
       <FlatList
         data={sortedAndFilteredGroups}
         keyExtractor={(item: PersonGroup) => item.id}
@@ -95,13 +97,24 @@ const PeopleScreen = ({ navigation }: Props) => {
               {item.email ? <Text style={styles.itemInfo}>{item.email}</Text> : null}
             </View>
             <View style={styles.itemActions}>
-              <Button title="Editar" onPress={() => navigation.navigate('PersonForm', { personId: item.id })} />
-              <Button title="Eliminar" onPress={() => handleDelete(item.id)} color="red" />
+              <TouchableOpacity onPress={() => navigation.navigate('PersonForm', { personId: item.id })}>
+                <Icon name="pencil" size={24} color="#007AFF" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDelete(item.id)}>
+                <Icon name="delete" size={24} color="#FF3B30" />
+              </TouchableOpacity>
             </View>
           </View>
         )}
         ListEmptyComponent={<Text style={styles.emptyList}>No s'han trobat contactes.</Text>}
+        contentContainerStyle={{ paddingBottom: 80 }}
       />
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('PersonForm', {})}
+      >
+        <Icon name="plus" size={30} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -109,22 +122,7 @@ const PeopleScreen = ({ navigation }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  searchBar: {
-    padding: 10,
-    fontSize: 16,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-  },
-  sortLabel: {
-    marginRight: 10,
   },
   item: {
     flexDirection: 'row',
@@ -132,10 +130,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#eee',
   },
   itemContent: {
     flex: 1,
+    marginRight: 10,
   },
   itemText: {
     fontSize: 18,
@@ -144,26 +143,57 @@ const styles = StyleSheet.create({
   itemSubText: {
     fontSize: 14,
     color: '#666',
+    marginTop: 2,
   },
   itemInfo: {
     fontSize: 12,
     color: '#333',
+    marginTop: 2,
   },
   itemActions: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    gap: 20,
   },
   emptyList: {
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 30,
     fontSize: 16,
     color: '#666',
   },
-  actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 5,
-    backgroundColor: '#f0f0f0',
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#007AFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });
 

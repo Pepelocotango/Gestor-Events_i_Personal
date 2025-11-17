@@ -1,9 +1,11 @@
-import React, { useLayoutEffect, useState, useMemo } from 'react';
-import { View, Text, Button, StyleSheet, SectionList, Alert, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, SectionList, Alert, TouchableOpacity, Modal, Button } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MaterialStackParamList } from '../navigation';
 import { MaterialItem } from '../types';
+import MaterialToolbar from '../components/MaterialToolbar';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type MaterialScreenNavigationProp = StackNavigationProp<MaterialStackParamList, 'MaterialList'>;
 
@@ -15,6 +17,7 @@ const MaterialScreen = ({ navigation }: Props) => {
   const { materialItems, deleteMaterialItem } = useDataStore();
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
+  const [isSortModalVisible, setSortModalVisible] = useState(false);
 
   const handleDelete = (id: string) => {
     Alert.alert(
@@ -39,15 +42,12 @@ const MaterialScreen = ({ navigation }: Props) => {
 
     if (sortMode === 'name') {
       const sortedByName = filtered.sort((a, b) => a.name.localeCompare(b.name, 'ca', { sensitivity: 'base' }));
-      return [{ title: 'Tots els materials', data: sortedByName }];
+      return [{ title: 'Tots els materials per nom', data: sortedByName }];
     }
 
-    // Group by category
     const grouped: { [key: string]: MaterialItem[] } = filtered.reduce((acc, item) => {
       const category = item.category || 'Sense Categoria';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
+      if (!acc[category]) acc[category] = [];
       acc[category].push(item);
       return acc;
     }, {} as { [key: string]: MaterialItem[] });
@@ -60,27 +60,31 @@ const MaterialScreen = ({ navigation }: Props) => {
       }));
   }, [materialItems, search, sortMode]);
 
+  const renderSortModal = () => (
+    <Modal
+      transparent={true}
+      visible={isSortModalVisible}
+      onRequestClose={() => setSortModalVisible(false)}
+    >
+      <TouchableOpacity style={styles.modalOverlay} onPress={() => setSortModalVisible(false)}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Agrupar i ordenar per</Text>
+          <Button title={`Categoria ${sortMode === 'category' ? '✓' : ''}`} onPress={() => { setSortMode('category'); setSortModalVisible(false); }} />
+          <Button title={`Nom ${sortMode === 'name' ? '✓' : ''}`} onPress={() => { setSortMode('name'); setSortModalVisible(false); }} />
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Cerca per nom, categoria, ubicació..."
-        value={search}
-        onChangeText={setSearch}
+      <MaterialToolbar
+        searchQuery={search}
+        onSearchChange={setSearch}
+        onSort={() => setSortModalVisible(true)}
+        onFilter={() => Alert.alert("WIP", "Filtres pròximament")}
       />
-      <View style={styles.sortContainer}>
-        <Text style={styles.sortLabel}>Agrupar per:</Text>
-        <TouchableOpacity onPress={() => setSortMode('category')} style={[styles.sortButton, sortMode === 'category' && styles.sortButtonActive]}>
-          <Text style={styles.sortButtonText}>Categoria</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setSortMode('name')} style={[styles.sortButton, sortMode === 'name' && styles.sortButtonActive]}>
-          <Text style={styles.sortButtonText}>Nom</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.actionsContainer}>
-        <Button title="Importar" onPress={() => Alert.alert("WIP", "Importar pròximament")} />
-        <Button title="Exportar" onPress={() => Alert.alert("WIP", "Exportar pròximament")} />
-      </View>
+      {renderSortModal()}
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
@@ -91,8 +95,12 @@ const MaterialScreen = ({ navigation }: Props) => {
               <Text style={styles.itemSubText}>Estoc: {item.stock} | Ubicació: {item.location}</Text>
             </View>
             <View style={styles.itemActions}>
-              <Button title="Editar" onPress={() => navigation.navigate('MaterialForm', { materialId: item.id })} />
-              <Button title="Eliminar" onPress={() => handleDelete(item.id)} color="red" />
+              <TouchableOpacity onPress={() => navigation.navigate('MaterialForm', { materialId: item.id })}>
+                <Icon name="pencil" size={24} color="#007AFF" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDelete(item.id)}>
+                <Icon name="delete" size={24} color="#FF3B30" />
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -100,7 +108,14 @@ const MaterialScreen = ({ navigation }: Props) => {
           <Text style={styles.sectionHeader}>{title}</Text>
         )}
         ListEmptyComponent={<Text style={styles.emptyList}>No s'ha trobat material.</Text>}
+        contentContainerStyle={{ paddingBottom: 80 }}
       />
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('MaterialForm', {})}
+      >
+        <Icon name="plus" size={30} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -109,38 +124,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  searchBar: {
-    padding: 10,
-    fontSize: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  sortLabel: {
-    marginRight: 10,
-    fontSize: 16,
-  },
-  sortButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    backgroundColor: '#ddd',
-    marginRight: 10,
-  },
-  sortButtonActive: {
-    backgroundColor: '#007AFF',
-  },
-  sortButtonText: {
-    color: 'white',
   },
   sectionHeader: {
     padding: 10,
@@ -160,6 +143,7 @@ const styles = StyleSheet.create({
   },
   itemContent: {
     flex: 1,
+    marginRight: 10,
   },
   itemText: {
     fontSize: 16,
@@ -172,7 +156,8 @@ const styles = StyleSheet.create({
   },
   itemActions: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    gap: 20,
   },
   emptyList: {
     textAlign: 'center',
@@ -180,11 +165,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
-  actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 5,
-    backgroundColor: '#f0f0f0',
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#007AFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });
 
