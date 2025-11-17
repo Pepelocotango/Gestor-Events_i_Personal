@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
-import { EventsStackParamList } from '../navigation';
+import { TechSheetsStackParamList } from '../navigation';
 import ReadOnlySection from '../components/tech_sheet/ReadOnlySection';
 import ReadOnlyField from '../components/tech_sheet/ReadOnlyField';
 
 type TechSheetDetailScreenRouteProp = RouteProp<
-  EventsStackParamList,
+  TechSheetsStackParamList,
   'TechSheetDetail'
 >;
 
@@ -22,7 +22,7 @@ type Props = {
 };
 
 export default function TechSheetDetailScreen({ route }: Props) {
-  const { eventId } = route.params;
+  const eventId = route.params?.eventId;
   const event = useDataStore((state) =>
     state.eventFrames.find((e) => e.id === eventId)
   );

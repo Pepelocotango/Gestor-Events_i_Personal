@@ -43,6 +43,7 @@ A cada pantalla principal (Esdeveniments, Persones, Material), hi ha un botó `+
 L'aplicació es divideix en cinc pestanyes principals, cadascuna amb la seva pròpia pila de navegació:
 
 - **Esdeveniments**: Gestiona els esdeveniments.
+- **Fitxes de Bolo**: Visualitza totes les fitxes de bolo.
 - **Persones**: Gestiona la llista de personal.
 - **Material**: Gestiona l'inventari de material.
 - **Centre de Control**: Ofereix una vista global de l'estat del material.
@@ -71,26 +72,20 @@ L'aplicació es divideix en cinc pestanyes principals, cadascuna amb la seva pr�
   - **Accions a la Targeta (expandida)**:
     - **<Icona `pencil`>**: Obre el formulari per editar l'esdeveniment.
     - **<Icona `delete`>**: Elimina l'esdeveniment (amb confirmació).
-    - **Botó "Veure Fitxa de Bolo"**: Si l'esdeveniment té una fitxa associada, apareix un botó que porta a la pantalla de només lectura `TechSheetDetailScreen`.
-
-#### 1.1. Pantalla de Detall de l'Esdeveniment (`EventDetailScreen`)
-
-Accessible en fer clic a una targeta d'esdeveniment. Mostra una vista detallada de l'esdeveniment i les seves assignacions. Des d'aquí també es pot navegar a la fitxa de bolo.
-
-#### 1.2. Pantalla de Visualització de Fitxa de Bolo (`TechSheetDetailScreen`)
-
-- **Propòsit**: Mostra una versió de **només lectura** de la fitxa de bolo.
-- **Estructura**:
-  - **Informació General**: Nom, lloc, data.
-  - **Personal Tècnic**: Llista de proveïdors i rols.
-  - **Horaris**: Planning de muntatge.
-  - **Necessitats Tècniques**: Seccions per a llums, so, vídeo, etc.
-  - **Contactes i Observacions**.
-- **Interacció**: No hi ha camps editables, només visualització de dades.
 
 ---
 
-### 2. Pestanya "Persones" (`PeopleScreen`)
+### 2. Pestanya "Fitxes de Bolo" (`TechSheetListScreen`)
+
+- **Propòsit**: Ofereix un accés centralitzat per a visualitzar totes les fitxes de bolo.
+- **Contingut**:
+  - **Llista de Fitxes**: Mostra una llista de tots els esdeveniments que tenen una fitxa de bolo associada. Cada element de la llista mostra el nom de l'esdeveniment, el lloc i la data.
+- **Navegació**:
+  - En fer clic a un element de la llista, es navega a la pantalla `TechSheetDetailScreen` per a visualitzar els detalls complets d'aquella fitxa.
+
+---
+
+### 3. Pestanya "Persones" (`PeopleScreen`)
 
 - **Barra d'Eines (`PeopleToolbar`):**
   - **Cerca**: Camp de text per cercar persones.

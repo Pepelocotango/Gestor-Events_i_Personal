@@ -85,16 +85,6 @@ export default function EventDetailScreen({ route, navigation }: Props) {
         <Text style={styles.notes}>
           {event.generalNotes || 'No hi ha notes.'}
         </Text>
-        {event.techSheet && (
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              navigation.navigate('TechSheetDetail', { eventId: event.id })
-            }
-          >
-            <Text style={styles.buttonText}>Veure Fitxa de Bolo</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       <View style={styles.card}>
@@ -111,13 +101,6 @@ export default function EventDetailScreen({ route, navigation }: Props) {
             </Text>
           </View>
         ))}
-      </View>
-
-      <View style={styles.debugContainer}>
-        <Text style={styles.debugTitle}>--- DEBUG DATA ---</Text>
-        <Text style={styles.debugContent}>
-          {JSON.stringify(event, null, 2)}
-        </Text>
       </View>
     </ScrollView>
   );
@@ -195,19 +178,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  debugContainer: {
-    margin: 16,
-    padding: 16,
-    backgroundColor: '#eee',
-    borderRadius: 8,
-  },
-  debugTitle: {
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  debugContent: {
-    fontFamily: 'monospace',
-    fontSize: 10,
   },
 });

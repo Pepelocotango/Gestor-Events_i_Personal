@@ -38,6 +38,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── screens/              # Pantalles principals de l'aplicació.
 │   │   │   ├── EventsScreen.tsx          # Pantalla principal per a la gestió d'esdeveniments.
 │   │   │   ├── EventDetailScreen.tsx     # Pantalla que mostra els detalls d'un esdeveniment.
+│   │   │   ├── TechSheetListScreen.tsx   # Nova pantalla que llista totes les fitxes de bolo disponibles.
 │   │   │   ├── TechSheetDetailScreen.tsx # Pantalla de només lectura per a la fitxa de bolo.
 │   │   │   ├── EventFormScreen.tsx       # Formulari per crear/editar esdeveniments.
 │   │   │   ├── PeopleScreen.tsx          # Pantalla per a la gestió de persones/contactes.
