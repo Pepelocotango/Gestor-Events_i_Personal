@@ -1,52 +1,69 @@
 import React from 'react';
-import { View, Button, StyleSheet, Switch, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-interface ActionToolbarProps {
+type ActionToolbarProps = {
   sortOrder: 'asc' | 'desc';
   setSortOrder: (order: 'asc' | 'desc') => void;
   showArchived: boolean;
   setShowArchived: (show: boolean) => void;
   toggleAllCards: () => void;
   areAllExpanded: boolean;
-}
+};
 
-const ActionToolbar: React.FC<ActionToolbarProps> = ({
+const ActionToolbar = ({
   sortOrder,
   setSortOrder,
   showArchived,
   setShowArchived,
   toggleAllCards,
   areAllExpanded,
-}) => {
+}: ActionToolbarProps) => {
   return (
-    <View style={styles.container}>
-      <Button
-        title={sortOrder === 'asc' ? 'Ordena Desc' : 'Ordena Asc'}
+    <View style={styles.toolbar}>
+      <TouchableOpacity
+        style={styles.button}
         onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-      />
-      <View style={styles.switchContainer}>
-        <Text>Arxivats</Text>
-        <Switch value={showArchived} onValueChange={setShowArchived} />
-      </View>
-      <Button
-        title={areAllExpanded ? 'Replega Tot' : 'Expandeix Tot'}
-        onPress={toggleAllCards}
-      />
+      >
+        <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color="#333" />
+        <Text style={styles.buttonText}>Data</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => setShowArchived(!showArchived)}
+      >
+        <Icon name={showArchived ? "archive-eye" : "archive-eye-outline"} size={24} color="#333" />
+        <Text style={styles.buttonText}>{showArchived ? 'Mostrant arxivats' : 'Veure arxivats'}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={toggleAllCards}>
+        <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color="#333" />
+        <Text style={styles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  toolbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#e9e9e9',
+    padding: 8,
+    backgroundColor: '#f5f5f5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
-  switchContainer: {
+  button: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  buttonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#333',
   },
 });
 
