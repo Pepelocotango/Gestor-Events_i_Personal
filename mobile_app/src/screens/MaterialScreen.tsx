@@ -61,13 +61,12 @@ const MaterialScreen = ({ navigation }: Props) => {
       }));
   }, [materialItems, search, sortMode]);
 
-  // Set all categories to expanded by default when sectionsData changes
-  useMemo(() => {
+  // Set all categories to expanded by default when the component mounts or sort mode changes to category
+  useState(() => {
     if (sortMode === 'category') {
-      const allCategories = new Set(sectionsData.map(s => s.title));
-      setExpandedCategories(allCategories);
+      handleExpandAll();
     }
-  }, [sectionsData, sortMode]);
+  });
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => {
@@ -80,6 +79,16 @@ const MaterialScreen = ({ navigation }: Props) => {
       return newSet;
     });
   };
+
+  const handleExpandAll = () => {
+    const allCategories = new Set(sectionsData.map(s => s.title));
+    setExpandedCategories(allCategories);
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedCategories(new Set());
+  };
+
 
   const sectionsWithExpansion = useMemo(() => {
     if (sortMode !== 'category') {
@@ -115,6 +124,8 @@ const MaterialScreen = ({ navigation }: Props) => {
         onSearchChange={setSearch}
         onSort={() => setSortModalVisible(true)}
         onFilter={() => Alert.alert("WIP", "Filtres pròximament")}
+        onExpandAll={handleExpandAll}
+        onCollapseAll={handleCollapseAll}
       />
       {renderSortModal()}
       <SectionList
