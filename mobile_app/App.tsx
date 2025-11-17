@@ -16,64 +16,61 @@ import PersonFormScreen from './src/screens/PersonFormScreen';
 import MaterialScreen from './src/screens/MaterialScreen';
 import MaterialFormScreen from './src/screens/MaterialFormScreen';
 import MaterialControlScreen from './src/screens/MaterialControlScreen';
+import SummaryScreen from './src/screens/SummaryScreen';
+import CustomHeader from './src/components/CustomHeader';
 import {
   RootTabParamList,
   EventsStackParamList,
   PeopleStackParamList,
   MaterialStackParamList,
+  ControlCenterStackParamList,
+  SummaryStackParamList,
 } from './src/navigation';
 
 const EventsStack = createStackNavigator<EventsStackParamList>();
 const PeopleStack = createStackNavigator<PeopleStackParamList>();
 const MaterialStack = createStackNavigator<MaterialStackParamList>();
+const ControlCenterStack = createStackNavigator<ControlCenterStackParamList>();
+const SummaryStack = createStackNavigator<SummaryStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+const commonScreenOptions = {
+  header: (props: any) => <CustomHeader {...props} />,
+};
+
 const EventsStackNavigator = () => (
-  <EventsStack.Navigator>
-    <EventsStack.Screen name="EventList" component={EventsScreen} options={{ title: 'Esdeveniments' }} />
-    <EventsStack.Screen name="EventDetail" component={EventDetailScreen} options={{ title: "Detalls de l'Esdeveniment" }} />
-    <EventsStack.Screen
-      name="EventForm"
-      component={EventFormScreen}
-      options={({ route }) => ({
-        title: route.params?.eventId ? 'Editar Esdeveniment' : 'Nou Esdeveniment',
-      })}
-    />
-    <EventsStack.Screen
-      name="AssignmentForm"
-      component={AssignmentFormScreen}
-      options={({ route }) => ({
-        title: route.params?.assignmentId ? 'Editar Assignació' : 'Nova Assignació',
-      })}
-    />
+  <EventsStack.Navigator screenOptions={commonScreenOptions}>
+    <EventsStack.Screen name="EventList" component={EventsScreen} />
+    <EventsStack.Screen name="EventDetail" component={EventDetailScreen} />
+    <EventsStack.Screen name="EventForm" component={EventFormScreen} />
+    <EventsStack.Screen name="AssignmentForm" component={AssignmentFormScreen} />
   </EventsStack.Navigator>
 );
 
 const PeopleStackNavigator = () => (
-  <PeopleStack.Navigator>
-    <PeopleStack.Screen name="PersonList" component={PeopleScreen} options={{ title: 'Persones' }} />
-    <PeopleStack.Screen
-      name="PersonForm"
-      component={PersonFormScreen}
-      options={({ route }) => ({
-        title: route.params?.personId ? 'Editar Persona' : 'Nova Persona',
-      })}
-    />
+  <PeopleStack.Navigator screenOptions={commonScreenOptions}>
+    <PeopleStack.Screen name="PersonList" component={PeopleScreen} />
+    <PeopleStack.Screen name="PersonForm" component={PersonFormScreen} />
   </PeopleStack.Navigator>
 );
 
 const MaterialStackNavigator = () => (
-  <MaterialStack.Navigator>
-    <MaterialStack.Screen name="MaterialList" component={MaterialScreen} options={{ title: 'Material' }} />
-    <MaterialStack.Screen
-      name="MaterialForm"
-      component={MaterialFormScreen}
-      options={({ route }) => ({
-        title: route.params?.materialId ? 'Editar Material' : 'Nou Material',
-      })}
-    />
-    <MaterialStack.Screen name="MaterialControl" component={MaterialControlScreen} options={{ title: 'Centre de Control' }} />
+  <MaterialStack.Navigator screenOptions={commonScreenOptions}>
+    <MaterialStack.Screen name="MaterialList" component={MaterialScreen} />
+    <MaterialStack.Screen name="MaterialForm" component={MaterialFormScreen} />
   </MaterialStack.Navigator>
+);
+
+const ControlCenterStackNavigator = () => (
+  <ControlCenterStack.Navigator screenOptions={commonScreenOptions}>
+    <ControlCenterStack.Screen name="MaterialControl" component={MaterialControlScreen} />
+  </ControlCenterStack.Navigator>
+);
+
+const SummaryStackNavigator = () => (
+  <SummaryStack.Navigator screenOptions={commonScreenOptions}>
+    <SummaryStack.Screen name="Summary" component={SummaryScreen} />
+  </SummaryStack.Navigator>
 );
 
 export default function App() {
@@ -81,25 +78,41 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => ({
+          headerShown: false,
           tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
+            let iconName: string;
 
-            if (route.name === 'Events') {
-              iconName = focused ? 'calendar' : 'calendar-outline';
-            } else if (route.name === 'People') {
-              iconName = focused ? 'people' : 'people-outline';
-            } else if (route.name === 'Material') {
-              iconName = focused ? 'cube' : 'cube-outline';
-            }
+            switch (route.name) {
+                case 'Events':
+                  iconName = focused ? 'calendar' : 'calendar-outline';
+                  break;
+                case 'People':
+                  iconName = focused ? 'people' : 'people-outline';
+                  break;
+                case 'Material':
+                  iconName = focused ? 'cube' : 'cube-outline';
+                  break;
+                case 'ControlCenter':
+                  iconName = focused ? 'server' : 'server-outline';
+                  break;
+                case 'Summaries':
+                  iconName = focused ? 'analytics' : 'analytics-outline';
+                  break;
+                default:
+                  iconName = 'alert-circle-outline';
+                  break;
+              }
 
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-        })}
-      >
-        <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: 'Esdeveniments', headerShown: false }} />
-        <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: 'Persones', headerShown: false }} />
-        <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: 'Material', headerShown: false }} />
-      </Tab.Navigator>
+              return <Ionicons name={iconName} size={size} color={color} />;
+            },
+          })}
+        >
+          <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: 'Esdeveniments' }} />
+          <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: 'Persones' }} />
+          <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: 'Material' }} />
+          <Tab.Screen name="ControlCenter" component={ControlCenterStackNavigator} options={{ title: 'Centre de Control' }} />
+          <Tab.Screen name="Summaries" component={SummaryStackNavigator} options={{ title: 'Resums' }} />
+        </Tab.Navigator>
     </NavigationContainer>
   );
 }

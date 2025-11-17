@@ -1,13 +1,29 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useDataStore, selectMaterialControlData } from '../stores/dataStore';
-import { MaterialControlFilters } from '../types';
+import MaterialControlFilters from '../components/MaterialControlFilters';
+import MaterialControlList from '../components/MaterialControlList';
 
 const MaterialControlScreen = () => {
   const { eventFrames, materialItems } = useDataStore();
-  const [filters, setFilters] = useState<MaterialControlFilters>({
+
+  const [filters, setFilters] = useState({
     searchText: '',
+    dateRange: { start: '', end: '' },
+    selectedEventIds: [],
+    selectedOrigins: [],
+    selectedCategories: [],
   });
+
+  const clearFilters = () => {
+    setFilters({
+      searchText: '',
+      dateRange: { start: '', end: '' },
+      selectedEventIds: [],
+      selectedOrigins: [],
+      selectedCategories: [],
+    });
+  };
 
   const data = useMemo(() => {
     return selectMaterialControlData({ eventFrames, materialItems }, filters);
@@ -15,28 +31,14 @@ const MaterialControlScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Centre de Control de Material</Text>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Cerca per nom, categoria..."
-        value={filters.searchText}
-        onChangeText={(text) => setFilters(prev => ({ ...prev, searchText: text }))}
+      <MaterialControlFilters
+        filters={filters}
+        setFilters={setFilters}
+        eventFrames={eventFrames}
+        materialItems={materialItems}
+        clearFilters={clearFilters}
       />
-      <FlatList
-        data={data}
-        keyExtractor={item => item.item.id}
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Text style={styles.itemName}>{item.item.name}</Text>
-            <Text>Estoc: {item.item.stock}</Text>
-            <Text>Demanda: {item.totalDemand}</Text>
-            <Text style={item.balance < 0 ? styles.negativeBalance : styles.positiveBalance}>
-              Balanç: {item.balance}
-            </Text>
-          </View>
-        )}
-        ListEmptyComponent={<Text>No hi ha dades per mostrar amb aquests filtres.</Text>}
-      />
+      <MaterialControlList data={data} />
     </View>
   );
 };
@@ -44,34 +46,6 @@ const MaterialControlScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  searchInput: {
-    padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  row: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  itemName: {
-    fontWeight: 'bold',
-  },
-  negativeBalance: {
-    color: 'red',
-  },
-  positiveBalance: {
-    color: 'green',
   },
 });
 

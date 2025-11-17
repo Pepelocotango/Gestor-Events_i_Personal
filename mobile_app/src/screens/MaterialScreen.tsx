@@ -16,24 +16,6 @@ const MaterialScreen = ({ navigation }: Props) => {
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <View style={{ flexDirection: 'row', marginRight: 10 }}>
-          <Button
-            onPress={() => navigation.navigate('MaterialControl')}
-            title="Control"
-          />
-          <View style={{ width: 10 }} />
-          <Button
-            onPress={() => navigation.navigate('MaterialForm', {})}
-            title="Afegir"
-          />
-        </View>
-      ),
-    });
-  }, [navigation]);
-
   const handleDelete = (id: string) => {
     Alert.alert(
       "Eliminar Material",
