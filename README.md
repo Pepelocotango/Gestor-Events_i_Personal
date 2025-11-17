@@ -5,7 +5,7 @@
 
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal V1.3.0
+# Gestor d'Esdeveniments i Personal V1.4.0
 
 Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que funciona com a visor de dades.
 
@@ -41,9 +41,13 @@ L'aplicació ofereix les següents eines:
     *   **Exportació a PDF/CSV:** Exporta resums, llistes, inventaris i fitxes de bolo a formats professionals.
 
 *   **Aplicació Mòbil (iOS/Android):**
-    *   **Gestió Completa de Dades:** Obre, visualitza i edita els teus fitxers de dades `.json` des de qualsevol lloc. L'aplicació ara permet la gestió integral d'Esdeveniments, Persones (contactes) i Material.
+    *   **Interfície Redissenyada:** L'aplicació mòbil s'ha refactoritzat completament per oferir una experiència d'usuari més visual, intuïtiva i funcional.
+    *   **Gestió Completa de Dades:** Obre, visualitza i edita fitxers `.json` des de qualsevol lloc. L'aplicació permet la gestió integral d'Esdeveniments, Persones (contactes) i Material.
     *   **Navegació per Pestanyes:** Una interfície intuïtiva amb pestanyes per accedir ràpidament a cada secció.
-    *   **Funcionalitats CRUD:** Afegeix, edita i elimina registres a cada secció directament des del teu dispositiu mòbil.
+    *   **Interacció Millorada:** S'han substituït els botons de text per icones, s'han afegit Botons d'Acció Flotants (FAB) per a la creació ràpida d'elements, i les accions d'ordenació i filtratge es gestionen a través de modals.
+    *   **Noves Funcionalitats:**
+        *   **Estat de l'Esdeveniment:** Visualitza i edita si un esdeveniment està "Pendent" o "Completat".
+        *   **Categories Col·lapsables:** A la pantalla de material, ara pots expandir i contraure les categories per a una millor organització.
     *   **Gestió de Fitxers Moderna:** Utilitza el selector de fitxers natiu per obrir arxius des de l'emmagatzematge local, Google Drive, Dropbox o qualsevol altre proveïdor.
 
 > Per a una anàlisi tècnica detallada de l'arquitectura, consulta la nostra [**guia de desenvolupament (DEVELOPING.md)**](DEVELOPING.md).

@@ -20,11 +20,20 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── .expo/                    # Fitxers temporals generats per Expo.
 │   ├── assets/                   # Actius estàtics (imatges).
 │   ├── src/                      # Codi font de l'aplicació mòbil.
+│   │   ├── components/           # Components reutilitzables de la UI mòbil.
+│   │   │   ├── ActionToolbar.tsx         # Barra d'eines per a la pantalla d'esdeveniments (ordenar, arxivar, expandir).
+│   │   │   ├── CustomHeader.tsx          # Capçalera global de l'aplicació amb accions principals (desar, tancar, desfer/refer).
+│   │   │   ├── EventFrameCard.tsx        # Targeta individual per mostrar la informació d'un esdeveniment.
+│   │   │   ├── FilterControls.tsx        # Controls de filtre per a la pantalla d'esdeveniments.
+│   │   │   ├── MaterialControlFilters.tsx# Controls de filtre per al Centre de Control de Material.
+│   │   │   ├── MaterialControlList.tsx   # Llista de resultats del Centre de Control.
+│   │   │   ├── MaterialToolbar.tsx       # Barra d'eines per a la pantalla de materials (cerca, ordenar, expandir tot).
+│   │   │   └── PeopleToolbar.tsx         # Barra d'eines per a la pantalla de persones (cerca, ordenar, filtrar).
 │   │   ├── navigation.ts         # Defineix els tipus per a la pila de navegació (React Navigation).
 │   │   ├── screens/              # Pantalles principals de l'aplicació.
 │   │   │   ├── EventsScreen.tsx          # Pantalla principal per a la gestió d'esdeveniments.
 │   │   │   ├── EventDetailScreen.tsx     # Pantalla que mostra els detalls d'un esdeveniment.
-│   │   │   ├── EventFormScreen.tsx       # Pantalla amb el formulari per crear/editar esdeveniments.
+│   │   │   ├── EventFormScreen.tsx       # Formulari per crear/editar esdeveniments.
 │   │   │   ├── PeopleScreen.tsx          # Pantalla per a la gestió de persones/contactes.
 │   │   │   ├── PersonFormScreen.tsx      # Formulari per crear/editar persones.
 │   │   │   ├── MaterialScreen.tsx        # Pantalla per a la gestió d'inventari de material.
@@ -39,6 +48,7 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── node_modules/             # Dependències del projecte mòbil.
 │   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòbil.
 │   ├── App.tsx                   # Punt d'entrada principal que carrega les pantalles.
+│   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil.
 │   ├── index.js                  # Punt de registre inicial de l'aplicació per a Expo.
 │   ├── app.json                  # Fitxer de configuració d'Expo.
 │   ├── babel.config.js           # Fitxer de configuració de Babel.

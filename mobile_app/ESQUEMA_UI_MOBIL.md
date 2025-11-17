@@ -1,32 +1,48 @@
-# Esquema Visual de la Interfície d'Usuari - App Mòbil
+# Esquema Visual de la Interfície d'Usuari - App Mòbil (v1.4.0)
 
-A continuació es detalla l'estructura de l'aplicació, les seves pantalles i les funcions associades.
+Aquest document descriu l'estructura de l'aplicació mòbil, les seves pantalles i les funcions associades, reflectint la refactorització de la UI cap a un model més visual i interactiu.
+
+---
+
+### Filosofia de la Interfície
+
+La nova interfície es basa en els següents principis:
+- **Visualització Primer:** Les pantalles principals mostren la informació de manera clara i concisa, sense controls d'edició directes.
+- **Icones sobre Text:** S'utilitzen icones per a la majoria de les accions per a una UI més neta.
+- **Accions Centralitzades:** Les accions de creació es realitzen a través d'un Botó d'Acció Flotant (FAB), mentre que les accions de context (editar, eliminar) es troben a cada element de la llista. Les accions globals (ordenar, filtrar) es gestionen a través de barres d'eines (`Toolbars`) i modals.
 
 ---
 
 ### Capçalera Global (`CustomHeader`)
 
-A la part superior de l'aplicació, hi ha una capçalera persistent que és visible a totes les pantalles. Està dividida en dues files:
+La capçalera superior és persistent i s'ha redissenyat per ser més minimalista.
 
 - **Fila Superior**:
-  - **Títol**: Mostra el nom del fitxer obert (ex: `projecte.json`) o "Gestor d'Esdeveniments" si no n'hi ha cap.
+  - **Títol**: Mostra el nom del fitxer obert o el nom de l'aplicació.
 - **Fila Inferior**:
-  - **Botons Esquerra**:
-    - `[ Desfer ]`: Anul·la l'última acció.
-    - `[ Refer ]`: Reverteix l'última acció anul·lada.
-  - **Botons Dreta**:
-    - `[ Obrir ]`: Si no hi ha cap fitxer obert, permet carregar-ne un.
-    - `[ Afegir ]`: Si hi ha un fitxer obert, permet crear un nou esdeveniment.
-    - `[ Desar ]`: Desa els canvis fets al fitxer. S'activa només si hi ha canvis.
-    - `[ Tancar ]`: Tanca el fitxer actual.
+  - **Accions d'Historial (Esquerra)**:
+    - **<Icona `undo`>**: Desfà l'última acció.
+    - **<Icona `redo`>**: Refà l'última acció.
+  - **Accions de Fitxer (Dreta)**:
+    - **<Icona `folder-open`> Obrir**: Si no hi ha cap fitxer obert.
+    - **<Icona `save`>**: Desa els canvis al fitxer. S'activa només si hi ha canvis.
+    - **<Icona `close`>**: Tanca el fitxer actual.
+
+El botó "Afegir" s'ha eliminat d'aquesta barra.
+
+---
+
+### Botó d'Acció Flotant (FAB)
+
+A cada pantalla principal (Esdeveniments, Persones, Material), hi ha un botó `+` a la cantonada inferior dreta que permet crear un nou element corresponent a la secció.
 
 ---
 
 ### Navegació Principal (Barra de Pestanyes Inferior)
 
-L'aplicació es divideix en quatre pestanyes principals:
+L'aplicació es divideix en cinc pestanyes principals, cadascuna amb la seva pròpia pila de navegació:
 
-- **Esdeveniments**: Gestiona el flux de treball principal relacionat amb els esdeveniments.
+- **Esdeveniments**: Gestiona els esdeveniments.
 - **Persones**: Gestiona la llista de personal.
 - **Material**: Gestiona l'inventari de material.
 - **Centre de Control**: Ofereix una vista global de l'estat del material.
@@ -42,50 +58,70 @@ L'aplicació es divideix en quatre pestanyes principals:
 **Estat Principal (amb un fitxer obert):**
 - **Controls de Filtre (`FilterControls`):**
   - **Cerca general**: Camp de text per a cerques lliures.
-  - **Selectors**: Pickers per filtrar per esdeveniment, persona, estat i lloc.
-  - **Botó `[ Netejar ]`**: Restableix tots els filtres.
+  - **Selectors**: Pickers per filtrar per persona i esdeveniment.
+  - **<Icona `filter-remove`>**: Botó per netejar tots els filtres.
 - **Barra d'Accions (`ActionToolbar`):**
-  - **Ordenació**: Botó per canviar l'ordre de la llista (ascendent/descendent).
-  - **Arxivats**: Interruptor per mostrar o amagar els esdeveniments arxivats.
-  - **Expansió**: Botó per expandir o replegar totes les targetes de la llista.
+  - **<Icona `sort-calendar`> Data**: Ordena la llista per data (ascendent/descendent).
+  - **<Icona `archive-eye`> Veure arxivats**: Mostra o amaga els esdeveniments arxivats.
+  - **<Icona `arrow-expand`> Expandir**: Expandeix o replega totes les targetes de la llista.
 - **Llista d'Esdeveniments (`EventFrameCard`):**
-  - Targetes expandibles que mostren la informació de cada esdeveniment i les seves assignacions.
+  - **Indicador d'Estat**: Un cercle de color a l'esquerra indica l'estat de l'esdeveniment:
+    - **Taronja**: Pendent.
+    - **Verd**: Completat.
+  - **Accions a la Targeta (expandida)**:
+    - **<Icona `pencil`>**: Obre el formulari per editar l'esdeveniment.
+    - **<Icona `delete`>**: Elimina l'esdeveniment (amb confirmació).
 
 ---
 
 ### 2. Pestanya "Persones" (`PeopleScreen`)
 
-- Llista el personal disponible.
-- Permet afegir, editar i eliminar persones.
+- **Barra d'Eines (`PeopleToolbar`):**
+  - **Cerca**: Camp de text per cercar persones.
+  - **<Icona `sort`>**: Obre un modal per seleccionar el criteri d'ordenació (Nom, Rol).
+  - **<Icona `filter-variant`>**: (Funcionalitat futura) Obre un modal per a filtres avançats.
+- **Llista de Persones**:
+  - Mostra el nom, rol i detalls de contacte de cada persona.
+  - **Accions a cada element**:
+    - **<Icona `pencil`>**: Obre el formulari per editar la persona.
+    - **<Icona `delete`>**: Elimina la persona (amb confirmació).
 
 ---
 
 ### 3. Pestanya "Material" (`MaterialScreen`)
 
-- Llista l'inventari de material.
-- Permet afegir, editar i eliminar ítems.
+- **Barra d'Eines (`MaterialToolbar`):**
+  - **Cerca**: Camp de text per cercar material.
+  - **<Icona `sort`>**: Obre un modal per seleccionar el mètode d'agrupació (per Categoria, per Nom).
+  - **<Icona `filter-variant`>**: (Funcionalitat futura).
+  - **Fila d'Expansió**:
+    - **<Icona `arrow-expand-vertical`>**: Expandeix totes les categories.
+    - **<Icona `arrow-collapse-vertical`>**: Replega totes les categories.
+- **Llista de Material (`SectionList`):**
+  - Agrupada per categories.
+  - **Capçaleres de Secció Col·lapsables**: Fent clic a la capçalera d'una categoria, s'expandeix o replega la llista d'ítems d'aquesta categoria.
+  - **Accions a cada element**:
+    - **<Icona `pencil`>**: Obre el formulari per editar l'ítem.
+    - **<Icona `delete`>**: Elimina l'ítem (amb confirmació).
 
 ---
 
 ### 4. Pestanya "Centre de Control" (`MaterialControlScreen`)
 
+(Sense canvis significatius en la UI en aquesta refactorització).
+
 - **Controls de Filtre (`MaterialControlFilters`):**
-  - **Cerca general**: Camp de text.
-  - **Selectors**: Pickers per filtrar per esdeveniment, origen del material i categoria.
-  - **Botó `[ Netejar ]`**: Restableix els filtres.
+  - Cerca, selectors per esdeveniment, origen i categoria, i botó de neteja.
 - **Llista de Resultats (`MaterialControlList`):**
-  - Mostra una llista de cada ítem de material amb el seu balanç (estoc - demanda).
-  - Cada ítem es pot expandir per veure un desglossament de la demanda per esdeveniment.
-  - El balanç es ressalta en vermell si és negatiu.
+  - Mostra el balanç d'estoc per a cada ítem de material.
 
 ---
 
 ### 5. Pestanya "Resums" (`SummaryScreen`)
 
-Aquesta pantalla mostra les assignacions de personal agrupades de diferents maneres per oferir una visió general.
+(Sense canvis significatius en la UI en aquesta refactorització).
 
 - **Controls**:
-  - **Botó d'Ordenació**: Permet canviar l'ordre de les seccions que es basen en dates.
+  - Botó d'Ordenació per canviar l'ordre.
 - **Llista de Resums (`SectionList`):**
-  - **Secció "Per Nom d'Esdeveniment"**: Agrupa les assignacions per cada esdeveniment.
-  - **Secció "Per Persona/Grup"**: Agrupa totes les assignacions que pertanyen a una mateixa persona o grup.
+  - Agrupa les assignacions per esdeveniment o per persona.

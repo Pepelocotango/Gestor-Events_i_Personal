@@ -1,12 +1,12 @@
 branca de desenvolupament * REFAC_OK-PER-REVISAR16-9-25 ## ->PROVES DE REFACTORITZACIÓ
-## DEVELOPING.md V1.3.0
+## DEVELOPING.md V1.4.0
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
-# NOVETATS V1.3.0 (Octubre 2025)
+# NOVETATS V1.4.0 (Novembre 2025)
 
 **Resum de canvis tècnics recents:**
 - Refactorització completa de la gestió d'estat amb Zustand i zundo: stores independents, historial desfer/refer, partialize memoitzada per evitar bucles infinits.
@@ -1183,8 +1183,20 @@ L'aplicació mòbil, situada a `mobile_app/`, ha evolucionat d'un simple visor a
 -   **TypeScript:** Per a un codi més robust i mantenible.
 -   **React Navigation:** Llibreria per a la gestió de la navegació. S'utilitza una combinació de `BottomTabNavigator` per a la navegació principal i `StackNavigator` per al flux intern de cada secció.
 -   **Zustand:** Gestor d'estat global per a una gestió de dades centralitzada i eficient.
+-   **React Native Vector Icons:** Llibreria per a la inclusió d'icones a la interfície.
+-   **React Native Picker:** Component per a selectors natius.
 
-### 10.2. Arquitectura de Navegació per Pestanyes
+### 10.2. Arquitectura i Filosofia de la Interfície d'Usuari
+
+La interfície de l'aplicació mòbil ha estat redissenyada seguint una filosofia centrada en la claredat visual i la interacció intuïtiva.
+
+-   **Visualització Primer:** Les pantalles principals estan dissenyades per a la consulta ràpida d'informació. Les dades es presenten en un format de només lectura, net i organitzat.
+-   **Interacció a través de Modals:** Totes les accions que impliquen modificació de dades (crear, editar, ordenar, filtrar) es gestionen a través de modals o diàlegs superposats. Això manté les pantalles principals lliures d'elements d'interacció complexos.
+-   **Icones sobre Text:** S'ha prioritzat l'ús d'icones per a les accions més comunes (editar, eliminar, desar, etc.) per crear una interfície més neta i visualment atractiva.
+-   **Accés Ràpid a la Creació (FAB):** L'acció principal de cada pantalla (afegir un nou element) està sempre accessible a través d'un Botó d'Acció Flotant (FAB) a la cantonada inferior dreta.
+-   **Components Reutilitzables (`Toolbar`):** La funcionalitat de cerca, ordenació i filtratge s'ha encapsulat en components `Toolbar` dedicats per a cada pantalla, promovent la reutilització de codi i la consistència.
+
+### 10.4. Arquitectura de Navegació per Pestanyes
 
 L'arquitectura de navegació ha estat completament redissenyada per millorar l'experiència d'usuari i organitzar les funcionalitats de manera intuïtiva.
 
@@ -1195,17 +1207,19 @@ L'arquitectura de navegació ha estat completament redissenyada per millorar l'e
 
 -   **Piles de Navegació Independents (`StackNavigator`):** Cada pestanya no renderitza una única pantalla, sinó una pila de navegació independent (`StackNavigator`). Aquest enfocament permet un flux de navegació profund dins de cada secció. Per exemple, des de la llista d'esdeveniments, l'usuari pot navegar a la pantalla de detalls o al formulari d'edició sense sortir de la pestanya "Esdeveniments".
 
-### 10.3. Gestió de Dades: Funcionalitats CRUD i Control de Canvis
+### 10.5. Gestió de Dades i Noves Funcionalitats
 
-El gestor d'estat (`dataStore.ts`) ha estat ampliat per donar suport a totes les entitats de dades.
+El gestor d'estat (`dataStore.ts`) ha estat ampliat per donar suport a totes les entitats de dades i a les noves funcionalitats.
 
 -   **Accions CRUD Completes:** L'store ara inclou accions per a Crear, Llegir, Actualitzar i Eliminar (CRUD) per a:
     -   `EventFrame` (`addEventFrame`, `updateEventFrame`, `deleteEventFrame`)
     -   `PersonGroup` (`addPersonGroup`, `updatePersonGroup`, `deletePersonGroup`)
     -   `MaterialItem` (`addMaterialItem`, `updateMaterialItem`, `deleteMaterialItem`)
 -   **Control de Canvis No Desats:** Totes les accions que modifiquen l'estat (add, update, delete) estableixen automàticament el "dirty flag" `hasUnsavedChanges` a `true`, assegurant que l'usuari sigui notificat abans de perdre canvis.
+-   **Estat de l'Esdeveniment:** S'ha afegit la propietat `status` ('pending' o 'completed') a l'objecte `EventFrame`. La UI ho reflecteix amb un indicador visual i permet la seva edició al formulari.
+-   **Seccions Col·lapsables:** La pantalla de Materials ara permet expandir i contraure les categories per a una millor organització.
 
-### 10.4. Arquitectura i Gestió de Fitxers amb `expo-sharing`
+### 10.6. Arquitectura i Gestió de Fitxers amb `expo-sharing`
 
 Després d'una anàlisi de les limitacions del sistema de fitxers d'Android, s'ha confirmat que no és possible sobreescriure directament un fitxer obert des d'un proveïdor de núvol (com Google Drive) sense utilitzar APIs natives. Per solucionar-ho, l'arquitectura de desat s'ha redissenyat per utilitzar un flux de "Desar Com a" cada vegada, implementat amb la llibreria `expo-sharing`.
 
