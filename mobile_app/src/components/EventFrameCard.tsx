@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { EventFrame, EventStatus } from '../types';
+import { EventFrame } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useDataStore } from '../stores/dataStore';
 
 type EventFrameCardProps = {
   eventFrame: EventFrame;
@@ -14,10 +15,22 @@ type EventFrameCardProps = {
   navigation: StackNavigationProp<any>; // Quick fix for typing issue
 };
 
-const StatusIndicator = ({ status }: { status?: EventStatus }) => {
-  const color = status === 'completed' ? '#4CAF50' : '#FFC107';
-  return <View style={[styles.statusIndicator, { backgroundColor: color }]} />;
+const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
+  const { updateEventFrame } = useDataStore();
+  const isComplete = eventFrame.personnelComplete || false;
+  const color = isComplete ? '#4CAF50' : '#FFC107';
+
+  const handlePress = () => {
+    updateEventFrame(eventFrame.id, { personnelComplete: !isComplete });
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress}>
+      <View style={[styles.statusIndicator, { backgroundColor: color }]} />
+    </TouchableOpacity>
+  );
 };
+
 
 const EventFrameCard: React.FC<EventFrameCardProps> = ({
   eventFrame,
@@ -31,7 +44,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
   return (
     <View style={styles.card}>
       <TouchableOpacity onPress={() => onToggleExpand(eventFrame.id)} style={styles.header}>
-        <StatusIndicator status={eventFrame.status} />
+        <StatusIndicator eventFrame={eventFrame} />
         <View style={styles.headerTextContainer}>
           <Text style={styles.eventName}>{eventFrame.name}</Text>
           <Text style={styles.eventDate}>
@@ -186,4 +199,4 @@ const styles = StyleSheet.create({
       },
 });
 
-export default EventFrameCard;
+export default React.memo(EventFrameCard);

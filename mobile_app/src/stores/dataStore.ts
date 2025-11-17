@@ -8,7 +8,7 @@ import { SAFFileService } from '../services/SAFFileService';
 
 const fileService = new SAFFileService();
 
-type NewEventData = Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete'>;
+type NewEventData = Omit<EventFrame, 'id' | 'assignments'>;
 type NewPersonGroupData = Omit<PersonGroup, 'id'>;
 type NewMaterialItemData = Omit<MaterialItem, 'id'>;
 
@@ -38,8 +38,8 @@ interface DataState {
   deleteMaterialItem: (itemId: string) => void;
 
   // Assignment CRUD
-  addAssignment: (eventFrameId: string, data: Omit<Assignment, 'id'>) => void;
-  updateAssignment: (eventFrameId: string, assignmentId: string, data: Partial<Omit<Assignment, 'id'>>) => void;
+  addAssignment: (eventFrameId: string, data: Omit<Assignment, 'id'>, force?: boolean) => Promise<string | null>;
+  updateAssignment: (eventFrameId: string, assignmentId: string, data: Partial<Omit<Assignment, 'id'>>, force?: boolean) => Promise<string | null>;
   deleteAssignment: (eventFrameId: string, assignmentId: string) => void;
 
   undo: () => void;
@@ -195,7 +195,25 @@ export const useDataStore = create<DataState>()(
   },
 
   // Assignment CRUD
-  addAssignment: (eventFrameId, data) => {
+  addAssignment: async (eventFrameId, data, force = false) => {
+    if (!force) {
+      const { eventFrames } = get();
+      const newStart = new Date(data.startDate);
+      const newEnd = new Date(data.endDate);
+
+      for (const event of eventFrames) {
+        for (const existing of event.assignments) {
+          if (existing.personGroupId === data.personGroupId) {
+            const existingStart = new Date(existing.startDate);
+            const existingEnd = new Date(existing.endDate);
+            if (newStart <= existingEnd && newEnd >= existingStart) {
+              return `Conflicte detectat: La persona ja està assignada a '${event.name}' en aquestes dates.`;
+            }
+          }
+        }
+      }
+    }
+
     const newAssignment: Assignment = { ...data, id: uuidv4() };
     set(state => ({
       eventFrames: state.eventFrames.map(ef =>
@@ -205,9 +223,32 @@ export const useDataStore = create<DataState>()(
       ),
       hasUnsavedChanges: true,
     }));
+    return null;
   },
 
-  updateAssignment: (eventFrameId, assignmentId, data) => {
+  updateAssignment: async (eventFrameId, assignmentId, data, force = false) => {
+    if (!force) {
+      const { eventFrames } = get();
+      const originalAssignment = eventFrames.flatMap(ef => ef.assignments).find(a => a.id === assignmentId);
+      if (originalAssignment) {
+        const newStart = new Date(data.startDate || originalAssignment.startDate);
+        const newEnd = new Date(data.endDate || originalAssignment.endDate);
+        const personGroupId = data.personGroupId || originalAssignment.personGroupId;
+
+        for (const event of eventFrames) {
+          for (const existing of event.assignments) {
+            if (existing.id !== assignmentId && existing.personGroupId === personGroupId) {
+              const existingStart = new Date(existing.startDate);
+              const existingEnd = new Date(existing.endDate);
+              if (newStart <= existingEnd && newEnd >= existingStart) {
+                return `Conflicte detectat: La persona ja està assignada a '${event.name}' en aquestes dates.`;
+              }
+            }
+          }
+        }
+      }
+    }
+
     set(state => ({
       eventFrames: state.eventFrames.map(ef => {
         if (ef.id === eventFrameId) {
@@ -222,6 +263,7 @@ export const useDataStore = create<DataState>()(
       }),
       hasUnsavedChanges: true,
     }));
+    return null;
   },
 
   deleteAssignment: (eventFrameId, assignmentId) => {

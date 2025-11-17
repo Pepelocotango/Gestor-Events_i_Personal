@@ -65,9 +65,9 @@ L'aplicació es divideix en cinc pestanyes principals, cadascuna amb la seva pr�
   - **<Icona `archive-eye`> Veure arxivats**: Mostra o amaga els esdeveniments arxivats.
   - **<Icona `arrow-expand`> Expandir**: Expandeix o replega totes les targetes de la llista.
 - **Llista d'Esdeveniments (`EventFrameCard`):**
-  - **Indicador d'Estat**: Un cercle de color a l'esquerra indica l'estat de l'esdeveniment:
-    - **Taronja**: Pendent.
-    - **Verd**: Completat.
+  - **Indicador d'Estat**: Un cercle de color clicable a l'esquerra indica si el personal de l'esdeveniment està complet:
+    - **Taronja**: Pendent (el personal no està complet).
+    - **Verd**: Completat (tot el personal assignat està confirmat).
   - **Accions a la Targeta (expandida)**:
     - **<Icona `pencil`>**: Obre el formulari per editar l'esdeveniment.
     - **<Icona `delete`>**: Elimina l'esdeveniment (amb confirmació).

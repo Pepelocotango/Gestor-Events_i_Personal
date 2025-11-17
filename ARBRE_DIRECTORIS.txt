@@ -27,8 +27,10 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── FilterControls.tsx        # Controls de filtre per a la pantalla d'esdeveniments.
 │   │   │   ├── MaterialControlFilters.tsx# Controls de filtre per al Centre de Control de Material.
 │   │   │   ├── MaterialControlList.tsx   # Llista de resultats del Centre de Control.
+│   │   │   ├── MaterialListItem.tsx      # Component per a un element individual a la llista de material.
 │   │   │   ├── MaterialToolbar.tsx       # Barra d'eines per a la pantalla de materials (cerca, ordenar, expandir tot).
-│   │   │   └── PeopleToolbar.tsx         # Barra d'eines per a la pantalla de persones (cerca, ordenar, filtrar).
+│   │   │   ├── PeopleToolbar.tsx         # Barra d'eines per a la pantalla de persones (cerca, ordenar, filtrar).
+│   │   │   └── PersonListItem.tsx        # Component per a un element individual a la llista de persones.
 │   │   ├── navigation.ts         # Defineix els tipus per a la pila de navegació (React Navigation).
 │   │   ├── screens/              # Pantalles principals de l'aplicació.
 │   │   │   ├── EventsScreen.tsx          # Pantalla principal per a la gestió d'esdeveniments.
