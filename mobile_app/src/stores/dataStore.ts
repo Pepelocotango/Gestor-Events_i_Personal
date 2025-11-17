@@ -8,7 +8,7 @@ import { SAFFileService } from '../services/SAFFileService';
 
 const fileService = new SAFFileService();
 
-type NewEventData = Omit<EventFrame, 'id' | 'assignments' | 'personnelComplete'>;
+type NewEventData = Omit<EventFrame, 'id' | 'assignments'>;
 type NewPersonGroupData = Omit<PersonGroup, 'id'>;
 type NewMaterialItemData = Omit<MaterialItem, 'id'>;
 

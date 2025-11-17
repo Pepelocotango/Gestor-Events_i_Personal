@@ -148,8 +148,6 @@ export interface TechSheetData {
 }
 
 
-export type EventStatus = 'pending' | 'completed';
-
 export interface EventFrame {
   id: string;
   name: string;
@@ -165,7 +163,6 @@ export interface EventFrame {
   lastSync?: string;
   techSheet?: TechSheetData;
   isArchived?: boolean;
-  status?: EventStatus;
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;

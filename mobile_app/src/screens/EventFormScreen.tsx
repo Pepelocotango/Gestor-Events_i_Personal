@@ -4,7 +4,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
 import { EventsStackParamList } from '../navigation';
-import { EventStatus } from '../types';
 import { Picker } from '@react-native-picker/picker';
 
 type EventFormScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventForm'>;
@@ -24,7 +23,6 @@ export default function EventFormScreen({ navigation, route }: Props) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [generalNotes, setGeneralNotes] = useState('');
-  const [status, setStatus] = useState<EventStatus>('pending');
 
   const isEditMode = eventId !== undefined;
 
@@ -37,7 +35,6 @@ export default function EventFormScreen({ navigation, route }: Props) {
         setStartDate(eventToEdit.startDate);
         setEndDate(eventToEdit.endDate);
         setGeneralNotes(eventToEdit.generalNotes || '');
-        setStatus(eventToEdit.status || 'pending');
       }
     }
   }, [eventId, eventFrames, isEditMode]);
@@ -49,7 +46,6 @@ export default function EventFormScreen({ navigation, route }: Props) {
       startDate,
       endDate,
       generalNotes,
-      status,
     };
 
     if (isEditMode) {
@@ -71,18 +67,6 @@ export default function EventFormScreen({ navigation, route }: Props) {
           onChangeText={setName}
           placeholder="Ex: Concert de Primavera"
         />
-
-        <Text style={styles.label}>Estat</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={status}
-            onValueChange={(itemValue) => setStatus(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Pendent" value="pending" />
-            <Picker.Item label="Completat" value="completed" />
-          </Picker>
-        </View>
 
         <Text style={styles.label}>Lloc</Text>
         <TextInput
