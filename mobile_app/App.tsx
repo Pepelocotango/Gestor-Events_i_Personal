@@ -9,6 +9,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import EventsScreen from './src/screens/EventsScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
+import TechSheetDetailScreen from './src/screens/TechSheetDetailScreen';
 import EventFormScreen from './src/screens/EventFormScreen';
 import AssignmentFormScreen from './src/screens/AssignmentFormScreen';
 import PeopleScreen from './src/screens/PeopleScreen';
@@ -42,6 +43,7 @@ const EventsStackNavigator = () => (
   <EventsStack.Navigator screenOptions={commonScreenOptions}>
     <EventsStack.Screen name="EventList" component={EventsScreen} />
     <EventsStack.Screen name="EventDetail" component={EventDetailScreen} />
+    <EventsStack.Screen name="TechSheetDetail" component={TechSheetDetailScreen} />
     <EventsStack.Screen name="EventForm" component={EventFormScreen} />
     <EventsStack.Screen name="AssignmentForm" component={AssignmentFormScreen} />
   </EventsStack.Navigator>

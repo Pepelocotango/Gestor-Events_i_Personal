@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -26,7 +27,7 @@ type Props = {
 const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleDateString();
 
-export default function EventDetailScreen({ route }: Props) {
+export default function EventDetailScreen({ route, navigation }: Props) {
   const { eventId } = route.params;
 
   // Selecciona cada part de l'estat de forma individual per evitar re-renderitzacions innecessàries.
@@ -84,6 +85,16 @@ export default function EventDetailScreen({ route }: Props) {
         <Text style={styles.notes}>
           {event.generalNotes || 'No hi ha notes.'}
         </Text>
+        {event.techSheet && (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('TechSheetDetail', { eventId: event.id })
+            }
+          >
+            <Text style={styles.buttonText}>Veure Fitxa de Bolo</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.card}>
@@ -165,5 +176,17 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
+  },
+  button: {
+    marginTop: 16,
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
