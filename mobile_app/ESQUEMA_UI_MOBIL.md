@@ -30,6 +30,7 @@ L'aplicació es divideix en quatre pestanyes principals:
 - **Persones**: Gestiona la llista de personal.
 - **Material**: Gestiona l'inventari de material.
 - **Centre de Control**: Ofereix una vista global de l'estat del material.
+- **Resums**: Mostra resums de les assignacions de personal.
 
 ---
 
@@ -76,3 +77,15 @@ L'aplicació es divideix en quatre pestanyes principals:
   - Mostra una llista de cada ítem de material amb el seu balanç (estoc - demanda).
   - Cada ítem es pot expandir per veure un desglossament de la demanda per esdeveniment.
   - El balanç es ressalta en vermell si és negatiu.
+
+---
+
+### 5. Pestanya "Resums" (`SummaryScreen`)
+
+Aquesta pantalla mostra les assignacions de personal agrupades de diferents maneres per oferir una visió general.
+
+- **Controls**:
+  - **Botó d'Ordenació**: Permet canviar l'ordre de les seccions que es basen en dates.
+- **Llista de Resums (`SectionList`):**
+  - **Secció "Per Nom d'Esdeveniment"**: Agrupa les assignacions per cada esdeveniment.
+  - **Secció "Per Persona/Grup"**: Agrupa totes les assignacions que pertanyen a una mateixa persona o grup.

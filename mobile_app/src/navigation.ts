@@ -19,9 +19,14 @@ export type ControlCenterStackParamList = {
   MaterialControl: undefined;
 };
 
+export type SummaryStackParamList = {
+  Summary: undefined;
+};
+
 export type RootTabParamList = {
   Events: undefined;
   People: undefined;
   Material: undefined;
   ControlCenter: undefined;
+  Summaries: undefined;
 };

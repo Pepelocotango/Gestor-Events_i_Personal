@@ -16,6 +16,7 @@ import PersonFormScreen from './src/screens/PersonFormScreen';
 import MaterialScreen from './src/screens/MaterialScreen';
 import MaterialFormScreen from './src/screens/MaterialFormScreen';
 import MaterialControlScreen from './src/screens/MaterialControlScreen';
+import SummaryScreen from './src/screens/SummaryScreen';
 import CustomHeader from './src/components/CustomHeader';
 import {
   RootTabParamList,
@@ -23,12 +24,14 @@ import {
   PeopleStackParamList,
   MaterialStackParamList,
   ControlCenterStackParamList,
+  SummaryStackParamList,
 } from './src/navigation';
 
 const EventsStack = createStackNavigator<EventsStackParamList>();
 const PeopleStack = createStackNavigator<PeopleStackParamList>();
 const MaterialStack = createStackNavigator<MaterialStackParamList>();
 const ControlCenterStack = createStackNavigator<ControlCenterStackParamList>();
+const SummaryStack = createStackNavigator<SummaryStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const commonScreenOptions = {
@@ -64,6 +67,12 @@ const ControlCenterStackNavigator = () => (
   </ControlCenterStack.Navigator>
 );
 
+const SummaryStackNavigator = () => (
+  <SummaryStack.Navigator screenOptions={commonScreenOptions}>
+    <SummaryStack.Screen name="Summary" component={SummaryScreen} />
+  </SummaryStack.Navigator>
+);
+
 export default function App() {
   return (
     <NavigationContainer>
@@ -86,6 +95,9 @@ export default function App() {
                 case 'ControlCenter':
                   iconName = focused ? 'server' : 'server-outline';
                   break;
+                case 'Summaries':
+                  iconName = focused ? 'analytics' : 'analytics-outline';
+                  break;
                 default:
                   iconName = 'alert-circle-outline';
                   break;
@@ -99,6 +111,7 @@ export default function App() {
           <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: 'Persones' }} />
           <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: 'Material' }} />
           <Tab.Screen name="ControlCenter" component={ControlCenterStackNavigator} options={{ title: 'Centre de Control' }} />
+          <Tab.Screen name="Summaries" component={SummaryStackNavigator} options={{ title: 'Resums' }} />
         </Tab.Navigator>
     </NavigationContainer>
   );
