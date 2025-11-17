@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useState, useMemo } from 'react';
 import { View, Text, Button, StyleSheet, FlatList, Alert } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
+import { useStore } from 'zustand';
 import { SAFFileService } from '../services/SAFFileService';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { EventsStackParamList } from '../navigation';
@@ -134,10 +135,9 @@ const EventsScreen = ({ navigation }: Props) => {
 
 
   const { undo, redo } = useDataStore();
-  // @ts-ignore
-  const canUndo = useDataStore(state => state.temporal.pastStates.length > 0);
-  // @ts-ignore
-  const canRedo = useDataStore(state => state.temporal.futureStates.length > 0);
+  const { pastStates, futureStates } = useStore(useDataStore.temporal);
+  const canUndo = pastStates.length > 0;
+  const canRedo = futureStates.length > 0;
 
   useLayoutEffect(() => {
     navigation.setOptions({
