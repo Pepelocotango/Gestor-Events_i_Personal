@@ -13,6 +13,9 @@ export type PeopleStackParamList = {
 export type MaterialStackParamList = {
   MaterialList: undefined;
   MaterialForm: { materialId?: string };
+};
+
+export type ControlCenterStackParamList = {
   MaterialControl: undefined;
 };
 
@@ -20,4 +23,5 @@ export type RootTabParamList = {
   Events: undefined;
   People: undefined;
   Material: undefined;
+  ControlCenter: undefined;
 };
