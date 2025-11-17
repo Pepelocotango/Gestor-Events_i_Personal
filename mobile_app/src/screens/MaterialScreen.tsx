@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, SectionList, Alert, TouchableOpacity, Modal, Button } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -61,12 +61,21 @@ const MaterialScreen = ({ navigation }: Props) => {
       }));
   }, [materialItems, search, sortMode]);
 
-  // Set all categories to expanded by default when the component mounts or sort mode changes to category
-  useState(() => {
+  const handleExpandAll = () => {
+    const allCategories = new Set(sectionsData.map(s => s.title));
+    setExpandedCategories(allCategories);
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedCategories(new Set());
+  };
+
+  // Expandeix totes les categories per defecte quan el component es munta o el mode d'ordenació canvia a 'category'
+  useEffect(() => {
     if (sortMode === 'category') {
       handleExpandAll();
     }
-  });
+  }, [sortMode, sectionsData]);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => {
@@ -78,15 +87,6 @@ const MaterialScreen = ({ navigation }: Props) => {
       }
       return newSet;
     });
-  };
-
-  const handleExpandAll = () => {
-    const allCategories = new Set(sectionsData.map(s => s.title));
-    setExpandedCategories(allCategories);
-  };
-
-  const handleCollapseAll = () => {
-    setExpandedCategories(new Set());
   };
 
 
