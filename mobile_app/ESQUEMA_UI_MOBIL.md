@@ -30,24 +30,31 @@ Aquesta és la pantalla principal de l'aplicació.
 **Estat Principal (amb un fitxer obert):**
 - **Barra de Navegació Superior:**
   - **Títol**: Mostra el nom del fitxer obert (ex: `projecte.json`).
-  - **Botons de Capçalera**:
-    - `[ Desar ]`:
-      - **Acció**: Inicia el procés de desat del fitxer.
-      - **Estat**: Activat només si hi ha canvis no desats (`hasUnsavedChanges`).
-    - `[ Tancar ]`:
-      - **Acció**: Tanca el fitxer actual. Si hi ha canvis no desats, demana confirmació abans de descartar-los.
+  - **Botons de Capçalera (Esquerra)**:
+    - `[ Desfer ]`: Anul·la l'última acció.
+    - `[ Refer ]`: Reverteix l'última acció anul·lada.
+  - **Botons de Capçalera (Dreta)**:
+    - `[ Afegir ]`: Obre el formulari (`EventFormScreen`) per crear un nou esdeveniment.
+    - `[ Desar ]`: Inicia el procés de desat. S'activa només si hi ha canvis.
+    - `[ Tancar ]`: Tanca el fitxer actual, demanant confirmació si hi ha canvis no desats.
+- **Controls de Filtre**:
+  - Un component a la part superior de la llista que permet filtrar els esdeveniments per:
+    - Text (nom, lloc, notes, personal assignat).
+    - Persona específica.
+    - Estat d'assignació (Pendent, Confirmat, etc.).
 - **Llista d'Esdeveniments**:
-  - Cada element de la llista mostra:
-    - **Nom de l'Esdeveniment** (ex: "Concert de Primavera").
-    - **Data d'Inici**.
-    - **Estat del Personal** ("Complet" o "Incomplet").
-  - **Accions per cada element**:
-    - `[ Veure Detalls ]` (en prémer sobre l'element):
-      - **Acció**: Navega a la pantalla de detalls de l'esdeveniment.
-    - `[ Editar ]`:
-      - **Acció**: Obre el formulari (`EventFormScreen`) per editar l'esdeveniment.
-    - `[ Eliminar ]`:
-      - **Acció**: Mostra un diàleg de confirmació abans d'eliminar l'esdeveniment.
+  - Es mostra en format de targetes expandibles (`EventFrameCard`).
+  - **Vista Replegada**:
+    - Nom de l'Esdeveniment.
+    - Data d'Inici.
+    - Resum de l'estat del personal.
+  - **Vista Expandida**:
+    - Mostra un resum detallat de les assignacions de personal.
+  - **Accions per cada targeta**:
+    - `[ Replegar / Expandir ]`: Canvia la visibilitat del detall d'assignacions.
+    - `[ Editar Esdeveniment ]`: Obre `EventFormScreen` per editar l'esdeveniment.
+    - `[ Eliminar Esdeveniment ]`: Demana confirmació abans d'eliminar.
+    - `[ Afegir Assignació ]`: Obre `AssignmentFormScreen` per afegir una nova assignació de personal a l'esdeveniment.
 
 #### 1.2. Pantalla de Detalls de l'Esdeveniment (`EventDetailScreen`)
 
@@ -75,10 +82,22 @@ Permet crear un nou esdeveniment o editar-ne un d'existent.
   - Data d'inici.
   - Data de fi.
   - Notes generals.
-  - Gestió d'assignacions de personal.
 - **Botons**:
-  - `[ Desar ]` o `[ Crear ]`:
-    - **Acció**: Guarda els canvis o crea el nou esdeveniment.
+  - `[ Desar ]`: Guarda els canvis o crea el nou esdeveniment.
+
+#### 1.4. Formulari d'Assignació (`AssignmentFormScreen`)
+
+Permet assignar personal a un esdeveniment.
+
+- **Títol de la Pantalla**:
+  - "Nova Assignació" (si es crea).
+  - "Editar Assignació" (si s'edita).
+- **Camps del Formulari**:
+  - **Selector de Persona/Grup**: Tria un professional de la llista.
+  - **Selector d'Estat**: Canvia l'estat de l'assignació (Pendent, Confirmat, Rebutjat).
+  - **Notes**: Anotacions específiques per a aquesta assignació.
+- **Botons**:
+  - `[ Desar Assignació ]`: Guarda els canvis.
 
 ---
 
@@ -112,8 +131,11 @@ Gestiona l'inventari de material tècnic.
 
 - **Barra de Navegació Superior**:
   - **Títol**: "Material".
-  - **Botó**: `[ Afegir ]`
-    - **Acció**: Obre el formulari (`MaterialFormScreen`) per afegir un nou ítem.
+  - **Botons**:
+    - `[ Centre de Control ]`:
+      - **Acció**: Navega a la pantalla `MaterialControlScreen`.
+    - `[ Afegir ]`:
+      - **Acció**: Obre el formulari (`MaterialFormScreen`) per afegir un nou ítem.
 - **Llista de Material**:
   - Cada element mostra:
     - **Nom de l'ítem**.
@@ -123,3 +145,17 @@ Gestiona l'inventari de material tècnic.
       - **Acció**: Obre el formulari (`MaterialFormScreen`) per editar l'ítem.
     - `[ Eliminar ]`:
       - **Acció**: Demana confirmació abans d'eliminar l'ítem.
+
+#### 3.2. Centre de Control de Material (`MaterialControlScreen`)
+
+Ofereix una vista global de l'estat de l'inventari en relació a la demanda dels esdeveniments.
+
+- **Filtre de Cerca**: Permet buscar material pel nom o la categoria.
+- **Llista de Balanç**:
+  - Per a cada ítem de material, mostra:
+    - **Nom de l'ítem**.
+    - **Estoc**: Quantitat total disponible a l'inventari.
+    - **Demanda**: Quantitat total necessària per a tots els esdeveniments.
+    - **Balanç**: Diferència entre l'estoc i la demanda.
+      - Es mostra en **verd** si el balanç és positiu (hi ha prou material).
+      - Es mostra en **vermell** si el balanç és negatiu (falta material).
