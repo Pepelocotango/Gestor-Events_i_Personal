@@ -44,18 +44,35 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
     }
   }, [eventFrameId, assignmentId, eventFrames]);
 
-  const handleSave = () => {
+  const performSave = async (force: boolean = false) => {
     if (!assignment.personGroupId) {
       Alert.alert("Error", "Heu de seleccionar una persona o grup.");
       return;
     }
 
+    let conflictMessage: string | null = null;
     if (assignmentId) {
-      updateAssignment(eventFrameId, assignmentId, assignment);
+      conflictMessage = await updateAssignment(eventFrameId, assignmentId, assignment, force);
     } else {
-      addAssignment(eventFrameId, assignment);
+      conflictMessage = await addAssignment(eventFrameId, assignment, force);
     }
-    navigation.goBack();
+
+    if (conflictMessage) {
+      Alert.alert(
+        "Conflicte d'Assignació",
+        conflictMessage,
+        [
+          { text: "Cancel·lar", style: "cancel" },
+          { text: "Desar Igualment", onPress: () => performSave(true) }
+        ]
+      );
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  const handleSave = () => {
+    performSave(false);
   };
 
   const handleChange = (field: keyof Omit<Assignment, 'id'>, value: string) => {
