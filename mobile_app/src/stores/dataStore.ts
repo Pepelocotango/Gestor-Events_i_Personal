@@ -125,12 +125,16 @@ export const useDataStore = create<DataState>()(
   },
 
   updateEventFrame: (eventId, data) => {
-    set((state) => ({
-      eventFrames: state.eventFrames.map((event) =>
-        event.id === eventId ? { ...event, ...data } : event
-      ),
-      hasUnsavedChanges: true,
-    }));
+    set((state) => {
+      const eventIndex = state.eventFrames.findIndex((event) => event.id === eventId);
+      if (eventIndex !== -1) {
+        state.eventFrames[eventIndex] = {
+          ...state.eventFrames[eventIndex],
+          ...data,
+        };
+        state.hasUnsavedChanges = true;
+      }
+    });
   },
 
   deleteEventFrame: (eventId) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { EventFrame } from '../types';
+import { EventFrame, EventStatus } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -12,6 +12,11 @@ type EventFrameCardProps = {
   onDeleteEvent: (id: string) => void;
   peopleMap: Map<string, string>;
   navigation: StackNavigationProp<any>; // Quick fix for typing issue
+};
+
+const StatusIndicator = ({ status }: { status?: EventStatus }) => {
+  const color = status === 'completed' ? '#4CAF50' : '#FFC107';
+  return <View style={[styles.statusIndicator, { backgroundColor: color }]} />;
 };
 
 const EventFrameCard: React.FC<EventFrameCardProps> = ({
@@ -26,6 +31,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
   return (
     <View style={styles.card}>
       <TouchableOpacity onPress={() => onToggleExpand(eventFrame.id)} style={styles.header}>
+        <StatusIndicator status={eventFrame.status} />
         <View style={styles.headerTextContainer}>
           <Text style={styles.eventName}>{eventFrame.name}</Text>
           <Text style={styles.eventDate}>
@@ -50,7 +56,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
 
           {eventFrame.generalNotes ? (
             <View style={styles.detailRow}>
-              <Icon name="text-subject" size={16} color="#555" />
+              <Icon name="note-text-outline" size={16} color="#555" />
               <Text style={styles.detailText}>{eventFrame.generalNotes}</Text>
             </View>
           ) : null}
@@ -103,6 +109,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+      },
+      statusIndicator: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        marginRight: 10,
       },
       headerTextContainer: {
         flex: 1,

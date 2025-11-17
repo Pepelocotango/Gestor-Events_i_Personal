@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { useStore } from 'zustand';
 import { SAFFileService } from '../services/SAFFileService';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const fileService = new SAFFileService();
 
@@ -14,8 +15,6 @@ interface CustomHeaderProps {
 }
 
 const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
-  const activeScreen = route.name;
-
   const {
     fileName,
     hasUnsavedChanges,
@@ -87,20 +86,28 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
       </View>
       <View style={styles.bottomRow}>
         <View style={styles.buttonGroup}>
-          <Button title="Desfer" onPress={undo} disabled={!canUndo} />
-          <Button title="Refer" onPress={redo} disabled={!canRedo} />
+          <TouchableOpacity onPress={undo} disabled={!canUndo}>
+            <Icon name="undo-variant" size={28} color={canUndo ? '#333' : '#ccc'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={redo} disabled={!canRedo}>
+            <Icon name="redo-variant" size={28} color={canRedo ? '#333' : '#ccc'} />
+          </TouchableOpacity>
         </View>
         <View style={styles.buttonGroup}>
           {fileName ? (
             <>
-              {activeScreen === 'EventList' && <Button title="Afegir" onPress={() => navigation.navigate('EventForm', {})} />}
-              {activeScreen === 'PersonList' && <Button title="Afegir" onPress={() => navigation.navigate('PersonForm', {})} />}
-              {activeScreen === 'MaterialList' && <Button title="Afegir" onPress={() => navigation.navigate('MaterialForm', {})} />}
-              <Button title="Desar" onPress={handleSaveFile} disabled={!hasUnsavedChanges} />
-              <Button title="Tancar" onPress={handleCloseFile} />
+              <TouchableOpacity onPress={handleSaveFile} disabled={!hasUnsavedChanges}>
+                <Icon name="content-save" size={28} color={hasUnsavedChanges ? '#007AFF' : '#ccc'} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleCloseFile}>
+                <Icon name="close-circle-outline" size={28} color="#FF3B30" />
+              </TouchableOpacity>
             </>
           ) : (
-            <Button title="Obrir" onPress={handleOpenFile} />
+            <TouchableOpacity onPress={handleOpenFile} style={styles.openButton}>
+              <Icon name="folder-open-outline" size={28} color="#007AFF" />
+              <Text style={styles.openButtonText}>Obrir</Text>
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -112,7 +119,7 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: 40,
     paddingBottom: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
     backgroundColor: '#f8f8f8',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
@@ -132,7 +139,18 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    gap: 20,
+  },
+  openButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  openButtonText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: 'bold',
   }
 });
 

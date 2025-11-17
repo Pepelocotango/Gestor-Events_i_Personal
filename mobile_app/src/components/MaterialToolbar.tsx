@@ -7,6 +7,8 @@ type MaterialToolbarProps = {
   onSearchChange: (text: string) => void;
   onSort: () => void;
   onFilter: () => void;
+  onExpandAll: () => void;
+  onCollapseAll: () => void;
 };
 
 const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
@@ -14,33 +16,47 @@ const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
   onSearchChange,
   onSort,
   onFilter,
+  onExpandAll,
+  onCollapseAll,
 }) => {
   return (
-    <View style={styles.toolbar}>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Cerca material..."
-        value={searchQuery}
-        onChangeText={onSearchChange}
-      />
-      <TouchableOpacity onPress={onSort} style={styles.iconButton}>
-        <Icon name="sort" size={24} color="#333" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={onFilter} style={styles.iconButton}>
-        <Icon name="filter-variant" size={24} color="#333" />
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.toolbar}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Cerca material..."
+          value={searchQuery}
+          onChangeText={onSearchChange}
+        />
+        <TouchableOpacity onPress={onSort} style={styles.iconButton}>
+          <Icon name="sort" size={24} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onFilter} style={styles.iconButton}>
+          <Icon name="filter-variant" size={24} color="#333" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.expansionBar}>
+        <TouchableOpacity onPress={onExpandAll} style={styles.iconButton}>
+          <Icon name="arrow-expand-vertical" size={24} color="#555" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onCollapseAll} style={styles.iconButton}>
+          <Icon name="arrow-collapse-vertical" size={24} color="#555" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#f5f5f5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
   },
   searchInput: {
     flex: 1,
@@ -53,6 +69,13 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 5,
+  },
+  expansionBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 15,
+    paddingHorizontal: 15,
+    paddingBottom: 10,
   },
 });
 

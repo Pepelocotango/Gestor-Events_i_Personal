@@ -1,23 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  TextInput,
-  Button,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  Text,
-} from 'react-native';
+import { View, TextInput, Button, StyleSheet, SafeAreaView, ScrollView, Text } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
 import { EventsStackParamList } from '../navigation';
-import { EventFrame } from '../types';
+import { EventStatus } from '../types';
+import { Picker } from '@react-native-picker/picker';
 
-type EventFormScreenNavigationProp = StackNavigationProp<
-  EventsStackParamList,
-  'EventForm'
->;
+type EventFormScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventForm'>;
 type EventFormScreenRouteProp = RouteProp<EventsStackParamList, 'EventForm'>;
 
 type Props = {
@@ -34,6 +24,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [generalNotes, setGeneralNotes] = useState('');
+  const [status, setStatus] = useState<EventStatus>('pending');
 
   const isEditMode = eventId !== undefined;
 
@@ -46,6 +37,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
         setStartDate(eventToEdit.startDate);
         setEndDate(eventToEdit.endDate);
         setGeneralNotes(eventToEdit.generalNotes || '');
+        setStatus(eventToEdit.status || 'pending');
       }
     }
   }, [eventId, eventFrames, isEditMode]);
@@ -57,6 +49,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
       startDate,
       endDate,
       generalNotes,
+      status,
     };
 
     if (isEditMode) {
@@ -79,6 +72,18 @@ export default function EventFormScreen({ navigation, route }: Props) {
           placeholder="Ex: Concert de Primavera"
         />
 
+        <Text style={styles.label}>Estat</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={status}
+            onValueChange={(itemValue) => setStatus(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Pendent" value="pending" />
+            <Picker.Item label="Completat" value="completed" />
+          </Picker>
+        </View>
+
         <Text style={styles.label}>Lloc</Text>
         <TextInput
           style={styles.input}
@@ -93,7 +98,6 @@ export default function EventFormScreen({ navigation, route }: Props) {
           value={startDate}
           onChangeText={setStartDate}
           placeholder="2024-01-15"
-          keyboardType="numeric"
         />
 
         <Text style={styles.label}>Data de Fi (YYYY-MM-DD)</Text>
@@ -102,7 +106,6 @@ export default function EventFormScreen({ navigation, route }: Props) {
           value={endDate}
           onChangeText={setEndDate}
           placeholder="2024-01-16"
-          keyboardType="numeric"
         />
 
         <Text style={styles.label}>Notes Generals</Text>
@@ -150,6 +153,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#ddd',
+  },
+  pickerContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    justifyContent: 'center',
+  },
+  picker: {
+    height: 50,
   },
   inputMulti: {
     backgroundColor: '#fff',
