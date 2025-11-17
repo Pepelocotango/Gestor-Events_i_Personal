@@ -38,9 +38,19 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
   }, [personId, peopleGroups]);
 
   const handleSave = () => {
-    if (!person.name) {
+    if (!person.name.trim()) {
       Alert.alert("Error", "El camp 'Nom' és obligatori.");
       return;
+    }
+
+    const isDuplicate = peopleGroups.some(pg =>
+        pg.name.trim().toLowerCase() === person.name.trim().toLowerCase() &&
+        pg.id !== personId
+    );
+
+    if (isDuplicate) {
+        Alert.alert("Error", "Ja existeix un contacte amb aquest nom.");
+        return;
     }
 
     if (personId) {

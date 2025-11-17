@@ -36,13 +36,27 @@ const MaterialFormScreen = ({ navigation, route }: Props) => {
   }, [materialId, materialItems]);
 
   const handleSave = () => {
-    if (!item.name) {
+    if (!item.name.trim()) {
       Alert.alert("Error", "El camp 'Nom' és obligatori.");
       return;
     }
+    if (!item.category.trim()) {
+      Alert.alert("Error", "El camp 'Categoria' és obligatori.");
+      return;
+    }
+
+    const isDuplicate = materialItems.some(i =>
+        i.name.trim().toLowerCase() === item.name.trim().toLowerCase() &&
+        i.id !== materialId
+    );
+
+    if (isDuplicate) {
+        Alert.alert("Error", "Ja existeix un ítem de material amb aquest nom.");
+        return;
+    }
 
     if (materialId) {
-      updateMaterialItem(materialId, item);
+      updateMaterialItem(materialId, { ...item, name: item.name.trim(), category: item.category.trim() });
     } else {
       addMaterialItem(item);
     }

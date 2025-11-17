@@ -189,6 +189,14 @@ export interface MaterialControlRow {
   }[];
 }
 
+export interface MaterialControlFilters {
+  selectedEventIds?: string[];
+  selectedOrigins?: string[];
+  selectedCategories?: string[];
+  searchText?: string;
+  dateRange?: { start?: string; end?: string };
+}
+
 export interface ManagedAppCalendar {
   id: string;
   name: string;

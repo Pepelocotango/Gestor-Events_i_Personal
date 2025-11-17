@@ -1,10 +1,12 @@
-import React, { useLayoutEffect } from 'react';
-import { View, Text, Button, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
+import React, { useLayoutEffect, useState, useMemo } from 'react';
+import { View, Text, Button, StyleSheet, FlatList, Alert } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { SAFFileService } from '../services/SAFFileService';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { EventsStackParamList } from '../navigation';
-import { EventFrame } from '../types';
+import { EventFrame, AssignmentStatus } from '../types';
+import EventFrameCard from '../components/EventFrameCard';
+import FilterControls from '../components/FilterControls';
 
 const fileService = new SAFFileService();
 
@@ -18,6 +20,7 @@ const EventsScreen = ({ navigation }: Props) => {
   const {
     fileName,
     eventFrames,
+    peopleGroups,
     hasUnsavedChanges,
     setData,
     clearData,
@@ -25,25 +28,61 @@ const EventsScreen = ({ navigation }: Props) => {
     deleteEventFrame,
   } = useDataStore();
 
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [filters, setFilters] = useState({ text: '', person: '', status: '' });
+
+  const peopleMap = useMemo(() => {
+    const map = new Map<string, string>();
+    peopleGroups.forEach(p => map.set(p.id, p.name));
+    return map;
+  }, [peopleGroups]);
+
+  const filteredEventFrames = useMemo(() => {
+    const { text, person, status } = filters;
+    if (!text && !person && !status) {
+      return eventFrames;
+    }
+
+    const lowerCaseText = text.toLowerCase();
+
+    return eventFrames.filter(frame => {
+      const matchesText = text ?
+        frame.name.toLowerCase().includes(lowerCaseText) ||
+        frame.place?.toLowerCase().includes(lowerCaseText) ||
+        frame.generalNotes?.toLowerCase().includes(lowerCaseText) ||
+        frame.assignments.some(a => peopleMap.get(a.personGroupId)?.toLowerCase().includes(lowerCaseText))
+        : true;
+
+      const matchesPerson = person ?
+        frame.assignments.some(a => a.personGroupId === person)
+        : true;
+
+      const matchesStatus = status ?
+        frame.assignments.some(a => a.status === status)
+        : true;
+
+      return matchesText && matchesPerson && matchesStatus;
+    });
+  }, [eventFrames, filters, peopleMap]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  const clearFilters = () => setFilters({ text: '', person: '', status: '' });
+
   const handleDelete = (id: string) => {
-    Alert.alert(
-      "Eliminar Esdeveniment",
-      "Esteu segur que voleu eliminar aquest esdeveniment?",
-      [
-        {
-          text: "Cancel·lar",
-          style: "cancel"
-        },
-        {
-          text: "Eliminar",
-          onPress: () => deleteEventFrame(id),
-          style: 'destructive'
-        }
-      ]
+    Alert.alert("Eliminar Esdeveniment", "¿Esteu segur?",
+      [{ text: "Cancel·lar", style: "cancel" }, { text: "Eliminar", onPress: () => deleteEventFrame(id), style: 'destructive' }]
     );
   };
 
-  const handleOpenFile = async () => {
+    const handleOpenFile = async () => {
     const openAndSetData = async () => {
       try {
         const result = await fileService.openFile();
@@ -93,13 +132,27 @@ const EventsScreen = ({ navigation }: Props) => {
     }
   };
 
+
+  const { undo, redo } = useDataStore();
+  // @ts-ignore
+  const canUndo = useDataStore(state => state.temporal.pastStates.length > 0);
+  // @ts-ignore
+  const canRedo = useDataStore(state => state.temporal.futureStates.length > 0);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       title: fileName || 'Gestor d\'Esdeveniments',
+      headerLeft: () => (
+        <View style={styles.headerButtons}>
+            <Button title="Desfer" onPress={undo} disabled={!canUndo} />
+            <Button title="Refer" onPress={redo} disabled={!canRedo} />
+        </View>
+      ),
       headerRight: () => (
         <View style={styles.headerButtons}>
           {fileName ? (
             <>
+              <Button title="Afegir" onPress={() => navigation.navigate('EventForm', {})} />
               <Button title="Desar" onPress={handleSaveFile} disabled={!hasUnsavedChanges} />
               <Button title="Tancar" onPress={handleCloseFile} />
             </>
@@ -109,7 +162,7 @@ const EventsScreen = ({ navigation }: Props) => {
         </View>
       ),
     });
-  }, [navigation, fileName, hasUnsavedChanges]);
+  }, [navigation, fileName, hasUnsavedChanges, canUndo, canRedo, undo, redo]);
 
   if (!fileName) {
     return (
@@ -123,27 +176,27 @@ const EventsScreen = ({ navigation }: Props) => {
 
   return (
     <View style={styles.container}>
+      <FilterControls
+        filters={filters}
+        setFilters={setFilters}
+        peopleGroups={peopleGroups}
+        clearFilters={clearFilters}
+      />
       <FlatList
-        data={eventFrames}
+        data={filteredEventFrames}
         keyExtractor={(item: EventFrame) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => navigation.navigate('EventDetail', { eventId: item.id })}
-          >
-            <View style={styles.itemContent}>
-              <Text style={styles.itemText}>{item.name}</Text>
-              <Text style={styles.itemSubText}>{new Date(item.startDate).toLocaleDateString()}</Text>
-              <Text style={item.personnelComplete ? styles.statusComplete : styles.statusIncomplete}>
-                {item.personnelComplete ? 'Complet' : 'Incomplet'}
-              </Text>
-            </View>
-            <View style={styles.itemActions}>
-              <Button title="Editar" onPress={() => navigation.navigate('EventForm', { eventId: item.id })} />
-              <Button title="Eliminar" onPress={() => handleDelete(item.id)} color="red" />
-            </View>
-          </TouchableOpacity>
+          <EventFrameCard
+            eventFrame={item}
+            isExpanded={expandedIds.has(item.id)}
+            onToggleExpand={toggleExpand}
+            onEditEvent={(id) => navigation.navigate('EventForm', { eventId: id })}
+            onDeleteEvent={handleDelete}
+            peopleMap={peopleMap}
+            navigation={navigation}
+          />
         )}
+        ListEmptyComponent={<Text style={styles.emptyList}>No s'han trobat esdeveniments amb aquests filtres.</Text>}
       />
     </View>
   );
@@ -197,6 +250,12 @@ const styles = StyleSheet.create({
   },
   statusIncomplete: {
     color: 'red',
+  },
+  emptyList: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#666',
   },
 });
 

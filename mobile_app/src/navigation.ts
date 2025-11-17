@@ -2,6 +2,7 @@ export type EventsStackParamList = {
   EventList: undefined;
   EventDetail: { eventId: string };
   EventForm: { eventId?: string };
+  AssignmentForm: { eventFrameId: string; assignmentId?: string };
 };
 
 export type PeopleStackParamList = {
@@ -12,6 +13,7 @@ export type PeopleStackParamList = {
 export type MaterialStackParamList = {
   MaterialList: undefined;
   MaterialForm: { materialId?: string };
+  MaterialControl: undefined;
 };
 
 export type RootTabParamList = {

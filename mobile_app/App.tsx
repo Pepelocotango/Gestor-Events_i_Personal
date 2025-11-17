@@ -10,10 +10,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import EventsScreen from './src/screens/EventsScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import EventFormScreen from './src/screens/EventFormScreen';
+import AssignmentFormScreen from './src/screens/AssignmentFormScreen';
 import PeopleScreen from './src/screens/PeopleScreen';
 import PersonFormScreen from './src/screens/PersonFormScreen';
 import MaterialScreen from './src/screens/MaterialScreen';
 import MaterialFormScreen from './src/screens/MaterialFormScreen';
+import MaterialControlScreen from './src/screens/MaterialControlScreen';
 import {
   RootTabParamList,
   EventsStackParamList,
@@ -35,6 +37,13 @@ const EventsStackNavigator = () => (
       component={EventFormScreen}
       options={({ route }) => ({
         title: route.params?.eventId ? 'Editar Esdeveniment' : 'Nou Esdeveniment',
+      })}
+    />
+    <EventsStack.Screen
+      name="AssignmentForm"
+      component={AssignmentFormScreen}
+      options={({ route }) => ({
+        title: route.params?.assignmentId ? 'Editar Assignació' : 'Nova Assignació',
       })}
     />
   </EventsStack.Navigator>
@@ -63,6 +72,7 @@ const MaterialStackNavigator = () => (
         title: route.params?.materialId ? 'Editar Material' : 'Nou Material',
       })}
     />
+    <MaterialStack.Screen name="MaterialControl" component={MaterialControlScreen} options={{ title: 'Centre de Control' }} />
   </MaterialStack.Navigator>
 );
 
