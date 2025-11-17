@@ -18,6 +18,7 @@ const MaterialScreen = ({ navigation }: Props) => {
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
   const [isSortModalVisible, setSortModalVisible] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const handleDelete = (id: string) => {
     Alert.alert(
@@ -30,7 +31,7 @@ const MaterialScreen = ({ navigation }: Props) => {
     );
   };
 
-  const sections = useMemo(() => {
+  const sectionsData = useMemo(() => {
     const filtered = materialItems.filter(item => {
       const searchTerm = search.toLowerCase();
       return (
@@ -60,6 +61,37 @@ const MaterialScreen = ({ navigation }: Props) => {
       }));
   }, [materialItems, search, sortMode]);
 
+  // Set all categories to expanded by default when sectionsData changes
+  useMemo(() => {
+    if (sortMode === 'category') {
+      const allCategories = new Set(sectionsData.map(s => s.title));
+      setExpandedCategories(allCategories);
+    }
+  }, [sectionsData, sortMode]);
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  const sectionsWithExpansion = useMemo(() => {
+    if (sortMode !== 'category') {
+      return sectionsData;
+    }
+    return sectionsData.map(section => ({
+      ...section,
+      data: expandedCategories.has(section.title) ? section.data : [],
+    }));
+  }, [sectionsData, expandedCategories, sortMode]);
+
+
   const renderSortModal = () => (
     <Modal
       transparent={true}
@@ -86,7 +118,7 @@ const MaterialScreen = ({ navigation }: Props) => {
       />
       {renderSortModal()}
       <SectionList
-        sections={sections}
+        sections={sectionsWithExpansion}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.item}>
@@ -105,7 +137,12 @@ const MaterialScreen = ({ navigation }: Props) => {
           </View>
         )}
         renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title}</Text>
+          <TouchableOpacity onPress={() => toggleCategory(title)} style={styles.sectionHeader}>
+            <Text style={styles.sectionHeaderText}>{title}</Text>
+            {sortMode === 'category' && (
+              <Icon name={expandedCategories.has(title) ? 'chevron-up' : 'chevron-down'} size={24} color="#333" />
+            )}
+          </TouchableOpacity>
         )}
         ListEmptyComponent={<Text style={styles.emptyList}>No s'ha trobat material.</Text>}
         contentContainerStyle={{ paddingBottom: 80 }}
@@ -126,12 +163,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
     backgroundColor: '#f9f9f9',
     borderTopWidth: 1,
     borderTopColor: '#ccc',
+  },
+  sectionHeaderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   item: {
     flexDirection: 'row',
