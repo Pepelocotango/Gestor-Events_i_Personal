@@ -112,6 +112,13 @@ export default function EventDetailScreen({ route, navigation }: Props) {
           </View>
         ))}
       </View>
+
+      <View style={styles.debugContainer}>
+        <Text style={styles.debugTitle}>--- DEBUG DATA ---</Text>
+        <Text style={styles.debugContent}>
+          {JSON.stringify(event, null, 2)}
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -188,5 +195,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  debugContainer: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: '#eee',
+    borderRadius: 8,
+  },
+  debugTitle: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  debugContent: {
+    fontFamily: 'monospace',
+    fontSize: 10,
   },
 });
