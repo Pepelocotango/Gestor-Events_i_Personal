@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert, TouchableOpacity, Platform } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { EventsStackParamList } from '../navigation';
 import { Assignment, AssignmentStatus } from '../types';
 import { Picker } from '@react-native-picker/picker';
+import { formatDateDMY } from '../utils/dateFormat';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 type AssignmentFormScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'AssignmentForm'>;
 type AssignmentFormScreenRouteProp = RouteProp<EventsStackParamList, 'AssignmentForm'>;
@@ -19,42 +21,97 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   const { eventFrameId, assignmentId } = route.params;
   const { eventFrames, peopleGroups, addAssignment, updateAssignment } = useDataStore();
 
-  const [assignment, setAssignment] = useState<Omit<Assignment, 'id'>>({
-    personGroupId: '',
-    eventFrameId: eventFrameId,
-    startDate: '',
-    endDate: '',
-    status: AssignmentStatus.Pending,
-    notes: '',
-  });
+  const event = eventFrames.find(ef => ef.id === eventFrameId);
+
+  const [personGroupId, setPersonGroupId] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(event ? new Date(event.startDate) : null);
+  const [endDate, setEndDate] = useState<Date | null>(event ? new Date(event.endDate) : null);
+  const [status, setStatus] = useState<AssignmentStatus>(AssignmentStatus.Pending);
+  const [notes, setNotes] = useState('');
+
+  const [dailyStatuses, setDailyStatuses] = useState<Record<string, AssignmentStatus>>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isEditingMixed, setIsEditingMixed] = useState(false);
+
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+
+  const dateRange = useMemo(() => {
+    if (!startDate || !endDate || startDate > endDate) return [];
+    const dates: Date[] = [];
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return dates;
+  }, [startDate, endDate]);
 
   useEffect(() => {
-    const event = eventFrames.find(ef => ef.id === eventFrameId);
-    if (assignmentId) {
-      const existingAssignment = event?.assignments.find(a => a.id === assignmentId);
+    if (assignmentId && event) {
+      const existingAssignment = event.assignments.find(a => a.id === assignmentId);
       if (existingAssignment) {
-        setAssignment(existingAssignment);
+        setPersonGroupId(existingAssignment.personGroupId);
+        setStartDate(new Date(existingAssignment.startDate));
+        setEndDate(new Date(existingAssignment.endDate));
+        setStatus(existingAssignment.status);
+        setNotes(existingAssignment.notes || '');
+        setDailyStatuses(existingAssignment.dailyStatuses || {});
+        if (existingAssignment.status === AssignmentStatus.Mixed) {
+          setIsEditingMixed(true);
+        }
       }
-    } else if (event) {
-        setAssignment(prev => ({
-            ...prev,
-            startDate: event.startDate,
-            endDate: event.endDate,
-        }));
     }
-  }, [eventFrameId, assignmentId, eventFrames]);
+  }, [eventFrameId, assignmentId, event]);
+
+  const validate = (): boolean => {
+    const newErrors: { [key: string]: string } = {};
+    if (!personGroupId) newErrors.personGroupId = "Cal seleccionar una persona o grup.";
+    if (!startDate) newErrors.startDate = "La data d'inici és obligatòria.";
+    if (!endDate) newErrors.endDate = "La data de fi és obligatòria.";
+
+    if (startDate && endDate) {
+        if (startDate > endDate) {
+            newErrors.endDate = "La data de fi no pot ser anterior a la d'inici.";
+        }
+        if (event) {
+            const eventStart = new Date(event.startDate);
+            const eventEnd = new Date(event.endDate);
+            if (startDate < eventStart || endDate > eventEnd) {
+                newErrors.datesRange = `Les dates han d'estar dins del rang de l'esdeveniment (${formatDateDMY(event.startDate)} - ${formatDateDMY(event.endDate)}).`;
+            }
+        }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const performSave = async (force: boolean = false) => {
-    if (!assignment.personGroupId) {
-      Alert.alert("Error", "Heu de seleccionar una persona o grup.");
+    if (!validate()) {
+      Alert.alert("Errors de Validació", "Si us plau, corregeix els errors abans de desar.");
       return;
+    }
+
+    const assignmentData: Partial<Assignment> = {
+        personGroupId,
+        eventFrameId,
+        startDate: startDate!.toISOString().split('T')[0],
+        endDate: endDate!.toISOString().split('T')[0],
+        status,
+        notes,
+    };
+
+    if (isEditingMixed || status === AssignmentStatus.Mixed) {
+        assignmentData.dailyStatuses = dailyStatuses;
     }
 
     let conflictMessage: string | null = null;
     if (assignmentId) {
-      conflictMessage = await updateAssignment(eventFrameId, assignmentId, assignment, force);
+      conflictMessage = await updateAssignment(eventFrameId, assignmentId, assignmentData, force);
     } else {
-      conflictMessage = await addAssignment(eventFrameId, assignment, force);
+      // dailyStatuses only makes sense for updates
+      delete assignmentData.dailyStatuses;
+      conflictMessage = await addAssignment(eventFrameId, assignmentData as Omit<Assignment, 'id'>, force);
     }
 
     if (conflictMessage) {
@@ -71,70 +128,194 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
     }
   };
 
-  const handleSave = () => {
-    performSave(false);
+  const onStartDateChange = (event: any, selectedDate?: Date) => {
+    setShowStartDatePicker(Platform.OS === 'ios');
+    if (selectedDate) setStartDate(selectedDate);
   };
 
-  const handleChange = (field: keyof Omit<Assignment, 'id'>, value: string) => {
-    setAssignment(prev => ({ ...prev, [field]: value }));
+  const onEndDateChange = (event: any, selectedDate?: Date) => {
+    setShowEndDatePicker(Platform.OS === 'ios');
+    if (selectedDate) setEndDate(selectedDate);
   };
+
+  const handleDailyStatusChange = (dateISO: string, newStatus: AssignmentStatus) => {
+    setDailyStatuses(prev => ({...prev, [dateISO]: newStatus}));
+    if (!isEditingMixed) setIsEditingMixed(true);
+    if (status !== AssignmentStatus.Mixed) setStatus(AssignmentStatus.Mixed);
+  };
+
+  if (!event) {
+    return <View style={styles.container}><Text>No s'ha trobat l'esdeveniment pare.</Text></View>;
+  }
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.label}>Persona/Grup</Text>
-      <Picker
-        selectedValue={assignment.personGroupId}
-        onValueChange={(itemValue) => handleChange('personGroupId', itemValue)}
-      >
-        <Picker.Item label="-- Seleccioneu --" value="" />
-        {peopleGroups.map(pg => (
-          <Picker.Item key={pg.id} label={pg.name} value={pg.id} />
-        ))}
-      </Picker>
+      {isEditingMixed && (
+        <View style={styles.warningBox}>
+          <Text style={styles.warningText}>
+            Estàs editant estats diaris. L'estat general es calcularà automàticament.
+          </Text>
+        </View>
+      )}
 
-      <Text style={styles.label}>Estat</Text>
-      <Picker
-        selectedValue={assignment.status}
-        onValueChange={(itemValue) => handleChange('status', itemValue)}
-      >
-        {Object.values(AssignmentStatus).map(status => (
-            status !== AssignmentStatus.Mixed && <Picker.Item key={status} label={status} value={status} />
-        ))}
-      </Picker>
+      <Text style={styles.label}>Persona/Grup</Text>
+      <View style={[styles.pickerContainer, errors.personGroupId ? styles.inputError : null]}>
+        <Picker selectedValue={personGroupId} onValueChange={(itemValue) => setPersonGroupId(itemValue)}>
+          <Picker.Item label="-- Seleccioneu --" value="" />
+          {peopleGroups.map(pg => <Picker.Item key={pg.id} label={pg.name} value={pg.id} />)}
+        </Picker>
+      </View>
+      {errors.personGroupId && <Text style={styles.errorText}>{errors.personGroupId}</Text>}
+
+      <View>
+          <Text style={styles.label}>Data d'Inici</Text>
+          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[styles.input, errors.startDate || errors.datesRange ? styles.inputError : null]}>
+            <Text>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
+          </TouchableOpacity>
+          {showStartDatePicker && (
+            <DateTimePicker value={startDate || new Date(event.startDate)} mode="date" display="default" onChange={onStartDateChange} />
+          )}
+          {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
+        </View>
+
+        <View>
+          <Text style={styles.label}>Data de Fi</Text>
+          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[styles.input, errors.endDate || errors.datesRange ? styles.inputError : null]}>
+            <Text>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
+          </TouchableOpacity>
+          {showEndDatePicker && (
+            <DateTimePicker value={endDate || startDate || new Date(event.endDate)} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
+          )}
+          {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
+        </View>
+        {errors.datesRange && <Text style={styles.errorText}>{errors.datesRange}</Text>}
+
+      <Text style={styles.label}>Estat General</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={status}
+          onValueChange={(itemValue) => {
+            setStatus(itemValue);
+            if (isEditingMixed) setIsEditingMixed(false);
+            if (itemValue !== AssignmentStatus.Mixed) setDailyStatuses({});
+        }}>
+          {isEditingMixed && <Picker.Item key="mixed" label="Mixt (personalitzat)" value={AssignmentStatus.Mixed} />}
+          {Object.values(AssignmentStatus).map(s => (s !== AssignmentStatus.Mixed && <Picker.Item key={s} label={s} value={s} />))}
+        </Picker>
+      </View>
+
+      {assignmentId && dateRange.length > 0 && (
+        <View style={styles.dailyStatusContainer}>
+            <Text style={styles.label}>Estats Diaris</Text>
+            {dateRange.map(date => {
+                const dateISO = date.toISOString().split('T')[0];
+                const currentStatus = dailyStatuses[dateISO] || (status !== AssignmentStatus.Mixed ? status : AssignmentStatus.Pending);
+                return (
+                    <View key={dateISO} style={styles.dailyRow}>
+                        <Text style={styles.dailyDate}>{formatDateDMY(dateISO)}</Text>
+                        <Picker
+                            style={styles.dailyPicker}
+                            selectedValue={currentStatus}
+                            onValueChange={(itemValue) => handleDailyStatusChange(dateISO, itemValue)}
+                        >
+                            {Object.values(AssignmentStatus).map(s => (s !== AssignmentStatus.Mixed && <Picker.Item key={s} label={s} value={s} />))}
+                        </Picker>
+                    </View>
+                )
+            })}
+        </View>
+      )}
 
       <Text style={styles.label}>Notes</Text>
-      <TextInput style={styles.inputMulti} value={assignment.notes} onChangeText={(val) => handleChange('notes', val)} multiline />
+      <TextInput style={styles.inputMulti} value={notes} onChangeText={setNotes} multiline />
 
-      <Button title="Desar Assignació" onPress={handleSave} />
+      <Button title="Desar Assignació" onPress={() => performSave(false)} />
     </ScrollView>
   );
 };
 
+// ... (styles remain the same)
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
-  },
-  inputMulti: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
-    height: 100,
-    textAlignVertical: 'top',
-  }
+    container: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: '#f5f5f5',
+      },
+      label: {
+        fontSize: 16,
+        marginBottom: 8,
+        color: '#333',
+        fontWeight: '500',
+      },
+      input: {
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        fontSize: 16,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        justifyContent: 'center',
+      },
+      inputError: {
+        borderColor: '#F44336',
+      },
+      errorText: {
+        color: '#F44336',
+        marginBottom: 15,
+        marginLeft: 5,
+      },
+      pickerContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        justifyContent: 'center',
+      },
+      inputMulti: {
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        fontSize: 16,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        height: 100,
+        textAlignVertical: 'top',
+      },
+      warningBox: {
+        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+        borderLeftColor: '#FFC107',
+        borderLeftWidth: 4,
+        padding: 10,
+        marginBottom: 20,
+      },
+      warningText: {
+        color: '#856404',
+      },
+      dailyStatusContainer: {
+        marginVertical: 10,
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#ddd'
+      },
+      dailyRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 5,
+      },
+      dailyDate: {
+        fontSize: 16,
+      },
+      dailyPicker: {
+        width: 150,
+      }
 });
 
 export default AssignmentFormScreen;

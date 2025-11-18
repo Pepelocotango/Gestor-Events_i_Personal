@@ -4,6 +4,7 @@ import { EventFrame } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
+import { getStatusColor } from '../utils/statusUtils';
 
 type EventFrameCardProps = {
   eventFrame: EventFrame;
@@ -80,7 +81,9 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
               <Text style={styles.assignmentPerson}>
                 {peopleMap.get(assignment.personGroupId) || 'Persona desconeguda'}
               </Text>
-              <Text style={styles.assignmentStatus}>{assignment.status}</Text>
+              <Text style={[styles.assignmentStatus, { color: getStatusColor(assignment.status) }]}>
+                {assignment.status}
+              </Text>
             </View>
           ))}
           <TouchableOpacity
@@ -172,8 +175,7 @@ const styles = StyleSheet.create({
       },
       assignmentStatus: {
         fontSize: 14,
-        fontStyle: 'italic',
-        color: '#555',
+        fontWeight: 'bold',
       },
       addPersonButton: {
         flexDirection: 'row',

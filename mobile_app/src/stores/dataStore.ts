@@ -3,7 +3,7 @@ import { temporal } from 'zundo';
 import { immer } from 'zustand/middleware/immer';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { AppData, Assignment, EventFrame, EventFrameForExport, PersonGroup, MaterialItem, MaterialControlRow, MaterialControlFilters, TechSheetData, NeedItem } from '../types';
+import { AppData, Assignment, AssignmentStatus, EventFrame, EventFrameForExport, PersonGroup, MaterialItem, MaterialControlRow, MaterialControlFilters, TechSheetData, NeedItem } from '../types';
 import { SAFFileService } from '../services/SAFFileService';
 
 const fileService = new SAFFileService();
@@ -25,7 +25,7 @@ interface DataState {
   clearData: () => void;
   saveData: () => Promise<void>;
 
-  addEventFrame: (data: NewEventData) => void;
+  addEventFrame: (data: NewEventData) => EventFrame;
   updateEventFrame: (eventId: string, data: Partial<NewEventData>) => void;
   deleteEventFrame: (eventId: string) => void;
 
@@ -122,6 +122,7 @@ export const useDataStore = create<DataState>()(
       eventFrames: [...state.eventFrames, newEvent],
       hasUnsavedChanges: true,
     }));
+    return newEvent;
   },
 
   updateEventFrame: (eventId, data) => {
@@ -249,20 +250,37 @@ export const useDataStore = create<DataState>()(
       }
     }
 
-    set(state => ({
-      eventFrames: state.eventFrames.map(ef => {
-        if (ef.id === eventFrameId) {
-          return {
-            ...ef,
-            assignments: ef.assignments.map(a =>
-              a.id === assignmentId ? { ...a, ...data } : a
-            ),
-          };
+    set(state => {
+      const eventIndex = state.eventFrames.findIndex(ef => ef.id === eventFrameId);
+      if (eventIndex !== -1) {
+        const assignmentIndex = state.eventFrames[eventIndex].assignments.findIndex(a => a.id === assignmentId);
+        if (assignmentIndex !== -1) {
+          const originalAssignment = state.eventFrames[eventIndex].assignments[assignmentIndex];
+
+          // Create the updated assignment object
+          const updatedAssignment = { ...originalAssignment, ...data };
+
+          // If the original status was Mixed and the new status is different, clear dailyStatuses
+          if (originalAssignment.status === AssignmentStatus.Mixed && data.status && data.status !== AssignmentStatus.Mixed) {
+            updatedAssignment.dailyStatuses = {};
+          }
+
+          // If daily statuses are being provided, calculate the overall status
+          if (data.dailyStatuses) {
+            const statuses = Object.values(data.dailyStatuses);
+            const uniqueStatuses = new Set(statuses);
+            if (uniqueStatuses.size === 1) {
+              updatedAssignment.status = statuses[0];
+            } else {
+              updatedAssignment.status = AssignmentStatus.Mixed;
+            }
+          }
+
+          state.eventFrames[eventIndex].assignments[assignmentIndex] = updatedAssignment;
+          state.hasUnsavedChanges = true;
         }
-        return ef;
-      }),
-      hasUnsavedChanges: true,
-    }));
+      }
+    });
     return null;
   },
 

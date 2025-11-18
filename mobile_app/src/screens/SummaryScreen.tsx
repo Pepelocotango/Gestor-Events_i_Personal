@@ -1,12 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, SectionList, Button } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { AssignmentStatus, SummaryRow } from '../types';
-import { formatDateRangeDMY } from '../utils/dateFormat';
+import { formatDateDMY } from '../utils/dateFormat';
+import SummarySection from '../components/SummarySection';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+const SECTION_KEYS = ['event', 'date', 'person'];
 
 const SummaryScreen = () => {
   const { eventFrames, peopleGroups } = useDataStore();
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   const peopleMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -54,6 +59,20 @@ const SummaryScreen = () => {
     });
   }, [allAssignmentsSummary, sortOrder]);
 
+  const summaryByStartDate = useMemo(() => {
+    const map = new Map<string, SummaryRow[]>();
+    allAssignmentsSummary.forEach(row => {
+        const dateStr = formatDateDMY(row.assignmentStartDate);
+        if (!map.has(dateStr)) map.set(dateStr, []);
+        map.get(dateStr)!.push(row);
+    });
+    return [...map.entries()].sort((a, b) => {
+      const dateA = new Date(a[0].split('/').reverse().join('-')).getTime();
+      const dateB = new Date(b[0].split('/').reverse().join('-')).getTime();
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+  }, [allAssignmentsSummary, sortOrder]);
+
   const summaryByPerson = useMemo(() => {
     const map = new Map<string, SummaryRow[]>();
     allAssignmentsSummary.forEach(row => {
@@ -63,62 +82,87 @@ const SummaryScreen = () => {
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [allAssignmentsSummary]);
 
-  const sections = [
-      { title: "Per Nom d'Esdeveniment", data: summaryByEventName },
-      { title: "Per Persona/Grup", data: summaryByPerson },
-  ];
+  const handleToggleSection = (sectionKey: string) => {
+    setExpandedSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
+  };
 
-  const renderItem = ({ item }: { item: [string, SummaryRow[]] }) => (
-    <View style={styles.groupContainer}>
-      <Text style={styles.groupTitle}>{item[0]}</Text>
-      {item[1].map(a => (
-        <Text key={a.id} style={styles.assignmentText}>
-          - {a.assignmentPersonName} ({formatDateRangeDMY(a.assignmentStartDate, a.assignmentEndDate)}) - {a.assignmentStatus}
-        </Text>
-      ))}
-    </View>
-  );
+  const areAllExpanded = useMemo(() => {
+    return SECTION_KEYS.every(key => expandedSections[key]);
+  }, [expandedSections]);
+
+  const toggleAllSections = () => {
+    if (areAllExpanded) {
+      setExpandedSections({});
+    } else {
+      const allExpanded: Record<string, boolean> = {};
+      SECTION_KEYS.forEach(key => { allExpanded[key] = true; });
+      setExpandedSections(allExpanded);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Button
-        title={`Ordena per Data (${sortOrder === 'asc' ? 'Ascendent' : 'Descendent'})`}
-        onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+    <ScrollView style={styles.container}>
+      <View style={styles.toolbar}>
+        <TouchableOpacity style={styles.button} onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+            <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color="#333" />
+            <Text style={styles.buttonText}>Data</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={toggleAllSections}>
+            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color="#333" />
+            <Text style={styles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <SummarySection
+        title="Per Nom d'Esdeveniment"
+        data={summaryByEventName}
+        groupingType="event"
+        isExpanded={!!expandedSections.event}
+        onToggle={() => handleToggleSection('event')}
       />
-      <SectionList
-        sections={sections}
-        keyExtractor={(item, index) => item[0] + index}
-        renderItem={renderItem}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title}</Text>
-        )}
+      <SummarySection
+        title="Per Data d'Inici d'Assignació"
+        data={summaryByStartDate}
+        groupingType="date"
+        isExpanded={!!expandedSections.date}
+        onToggle={() => handleToggleSection('date')}
       />
-    </View>
+      <SummarySection
+        title="Per Persona/Grup"
+        data={summaryByPerson}
+        groupingType="person"
+        isExpanded={!!expandedSections.person}
+        onToggle={() => handleToggleSection('person')}
+      />
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: 8,
   },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    marginTop: 10,
+  toolbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#f5f5f5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    marginBottom: 10,
   },
-  groupContainer: {
-    padding: 10,
-    backgroundColor: 'white',
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
   },
-  groupTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  assignmentText: {
-    marginLeft: 10,
+  buttonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#333',
   },
 });
 

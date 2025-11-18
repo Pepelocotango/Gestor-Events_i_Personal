@@ -1,17 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
 import { TechSheetsStackParamList } from '../navigation';
 import { EventFrame } from '../types';
-import { formatDate } from '../utils/dateFormat';
+import TechSheetListItem from '../components/TechSheetListItem';
 
 type TechSheetListScreenNavigationProp = StackNavigationProp<
   TechSheetsStackParamList,
@@ -31,6 +30,10 @@ export default function TechSheetListScreen({ navigation }: Props) {
     () => eventFrames.filter((ef) => ef.techSheet),
     [eventFrames]
   );
+
+  const handleItemPress = useCallback((eventId: string) => {
+    navigation.navigate('TechSheetDetail', { eventId });
+  }, [navigation]);
 
   if (isLoading) {
     return (
@@ -58,18 +61,10 @@ export default function TechSheetListScreen({ navigation }: Props) {
   }
 
   const renderItem = ({ item }: { item: EventFrame }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('TechSheetDetail', { eventId: item.id })}
-    >
-      <Text style={styles.title}>{item.name}</Text>
-      <Text style={styles.detail}>
-        <Text style={styles.bold}>Lloc:</Text> {item.place || 'No especificat'}
-      </Text>
-      <Text style={styles.detail}>
-        <Text style={styles.bold}>Data:</Text> {formatDate(item.startDate)}
-      </Text>
-    </TouchableOpacity>
+    <TechSheetListItem
+      item={item}
+      onPress={() => handleItemPress(item.id)}
+    />
   );
 
   return (
@@ -78,6 +73,9 @@ export default function TechSheetListScreen({ navigation }: Props) {
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.container}
+      windowSize={10}
+      initialNumToRender={10}
+      maxToRenderPerBatch={10}
     />
   );
 }
@@ -92,29 +90,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     textAlign: 'center',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  detail: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  bold: {
-    fontWeight: 'bold',
   },
   errorText: {
     color: 'red',
