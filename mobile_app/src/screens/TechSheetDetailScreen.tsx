@@ -8,12 +8,13 @@ import {
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
-import { EventsStackParamList } from '../navigation';
+import { TechSheetsStackParamList } from '../navigation';
 import ReadOnlySection from '../components/tech_sheet/ReadOnlySection';
 import ReadOnlyField from '../components/tech_sheet/ReadOnlyField';
+import { formatDate } from '../utils/dateFormat';
 
 type TechSheetDetailScreenRouteProp = RouteProp<
-  EventsStackParamList,
+  TechSheetsStackParamList,
   'TechSheetDetail'
 >;
 
@@ -22,7 +23,7 @@ type Props = {
 };
 
 export default function TechSheetDetailScreen({ route }: Props) {
-  const { eventId } = route.params;
+  const eventId = route.params?.eventId;
   const event = useDataStore((state) =>
     state.eventFrames.find((e) => e.id === eventId)
   );
@@ -47,15 +48,6 @@ export default function TechSheetDetailScreen({ route }: Props) {
     );
   }
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'No especificat';
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch (error) {
-      return dateString; // Return original string if it's not a valid date
-    }
-  };
-
   const getPersonName = (personGroupId: string) => {
     const person = peopleGroups.find((p) => p.id === personGroupId);
     return person ? person.name : 'Desconegut';
@@ -68,15 +60,11 @@ export default function TechSheetDetailScreen({ route }: Props) {
   };
 
   const renderConditionalSection = (
-    title: string,
+    label: string,
     section: { status: 'yes' | 'no' | 'unset'; details: string } | undefined
   ) => {
     if (!section || section.status !== 'yes') return null;
-    return (
-      <ReadOnlySection title={title}>
-        <Text>{section.details || 'Sense detalls.'}</Text>
-      </ReadOnlySection>
-    );
+    return <ReadOnlyField label={label} value={section.details || 'Sí'} />;
   };
 
   const renderNeedsSection = (
@@ -107,9 +95,16 @@ export default function TechSheetDetailScreen({ route }: Props) {
         <ReadOnlyField label="Esdeveniment" value={techSheet.eventName} />
         <ReadOnlyField label="Lloc" value={techSheet.location} />
         <ReadOnlyField label="Data" value={formatDate(techSheet.date)} />
+        <ReadOnlyField label="Durada Espectacle" value={techSheet.showDuration} />
       </ReadOnlySection>
 
-      <ReadOnlySection title="Horaris">
+      {techSheet.generalNotes && (
+        <ReadOnlySection title="Notes Generals">
+          <Text>{techSheet.generalNotes}</Text>
+        </ReadOnlySection>
+      )}
+
+      <ReadOnlySection title="Horaris de Muntatge">
         {techSheet.schedule?.data?.map((item) => (
           <ReadOnlyField
             key={item.id}
@@ -119,7 +114,19 @@ export default function TechSheetDetailScreen({ route }: Props) {
         ))}
       </ReadOnlySection>
 
+      <ReadOnlySection title="Logística">
+        {renderConditionalSection('Pàrquing', techSheet.parking)}
+        {renderConditionalSection('Camerinos', techSheet.dressingRooms as any)}
+        {techSheet.actorsInfo?.status === 'yes' && (
+            <ReadOnlyField label="Actors" value={`Número: ${techSheet.actorsInfo.data?.number}, Noms: ${techSheet.actorsInfo.data?.names}`} />
+        )}
+        {techSheet.techniciansInfo?.status === 'yes' && (
+            <ReadOnlyField label="Tècnics" value={`Número: ${techSheet.techniciansInfo.data?.number}, Noms: ${techSheet.techniciansInfo.data?.names}`} />
+        )}
+      </ReadOnlySection>
+
       <ReadOnlySection title="Personal Tècnic">
+        {techSheet.technicalPersonnelNotes && <Text style={styles.notes}>{techSheet.technicalPersonnelNotes}</Text>}
         {techSheet.technicalProviders?.map((provider) => (
           <View key={provider.id}>
             <Text style={styles.providerName}>{getPersonName(provider.personGroupId)}</Text>
@@ -130,6 +137,7 @@ export default function TechSheetDetailScreen({ route }: Props) {
         ))}
       </ReadOnlySection>
 
+      {techSheet.technicalNeedsNotes && <ReadOnlySection title="Notes de Necessitats Tècniques"><Text>{techSheet.technicalNeedsNotes}</Text></ReadOnlySection>}
       {renderNeedsSection('Llums', techSheet.lighting)}
       {renderNeedsSection('So', techSheet.sound)}
       {renderNeedsSection('Vídeo', techSheet.video)}
@@ -143,6 +151,10 @@ export default function TechSheetDetailScreen({ route }: Props) {
       {renderNeedsSection('Cortines', techSheet.curtains)}
       {renderNeedsSection('Transport', techSheet.transport)}
 
+      <ReadOnlySection title="Altres Detalls">
+        <ReadOnlyField label="Ubicació Control" value={techSheet.controlLocation} />
+        <ReadOnlyField label="Plànols" value={techSheet.blueprints} />
+      </ReadOnlySection>
 
       <ReadOnlySection title="Contactes">
         {techSheet.contacts?.map((contact) => (

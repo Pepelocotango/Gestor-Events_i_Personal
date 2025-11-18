@@ -10,6 +10,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import EventsScreen from './src/screens/EventsScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import TechSheetDetailScreen from './src/screens/TechSheetDetailScreen';
+import TechSheetListScreen from './src/screens/TechSheetListScreen';
 import EventFormScreen from './src/screens/EventFormScreen';
 import AssignmentFormScreen from './src/screens/AssignmentFormScreen';
 import PeopleScreen from './src/screens/PeopleScreen';
@@ -22,6 +23,7 @@ import CustomHeader from './src/components/CustomHeader';
 import {
   RootTabParamList,
   EventsStackParamList,
+  TechSheetsStackParamList,
   PeopleStackParamList,
   MaterialStackParamList,
   ControlCenterStackParamList,
@@ -29,6 +31,7 @@ import {
 } from './src/navigation';
 
 const EventsStack = createStackNavigator<EventsStackParamList>();
+const TechSheetsStack = createStackNavigator<TechSheetsStackParamList>();
 const PeopleStack = createStackNavigator<PeopleStackParamList>();
 const MaterialStack = createStackNavigator<MaterialStackParamList>();
 const ControlCenterStack = createStackNavigator<ControlCenterStackParamList>();
@@ -47,6 +50,13 @@ const EventsStackNavigator = () => (
     <EventsStack.Screen name="EventForm" component={EventFormScreen} />
     <EventsStack.Screen name="AssignmentForm" component={AssignmentFormScreen} />
   </EventsStack.Navigator>
+);
+
+const TechSheetsStackNavigator = () => (
+  <TechSheetsStack.Navigator screenOptions={commonScreenOptions}>
+    <TechSheetsStack.Screen name="TechSheetList" component={TechSheetListScreen} />
+    <TechSheetsStack.Screen name="TechSheetDetail" component={TechSheetDetailScreen} />
+  </TechSheetsStack.Navigator>
 );
 
 const PeopleStackNavigator = () => (
@@ -88,6 +98,9 @@ export default function App() {
                 case 'Events':
                   iconName = focused ? 'calendar' : 'calendar-outline';
                   break;
+                case 'TechSheets':
+                  iconName = focused ? 'document-text' : 'document-text-outline';
+                  break;
                 case 'People':
                   iconName = focused ? 'people' : 'people-outline';
                   break;
@@ -110,6 +123,7 @@ export default function App() {
           })}
         >
           <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: 'Esdeveniments' }} />
+          <Tab.Screen name="TechSheets" component={TechSheetsStackNavigator} options={{ title: 'Fitxes de Bolo' }} />
           <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: 'Persones' }} />
           <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: 'Material' }} />
           <Tab.Screen name="ControlCenter" component={ControlCenterStackNavigator} options={{ title: 'Centre de Control' }} />

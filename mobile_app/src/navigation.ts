@@ -6,6 +6,11 @@ export type EventsStackParamList = {
   AssignmentForm: { eventFrameId: string; assignmentId?: string };
 };
 
+export type TechSheetsStackParamList = {
+  TechSheetList: undefined;
+  TechSheetDetail: { eventId: string };
+};
+
 export type PeopleStackParamList = {
   PersonList: undefined;
   PersonForm: { personId?: string };
@@ -26,6 +31,7 @@ export type SummaryStackParamList = {
 
 export type RootTabParamList = {
   Events: undefined;
+  TechSheets: undefined;
   People: undefined;
   Material: undefined;
   ControlCenter: undefined;

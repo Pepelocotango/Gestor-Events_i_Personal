@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
 import { useStore } from 'zustand';
 import { SAFFileService } from '../services/SAFFileService';
@@ -24,6 +25,8 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     undo,
     redo,
   } = useDataStore();
+
+  const canGoBack = navigation.canGoBack();
 
   const { pastStates, futureStates } = useStore(useDataStore.temporal);
   const canUndo = pastStates.length > 0;
@@ -86,6 +89,11 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
       </View>
       <View style={styles.bottomRow}>
         <View style={styles.buttonGroup}>
+          {canGoBack && (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon name="arrow-left" size={28} color="#333" />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity onPress={undo} disabled={!canUndo}>
             <Icon name="undo-variant" size={28} color={canUndo ? '#333' : '#ccc'} />
           </TouchableOpacity>

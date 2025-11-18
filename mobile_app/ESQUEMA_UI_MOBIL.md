@@ -43,6 +43,7 @@ A cada pantalla principal (Esdeveniments, Persones, Material), hi ha un botó `+
 L'aplicació es divideix en cinc pestanyes principals, cadascuna amb la seva pròpia pila de navegació:
 
 - **Esdeveniments**: Gestiona els esdeveniments.
+- **Fitxes de Bolo**: Visualitza totes les fitxes de bolo.
 - **Persones**: Gestiona la llista de personal.
 - **Material**: Gestiona l'inventari de material.
 - **Centre de Control**: Ofereix una vista global de l'estat del material.
@@ -90,7 +91,17 @@ Accessible en fer clic a una targeta d'esdeveniment. Mostra una vista detallada 
 
 ---
 
-### 2. Pestanya "Persones" (`PeopleScreen`)
+### 2. Pestanya "Fitxes de Bolo" (`TechSheetListScreen`)
+
+- **Propòsit**: Ofereix un accés centralitzat per a visualitzar totes les fitxes de bolo.
+- **Contingut**:
+  - **Llista de Fitxes**: Mostra una llista de tots els esdeveniments que tenen una fitxa de bolo associada. Cada element de la llista mostra el nom de l'esdeveniment, el lloc i la data.
+- **Navegació**:
+  - En fer clic a un element de la llista, es navega a la pantalla `TechSheetDetailScreen` per a visualitzar els detalls complets d'aquella fitxa.
+
+---
+
+### 3. Pestanya "Persones" (`PeopleScreen`)
 
 - **Barra d'Eines (`PeopleToolbar`):**
   - **Cerca**: Camp de text per cercar persones.
