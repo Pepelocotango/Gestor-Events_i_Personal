@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, TextInput, Button, StyleSheet, SafeAreaView, ScrollView, Text, Alert, FlatList, TouchableOpacity } from 'react-native';
+import { View, TextInput, Button, StyleSheet, SafeAreaView, Text, Alert, FlatList, TouchableOpacity, Platform, KeyboardAvoidingView } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
 import { EventsStackParamList } from '../navigation';
-import { EventFrame } from '../types';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { formatDateDMY } from '../utils/dateFormat';
 
 type EventFormScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventForm'>;
 type EventFormScreenRouteProp = RouteProp<EventsStackParamList, 'EventForm'>;
@@ -14,19 +15,24 @@ type Props = {
   route: EventFormScreenRouteProp;
 };
 
+type Suggestion = { type: 'name' | 'place'; value: string };
+
 export default function EventFormScreen({ navigation, route }: Props) {
   const { eventId } = route.params || {};
   const { eventFrames, addEventFrame, updateEventFrame } = useDataStore();
 
   const [name, setName] = useState('');
   const [place, setPlace] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [generalNotes, setGeneralNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
-  const [placeSuggestions, setPlaceSuggestions] = useState<string[]>([]);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [activeInput, setActiveInput] = useState<'name' | 'place' | null>(null);
 
   const isEditMode = eventId !== undefined;
 
@@ -39,8 +45,8 @@ export default function EventFormScreen({ navigation, route }: Props) {
       if (eventToEdit) {
         setName(eventToEdit.name);
         setPlace(eventToEdit.place || '');
-        setStartDate(eventToEdit.startDate);
-        setEndDate(eventToEdit.endDate);
+        setStartDate(new Date(eventToEdit.startDate));
+        setEndDate(new Date(eventToEdit.endDate));
         setGeneralNotes(eventToEdit.generalNotes || '');
       }
     }
@@ -49,18 +55,20 @@ export default function EventFormScreen({ navigation, route }: Props) {
   const handleNameChange = (text: string) => {
     setName(text);
     if (text) {
-      setNameSuggestions(uniqueEventNames.filter(n => n.toLowerCase().includes(text.toLowerCase()) && n !== text));
+      const filtered = uniqueEventNames.filter(n => n.toLowerCase().includes(text.toLowerCase()) && n !== text);
+      setSuggestions(filtered.map(value => ({ type: 'name', value })));
     } else {
-      setNameSuggestions([]);
+      setSuggestions([]);
     }
   };
 
   const handlePlaceChange = (text: string) => {
     setPlace(text);
     if (text) {
-      setPlaceSuggestions(uniqueLocations.filter(l => l.toLowerCase().includes(text.toLowerCase()) && l !== text));
+      const filtered = uniqueLocations.filter(l => l.toLowerCase().includes(text.toLowerCase()) && l !== text);
+      setSuggestions(filtered.map(value => ({ type: 'place', value })));
     } else {
-      setPlaceSuggestions([]);
+      setSuggestions([]);
     }
   };
 
@@ -70,12 +78,8 @@ export default function EventFormScreen({ navigation, route }: Props) {
     if (!startDate) newErrors.startDate = "La data d'inici és obligatòria.";
     if (!endDate) newErrors.endDate = "La data de fi és obligatòria.";
 
-    if (startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        if (start > end) {
-            newErrors.endDate = "La data de fi ha de ser posterior o igual a la d'inici.";
-        }
+    if (startDate && endDate && startDate > endDate) {
+        newErrors.endDate = "La data de fi ha de ser posterior o igual a la d'inici.";
     }
 
     setErrors(newErrors);
@@ -88,7 +92,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
       return;
     }
 
-    const eventData = { name, place, startDate, endDate, generalNotes };
+    const eventData = { name, place, startDate: startDate!.toISOString().split('T')[0], endDate: endDate!.toISOString().split('T')[0], generalNotes };
     let savedEventId = eventId;
 
     if (isEditMode) {
@@ -105,98 +109,118 @@ export default function EventFormScreen({ navigation, route }: Props) {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.formContainer} keyboardShouldPersistTaps="handled">
-        <Text style={styles.label}>Nom de l'Esdeveniment</Text>
-        <TextInput
-          style={[styles.input, errors.name ? styles.inputError : null]}
-          value={name}
-          onChangeText={handleNameChange}
-          placeholder="Ex: Concert de Primavera"
-        />
-        {nameSuggestions.length > 0 && (
-          <FlatList
-            data={nameSuggestions}
-            keyExtractor={item => item}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.suggestionItem} onPress={() => { setName(item); setNameSuggestions([]); }}>
-                <Text>{item}</Text>
-              </TouchableOpacity>
-            )}
-            style={styles.suggestionsList}
-          />
-        )}
-        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+  const onStartDateChange = (event: any, selectedDate?: Date) => {
+    setShowStartDatePicker(Platform.OS === 'ios');
+    if (selectedDate) setStartDate(selectedDate);
+  };
 
+  const onEndDateChange = (event: any, selectedDate?: Date) => {
+    setShowEndDatePicker(Platform.OS === 'ios');
+    if (selectedDate) setEndDate(selectedDate);
+  };
+
+  const renderFormFields = () => (
+    <View style={styles.formContainer}>
+      <Text style={styles.label}>Nom de l'Esdeveniment</Text>
+      <TextInput
+        style={[styles.input, errors.name ? styles.inputError : null]}
+        value={name}
+        onChangeText={handleNameChange}
+        placeholder="Ex: Concert de Primavera"
+        onFocus={() => setActiveInput('name')}
+      />
+      {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+
+      {activeInput !== 'name' && <>
         <Text style={styles.label}>Lloc</Text>
         <TextInput
           style={styles.input}
           value={place}
           onChangeText={handlePlaceChange}
           placeholder="Ex: Teatre Principal"
+          onFocus={() => setActiveInput('place')}
         />
-        {placeSuggestions.length > 0 && (
-          <FlatList
-            data={placeSuggestions}
-            keyExtractor={item => item}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.suggestionItem} onPress={() => { setPlace(item); setPlaceSuggestions([]); }}>
-                <Text>{item}</Text>
-              </TouchableOpacity>
-            )}
-            style={styles.suggestionsList}
-          />
-        )}
+      </>}
+    </View>
+  );
 
-        <Text style={styles.label}>Data d'Inici (YYYY-MM-DD)</Text>
-        <TextInput
-          style={[styles.input, errors.startDate ? styles.inputError : null]}
-          value={startDate}
-          onChangeText={setStartDate}
-          placeholder="2024-01-15"
-          keyboardType="numeric"
-          onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
+  return (
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <FlatList
+          data={suggestions}
+          keyExtractor={item => item.value}
+          ListHeaderComponent={renderFormFields}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.suggestionItem}
+              onPress={() => {
+                if (item.type === 'name') setName(item.value);
+                else if (item.type === 'place') setPlace(item.value);
+                setSuggestions([]);
+              }}
+            >
+              <Text>{item.value}</Text>
+            </TouchableOpacity>
+          )}
+          ListFooterComponent={
+             <View style={styles.formContainer}>
+                {activeInput === 'name' && <>
+                    <Text style={styles.label}>Lloc</Text>
+                    <TextInput
+                    style={styles.input}
+                    value={place}
+                    onChangeText={handlePlaceChange}
+                    placeholder="Ex: Teatre Principal"
+                    onFocus={() => setActiveInput('place')}
+                    />
+                </>}
+
+                <View>
+                    <Text style={styles.label}>Data d'Inici</Text>
+                    <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[styles.input, errors.startDate ? styles.inputError : null]}>
+                        <Text>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
+                    </TouchableOpacity>
+                    {showStartDatePicker && (
+                        <DateTimePicker value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
+                    )}
+                    {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
+                </View>
+
+                <View>
+                    <Text style={styles.label}>Data de Fi</Text>
+                    <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[styles.input, errors.endDate ? styles.inputError : null]}>
+                        <Text>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
+                    </TouchableOpacity>
+                    {showEndDatePicker && (
+                        <DateTimePicker value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
+                    )}
+                    {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
+                </View>
+
+                <Text style={styles.label}>Notes Generals</Text>
+                <TextInput
+                    style={styles.inputMulti}
+                    value={generalNotes}
+                    onChangeText={setGeneralNotes}
+                    placeholder="Anotacions diverses..."
+                    multiline
+                    numberOfLines={4}
+                    onFocus={() => setSuggestions([])}
+                />
+                <View style={styles.buttonContainer}>
+                    <Button title={isEditMode ? 'Actualitzar' : 'Crear'} onPress={() => handleSave(false)} color="#007AFF" />
+                    <View style={{ marginTop: 10 }} />
+                    <Button title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'} onPress={() => handleSave(true)} color="#4CAF50" />
+                </View>
+            </View>
+          }
+          keyboardShouldPersistTaps="handled"
         />
-        {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
-
-        <Text style={styles.label}>Data de Fi (YYYY-MM-DD)</Text>
-        <TextInput
-          style={[styles.input, errors.endDate ? styles.inputError : null]}
-          value={endDate}
-          onChangeText={setEndDate}
-          placeholder="2024-01-16"
-          keyboardType="numeric"
-          onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
-        />
-        {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
-
-        <Text style={styles.label}>Notes Generals</Text>
-        <TextInput
-          style={styles.inputMulti}
-          value={generalNotes}
-          onChangeText={setGeneralNotes}
-          placeholder="Anotacions diverses..."
-          multiline
-          numberOfLines={4}
-          onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
-        />
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title={isEditMode ? 'Actualitzar' : 'Crear'}
-            onPress={() => handleSave(false)}
-            color="#007AFF"
-          />
-          <View style={{ marginTop: 10 }}>
-            <Button
-              title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'}
-              onPress={() => handleSave(true)}
-              color="#4CAF50"
-            />
-          </View>
-        </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -207,7 +231,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   formContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   label: {
     fontSize: 16,
@@ -224,6 +249,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     borderWidth: 1,
     borderColor: '#ddd',
+    justifyContent: 'center',
   },
   inputError: {
     borderColor: '#F44336',
@@ -247,18 +273,13 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 10,
-  },
-  suggestionsList: {
-    maxHeight: 150,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginBottom: 10,
+    paddingBottom: 20,
   },
   suggestionItem: {
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
   },
 });

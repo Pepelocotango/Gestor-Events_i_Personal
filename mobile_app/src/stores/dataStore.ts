@@ -3,7 +3,7 @@ import { temporal } from 'zundo';
 import { immer } from 'zustand/middleware/immer';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { AppData, Assignment, EventFrame, EventFrameForExport, PersonGroup, MaterialItem, MaterialControlRow, MaterialControlFilters, TechSheetData, NeedItem } from '../types';
+import { AppData, Assignment, AssignmentStatus, EventFrame, EventFrameForExport, PersonGroup, MaterialItem, MaterialControlRow, MaterialControlFilters, TechSheetData, NeedItem } from '../types';
 import { SAFFileService } from '../services/SAFFileService';
 
 const fileService = new SAFFileService();
@@ -261,8 +261,19 @@ export const useDataStore = create<DataState>()(
           const updatedAssignment = { ...originalAssignment, ...data };
 
           // If the original status was Mixed and the new status is different, clear dailyStatuses
-          if (originalAssignment.status === "Mixt" && data.status && data.status !== "Mixt") {
-            delete updatedAssignment.dailyStatuses;
+          if (originalAssignment.status === AssignmentStatus.Mixed && data.status && data.status !== AssignmentStatus.Mixed) {
+            updatedAssignment.dailyStatuses = {};
+          }
+
+          // If daily statuses are being provided, calculate the overall status
+          if (data.dailyStatuses) {
+            const statuses = Object.values(data.dailyStatuses);
+            const uniqueStatuses = new Set(statuses);
+            if (uniqueStatuses.size === 1) {
+              updatedAssignment.status = statuses[0];
+            } else {
+              updatedAssignment.status = AssignmentStatus.Mixed;
+            }
           }
 
           state.eventFrames[eventIndex].assignments[assignmentIndex] = updatedAssignment;
