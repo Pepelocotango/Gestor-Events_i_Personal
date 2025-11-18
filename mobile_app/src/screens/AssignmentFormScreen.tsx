@@ -31,7 +31,6 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   const [notes, setNotes] = useState('');
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isEditingMixed, setIsEditingMixed] = useState(false);
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -43,9 +42,6 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
       setEndDate(new Date(originalAssignment.endDate));
       setStatus(originalAssignment.status);
       setNotes(originalAssignment.notes || '');
-      if (originalAssignment.status === AssignmentStatus.Mixed) {
-        setIsEditingMixed(true);
-      }
     }
   }, [eventFrameId, assignmentId, originalAssignment]);
 
@@ -77,25 +73,19 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
       return;
     }
 
-    const assignmentData: Partial<Omit<Assignment, 'id'>> = {
+    const assignmentData = {
         personGroupId,
         eventFrameId,
         startDate: startDate!.toISOString().split('T')[0],
         endDate: endDate!.toISOString().split('T')[0],
+        status,
         notes,
     };
-
-    // Només incloem l'estat si NO estem editant una assignació Mixta
-    if (!isEditingMixed) {
-        assignmentData.status = status;
-    }
 
     let conflictMessage: string | null = null;
     if (assignmentId) {
       conflictMessage = await updateAssignment(eventFrameId, assignmentId, assignmentData, force);
     } else {
-      // Per a noves assignacions, sempre afegim l'estat.
-      assignmentData.status = status;
       conflictMessage = await addAssignment(eventFrameId, assignmentData as Omit<Assignment, 'id'>, force);
     }
 
@@ -128,8 +118,8 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      
       <Text style={styles.label}>Persona/Grup</Text>
       <View style={[styles.pickerContainer, errors.personGroupId ? styles.inputError : null]}>
         <Picker selectedValue={personGroupId} onValueChange={(itemValue) => setPersonGroupId(itemValue)}>
@@ -162,25 +152,14 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         </View>
         {errors.datesRange && <Text style={styles.errorText}>{errors.datesRange}</Text>}
 
-      {isEditingMixed ? (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              L'estat d'aquesta assignació és 'Mixt'. Per canviar els estats de cada dia, torna a la pantalla de detall de l'esdeveniment i expandeix l'assignació.
-            </Text>
-          </View>
-      ) : (
-        <>
-            <Text style={styles.label}>Estat General</Text>
-            <View style={styles.pickerContainer}>
-                <Picker
-                selectedValue={status}
-                onValueChange={(itemValue) => setStatus(itemValue)}>
-                {Object.values(AssignmentStatus).map(s => (s !== AssignmentStatus.Mixed && <Picker.Item key={s} label={s} value={s} />))}
-                </Picker>
-            </View>
-        </>
-      )}
-
+      <Text style={styles.label}>Estat General</Text>
+      <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={status}
+            onValueChange={(itemValue) => setStatus(itemValue)}>
+            {Object.values(AssignmentStatus).map(s => (<Picker.Item key={s} label={s} value={s} />))}
+          </Picker>
+      </View>
 
       <Text style={styles.label}>Notes</Text>
       <TextInput style={styles.inputMulti} value={notes} onChangeText={setNotes} multiline />
@@ -193,9 +172,12 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
         backgroundColor: '#f5f5f5',
-      },
+    },
+    contentContainer: {
+        padding: 20,
+        paddingBottom: 60, // Espai extra per al botó de desar
+    },
       label: {
         fontSize: 16,
         marginBottom: 8,

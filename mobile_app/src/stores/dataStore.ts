@@ -42,6 +42,7 @@ interface DataState {
   updateAssignment: (eventFrameId: string, assignmentId: string, data: Partial<Omit<Assignment, 'id'>>, force?: boolean) => Promise<string | null>;
   deleteAssignment: (eventFrameId: string, assignmentId: string) => void;
   updateDailyAssignmentStatus: (eventFrameId: string, assignmentId: string, date: string, status: AssignmentStatus) => void;
+  setAllDaysAssignmentStatus: (eventFrameId: string, assignmentId: string, status: AssignmentStatus) => void;
 
   undo: () => void;
   redo: () => void;
@@ -332,6 +333,27 @@ export const useDataStore = create<DataState>()(
         assignment.status = AssignmentStatus.Pending;
       }
 
+      state.hasUnsavedChanges = true;
+    });
+  },
+
+  setAllDaysAssignmentStatus: (eventFrameId, assignmentId, status) => {
+    set(state => {
+      const eventIndex = state.eventFrames.findIndex(ef => ef.id === eventFrameId);
+      if (eventIndex === -1) return;
+
+      const assignmentIndex = state.eventFrames[eventIndex].assignments.findIndex(a => a.id === assignmentId);
+      if (assignmentIndex === -1) return;
+
+      const assignment = state.eventFrames[eventIndex].assignments[assignmentIndex];
+      
+      // No fem res si l'estat és Mixt, ja que no té sentit aplicar-lo a tots els dies
+      if (status === AssignmentStatus.Mixed) return;
+
+      assignment.status = status;
+      // Esborrem els estats diaris per assegurar consistència.
+      // La UI s'encarregarà de mostrar l'estat general per a cada dia.
+      assignment.dailyStatuses = {};
       state.hasUnsavedChanges = true;
     });
   },

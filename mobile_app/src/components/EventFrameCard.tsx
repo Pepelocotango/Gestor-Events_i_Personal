@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Assignment, EventFrame } from '../types';
+import { Assignment, AssignmentStatus, EventFrame } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
@@ -17,7 +17,7 @@ type EventFrameCardProps = {
   onEditEvent: (id: string) => void;
   onDeleteEvent: (id: string) => void;
   peopleMap: Map<string, string>;
-  navigation: StackNavigationProp<any>; // Quick fix for typing issue
+  navigation: StackNavigationProp<any>;
 };
 
 const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
@@ -36,7 +36,6 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
   );
 };
 
-
 const EventFrameCard: React.FC<EventFrameCardProps> = ({
   eventFrame,
   isExpanded,
@@ -48,34 +47,62 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
   peopleMap,
   navigation,
 }) => {
+  
+  const setAllDaysAssignmentStatus = useDataStore((state) => state.setAllDaysAssignmentStatus);
+
+  const handleEditAssignment = (assignmentId: string) => {
+    navigation.navigate('AssignmentForm', { 
+      eventFrameId: eventFrame.id, 
+      assignmentId: assignmentId 
+    });
+  };
 
   const renderAssignment = (assignment: Assignment) => {
-    const isMulti = isMultiDay(assignment.startDate, assignment.endDate);
-    const showDailyEditor = isMulti && assignment.status === 'Mixt';
+    const isAssignmentMultiDay = isMultiDay(assignment.startDate, assignment.endDate);
     const isAssignmentExpanded = expandedAssignmentIds.has(assignment.id);
+    
+    const handleSetAllDays = (status: AssignmentStatus) => {
+        setAllDaysAssignmentStatus(eventFrame.id, assignment.id, status);
+    };
 
     return (
-      <View key={assignment.id}>
+      <View key={assignment.id} style={styles.assignmentContainer}>
         <View style={styles.assignmentRow}>
           <Text style={styles.assignmentPerson}>
             {peopleMap.get(assignment.personGroupId) || 'Persona desconeguda'}
           </Text>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <View style={styles.assignmentActions}>
             <Text style={[styles.assignmentStatus, { color: getStatusColor(assignment.status) }]}>
               {assignment.status}
             </Text>
-            {showDailyEditor && (
-               <TouchableOpacity onPress={() => onToggleAssignmentExpand(assignment.id)} style={{ marginLeft: 8 }}>
-                <Icon name={isAssignmentExpanded ? "chevron-up" : "chevron-down"} size={22} color="#666" />
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity onPress={() => handleEditAssignment(assignment.id)} style={styles.actionIcon}>
+              <Icon name="pencil" size={20} color="#007AFF" />
+            </TouchableOpacity>
           </View>
         </View>
-        {isAssignmentExpanded && showDailyEditor && (
+
+        <View style={styles.statusButtonsContainer}>
+            <TouchableOpacity style={styles.statusButton} onPress={() => handleSetAllDays(AssignmentStatus.Yes)}>
+              <Text style={styles.statusButtonText}>Sí</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.statusButton} onPress={() => handleSetAllDays(AssignmentStatus.Pending)}>
+              <Text style={styles.statusButtonText}>Pendent</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.statusButton} onPress={() => handleSetAllDays(AssignmentStatus.No)}>
+              <Text style={styles.statusButtonText}>No</Text>
+            </TouchableOpacity>
+            {isAssignmentMultiDay && (
+              <TouchableOpacity style={styles.statusButton} onPress={() => onToggleAssignmentExpand(assignment.id)}>
+                 <Text style={styles.statusButtonText}>{isAssignmentExpanded ? 'Amagar' : 'Dies'}</Text>
+              </TouchableOpacity>
+            )}
+        </View>
+
+        {isAssignmentExpanded && isAssignmentMultiDay && (
           <DailyStatusEditor assignment={assignment} eventFrameId={eventFrame.id} />
         )}
       </View>
-    )
+    );
   };
 
   return (
@@ -89,8 +116,6 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
               year: 'numeric',
               month: 'long',
               day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
             })}
           </Text>
         </View>
@@ -115,7 +140,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
           {eventFrame.assignments.map(renderAssignment)}
           <TouchableOpacity
             style={styles.addPersonButton}
-            onPress={() => navigation.navigate('AssignmentForm', { eventFrameId: eventFrame.id, assignmentId: null })}
+            onPress={() => navigation.navigate('AssignmentForm', { eventFrameId: eventFrame.id })}
           >
             <Icon name="plus-circle-outline" size={20} color="#007AFF" />
             <Text style={styles.addPersonButtonText}>Afegir persona</Text>
@@ -192,17 +217,47 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 5,
       },
+      assignmentContainer: {
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+        paddingVertical: 8,
+      },
       assignmentRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         paddingVertical: 4,
       },
       assignmentPerson: {
-        fontSize: 14,
+        fontSize: 16,
+        fontWeight: '500',
+      },
+      assignmentActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
       },
       assignmentStatus: {
         fontSize: 14,
         fontWeight: 'bold',
+      },
+      actionIcon: {
+        padding: 5,
+        marginLeft: 10,
+      },
+      statusButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginTop: 8,
+      },
+      statusButton: {
+        backgroundColor: '#e0e0e0',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 15,
+        marginLeft: 8,
+      },
+      statusButtonText: {
+        fontWeight: '500',
       },
       addPersonButton: {
         flexDirection: 'row',
