@@ -12,6 +12,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
 import { EventsStackParamList } from '../navigation';
 import { Assignment } from '../types';
+import AssignmentCard from '../components/AssignmentCard';
 
 type EventDetailScreenRouteProp = RouteProp<EventsStackParamList, 'EventDetail'>;
 type EventDetailScreenNavigationProp = StackNavigationProp<
@@ -99,18 +100,22 @@ export default function EventDetailScreen({ route, navigation }: Props) {
 
       <View style={styles.card}>
         <Text style={styles.subtitle}>Assignacions</Text>
-        {event.assignments.map((assignment: Assignment) => (
-          <View key={assignment.id} style={styles.assignmentContainer}>
-            <Text>
-              <Text style={styles.bold}>
-                {peopleGroups.find((p) => p.id === assignment.personGroupId)
-                  ?.role || 'Rol'}
-                :
-              </Text>{' '}
-              {getPersonName(assignment.personGroupId) || 'No assignat'}
-            </Text>
-          </View>
-        ))}
+        {event.assignments.length > 0 ? (
+          event.assignments.map((assignment: Assignment) => (
+            <AssignmentCard
+              key={assignment.id}
+              assignment={assignment}
+              person={peopleGroups.find(
+                (p) => p.id === assignment.personGroupId
+              )}
+              navigation={navigation}
+            />
+          ))
+        ) : (
+          <Text style={styles.noAssignmentsText}>
+            No hi ha personal assignat a aquest esdeveniment.
+          </Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -165,14 +170,13 @@ const styles = StyleSheet.create({
     color: '#333',
     marginTop: 4,
   },
-  assignmentContainer: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 4,
-  },
   bold: {
     fontWeight: 'bold',
+  },
+  noAssignmentsText: {
+    marginTop: 10,
+    color: '#666',
+    fontStyle: 'italic',
   },
   errorText: {
     color: 'red',
