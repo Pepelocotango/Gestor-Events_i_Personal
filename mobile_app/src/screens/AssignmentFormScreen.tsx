@@ -22,6 +22,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   const { eventFrames, peopleGroups, addAssignment, updateAssignment } = useDataStore();
 
   const event = eventFrames.find(ef => ef.id === eventFrameId);
+  const originalAssignment = event?.assignments.find(a => a.id === assignmentId);
 
   const [personGroupId, setPersonGroupId] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(event ? new Date(event.startDate) : null);
@@ -30,26 +31,19 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   const [notes, setNotes] = useState('');
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isEditingMixed, setIsEditingMixed] = useState(false);
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   useEffect(() => {
-    if (assignmentId && event) {
-      const existingAssignment = event.assignments.find(a => a.id === assignmentId);
-      if (existingAssignment) {
-        setPersonGroupId(existingAssignment.personGroupId);
-        setStartDate(new Date(existingAssignment.startDate));
-        setEndDate(new Date(existingAssignment.endDate));
-        setStatus(existingAssignment.status);
-        setNotes(existingAssignment.notes || '');
-        if (existingAssignment.status === AssignmentStatus.Mixed) {
-          setIsEditingMixed(true);
-        }
-      }
+    if (originalAssignment) {
+      setPersonGroupId(originalAssignment.personGroupId);
+      setStartDate(new Date(originalAssignment.startDate));
+      setEndDate(new Date(originalAssignment.endDate));
+      setStatus(originalAssignment.status);
+      setNotes(originalAssignment.notes || '');
     }
-  }, [eventFrameId, assignmentId, event]);
+  }, [eventFrameId, assignmentId, originalAssignment]);
 
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
@@ -124,14 +118,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {isEditingMixed && (
-        <View style={styles.warningBox}>
-          <Text style={styles.warningText}>
-            Aquesta assignació té estats diaris personalitzats. Per editar-los, torna a la llista d'esdeveniments. Canviar l'estat aquí sobreescriurà tots els estats diaris.
-          </Text>
-        </View>
-      )}
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
 
       <Text style={styles.label}>Persona/Grup</Text>
       <View style={[styles.pickerContainer, errors.personGroupId ? styles.inputError : null]}>
@@ -167,21 +154,17 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
       <Text style={styles.label}>Estat General</Text>
       <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={status}
-          onValueChange={(itemValue) => {
-            setStatus(itemValue);
-            if (isEditingMixed) setIsEditingMixed(false);
-        }}>
-          {isEditingMixed && <Picker.Item key="mixed" label="Mixt (personalitzat)" value={AssignmentStatus.Mixed} />}
-          {Object.values(AssignmentStatus).map(s => (s !== AssignmentStatus.Mixed && <Picker.Item key={s} label={s} value={s} />))}
-        </Picker>
+          <Picker
+            selectedValue={status}
+            onValueChange={(itemValue) => setStatus(itemValue)}>
+            {Object.values(AssignmentStatus).map(s => (<Picker.Item key={s} label={s} value={s} />))}
+          </Picker>
       </View>
 
       <Text style={styles.label}>Notes</Text>
       <TextInput style={styles.inputMulti} value={notes} onChangeText={setNotes} multiline />
 
-      <Button title="Desar Assignació" onPress={() => performSave(false)} />
+      <Button title={assignmentId ? "Desar Canvis" : "Crear Assignació"} onPress={() => performSave(false)} />
     </ScrollView>
   );
 };
@@ -189,9 +172,12 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
         backgroundColor: '#f5f5f5',
-      },
+    },
+    contentContainer: {
+        padding: 20,
+        paddingBottom: 60, // Espai extra per al botó de desar
+    },
       label: {
         fontSize: 16,
         marginBottom: 8,
@@ -237,15 +223,15 @@ const styles = StyleSheet.create({
         height: 100,
         textAlignVertical: 'top',
       },
-      warningBox: {
-        backgroundColor: 'rgba(255, 193, 7, 0.1)',
-        borderLeftColor: '#FFC107',
+      infoBox: {
+        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+        borderLeftColor: '#2196F3',
         borderLeftWidth: 4,
         padding: 10,
         marginBottom: 20,
       },
-      warningText: {
-        color: '#856404',
+      infoText: {
+        color: '#0d47a1',
       },
 });
 

@@ -19,6 +19,7 @@ import MaterialScreen from './src/screens/MaterialScreen';
 import MaterialFormScreen from './src/screens/MaterialFormScreen';
 import MaterialControlScreen from './src/screens/MaterialControlScreen';
 import SummaryScreen from './src/screens/SummaryScreen';
+import CalendarScreen from './src/screens/CalendarScreen';
 import CustomHeader from './src/components/CustomHeader';
 import {
   RootTabParamList,
@@ -28,6 +29,7 @@ import {
   MaterialStackParamList,
   ControlCenterStackParamList,
   SummaryStackParamList,
+  CalendarStackParamList,
 } from './src/navigation';
 
 const EventsStack = createStackNavigator<EventsStackParamList>();
@@ -36,6 +38,7 @@ const PeopleStack = createStackNavigator<PeopleStackParamList>();
 const MaterialStack = createStackNavigator<MaterialStackParamList>();
 const ControlCenterStack = createStackNavigator<ControlCenterStackParamList>();
 const SummaryStack = createStackNavigator<SummaryStackParamList>();
+const CalendarStack = createStackNavigator<CalendarStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const commonScreenOptions = {
@@ -85,6 +88,12 @@ const SummaryStackNavigator = () => (
   </SummaryStack.Navigator>
 );
 
+const CalendarStackNavigator = () => (
+    <CalendarStack.Navigator screenOptions={commonScreenOptions}>
+        <CalendarStack.Screen name="Calendar" component={CalendarScreen} />
+    </CalendarStack.Navigator>
+);
+
 export default function App() {
   return (
     <NavigationContainer>
@@ -96,8 +105,11 @@ export default function App() {
 
             switch (route.name) {
                 case 'Events':
-                  iconName = focused ? 'calendar' : 'calendar-outline';
+                  iconName = focused ? 'list' : 'list-outline';
                   break;
+                case 'Calendar':
+                    iconName = focused ? 'calendar' : 'calendar-outline';
+                    break;
                 case 'TechSheets':
                   iconName = focused ? 'document-text' : 'document-text-outline';
                   break;
@@ -123,6 +135,7 @@ export default function App() {
           })}
         >
           <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: 'Esdeveniments' }} />
+          <Tab.Screen name="Calendar" component={CalendarStackNavigator} options={{ title: 'Calendari' }} />
           <Tab.Screen name="TechSheets" component={TechSheetsStackNavigator} options={{ title: 'Fitxes de Bolo' }} />
           <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: 'Persones' }} />
           <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: 'Material' }} />

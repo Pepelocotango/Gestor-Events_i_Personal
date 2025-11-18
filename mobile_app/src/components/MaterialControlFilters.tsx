@@ -33,33 +33,39 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
         value={filters.searchText}
         onChangeText={(val) => handleFilterChange('searchText', val)}
       />
-      <Picker
-        selectedValue={filters.selectedEventIds}
-        onValueChange={(itemValue) => handleFilterChange('selectedEventIds', [itemValue])}
-      >
-        <Picker.Item label="-- Tots els Esdeveniments --" value={[]} />
-        {eventFrames.map(ef => (
-          <Picker.Item key={ef.id} label={ef.name} value={ef.id} />
-        ))}
-      </Picker>
-      <Picker
-        selectedValue={filters.selectedOrigins}
-        onValueChange={(itemValue) => handleFilterChange('selectedOrigins', [itemValue])}
-      >
-        <Picker.Item label="-- Tots els Orígens --" value={[]} />
-        {allOrigins.map(o => (
-          <Picker.Item key={o} label={o} value={o} />
-        ))}
-      </Picker>
-      <Picker
-        selectedValue={filters.selectedCategories}
-        onValueChange={(itemValue) => handleFilterChange('selectedCategories', [itemValue])}
-      >
-        <Picker.Item label="-- Totes les Categories --" value={[]} />
-        {allCategories.map(c => (
-          <Picker.Item key={c} label={c} value={c} />
-        ))}
-      </Picker>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={filters.selectedEventIds}
+          onValueChange={(itemValue) => handleFilterChange('selectedEventIds', itemValue || '')}
+        >
+          <Picker.Item label="-- Tots els Esdeveniments --" value="" />
+          {eventFrames.map(ef => (
+            <Picker.Item key={ef.id} label={ef.name} value={ef.id} />
+          ))}
+        </Picker>
+      </View>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={filters.selectedOrigins}
+          onValueChange={(itemValue) => handleFilterChange('selectedOrigins', itemValue || '')}
+        >
+          <Picker.Item label="-- Tots els Orígens --" value="" />
+          {allOrigins.map(o => (
+            <Picker.Item key={o} label={o} value={o} />
+          ))}
+        </Picker>
+      </View>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={filters.selectedCategories}
+          onValueChange={(itemValue) => handleFilterChange('selectedCategories', itemValue || '')}
+        >
+          <Picker.Item label="-- Totes les Categories --" value="" />
+          {allCategories.map(c => (
+            <Picker.Item key={c} label={c} value={c} />
+          ))}
+        </Picker>
+      </View>
       <Button title="Netejar Filtres" onPress={clearFilters} />
     </View>
   );
@@ -72,9 +78,20 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  pickerContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    justifyContent: 'center',
   },
 });
 

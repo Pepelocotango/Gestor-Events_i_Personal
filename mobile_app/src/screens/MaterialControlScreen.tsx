@@ -10,18 +10,18 @@ const MaterialControlScreen = () => {
   const [filters, setFilters] = useState({
     searchText: '',
     dateRange: { start: '', end: '' },
-    selectedEventIds: [],
-    selectedOrigins: [],
-    selectedCategories: [],
+    selectedEventIds: '',
+    selectedOrigins: '',
+    selectedCategories: '',
   });
 
   const clearFilters = () => {
     setFilters({
       searchText: '',
       dateRange: { start: '', end: '' },
-      selectedEventIds: [],
-      selectedOrigins: [],
-      selectedCategories: [],
+      selectedEventIds: '',
+      selectedOrigins: '',
+      selectedCategories: '',
     });
   };
 

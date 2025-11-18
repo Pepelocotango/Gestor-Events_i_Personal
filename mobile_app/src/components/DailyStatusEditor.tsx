@@ -9,15 +9,15 @@ import { format } from 'date-fns';
 interface DailyStatusEditorProps {
   assignment: Assignment;
   eventFrameId: string;
+  isUnlocked: boolean; // Nova propietat
 }
 
-const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, eventFrameId }) => {
+const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, eventFrameId, isUnlocked }) => {
   const { updateDailyAssignmentStatus } = useDataStore();
   const days = getDaysBetween(assignment.startDate, assignment.endDate);
 
   const getStatusForDay = (date: Date): AssignmentStatus => {
     const dateString = format(date, 'yyyy-MM-dd');
-    // Default to 'Pendent' if no specific status is set for the day
     return assignment.dailyStatuses?.[dateString] || AssignmentStatus.Pending;
   };
 
@@ -28,7 +28,6 @@ const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, event
         AssignmentStatus.No
     ];
     const currentIndex = statuses.indexOf(currentStatus);
-    // Cycle through: Pendent -> Sí -> No -> Pendent
     const nextIndex = (currentIndex + 1) % statuses.length;
     const nextStatus = statuses[nextIndex];
 
@@ -44,8 +43,14 @@ const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, event
             <Text style={styles.dayText}>
               {day.toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'numeric' })}
             </Text>
-            <TouchableOpacity onPress={() => handleStatusChange(day, dayStatus)}>
-              <Text style={[styles.statusText, { color: getStatusColor(dayStatus) }]}>
+            <TouchableOpacity
+              onPress={() => handleStatusChange(day, dayStatus)}
+              disabled={!isUnlocked}
+            >
+              <Text style={[
+                styles.statusText,
+                { color: getStatusColor(dayStatus), opacity: isUnlocked ? 1 : 0.4 }
+              ]}>
                 {dayStatus}
               </Text>
             </TouchableOpacity>

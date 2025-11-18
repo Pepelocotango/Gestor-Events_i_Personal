@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { temporal } from 'zundo';
 import { immer } from 'zustand/middleware/immer';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,14 +41,11 @@ interface DataState {
   updateAssignment: (eventFrameId: string, assignmentId: string, data: Partial<Omit<Assignment, 'id'>>, force?: boolean) => Promise<string | null>;
   deleteAssignment: (eventFrameId: string, assignmentId: string) => void;
   updateDailyAssignmentStatus: (eventFrameId: string, assignmentId: string, date: string, status: AssignmentStatus) => void;
-
-  undo: () => void;
-  redo: () => void;
+  setAllDaysAssignmentStatus: (eventFrameId: string, assignmentId: string, status: AssignmentStatus) => void;
 }
 
 export const useDataStore = create<DataState>()(
-  temporal(
-    immer((set, get) => ({
+  immer((set, get) => ({
       fileName: null,
       eventFrames: [],
   peopleGroups: [],
@@ -336,23 +332,27 @@ export const useDataStore = create<DataState>()(
     });
   },
 
-    undo: () => {
-        // @ts-ignore
-        (get() as any).temporal.getState().undo();
-    },
+  setAllDaysAssignmentStatus: (eventFrameId, assignmentId, status) => {
+    set(state => {
+      const eventIndex = state.eventFrames.findIndex(ef => ef.id === eventFrameId);
+      if (eventIndex === -1) return;
 
-    redo: () => {
-        // @ts-ignore
-        (get() as any).temporal.getState().redo();
-    },
-})),
-{
-    partialize: (state) => {
-        const { eventFrames, peopleGroups, materialItems } = state;
-        return { eventFrames, peopleGroups, materialItems };
-    },
-    limit: 20,
-})
+      const assignmentIndex = state.eventFrames[eventIndex].assignments.findIndex(a => a.id === assignmentId);
+      if (assignmentIndex === -1) return;
+
+      const assignment = state.eventFrames[eventIndex].assignments[assignmentIndex];
+
+      // No fem res si l'estat és Mixt, ja que no té sentit aplicar-lo a tots els dies
+      if (status === AssignmentStatus.Mixed) return;
+
+      assignment.status = status;
+      // Esborrem els estats diaris per assegurar consistència.
+      // La UI s'encarregarà de mostrar l'estat general per a cada dia.
+      assignment.dailyStatuses = {};
+      state.hasUnsavedChanges = true;
+    });
+  },
+}))
 );
 
 // --- Selectors ---
@@ -366,10 +366,14 @@ export const selectMaterialControlData = (
   state: { eventFrames: EventFrame[], materialItems: MaterialItem[] },
   filters: MaterialControlFilters
 ): MaterialControlRow[] => {
-  const { selectedEventIds, dateRange, selectedOrigins, selectedCategories, searchText } = filters;
+  const { dateRange, searchText } = filters;
   const { materialItems, eventFrames } = state;
 
-  const isPeakDemandActive = (selectedEventIds && selectedEventIds.length > 0) || (dateRange && (dateRange.start || dateRange.end));
+  const selectedEventIds = filters.selectedEventIds ? [filters.selectedEventIds] : [];
+  const selectedOrigins = filters.selectedOrigins ? [filters.selectedOrigins] : [];
+  const selectedCategories = filters.selectedCategories ? [filters.selectedCategories] : [];
+
+  const isPeakDemandActive = (selectedEventIds.length > 0) || (dateRange && (dateRange.start || dateRange.end));
 
   if (!isPeakDemandActive) {
     const allRows = materialItems.map(item => ({
@@ -380,8 +384,8 @@ export const selectMaterialControlData = (
     }));
 
     return allRows.filter(row => {
-      if (selectedOrigins && selectedOrigins.length > 0 && !selectedOrigins.includes(row.item.location)) return false;
-      if (selectedCategories && selectedCategories.length > 0 && !selectedCategories.includes(row.item.category)) return false;
+      if (selectedOrigins.length > 0 && !selectedOrigins.includes(row.item.location)) return false;
+      if (selectedCategories.length > 0 && !selectedCategories.includes(row.item.category)) return false;
       if (searchText && searchText.trim()) {
         const lowerCaseSearch = searchText.toLowerCase();
         return row.item.name.toLowerCase().includes(lowerCaseSearch) ||
@@ -393,7 +397,7 @@ export const selectMaterialControlData = (
   }
 
   let relevantEvents = eventFrames;
-  if (selectedEventIds && selectedEventIds.length > 0) {
+  if (selectedEventIds.length > 0) {
     const eventIdSet = new Set(selectedEventIds);
     relevantEvents = eventFrames.filter(ef => eventIdSet.has(ef.id));
   } else if (dateRange && (dateRange.start || dateRange.end)) {
@@ -473,11 +477,11 @@ export const selectMaterialControlData = (
   });
 
   return resultRows.filter(row => {
-    if (row.totalDemand === 0 && selectedEventIds && selectedEventIds.length > 0) {
+    if (row.totalDemand === 0 && selectedEventIds.length > 0) {
         return false;
     }
-    if (selectedOrigins && selectedOrigins.length > 0 && !selectedOrigins.includes(row.item.location)) return false;
-    if (selectedCategories && selectedCategories.length > 0 && !selectedCategories.includes(row.item.category)) return false;
+    if (selectedOrigins.length > 0 && !selectedOrigins.includes(row.item.location)) return false;
+    if (selectedCategories.length > 0 && !selectedCategories.includes(row.item.category)) return false;
     if (searchText && searchText.trim()) {
       const lowerCaseSearch = searchText.toLowerCase();
       return row.item.name.toLowerCase().includes(lowerCaseSearch) ||

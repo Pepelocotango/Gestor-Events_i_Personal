@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
-import { useStore } from 'zustand';
 import { SAFFileService } from '../services/SAFFileService';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -22,15 +21,9 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     setData,
     clearData,
     saveData,
-    undo,
-    redo,
   } = useDataStore();
 
   const canGoBack = navigation.canGoBack();
-
-  const { pastStates, futureStates } = useStore(useDataStore.temporal);
-  const canUndo = pastStates.length > 0;
-  const canRedo = futureStates.length > 0;
 
   const handleOpenFile = async () => {
     const openAndSetData = async () => {
@@ -94,12 +87,6 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
               <Icon name="arrow-left" size={28} color="#333" />
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={undo} disabled={!canUndo}>
-            <Icon name="undo-variant" size={28} color={canUndo ? '#333' : '#ccc'} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={redo} disabled={!canRedo}>
-            <Icon name="redo-variant" size={28} color={canRedo ? '#333' : '#ccc'} />
-          </TouchableOpacity>
         </View>
         <View style={styles.buttonGroup}>
           {fileName ? (
@@ -125,8 +112,8 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 40,
-    paddingBottom: 10,
+    paddingTop: 35, // Reduït
+    paddingBottom: 8, // Reduït
     paddingHorizontal: 15,
     backgroundColor: '#f8f8f8',
     borderBottomWidth: 1,
@@ -134,11 +121,12 @@ const styles = StyleSheet.create({
   },
   topRow: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8, // Reduït
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 14, // Reduït
+    color: '#666', // Atenuat per a menys èmfasi
+    fontWeight: 'normal',
   },
   bottomRow: {
     flexDirection: 'row',

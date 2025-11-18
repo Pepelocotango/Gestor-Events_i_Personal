@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { EventsStackParamList } from '../navigation';
 import { EventFrame } from '../types';
 import EventFrameCard from '../components/EventFrameCard';
@@ -25,7 +26,19 @@ const EventsScreen = ({ navigation }: Props) => {
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [expandedAssignmentIds, setExpandedAssignmentIds] = useState<Set<string>>(new Set());
+  const [unlockedAssignmentIds, setUnlockedAssignmentIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({ text: '', person: '', status: '', date: '', place: '', eventFrame: '' });
+
+  useFocusEffect(
+    useCallback(() => {
+      // S'executa quan la pantalla guanya el focus
+      return () => {
+        // S'executa quan la pantalla perd el focus
+        setUnlockedAssignmentIds(new Set());
+        setExpandedAssignmentIds(new Set());
+      };
+    }, [])
+  );
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showArchived, setShowArchived] = useState(false);
 
@@ -93,6 +106,24 @@ const EventsScreen = ({ navigation }: Props) => {
     });
   }, []);
 
+  const toggleAssignmentLock = useCallback((assignmentId: string) => {
+    setUnlockedAssignmentIds(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(assignmentId)) {
+            newSet.delete(assignmentId);
+        } else {
+            newSet.add(assignmentId);
+        }
+        return newSet;
+    });
+    // Ensure assignment is not expanded when locked
+    setExpandedAssignmentIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(assignmentId);
+        return newSet;
+    });
+  }, []);
+
   const clearFilters = () => setFilters({ text: '', person: '', status: '', date: '', place: '', eventFrame: '' });
 
   const handleDelete = useCallback((id: string) => {
@@ -137,6 +168,8 @@ const EventsScreen = ({ navigation }: Props) => {
             onToggleExpand={toggleExpand}
             expandedAssignmentIds={expandedAssignmentIds}
             onToggleAssignmentExpand={toggleAssignmentExpand}
+            unlockedAssignmentIds={unlockedAssignmentIds}
+            onToggleAssignmentLock={toggleAssignmentLock}
             onEditEvent={(id) => navigation.navigate('EventForm', { eventId: id })}
             onDeleteEvent={handleDelete}
             peopleMap={peopleMap}

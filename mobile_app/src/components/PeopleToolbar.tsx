@@ -26,9 +26,6 @@ const PeopleToolbar: React.FC<PeopleToolbarProps> = ({
       <TouchableOpacity onPress={onSort} style={styles.iconButton}>
         <Icon name="sort" size={24} color="#333" />
       </TouchableOpacity>
-      <TouchableOpacity onPress={onFilter} style={styles.iconButton}>
-        <Icon name="filter-variant" size={24} color="#333" />
-      </TouchableOpacity>
     </View>
   );
 };

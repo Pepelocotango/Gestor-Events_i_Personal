@@ -54,6 +54,7 @@ const MaterialControlList: React.FC<MaterialControlListProps> = ({ data }) => {
       renderItem={renderItem}
       keyExtractor={item => item.item.id}
       ListEmptyComponent={<Text style={styles.emptyText}>No s'han trobat resultats.</Text>}
+      contentContainerStyle={{ paddingBottom: 80 }}
     />
   );
 };
