@@ -25,7 +25,7 @@ interface DataState {
   clearData: () => void;
   saveData: () => Promise<void>;
 
-  addEventFrame: (data: NewEventData) => void;
+  addEventFrame: (data: NewEventData) => EventFrame;
   updateEventFrame: (eventId: string, data: Partial<NewEventData>) => void;
   deleteEventFrame: (eventId: string) => void;
 
@@ -122,6 +122,7 @@ export const useDataStore = create<DataState>()(
       eventFrames: [...state.eventFrames, newEvent],
       hasUnsavedChanges: true,
     }));
+    return newEvent;
   },
 
   updateEventFrame: (eventId, data) => {
@@ -249,20 +250,26 @@ export const useDataStore = create<DataState>()(
       }
     }
 
-    set(state => ({
-      eventFrames: state.eventFrames.map(ef => {
-        if (ef.id === eventFrameId) {
-          return {
-            ...ef,
-            assignments: ef.assignments.map(a =>
-              a.id === assignmentId ? { ...a, ...data } : a
-            ),
-          };
+    set(state => {
+      const eventIndex = state.eventFrames.findIndex(ef => ef.id === eventFrameId);
+      if (eventIndex !== -1) {
+        const assignmentIndex = state.eventFrames[eventIndex].assignments.findIndex(a => a.id === assignmentId);
+        if (assignmentIndex !== -1) {
+          const originalAssignment = state.eventFrames[eventIndex].assignments[assignmentIndex];
+
+          // Create the updated assignment object
+          const updatedAssignment = { ...originalAssignment, ...data };
+
+          // If the original status was Mixed and the new status is different, clear dailyStatuses
+          if (originalAssignment.status === "Mixt" && data.status && data.status !== "Mixt") {
+            delete updatedAssignment.dailyStatuses;
+          }
+
+          state.eventFrames[eventIndex].assignments[assignmentIndex] = updatedAssignment;
+          state.hasUnsavedChanges = true;
         }
-        return ef;
-      }),
-      hasUnsavedChanges: true,
-    }));
+      }
+    });
     return null;
   },
 
