@@ -190,9 +190,9 @@ export interface MaterialControlRow {
 }
 
 export interface MaterialControlFilters {
-  selectedEventIds?: string[];
-  selectedOrigins?: string[];
-  selectedCategories?: string[];
+  selectedEventIds?: string;
+  selectedOrigins?: string;
+  selectedCategories?: string;
   searchText?: string;
   dateRange?: { start?: string; end?: string };
 }

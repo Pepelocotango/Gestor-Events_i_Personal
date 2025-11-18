@@ -83,11 +83,31 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
     return `${formattedStart} - ${formattedEnd}`;
   };
 
+  const setAllDaysAssignmentStatus = useDataStore((state) => state.setAllDaysAssignmentStatus);
+
+  const handleEditAssignment = (assignmentId: string) => {
+    navigation.navigate('AssignmentForm', {
+      eventFrameId: eventFrame.id,
+      assignmentId: assignmentId
+    });
+  };
+
+  const formatDateRange = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const formattedStart = format(startDate, 'dd/MM/yyyy', { locale: ca });
+    if (!isMultiDay(start, end)) {
+      return formattedStart;
+    }
+    const formattedEnd = format(endDate, 'dd/MM/yyyy', { locale: ca });
+    return `${formattedStart} - ${formattedEnd}`;
+  };
+
   const renderAssignment = (assignment: Assignment) => {
     const isAssignmentMultiDay = isMultiDay(assignment.startDate, assignment.endDate);
     const isAssignmentExpanded = expandedAssignmentIds.has(assignment.id);
     const isUnlocked = unlockedAssignmentIds.has(assignment.id);
-    
+
     const handleStatusPress = () => {
         if (!isUnlocked) return;
         const nextStatus = getNextStatus(assignment.status);
@@ -129,9 +149,9 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
         )}
 
         {isAssignmentExpanded && isAssignmentMultiDay && (
-          <DailyStatusEditor 
-            assignment={assignment} 
-            eventFrameId={eventFrame.id} 
+          <DailyStatusEditor
+            assignment={assignment}
+            eventFrameId={eventFrame.id}
             isUnlocked={isUnlocked}
           />
         )}
@@ -266,7 +286,7 @@ const styles = StyleSheet.create({
       assignmentPersonContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        flex: 1, 
+        flex: 1,
       },
       lockIcon: {
         marginRight: 8,

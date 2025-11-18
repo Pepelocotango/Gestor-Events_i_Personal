@@ -1,3 +1,5 @@
+import { NavigatorScreenParams } from '@react-navigation/native';
+
 export type EventsStackParamList = {
   EventList: undefined;
   EventDetail: { eventId: string };
@@ -29,8 +31,13 @@ export type SummaryStackParamList = {
   Summary: undefined;
 };
 
+export type CalendarStackParamList = {
+    Calendar: undefined;
+};
+
 export type RootTabParamList = {
-  Events: undefined;
+  Events: NavigatorScreenParams<EventsStackParamList>;
+  Calendar: undefined;
   TechSheets: undefined;
   People: undefined;
   Material: undefined;

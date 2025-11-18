@@ -31,9 +31,6 @@ const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
         <TouchableOpacity onPress={onSort} style={styles.iconButton}>
           <Icon name="sort" size={24} color="#333" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={onFilter} style={styles.iconButton}>
-          <Icon name="filter-variant" size={24} color="#333" />
-        </TouchableOpacity>
       </View>
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.toggleButton} onPress={toggleAllCategories}>

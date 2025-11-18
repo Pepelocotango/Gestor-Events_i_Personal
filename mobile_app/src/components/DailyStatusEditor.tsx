@@ -43,12 +43,12 @@ const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, event
             <Text style={styles.dayText}>
               {day.toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'numeric' })}
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => handleStatusChange(day, dayStatus)}
               disabled={!isUnlocked}
             >
               <Text style={[
-                styles.statusText, 
+                styles.statusText,
                 { color: getStatusColor(dayStatus), opacity: isUnlocked ? 1 : 0.4 }
               ]}>
                 {dayStatus}

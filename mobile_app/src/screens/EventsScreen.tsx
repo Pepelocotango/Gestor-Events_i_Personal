@@ -39,7 +39,6 @@ const EventsScreen = ({ navigation }: Props) => {
       };
     }, [])
   );
-
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showArchived, setShowArchived] = useState(false);
 

@@ -119,7 +119,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      
+
       <Text style={styles.label}>Persona/Grup</Text>
       <View style={[styles.pickerContainer, errors.personGroupId ? styles.inputError : null]}>
         <Picker selectedValue={personGroupId} onValueChange={(itemValue) => setPersonGroupId(itemValue)}>
