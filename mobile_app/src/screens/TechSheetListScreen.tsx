@@ -11,6 +11,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
 import { TechSheetsStackParamList } from '../navigation';
 import { EventFrame } from '../types';
+import { formatDate } from '../utils/dateFormat';
 
 type TechSheetListScreenNavigationProp = StackNavigationProp<
   TechSheetsStackParamList,
@@ -20,9 +21,6 @@ type TechSheetListScreenNavigationProp = StackNavigationProp<
 type Props = {
   navigation: TechSheetListScreenNavigationProp;
 };
-
-const formatDate = (dateString: string) =>
-  new Date(dateString).toLocaleDateString();
 
 export default function TechSheetListScreen({ navigation }: Props) {
   const isLoading = useDataStore((state) => state.isLoading);

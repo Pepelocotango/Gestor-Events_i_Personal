@@ -1,19 +1,51 @@
-export function formatDateDMY(dateStr?: string | null): string {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return dateStr;
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
-// Format de rang de dates dd/mm/yyyy - dd/mm/yyyy
-export function formatDateRangeDMY(start?: string | null, end?: string | null): string {
-  const startFormatted = formatDateDMY(start);
-  const endFormatted = formatDateDMY(end);
-  if (startFormatted && endFormatted && startFormatted !== endFormatted) {
-    return `${startFormatted} - ${endFormatted}`;
+export const formatDate = (dateString: string | undefined | null): string => {
+  if (!dateString) {
+    return 'No especificat';
   }
-  return startFormatted || '';
-}
+
+  // Intenta parsejar directament, funciona per a formats ISO (YYYY-MM-DD)
+  const isoDate = new Date(dateString);
+  if (!isNaN(isoDate.getTime())) {
+    return isoDate.toLocaleDateString();
+  }
+
+  // Si falla, intenta parsejar el format 'dd/mm/yyyy'
+  const parts = dateString.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Els mesos a JS són de 0 a 11
+    const year = parseInt(parts[2], 10);
+
+    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+      const ddmmyyyyDate = new Date(year, month, day);
+      if (!isNaN(ddmmyyyyDate.getTime())) {
+        return ddmmyyyyDate.toLocaleDateString();
+      }
+    }
+  }
+
+  // Si tot falla, retorna la data original
+  return dateString;
+};
+
+export const formatDateRangeDMY = (start: string, end: string): string => {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return 'Dates invàlides';
+  }
+
+  const startDay = startDate.getDate().toString().padStart(2, '0');
+  const startMonth = (startDate.getMonth() + 1).toString().padStart(2, '0');
+  const startYear = startDate.getFullYear();
+
+  const endDay = endDate.getDate().toString().padStart(2, '0');
+  const endMonth = (endDate.getMonth() + 1).toString().padStart(2, '0');
+
+  if (start.split('T')[0] === end.split('T')[0]) {
+    return `${startDay}/${startMonth}/${startYear}`;
+  }
+
+  return `${startDay}/${startMonth} - ${endDay}/${endMonth}`;
+};
