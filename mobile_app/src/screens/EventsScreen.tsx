@@ -24,6 +24,7 @@ const EventsScreen = ({ navigation }: Props) => {
   } = useDataStore();
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [expandedAssignmentIds, setExpandedAssignmentIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({ text: '', person: '', status: '', date: '', place: '', eventFrame: '' });
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showArchived, setShowArchived] = useState(false);
@@ -80,6 +81,18 @@ const EventsScreen = ({ navigation }: Props) => {
     });
   }, []);
 
+  const toggleAssignmentExpand = useCallback((assignmentId: string) => {
+    setExpandedAssignmentIds(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(assignmentId)) {
+            newSet.delete(assignmentId);
+        } else {
+            newSet.add(assignmentId);
+        }
+        return newSet;
+    });
+  }, []);
+
   const clearFilters = () => setFilters({ text: '', person: '', status: '', date: '', place: '', eventFrame: '' });
 
   const handleDelete = useCallback((id: string) => {
@@ -122,6 +135,8 @@ const EventsScreen = ({ navigation }: Props) => {
             eventFrame={item}
             isExpanded={expandedIds.has(item.id)}
             onToggleExpand={toggleExpand}
+            expandedAssignmentIds={expandedAssignmentIds}
+            onToggleAssignmentExpand={toggleAssignmentExpand}
             onEditEvent={(id) => navigation.navigate('EventForm', { eventId: id })}
             onDeleteEvent={handleDelete}
             peopleMap={peopleMap}

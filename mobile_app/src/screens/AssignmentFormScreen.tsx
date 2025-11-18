@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert, TouchableOpacity, Platform } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -29,23 +29,11 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   const [status, setStatus] = useState<AssignmentStatus>(AssignmentStatus.Pending);
   const [notes, setNotes] = useState('');
 
-  const [dailyStatuses, setDailyStatuses] = useState<Record<string, AssignmentStatus>>({});
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isEditingMixed, setIsEditingMixed] = useState(false);
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-
-  const dateRange = useMemo(() => {
-    if (!startDate || !endDate || startDate > endDate) return [];
-    const dates: Date[] = [];
-    let currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-        dates.push(new Date(currentDate));
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return dates;
-  }, [startDate, endDate]);
 
   useEffect(() => {
     if (assignmentId && event) {
@@ -56,7 +44,6 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         setEndDate(new Date(existingAssignment.endDate));
         setStatus(existingAssignment.status);
         setNotes(existingAssignment.notes || '');
-        setDailyStatuses(existingAssignment.dailyStatuses || {});
         if (existingAssignment.status === AssignmentStatus.Mixed) {
           setIsEditingMixed(true);
         }
@@ -92,7 +79,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
       return;
     }
 
-    const assignmentData: Partial<Assignment> = {
+    const assignmentData = {
         personGroupId,
         eventFrameId,
         startDate: startDate!.toISOString().split('T')[0],
@@ -101,16 +88,10 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         notes,
     };
 
-    if (isEditingMixed || status === AssignmentStatus.Mixed) {
-        assignmentData.dailyStatuses = dailyStatuses;
-    }
-
     let conflictMessage: string | null = null;
     if (assignmentId) {
       conflictMessage = await updateAssignment(eventFrameId, assignmentId, assignmentData, force);
     } else {
-      // dailyStatuses only makes sense for updates
-      delete assignmentData.dailyStatuses;
       conflictMessage = await addAssignment(eventFrameId, assignmentData as Omit<Assignment, 'id'>, force);
     }
 
@@ -138,12 +119,6 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
     if (selectedDate) setEndDate(selectedDate);
   };
 
-  const handleDailyStatusChange = (dateISO: string, newStatus: AssignmentStatus) => {
-    setDailyStatuses(prev => ({...prev, [dateISO]: newStatus}));
-    if (!isEditingMixed) setIsEditingMixed(true);
-    if (status !== AssignmentStatus.Mixed) setStatus(AssignmentStatus.Mixed);
-  };
-
   if (!event) {
     return <View style={styles.container}><Text>No s'ha trobat l'esdeveniment pare.</Text></View>;
   }
@@ -153,7 +128,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
       {isEditingMixed && (
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
-            Estàs editant estats diaris. L'estat general es calcularà automàticament.
+            Aquesta assignació té estats diaris personalitzats. Per editar-los, torna a la llista d'esdeveniments. Canviar l'estat aquí sobreescriurà tots els estats diaris.
           </Text>
         </View>
       )}
@@ -197,34 +172,11 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
           onValueChange={(itemValue) => {
             setStatus(itemValue);
             if (isEditingMixed) setIsEditingMixed(false);
-            if (itemValue !== AssignmentStatus.Mixed) setDailyStatuses({});
         }}>
           {isEditingMixed && <Picker.Item key="mixed" label="Mixt (personalitzat)" value={AssignmentStatus.Mixed} />}
           {Object.values(AssignmentStatus).map(s => (s !== AssignmentStatus.Mixed && <Picker.Item key={s} label={s} value={s} />))}
         </Picker>
       </View>
-
-      {assignmentId && dateRange.length > 0 && (
-        <View style={styles.dailyStatusContainer}>
-            <Text style={styles.label}>Estats Diaris</Text>
-            {dateRange.map(date => {
-                const dateISO = date.toISOString().split('T')[0];
-                const currentStatus = dailyStatuses[dateISO] || (status !== AssignmentStatus.Mixed ? status : AssignmentStatus.Pending);
-                return (
-                    <View key={dateISO} style={styles.dailyRow}>
-                        <Text style={styles.dailyDate}>{formatDateDMY(dateISO)}</Text>
-                        <Picker
-                            style={styles.dailyPicker}
-                            selectedValue={currentStatus}
-                            onValueChange={(itemValue) => handleDailyStatusChange(dateISO, itemValue)}
-                        >
-                            {Object.values(AssignmentStatus).map(s => (s !== AssignmentStatus.Mixed && <Picker.Item key={s} label={s} value={s} />))}
-                        </Picker>
-                    </View>
-                )
-            })}
-        </View>
-      )}
 
       <Text style={styles.label}>Notes</Text>
       <TextInput style={styles.inputMulti} value={notes} onChangeText={setNotes} multiline />
@@ -234,7 +186,6 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   );
 };
 
-// ... (styles remain the same)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -296,26 +247,6 @@ const styles = StyleSheet.create({
       warningText: {
         color: '#856404',
       },
-      dailyStatusContainer: {
-        marginVertical: 10,
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        padding: 10,
-        borderWidth: 1,
-        borderColor: '#ddd'
-      },
-      dailyRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 5,
-      },
-      dailyDate: {
-        fontSize: 16,
-      },
-      dailyPicker: {
-        width: 150,
-      }
 });
 
 export default AssignmentFormScreen;

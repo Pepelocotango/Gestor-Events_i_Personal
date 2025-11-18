@@ -1,15 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { EventFrame } from '../types';
+import { Assignment, EventFrame } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
 import { getStatusColor } from '../utils/statusUtils';
+import { isMultiDay } from '../utils/dates';
+import DailyStatusEditor from './DailyStatusEditor';
 
 type EventFrameCardProps = {
   eventFrame: EventFrame;
   isExpanded: boolean;
   onToggleExpand: (id: string) => void;
+  expandedAssignmentIds: Set<string>;
+  onToggleAssignmentExpand: (assignmentId: string) => void;
   onEditEvent: (id: string) => void;
   onDeleteEvent: (id: string) => void;
   peopleMap: Map<string, string>;
@@ -37,11 +41,43 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
   eventFrame,
   isExpanded,
   onToggleExpand,
+  expandedAssignmentIds,
+  onToggleAssignmentExpand,
   onEditEvent,
   onDeleteEvent,
   peopleMap,
   navigation,
 }) => {
+
+  const renderAssignment = (assignment: Assignment) => {
+    const isMulti = isMultiDay(assignment.startDate, assignment.endDate);
+    const showDailyEditor = isMulti && assignment.status === 'Mixt';
+    const isAssignmentExpanded = expandedAssignmentIds.has(assignment.id);
+
+    return (
+      <View key={assignment.id}>
+        <View style={styles.assignmentRow}>
+          <Text style={styles.assignmentPerson}>
+            {peopleMap.get(assignment.personGroupId) || 'Persona desconeguda'}
+          </Text>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Text style={[styles.assignmentStatus, { color: getStatusColor(assignment.status) }]}>
+              {assignment.status}
+            </Text>
+            {showDailyEditor && (
+               <TouchableOpacity onPress={() => onToggleAssignmentExpand(assignment.id)} style={{ marginLeft: 8 }}>
+                <Icon name={isAssignmentExpanded ? "chevron-up" : "chevron-down"} size={22} color="#666" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+        {isAssignmentExpanded && showDailyEditor && (
+          <DailyStatusEditor assignment={assignment} eventFrameId={eventFrame.id} />
+        )}
+      </View>
+    )
+  };
+
   return (
     <View style={styles.card}>
       <TouchableOpacity onPress={() => onToggleExpand(eventFrame.id)} style={styles.header}>
@@ -76,19 +112,10 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
           ) : null}
 
           <Text style={styles.assignmentsTitle}>Personal assignat:</Text>
-          {eventFrame.assignments.map(assignment => (
-            <View key={assignment.id} style={styles.assignmentRow}>
-              <Text style={styles.assignmentPerson}>
-                {peopleMap.get(assignment.personGroupId) || 'Persona desconeguda'}
-              </Text>
-              <Text style={[styles.assignmentStatus, { color: getStatusColor(assignment.status) }]}>
-                {assignment.status}
-              </Text>
-            </View>
-          ))}
+          {eventFrame.assignments.map(renderAssignment)}
           <TouchableOpacity
             style={styles.addPersonButton}
-            onPress={() => navigation.navigate('AssignmentForm', { eventFrameId: eventFrame.id })}
+            onPress={() => navigation.navigate('AssignmentForm', { eventFrameId: eventFrame.id, assignmentId: null })}
           >
             <Icon name="plus-circle-outline" size={20} color="#007AFF" />
             <Text style={styles.addPersonButtonText}>Afegir persona</Text>

@@ -41,6 +41,7 @@ interface DataState {
   addAssignment: (eventFrameId: string, data: Omit<Assignment, 'id'>, force?: boolean) => Promise<string | null>;
   updateAssignment: (eventFrameId: string, assignmentId: string, data: Partial<Omit<Assignment, 'id'>>, force?: boolean) => Promise<string | null>;
   deleteAssignment: (eventFrameId: string, assignmentId: string) => void;
+  updateDailyAssignmentStatus: (eventFrameId: string, assignmentId: string, date: string, status: AssignmentStatus) => void;
 
   undo: () => void;
   redo: () => void;
@@ -297,6 +298,42 @@ export const useDataStore = create<DataState>()(
       }),
       hasUnsavedChanges: true,
     }));
+  },
+
+  updateDailyAssignmentStatus: (eventFrameId, assignmentId, date, status) => {
+    set(state => {
+      const eventIndex = state.eventFrames.findIndex(ef => ef.id === eventFrameId);
+      if (eventIndex === -1) return;
+
+      const assignmentIndex = state.eventFrames[eventIndex].assignments.findIndex(a => a.id === assignmentId);
+      if (assignmentIndex === -1) return;
+
+      const assignment = state.eventFrames[eventIndex].assignments[assignmentIndex];
+
+      if (!assignment.dailyStatuses) {
+        assignment.dailyStatuses = {};
+      }
+
+      assignment.dailyStatuses[date] = status;
+
+      // Determine the new overall status
+      const dayStatuses = Object.values(assignment.dailyStatuses).filter(Boolean) as AssignmentStatus[];
+      if (dayStatuses.length > 0) {
+        const uniqueStatuses = new Set(dayStatuses);
+        if (uniqueStatuses.size === 1) {
+          // If there's only one unique status, all statuses in the array are the same.
+          // We can safely take the first one.
+          assignment.status = dayStatuses[0];
+        } else {
+          assignment.status = AssignmentStatus.Mixed;
+        }
+      } else {
+        // If all daily statuses are cleared, revert to Pending
+        assignment.status = AssignmentStatus.Pending;
+      }
+
+      state.hasUnsavedChanges = true;
+    });
   },
 
     undo: () => {
