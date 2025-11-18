@@ -317,3 +317,5 @@ const styles = StyleSheet.create({
         width: 150,
       }
 });
+
+export default AssignmentFormScreen;
