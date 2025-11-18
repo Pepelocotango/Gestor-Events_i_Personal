@@ -72,6 +72,22 @@ L'aplicació es divideix en cinc pestanyes principals, cadascuna amb la seva pr�
   - **Accions a la Targeta (expandida)**:
     - **<Icona `pencil`>**: Obre el formulari per editar l'esdeveniment.
     - **<Icona `delete`>**: Elimina l'esdeveniment (amb confirmació).
+    - **Botó "Veure Fitxa de Bolo"**: Si l'esdeveniment té una fitxa associada, apareix un botó que porta a la pantalla de només lectura `TechSheetDetailScreen`.
+
+#### 1.1. Pantalla de Detall de l'Esdeveniment (`EventDetailScreen`)
+
+Accessible en fer clic a una targeta d'esdeveniment. Mostra una vista detallada de l'esdeveniment i les seves assignacions. Des d'aquí també es pot navegar a la fitxa de bolo.
+
+#### 1.2. Pantalla de Visualització de Fitxa de Bolo (`TechSheetDetailScreen`)
+
+- **Propòsit**: Mostra una versió de **només lectura** de la fitxa de bolo.
+- **Estructura**:
+  - **Informació General**: Nom, lloc, data.
+  - **Personal Tècnic**: Llista de proveïdors i rols.
+  - **Horaris**: Planning de muntatge.
+  - **Necessitats Tècniques**: Seccions per a llums, so, vídeo, etc.
+  - **Contactes i Observacions**.
+- **Interacció**: No hi ha camps editables, només visualització de dades.
 
 ---
 

@@ -1,6 +1,7 @@
 export type EventsStackParamList = {
   EventList: undefined;
   EventDetail: { eventId: string };
+  TechSheetDetail: { eventId: string };
   EventForm: { eventId?: string };
   AssignmentForm: { eventFrameId: string; assignmentId?: string };
 };

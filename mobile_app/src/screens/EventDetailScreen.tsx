@@ -85,6 +85,16 @@ export default function EventDetailScreen({ route, navigation }: Props) {
         <Text style={styles.notes}>
           {event.generalNotes || 'No hi ha notes.'}
         </Text>
+        {event.techSheet && (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('TechSheetDetail', { eventId: event.id })
+            }
+          >
+            <Text style={styles.buttonText}>Veure Fitxa de Bolo</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.card}>

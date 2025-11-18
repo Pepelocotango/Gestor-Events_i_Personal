@@ -46,6 +46,7 @@ const EventsStackNavigator = () => (
   <EventsStack.Navigator screenOptions={commonScreenOptions}>
     <EventsStack.Screen name="EventList" component={EventsScreen} />
     <EventsStack.Screen name="EventDetail" component={EventDetailScreen} />
+    <EventsStack.Screen name="TechSheetDetail" component={TechSheetDetailScreen} />
     <EventsStack.Screen name="EventForm" component={EventFormScreen} />
     <EventsStack.Screen name="AssignmentForm" component={AssignmentFormScreen} />
   </EventsStack.Navigator>
