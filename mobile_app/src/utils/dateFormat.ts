@@ -28,6 +28,17 @@ export const formatDate = (dateString: string | undefined | null): string => {
   return dateString;
 };
 
+export const formatDateDMY = (dateString: string): string => {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'Data invàlida';
+  }
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 export const formatDateRangeDMY = (start: string, end: string): string => {
   const startDate = new Date(start);
   const endDate = new Date(end);
