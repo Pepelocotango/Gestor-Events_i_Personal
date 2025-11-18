@@ -63,28 +63,40 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({ assignment, person, nav
     const end = new Date(assignment.endDate);
     const days = eachDayOfInterval({ start, end });
 
-    return days.map((day) => {
-      const dateKey = format(day, 'yyyy-MM-dd');
-      const currentStatus = assignment.dailyStatuses?.[dateKey] || assignment.status;
-      const displayStatus = currentStatus === AssignmentStatus.Mixed ? AssignmentStatus.Pending : currentStatus;
+    return (
+      <>
+        {days.map((day) => {
+          const dateKey = format(day, 'yyyy-MM-dd');
+          const currentStatus = assignment.dailyStatuses?.[dateKey] || assignment.status;
+          const displayStatus = currentStatus === AssignmentStatus.Mixed ? AssignmentStatus.Pending : currentStatus;
 
-      return (
-        <View key={dateKey} style={styles.dayRow}>
-          <Text style={styles.dayText}>{format(day, 'eeee, dd/MM', { locale: ca })}</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={displayStatus}
-              onValueChange={(itemValue) => handleStatusChange(dateKey, itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Sí" value={AssignmentStatus.Yes} />
-              <Picker.Item label="No" value={AssignmentStatus.No} />
-              <Picker.Item label="Pendent" value={AssignmentStatus.Pending} />
-            </Picker>
-          </View>
+          return (
+            <View key={dateKey} style={styles.dayRow}>
+              <Text style={styles.dayText}>{format(day, 'eeee, dd/MM', { locale: ca })}</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={displayStatus}
+                  onValueChange={(itemValue) => handleStatusChange(dateKey, itemValue)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Sí" value={AssignmentStatus.Yes} />
+                  <Picker.Item label="No" value={AssignmentStatus.No} />
+                  <Picker.Item label="Pendent" value={AssignmentStatus.Pending} />
+                </Picker>
+              </View>
+            </View>
+          );
+        })}
+        <View style={styles.expandedActionButtons}>
+          <TouchableOpacity onPress={handleEdit} style={[styles.button, styles.editButton]}>
+            <Text style={styles.buttonText}>Editar Assignació</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDelete} style={[styles.button, styles.deleteButton]}>
+            <Text style={styles.buttonText}>Eliminar Assignació</Text>
+          </TouchableOpacity>
         </View>
-      );
-    });
+      </>
+    );
   };
 
   return (
@@ -101,17 +113,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({ assignment, person, nav
 
       {assignment.notes ? <Text style={styles.notes}>{assignment.notes}</Text> : null}
 
-      <View style={styles.actionButtons}>
-        <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} style={[styles.button, styles.viewButton]}>
-          <Text style={styles.buttonText}>{isExpanded ? 'Amagar' : 'Dies'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleEdit} style={[styles.button, styles.editButton]}>
-          <Text style={styles.buttonText}>Editar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleDelete} style={[styles.button, styles.deleteButton]}>
-          <Text style={styles.buttonText}>Eliminar</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} style={styles.toggleButton}>
+        <Text style={styles.toggleButtonText}>
+          {isExpanded ? 'Amagar estats diaris' : 'Gestionar estats diaris'}
+        </Text>
+      </TouchableOpacity>
 
       {isExpanded && (
         <View style={styles.detailsContainer}>
@@ -168,6 +174,20 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 12,
       },
+      toggleButton: {
+        marginTop: 10,
+        padding: 12,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 8,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ddd',
+      },
+      toggleButtonText: {
+        color: '#333',
+        fontWeight: 'bold',
+        fontSize: 16,
+      },
       detailsContainer: {
         marginTop: 12,
         borderTopWidth: 1,
@@ -185,7 +205,7 @@ const styles = StyleSheet.create({
         flex: 1,
       },
       pickerContainer: {
-        flex: 1,
+        flex: 1.2,
         height: 40,
         justifyContent: 'center',
         borderWidth: 1,
@@ -195,37 +215,34 @@ const styles = StyleSheet.create({
       },
       picker: {
         height: 40,
-        transform: [
-          { scaleX: 0.9 },
-          { scaleY: 0.9 },
-        ],
       },
-      actionButtons: {
+      expandedActionButtons: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: 10,
+        justifyContent: 'space-between',
+        marginTop: 16,
         borderTopWidth: 1,
         borderTopColor: '#eee',
-        paddingTop: 10,
+        paddingTop: 16,
       },
       button: {
-        paddingVertical: 6,
+        paddingVertical: 10,
         paddingHorizontal: 12,
-        borderRadius: 4,
-        marginLeft: 8,
-      },
-      viewButton: {
-        backgroundColor: '#607D8B',
+        borderRadius: 8,
+        flex: 1,
+        alignItems: 'center',
       },
       editButton: {
         backgroundColor: '#2196F3',
+        marginRight: 8,
       },
       deleteButton: {
         backgroundColor: '#F44336',
+        marginLeft: 8,
       },
       buttonText: {
         color: '#fff',
-        fontWeight: '500',
+        fontWeight: 'bold',
+        fontSize: 15,
       },
 });
 
