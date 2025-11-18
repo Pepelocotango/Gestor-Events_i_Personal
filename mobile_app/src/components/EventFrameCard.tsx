@@ -62,26 +62,6 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
   peopleMap,
   navigation,
 }) => {
-  
-  const setAllDaysAssignmentStatus = useDataStore((state) => state.setAllDaysAssignmentStatus);
-
-  const handleEditAssignment = (assignmentId: string) => {
-    navigation.navigate('AssignmentForm', { 
-      eventFrameId: eventFrame.id, 
-      assignmentId: assignmentId 
-    });
-  };
-  
-  const formatDateRange = (start: string, end: string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const formattedStart = format(startDate, 'dd/MM/yyyy', { locale: ca });
-    if (!isMultiDay(start, end)) {
-      return formattedStart;
-    }
-    const formattedEnd = format(endDate, 'dd/MM/yyyy', { locale: ca });
-    return `${formattedStart} - ${formattedEnd}`;
-  };
 
   const setAllDaysAssignmentStatus = useDataStore((state) => state.setAllDaysAssignmentStatus);
 

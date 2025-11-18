@@ -32,12 +32,12 @@ export type SummaryStackParamList = {
 };
 
 export type CalendarStackParamList = {
-    Calendar: undefined;
+    CalendarView: undefined;
 };
 
 export type RootTabParamList = {
   Events: NavigatorScreenParams<EventsStackParamList>;
-  Calendar: undefined;
+  Calendar: NavigatorScreenParams<CalendarStackParamList>;
   TechSheets: undefined;
   People: undefined;
   Material: undefined;

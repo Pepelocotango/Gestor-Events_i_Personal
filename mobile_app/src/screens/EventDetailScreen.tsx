@@ -12,7 +12,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
 import { EventsStackParamList } from '../navigation';
 import { Assignment } from '../types';
-import AssignmentCard from '../components/AssignmentCard';
 
 type EventDetailScreenRouteProp = RouteProp<EventsStackParamList, 'EventDetail'>;
 type EventDetailScreenNavigationProp = StackNavigationProp<
@@ -31,6 +30,7 @@ const formatDate = (dateString: string) =>
 export default function EventDetailScreen({ route, navigation }: Props) {
   const { eventId } = route.params;
 
+  // Selecciona cada part de l'estat de forma individual per evitar re-renderitzacions innecessàries.
   const eventFrames = useDataStore((state) => state.eventFrames);
   const isLoading = useDataStore((state) => state.isLoading);
   const error = useDataStore((state) => state.error);
@@ -62,8 +62,13 @@ export default function EventDetailScreen({ route, navigation }: Props) {
     );
   }
 
+  const getPersonName = (personGroupId: string) => {
+    const person = peopleGroups.find((p) => p.id === personGroupId);
+    return person ? person.name : 'Desconegut';
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.title}>{event.name}</Text>
         <Text style={styles.detail}>
@@ -93,32 +98,19 @@ export default function EventDetailScreen({ route, navigation }: Props) {
       </View>
 
       <View style={styles.card}>
-        <View style={styles.assignmentsHeader}>
-            <Text style={styles.subtitle}>Assignacions</Text>
-            <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => navigation.navigate('AssignmentForm', { eventFrameId: event.id })}
-            >
-                <Text style={styles.addButtonText}>+ Afegir</Text>
-            </TouchableOpacity>
-        </View>
-
-        {event.assignments.length > 0 ? (
-          event.assignments.map((assignment: Assignment) => (
-            <AssignmentCard
-              key={assignment.id}
-              assignment={assignment}
-              person={peopleGroups.find(
-                (p) => p.id === assignment.personGroupId
-              )}
-              navigation={navigation}
-            />
-          ))
-        ) : (
-          <Text style={styles.noAssignmentsText}>
-            No hi ha personal assignat a aquest esdeveniment.
-          </Text>
-        )}
+        <Text style={styles.subtitle}>Assignacions</Text>
+        {event.assignments.map((assignment: Assignment) => (
+          <View key={assignment.id} style={styles.assignmentContainer}>
+            <Text>
+              <Text style={styles.bold}>
+                {peopleGroups.find((p) => p.id === assignment.personGroupId)
+                  ?.role || 'Rol'}
+                :
+              </Text>{' '}
+              {getPersonName(assignment.personGroupId) || 'No assignat'}
+            </Text>
+          </View>
+        ))}
       </View>
     </ScrollView>
   );
@@ -128,10 +120,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },
-  contentContainer: {
     padding: 16,
-    paddingBottom: 80, // Espai extra per evitar la superposició
   },
   centerContainer: {
     flex: 1,
@@ -154,17 +143,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
   },
-  assignmentsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    marginBottom: 8,
-  },
   subtitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
     paddingBottom: 4,
   },
   detail: {
@@ -181,13 +165,14 @@ const styles = StyleSheet.create({
     color: '#333',
     marginTop: 4,
   },
+  assignmentContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 4,
+  },
   bold: {
     fontWeight: 'bold',
-  },
-  noAssignmentsText: {
-    marginTop: 10,
-    color: '#666',
-    fontStyle: 'italic',
   },
   errorText: {
     color: 'red',
@@ -203,16 +188,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  addButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
 });

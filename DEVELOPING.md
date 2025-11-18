@@ -1175,7 +1175,7 @@ Aquest patró millora la mantenibilitat, elimina codi duplicat i assegura que to
 
 ## 10. Aplicació Mòbil (React Native amb Expo)
 
-L'aplicació mòbil, situada a `mobile_app/`, és una eina completa per a la gestió de dades del projecte, per al sistema operatiu Android,permetent la gestió d'Esdeveniments, Persones i Material.
+L'aplicació mòbil, situada a `mobile_app/`, ha evolucionat d'un simple visor a una eina de gestió de dades completa, permetent la gestió d'Esdeveniments, Persones i Material.
 
 ### 10.1. Pila Tecnològica
 
@@ -1184,41 +1184,98 @@ L'aplicació mòbil, situada a `mobile_app/`, és una eina completa per a la ges
 -   **React Navigation:** Llibreria per a la gestió de la navegació. S'utilitza una combinació de `BottomTabNavigator` per a la navegació principal i `StackNavigator` per al flux intern de cada secció.
 -   **Zustand:** Gestor d'estat global per a una gestió de dades centralitzada i eficient.
 -   **React Native Vector Icons:** Llibreria per a la inclusió d'icones a la interfície.
+-   **React Native Picker:** Component per a selectors natius.
 
-### 10.2. Arquitectura de Navegació
+### 10.2. Arquitectura i Filosofia de la Interfície d'Usuari
 
-L'aplicació s'estructura al voltant d'una barra de navegació inferior amb sis pestanyes, cadascuna amb la seva pròpia pila de navegació per a fluxos interns.
+La interfície de l'aplicació mòbil ha estat redissenyada seguint una filosofia centrada en la claredat visual i la interacció intuïtiva.
 
--   **Navegador Principal (`BottomTabNavigator` a `App.tsx`):**
-    1.  **Esdeveniments:** Gestiona el cicle de vida dels esdeveniments.
-    2.  **Fitxes de Bolo:** Llista i visualitza les fitxes tècniques.
-    3.  **Persones:** Gestiona la llista de contactes.
-    4.  **Material:** Gestiona l'inventari de material.
-    5.  **Centre de Control:** Analitza la demanda vs. l'estoc de material.
-    6.  **Resums:** Mostra informes de dades agregades.
+-   **Visualització Primer:** Les pantalles principals estan dissenyades per a la consulta ràpida d'informació. Les dades es presenten en un format de només lectura, net i organitzat.
+-   **Interacció a través de Modals:** Totes les accions que impliquen modificació de dades (crear, editar, ordenar, filtrar) es gestionen a través de modals o diàlegs superposats. Això manté les pantalles principals lliures d'elements d'interacció complexos.
+-   **Icones sobre Text:** S'ha prioritzat l'ús d'icones per a les accions més comunes (editar, eliminar, desar, etc.) per crear una interfície més neta i visualment atractiva.
+-   **Accés Ràpid a la Creació (FAB):** L'acció principal de cada pantalla (afegir un nou element) està sempre accessible a través d'un Botó d'Acció Flotant (FAB) a la cantonada inferior dreta.
+-   **Components Reutilitzables (`Toolbar`):** La funcionalitat de cerca, ordenació i filtratge s'ha encapsulat en components `Toolbar` dedicats per a cada pantalla, promovent la reutilització de codi i la consistència.
 
--   **Piles de Navegació Independents (`StackNavigator`):** Cada pestanya munta una pila de pantalles, permetent una navegació profunda. Per exemple, des de la llista d'esdeveniments, es pot navegar a un formulari d'edició sense canviar de pestanya.
+### 10.4. Arquitectura de Navegació per Pestanyes
 
-### 10.3. Gestió de Dades i Estat
+L'arquitectura de navegació ha estat completament redissenyada per millorar l'experiència d'usuari i organitzar les funcionalitats de manera intuïtiva.
 
--   **Store Central (`dataStore.ts`):** Un únic store de Zustand és la font de veritat per a totes les dades de l'aplicació (`eventFrames`, `peopleGroups`, `materialItems`, etc.).
--   **Accions CRUD:** L'store centralitza tota la lògica per a Crear, Llegir, Actualitzar i Eliminar (CRUD) dades per a totes les entitats.
--   **Control de Canvis (`hasUnsavedChanges`):** Qualsevol modificació de dades activa un flag booleà a l'store. Aquest flag s'utilitza a la UI per activar/desactivar el botó de desar i per advertir l'usuari si intenta tancar el fitxer amb canvis pendents.
+-   **Navegador Principal (`BottomTabNavigator`):** El punt d'entrada de l'aplicació (`App.tsx`) ara utilitza un navegador de pestanyes a la part inferior de la pantalla, que permet canviar entre tres seccions principals:
+    1.  **Esdeveniments:** Conté tota la funcionalitat relacionada amb la gestió d'esdeveniments.
+    2.  **Persones:** Permet gestionar la llista de contactes i personal.
+    3.  **Material:** Permet gestionar l'inventari de material.
 
-### 10.4. Gestió de Fitxers amb `expo-sharing`
+-   **Piles de Navegació Independents (`StackNavigator`):** Cada pestanya no renderitza una única pantalla, sinó una pila de navegació independent (`StackNavigator`). Aquest enfocament permet un flux de navegació profund dins de cada secció. Per exemple, des de la llista d'esdeveniments, l'usuari pot navegar a la pantalla de detalls o al formulari d'edició sense sortir de la pestanya "Esdeveniments".
 
-Degut a les restriccions del sistema de fitxers d'Android, especialment amb proveïdors de núvol, l'aplicació no pot sobreescriure fitxers directament. Per solucionar-ho, s'implementa un flux de "Desar Com a" per a cada operació de desat.
+### 10.5. Gestió de Dades i Noves Funcionalitats
 
-1.  **Servei de Fitxers (`SAFFileService.ts`):**
-    -   **Obrir (`openFile`):** Utilitza `expo-document-picker` per permetre a l'usuari seleccionar un fitxer.
-    -   **Desar (`saveFileAs`):**
-        1.  Les dades de l'store es converteixen a un string JSON.
-        2.  S'escriuen en un fitxer temporal al directori de cau de l'aplicació (`FileSystem.cacheDirectory`).
-        3.  S'invoca `Sharing.shareAsync()` amb la ruta del fitxer temporal. Això obre el diàleg natiu d'Android, que permet a l'usuari triar la ubicació final i confirmar la sobreescriptura si el fitxer ja existeix.
+El gestor d'estat (`dataStore.ts`) ha estat ampliat per donar suport a totes les entitats de dades i a les noves funcionalitats.
 
--   **Model de Dades (`types/index.ts`):** Els tipus de dades són una còpia directa dels de l'aplicació d'escriptori per garantir la compatibilitat total dels fitxers `.json`.
+-   **Accions CRUD Completes:** L'store ara inclou accions per a Crear, Llegir, Actualitzar i Eliminar (CRUD) per a:
+    -   `EventFrame` (`addEventFrame`, `updateEventFrame`, `deleteEventFrame`)
+    -   `PersonGroup` (`addPersonGroup`, `updatePersonGroup`, `deletePersonGroup`)
+    -   `MaterialItem` (`addMaterialItem`, `updateMaterialItem`, `deleteMaterialItem`)
+-   **Control de Canvis No Desats:** Totes les accions que modifiquen l'estat (add, update, delete) estableixen automàticament el "dirty flag" `hasUnsavedChanges` a `true`, assegurant que l'usuari sigui notificat abans de perdre canvis.
+-   **Estat de l'Esdeveniment:** S'ha afegit la propietat `status` ('pending' o 'completed') a l'objecte `EventFrame`. La UI ho reflecteix amb un indicador visual i permet la seva edició al formulari.
+-   **Seccions Col·lapsables:** La pantalla de Materials ara permet expandir i contraure les categories per a una millor organització.
 
-### 10.5. Com executar l'aplicació mòbil
+### 10.6. Arquitectura i Gestió de Fitxers amb `expo-sharing`
+
+Després d'una anàlisi de les limitacions del sistema de fitxers d'Android, s'ha confirmat que no és possible sobreescriure directament un fitxer obert des d'un proveïdor de núvol (com Google Drive) sense utilitzar APIs natives. Per solucionar-ho, l'arquitectura de desat s'ha redissenyat per utilitzar un flux de "Desar Com a" cada vegada, implementat amb la llibreria `expo-sharing`.
+
+1.  **Capa de Presentació (UI):**
+    -   **`HomeScreen.tsx`**: La interfície s'ha simplificat. Ara només hi ha un botó "Desar", que sempre activa el flux de "Desar Com a". Aquest botó està desactivat si no hi ha canvis pendents (`hasUnsavedChanges` és `false`). S'ha eliminat el botó "Desar Com a" per evitar redundància.
+
+2.  **Capa d'Estat (Gestió de Dades):**
+    -   **Store Central (`src/stores/dataStore.ts`):** L'store s'ha simplificat significativament.
+        -   S'ha **eliminat** l'estat `fileUri`. Ja no es guarda cap URI persistent, ja que cada operació de desat és independent.
+        -   Només es conserva `fileName` per utilitzar-lo com a nom de fitxer suggerit.
+        -   L'acció `saveData` ara construeix l'objecte de dades, el converteix a un string JSON i crida al nou mètode `fileService.saveFileAs`, passant-li el contingut i el nom del fitxer. Després, restableix `hasUnsavedChanges` a `false`.
+        -   L'acció `createFile` ha estat eliminada.
+
+3.  **Capa de Serveis (Accés a Dades amb `expo-sharing`):**
+    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` ara defineix només dos mètodes: `openFile` i `saveFileAs`.
+    -   **Implementació (`src/services/SAFFileService.ts`):**
+        -   El mètode `saveFile` ha estat eliminat.
+        -   El mètode `createFile` ha estat reanomenat a `saveFileAs` i la seva lògica s'ha reescrit completament:
+            1. Accepta el contingut de les dades (com a string JSON) i un nom de fitxer suggerit.
+            2. Crea un fitxer temporal al directori de cau de l'aplicació (`FileSystem.cacheDirectory`).
+            3. Escriu el contingut JSON en aquest fitxer temporal.
+            4. Invoca `Sharing.shareAsync()` amb la URI del fitxer temporal. Això obre el diàleg natiu del sistema operatiu ("Compartir" o "Desar a..."), donant a l'usuari el control total sobre la ubicació final del fitxer i la confirmació de sobreescriptura.
+        -   Aquest mètode ja no retorna cap URI, ja que el control passa a l'usuari.
+
+Aquest nou flux de treball és més robust i compatible amb les restriccions d'Android, garantint una experiència d'usuari previsible: cada vegada que es desa, l'usuari ha de seleccionar la ubicació i confirmar l'acció manualment.
+
+4.  **Capa de Tipus (Model de Dades):**
+    -   **Tipus Compartits (`src/types/index.ts`):** Aquest fitxer conté les definicions de tipus de TypeScript (`AppData`, `EventFrame`, `PersonGroup`, etc.). És una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades i puguin interoperar de manera consistent.
+
+### 10.3. Gestió de Dades: Funcionalitats CRUD i Control de Canvis
+
+L'aplicació mòbil ha evolucionat per permetre la gestió completa d'esdeveniments (Crear, Llegir, Actualitzar, Eliminar) i implementa un sistema robust per al control de canvis no desats.
+
+-   **Navegació Millorada:**
+    -   S'ha afegit una nova pantalla, `EventFormScreen.tsx`, a la pila de navegació. Aquesta pantalla rep un paràmetre opcional `eventId` per distingir entre el mode "edició" i el mode "creació".
+    -   El títol de la pantalla canvia dinàmicament a "Editar Esdeveniment" o "Nou Esdeveniment" segons el context.
+
+-   **Accions CRUD a `dataStore.ts`:**
+    -   `addEventFrame(data)`: Afegeix un nou esdeveniment a la llista, generant un ID únic amb `uuid`.
+    -   `updateEventFrame(eventId, data)`: Actualitza un esdeveniment existent.
+    -   `deleteEventFrame(eventId)`: Elimina un esdeveniment.
+    -   Cadascuna d'aquestes accions estableix el "dirty flag" `hasUnsavedChanges` a `true`.
+
+-   **Control de Canvis No Desats:**
+    -   **"Dirty Flag":** L'estat `hasUnsavedChanges: boolean` a `dataStore` és la font de veritat per saber si hi ha canvis pendents.
+    -   **Botó "Guardar" Condicional:** A `HomeScreen`, un botó "Guardar" a la capçalera només és visible i actiu si `hasUnsavedChanges` és `true`.
+    -   **Lògica de Desat:** L'acció `saveDataToFile` a l'store crida al mètode `saveData` del `DeviceFileService`, que utilitza `expo-file-system` per escriure les dades actualitzades a la `URI` del fitxer original. En cas d'èxit, `hasUnsavedChanges` es restableix a `false`.
+    -   **Alerta en Sortir:** `HomeScreen` utilitza el listener `beforeRemove` de `react-navigation`. Si `hasUnsavedChanges` és `true` quan l'usuari intenta navegar enrere, es mostra un diàleg de confirmació natiu per evitar la pèrdua accidental de dades.
+
+-   **Interfície d'Usuari a `HomeScreen.tsx`:**
+    -   **Botó d'Afegir:** Un botó "+" a la capçalera permet navegar a `EventFormScreen` en mode "creació".
+    -   **Botons d'Acció:** Cada ítem de la llista d'esdeveniments té ara botons "Editar" i "Eliminar".
+        -   "Editar" navega a `EventFormScreen` passant l'`eventId`.
+        -   "Eliminar" mostra un diàleg de confirmació (`Alert.alert`) abans de cridar l'acció `deleteEventFrame`.
+
+### 10.4. Com executar l'aplicació mòbil
 
 1.  **Navega al directori de l'aplicació mòbil:**
     ```bash
@@ -1228,12 +1285,12 @@ Degut a les restriccions del sistema de fitxers d'Android, especialment amb prov
     ```bash
     npm install
     ```
-    > **Nota important:** Per afegir noves dependències, especialment aquelles que contenen codi natiu, es recomana utilitzar `npx expo install <nom-del-paquet>`. Aquesta eina assegura la compatibilitat amb l'SDK d'Expo del projecte.
+    > **Nota important:** Per afegir noves dependències, especialment aquelles que contenen codi natiu (com les llibreries d'Expo), es recomana utilitzar `npx expo install <nom-del-paquet>`. Aquesta eina s'assegura d'instal·lar una versió de la llibreria que sigui totalment compatible amb l'SDK d'Expo del projecte, evitant problemes d'enllaç natiu.
 3.  **Inicia el servidor de desenvolupament d'Expo:**
     ```bash
     npm start
     ```
-Això obrirà el Metro Bundler. Des d'aquí, es pot executar l'aplicació en un dispositiu físic (escanejant el codi QR amb l'app Expo Go) o en un emulador d'Android.
+Això obrirà el Metro Bundler al teu navegador. Pots executar l'aplicació en un dispositiu físic escanejant el codi QR amb l'aplicació Expo Go, o en un emulador/simulador d'Android o iOS.
 
 ## Arquitectura General (Resum)
 

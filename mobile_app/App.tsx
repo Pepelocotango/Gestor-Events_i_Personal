@@ -90,7 +90,7 @@ const SummaryStackNavigator = () => (
 
 const CalendarStackNavigator = () => (
     <CalendarStack.Navigator screenOptions={commonScreenOptions}>
-        <CalendarStack.Screen name="Calendar" component={CalendarScreen} />
+        <CalendarStack.Screen name="CalendarView" component={CalendarScreen} />
     </CalendarStack.Navigator>
 );
 
