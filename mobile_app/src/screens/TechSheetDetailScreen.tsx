@@ -12,6 +12,7 @@ import { TechSheetsStackParamList } from '../navigation';
 import ReadOnlyField from '../components/tech_sheet/ReadOnlyField';
 import { formatDate } from '../utils/dateFormat';
 import CollapsibleSection from '../components/CollapsibleSection';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type TechSheetDetailScreenRouteProp = RouteProp<
   TechSheetsStackParamList,
@@ -57,26 +58,25 @@ export default function TechSheetDetailScreen({ route }: Props) {
   }, [techSheet]);
 
 
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
-      const initialState: Record<string, boolean> = {};
-      sectionKeys.forEach(key => { initialState[key] = true; });
-      return initialState;
-  });
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   const handleToggleSection = (sectionKey: string) => {
     setExpandedSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
   };
 
-  const expandAll = () => {
-    const allExpanded: Record<string, boolean> = {};
-    sectionKeys.forEach(key => { allExpanded[key] = true; });
-    setExpandedSections(allExpanded);
-  };
+  const areAllExpanded = useMemo(() => {
+    if (sectionKeys.length === 0) return false;
+    return sectionKeys.every(key => expandedSections[key]);
+  }, [expandedSections, sectionKeys]);
 
-  const collapseAll = () => {
-    const allCollapsed: Record<string, boolean> = {};
-    sectionKeys.forEach(key => { allCollapsed[key] = false; });
-    setExpandedSections(allCollapsed);
+  const toggleAllSections = () => {
+    if (areAllExpanded) {
+        setExpandedSections({});
+    } else {
+        const allExpanded: Record<string, boolean> = {};
+        sectionKeys.forEach(key => { allExpanded[key] = true; });
+        setExpandedSections(allExpanded);
+    }
   };
 
   if (!event) {
@@ -97,7 +97,7 @@ export default function TechSheetDetailScreen({ route }: Props) {
     if (!section || section.status !== 'yes') return null;
     const hasNeeds = section.needs && section.needs.length > 0;
     return (
-      <CollapsibleSection title={title} isExpanded={expandedSections[sectionKey]} onToggle={() => handleToggleSection(sectionKey)}>
+      <CollapsibleSection title={title} isExpanded={!!expandedSections[sectionKey]} onToggle={() => handleToggleSection(sectionKey)}>
         {section.details && <Text style={styles.notes}>{section.details}</Text>}
         {!hasNeeds && !section.details && <Text>Sense especificacions.</Text>}
         {hasNeeds && section.needs?.map((need) => (
@@ -125,16 +125,14 @@ export default function TechSheetDetailScreen({ route }: Props) {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.toggleButtonsContainer}>
-        <TouchableOpacity onPress={expandAll} style={[styles.toggleButton, styles.toggleButtonLeft]}>
-          <Text style={styles.toggleButtonText}>Expandir Totes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={collapseAll} style={[styles.toggleButton, styles.toggleButtonRight]}>
-          <Text style={styles.toggleButtonText}>Replegar Totes</Text>
+      <View style={styles.toolbar}>
+        <TouchableOpacity style={styles.button} onPress={toggleAllSections}>
+            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color="#333" />
+            <Text style={styles.buttonText}>{areAllExpanded ? 'Replegar Totes' : 'Expandir Totes'}</Text>
         </TouchableOpacity>
       </View>
 
-      <CollapsibleSection title="Informació General" isExpanded={expandedSections.general} onToggle={() => handleToggleSection('general')}>
+      <CollapsibleSection title="Informació General" isExpanded={!!expandedSections.general} onToggle={() => handleToggleSection('general')}>
         <ReadOnlyField label="Esdeveniment" value={techSheet.eventName} />
         <ReadOnlyField label="Lloc" value={techSheet.location} />
         <ReadOnlyField label="Data" value={formatDate(techSheet.date)} />
@@ -142,11 +140,11 @@ export default function TechSheetDetailScreen({ route }: Props) {
         <ReadOnlyField label="Durada Espectacle" value={techSheet.showDuration} />
       </CollapsibleSection>
 
-      {techSheet.generalNotes && <CollapsibleSection title="Notes Generals" isExpanded={expandedSections.generalNotes} onToggle={() => handleToggleSection('generalNotes')}><Text>{techSheet.generalNotes}</Text></CollapsibleSection>}
-      {techSheet.preAssembly?.status === 'yes' && <CollapsibleSection title="Premuntatge" isExpanded={expandedSections.preAssembly} onToggle={() => handleToggleSection('preAssembly')}><Text>{techSheet.preAssembly.details || 'Sí'}</Text></CollapsibleSection>}
+      {techSheet.generalNotes && <CollapsibleSection title="Notes Generals" isExpanded={!!expandedSections.generalNotes} onToggle={() => handleToggleSection('generalNotes')}><Text>{techSheet.generalNotes}</Text></CollapsibleSection>}
+      {techSheet.preAssembly?.status === 'yes' && <CollapsibleSection title="Premuntatge" isExpanded={!!expandedSections.preAssembly} onToggle={() => handleToggleSection('preAssembly')}><Text>{techSheet.preAssembly.details || 'Sí'}</Text></CollapsibleSection>}
 
       {sectionKeys.includes('logistics') &&
-        <CollapsibleSection title="Logística" isExpanded={expandedSections.logistics} onToggle={() => handleToggleSection('logistics')}>
+        <CollapsibleSection title="Logística" isExpanded={!!expandedSections.logistics} onToggle={() => handleToggleSection('logistics')}>
             {techSheet.parking?.status === 'yes' && <ReadOnlyField label="Pàrquing" value={techSheet.parking.details || 'Sí'} />}
             {techSheet.dressingRooms?.status === 'yes' && <ReadOnlyField label="Camerinos" value={techSheet.dressingRooms.details || 'Sí'} />}
             {renderPersonnelInfoSection('Intèrprets / Ponents', techSheet.actorsInfo as any)}
@@ -155,14 +153,14 @@ export default function TechSheetDetailScreen({ route }: Props) {
       }
 
       {techSheet.schedule?.status === 'yes' &&
-        <CollapsibleSection title="Horaris de Muntatge" isExpanded={expandedSections.schedule} onToggle={() => handleToggleSection('schedule')}>
+        <CollapsibleSection title="Horaris de Muntatge" isExpanded={!!expandedSections.schedule} onToggle={() => handleToggleSection('schedule')}>
           {techSheet.schedule.details && <Text style={styles.notes}>{techSheet.schedule.details}</Text>}
           {techSheet.schedule.data?.map((item) => <ReadOnlyField key={item.id} label={`${formatDate(item.date)} ${item.time}${item.timeEnd ? ` - ${item.timeEnd}`: ''}`} value={item.description} />)}
         </CollapsibleSection>
       }
 
       {techSheet.technicalProviders && techSheet.technicalProviders.length > 0 &&
-        <CollapsibleSection title="Personal Tècnic" isExpanded={expandedSections.personnel} onToggle={() => handleToggleSection('personnel')}>
+        <CollapsibleSection title="Personal Tècnic" isExpanded={!!expandedSections.personnel} onToggle={() => handleToggleSection('personnel')}>
           {techSheet.technicalPersonnelNotes && <Text style={styles.notes}>{techSheet.technicalPersonnelNotes}</Text>}
           {techSheet.technicalProviders.map((provider) => (
             <View key={provider.id} style={{marginTop: 5}}>
@@ -173,7 +171,7 @@ export default function TechSheetDetailScreen({ route }: Props) {
         </CollapsibleSection>
       }
 
-      {techSheet.technicalNeedsNotes && <CollapsibleSection title="Notes de Necessitats Tècniques" isExpanded={expandedSections.technicalNeedsNotes} onToggle={() => handleToggleSection('technicalNeedsNotes')}><Text>{techSheet.technicalNeedsNotes}</Text></CollapsibleSection>}
+      {techSheet.technicalNeedsNotes && <CollapsibleSection title="Notes de Necessitats Tècniques" isExpanded={!!expandedSections.technicalNeedsNotes} onToggle={() => handleToggleSection('technicalNeedsNotes')}><Text>{techSheet.technicalNeedsNotes}</Text></CollapsibleSection>}
       {renderNeedsSection('Il·luminació', 'lighting', techSheet.lighting)}
       {renderNeedsSection('So', 'sound', techSheet.sound)}
       {renderNeedsSection('Vídeo', 'video', techSheet.video)}
@@ -188,14 +186,14 @@ export default function TechSheetDetailScreen({ route }: Props) {
       {renderNeedsSection('Transport', 'transport', techSheet.transport)}
 
       {sectionKeys.includes('otherDetails') &&
-        <CollapsibleSection title="Altres Detalls" isExpanded={expandedSections.otherDetails} onToggle={() => handleToggleSection('otherDetails')}>
+        <CollapsibleSection title="Altres Detalls" isExpanded={!!expandedSections.otherDetails} onToggle={() => handleToggleSection('otherDetails')}>
           <ReadOnlyField label="Ubicació Control" value={techSheet.controlLocation} />
           <ReadOnlyField label="Plànols" value={techSheet.blueprints} />
         </CollapsibleSection>
       }
 
       {techSheet.contacts && techSheet.contacts.length > 0 &&
-        <CollapsibleSection title="Contactes" isExpanded={expandedSections.contacts} onToggle={() => handleToggleSection('contacts')}>
+        <CollapsibleSection title="Contactes" isExpanded={!!expandedSections.contacts} onToggle={() => handleToggleSection('contacts')}>
           {techSheet.contacts.map((contact) => (
             <View key={contact.id} style={styles.contactContainer}>
               <ReadOnlyField label="Nom" value={contact.name} />
@@ -207,7 +205,7 @@ export default function TechSheetDetailScreen({ route }: Props) {
         </CollapsibleSection>
       }
 
-      {techSheet.observations && <CollapsibleSection title="Observacions" isExpanded={expandedSections.observations} onToggle={() => handleToggleSection('observations')}><Text>{techSheet.observations}</Text></CollapsibleSection>}
+      {techSheet.observations && <CollapsibleSection title="Observacions" isExpanded={!!expandedSections.observations} onToggle={() => handleToggleSection('observations')}><Text>{techSheet.observations}</Text></CollapsibleSection>}
     </ScrollView>
   );
 }
@@ -220,9 +218,24 @@ const styles = StyleSheet.create({
   needDescription: { fontSize: 14 },
   notes: { fontStyle: 'italic', marginBottom: 8, color: '#666' },
   contactContainer: { marginBottom: 10 },
-  toggleButtonsContainer: { flexDirection: 'row', marginBottom: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 5, overflow: 'hidden' },
-  toggleButton: { flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: '#e9ecef' },
-  toggleButtonLeft: { borderRightWidth: 1, borderColor: '#ccc' },
-  toggleButtonRight: {},
-  toggleButtonText: { color: '#495057', fontWeight: 'bold' },
+  toolbar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#f5f5f5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    marginBottom: 10,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  buttonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#333',
+  },
 });

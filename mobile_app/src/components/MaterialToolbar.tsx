@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type MaterialToolbarProps = {
@@ -7,8 +7,8 @@ type MaterialToolbarProps = {
   onSearchChange: (text: string) => void;
   onSort: () => void;
   onFilter: () => void;
-  onExpandAll: () => void;
-  onCollapseAll: () => void;
+  toggleAllCategories: () => void;
+  areAllExpanded: boolean;
 };
 
 const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
@@ -16,8 +16,8 @@ const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
   onSearchChange,
   onSort,
   onFilter,
-  onExpandAll,
-  onCollapseAll,
+  toggleAllCategories,
+  areAllExpanded,
 }) => {
   return (
     <View style={styles.container}>
@@ -35,12 +35,10 @@ const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
           <Icon name="filter-variant" size={24} color="#333" />
         </TouchableOpacity>
       </View>
-      <View style={styles.expansionBar}>
-        <TouchableOpacity onPress={onExpandAll} style={styles.iconButton}>
-          <Icon name="arrow-expand-vertical" size={24} color="#555" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onCollapseAll} style={styles.iconButton}>
-          <Icon name="arrow-collapse-vertical" size={24} color="#555" />
+      <View style={styles.bottomBar}>
+        <TouchableOpacity style={styles.toggleButton} onPress={toggleAllCategories}>
+            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color="#333" />
+            <Text style={styles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -52,6 +50,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    paddingBottom: 5,
   },
   toolbar: {
     flexDirection: 'row',
@@ -70,12 +69,20 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 5,
   },
-  expansionBar: {
+  bottomBar: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    gap: 15,
     paddingHorizontal: 15,
-    paddingBottom: 10,
+  },
+  toggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 5,
+  },
+  buttonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#333',
   },
 });
 

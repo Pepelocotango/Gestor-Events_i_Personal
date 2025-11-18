@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, SectionList, Alert, TouchableOpacity, Modal, Button } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -14,7 +14,6 @@ type Props = {
   navigation: MaterialScreenNavigationProp;
 };
 
-// Definim els tipus per a les props del component SectionHeader
 type SectionHeaderProps = {
   title: string;
   isExpanded: boolean;
@@ -22,9 +21,8 @@ type SectionHeaderProps = {
   onToggle: (title: string) => void;
 };
 
-// Component memoitzat per a les capçaleres de secció
 const SectionHeader = React.memo<SectionHeaderProps>(({ title, isExpanded, sortMode, onToggle }) => (
-  <TouchableOpacity onPress={() => onToggle(title)} style={styles.sectionHeader}>
+  <TouchableOpacity onPress={() => onToggle(title)} style={styles.sectionHeader} disabled={sortMode !== 'category'}>
     <Text style={styles.sectionHeaderText}>{title}</Text>
     {sortMode === 'category' && (
       <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color="#333" />
@@ -80,20 +78,19 @@ const MaterialScreen = ({ navigation }: Props) => {
       }));
   }, [materialItems, search, sortMode]);
 
-  const handleExpandAll = () => {
-    const allCategories = new Set(sectionsData.map(s => s.title));
-    setExpandedCategories(allCategories);
-  };
+  const areAllExpanded = useMemo(() => {
+    if (sectionsData.length === 0 || sortMode !== 'category') return false;
+    return sectionsData.every(s => expandedCategories.has(s.title));
+  }, [expandedCategories, sectionsData, sortMode]);
 
-  const handleCollapseAll = () => {
-    setExpandedCategories(new Set());
-  };
-
-  useEffect(() => {
-    if (sortMode === 'category') {
-      handleExpandAll();
+  const toggleAllCategories = () => {
+    if (areAllExpanded) {
+        setExpandedCategories(new Set());
+    } else {
+        const allCategories = new Set(sectionsData.map(s => s.title));
+        setExpandedCategories(allCategories);
     }
-  }, [sortMode, sectionsData]);
+  };
 
   const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => {
@@ -140,8 +137,8 @@ const MaterialScreen = ({ navigation }: Props) => {
         onSearchChange={setSearch}
         onSort={() => setSortModalVisible(true)}
         onFilter={() => Alert.alert("WIP", "Filtres pròximament")}
-        onExpandAll={handleExpandAll}
-        onCollapseAll={handleCollapseAll}
+        toggleAllCategories={toggleAllCategories}
+        areAllExpanded={areAllExpanded}
       />
       {renderSortModal()}
       <SectionList
@@ -192,32 +189,6 @@ const styles = StyleSheet.create({
   sectionHeaderText: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  itemContent: {
-    flex: 1,
-    marginRight: 10,
-  },
-  itemText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  itemSubText: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  itemActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
   },
   emptyList: {
     textAlign: 'center',
