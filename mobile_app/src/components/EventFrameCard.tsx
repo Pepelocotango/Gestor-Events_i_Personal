@@ -7,6 +7,8 @@ import { useDataStore } from '../stores/dataStore';
 import { getStatusColor } from '../utils/statusUtils';
 import { isMultiDay } from '../utils/dates';
 import DailyStatusEditor from './DailyStatusEditor';
+import { format } from 'date-fns';
+import { ca } from 'date-fns/locale';
 
 type EventFrameCardProps = {
   eventFrame: EventFrame;
@@ -14,6 +16,8 @@ type EventFrameCardProps = {
   onToggleExpand: (id: string) => void;
   expandedAssignmentIds: Set<string>;
   onToggleAssignmentExpand: (assignmentId: string) => void;
+  unlockedAssignmentIds: Set<string>;
+  onToggleAssignmentLock: (assignmentId: string) => void;
   onEditEvent: (id: string) => void;
   onDeleteEvent: (id: string) => void;
   peopleMap: Map<string, string>;
@@ -36,12 +40,23 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
   );
 };
 
+const getNextStatus = (currentStatus: AssignmentStatus): AssignmentStatus => {
+    const statuses = [AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No];
+    const currentIndex = statuses.indexOf(currentStatus);
+    if (currentIndex === -1) {
+        return statuses[0];
+    }
+    return statuses[(currentIndex + 1) % statuses.length];
+};
+
 const EventFrameCard: React.FC<EventFrameCardProps> = ({
   eventFrame,
   isExpanded,
   onToggleExpand,
   expandedAssignmentIds,
   onToggleAssignmentExpand,
+  unlockedAssignmentIds,
+  onToggleAssignmentLock,
   onEditEvent,
   onDeleteEvent,
   peopleMap,
@@ -56,51 +71,71 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
       assignmentId: assignmentId 
     });
   };
+  
+  const formatDateRange = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const formattedStart = format(startDate, 'dd/MM/yyyy', { locale: ca });
+    if (!isMultiDay(start, end)) {
+      return formattedStart;
+    }
+    const formattedEnd = format(endDate, 'dd/MM/yyyy', { locale: ca });
+    return `${formattedStart} - ${formattedEnd}`;
+  };
 
   const renderAssignment = (assignment: Assignment) => {
     const isAssignmentMultiDay = isMultiDay(assignment.startDate, assignment.endDate);
     const isAssignmentExpanded = expandedAssignmentIds.has(assignment.id);
+    const isUnlocked = unlockedAssignmentIds.has(assignment.id);
     
-    const handleSetAllDays = (status: AssignmentStatus) => {
-        setAllDaysAssignmentStatus(eventFrame.id, assignment.id, status);
+    const handleStatusPress = () => {
+        if (!isUnlocked) return;
+        const nextStatus = getNextStatus(assignment.status);
+        setAllDaysAssignmentStatus(eventFrame.id, assignment.id, nextStatus);
     };
 
     return (
       <View key={assignment.id} style={styles.assignmentContainer}>
         <View style={styles.assignmentRow}>
-          <Text style={styles.assignmentPerson}>
-            {peopleMap.get(assignment.personGroupId) || 'Persona desconeguda'}
-          </Text>
+          <View style={styles.assignmentPersonContainer}>
+            <TouchableOpacity onPress={() => onToggleAssignmentLock(assignment.id)} style={styles.lockIcon}>
+              <Icon name={isUnlocked ? 'lock-open-variant' : 'lock'} size={22} color={isUnlocked ? "#4CAF50" : "#666"} />
+            </TouchableOpacity>
+            <View>
+              <Text style={styles.assignmentPerson}>
+                {peopleMap.get(assignment.personGroupId) || 'Persona desconeguda'}
+              </Text>
+              <Text style={styles.assignmentDate}>
+                {formatDateRange(assignment.startDate, assignment.endDate)}
+              </Text>
+            </View>
+          </View>
           <View style={styles.assignmentActions}>
-            <Text style={[styles.assignmentStatus, { color: getStatusColor(assignment.status) }]}>
-              {assignment.status}
-            </Text>
+             <TouchableOpacity onPress={handleStatusPress} disabled={!isUnlocked}>
+                <Text style={[styles.assignmentStatus, { color: getStatusColor(assignment.status), opacity: isUnlocked ? 1 : 0.5 }]}>
+                {assignment.status}
+                </Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => handleEditAssignment(assignment.id)} style={styles.actionIcon}>
               <Icon name="pencil" size={20} color="#007AFF" />
             </TouchableOpacity>
           </View>
         </View>
 
-        <View style={styles.statusButtonsContainer}>
-            <TouchableOpacity style={styles.statusButton} onPress={() => handleSetAllDays(AssignmentStatus.Yes)}>
-              <Text style={styles.statusButtonText}>Sí</Text>
+        {isAssignmentMultiDay && (
+            <TouchableOpacity style={styles.toggleDaysButton} onPress={() => onToggleAssignmentExpand(assignment.id)}>
+                <Text style={styles.toggleDaysButtonText}>{isAssignmentExpanded ? 'Amagar dies' : 'Mostrar dies'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.statusButton} onPress={() => handleSetAllDays(AssignmentStatus.Pending)}>
-              <Text style={styles.statusButtonText}>Pendent</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.statusButton} onPress={() => handleSetAllDays(AssignmentStatus.No)}>
-              <Text style={styles.statusButtonText}>No</Text>
-            </TouchableOpacity>
-            {isAssignmentMultiDay && (
-              <TouchableOpacity style={styles.statusButton} onPress={() => onToggleAssignmentExpand(assignment.id)}>
-                 <Text style={styles.statusButtonText}>{isAssignmentExpanded ? 'Amagar' : 'Dies'}</Text>
-              </TouchableOpacity>
-            )}
-        </View>
+        )}
 
         {isAssignmentExpanded && isAssignmentMultiDay && (
-          <DailyStatusEditor assignment={assignment} eventFrameId={eventFrame.id} />
+          <DailyStatusEditor 
+            assignment={assignment} 
+            eventFrameId={eventFrame.id} 
+            isUnlocked={isUnlocked}
+          />
         )}
+
       </View>
     );
   };
@@ -228,36 +263,47 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 4,
       },
+      assignmentPersonContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1, 
+      },
+      lockIcon: {
+        marginRight: 8,
+      },
       assignmentPerson: {
         fontSize: 16,
         fontWeight: '500',
+      },
+      assignmentDate: {
+        fontSize: 12,
+        color: '#666',
       },
       assignmentActions: {
         flexDirection: 'row',
         alignItems: 'center',
       },
       assignmentStatus: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
       },
       actionIcon: {
         padding: 5,
         marginLeft: 10,
       },
-      statusButtonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: 8,
-      },
-      statusButton: {
+      toggleDaysButton: {
         backgroundColor: '#e0e0e0',
-        paddingVertical: 6,
+        paddingVertical: 8,
         paddingHorizontal: 12,
-        borderRadius: 15,
-        marginLeft: 8,
+        borderRadius: 8,
+        marginTop: 8,
+        alignItems: 'center',
       },
-      statusButtonText: {
+      toggleDaysButtonText: {
         fontWeight: '500',
+        color: '#333'
       },
       addPersonButton: {
         flexDirection: 'row',

@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { EventsStackParamList } from '../navigation';
 import { EventFrame } from '../types';
 import EventFrameCard from '../components/EventFrameCard';
@@ -25,7 +26,20 @@ const EventsScreen = ({ navigation }: Props) => {
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [expandedAssignmentIds, setExpandedAssignmentIds] = useState<Set<string>>(new Set());
+  const [unlockedAssignmentIds, setUnlockedAssignmentIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({ text: '', person: '', status: '', date: '', place: '', eventFrame: '' });
+
+  useFocusEffect(
+    useCallback(() => {
+      // S'executa quan la pantalla guanya el focus
+      return () => {
+        // S'executa quan la pantalla perd el focus
+        setUnlockedAssignmentIds(new Set());
+        setExpandedAssignmentIds(new Set());
+      };
+    }, [])
+  );
+
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showArchived, setShowArchived] = useState(false);
 
@@ -58,6 +72,12 @@ const EventsScreen = ({ navigation }: Props) => {
 
   }, [eventFrames, filters, showArchived, sortOrder, peopleMap]);
 
+  // Efecte per tancar tots els cadenats quan canvia la llista filtrada
+  useEffect(() => {
+    setUnlockedAssignmentIds(new Set());
+    setExpandedAssignmentIds(new Set());
+  }, [filteredEventFrames]);
+
   const areAllExpanded = useMemo(() => {
       if (filteredEventFrames.length === 0) return true;
       return filteredEventFrames.every(ef => expandedIds.has(ef.id));
@@ -66,6 +86,8 @@ const EventsScreen = ({ navigation }: Props) => {
   const toggleAllCards = () => {
     if (areAllExpanded) {
         setExpandedIds(new Set());
+        setExpandedAssignmentIds(new Set());
+        setUnlockedAssignmentIds(new Set());
     } else {
         const allIds = new Set(filteredEventFrames.map(ef => ef.id));
         setExpandedIds(allIds);
@@ -75,8 +97,11 @@ const EventsScreen = ({ navigation }: Props) => {
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
       return newSet;
     });
   }, []);
@@ -89,6 +114,24 @@ const EventsScreen = ({ navigation }: Props) => {
         } else {
             newSet.add(assignmentId);
         }
+        return newSet;
+    });
+  }, []);
+
+  const toggleAssignmentLock = useCallback((assignmentId: string) => {
+    setUnlockedAssignmentIds(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(assignmentId)) {
+            newSet.delete(assignmentId);
+        } else {
+            newSet.add(assignmentId);
+        }
+        return newSet;
+    });
+    // Ensure assignment is not expanded when locked
+    setExpandedAssignmentIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(assignmentId);
         return newSet;
     });
   }, []);
@@ -137,6 +180,8 @@ const EventsScreen = ({ navigation }: Props) => {
             onToggleExpand={toggleExpand}
             expandedAssignmentIds={expandedAssignmentIds}
             onToggleAssignmentExpand={toggleAssignmentExpand}
+            unlockedAssignmentIds={unlockedAssignmentIds}
+            onToggleAssignmentLock={toggleAssignmentLock}
             onEditEvent={(id) => navigation.navigate('EventForm', { eventId: id })}
             onDeleteEvent={handleDelete}
             peopleMap={peopleMap}
