@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, TextInput, Button, StyleSheet, SafeAreaView, Text, Alert, FlatList, TouchableOpacity, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, TextInput, Button, StyleSheet, SafeAreaView, ScrollView, Text, Alert, TouchableOpacity, Platform } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
@@ -15,8 +15,6 @@ type Props = {
   route: EventFormScreenRouteProp;
 };
 
-type Suggestion = { type: 'name' | 'place'; value: string };
-
 export default function EventFormScreen({ navigation, route }: Props) {
   const { eventId } = route.params || {};
   const { eventFrames, addEventFrame, updateEventFrame } = useDataStore();
@@ -31,8 +29,8 @@ export default function EventFormScreen({ navigation, route }: Props) {
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [activeInput, setActiveInput] = useState<'name' | 'place' | null>(null);
+  const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
+  const [placeSuggestions, setPlaceSuggestions] = useState<string[]>([]);
 
   const isEditMode = eventId !== undefined;
 
@@ -55,20 +53,18 @@ export default function EventFormScreen({ navigation, route }: Props) {
   const handleNameChange = (text: string) => {
     setName(text);
     if (text) {
-      const filtered = uniqueEventNames.filter(n => n.toLowerCase().includes(text.toLowerCase()) && n !== text);
-      setSuggestions(filtered.map(value => ({ type: 'name', value })));
+      setNameSuggestions(uniqueEventNames.filter(n => n.toLowerCase().includes(text.toLowerCase()) && n !== text));
     } else {
-      setSuggestions([]);
+      setNameSuggestions([]);
     }
   };
 
   const handlePlaceChange = (text: string) => {
     setPlace(text);
     if (text) {
-      const filtered = uniqueLocations.filter(l => l.toLowerCase().includes(text.toLowerCase()) && l !== text);
-      setSuggestions(filtered.map(value => ({ type: 'place', value })));
+      setPlaceSuggestions(uniqueLocations.filter(l => l.toLowerCase().includes(text.toLowerCase()) && l !== text));
     } else {
-      setSuggestions([]);
+      setPlaceSuggestions([]);
     }
   };
 
@@ -119,167 +115,146 @@ export default function EventFormScreen({ navigation, route }: Props) {
     if (selectedDate) setEndDate(selectedDate);
   };
 
-  const renderFormFields = () => (
-    <View style={styles.formContainer}>
-      <Text style={styles.label}>Nom de l'Esdeveniment</Text>
-      <TextInput
-        style={[styles.input, errors.name ? styles.inputError : null]}
-        value={name}
-        onChangeText={handleNameChange}
-        placeholder="Ex: Concert de Primavera"
-        onFocus={() => setActiveInput('name')}
-      />
-      {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.formContainer} keyboardShouldPersistTaps="handled">
+        <Text style={styles.label}>Nom de l'Esdeveniment</Text>
+        <TextInput
+          style={[styles.input, errors.name ? styles.inputError : null]}
+          value={name}
+          onChangeText={handleNameChange}
+          placeholder="Ex: Concert de Primavera"
+          onFocus={() => setPlaceSuggestions([])}
+        />
+        {nameSuggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            {nameSuggestions.map(item => (
+              <TouchableOpacity key={item} style={styles.suggestionItem} onPress={() => { setName(item); setNameSuggestions([]); }}>
+                <Text>{item}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
-      {activeInput !== 'name' && <>
         <Text style={styles.label}>Lloc</Text>
         <TextInput
           style={styles.input}
           value={place}
           onChangeText={handlePlaceChange}
           placeholder="Ex: Teatre Principal"
-          onFocus={() => setActiveInput('place')}
+          onFocus={() => setNameSuggestions([])}
         />
-      </>}
-    </View>
-  );
+        {placeSuggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            {placeSuggestions.map(item => (
+              <TouchableOpacity key={item} style={styles.suggestionItem} onPress={() => { setPlace(item); setPlaceSuggestions([]); }}>
+                <Text>{item}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <FlatList
-          data={suggestions}
-          keyExtractor={item => item.value}
-          ListHeaderComponent={renderFormFields}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.suggestionItem}
-              onPress={() => {
-                if (item.type === 'name') setName(item.value);
-                else if (item.type === 'place') setPlace(item.value);
-                setSuggestions([]);
-              }}
-            >
-              <Text>{item.value}</Text>
-            </TouchableOpacity>
+        <View>
+          <Text style={styles.label}>Data d'Inici</Text>
+          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[styles.input, errors.startDate ? styles.inputError : null]}>
+            <Text>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
+          </TouchableOpacity>
+          {showStartDatePicker && (
+            <DateTimePicker value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
           )}
-          ListFooterComponent={
-             <View style={styles.formContainer}>
-                {activeInput === 'name' && <>
-                    <Text style={styles.label}>Lloc</Text>
-                    <TextInput
-                    style={styles.input}
-                    value={place}
-                    onChangeText={handlePlaceChange}
-                    placeholder="Ex: Teatre Principal"
-                    onFocus={() => setActiveInput('place')}
-                    />
-                </>}
+          {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
+        </View>
 
-                <View>
-                    <Text style={styles.label}>Data d'Inici</Text>
-                    <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[styles.input, errors.startDate ? styles.inputError : null]}>
-                        <Text>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
-                    </TouchableOpacity>
-                    {showStartDatePicker && (
-                        <DateTimePicker value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
-                    )}
-                    {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
-                </View>
+        <View>
+          <Text style={styles.label}>Data de Fi</Text>
+          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[styles.input, errors.endDate ? styles.inputError : null]}>
+            <Text>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
+          </TouchableOpacity>
+          {showEndDatePicker && (
+            <DateTimePicker value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
+          )}
+          {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
+        </View>
 
-                <View>
-                    <Text style={styles.label}>Data de Fi</Text>
-                    <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[styles.input, errors.endDate ? styles.inputError : null]}>
-                        <Text>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
-                    </TouchableOpacity>
-                    {showEndDatePicker && (
-                        <DateTimePicker value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
-                    )}
-                    {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
-                </View>
-
-                <Text style={styles.label}>Notes Generals</Text>
-                <TextInput
-                    style={styles.inputMulti}
-                    value={generalNotes}
-                    onChangeText={setGeneralNotes}
-                    placeholder="Anotacions diverses..."
-                    multiline
-                    numberOfLines={4}
-                    onFocus={() => setSuggestions([])}
-                />
-                <View style={styles.buttonContainer}>
-                    <Button title={isEditMode ? 'Actualitzar' : 'Crear'} onPress={() => handleSave(false)} color="#007AFF" />
-                    <View style={{ marginTop: 10 }} />
-                    <Button title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'} onPress={() => handleSave(true)} color="#4CAF50" />
-                </View>
-            </View>
-          }
-          keyboardShouldPersistTaps="handled"
+        <Text style={styles.label}>Notes Generals</Text>
+        <TextInput
+            style={styles.inputMulti}
+            value={generalNotes}
+            onChangeText={setGeneralNotes}
+            placeholder="Anotacions diverses..."
+            multiline
+            numberOfLines={4}
+            onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
         />
-      </KeyboardAvoidingView>
+        <View style={styles.buttonContainer}>
+            <Button title={isEditMode ? 'Actualitzar' : 'Crear'} onPress={() => handleSave(false)} color="#007AFF" />
+            <View style={{ marginTop: 10 }} />
+            <Button title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'} onPress={() => handleSave(true)} color="#4CAF50" />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  formContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#333',
-    fontWeight: '500',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginBottom: 5,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    justifyContent: 'center',
-  },
-  inputError: {
-    borderColor: '#F44336',
-  },
-  errorText: {
-    color: '#F44336',
-    marginBottom: 20,
-    marginLeft: 5,
-  },
-  inputMulti: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  buttonContainer: {
-    marginTop: 10,
-    paddingBottom: 20,
-  },
-  suggestionItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-  },
-});
+    container: {
+      flex: 1,
+      backgroundColor: '#f5f5f5',
+    },
+    formContainer: {
+      padding: 20,
+    },
+    label: {
+      fontSize: 16,
+      marginBottom: 8,
+      color: '#333',
+      fontWeight: '500',
+    },
+    input: {
+      backgroundColor: '#fff',
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 16,
+      marginBottom: 5,
+      borderWidth: 1,
+      borderColor: '#ddd',
+      justifyContent: 'center',
+    },
+    inputError: {
+      borderColor: '#F44336',
+    },
+    errorText: {
+      color: '#F44336',
+      marginBottom: 20,
+      marginLeft: 5,
+    },
+    inputMulti: {
+      backgroundColor: '#fff',
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 16,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: '#ddd',
+      height: 100,
+      textAlignVertical: 'top',
+    },
+    buttonContainer: {
+      marginTop: 10,
+    },
+    suggestionsContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        marginBottom: 10,
+    },
+    suggestionItem: {
+      padding: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
+  });
