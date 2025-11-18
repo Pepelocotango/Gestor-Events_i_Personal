@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
 import { TechSheetsStackParamList } from '../navigation';
-import ReadOnlySection from '../components/tech_sheet/ReadOnlySection';
 import ReadOnlyField from '../components/tech_sheet/ReadOnlyField';
 import { formatDate } from '../utils/dateFormat';
+import CollapsibleSection from '../components/CollapsibleSection';
 
 type TechSheetDetailScreenRouteProp = RouteProp<
   TechSheetsStackParamList,
@@ -30,179 +30,199 @@ export default function TechSheetDetailScreen({ route }: Props) {
   const peopleGroups = useDataStore((state) => state.peopleGroups);
   const materialItems = useDataStore((state) => state.materialItems);
 
+  const techSheet = event?.techSheet;
+
+  const sectionKeys = useMemo(() => {
+    if (!techSheet) return [];
+    const keys = new Set<string>();
+
+    if (techSheet.eventName) keys.add('general');
+    if (techSheet.generalNotes) keys.add('generalNotes');
+    if (techSheet.preAssembly?.status === 'yes') keys.add('preAssembly');
+    if (techSheet.schedule?.status === 'yes') keys.add('schedule');
+    if (techSheet.parking?.status === 'yes' || techSheet.dressingRooms?.status === 'yes' || techSheet.actorsInfo?.status === 'yes' || techSheet.techniciansInfo?.status === 'yes') keys.add('logistics');
+    if (techSheet.technicalProviders && techSheet.technicalProviders.length > 0) keys.add('personnel');
+    if (techSheet.technicalNeedsNotes) keys.add('technicalNeedsNotes');
+
+    const needsSections = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
+    needsSections.forEach(key => {
+      if ((techSheet as any)[key]?.status === 'yes') keys.add(key);
+    });
+
+    if (techSheet.controlLocation || techSheet.blueprints) keys.add('otherDetails');
+    if (techSheet.contacts && techSheet.contacts.length > 0) keys.add('contacts');
+    if (techSheet.observations) keys.add('observations');
+
+    return Array.from(keys);
+  }, [techSheet]);
+
+
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+      const initialState: Record<string, boolean> = {};
+      sectionKeys.forEach(key => { initialState[key] = true; });
+      return initialState;
+  });
+
+  const handleToggleSection = (sectionKey: string) => {
+    setExpandedSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
+  };
+
+  const expandAll = () => {
+    const allExpanded: Record<string, boolean> = {};
+    sectionKeys.forEach(key => { allExpanded[key] = true; });
+    setExpandedSections(allExpanded);
+  };
+
+  const collapseAll = () => {
+    const allCollapsed: Record<string, boolean> = {};
+    sectionKeys.forEach(key => { allCollapsed[key] = false; });
+    setExpandedSections(allCollapsed);
+  };
+
   if (!event) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text>No s'ha trobat l'esdeveniment.</Text>
-      </View>
-    );
+    return <View style={styles.centerContainer}><Text>No s'ha trobat l'esdeveniment.</Text></View>;
   }
-
-  const { techSheet } = event;
-
   if (!techSheet) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text>Aquest esdeveniment no té fitxa de bolo associada.</Text>
-      </View>
-    );
+    return <View style={styles.centerContainer}><Text>Aquest esdeveniment no té fitxa de bolo associada.</Text></View>;
   }
 
-  const getPersonName = (personGroupId: string) => {
-    const person = peopleGroups.find((p) => p.id === personGroupId);
-    return person ? person.name : 'Desconegut';
-  };
-
-  const getMaterialName = (materialId: string | null | undefined) => {
-    if (!materialId) return 'N/A';
-    const item = materialItems.find(i => i.id === materialId);
-    return item ? item.name : 'Material desconegut';
-  };
-
-  const renderConditionalSection = (
-    label: string,
-    section: { status: 'yes' | 'no' | 'unset'; details: string } | undefined
-  ) => {
-    if (!section || section.status !== 'yes') return null;
-    return <ReadOnlyField label={label} value={section.details || 'Sí'} />;
-  };
+  const getPersonName = (personGroupId: string) => peopleGroups.find((p) => p.id === personGroupId)?.name || 'Desconegut';
+  const getMaterialName = (materialId: string | null | undefined) => !materialId ? 'N/A' : (materialItems.find(i => i.id === materialId)?.name || 'Material desconegut');
 
   const renderNeedsSection = (
     title: string,
+    sectionKey: string,
     section: { status: 'yes' | 'no' | 'unset'; details: string; needs?: any[] } | undefined
   ) => {
-    if (!section || section.status !== 'yes' || !section.needs || section.needs.length === 0) {
-      return null;
-    }
-
+    if (!section || section.status !== 'yes') return null;
+    const hasNeeds = section.needs && section.needs.length > 0;
     return (
-      <ReadOnlySection title={title}>
+      <CollapsibleSection title={title} isExpanded={expandedSections[sectionKey]} onToggle={() => handleToggleSection(sectionKey)}>
         {section.details && <Text style={styles.notes}>{section.details}</Text>}
-        {section.needs.map((need, index) => (
-          <View key={need.id || index} style={styles.needItem}>
-            <Text style={styles.needDescription}>
-              - {need.quantity}x {need.description || getMaterialName(need.materialItemId)} ({need.origin})
-            </Text>
+        {!hasNeeds && !section.details && <Text>Sense especificacions.</Text>}
+        {hasNeeds && section.needs?.map((need) => (
+          <View key={need.id} style={styles.needItem}>
+            <Text style={styles.needDescription}>- {need.quantity}x {need.description || getMaterialName(need.materialItemId)} ({need.origin})</Text>
           </View>
         ))}
-      </ReadOnlySection>
+      </CollapsibleSection>
     );
+  };
+
+  const renderPersonnelInfoSection = (
+    label: string,
+    section: { status: 'yes' | 'no' | 'unset'; data?: { number: number; names: string }; details?: string } | undefined
+  ) => {
+    if (!section || section.status !== 'yes') return null;
+    let value = '';
+    if (section.data) {
+      value = `Número: ${section.data.number || 'N/A'}`;
+      if (section.data.names) value += `, Noms: ${section.data.names}`;
+    }
+    if (section.details) value += `\nDetalls: ${section.details}`;
+    return <ReadOnlyField label={label} value={value || 'Sí'} />;
   };
 
   return (
     <ScrollView style={styles.container}>
-      <ReadOnlySection title="Informació General">
+      <View style={styles.toggleButtonsContainer}>
+        <TouchableOpacity onPress={expandAll} style={[styles.toggleButton, styles.toggleButtonLeft]}>
+          <Text style={styles.toggleButtonText}>Expandir Totes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={collapseAll} style={[styles.toggleButton, styles.toggleButtonRight]}>
+          <Text style={styles.toggleButtonText}>Replegar Totes</Text>
+        </TouchableOpacity>
+      </View>
+
+      <CollapsibleSection title="Informació General" isExpanded={expandedSections.general} onToggle={() => handleToggleSection('general')}>
         <ReadOnlyField label="Esdeveniment" value={techSheet.eventName} />
         <ReadOnlyField label="Lloc" value={techSheet.location} />
         <ReadOnlyField label="Data" value={formatDate(techSheet.date)} />
+        {techSheet.showTimes && techSheet.showTimes.length > 0 && <ReadOnlyField label="Hora Funció" value={techSheet.showTimes.map(st => st.time).join(', ')} />}
         <ReadOnlyField label="Durada Espectacle" value={techSheet.showDuration} />
-      </ReadOnlySection>
+      </CollapsibleSection>
 
-      {techSheet.generalNotes && (
-        <ReadOnlySection title="Notes Generals">
-          <Text>{techSheet.generalNotes}</Text>
-        </ReadOnlySection>
-      )}
+      {techSheet.generalNotes && <CollapsibleSection title="Notes Generals" isExpanded={expandedSections.generalNotes} onToggle={() => handleToggleSection('generalNotes')}><Text>{techSheet.generalNotes}</Text></CollapsibleSection>}
+      {techSheet.preAssembly?.status === 'yes' && <CollapsibleSection title="Premuntatge" isExpanded={expandedSections.preAssembly} onToggle={() => handleToggleSection('preAssembly')}><Text>{techSheet.preAssembly.details || 'Sí'}</Text></CollapsibleSection>}
 
-      <ReadOnlySection title="Horaris de Muntatge">
-        {techSheet.schedule?.data?.map((item) => (
-          <ReadOnlyField
-            key={item.id}
-            label={`${formatDate(item.date)} ${item.time}${item.timeEnd ? ` - ${item.timeEnd}`: ''}`}
-            value={item.description}
-          />
-        ))}
-      </ReadOnlySection>
+      {sectionKeys.includes('logistics') &&
+        <CollapsibleSection title="Logística" isExpanded={expandedSections.logistics} onToggle={() => handleToggleSection('logistics')}>
+            {techSheet.parking?.status === 'yes' && <ReadOnlyField label="Pàrquing" value={techSheet.parking.details || 'Sí'} />}
+            {techSheet.dressingRooms?.status === 'yes' && <ReadOnlyField label="Camerinos" value={techSheet.dressingRooms.details || 'Sí'} />}
+            {renderPersonnelInfoSection('Intèrprets / Ponents', techSheet.actorsInfo as any)}
+            {renderPersonnelInfoSection('Personal Tècnic (Client)', techSheet.techniciansInfo as any)}
+        </CollapsibleSection>
+      }
 
-      <ReadOnlySection title="Logística">
-        {renderConditionalSection('Pàrquing', techSheet.parking)}
-        {renderConditionalSection('Camerinos', techSheet.dressingRooms as any)}
-        {techSheet.actorsInfo?.status === 'yes' && (
-            <ReadOnlyField label="Actors" value={`Número: ${techSheet.actorsInfo.data?.number}, Noms: ${techSheet.actorsInfo.data?.names}`} />
-        )}
-        {techSheet.techniciansInfo?.status === 'yes' && (
-            <ReadOnlyField label="Tècnics" value={`Número: ${techSheet.techniciansInfo.data?.number}, Noms: ${techSheet.techniciansInfo.data?.names}`} />
-        )}
-      </ReadOnlySection>
+      {techSheet.schedule?.status === 'yes' &&
+        <CollapsibleSection title="Horaris de Muntatge" isExpanded={expandedSections.schedule} onToggle={() => handleToggleSection('schedule')}>
+          {techSheet.schedule.details && <Text style={styles.notes}>{techSheet.schedule.details}</Text>}
+          {techSheet.schedule.data?.map((item) => <ReadOnlyField key={item.id} label={`${formatDate(item.date)} ${item.time}${item.timeEnd ? ` - ${item.timeEnd}`: ''}`} value={item.description} />)}
+        </CollapsibleSection>
+      }
 
-      <ReadOnlySection title="Personal Tècnic">
-        {techSheet.technicalPersonnelNotes && <Text style={styles.notes}>{techSheet.technicalPersonnelNotes}</Text>}
-        {techSheet.technicalProviders?.map((provider) => (
-          <View key={provider.id}>
-            <Text style={styles.providerName}>{getPersonName(provider.personGroupId)}</Text>
-            {provider.roles.map(role => (
-                <ReadOnlyField key={role.id} label={`    ${role.role}`} value={`${role.quantity} persona/es`} />
-            ))}
-          </View>
-        ))}
-      </ReadOnlySection>
+      {techSheet.technicalProviders && techSheet.technicalProviders.length > 0 &&
+        <CollapsibleSection title="Personal Tècnic" isExpanded={expandedSections.personnel} onToggle={() => handleToggleSection('personnel')}>
+          {techSheet.technicalPersonnelNotes && <Text style={styles.notes}>{techSheet.technicalPersonnelNotes}</Text>}
+          {techSheet.technicalProviders.map((provider) => (
+            <View key={provider.id} style={{marginTop: 5}}>
+              <Text style={styles.providerName}>{getPersonName(provider.personGroupId)}</Text>
+              {provider.roles.map(role => <ReadOnlyField key={role.id} label={`    ${role.role}`} value={`${role.quantity} persona/es`} />)}
+            </View>
+          ))}
+        </CollapsibleSection>
+      }
 
-      {techSheet.technicalNeedsNotes && <ReadOnlySection title="Notes de Necessitats Tècniques"><Text>{techSheet.technicalNeedsNotes}</Text></ReadOnlySection>}
-      {renderNeedsSection('Llums', techSheet.lighting)}
-      {renderNeedsSection('So', techSheet.sound)}
-      {renderNeedsSection('Vídeo', techSheet.video)}
-      {renderNeedsSection('Maquinària', techSheet.machinery)}
-      {renderNeedsSection('Lloguers', techSheet.rentals)}
-      {renderNeedsSection('Altre Equipament', techSheet.otherEquipment)}
-      {renderNeedsSection('Elèctric', techSheet.electrical)}
-      {renderNeedsSection('Estructures', techSheet.structures)}
-      {renderNeedsSection('Plataformes', techSheet.platforms)}
-      {renderNeedsSection('Consumibles', techSheet.consumables)}
-      {renderNeedsSection('Cortines', techSheet.curtains)}
-      {renderNeedsSection('Transport', techSheet.transport)}
+      {techSheet.technicalNeedsNotes && <CollapsibleSection title="Notes de Necessitats Tècniques" isExpanded={expandedSections.technicalNeedsNotes} onToggle={() => handleToggleSection('technicalNeedsNotes')}><Text>{techSheet.technicalNeedsNotes}</Text></CollapsibleSection>}
+      {renderNeedsSection('Il·luminació', 'lighting', techSheet.lighting)}
+      {renderNeedsSection('So', 'sound', techSheet.sound)}
+      {renderNeedsSection('Vídeo', 'video', techSheet.video)}
+      {renderNeedsSection('Maquinària', 'machinery', techSheet.machinery)}
+      {renderNeedsSection('Lloguers', 'rentals', techSheet.rentals)}
+      {renderNeedsSection('Altre Equipament', 'otherEquipment', techSheet.otherEquipment)}
+      {renderNeedsSection('Infraestructures Elèctriques', 'electrical', techSheet.electrical)}
+      {renderNeedsSection('Estructures', 'structures', techSheet.structures)}
+      {renderNeedsSection('Tarimes', 'platforms', techSheet.platforms)}
+      {renderNeedsSection('Consumibles', 'consumables', techSheet.consumables)}
+      {renderNeedsSection('Cortinatges', 'curtains', techSheet.curtains)}
+      {renderNeedsSection('Transport', 'transport', techSheet.transport)}
 
-      <ReadOnlySection title="Altres Detalls">
-        <ReadOnlyField label="Ubicació Control" value={techSheet.controlLocation} />
-        <ReadOnlyField label="Plànols" value={techSheet.blueprints} />
-      </ReadOnlySection>
+      {sectionKeys.includes('otherDetails') &&
+        <CollapsibleSection title="Altres Detalls" isExpanded={expandedSections.otherDetails} onToggle={() => handleToggleSection('otherDetails')}>
+          <ReadOnlyField label="Ubicació Control" value={techSheet.controlLocation} />
+          <ReadOnlyField label="Plànols" value={techSheet.blueprints} />
+        </CollapsibleSection>
+      }
 
-      <ReadOnlySection title="Contactes">
-        {techSheet.contacts?.map((contact) => (
-          <View key={contact.id} style={styles.contactContainer}>
-            <ReadOnlyField label="Nom" value={contact.name} />
-            <ReadOnlyField label="Rol" value={contact.role} />
-            <ReadOnlyField label="Telèfon" value={contact.phone} />
-            <ReadOnlyField label="Email" value={contact.email} />
-          </View>
-        ))}
-      </ReadOnlySection>
+      {techSheet.contacts && techSheet.contacts.length > 0 &&
+        <CollapsibleSection title="Contactes" isExpanded={expandedSections.contacts} onToggle={() => handleToggleSection('contacts')}>
+          {techSheet.contacts.map((contact) => (
+            <View key={contact.id} style={styles.contactContainer}>
+              <ReadOnlyField label="Nom" value={contact.name} />
+              <ReadOnlyField label="Rol" value={contact.role} />
+              <ReadOnlyField label="Telèfon" value={contact.phone} />
+              <ReadOnlyField label="Email" value={contact.email} />
+            </View>
+          ))}
+        </CollapsibleSection>
+      }
 
-      <ReadOnlySection title="Observacions">
-        <Text>{techSheet.observations || 'Sense observacions.'}</Text>
-      </ReadOnlySection>
+      {techSheet.observations && <CollapsibleSection title="Observacions" isExpanded={expandedSections.observations} onToggle={() => handleToggleSection('observations')}><Text>{techSheet.observations}</Text></CollapsibleSection>}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 8,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  providerName: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginTop: 8,
-  },
-  needItem: {
-    paddingVertical: 4,
-  },
-  needDescription: {
-    fontSize: 14,
-  },
-  notes: {
-    fontStyle: 'italic',
-    marginBottom: 8,
-    color: '#666',
-  },
-  contactContainer: {
-      marginBottom: 10,
-  }
+  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 8 },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 },
+  providerName: { fontWeight: 'bold', fontSize: 16, marginTop: 8 },
+  needItem: { paddingVertical: 4 },
+  needDescription: { fontSize: 14 },
+  notes: { fontStyle: 'italic', marginBottom: 8, color: '#666' },
+  contactContainer: { marginBottom: 10 },
+  toggleButtonsContainer: { flexDirection: 'row', marginBottom: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 5, overflow: 'hidden' },
+  toggleButton: { flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: '#e9ecef' },
+  toggleButtonLeft: { borderRightWidth: 1, borderColor: '#ccc' },
+  toggleButtonRight: {},
+  toggleButtonText: { color: '#495057', fontWeight: 'bold' },
 });
