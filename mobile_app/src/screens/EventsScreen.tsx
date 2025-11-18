@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -71,6 +71,12 @@ const EventsScreen = ({ navigation }: Props) => {
 
   }, [eventFrames, filters, showArchived, sortOrder, peopleMap]);
 
+  // Efecte per tancar tots els cadenats quan canvia la llista filtrada
+  useEffect(() => {
+    setUnlockedAssignmentIds(new Set());
+    setExpandedAssignmentIds(new Set());
+  }, [filteredEventFrames]);
+
   const areAllExpanded = useMemo(() => {
       if (filteredEventFrames.length === 0) return true;
       return filteredEventFrames.every(ef => expandedIds.has(ef.id));
@@ -79,6 +85,8 @@ const EventsScreen = ({ navigation }: Props) => {
   const toggleAllCards = () => {
     if (areAllExpanded) {
         setExpandedIds(new Set());
+        setExpandedAssignmentIds(new Set());
+        setUnlockedAssignmentIds(new Set());
     } else {
         const allIds = new Set(filteredEventFrames.map(ef => ef.id));
         setExpandedIds(allIds);
@@ -88,8 +96,11 @@ const EventsScreen = ({ navigation }: Props) => {
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
       return newSet;
     });
   }, []);
