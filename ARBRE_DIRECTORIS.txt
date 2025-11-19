@@ -16,6 +16,51 @@ enllaç a Gestor-Events_i_Personal/
 │   └── example_person.json       # JSON amb dades de contactes.
 ├── imatges/                      # Conté imatges i captures de pantalla per a la documentació.
 │   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
+├── mobile_app/                   # Projecte de l'aplicació mòbil (React Native amb Expo).
+│   ├── .expo/                    # Fitxers temporals generats per Expo.
+│   ├── assets/                   # Actius estàtics (imatges).
+│   ├── src/                      # Codi font de l'aplicació mòbil.
+│   │   ├── components/           # Components reutilitzables de la UI mòbil.
+│   │   │   ├── tech_sheet/         # Components específics per a la visualització de la fitxa de bolo.
+│   │   │   │   ├── ReadOnlyField.tsx   # Component per mostrar un camp individual (etiqueta i valor).
+│   │   │   │   └── ReadOnlySection.tsx # Component per agrupar camps sota un títol de secció.
+│   │   │   ├── ActionToolbar.tsx         # Barra d'eines per a la pantalla d'esdeveniments (ordenar, arxivar, expandir).
+│   │   │   ├── CustomHeader.tsx          # Capçalera global de l'aplicació amb accions principals (desar, tancar, desfer/refer).
+│   │   │   ├── EventFrameCard.tsx        # Targeta individual per mostrar la informació d'un esdeveniment.
+│   │   │   ├── FilterControls.tsx        # Controls de filtre per a la pantalla d'esdeveniments.
+│   │   │   ├── MaterialControlFilters.tsx# Controls de filtre per al Centre de Control de Material.
+│   │   │   ├── MaterialControlList.tsx   # Llista de resultats del Centre de Control.
+│   │   │   ├── MaterialListItem.tsx      # Component per a un element individual a la llista de material.
+│   │   │   ├── MaterialToolbar.tsx       # Barra d'eines per a la pantalla de materials (cerca, ordenar, expandir tot).
+│   │   │   ├── PeopleToolbar.tsx         # Barra d'eines per a la pantalla de persones (cerca, ordenar, filtrar).
+│   │   │   └── PersonListItem.tsx        # Component per a un element individual a la llista de persones.
+│   │   ├── navigation.ts         # Defineix els tipus per a la pila de navegació (React Navigation).
+│   │   ├── screens/              # Pantalles principals de l'aplicació.
+│   │   │   ├── EventsScreen.tsx          # Pantalla principal per a la gestió d'esdeveniments.
+│   │   │   ├── EventDetailScreen.tsx     # Pantalla que mostra els detalls d'un esdeveniment.
+│   │   │   ├── TechSheetListScreen.tsx   # Nova pantalla que llista totes les fitxes de bolo disponibles.
+│   │   │   ├── TechSheetDetailScreen.tsx # Pantalla de només lectura per a la fitxa de bolo.
+│   │   │   ├── EventFormScreen.tsx       # Formulari per crear/editar esdeveniments.
+│   │   │   ├── PeopleScreen.tsx          # Pantalla per a la gestió de persones/contactes.
+│   │   │   ├── PersonFormScreen.tsx      # Formulari per crear/editar persones.
+│   │   │   ├── MaterialScreen.tsx        # Pantalla per a la gestió d'inventari de material.
+│   │   │   └── MaterialFormScreen.tsx    # Formulari per crear/editar material.
+│   │   ├── services/             # Lògica de negoci i accés a dades.
+│   │   │   ├── fileService.ts      # Interfície que defineix el contracte per als serveis de dades.
+│   │   │   └── SAFFileService.ts     # Implementació del servei que utilitza el Storage Access Framework (SAF).
+│   │   ├── stores/               # Gestors d'estat global (Zustand).
+│   │   │   └── dataStore.ts      # Store per a l'estat de les dades de l'aplicació (esdeveniments, etc.).
+│   │   └── types/                # Definicions de tipus de TypeScript compartides.
+│   │       └── index.ts          # Tipus de dades (AppData, EventFrame, etc.), compartits amb l'app d'escriptori.
+│   ├── node_modules/             # Dependències del projecte mòbil.
+│   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòbil.
+│   ├── App.tsx                   # Punt d'entrada principal que carrega les pantalles.
+│   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil.
+│   ├── index.js                  # Punt de registre inicial de l'aplicació per a Expo.
+│   ├── app.json                  # Fitxer de configuració d'Expo.
+│   ├── babel.config.js           # Fitxer de configuració de Babel.
+│   ├── package.json              # Dependències i scripts de l'aplicació mòbil.
+│   └── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil.
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
 │   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
 ├── scripts/                      # Scripts d'utilitat per al procés de desenvolupament i compilació.
