@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
 import { SAFFileService } from '../services/SAFFileService';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Constants from 'expo-constants';
 
 const fileService = new SAFFileService();
 
@@ -90,10 +91,15 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     }
   };
 
+  const appVersion = Constants.expoConfig?.extra?.version || Constants.expoConfig?.version;
+  const headerTitle = fileName
+    ? fileName
+    : `Gestor d'Esdeveniments v${appVersion}`;
+
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
-        <Text style={styles.title}>{fileName || 'Gestor d\'Esdeveniments'}</Text>
+        <Text style={styles.title}>{headerTitle}</Text>
       </View>
       <View style={styles.bottomRow}>
         <View style={styles.buttonGroup}>

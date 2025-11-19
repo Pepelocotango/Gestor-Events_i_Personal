@@ -1,0 +1,10 @@
+{
+  "build": {
+    "production": {
+      "android": {
+        "buildType": "apk",
+        "artifactPath": "builds/gestor-events-mobile-v${env.APP_VERSION}.apk"
+      }
+    }
+  }
+}

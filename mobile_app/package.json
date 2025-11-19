@@ -5,7 +5,8 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "build:android": "cross-env APP_VERSION=$npm_package_version eas build -p android"
   },
   "dependencies": {
     "@react-native-community/datetimepicker": "8.0.1",
@@ -40,6 +41,7 @@
     "@types/react": "18.2.45",
     "@types/react-native-calendars": "^1.1264.7",
     "@types/uuid": "9.0.7",
+    "cross-env": "^10.1.0",
     "typescript": "^5.9.3"
   },
   "private": true

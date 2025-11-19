@@ -2,7 +2,14 @@
   "expo": {
     "name": "gestor-events-mobile",
     "slug": "gestor-events-mobile",
-    "version": "1.0.0",
+    "version": "1.5.0",
+    "android": {
+      "package": "com.juli.gestoreventsmobile",
+      "versionCode": 10500
+    },
+    "extra": {
+      "version": "1.5.0"
+    },
     "plugins": [
       "expo-secure-store"
     ]
