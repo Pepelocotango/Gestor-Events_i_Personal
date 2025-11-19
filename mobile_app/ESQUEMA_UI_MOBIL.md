@@ -1,4 +1,4 @@
-# Esquema Visual de la Interfície d'Usuari - App Mòbil (v1.4.0)
+# Esquema Visual de la Interfície d'Usuari - App Mòbil (v1.5.0)
 
 Aquest document descriu l'estructura de l'aplicació mòbil, les seves pantalles i les funcions associades, reflectint la refactorització de la UI cap a un model més visual i interactiu.
 
@@ -13,41 +13,37 @@ La nova interfície es basa en els següents principis:
 
 ---
 
-### Capçalera Global (`CustomHeader`)
+### Capçalera Global i Gestió de Fitxers (`EventsScreen`)
 
-La capçalera superior és persistent i s'ha redissenyat per ser més minimalista.
+La gestió de fitxers es centralitza a la pantalla d'esdeveniments:
 
-- **Fila Superior**:
-  - **Títol**: Mostra el nom del fitxer obert o el nom de l'aplicació.
-- **Fila Inferior**:
-  - **Accions d'Historial (Esquerra)**:
-    - **<Icona `undo`>**: Desfà l'última acció.
-    - **<Icona `redo`>**: Refà l'última acció.
-  - **Accions de Fitxer (Dreta)**:
-    - **<Icona `folder-open`> Obrir**: Si no hi ha cap fitxer obert.
-    - **<Icona `save`>**: Desa els canvis al fitxer. S'activa només si hi ha canvis.
-    - **<Icona `close`>**: Tanca el fitxer actual.
-
-El botó "Afegir" s'ha eliminat d'aquesta barra.
+- **Estat Inicial (sense fitxer obert):**
+  - Un missatge de benvinguda i un botó gran per **"Obrir Fitxer"**.
+- **Estat Principal (amb fitxer obert):**
+  - **Capçalera**: Mostra el nom del fitxer obert.
+  - **Botons**:
+    - **Desar**: Actiu només si hi ha canvis. Activa el flux de "Desar Com a".
+    - **Tancar**: Tanca el fitxer i torna a la pantalla de benvinguda.
+    - **Desfer / Refer**: Icones per a la gestió de l'historial de canvis.
 
 ---
 
 ### Botó d'Acció Flotant (FAB)
 
-A cada pantalla principal (Esdeveniments, Persones, Material), hi ha un botó `+` a la cantonada inferior dreta que permet crear un nou element corresponent a la secció.
+A cada pantalla principal de llista (Esdeveniments, Persones, Material), hi ha un botó `+` a la cantonada inferior dreta que permet crear un nou element corresponent a la secció.
 
 ---
 
 ### Navegació Principal (Barra de Pestanyes Inferior)
 
-L'aplicació es divideix en cinc pestanyes principals, cadascuna amb la seva pròpia pila de navegació:
+L'aplicació es divideix en pestanyes principals a la part inferior, cadascuna amb la seva pròpia pila de navegació:
 
-- **Esdeveniments**: Gestiona els esdeveniments.
-- **Fitxes de Bolo**: Visualitza totes les fitxes de bolo.
-- **Persones**: Gestiona la llista de personal.
+- **Esdeveniments**: Llista i gestiona els esdeveniments. És també la pantalla principal per a la gestió de fitxers.
+- **Calendari**: Vista de calendari dels esdeveniments.
+- **Persones**: Gestiona la llista de contactes/personal.
 - **Material**: Gestiona l'inventari de material.
-- **Centre de Control**: Ofereix una vista global de l'estat del material.
-- **Resums**: Mostra resums de les assignacions de personal.
+
+Les seccions de "Fitxes de Bolo", "Centre de Control" i "Resums" són funcionalitats exclusives de l'aplicació d'escriptori i no es troben a l'aplicació mòbil.
 
 ---
 
@@ -72,32 +68,7 @@ L'aplicació es divideix en cinc pestanyes principals, cadascuna amb la seva pr�
   - **Accions a la Targeta (expandida)**:
     - **<Icona `pencil`>**: Obre el formulari per editar l'esdeveniment.
     - **<Icona `delete`>**: Elimina l'esdeveniment (amb confirmació).
-    - **Botó "Veure Fitxa de Bolo"**: Si l'esdeveniment té una fitxa associada, apareix un botó que porta a la pantalla de només lectura `TechSheetDetailScreen`.
-
-#### 1.1. Pantalla de Detall de l'Esdeveniment (`EventDetailScreen`)
-
-Accessible en fer clic a una targeta d'esdeveniment. Mostra una vista detallada de l'esdeveniment i les seves assignacions. Des d'aquí també es pot navegar a la fitxa de bolo.
-
-#### 1.2. Pantalla de Visualització de Fitxa de Bolo (`TechSheetDetailScreen`)
-
-- **Propòsit**: Mostra una versió de **només lectura** de la fitxa de bolo.
-- **Estructura**:
-  - **Informació General**: Nom, lloc, data.
-  - **Personal Tècnic**: Llista de proveïdors i rols.
-  - **Horaris**: Planning de muntatge.
-  - **Necessitats Tècniques**: Seccions per a llums, so, vídeo, etc.
-  - **Contactes i Observacions**.
-- **Interacció**: No hi ha camps editables, només visualització de dades.
-
----
-
-### 2. Pestanya "Fitxes de Bolo" (`TechSheetListScreen`)
-
-- **Propòsit**: Ofereix un accés centralitzat per a visualitzar totes les fitxes de bolo.
-- **Contingut**:
-  - **Llista de Fitxes**: Mostra una llista de tots els esdeveniments que tenen una fitxa de bolo associada. Cada element de la llista mostra el nom de l'esdeveniment, el lloc i la data.
-- **Navegació**:
-  - En fer clic a un element de la llista, es navega a la pantalla `TechSheetDetailScreen` per a visualitzar els detalls complets d'aquella fitxa.
+  - **Editor d'Assignacions**: Dins de la targeta expandida, cada assignació es pot expandir per veure i editar l'estat diari (Confirmat, Pendent, No disponible). Aquest canvi es pot fer directament a la llista.
 
 ---
 
@@ -130,25 +101,3 @@ Accessible en fer clic a una targeta d'esdeveniment. Mostra una vista detallada 
   - **Accions a cada element**:
     - **<Icona `pencil`>**: Obre el formulari per editar l'ítem.
     - **<Icona `delete`>**: Elimina l'ítem (amb confirmació).
-
----
-
-### 4. Pestanya "Centre de Control" (`MaterialControlScreen`)
-
-(Sense canvis significatius en la UI en aquesta refactorització).
-
-- **Controls de Filtre (`MaterialControlFilters`):**
-  - Cerca, selectors per esdeveniment, origen i categoria, i botó de neteja.
-- **Llista de Resultats (`MaterialControlList`):**
-  - Mostra el balanç d'estoc per a cada ítem de material.
-
----
-
-### 5. Pestanya "Resums" (`SummaryScreen`)
-
-(Sense canvis significatius en la UI en aquesta refactorització).
-
-- **Controls**:
-  - Botó d'Ordenació per canviar l'ordre.
-- **Llista de Resums (`SectionList`):**
-  - Agrupa les assignacions per esdeveniment o per persona.

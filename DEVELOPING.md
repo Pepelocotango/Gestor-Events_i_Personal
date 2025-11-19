@@ -1,12 +1,12 @@
 branca de desenvolupament * REFAC_OK-PER-REVISAR16-9-25 ## ->PROVES DE REFACTORITZACIÓ
-## DEVELOPING.md V1.4.0
+## DEVELOPING.md V1.5.0
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
-# NOVETATS V1.4.0 (Novembre 2025)
+# NOVETATS V1.5.0 (Novembre 2025)
 
 **Resum de canvis tècnics recents:**
 - Refactorització completa de la gestió d'estat amb Zustand i zundo: stores independents, historial desfer/refer, partialize memoitzada per evitar bucles infinits.
@@ -995,10 +995,12 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
     cd Gestor-Events_i_Personal
     ```
 
-2.  **Instal·la les dependències:**
+2.  **Instal·la les dependències (Mètode Recomanat):**
+    Per a assegurar una instal·lació neta i 100% reproduïble, es recomana fer servir `npm ci`. Aquesta comanda instal·la les versions exactes definides al `package-lock.json` i és ideal per a entorns de producció i integració contínua.
     ```bash
-    npm install
+    npm ci
     ```
+    Alternativament, durant el desenvolupament actiu, pots fer servir `npm install`.
 
 3.  **Configura les Credencials de Google (Opcional, per a desenvolupament):**
     -   Crea un fitxer anomenat `google-credentials.json` a l'arrel del projecte.
@@ -1282,9 +1284,15 @@ L'aplicació mòbil ha evolucionat per permetre la gestió completa d'esdevenime
     cd mobile_app
     ```
 2.  **Instal·la les dependències:**
+    L'ecosistema de React Native té un arbre de dependències complex. Per evitar conflictes, és **obligatori** utilitzar el flag `--legacy-peer-deps`.
     ```bash
-    npm install
+    npm install --legacy-peer-deps
     ```
+    > **Nota sobre instal·lacions netes:** Si trobes problemes de dependències, la millor solució és fer una instal·lació completament neta. Això implica esborrar `node_modules` i `package-lock.json` abans de tornar a executar la comanda d'instal·lació.
+    > ```bash
+    > rm -rf node_modules package-lock.json
+    > npm install --legacy-peer-deps
+    > ```
     > **Nota important:** Per afegir noves dependències, especialment aquelles que contenen codi natiu (com les llibreries d'Expo), es recomana utilitzar `npx expo install <nom-del-paquet>`. Aquesta eina s'assegura d'instal·lar una versió de la llibreria que sigui totalment compatible amb l'SDK d'Expo del projecte, evitant problemes d'enllaç natiu.
 3.  **Inicia el servidor de desenvolupament d'Expo:**
     ```bash
