@@ -53,8 +53,8 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
 
   const handleSaveFile = async () => {
     Alert.alert(
-      "Instruccions per Sobrescriure",
-      "Per sobreescriure un fitxer existent (especialment a Google Drive), assegureu-vos de seleccionar el fitxer original al diàleg de desat que apareixerà a continuació.",
+      "Com Sobrescriure un Fitxer?",
+      "Per reemplaçar un fitxer existent (a Google Drive, Dropbox, etc.), trieu un gestor de fitxers (com 'Fitxers' o 'File Manager') al menú que apareixerà. Des d'allà, podreu seleccionar el fitxer original per sobreescriure'l.",
       [
         {
           text: "Cancel·lar",
