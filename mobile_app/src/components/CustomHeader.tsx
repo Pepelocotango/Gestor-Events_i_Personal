@@ -17,6 +17,7 @@ interface CustomHeaderProps {
 const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   const {
     fileName,
+    fileUri,
     hasUnsavedChanges,
     setData,
     clearData,
@@ -30,7 +31,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
       try {
         const result = await fileService.openFile();
         if (result) {
-          setData(result.content, result.name);
+          setData(result.content, result.name, result.uri);
         }
       } catch (error) {
         Alert.alert("Error", "El fitxer seleccionat no és vàlid o està malmès.");
@@ -54,7 +55,10 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   const handleSaveFile = async () => {
     try {
       await saveData();
-      Alert.alert("Èxit", "S'ha iniciat el procés de desat. Trieu on desar el fitxer.");
+      const successMessage = fileUri
+        ? "El fitxer s'ha desat correctament."
+        : "S'ha iniciat el procés de desat. Trieu on desar el fitxer.";
+      Alert.alert("Èxit", successMessage);
     } catch (e) {
       Alert.alert("Error", "No s'ha pogut desar el fitxer.");
     }

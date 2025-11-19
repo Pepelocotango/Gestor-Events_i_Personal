@@ -13,6 +13,7 @@ type NewMaterialItemData = Omit<MaterialItem, 'id'>;
 
 interface DataState {
   fileName: string | null;
+  fileUri: string | null;
   eventFrames: EventFrame[];
   peopleGroups: PersonGroup[];
   materialItems: MaterialItem[];
@@ -20,7 +21,7 @@ interface DataState {
   isLoading: boolean;
   error: string | null;
 
-  setData: (data: AppData, name: string) => void;
+  setData: (data: AppData, name: string, uri: string) => void;
   clearData: () => void;
   saveData: () => Promise<void>;
 
@@ -47,6 +48,7 @@ interface DataState {
 export const useDataStore = create<DataState>()(
   immer((set, get) => ({
       fileName: null,
+      fileUri: null,
       eventFrames: [],
   peopleGroups: [],
   materialItems: [],
@@ -54,7 +56,7 @@ export const useDataStore = create<DataState>()(
   isLoading: false,
   error: null,
 
-  setData: (data, name) => {
+  setData: (data, name, uri) => {
     set({ isLoading: true, error: null });
     try {
       const hydratedEventFrames: EventFrame[] = data.eventFrames.map((frame) => ({
@@ -66,6 +68,7 @@ export const useDataStore = create<DataState>()(
         peopleGroups: data.peopleGroups,
         materialItems: data.materialItems || [],
         fileName: name,
+        fileUri: uri,
         hasUnsavedChanges: false,
         isLoading: false,
       });
@@ -80,12 +83,13 @@ export const useDataStore = create<DataState>()(
       peopleGroups: [],
       materialItems: [],
       fileName: null,
+      fileUri: null,
       hasUnsavedChanges: false,
     });
   },
 
   saveData: async () => {
-    const { fileName, eventFrames, peopleGroups, materialItems } = get();
+    const { fileUri, fileName, eventFrames, peopleGroups, materialItems } = get();
 
     set({ isLoading: true, error: null });
     try {
@@ -99,7 +103,12 @@ export const useDataStore = create<DataState>()(
       };
 
       const jsonString = JSON.stringify(dataToSave, null, 2);
-      await fileService.saveFileAs(jsonString, fileName || 'dades.json');
+
+      if (fileUri) {
+        await fileService.saveFile(fileUri, jsonString);
+      } else {
+        await fileService.saveFileAs(jsonString, fileName || 'dades.json');
+      }
 
       set({ hasUnsavedChanges: false, isLoading: false });
     } catch (err) {
