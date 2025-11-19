@@ -11,6 +11,10 @@ export class SAFFileService implements IFileService {
     content: AppData;
   } | null> {
     try {
+      // Neteja proactiva de la memòria cau del DocumentPicker per evitar dades obsoletes.
+      const cacheDir = `${FileSystem.cacheDirectory}DocumentPicker`;
+      await FileSystem.deleteAsync(cacheDir, { idempotent: true });
+
       const result = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: true,
         multiple: false,
