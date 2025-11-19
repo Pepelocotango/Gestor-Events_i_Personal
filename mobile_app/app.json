@@ -8,7 +8,10 @@
       "versionCode": 10500
     },
     "extra": {
-      "version": "1.5.0"
+      "version": "1.5.0",
+      "eas": {
+        "projectId": "e4592030-d564-4217-ad98-8ff407c71adb"
+      }
     },
     "plugins": [
       "expo-secure-store"
