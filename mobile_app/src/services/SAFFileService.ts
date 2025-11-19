@@ -43,17 +43,6 @@ export class SAFFileService implements IFileService {
     }
   }
 
-  public async saveFile(uri: string, jsonString: string): Promise<void> {
-    try {
-      await FileSystem.writeAsStringAsync(uri, jsonString, {
-        encoding: 'utf8',
-      });
-    } catch (error) {
-      console.error('Error al desar el fitxer directament:', error);
-      throw new Error('No s’ha pogut sobreescriure el fitxer.');
-    }
-  }
-
   public async saveFileAs(jsonString: string, fileName: string): Promise<void> {
     try {
       const temporaryFilePath = `${FileSystem.cacheDirectory}${fileName}`;

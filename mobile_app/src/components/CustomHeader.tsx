@@ -17,7 +17,6 @@ interface CustomHeaderProps {
 const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   const {
     fileName,
-    fileUri,
     hasUnsavedChanges,
     setData,
     clearData,
@@ -31,7 +30,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
       try {
         const result = await fileService.openFile();
         if (result) {
-          setData(result.content, result.name, result.uri);
+          setData(result.content, result.name);
         }
       } catch (error) {
         Alert.alert("Error", "El fitxer seleccionat no és vàlid o està malmès.");
@@ -53,15 +52,27 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   };
 
   const handleSaveFile = async () => {
-    try {
-      await saveData();
-      const successMessage = fileUri
-        ? "El fitxer s'ha desat correctament."
-        : "S'ha iniciat el procés de desat. Trieu on desar el fitxer.";
-      Alert.alert("Èxit", successMessage);
-    } catch (e) {
-      Alert.alert("Error", "No s'ha pogut desar el fitxer.");
-    }
+    Alert.alert(
+      "Instruccions per Sobrescriure",
+      "Per sobreescriure un fitxer existent (especialment a Google Drive), assegureu-vos de seleccionar el fitxer original al diàleg de desat que apareixerà a continuació.",
+      [
+        {
+          text: "Cancel·lar",
+          style: "cancel",
+        },
+        {
+          text: "Entès, continua",
+          onPress: async () => {
+            try {
+              await saveData();
+              // Ja no cal una alerta d'èxit aquí, ja que el diàleg del sistema és suficient.
+            } catch (e) {
+              Alert.alert("Error", "No s'ha pogut desar el fitxer.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleCloseFile = () => {
