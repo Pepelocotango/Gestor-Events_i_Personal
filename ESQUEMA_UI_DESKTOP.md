@@ -1,4 +1,4 @@
-# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori
+# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v1.5.0)
 
 Aquest document detalla l'estructura visual, les funcionalitats i les interaccions de l'usuari a l'aplicació d'escriptori.
 
