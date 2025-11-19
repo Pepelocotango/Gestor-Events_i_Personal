@@ -11,27 +11,33 @@ export class SAFFileService implements IFileService {
     content: AppData;
   } | null> {
     try {
-      // Neteja proactiva de la memòria cau del DocumentPicker per evitar dades obsoletes.
-      const cacheDir = `${FileSystem.cacheDirectory}DocumentPicker`;
-      await FileSystem.deleteAsync(cacheDir, { idempotent: true });
+      // ELIMINEM la lògica de neteja manual de carpetes perquè és fràgil.
 
       const result = await DocumentPicker.getDocumentAsync({
-        copyToCacheDirectory: true,
+        // CANVI CLAU: false.
+        // Això fa que ens doni la URI directa al fitxer original (o temporal del sistema),
+        // en lloc de crear-ne una còpia persistent a la nostra cache que pot quedar obsoleta.
+        copyToCacheDirectory: false, 
         multiple: false,
         type: '*/*',
       });
 
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
-        const uriForReading = (asset as any).fileUri || asset.uri;
+        
+        // En Android, això serà un 'content://...', en iOS un 'file:///tmp/...'
+        // En ambdós casos, és la versió "viva" que l'usuari acaba de seleccionar.
+        const uriForReading = asset.uri; 
 
         if (!uriForReading) {
           throw new Error("No s'ha pogut obtenir una URI vàlida per llegir el fitxer.");
         }
 
+        // FileSystem.readAsStringAsync sap llegir URIs 'content://' nativament
         const content = await FileSystem.readAsStringAsync(uriForReading, {
           encoding: 'utf8',
         });
+        
         const data = JSON.parse(content);
 
         return {
@@ -47,8 +53,10 @@ export class SAFFileService implements IFileService {
     }
   }
 
+  // ... (el mètode saveFileAs es manté igual)
   public async saveFileAs(jsonString: string, fileName: string): Promise<void> {
-    try {
+     // ... el teu codi existent ...
+     try {
       const temporaryFilePath = `${FileSystem.cacheDirectory}${fileName}`;
 
       await FileSystem.writeAsStringAsync(temporaryFilePath, jsonString, {
