@@ -3,7 +3,6 @@
     "production": {
       "android": {
         "buildType": "apk",
-        "applicationArchivePath": "builds/gestor-events-mobile-v${env.APP_VERSION}.apk"
       }
     }
   }
