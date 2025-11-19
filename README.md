@@ -5,7 +5,7 @@
 
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal V1.4.0
+# Gestor d'Esdeveniments i Personal V1.5.0
 
 Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que funciona com a visor de dades.
 
