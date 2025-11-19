@@ -11,37 +11,38 @@ export class SAFFileService implements IFileService {
     content: AppData;
   } | null> {
     try {
-      // ELIMINEM la lògica de neteja manual de carpetes perquè és fràgil.
-
       const result = await DocumentPicker.getDocumentAsync({
-        // CANVI CLAU: false.
-        // Això fa que ens doni la URI directa al fitxer original (o temporal del sistema),
-        // en lloc de crear-ne una còpia persistent a la nostra cache que pot quedar obsoleta.
-        copyToCacheDirectory: false, 
+        // TORNEM A TRUE: Això soluciona l'error "fitxer no vàlid" perquè
+        // Expo s'encarrega de moure el fitxer a un lloc on segur que el podem llegir.
+        copyToCacheDirectory: true, 
         multiple: false,
         type: '*/*',
       });
 
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
-        
-        // En Android, això serà un 'content://...', en iOS un 'file:///tmp/...'
-        // En ambdós casos, és la versió "viva" que l'usuari acaba de seleccionar.
-        const uriForReading = asset.uri; 
+        const uri = asset.uri;
 
-        if (!uriForReading) {
-          throw new Error("No s'ha pogut obtenir una URI vàlida per llegir el fitxer.");
-        }
-
-        // FileSystem.readAsStringAsync sap llegir URIs 'content://' nativament
-        const content = await FileSystem.readAsStringAsync(uriForReading, {
+        // 1. Llegim el contingut del fitxer (ara segur que és accessible)
+        const content = await FileSystem.readAsStringAsync(uri, {
           encoding: 'utf8',
         });
         
+        // 2. Parsejem les dades
         const data = JSON.parse(content);
 
+        // 3. PAS CLAU: ESBORREM EL FITXER DE LA CACHE IMMEDIATAMENT
+        // En eliminar-lo ara mateix, garantim que la propera vegada que l'usuari
+        // obri el mateix fitxer, Expo no trobi l'antic i estigui obligat
+        // a crear una nova còpia actualitzada de l'original.
+        try {
+            await FileSystem.deleteAsync(uri, { idempotent: true });
+        } catch (cleanupError) {
+            console.warn("No s'ha pogut netejar el fitxer temporal de la cache:", cleanupError);
+        }
+
         return {
-          uri: asset.uri,
+          uri: uri, 
           name: asset.name,
           content: data,
         };
@@ -49,14 +50,13 @@ export class SAFFileService implements IFileService {
       return null;
     } catch (error) {
       console.error("Error a l'obrir el fitxer:", error);
-      throw new Error("No s'ha pogut obrir el fitxer.");
+      // Ara tindrem un error més descriptiu a la consola si falla
+      throw new Error(`No s'ha pogut obrir el fitxer: ${(error as Error).message}`);
     }
   }
 
-  // ... (el mètode saveFileAs es manté igual)
   public async saveFileAs(jsonString: string, fileName: string): Promise<void> {
-     // ... el teu codi existent ...
-     try {
+    try {
       const temporaryFilePath = `${FileSystem.cacheDirectory}${fileName}`;
 
       await FileSystem.writeAsStringAsync(temporaryFilePath, jsonString, {
