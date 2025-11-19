@@ -3,6 +3,10 @@
     "name": "gestor-events-mobile",
     "slug": "gestor-events-mobile",
     "version": "1.5.0",
+    "splash": {
+      "backgroundColor": "#FFFFFF",
+      "resizeMode": "contain"
+    },
     "android": {
       "package": "com.juli.gestoreventsmobile",
       "versionCode": 10500

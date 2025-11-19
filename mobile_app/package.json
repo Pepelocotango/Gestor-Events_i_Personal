@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@react-native-community/datetimepicker": "8.0.1",
-    "@react-native-picker/picker": "^2.11.4",
+    "@react-native-picker/picker": "2.7.5",
     "@react-navigation/bottom-tabs": "^6.5.20",
     "@react-navigation/native": "6.1.18",
     "@react-navigation/stack": "6.3.29",
@@ -38,11 +38,11 @@
   },
   "devDependencies": {
     "@babel/core": "7.24.5",
-    "@types/react": "18.2.45",
+    "@types/react": "~18.2.79",
     "@types/react-native-calendars": "^1.1264.7",
     "@types/uuid": "9.0.7",
     "cross-env": "^10.1.0",
-    "typescript": "^5.9.3"
+    "typescript": "~5.3.3"
   },
   "private": true
 }
