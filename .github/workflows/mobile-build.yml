@@ -36,11 +36,21 @@ jobs:
         working-directory: ./mobile_app/android
         run: chmod +x ./gradlew
 
-      - name: 7. Compilar l'APK de depuració amb Gradle
+      - name: 7. Cau de les dependències de Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile_app/android/**/build.gradle*', 'mobile_app/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: 8. Compilar l'APK de depuració amb Gradle
         working-directory: ./mobile_app/android
         run: ./gradlew assembleDebug
 
-      - name: 8. Pujada de l'APK com a artefacte
+      - name: 9. Pujada de l'APK com a artefacte
         uses: actions/upload-artifact@v4
         with:
           name: GestorEsdevenimentsPersonal-Android-Debug.apk
