@@ -21,6 +21,8 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── assets/                   # Actius estàtics (imatges).
 │   ├── src/                      # Codi font de l'aplicació mòbil.
 │   │   ├── components/           # Components reutilitzables de la UI mòbil.
+│   │   │   ├── ui/                 # Components d'UI genèrics.
+│   │   │   │   └── ThemeSwitcher.tsx   # Component per canviar entre el tema clar i fosc.
 │   │   │   ├── tech_sheet/         # Components específics per a la visualització de la fitxa de bolo.
 │   │   │   │   ├── ReadOnlyField.tsx   # Component per mostrar un camp individual (etiqueta i valor).
 │   │   │   │   └── ReadOnlySection.tsx # Component per agrupar camps sota un títol de secció.
@@ -50,8 +52,10 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   └── SAFFileService.ts     # Implementació del servei que utilitza el Storage Access Framework (SAF).
 │   │   ├── stores/               # Gestors d'estat global (Zustand).
 │   │   │   └── dataStore.ts      # Store per a l'estat de les dades de l'aplicació (esdeveniments, etc.).
-│   │   └── types/                # Definicions de tipus de TypeScript compartides.
-│   │       └── index.ts          # Tipus de dades (AppData, EventFrame, etc.), compartits amb l'app d'escriptori.
+│   │   ├── types/                # Definicions de tipus de TypeScript compartides.
+│   │   │   └── index.ts          # Tipus de dades (AppData, EventFrame, etc.), compartits amb l'app d'escriptori.
+│   │   └── utils/                # Utilitats generals per a l'aplicació mòbil.
+│   │       └── themes.ts         # Defineix els colors per als temes clar i fosc.
 │   ├── node_modules/             # Dependències del projecte mòbil.
 │   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòbil.
 │   ├── App.tsx                   # Punt d'entrada principal que carrega les pantalles.

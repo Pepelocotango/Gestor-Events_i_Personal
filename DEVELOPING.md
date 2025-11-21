@@ -1187,8 +1187,18 @@ L'aplicació mòbil, situada a `mobile_app/`, ha evolucionat d'un simple visor a
 -   **Zustand:** Gestor d'estat global per a una gestió de dades centralitzada i eficient.
 -   **React Native Vector Icons:** Llibreria per a la inclusió d'icones a la interfície.
 -   **React Native Picker:** Component per a selectors natius.
+-   **Expo Secure Store:** Per a l'emmagatzematge segur i persistent de dades clau-valor, com la preferència del tema de l'usuari.
 
-### 10.2. Arquitectura i Filosofia de la Interfície d'Usuari
+### 10.2. Sistema de Temes (Mode Clar/Fosc)
+
+L'aplicació mòbil ha implementat un sistema de temes complet per oferir una experiència d'usuari consistent tant en mode clar com fosc.
+
+-   **Definició de Temes:** Els colors per a cada tema es defineixen a `src/utils/themes.ts`.
+-   **Gestió d'Estat:** L'estat del tema ('light' o 'dark') es gestiona globalment a través de `useDataStore` (Zustand).
+-   **Persistència:** La preferència del tema de l'usuari es desa de manera persistent entre sessions utilitzant `expo-secure-store`.
+-   **Aplicació d'Estils:** Els components utilitzen un hook `useMemo` per crear un objecte `dynamicStyles` que s'adapta als canvis de tema, garantint que la interfície es re-renderitzi amb els colors correctes.
+
+### 10.3. Arquitectura i Filosofia de la Interfície d'Usuari
 
 La interfície de l'aplicació mòbil ha estat redissenyada seguint una filosofia centrada en la claredat visual i la interacció intuïtiva.
 

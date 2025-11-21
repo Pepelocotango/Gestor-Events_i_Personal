@@ -13,18 +13,18 @@ La nova interfície es basa en els següents principis:
 
 ---
 
-### Capçalera Global i Gestió de Fitxers (`EventsScreen`)
+### Capçalera Global i Accions
 
-La gestió de fitxers es centralitza a la pantalla d'esdeveniments:
+La capçalera superior és persistent a totes les pantalles i conté accions globals i de gestió de fitxers.
 
-- **Estat Inicial (sense fitxer obert):**
-  - Un missatge de benvinguda i un botó gran per **"Obrir Fitxer"**.
-- **Estat Principal (amb fitxer obert):**
-  - **Capçalera**: Mostra el nom del fitxer obert.
-  - **Botons**:
-    - **Desar**: Actiu només si hi ha canvis. Activa el flux de "Desar Com a".
-    - **Tancar**: Tanca el fitxer i torna a la pantalla de benvinguda.
-    - **Desfer / Refer**: Icones per a la gestió de l'historial de canvis.
+- **Títol**: Mostra el nom del fitxer obert o el nom de l'aplicació.
+- **Botons d'Acció (Visibles amb un fitxer obert):**
+  - **<Icona `content-save`> Desar**: Guarda els canvis al fitxer actual. Està desactivat si no hi ha canvis pendents.
+  - **<Icona `content-save-all-outline`> Desar com...**: Permet desar el contingut actual en un fitxer nou, amb un nom o ubicació diferent.
+  - **<Icona `close-circle-outline`> Tancar**: Tanca el fitxer actiu i torna a la pantalla de benvinguda.
+- **Botons Globals (Sempre visibles):**
+  - **<Icona `sunny` / `moon`> Commutador de Tema**: Canvia entre el mode clar i fosc.
+  - **<Icona `arrow-left`> Enrere**: Apareix quan es pot navegar a la pantalla anterior dins d'una pestanya.
 
 ---
 

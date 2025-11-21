@@ -41,14 +41,14 @@ L'aplicació ofereix les següents eines:
     *   **Exportació a PDF/CSV:** Exporta resums, llistes, inventaris i fitxes de bolo a formats professionals.
 
 *   **Aplicació Mòbil (iOS/Android):**
-    *   **Interfície Redissenyada:** L'aplicació mòbil s'ha refactoritzat completament per oferir una experiència d'usuari més visual, intuïtiva i funcional.
+    *   **Interfície Redissenyada:** L'aplicació mòbil s'ha refactoritzat per oferir una experiència d'usuari més visual, intuïtiva i funcional.
     *   **Gestió Completa de Dades:** Obre, visualitza i edita fitxers `.json` des de qualsevol lloc. L'aplicació permet la gestió integral d'Esdeveniments, Persones (contactes) i Material.
-    *   **Navegació per Pestanyes:** Una interfície intuïtiva amb pestanyes per accedir ràpidament a cada secció.
-    *   **Interacció Millorada:** S'han substituït els botons de text per icones, s'han afegit Botons d'Acció Flotants (FAB) per a la creació ràpida d'elements, i les accions d'ordenació i filtratge es gestionen a través de modals.
-    *   **Noves Funcionalitats:**
-        *   **Estat de l'Esdeveniment:** Visualitza i edita si un esdeveniment està "Pendent" o "Completat".
-        *   **Categories Col·lapsables:** A la pantalla de material, ara pots expandir i contraure les categories per a una millor organització.
-    *   **Gestió de Fitxers Moderna:** Utilitza el selector de fitxers natiu per obrir arxius des de l'emmagatzematge local, Google Drive, Dropbox o qualsevol altre proveïdor.
+    *   **Mode Fosc:** Gaudeix d'una experiència visual còmoda en condicions de poca llum. El tema es pot canviar fàcilment des de la capçalera i la preferència es desa per a futures sessions.
+    *   **Gestió de Fitxers Avançada:**
+        *   **Obertura Universal:** Utilitza el selector de fitxers natiu per obrir arxius des de l'emmagatzematge local, Google Drive, Dropbox o qualsevol altre proveïdor.
+        *   **Desar i "Desar com..."**: L'aplicació distingeix entre desar canvis en el fitxer actiu i desar una còpia amb un nou nom o ubicació, proporcionant un flux de treball estàndard i segur.
+    *   **Navegació Intuïtiva:** Una interfície amb pestanyes per accedir ràpidament a cada secció i icones clares per a totes les accions.
+    *   **Interacció Millorada:** S'han afegit Botons d'Acció Flotants (FAB) per a la creació ràpida d'elements, i les accions d'ordenació i filtratge es gestionen a través de modals.
 
 > Per a una anàlisi tècnica detallada de l'arquitectura, consulta la nostra [**guia de desenvolupament (DEVELOPING.md)**](DEVELOPING.md).
 
