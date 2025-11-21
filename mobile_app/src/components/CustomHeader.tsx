@@ -55,7 +55,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   const handleSaveFile = async () => {
     Alert.alert(
       "Com Sobrescriure un Fitxer?",
-      "Per reemplaçar un fitxer existent (a Google Drive, Dropbox, etc.), trieu un gestor de fitxers (com 'Fitxers' o 'File Manager') al menú que apareixerà. Des d'allà, podreu seleccionar el fitxer original per sobreescriure'l.",
+      "Per reemplaçar i sobreescriure un fitxer existent a Dropbox o Drive, marqueu el fitxer com 'Available offline'. Per Dropbox utilitzeu el gestor natiu de Dropbox i marqueu 'Upload here' -> 'Replace' -> 'show in folder' per assegurar la sincronització. Per Drive utilitzeu un gestor de fitxers (com FileExplorer) connectat a Drive, obriu Drive i actualitzeu.Sense aquests passos Drive crearà un fitxer duplicat.",
       [
         {
           text: "Cancel·lar",
