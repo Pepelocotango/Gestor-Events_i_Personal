@@ -5,11 +5,13 @@ import { AssignmentStatus, SummaryRow } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import SummarySection from '../components/SummarySection';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 const SECTION_KEYS = ['event', 'date', 'person'];
 
 const SummaryScreen = () => {
-  const { eventFrames, peopleGroups } = useDataStore();
+  const { eventFrames, peopleGroups, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
@@ -100,16 +102,44 @@ const SummaryScreen = () => {
     }
   };
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: 8,
+    },
+    toolbar: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      padding: 8,
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      marginBottom: 10,
+    },
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+    },
+    buttonText: {
+      marginLeft: 8,
+      fontSize: 14,
+      color: colors.text,
+    },
+  }), [colors]);
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.toolbar}>
-        <TouchableOpacity style={styles.button} onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
-            <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color="#333" />
-            <Text style={styles.buttonText}>Data</Text>
+    <ScrollView style={dynamicStyles.container}>
+      <View style={dynamicStyles.toolbar}>
+        <TouchableOpacity style={dynamicStyles.button} onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+            <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color={colors.text} />
+            <Text style={dynamicStyles.buttonText}>Data</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={toggleAllSections}>
-            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color="#333" />
-            <Text style={styles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
+        <TouchableOpacity style={dynamicStyles.button} onPress={toggleAllSections}>
+            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
+            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -137,33 +167,5 @@ const SummaryScreen = () => {
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 8,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: 8,
-    backgroundColor: '#f5f5f5',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    marginBottom: 10,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-  buttonText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#333',
-  },
-});
 
 export default SummaryScreen;

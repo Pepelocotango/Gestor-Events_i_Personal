@@ -1,12 +1,13 @@
 import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
 import 'uuid';
-import React from 'react';
-import { View, Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useDataStore } from './src/stores/dataStore';
 import EventsScreen from './src/screens/EventsScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import TechSheetDetailScreen from './src/screens/TechSheetDetailScreen';
@@ -95,8 +96,40 @@ const CalendarStackNavigator = () => (
 );
 
 export default function App() {
+  const { theme, init, isThemeLoading } = useDataStore((state) => ({
+    theme: state.theme,
+    init: state.init,
+    isThemeLoading: state.isThemeLoading,
+  }));
+  const [isAppReady, setIsAppReady] = useState(false);
+
+  useEffect(() => {
+    const prepareApp = async () => {
+      try {
+        const timerPromise = new Promise(resolve => setTimeout(resolve, 2000));
+        await Promise.all([init(), timerPromise]);
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setIsAppReady(true);
+      }
+    };
+
+    prepareApp();
+  }, [init]);
+
+  if (!isAppReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  const navigationTheme = theme === 'dark' ? DarkTheme : DefaultTheme;
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,

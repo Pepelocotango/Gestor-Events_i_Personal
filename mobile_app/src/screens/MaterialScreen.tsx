@@ -7,6 +7,7 @@ import { MaterialItem } from '../types';
 import MaterialToolbar from '../components/MaterialToolbar';
 import MaterialListItem from '../components/MaterialListItem';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type MaterialScreenNavigationProp = StackNavigationProp<MaterialStackParamList, 'MaterialList'>;
 
@@ -19,19 +20,23 @@ type SectionHeaderProps = {
   isExpanded: boolean;
   sortMode: 'category' | 'name';
   onToggle: (title: string) => void;
+  style: any;
+  textStyle: any;
+  iconColor: string;
 };
 
-const SectionHeader = React.memo<SectionHeaderProps>(({ title, isExpanded, sortMode, onToggle }) => (
-  <TouchableOpacity onPress={() => onToggle(title)} style={styles.sectionHeader} disabled={sortMode !== 'category'}>
-    <Text style={styles.sectionHeaderText}>{title}</Text>
+const SectionHeader = React.memo<SectionHeaderProps>(({ title, isExpanded, sortMode, onToggle, style, textStyle, iconColor }) => (
+  <TouchableOpacity onPress={() => onToggle(title)} style={style} disabled={sortMode !== 'category'}>
+    <Text style={textStyle}>{title}</Text>
     {sortMode === 'category' && (
-      <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color="#333" />
+      <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={iconColor} />
     )}
   </TouchableOpacity>
 ));
 
 const MaterialScreen = ({ navigation }: Props) => {
-  const { materialItems, deleteMaterialItem } = useDataStore();
+  const { materialItems, deleteMaterialItem, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<'category' | 'name'>('category');
   const [isSortModalVisible, setSortModalVisible] = useState(false);
@@ -114,15 +119,78 @@ const MaterialScreen = ({ navigation }: Props) => {
     }));
   }, [sectionsData, expandedCategories, sortMode]);
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 10,
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    sectionHeaderText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    emptyList: {
+      textAlign: 'center',
+      marginTop: 30,
+      fontSize: 16,
+      color: colors.text,
+      opacity: 0.7,
+    },
+    fab: {
+      position: 'absolute',
+      right: 20,
+      bottom: 20,
+      backgroundColor: colors.primary,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+      backgroundColor: colors.card,
+      padding: 20,
+      borderRadius: 10,
+      width: '80%',
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 15,
+      textAlign: 'center',
+      color: colors.text,
+    },
+  }), [colors]);
+
   const renderSortModal = () => (
     <Modal
       transparent={true}
       visible={isSortModalVisible}
       onRequestClose={() => setSortModalVisible(false)}
     >
-      <TouchableOpacity style={styles.modalOverlay} onPress={() => setSortModalVisible(false)}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Agrupar i ordenar per</Text>
+      <TouchableOpacity style={dynamicStyles.modalOverlay} onPress={() => setSortModalVisible(false)}>
+        <View style={dynamicStyles.modalContent}>
+          <Text style={dynamicStyles.modalTitle}>Agrupar i ordenar per</Text>
           <Button title={`Categoria ${sortMode === 'category' ? '✓' : ''}`} onPress={() => { setSortMode('category'); setSortModalVisible(false); }} />
           <Button title={`Nom ${sortMode === 'name' ? '✓' : ''}`} onPress={() => { setSortMode('name'); setSortModalVisible(false); }} />
         </View>
@@ -131,7 +199,7 @@ const MaterialScreen = ({ navigation }: Props) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       <MaterialToolbar
         searchQuery={search}
         onSearchChange={setSearch}
@@ -157,13 +225,16 @@ const MaterialScreen = ({ navigation }: Props) => {
             isExpanded={expandedCategories.has(title)}
             sortMode={sortMode}
             onToggle={toggleCategory}
+            style={dynamicStyles.sectionHeader}
+            textStyle={dynamicStyles.sectionHeaderText}
+            iconColor={colors.text}
           />
         )}
-        ListEmptyComponent={<Text style={styles.emptyList}>No s'ha trobat material.</Text>}
+        ListEmptyComponent={<Text style={dynamicStyles.emptyList}>No s'ha trobat material.</Text>}
         contentContainerStyle={{ paddingBottom: 80 }}
       />
       <TouchableOpacity
-        style={styles.fab}
+        style={dynamicStyles.fab}
         onPress={() => navigation.navigate('MaterialForm', {})}
       >
         <Icon name="plus" size={30} color="#fff" />
@@ -172,64 +243,6 @@ const MaterialScreen = ({ navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#f9f9f9',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-  },
-  sectionHeaderText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  emptyList: {
-    textAlign: 'center',
-    marginTop: 30,
-    fontSize: 16,
-    color: '#666',
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#007AFF',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-});
+const styles = StyleSheet.create({});
 
 export default MaterialScreen;

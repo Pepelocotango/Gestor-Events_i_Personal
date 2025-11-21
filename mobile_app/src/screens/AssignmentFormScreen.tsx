@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert, TouchableOpacity, Platform } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -8,6 +8,7 @@ import { Assignment, AssignmentStatus } from '../types';
 import { Picker } from '@react-native-picker/picker';
 import { formatDateDMY } from '../utils/dateFormat';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type AssignmentFormScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'AssignmentForm'>;
 type AssignmentFormScreenRouteProp = RouteProp<EventsStackParamList, 'AssignmentForm'>;
@@ -19,7 +20,8 @@ type Props = {
 
 const AssignmentFormScreen = ({ navigation, route }: Props) => {
   const { eventFrameId, assignmentId } = route.params;
-  const { eventFrames, peopleGroups, addAssignment, updateAssignment } = useDataStore();
+  const { eventFrames, peopleGroups, addAssignment, updateAssignment, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const event = eventFrames.find(ef => ef.id === eventFrameId);
   const originalAssignment = event?.assignments.find(a => a.id === assignmentId);
@@ -113,126 +115,128 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
     if (selectedDate) setEndDate(selectedDate);
   };
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+    contentContainer: {
+        padding: 20,
+        paddingBottom: 60,
+    },
+    label: {
+      fontSize: 16,
+      marginBottom: 8,
+      color: colors.text,
+      fontWeight: '500',
+    },
+    input: {
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 16,
+      marginBottom: 15,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: 'center',
+      color: colors.text,
+    },
+    dateText: {
+      color: colors.text,
+    },
+    inputError: {
+      borderColor: '#F44336',
+    },
+    errorText: {
+      color: '#F44336',
+      marginBottom: 15,
+      marginLeft: 5,
+    },
+    pickerContainer: {
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: 'center',
+    },
+    picker: {
+      color: colors.text,
+    },
+    inputMulti: {
+      backgroundColor: colors.card,
+      color: colors.text,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 16,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+      height: 100,
+      textAlignVertical: 'top',
+    },
+    text: {
+      color: colors.text,
+    }
+  }), [colors]);
+
   if (!event) {
-    return <View style={styles.container}><Text>No s'ha trobat l'esdeveniment pare.</Text></View>;
+    return <View style={dynamicStyles.container}><Text style={dynamicStyles.text}>No s'ha trobat l'esdeveniment pare.</Text></View>;
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={dynamicStyles.container} contentContainerStyle={dynamicStyles.contentContainer}>
 
-      <Text style={styles.label}>Persona/Grup</Text>
-      <View style={[styles.pickerContainer, errors.personGroupId ? styles.inputError : null]}>
-        <Picker selectedValue={personGroupId} onValueChange={(itemValue) => setPersonGroupId(itemValue)}>
+      <Text style={dynamicStyles.label}>Persona/Grup</Text>
+      <View style={[dynamicStyles.pickerContainer, errors.personGroupId ? dynamicStyles.inputError : null]}>
+        <Picker selectedValue={personGroupId} onValueChange={(itemValue) => setPersonGroupId(itemValue)} itemStyle={dynamicStyles.picker}>
           <Picker.Item label="-- Seleccioneu --" value="" />
           {peopleGroups.map(pg => <Picker.Item key={pg.id} label={pg.name} value={pg.id} />)}
         </Picker>
       </View>
-      {errors.personGroupId && <Text style={styles.errorText}>{errors.personGroupId}</Text>}
+      {errors.personGroupId && <Text style={dynamicStyles.errorText}>{errors.personGroupId}</Text>}
 
       <View>
-          <Text style={styles.label}>Data d'Inici</Text>
-          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[styles.input, errors.startDate || errors.datesRange ? styles.inputError : null]}>
-            <Text>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
+          <Text style={dynamicStyles.label}>Data d'Inici</Text>
+          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[dynamicStyles.input, errors.startDate || errors.datesRange ? dynamicStyles.inputError : null]}>
+            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
             <DateTimePicker value={startDate || new Date(event.startDate)} mode="date" display="default" onChange={onStartDateChange} />
           )}
-          {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
+          {errors.startDate && <Text style={dynamicStyles.errorText}>{errors.startDate}</Text>}
         </View>
 
         <View>
-          <Text style={styles.label}>Data de Fi</Text>
-          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[styles.input, errors.endDate || errors.datesRange ? styles.inputError : null]}>
-            <Text>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
+          <Text style={dynamicStyles.label}>Data de Fi</Text>
+          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[dynamicStyles.input, errors.endDate || errors.datesRange ? dynamicStyles.inputError : null]}>
+            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
             <DateTimePicker value={endDate || startDate || new Date(event.endDate)} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
           )}
-          {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
+          {errors.endDate && <Text style={dynamicStyles.errorText}>{errors.endDate}</Text>}
         </View>
-        {errors.datesRange && <Text style={styles.errorText}>{errors.datesRange}</Text>}
+        {errors.datesRange && <Text style={dynamicStyles.errorText}>{errors.datesRange}</Text>}
 
-      <Text style={styles.label}>Estat General</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={dynamicStyles.label}>Estat General</Text>
+      <View style={dynamicStyles.pickerContainer}>
           <Picker
             selectedValue={status}
-            onValueChange={(itemValue) => setStatus(itemValue)}>
+            onValueChange={(itemValue) => setStatus(itemValue)}
+            itemStyle={dynamicStyles.picker}>
             {Object.values(AssignmentStatus).map(s => (<Picker.Item key={s} label={s} value={s} />))}
           </Picker>
       </View>
 
-      <Text style={styles.label}>Notes</Text>
-      <TextInput style={styles.inputMulti} value={notes} onChangeText={setNotes} multiline />
+      <Text style={dynamicStyles.label}>Notes</Text>
+      <TextInput style={dynamicStyles.inputMulti} value={notes} onChangeText={setNotes} multiline placeholderTextColor={colors.text} />
 
-      <Button title={assignmentId ? "Desar Canvis" : "Crear Assignació"} onPress={() => performSave(false)} />
+      <Button title={assignmentId ? "Desar Canvis" : "Crear Assignació"} onPress={() => performSave(false)} color={colors.primary} />
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
-    contentContainer: {
-        padding: 20,
-        paddingBottom: 60, // Espai extra per al botó de desar
-    },
-      label: {
-        fontSize: 16,
-        marginBottom: 8,
-        color: '#333',
-        fontWeight: '500',
-      },
-      input: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 16,
-        marginBottom: 15,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        justifyContent: 'center',
-      },
-      inputError: {
-        borderColor: '#F44336',
-      },
-      errorText: {
-        color: '#F44336',
-        marginBottom: 15,
-        marginLeft: 5,
-      },
-      pickerContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        justifyContent: 'center',
-      },
-      inputMulti: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 16,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        height: 100,
-        textAlignVertical: 'top',
-      },
-      infoBox: {
-        backgroundColor: 'rgba(33, 150, 243, 0.1)',
-        borderLeftColor: '#2196F3',
-        borderLeftWidth: 4,
-        padding: 10,
-        marginBottom: 20,
-      },
-      infoText: {
-        color: '#0d47a1',
-      },
-});
 
 export default AssignmentFormScreen;

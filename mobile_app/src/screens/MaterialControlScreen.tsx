@@ -3,9 +3,11 @@ import { View, StyleSheet } from 'react-native';
 import { useDataStore, selectMaterialControlData } from '../stores/dataStore';
 import MaterialControlFilters from '../components/MaterialControlFilters';
 import MaterialControlList from '../components/MaterialControlList';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 const MaterialControlScreen = () => {
-  const { eventFrames, materialItems } = useDataStore();
+  const { eventFrames, materialItems, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const [filters, setFilters] = useState({
     searchText: '',
@@ -29,8 +31,15 @@ const MaterialControlScreen = () => {
     return selectMaterialControlData({ eventFrames, materialItems }, filters);
   }, [eventFrames, materialItems, filters]);
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+  }), [colors]);
+
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       <MaterialControlFilters
         filters={filters}
         setFilters={setFilters}
@@ -42,11 +51,5 @@ const MaterialControlScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default MaterialControlScreen;

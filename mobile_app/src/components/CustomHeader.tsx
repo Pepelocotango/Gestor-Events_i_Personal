@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
 import { SAFFileService } from '../services/SAFFileService';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Constants from 'expo-constants';
+import ThemeSwitcher from './ui/ThemeSwitcher';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 const fileService = new SAFFileService();
 
@@ -21,9 +23,11 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     hasUnsavedChanges,
     setData,
     clearData,
-    saveData,
+    saveFile,
+    saveFileAs,
+    theme,
   } = useDataStore();
-
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
   const canGoBack = navigation.canGoBack();
 
   const handleOpenFile = async () => {
@@ -31,7 +35,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
       try {
         const result = await fileService.openFile();
         if (result) {
-          setData(result.content, result.name);
+          setData(result.content, result.name, result.uri);
         }
       } catch (error) {
         Alert.alert("Error", "El fitxer seleccionat no és vàlid o està malmès.");
@@ -53,27 +57,20 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   };
 
   const handleSaveFile = async () => {
-    Alert.alert(
-      "Com Sobrescriure un Fitxer?",
-      "Per reemplaçar i sobreescriure un fitxer existent a Dropbox o Drive, marqueu el fitxer com 'Available offline'. Per Dropbox utilitzeu el gestor natiu de Dropbox i marqueu 'Upload here' -> 'Replace' -> 'show in folder' per assegurar la sincronització. Per Drive utilitzeu un gestor de fitxers (com FileExplorer) connectat a Drive, obriu Drive i actualitzeu.Sense aquests passos Drive crearà un fitxer duplicat.",
-      [
-        {
-          text: "Cancel·lar",
-          style: "cancel",
-        },
-        {
-          text: "Entès, continua",
-          onPress: async () => {
-            try {
-              await saveData();
-              // Ja no cal una alerta d'èxit aquí, ja que el diàleg del sistema és suficient.
-            } catch (e) {
-              Alert.alert("Error", "No s'ha pogut desar el fitxer.");
-            }
-          },
-        },
-      ]
-    );
+    try {
+      await saveFile();
+      Alert.alert('Desat', 'El fitxer s\'ha desat correctament.');
+    } catch (e) {
+      Alert.alert("Error", "No s'ha pogut desar el fitxer.");
+    }
+  };
+
+  const handleSaveFileAs = async () => {
+    try {
+      await saveFileAs();
+    } catch (e) {
+      Alert.alert("Error", "No s'ha pogut desar el fitxer amb un nom nou.");
+    }
   };
 
   const handleCloseFile = () => {
@@ -96,16 +93,49 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     ? fileName
     : `Gestor d'Esdeveniments v${appVersion}`;
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      paddingTop: 35,
+      paddingBottom: 8,
+      paddingHorizontal: 15,
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      fontSize: 14,
+      color: colors.text,
+      opacity: 0.7,
+    },
+    openButtonText: {
+      fontSize: 16,
+      color: colors.primary,
+      fontWeight: 'bold',
+    },
+    iconColor: {
+      color: colors.text,
+    },
+    disabledIconColor: {
+      color: '#ccc',
+    },
+    accentIconColor: {
+      color: colors.primary,
+    },
+    destructiveIconColor: {
+      color: '#FF3B30',
+    },
+  }), [colors]);
+
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       <View style={styles.topRow}>
-        <Text style={styles.title}>{headerTitle}</Text>
+        <Text style={dynamicStyles.title}>{headerTitle}</Text>
       </View>
       <View style={styles.bottomRow}>
         <View style={styles.buttonGroup}>
           {canGoBack && (
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon name="arrow-left" size={28} color="#333" />
+              <Icon name="arrow-left" size={28} style={dynamicStyles.iconColor} />
             </TouchableOpacity>
           )}
         </View>
@@ -113,18 +143,22 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
           {fileName ? (
             <>
               <TouchableOpacity onPress={handleSaveFile} disabled={!hasUnsavedChanges}>
-                <Icon name="content-save" size={28} color={hasUnsavedChanges ? '#007AFF' : '#ccc'} />
+                <Icon name="content-save" size={28} style={hasUnsavedChanges ? dynamicStyles.accentIconColor : dynamicStyles.disabledIconColor} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSaveFileAs}>
+                <Icon name="content-save-all-outline" size={28} style={dynamicStyles.iconColor} />
               </TouchableOpacity>
               <TouchableOpacity onPress={handleCloseFile}>
-                <Icon name="close-circle-outline" size={28} color="#FF3B30" />
+                <Icon name="close-circle-outline" size={28} style={dynamicStyles.destructiveIconColor} />
               </TouchableOpacity>
             </>
           ) : (
             <TouchableOpacity onPress={handleOpenFile} style={styles.openButton}>
-              <Icon name="folder-open-outline" size={28} color="#007AFF" />
-              <Text style={styles.openButtonText}>Obrir</Text>
+              <Icon name="folder-open-outline" size={28} style={dynamicStyles.accentIconColor} />
+              <Text style={dynamicStyles.openButtonText}>Obrir</Text>
             </TouchableOpacity>
           )}
+          <ThemeSwitcher />
         </View>
       </View>
     </View>
@@ -132,22 +166,9 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: 35, // Reduït
-    paddingBottom: 8, // Reduït
-    paddingHorizontal: 15,
-    backgroundColor: '#f8f8f8',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
   topRow: {
     alignItems: 'center',
-    marginBottom: 8, // Reduït
-  },
-  title: {
-    fontSize: 14, // Reduït
-    color: '#666', // Atenuat per a menys èmfasi
-    fontWeight: 'normal',
+    marginBottom: 8,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -164,11 +185,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  openButtonText: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: 'bold',
-  }
 });
 
 export default CustomHeader;

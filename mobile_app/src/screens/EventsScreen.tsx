@@ -9,6 +9,7 @@ import EventFrameCard from '../components/EventFrameCard';
 import FilterControls from '../components/FilterControls';
 import ActionToolbar from '../components/ActionToolbar';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type EventsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventList'>;
 
@@ -22,7 +23,9 @@ const EventsScreen = ({ navigation }: Props) => {
     eventFrames,
     peopleGroups,
     deleteEventFrame,
+    theme,
   } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [expandedAssignmentIds, setExpandedAssignmentIds] = useState<Set<string>>(new Set());
@@ -132,17 +135,65 @@ const EventsScreen = ({ navigation }: Props) => {
     );
   }, [deleteEventFrame]);
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    centered: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      textAlign: 'center',
+      color: colors.text,
+    },
+    message: {
+      color: colors.text,
+      textAlign: 'center',
+    },
+    emptyList: {
+      textAlign: 'center',
+      marginTop: 50,
+      fontSize: 16,
+      color: colors.text,
+      opacity: 0.7,
+    },
+    fab: {
+      position: 'absolute',
+      right: 20,
+      bottom: 20,
+      backgroundColor: colors.primary,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+    },
+  }), [colors]);
+
   if (!fileName) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.title}>No hi ha cap fitxer obert</Text>
-        <Text>Feu servir el botó "Obrir" de la capçalera per carregar un projecte.</Text>
+      <View style={dynamicStyles.centered}>
+        <Text style={dynamicStyles.title}>No hi ha cap fitxer obert</Text>
+        <Text style={dynamicStyles.message}>Feu servir el botó "Obrir" de la capçalera per carregar un projecte.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       <FilterControls
         filters={filters}
         setFilters={setFilters}
@@ -176,11 +227,11 @@ const EventsScreen = ({ navigation }: Props) => {
             navigation={navigation}
           />
         )}
-        ListEmptyComponent={<Text style={styles.emptyList}>No s'han trobat esdeveniments amb aquests filtres.</Text>}
+        ListEmptyComponent={<Text style={dynamicStyles.emptyList}>No s'han trobat esdeveniments amb aquests filtres.</Text>}
         contentContainerStyle={{ paddingBottom: 80 }}
       />
       <TouchableOpacity
-        style={styles.fab}
+        style={dynamicStyles.fab}
         onPress={() => navigation.navigate('EventForm', {})}
       >
         <Icon name="plus" size={30} color="#fff" />
@@ -188,46 +239,5 @@ const EventsScreen = ({ navigation }: Props) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f0f2f5',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  emptyList: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
-    color: '#666',
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#007AFF',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-});
 
 export default EventsScreen;

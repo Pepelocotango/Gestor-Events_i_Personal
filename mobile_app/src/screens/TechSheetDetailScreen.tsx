@@ -13,6 +13,7 @@ import ReadOnlyField from '../components/tech_sheet/ReadOnlyField';
 import { formatDate } from '../utils/dateFormat';
 import CollapsibleSection from '../components/CollapsibleSection';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type TechSheetDetailScreenRouteProp = RouteProp<
   TechSheetsStackParamList,
@@ -25,12 +26,10 @@ type Props = {
 
 export default function TechSheetDetailScreen({ route }: Props) {
   const eventId = route.params?.eventId;
-  const event = useDataStore((state) =>
-    state.eventFrames.find((e) => e.id === eventId)
-  );
-  const peopleGroups = useDataStore((state) => state.peopleGroups);
-  const materialItems = useDataStore((state) => state.materialItems);
+  const { eventFrames, peopleGroups, materialItems, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
+  const event = eventFrames.find((e) => e.id === eventId);
   const techSheet = event?.techSheet;
 
   const sectionKeys = useMemo(() => {
@@ -79,11 +78,42 @@ export default function TechSheetDetailScreen({ route }: Props) {
     }
   };
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background, padding: 8 },
+    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16, backgroundColor: colors.background },
+    text: { color: colors.text },
+    providerName: { fontWeight: 'bold', fontSize: 16, marginTop: 8, color: colors.text },
+    needItem: { paddingVertical: 4 },
+    needDescription: { fontSize: 14, color: colors.text },
+    notes: { fontStyle: 'italic', marginBottom: 8, color: colors.text, opacity: 0.8 },
+    contactContainer: { marginBottom: 10 },
+    toolbar: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 8,
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      marginBottom: 10,
+    },
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+    },
+    buttonText: {
+      marginLeft: 8,
+      fontSize: 14,
+      color: colors.text,
+    },
+  }), [colors]);
+
   if (!event) {
-    return <View style={styles.centerContainer}><Text>No s'ha trobat l'esdeveniment.</Text></View>;
+    return <View style={dynamicStyles.centerContainer}><Text style={dynamicStyles.text}>No s'ha trobat l'esdeveniment.</Text></View>;
   }
   if (!techSheet) {
-    return <View style={styles.centerContainer}><Text>Aquest esdeveniment no té fitxa de bolo associada.</Text></View>;
+    return <View style={dynamicStyles.centerContainer}><Text style={dynamicStyles.text}>Aquest esdeveniment no té fitxa de bolo associada.</Text></View>;
   }
 
   const getPersonName = (personGroupId: string) => peopleGroups.find((p) => p.id === personGroupId)?.name || 'Desconegut';
@@ -98,11 +128,11 @@ export default function TechSheetDetailScreen({ route }: Props) {
     const hasNeeds = section.needs && section.needs.length > 0;
     return (
       <CollapsibleSection title={title} isExpanded={!!expandedSections[sectionKey]} onToggle={() => handleToggleSection(sectionKey)}>
-        {section.details && <Text style={styles.notes}>{section.details}</Text>}
-        {!hasNeeds && !section.details && <Text>Sense especificacions.</Text>}
+        {section.details && <Text style={dynamicStyles.notes}>{section.details}</Text>}
+        {!hasNeeds && !section.details && <Text style={dynamicStyles.text}>Sense especificacions.</Text>}
         {hasNeeds && section.needs?.map((need) => (
-          <View key={need.id} style={styles.needItem}>
-            <Text style={styles.needDescription}>- {need.quantity}x {need.description || getMaterialName(need.materialItemId)} ({need.origin})</Text>
+          <View key={need.id} style={dynamicStyles.needItem}>
+            <Text style={dynamicStyles.needDescription}>- {need.quantity}x {need.description || getMaterialName(need.materialItemId)} ({need.origin})</Text>
           </View>
         ))}
       </CollapsibleSection>
@@ -124,11 +154,11 @@ export default function TechSheetDetailScreen({ route }: Props) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.toolbar}>
-        <TouchableOpacity style={styles.button} onPress={toggleAllSections}>
-            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color="#333" />
-            <Text style={styles.buttonText}>{areAllExpanded ? 'Replegar Totes' : 'Expandir Totes'}</Text>
+    <ScrollView style={dynamicStyles.container}>
+      <View style={dynamicStyles.toolbar}>
+        <TouchableOpacity style={dynamicStyles.button} onPress={toggleAllSections}>
+            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
+            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? 'Replegar Totes' : 'Expandir Totes'}</Text>
         </TouchableOpacity>
       </View>
 

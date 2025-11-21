@@ -1,6 +1,5 @@
 import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
-import * as Sharing from 'expo-sharing';
 import { AppData } from '../types';
 import { IFileService } from './fileService';
 
@@ -11,80 +10,78 @@ export class SAFFileService implements IFileService {
     content: AppData;
   } | null> {
     try {
+      // Buidem la memòria cau del selector de documents per assegurar-nos que sempre es llegeixi el fitxer més recent
+      const cacheDir = `${FileSystem.cacheDirectory}DocumentPicker`;
+      const dirInfo = await FileSystem.getInfoAsync(cacheDir);
+      if (dirInfo.exists) {
+        await FileSystem.deleteAsync(cacheDir, { idempotent: true });
+      }
+
       const pickerOptions = {
         copyToCacheDirectory: true,
         multiple: false,
         type: '*/*',
       };
-      console.log('[DEBUG_SAF] Obrint selector de fitxer amb opcions:', pickerOptions);
 
       const result = await DocumentPicker.getDocumentAsync(pickerOptions);
 
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
-        console.log('[DEBUG_SAF] Asset rebut de DocumentPicker:', JSON.stringify(asset, null, 2));
-
         const uri = asset.uri;
-        if (uri.startsWith('content://')) {
-          console.log(`[DEBUG_SAF] La URI és de tipus 'content://' (nativa del proveïdor).`);
-        } else if (uri.startsWith('file://')) {
-          console.log(`[DEBUG_SAF] La URI és de tipus 'file://' (còpia local a la cache).`);
-        } else {
-          console.warn(`[DEBUG_SAF] La URI té un format inesperat: ${uri}`);
-        }
 
-        console.log(`[DEBUG_SAF] Iniciant lectura del fitxer des de la URI: ${uri}`);
         const content = await FileSystem.readAsStringAsync(uri, {
-          encoding: 'utf8',
+          encoding: FileSystem.EncodingType.UTF8,
         });
-        console.log('[DEBUG_RAW_READ] Contingut llegit (inici):', content.substring(0, 500));
         
         const data = JSON.parse(content);
 
-        const firstEventLastModified = data.eventFrames?.[0]?.lastModified;
-        console.log(`[DEBUG_SAF] Lectura finalitzada. Contingut parsejat. Data de modificació del primer esdeveniment: ${firstEventLastModified || 'N/A'}`);
-
-        console.log(`[DEBUG_SAF] Intentant esborrar el fitxer de la cache: ${uri}`);
-        try {
-            await FileSystem.deleteAsync(uri, { idempotent: true });
-            console.log(`[DEBUG_SAF] Fitxer de la cache esborrat amb èxit.`);
-        } catch (cleanupError) {
-            console.warn("[DEBUG_SAF] No s'ha pogut netejar el fitxer temporal de la cache:", cleanupError);
-        }
-
         return {
-          uri: uri, 
+          uri: asset.uri, // Guardem la URI original per a futurs desats
           name: asset.name,
           content: data,
         };
       }
-      console.log('[DEBUG_SAF] L\'usuari ha cancel·lat la selecció de fitxer.');
       return null;
     } catch (error) {
-      console.error("[DEBUG_SAF] Error a l'obrir el fitxer:", error);
+      console.error("Error a l'obrir el fitxer:", error);
       throw new Error(`No s'ha pogut obrir el fitxer: ${(error as Error).message}`);
     }
   }
 
-  public async saveFileAs(jsonString: string, fileName: string): Promise<void> {
+  public async saveFile(jsonString: string, uri: string): Promise<void> {
     try {
-      const temporaryFilePath = `${FileSystem.cacheDirectory}${fileName}`;
-      console.log(`[DEBUG_SAF] Preparant fitxer temporal per desar a: ${temporaryFilePath}`);
-
-      console.log('[DEBUG_RAW_WRITE] Contingut a desar (inici):', jsonString.substring(0, 500));
-      await FileSystem.writeAsStringAsync(temporaryFilePath, jsonString, {
-        encoding: 'utf8',
+      await FileSystem.writeAsStringAsync(uri, jsonString, {
+        encoding: FileSystem.EncodingType.UTF8,
       });
-
-      console.log('[DEBUG_SAF] Fitxer temporal escrit. Cridant a Sharing.shareAsync...');
-      await Sharing.shareAsync(temporaryFilePath, {
-        mimeType: 'application/json',
-        dialogTitle: 'Desar com a...',
-      });
-      console.log('[DEBUG_SAF] Diàleg de compartir finalitzat.');
-
     } catch (error) {
-      console.error('[DEBUG_SAF] Error al desar el fitxer:', error);
+      console.error('Error al desar el fitxer:', error);
+      throw new Error('No s’ha pogut desar el fitxer.');
+    }
+  }
+
+  public async saveFileAs(jsonString: string, fileName: string): Promise<{ uri: string; name: string } | null> {
+    try {
+      const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+      if (!permissions.granted) {
+        return null;
+      }
+
+      const result = await FileSystem.StorageAccessFramework.createFileAsync(
+        permissions.directoryUri,
+        fileName,
+        'application/json'
+        );
+
+      await FileSystem.writeAsStringAsync(result, jsonString, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      // Extraiem el nom del fitxer de la URI
+      const name = result.split('%2F').pop()?.split('?')[0] || fileName;
+
+      return { uri: result, name: decodeURIComponent(name) };
+    } catch (error) {
+      console.error('Error al desar el fitxer com a:', error);
       throw new Error('No s’ha pogut desar el fitxer.');
     }
   }
