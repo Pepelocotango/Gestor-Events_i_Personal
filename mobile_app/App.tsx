@@ -106,11 +106,33 @@ export default function App() {
   useEffect(() => {
     const prepareApp = async () => {
       try {
-        const timerPromise = new Promise(resolve => setTimeout(resolve, 2000));
-        await Promise.all([init(), timerPromise]);
+        // Promesa per a la durada mínima de la pantalla de benvinguda (2 segons)
+        const splashTimer = new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Promesa per a la càrrega del tema amb un temps d'espera d'1.5 segons
+        const themeLoaderWithTimeout = new Promise((resolve) => {
+          const timeout = setTimeout(() => {
+            console.warn("La càrrega del tema ha trigat massa, continuant amb el tema per defecte.");
+            resolve(null); // Resol amb null si hi ha un temps d'espera
+          }, 1500);
+
+          init().then(() => {
+            clearTimeout(timeout);
+            resolve(null);
+          }).catch(error => {
+            console.warn("Error en carregar el tema:", error);
+            clearTimeout(timeout);
+            resolve(null); // Resol igualment en cas d'error
+          });
+        });
+
+        // Espera que tant el temporitzador de la pantalla de benvinguda com la càrrega del tema (o el seu temps d'espera) finalitzin
+        await Promise.all([themeLoaderWithTimeout, splashTimer]);
+
       } catch (e) {
-        console.warn(e);
+        console.warn('S\'ha produït un error inesperat durant la inicialització de l'aplicació:', e);
       } finally {
+        // L'aplicació està a punt per ser mostrada
         setIsAppReady(true);
       }
     };
