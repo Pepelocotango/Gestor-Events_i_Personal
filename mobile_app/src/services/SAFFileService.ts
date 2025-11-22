@@ -11,6 +11,13 @@ export class SAFFileService implements IFileService {
     content: AppData;
   } | null> {
     try {
+      // Buidem la memòria cau del selector de documents per assegurar-nos que sempre es llegeixi el fitxer més recent
+      const cacheDir = `${FileSystem.cacheDirectory}DocumentPicker`;
+      const dirInfo = await FileSystem.getInfoAsync(cacheDir);
+      if (dirInfo.exists) {
+        await FileSystem.deleteAsync(cacheDir, { idempotent: true });
+      }
+
       const pickerOptions = {
         copyToCacheDirectory: true,
         multiple: false,
@@ -29,14 +36,8 @@ export class SAFFileService implements IFileService {
         
         const data = JSON.parse(content);
 
-        try {
-            await FileSystem.deleteAsync(uri, { idempotent: true });
-        } catch (cleanupError) {
-            console.warn("No s'ha pogut netejar el fitxer temporal de la cache:", cleanupError);
-        }
-
         return {
-          uri: uri,
+          uri: asset.uri,
           name: asset.name,
           content: data,
         };
@@ -48,7 +49,33 @@ export class SAFFileService implements IFileService {
     }
   }
 
-  public async saveFileAs(jsonString: string, fileName: string): Promise<void> {
+  public async saveFileAs(jsonString: string, fileName: string): Promise<{ uri: string; name: string } | null> {
+    try {
+      const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+      if (!permissions.granted) {
+        return null;
+      }
+
+      const result = await FileSystem.StorageAccessFramework.createFileAsync(
+        permissions.directoryUri,
+        fileName,
+        'application/json'
+        );
+
+      await FileSystem.writeAsStringAsync(result, jsonString, {
+        encoding: 'utf8',
+      });
+
+      const name = result.split('%2F').pop()?.split('?')[0] || fileName;
+
+      return { uri: result, name: decodeURIComponent(name) };
+    } catch (error) {
+      console.error('Error al desar el fitxer com a:', error);
+      throw new Error('No s’ha pogut desar el fitxer.');
+    }
+  }
+
+  public async shareFile(jsonString: string, fileName: string): Promise<void> {
     try {
       const temporaryFilePath = `${FileSystem.cacheDirectory}${fileName}`;
 
@@ -58,12 +85,12 @@ export class SAFFileService implements IFileService {
 
       await Sharing.shareAsync(temporaryFilePath, {
         mimeType: 'application/json',
-        dialogTitle: 'Desar com a...',
+        dialogTitle: 'Compartir fitxer...',
       });
 
     } catch (error) {
-      console.error('Error al desar el fitxer:', error);
-      throw new Error('No s’ha pogut desar el fitxer.');
+      console.error('Error al compartir el fitxer:', error);
+      throw new Error('No s’ha pogut compartir el fitxer.');
     }
   }
 }

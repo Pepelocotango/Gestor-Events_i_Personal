@@ -24,6 +24,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     setData,
     clearData,
     saveFileAs,
+    shareFile,
     theme,
   } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
@@ -55,18 +56,26 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     }
   };
 
+  const handleSaveFileAs = async () => {
+    try {
+      await saveFileAs();
+    } catch (e) {
+      Alert.alert("Error", "No s'ha pogut desar el fitxer amb un nom nou.");
+    }
+  };
+
   const handleShareFile = async () => {
     Alert.alert(
-      "A punt per desar",
+      "A punt per compartir",
       "S'obrirà el diàleg per compartir. Si deseu a Google Drive o a un altre servei al núvol, recordeu de sobreescriure el fitxer existent si voleu actualitzar-lo.",
       [
         {
           text: "D'acord",
           onPress: async () => {
             try {
-              await saveFileAs();
+              await shareFile();
             } catch (e) {
-              Alert.alert("Error", "No s'ha pogut desar el fitxer.");
+              Alert.alert("Error", "No s'ha pogut compartir el fitxer.");
             }
           },
         },
@@ -143,6 +152,9 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
         <View style={styles.buttonGroup}>
           {fileName ? (
             <>
+              <TouchableOpacity onPress={handleSaveFileAs}>
+                <Icon name="content-save-all-outline" size={28} style={dynamicStyles.iconColor} />
+              </TouchableOpacity>
               <TouchableOpacity onPress={handleShareFile}>
                 <Icon name="share-variant" size={28} style={hasUnsavedChanges ? dynamicStyles.accentIconColor : dynamicStyles.iconColor} />
               </TouchableOpacity>
