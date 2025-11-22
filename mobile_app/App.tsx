@@ -130,7 +130,7 @@ export default function App() {
         await Promise.all([themeLoaderWithTimeout, splashTimer]);
 
       } catch (e) {
-        console.warn('S\'ha produït un error inesperat durant la inicialització de l'aplicació:', e);
+        console.warn("S'ha produït un error inesperat durant la inicialització de l'aplicació:", e);
       } finally {
         // L'aplicació està a punt per ser mostrada
         setIsAppReady(true);
