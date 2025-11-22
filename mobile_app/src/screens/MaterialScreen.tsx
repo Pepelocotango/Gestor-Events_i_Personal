@@ -165,7 +165,7 @@ const MaterialScreen = ({ navigation }: Props) => {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)',
     },
     modalContent: {
       backgroundColor: colors.card,
@@ -180,7 +180,7 @@ const MaterialScreen = ({ navigation }: Props) => {
       textAlign: 'center',
       color: colors.text,
     },
-  }), [colors]);
+  }), [colors, theme]);
 
   const renderSortModal = () => (
     <Modal
@@ -191,8 +191,8 @@ const MaterialScreen = ({ navigation }: Props) => {
       <TouchableOpacity style={dynamicStyles.modalOverlay} onPress={() => setSortModalVisible(false)}>
         <View style={dynamicStyles.modalContent}>
           <Text style={dynamicStyles.modalTitle}>Agrupar i ordenar per</Text>
-          <Button title={`Categoria ${sortMode === 'category' ? '✓' : ''}`} onPress={() => { setSortMode('category'); setSortModalVisible(false); }} />
-          <Button title={`Nom ${sortMode === 'name' ? '✓' : ''}`} onPress={() => { setSortMode('name'); setSortModalVisible(false); }} />
+          <Button title={`Categoria ${sortMode === 'category' ? '✓' : ''}`} onPress={() => { setSortMode('category'); setSortModalVisible(false); }} color={colors.primary} />
+          <Button title={`Nom ${sortMode === 'name' ? '✓' : ''}`} onPress={() => { setSortMode('name'); setSortModalVisible(false); }} color={colors.primary}/>
         </View>
       </TouchableOpacity>
     </Modal>
@@ -237,7 +237,7 @@ const MaterialScreen = ({ navigation }: Props) => {
         style={dynamicStyles.fab}
         onPress={() => navigation.navigate('MaterialForm', {})}
       >
-        <Icon name="plus" size={30} color="#fff" />
+        <Icon name="plus" size={30} color={theme === 'dark' ? darkTheme.background : lightTheme.background} />
       </TouchableOpacity>
     </View>
   );

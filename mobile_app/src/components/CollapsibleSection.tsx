@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { useDataStore } from '../stores/dataStore';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -13,6 +15,8 @@ interface CollapsibleSectionProps {
 }
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children, isExpanded: controlledIsExpanded, onToggle }) => {
+  const { theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [internalIsExpanded, setInternalIsExpanded] = useState(true);
 
   const isExpanded = controlledIsExpanded !== undefined ? controlledIsExpanded : internalIsExpanded;
@@ -26,52 +30,52 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
     }
   };
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      marginBottom: 10,
+      overflow: 'hidden',
+      borderColor: colors.border,
+      borderWidth: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 15,
+      backgroundColor: colors.card,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    icon: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    content: {
+      padding: 15,
+      borderTopColor: colors.border,
+      borderTopWidth: 1,
+    },
+  }), [colors]);
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={toggleExpansion} style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.icon}>{isExpanded ? '-' : '+'}</Text>
+    <View style={dynamicStyles.container}>
+      <TouchableOpacity onPress={toggleExpansion} style={dynamicStyles.header}>
+        <Text style={dynamicStyles.title}>{title}</Text>
+        <Text style={dynamicStyles.icon}>{isExpanded ? '-' : '+'}</Text>
       </TouchableOpacity>
       {isExpanded && (
-        <View style={styles.content}>
+        <View style={dynamicStyles.content}>
           {children}
         </View>
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 10,
-    overflow: 'hidden',
-    borderColor: '#e0e0e0',
-    borderWidth: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#f7f7f7',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  icon: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  content: {
-    padding: 15,
-    borderTopColor: '#e0e0e0',
-    borderTopWidth: 1,
-  },
-});
 
 export default CollapsibleSection;

@@ -105,19 +105,19 @@ const MaterialFormScreen = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={dynamicStyles.container}>
       <Text style={dynamicStyles.label}>Nom</Text>
-      <TextInput style={dynamicStyles.input} value={item.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={item.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Categoria</Text>
-      <TextInput style={dynamicStyles.input} value={item.category} onChangeText={(val) => handleChange('category', val)} placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={item.category} onChangeText={(val) => handleChange('category', val)} placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Stock</Text>
-      <TextInput style={dynamicStyles.input} value={String(item.stock)} onChangeText={(val) => handleChange('stock', parseInt(val) || 0)} keyboardType="numeric" placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={String(item.stock)} onChangeText={(val) => handleChange('stock', parseInt(val) || 0)} keyboardType="numeric" placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Ubicació</Text>
-      <TextInput style={dynamicStyles.input} value={item.location} onChangeText={(val) => handleChange('location', val)} placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={item.location} onChangeText={(val) => handleChange('location', val)} placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Notes</Text>
-      <TextInput style={dynamicStyles.inputMulti} value={item.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.inputMulti} value={item.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
 
       <Button title="Desar" onPress={handleSave} color={colors.primary} />
     </ScrollView>

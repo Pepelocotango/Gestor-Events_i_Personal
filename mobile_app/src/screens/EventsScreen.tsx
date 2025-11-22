@@ -234,7 +234,7 @@ const EventsScreen = ({ navigation }: Props) => {
         style={dynamicStyles.fab}
         onPress={() => navigation.navigate('EventForm', {})}
       >
-        <Icon name="plus" size={30} color="#fff" />
+        <Icon name="plus" size={30} color={theme === 'dark' ? darkTheme.background : lightTheme.background} />
       </TouchableOpacity>
     </View>
   );

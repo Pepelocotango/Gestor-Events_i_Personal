@@ -196,7 +196,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
           value={name}
           onChangeText={handleNameChange}
           placeholder="Ex: Concert de Primavera"
-          placeholderTextColor={colors.text}
+          placeholderTextColor={colors.placeholder}
           onFocus={() => setPlaceSuggestions([])}
         />
         {nameSuggestions.length > 0 && (
@@ -216,7 +216,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
           value={place}
           onChangeText={handlePlaceChange}
           placeholder="Ex: Teatre Principal"
-          placeholderTextColor={colors.text}
+          placeholderTextColor={colors.placeholder}
           onFocus={() => setNameSuggestions([])}
         />
         {placeSuggestions.length > 0 && (
@@ -235,7 +235,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
             <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
-            <DateTimePicker value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
+            <DateTimePicker themeVariant={theme} value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
           )}
           {errors.startDate && <Text style={dynamicStyles.errorText}>{errors.startDate}</Text>}
         </View>
@@ -246,7 +246,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
             <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
-            <DateTimePicker value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
+            <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
           )}
           {errors.endDate && <Text style={dynamicStyles.errorText}>{errors.endDate}</Text>}
         </View>
@@ -257,7 +257,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
             value={generalNotes}
             onChangeText={setGeneralNotes}
             placeholder="Anotacions diverses..."
-            placeholderTextColor={colors.text}
+            placeholderTextColor={colors.placeholder}
             multiline
             numberOfLines={4}
             onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
@@ -265,7 +265,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
         <View style={dynamicStyles.buttonContainer}>
             <Button title={isEditMode ? 'Actualitzar' : 'Crear'} onPress={() => handleSave(false)} color={colors.primary} />
             <View style={{ marginTop: 10 }} />
-            <Button title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'} onPress={() => handleSave(true)} color="#4CAF50" />
+            <Button title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'} onPress={() => handleSave(true)} color={colors.primary} />
         </View>
       </ScrollView>
     </SafeAreaView>

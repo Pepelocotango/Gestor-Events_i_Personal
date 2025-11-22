@@ -114,7 +114,7 @@ export default function EventDetailScreen({ route, navigation }: Props) {
       alignItems: 'center',
     },
     buttonText: {
-      color: '#fff',
+      color: theme === 'dark' ? darkTheme.background : lightTheme.background,
       fontSize: 16,
       fontWeight: 'bold',
     },

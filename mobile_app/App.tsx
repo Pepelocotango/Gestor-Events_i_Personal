@@ -1,7 +1,7 @@
 import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
 import 'uuid';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -32,6 +32,7 @@ import {
   SummaryStackParamList,
   CalendarStackParamList,
 } from './src/navigation';
+import { lightTheme, darkTheme } from './src/utils/themes';
 
 const EventsStack = createStackNavigator<EventsStackParamList>();
 const TechSheetsStack = createStackNavigator<TechSheetsStackParamList>();
@@ -113,21 +114,37 @@ export default function App() {
 
   const isAppReady = !isThemeLoading && isSplashTimeFinished;
 
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
+  const navigationTheme = useMemo(() => ({
+    dark: theme === 'dark',
+    colors: {
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.primary,
+    },
+  }), [theme, colors]);
+
   if (!isAppReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary}/>
       </View>
     );
   }
-
-  const navigationTheme = theme === 'dark' ? DarkTheme : DefaultTheme;
 
   return (
     <NavigationContainer theme={navigationTheme}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
+          tabBarStyle: {
+            backgroundColor: colors.card,
+            borderTopColor: colors.border,
+          },
           tabBarIcon: ({ focused, color, size }) => {
             let iconName: string;
 

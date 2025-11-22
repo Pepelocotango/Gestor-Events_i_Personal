@@ -103,25 +103,25 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={dynamicStyles.container}>
       <Text style={dynamicStyles.label}>Nom</Text>
-      <TextInput style={dynamicStyles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Rol</Text>
-      <TextInput style={dynamicStyles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Telèfon 1</Text>
-      <TextInput style={dynamicStyles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Telèfon 2</Text>
-      <TextInput style={dynamicStyles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Email</Text>
-      <TextInput style={dynamicStyles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Web</Text>
-      <TextInput style={dynamicStyles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} placeholderTextColor={colors.placeholder} />
 
       <Text style={dynamicStyles.label}>Notes</Text>
-      <TextInput style={dynamicStyles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
 
       <Button title="Desar" onPress={handleSave} color={colors.primary} />
     </ScrollView>

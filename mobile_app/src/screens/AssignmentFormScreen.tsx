@@ -191,9 +191,14 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
       <Text style={dynamicStyles.label}>Persona/Grup</Text>
       <View style={[dynamicStyles.pickerContainer, errors.personGroupId ? dynamicStyles.inputError : null]}>
-        <Picker selectedValue={personGroupId} onValueChange={(itemValue) => setPersonGroupId(itemValue)} itemStyle={dynamicStyles.picker}>
-          <Picker.Item label="-- Seleccioneu --" value="" />
-          {peopleGroups.map(pg => <Picker.Item key={pg.id} label={pg.name} value={pg.id} />)}
+        <Picker
+          selectedValue={personGroupId}
+          onValueChange={(itemValue) => setPersonGroupId(itemValue)}
+          style={dynamicStyles.picker}
+          dropdownIconColor={colors.text}
+          >
+          <Picker.Item label="-- Seleccioneu --" value="" color={colors.placeholder} />
+          {peopleGroups.map(pg => <Picker.Item key={pg.id} label={pg.name} value={pg.id} color={colors.text}/>)}
         </Picker>
       </View>
       {errors.personGroupId && <Text style={dynamicStyles.errorText}>{errors.personGroupId}</Text>}
@@ -204,7 +209,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
             <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
-            <DateTimePicker value={startDate || new Date(event.startDate)} mode="date" display="default" onChange={onStartDateChange} />
+            <DateTimePicker themeVariant={theme} value={startDate || new Date(event.startDate)} mode="date" display="default" onChange={onStartDateChange} />
           )}
           {errors.startDate && <Text style={dynamicStyles.errorText}>{errors.startDate}</Text>}
         </View>
@@ -215,7 +220,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
             <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
-            <DateTimePicker value={endDate || startDate || new Date(event.endDate)} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
+            <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date(event.endDate)} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
           )}
           {errors.endDate && <Text style={dynamicStyles.errorText}>{errors.endDate}</Text>}
         </View>
@@ -226,13 +231,14 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
           <Picker
             selectedValue={status}
             onValueChange={(itemValue) => setStatus(itemValue)}
-            itemStyle={dynamicStyles.picker}>
-            {Object.values(AssignmentStatus).map(s => (<Picker.Item key={s} label={s} value={s} />))}
+            style={dynamicStyles.picker}
+            dropdownIconColor={colors.text}>
+            {Object.values(AssignmentStatus).map(s => (<Picker.Item key={s} label={s} value={s} color={colors.text}/>))}
           </Picker>
       </View>
 
       <Text style={dynamicStyles.label}>Notes</Text>
-      <TextInput style={dynamicStyles.inputMulti} value={notes} onChangeText={setNotes} multiline placeholderTextColor={colors.text} />
+      <TextInput style={dynamicStyles.inputMulti} value={notes} onChangeText={setNotes} multiline placeholderTextColor={colors.placeholder} />
 
       <Button title={assignmentId ? "Desar Canvis" : "Crear Assignació"} onPress={() => performSave(false)} color={colors.primary} />
     </ScrollView>
