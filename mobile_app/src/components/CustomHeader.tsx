@@ -67,8 +67,8 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   const handleShareFile = async () => {
     Alert.alert(
       "A punt per compartir",
-      "S'obrirà el diàleg per compartir. Si deseu a Google Drive o a un altre servei al núvol, recordeu de sobreescriure el fitxer existent si voleu actualitzar-lo.",
-      [
+      "Per reemplaçar i sobreescriure un fitxer existent a Dropbox o Drive, marqueu el fitxer com 'Available offline'. Per Dropbox utilitzeu el gestor natiu de Dropbox i marqueu 'Upload here' -> 'Replace' -> 'show in folder' per assegurar la sincronització. Per Drive utilitzeu un gestor de fitxers (com FileExplorer) connectat a Drive, obriu Drive i actualitzeu.Sense aquests passos Drive crearà un fitxer duplicat.S'obrirà el diàleg per compartir. Si deseu a Google Drive o a un altre servei al núvol, recordeu de sobreescriure el fitxer existent si voleu actualitzar-lo.",
+       [
         {
           text: "D'acord",
           onPress: async () => {
