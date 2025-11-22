@@ -29,7 +29,6 @@ interface DataState {
   toggleTheme: () => void;
   setData: (data: AppData, name: string, uri: string) => void;
   clearData: () => void;
-  saveFile: () => Promise<void>;
   saveFileAs: () => Promise<void>;
 
   addEventFrame: (data: NewEventData) => EventFrame;
@@ -121,31 +120,6 @@ export const useDataStore = create<DataState>()(
     });
   },
 
-  saveFile: async () => {
-    const { fileUri, eventFrames, peopleGroups, materialItems } = get();
-    if (!fileUri) return;
-
-    set({ isLoading: true, error: null });
-    try {
-      const allAssignments: Assignment[] = eventFrames.flatMap((frame) => frame.assignments || []);
-      const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...rest }) => rest);
-      const dataToSave: AppData = {
-        eventFrames: eventFramesForExport,
-        peopleGroups,
-        assignments: allAssignments,
-        materialItems,
-      };
-
-      const jsonString = JSON.stringify(dataToSave, null, 2);
-      await fileService.saveFile(jsonString, fileUri);
-
-      set({ hasUnsavedChanges: false, isLoading: false });
-    } catch (err) {
-      set({ error: "No s'ha pogut desar el fitxer.", isLoading: false });
-      throw err;
-    }
-  },
-
   saveFileAs: async () => {
     const { fileName, eventFrames, peopleGroups, materialItems } = get();
 
@@ -161,18 +135,12 @@ export const useDataStore = create<DataState>()(
       };
 
       const jsonString = JSON.stringify(dataToSave, null, 2);
-      const result = await fileService.saveFileAs(jsonString, fileName || 'dades.json');
+      await fileService.saveFileAs(jsonString, fileName || 'dades.json');
 
-      if (result) {
-        set({
-          fileUri: result.uri,
-          fileName: result.name,
-          hasUnsavedChanges: false,
-          isLoading: false,
-        });
-      } else {
-        set({ isLoading: false });
-      }
+      set({
+        hasUnsavedChanges: false,
+        isLoading: false,
+      });
     } catch (err) {
       set({ error: "No s'ha pogut desar el fitxer.", isLoading: false });
       throw err;

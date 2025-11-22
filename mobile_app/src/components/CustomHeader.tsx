@@ -23,7 +23,6 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     hasUnsavedChanges,
     setData,
     clearData,
-    saveFile,
     saveFileAs,
     theme,
   } = useDataStore();
@@ -56,21 +55,23 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     }
   };
 
-  const handleSaveFile = async () => {
-    try {
-      await saveFile();
-      Alert.alert('Desat', 'El fitxer s\'ha desat correctament.');
-    } catch (e) {
-      Alert.alert("Error", "No s'ha pogut desar el fitxer.");
-    }
-  };
-
-  const handleSaveFileAs = async () => {
-    try {
-      await saveFileAs();
-    } catch (e) {
-      Alert.alert("Error", "No s'ha pogut desar el fitxer amb un nom nou.");
-    }
+  const handleShareFile = async () => {
+    Alert.alert(
+      "A punt per desar",
+      "S'obrirà el diàleg per compartir. Si deseu a Google Drive o a un altre servei al núvol, recordeu de sobreescriure el fitxer existent si voleu actualitzar-lo.",
+      [
+        {
+          text: "D'acord",
+          onPress: async () => {
+            try {
+              await saveFileAs();
+            } catch (e) {
+              Alert.alert("Error", "No s'ha pogut desar el fitxer.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleCloseFile = () => {
@@ -142,11 +143,8 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
         <View style={styles.buttonGroup}>
           {fileName ? (
             <>
-              <TouchableOpacity onPress={handleSaveFile} disabled={!hasUnsavedChanges}>
-                <Icon name="content-save" size={28} style={hasUnsavedChanges ? dynamicStyles.accentIconColor : dynamicStyles.disabledIconColor} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleSaveFileAs}>
-                <Icon name="content-save-all-outline" size={28} style={dynamicStyles.iconColor} />
+              <TouchableOpacity onPress={handleShareFile}>
+                <Icon name="share-variant" size={28} style={hasUnsavedChanges ? dynamicStyles.accentIconColor : dynamicStyles.iconColor} />
               </TouchableOpacity>
               <TouchableOpacity onPress={handleCloseFile}>
                 <Icon name="close-circle-outline" size={28} style={dynamicStyles.destructiveIconColor} />
