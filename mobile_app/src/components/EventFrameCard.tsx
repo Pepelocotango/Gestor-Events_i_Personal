@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Assignment, AssignmentStatus, EventFrame } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -9,6 +9,7 @@ import { isMultiDay } from '../utils/dates';
 import DailyStatusEditor from './DailyStatusEditor';
 import { format } from 'date-fns';
 import { ca } from 'date-fns/locale';
+import { darkTheme, lightTheme } from '../utils/themes';
 
 type EventFrameCardProps = {
   eventFrame: EventFrame;
@@ -32,6 +33,15 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
   const handlePress = () => {
     updateEventFrame(eventFrame.id, { personnelComplete: !isComplete });
   };
+
+  const styles = useMemo(() => StyleSheet.create({
+    statusIndicator: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 10,
+    },
+  }), []);
 
   return (
     <TouchableOpacity onPress={handlePress}>
@@ -62,7 +72,8 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
   peopleMap,
   navigation,
 }) => {
-
+  const themeName = useDataStore((state) => state.theme);
+  const theme = themeName === 'dark' ? darkTheme : lightTheme;
   const setAllDaysAssignmentStatus = useDataStore((state) => state.setAllDaysAssignmentStatus);
 
   const handleEditAssignment = (assignmentId: string) => {
@@ -83,6 +94,138 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
     return `${formattedStart} - ${formattedEnd}`;
   };
 
+  const styles = useMemo(() => StyleSheet.create({
+    card: {
+        backgroundColor: theme.card,
+        borderRadius: 8,
+        padding: 15,
+        marginVertical: 8,
+        marginHorizontal: 16,
+        elevation: 2,
+        shadowColor: theme.text,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.41,
+      },
+      header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      },
+      headerTextContainer: {
+        flex: 1,
+      },
+      eventName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: theme.text,
+      },
+      eventDate: {
+        fontSize: 14,
+        color: theme.placeholder,
+        marginTop: 4,
+      },
+      details: {
+        marginTop: 15,
+        paddingTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: theme.border,
+      },
+      detailRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+      },
+      detailText: {
+        fontSize: 14,
+        marginLeft: 8,
+        color: theme.text,
+      },
+      assignmentsTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 10,
+        marginBottom: 5,
+        color: theme.text,
+      },
+      assignmentContainer: {
+        borderTopWidth: 1,
+        borderTopColor: theme.border,
+        paddingVertical: 8,
+      },
+      assignmentRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 4,
+      },
+      assignmentPersonContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+      },
+      lockIcon: {
+        marginRight: 8,
+      },
+      assignmentPerson: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: theme.text,
+      },
+      assignmentDate: {
+        fontSize: 12,
+        color: theme.placeholder,
+      },
+      assignmentActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      assignmentStatus: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+      },
+      actionIcon: {
+        padding: 5,
+        marginLeft: 10,
+      },
+      toggleDaysButton: {
+        backgroundColor: theme.border,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        marginTop: 8,
+        alignItems: 'center',
+      },
+      toggleDaysButtonText: {
+        fontWeight: '500',
+        color: theme.text,
+      },
+      addPersonButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10,
+        padding: 5,
+        alignSelf: 'flex-start',
+      },
+      addPersonButtonText: {
+        marginLeft: 8,
+        color: '#007AFF',
+        fontSize: 14,
+        fontWeight: 'bold',
+      },
+      cardActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginTop: 15,
+        gap: 20,
+      },
+      actionButton: {
+        padding: 5,
+      },
+  }), [theme]);
+
   const renderAssignment = (assignment: Assignment) => {
     const isAssignmentMultiDay = isMultiDay(assignment.startDate, assignment.endDate);
     const isAssignmentExpanded = expandedAssignmentIds.has(assignment.id);
@@ -99,7 +242,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
         <View style={styles.assignmentRow}>
           <View style={styles.assignmentPersonContainer}>
             <TouchableOpacity onPress={() => onToggleAssignmentLock(assignment.id)} style={styles.lockIcon}>
-              <Icon name={isUnlocked ? 'lock-open-variant' : 'lock'} size={22} color={isUnlocked ? "#4CAF50" : "#666"} />
+              <Icon name={isUnlocked ? 'lock-open-variant' : 'lock'} size={22} color={isUnlocked ? "#4CAF50" : theme.placeholder} />
             </TouchableOpacity>
             <View>
               <Text style={styles.assignmentPerson}>
@@ -154,19 +297,19 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
             })}
           </Text>
         </View>
-        <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color="#333" />
+        <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={theme.text} />
       </TouchableOpacity>
 
       {isExpanded && (
         <View style={styles.details}>
           <View style={styles.detailRow}>
-            <Icon name="map-marker-outline" size={16} color="#555" />
+            <Icon name="map-marker-outline" size={16} color={theme.text} />
             <Text style={styles.detailText}>{eventFrame.place}</Text>
           </View>
 
           {eventFrame.generalNotes ? (
             <View style={styles.detailRow}>
-              <Icon name="note-text-outline" size={16} color="#555" />
+              <Icon name="note-text-outline" size={16} color={theme.text} />
               <Text style={styles.detailText}>{eventFrame.generalNotes}</Text>
             </View>
           ) : null}
@@ -194,139 +337,5 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-    card: {
-        backgroundColor: 'white',
-        borderRadius: 8,
-        padding: 15,
-        marginVertical: 8,
-        marginHorizontal: 16,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.41,
-      },
-      header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      },
-      statusIndicator: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        marginRight: 10,
-      },
-      headerTextContainer: {
-        flex: 1,
-      },
-      eventName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-      },
-      eventDate: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 4,
-      },
-      details: {
-        marginTop: 15,
-        paddingTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
-      },
-      detailRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-      },
-      detailText: {
-        fontSize: 14,
-        marginLeft: 8,
-      },
-      assignmentsTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 5,
-      },
-      assignmentContainer: {
-        borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
-        paddingVertical: 8,
-      },
-      assignmentRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 4,
-      },
-      assignmentPersonContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-      },
-      lockIcon: {
-        marginRight: 8,
-      },
-      assignmentPerson: {
-        fontSize: 16,
-        fontWeight: '500',
-      },
-      assignmentDate: {
-        fontSize: 12,
-        color: '#666',
-      },
-      assignmentActions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-      },
-      assignmentStatus: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-      },
-      actionIcon: {
-        padding: 5,
-        marginLeft: 10,
-      },
-      toggleDaysButton: {
-        backgroundColor: '#e0e0e0',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        marginTop: 8,
-        alignItems: 'center',
-      },
-      toggleDaysButtonText: {
-        fontWeight: '500',
-        color: '#333'
-      },
-      addPersonButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 10,
-        padding: 5,
-        alignSelf: 'flex-start',
-      },
-      addPersonButtonText: {
-        marginLeft: 8,
-        color: '#007AFF',
-        fontSize: 14,
-        fontWeight: 'bold',
-      },
-      cardActions: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: 15,
-        gap: 20,
-      },
-      actionButton: {
-        padding: 5,
-      },
-});
 
 export default React.memo(EventFrameCard);
