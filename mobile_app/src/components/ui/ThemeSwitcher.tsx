@@ -5,10 +5,8 @@ import { useDataStore } from '../../stores/dataStore';
 import { lightTheme, darkTheme } from '../../utils/themes';
 
 const ThemeSwitcher = () => {
-  const { theme, toggleTheme } = useDataStore((state) => ({
-    theme: state.theme,
-    toggleTheme: state.toggleTheme,
-  }));
+  const theme = useDataStore((state) => state.theme);
+  const toggleTheme = useDataStore((state) => state.toggleTheme);
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   return (
