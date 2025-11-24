@@ -14,10 +14,8 @@ interface DailyStatusEditorProps {
 }
 
 const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, eventFrameId, isUnlocked }) => {
-  const { updateDailyAssignmentStatus, theme } = useDataStore(state => ({
-    updateDailyAssignmentStatus: state.updateDailyAssignmentStatus,
-    theme: state.theme,
-  }));
+  const updateDailyAssignmentStatus = useDataStore(state => state.updateDailyAssignmentStatus);
+  const theme = useDataStore(state => state.theme);
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const days = getDaysBetween(assignment.startDate, assignment.endDate);
