@@ -11,6 +11,7 @@ import { useDataStore } from '../stores/dataStore';
 import { TechSheetsStackParamList } from '../navigation';
 import { EventFrame } from '../types';
 import TechSheetListItem from '../components/TechSheetListItem';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type TechSheetListScreenNavigationProp = StackNavigationProp<
   TechSheetsStackParamList,
@@ -22,9 +23,8 @@ type Props = {
 };
 
 export default function TechSheetListScreen({ navigation }: Props) {
-  const isLoading = useDataStore((state) => state.isLoading);
-  const error = useDataStore((state) => state.error);
-  const eventFrames = useDataStore((state) => state.eventFrames);
+  const { isLoading, error, eventFrames, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const techSheets = useMemo(
     () => eventFrames.filter((ef) => ef.techSheet),
@@ -35,27 +35,48 @@ export default function TechSheetListScreen({ navigation }: Props) {
     navigation.navigate('TechSheetDetail', { eventId });
   }, [navigation]);
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      padding: 16,
+      backgroundColor: colors.background,
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: colors.background,
+    },
+    text: {
+      color: colors.text,
+      textAlign: 'center',
+    },
+    errorText: {
+      color: 'red',
+    },
+  }), [colors]);
+
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={dynamicStyles.centerContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={dynamicStyles.centerContainer}>
+        <Text style={dynamicStyles.errorText}>{error}</Text>
       </View>
     );
   }
 
   if (techSheets.length === 0) {
     return (
-      <View style={styles.centerContainer}>
-        <Text>No s'han trobat fitxes de bolo.</Text>
-        <Text>Assegura't d'haver obert un fitxer de dades.</Text>
+      <View style={dynamicStyles.centerContainer}>
+        <Text style={dynamicStyles.text}>No s'han trobat fitxes de bolo.</Text>
+        <Text style={dynamicStyles.text}>Assegura't d'haver obert un fitxer de dades.</Text>
       </View>
     );
   }
@@ -68,30 +89,16 @@ export default function TechSheetListScreen({ navigation }: Props) {
   );
 
   return (
-    <FlatList
-      data={techSheets}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.container}
-      windowSize={10}
-      initialNumToRender={10}
-      maxToRenderPerBatch={10}
-    />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <FlatList
+        data={techSheets}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={dynamicStyles.container}
+        windowSize={10}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+      />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-    textAlign: 'center',
-  },
-  errorText: {
-    color: 'red',
-  },
-});

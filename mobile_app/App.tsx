@@ -1,12 +1,13 @@
 import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
 import 'uuid';
-import React from 'react';
-import { View, Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState, useMemo } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useDataStore } from './src/stores/dataStore';
 import EventsScreen from './src/screens/EventsScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import TechSheetDetailScreen from './src/screens/TechSheetDetailScreen';
@@ -31,6 +32,7 @@ import {
   SummaryStackParamList,
   CalendarStackParamList,
 } from './src/navigation';
+import { lightTheme, darkTheme } from './src/utils/themes';
 
 const EventsStack = createStackNavigator<EventsStackParamList>();
 const TechSheetsStack = createStackNavigator<TechSheetsStackParamList>();
@@ -95,11 +97,54 @@ const CalendarStackNavigator = () => (
 );
 
 export default function App() {
+  const init = useDataStore((state) => state.init);
+  const isThemeLoading = useDataStore((state) => state.isThemeLoading);
+  const theme = useDataStore((state) => state.theme);
+
+  const [isSplashTimeFinished, setIsSplashTimeFinished] = useState(false);
+
+  useEffect(() => {
+    init();
+    const splashTimer = setTimeout(() => {
+      setIsSplashTimeFinished(true);
+    }, 2000);
+
+    return () => clearTimeout(splashTimer);
+  }, []);
+
+  const isAppReady = !isThemeLoading && isSplashTimeFinished;
+
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
+  const navigationTheme = useMemo(() => ({
+    dark: theme === 'dark',
+    colors: {
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.primary,
+    },
+  }), [theme, colors]);
+
+  if (!isAppReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary}/>
+      </View>
+    );
+  }
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
+          tabBarStyle: {
+            backgroundColor: colors.card,
+            borderTopColor: colors.border,
+          },
           tabBarIcon: ({ focused, color, size }) => {
             let iconName: string;
 

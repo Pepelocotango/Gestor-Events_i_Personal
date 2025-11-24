@@ -6,6 +6,7 @@ import { useDataStore } from '../stores/dataStore';
 import { EventsStackParamList } from '../navigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { formatDateDMY } from '../utils/dateFormat';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type EventFormScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventForm'>;
 type EventFormScreenRouteProp = RouteProp<EventsStackParamList, 'EventForm'>;
@@ -17,7 +18,8 @@ type Props = {
 
 export default function EventFormScreen({ navigation, route }: Props) {
   const { eventId } = route.params || {};
-  const { eventFrames, addEventFrame, updateEventFrame } = useDataStore();
+  const { eventFrames, addEventFrame, updateEventFrame, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const [name, setName] = useState('');
   const [place, setPlace] = useState('');
@@ -115,92 +117,10 @@ export default function EventFormScreen({ navigation, route }: Props) {
     if (selectedDate) setEndDate(selectedDate);
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.formContainer} keyboardShouldPersistTaps="handled">
-        <Text style={styles.label}>Nom de l'Esdeveniment</Text>
-        <TextInput
-          style={[styles.input, errors.name ? styles.inputError : null]}
-          value={name}
-          onChangeText={handleNameChange}
-          placeholder="Ex: Concert de Primavera"
-          onFocus={() => setPlaceSuggestions([])}
-        />
-        {nameSuggestions.length > 0 && (
-          <View style={styles.suggestionsContainer}>
-            {nameSuggestions.map(item => (
-              <TouchableOpacity key={item} style={styles.suggestionItem} onPress={() => { setName(item); setNameSuggestions([]); }}>
-                <Text>{item}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-
-        <Text style={styles.label}>Lloc</Text>
-        <TextInput
-          style={styles.input}
-          value={place}
-          onChangeText={handlePlaceChange}
-          placeholder="Ex: Teatre Principal"
-          onFocus={() => setNameSuggestions([])}
-        />
-        {placeSuggestions.length > 0 && (
-          <View style={styles.suggestionsContainer}>
-            {placeSuggestions.map(item => (
-              <TouchableOpacity key={item} style={styles.suggestionItem} onPress={() => { setPlace(item); setPlaceSuggestions([]); }}>
-                <Text>{item}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        <View>
-          <Text style={styles.label}>Data d'Inici</Text>
-          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[styles.input, errors.startDate ? styles.inputError : null]}>
-            <Text>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
-          </TouchableOpacity>
-          {showStartDatePicker && (
-            <DateTimePicker value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
-          )}
-          {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
-        </View>
-
-        <View>
-          <Text style={styles.label}>Data de Fi</Text>
-          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[styles.input, errors.endDate ? styles.inputError : null]}>
-            <Text>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
-          </TouchableOpacity>
-          {showEndDatePicker && (
-            <DateTimePicker value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
-          )}
-          {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
-        </View>
-
-        <Text style={styles.label}>Notes Generals</Text>
-        <TextInput
-            style={styles.inputMulti}
-            value={generalNotes}
-            onChangeText={setGeneralNotes}
-            placeholder="Anotacions diverses..."
-            multiline
-            numberOfLines={4}
-            onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
-        />
-        <View style={styles.buttonContainer}>
-            <Button title={isEditMode ? 'Actualitzar' : 'Crear'} onPress={() => handleSave(false)} color="#007AFF" />
-            <View style={{ marginTop: 10 }} />
-            <Button title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'} onPress={() => handleSave(true)} color="#4CAF50" />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
+  const dynamicStyles = useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#f5f5f5',
+      backgroundColor: colors.background,
     },
     formContainer: {
       padding: 20,
@@ -208,18 +128,19 @@ const styles = StyleSheet.create({
     label: {
       fontSize: 16,
       marginBottom: 8,
-      color: '#333',
+      color: colors.text,
       fontWeight: '500',
     },
     input: {
-      backgroundColor: '#fff',
+      backgroundColor: colors.card,
+      color: colors.text,
       borderRadius: 8,
       paddingHorizontal: 16,
       paddingVertical: 12,
       fontSize: 16,
       marginBottom: 5,
       borderWidth: 1,
-      borderColor: '#ddd',
+      borderColor: colors.border,
       justifyContent: 'center',
     },
     inputError: {
@@ -231,14 +152,15 @@ const styles = StyleSheet.create({
       marginLeft: 5,
     },
     inputMulti: {
-      backgroundColor: '#fff',
+      backgroundColor: colors.card,
+      color: colors.text,
       borderRadius: 8,
       paddingHorizontal: 16,
       paddingVertical: 12,
       fontSize: 16,
       marginBottom: 20,
       borderWidth: 1,
-      borderColor: '#ddd',
+      borderColor: colors.border,
       height: 100,
       textAlignVertical: 'top',
     },
@@ -246,15 +168,106 @@ const styles = StyleSheet.create({
       marginTop: 10,
     },
     suggestionsContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: colors.card,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: colors.border,
         marginBottom: 10,
     },
     suggestionItem: {
       padding: 15,
       borderBottomWidth: 1,
-      borderBottomColor: '#eee',
+      borderBottomColor: colors.border,
     },
-  });
+    suggestionText: {
+      color: colors.text,
+    },
+    dateText: {
+      color: colors.text,
+    }
+  }), [colors]);
+
+  return (
+    <SafeAreaView style={dynamicStyles.container}>
+      <ScrollView contentContainerStyle={dynamicStyles.formContainer} keyboardShouldPersistTaps="handled">
+        <Text style={dynamicStyles.label}>Nom de l'Esdeveniment</Text>
+        <TextInput
+          style={[dynamicStyles.input, errors.name ? dynamicStyles.inputError : null]}
+          value={name}
+          onChangeText={handleNameChange}
+          placeholder="Ex: Concert de Primavera"
+          placeholderTextColor={colors.placeholder}
+          onFocus={() => setPlaceSuggestions([])}
+        />
+        {nameSuggestions.length > 0 && (
+          <View style={dynamicStyles.suggestionsContainer}>
+            {nameSuggestions.map(item => (
+              <TouchableOpacity key={item} style={dynamicStyles.suggestionItem} onPress={() => { setName(item); setNameSuggestions([]); }}>
+                <Text style={dynamicStyles.suggestionText}>{item}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        {errors.name && <Text style={dynamicStyles.errorText}>{errors.name}</Text>}
+
+        <Text style={dynamicStyles.label}>Lloc</Text>
+        <TextInput
+          style={dynamicStyles.input}
+          value={place}
+          onChangeText={handlePlaceChange}
+          placeholder="Ex: Teatre Principal"
+          placeholderTextColor={colors.placeholder}
+          onFocus={() => setNameSuggestions([])}
+        />
+        {placeSuggestions.length > 0 && (
+          <View style={dynamicStyles.suggestionsContainer}>
+            {placeSuggestions.map(item => (
+              <TouchableOpacity key={item} style={dynamicStyles.suggestionItem} onPress={() => { setPlace(item); setPlaceSuggestions([]); }}>
+                <Text style={dynamicStyles.suggestionText}>{item}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        <View>
+          <Text style={dynamicStyles.label}>Data d'Inici</Text>
+          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[dynamicStyles.input, errors.startDate ? dynamicStyles.inputError : null]}>
+            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
+          </TouchableOpacity>
+          {showStartDatePicker && (
+            <DateTimePicker themeVariant={theme} value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
+          )}
+          {errors.startDate && <Text style={dynamicStyles.errorText}>{errors.startDate}</Text>}
+        </View>
+
+        <View>
+          <Text style={dynamicStyles.label}>Data de Fi</Text>
+          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[dynamicStyles.input, errors.endDate ? dynamicStyles.inputError : null]}>
+            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
+          </TouchableOpacity>
+          {showEndDatePicker && (
+            <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
+          )}
+          {errors.endDate && <Text style={dynamicStyles.errorText}>{errors.endDate}</Text>}
+        </View>
+
+        <Text style={dynamicStyles.label}>Notes Generals</Text>
+        <TextInput
+            style={dynamicStyles.inputMulti}
+            value={generalNotes}
+            onChangeText={setGeneralNotes}
+            placeholder="Anotacions diverses..."
+            placeholderTextColor={colors.placeholder}
+            multiline
+            numberOfLines={4}
+            onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
+        />
+        <View style={dynamicStyles.buttonContainer}>
+            <Button title={isEditMode ? 'Actualitzar' : 'Crear'} onPress={() => handleSave(false)} color={colors.primary} />
+            <View style={{ marginTop: 10 }} />
+            <Button title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'} onPress={() => handleSave(true)} color={colors.primary} />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}

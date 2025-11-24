@@ -2,16 +2,19 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import * as SecureStore from 'expo-secure-store';
 import { AppData, Assignment, AssignmentStatus, EventFrame, EventFrameForExport, PersonGroup, MaterialItem, MaterialControlRow, MaterialControlFilters, TechSheetData, NeedItem } from '../types';
 import { SAFFileService } from '../services/SAFFileService';
 
 const fileService = new SAFFileService();
+const THEME_KEY = 'app_theme';
 
 type NewEventData = Omit<EventFrame, 'id' | 'assignments'>;
 type NewPersonGroupData = Omit<PersonGroup, 'id'>;
 type NewMaterialItemData = Omit<MaterialItem, 'id'>;
 
 interface DataState {
+  fileUri: string | null;
   fileName: string | null;
   eventFrames: EventFrame[];
   peopleGroups: PersonGroup[];
@@ -19,10 +22,15 @@ interface DataState {
   hasUnsavedChanges: boolean;
   isLoading: boolean;
   error: string | null;
+  theme: 'light' | 'dark';
+  isThemeLoading: boolean;
 
-  setData: (data: AppData, name: string) => void;
+  init: () => Promise<void>;
+  toggleTheme: () => void;
+  setData: (data: AppData, name: string, uri: string) => void;
   clearData: () => void;
-  saveData: () => Promise<void>;
+  saveFileAs: () => Promise<void>;
+  shareFile: () => Promise<void>;
 
   addEventFrame: (data: NewEventData) => EventFrame;
   updateEventFrame: (eventId: string, data: Partial<NewEventData>) => void;
@@ -46,6 +54,7 @@ interface DataState {
 
 export const useDataStore = create<DataState>()(
   immer((set, get) => ({
+      fileUri: null,
       fileName: null,
       eventFrames: [],
   peopleGroups: [],
@@ -53,8 +62,34 @@ export const useDataStore = create<DataState>()(
   hasUnsavedChanges: false,
   isLoading: false,
   error: null,
+  theme: 'light',
+  isThemeLoading: true,
 
-  setData: (data, name) => {
+  init: async () => {
+    try {
+      const savedTheme = await SecureStore.getItemAsync(THEME_KEY);
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        set({ theme: savedTheme, isThemeLoading: false });
+      } else {
+        set({ isThemeLoading: false });
+      }
+    } catch (error) {
+      console.error("Failed to load theme from secure store", error);
+      set({ isThemeLoading: false });
+    }
+  },
+
+  toggleTheme: async () => {
+    const newTheme = get().theme === 'light' ? 'dark' : 'light';
+    set({ theme: newTheme });
+    try {
+      await SecureStore.setItemAsync(THEME_KEY, newTheme);
+    } catch (error) {
+      console.error("Failed to save theme to secure store", error);
+    }
+  },
+
+  setData: (data, name, uri) => {
     set({ isLoading: true, error: null });
     try {
       const hydratedEventFrames: EventFrame[] = data.eventFrames.map((frame) => ({
@@ -66,6 +101,7 @@ export const useDataStore = create<DataState>()(
         peopleGroups: data.peopleGroups,
         materialItems: data.materialItems || [],
         fileName: name,
+        fileUri: uri,
         hasUnsavedChanges: false,
         isLoading: false,
       });
@@ -80,11 +116,12 @@ export const useDataStore = create<DataState>()(
       peopleGroups: [],
       materialItems: [],
       fileName: null,
+      fileUri: null,
       hasUnsavedChanges: false,
     });
   },
 
-  saveData: async () => {
+  saveFileAs: async () => {
     const { fileName, eventFrames, peopleGroups, materialItems } = get();
 
     set({ isLoading: true, error: null });
@@ -99,11 +136,47 @@ export const useDataStore = create<DataState>()(
       };
 
       const jsonString = JSON.stringify(dataToSave, null, 2);
-      await fileService.saveFileAs(jsonString, fileName || 'dades.json');
+      const result = await fileService.saveFileAs(jsonString, fileName || 'dades.json');
 
-      set({ hasUnsavedChanges: false, isLoading: false });
+      if (result) {
+        set({
+          fileUri: result.uri,
+          fileName: result.name,
+          hasUnsavedChanges: false,
+          isLoading: false,
+        });
+      } else {
+        set({ isLoading: false });
+      }
     } catch (err) {
       set({ error: "No s'ha pogut desar el fitxer.", isLoading: false });
+      throw err;
+    }
+  },
+
+  shareFile: async () => {
+    const { fileName, eventFrames, peopleGroups, materialItems } = get();
+
+    set({ isLoading: true, error: null });
+    try {
+      const allAssignments: Assignment[] = eventFrames.flatMap((frame) => frame.assignments || []);
+      const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...rest }) => rest);
+      const dataToSave: AppData = {
+        eventFrames: eventFramesForExport,
+        peopleGroups,
+        assignments: allAssignments,
+        materialItems,
+      };
+
+      const jsonString = JSON.stringify(dataToSave, null, 2);
+      await fileService.shareFile(jsonString, fileName || 'dades.json');
+
+      set({
+        hasUnsavedChanges: false,
+        isLoading: false,
+      });
+    } catch (err) {
+      set({ error: "No s'ha pogut compartir el fitxer.", isLoading: false });
       throw err;
     }
   },

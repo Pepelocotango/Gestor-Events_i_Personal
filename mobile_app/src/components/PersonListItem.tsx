@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PersonGroup } from '../types';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useDataStore } from '../stores/dataStore';
+import { darkTheme, lightTheme } from '../utils/themes';
 
 type PersonListItemProps = {
   item: PersonGroup;
@@ -10,6 +12,44 @@ type PersonListItemProps = {
 };
 
 const PersonListItem: React.FC<PersonListItemProps> = ({ item, onEdit, onDelete }) => {
+  const themeName = useDataStore((state) => state.theme);
+  const theme = themeName === 'dark' ? darkTheme : lightTheme;
+
+  const styles = useMemo(() => StyleSheet.create({
+    item: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    itemContent: {
+      flex: 1,
+      marginRight: 10,
+    },
+    itemText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
+    itemSubText: {
+      fontSize: 14,
+      color: theme.placeholder,
+      marginTop: 2,
+    },
+    itemInfo: {
+      fontSize: 12,
+      color: theme.text,
+      marginTop: 2,
+    },
+    itemActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 20,
+    },
+  }), [theme]);
+
   return (
     <View style={styles.item}>
       <View style={styles.itemContent}>
@@ -29,39 +69,5 @@ const PersonListItem: React.FC<PersonListItemProps> = ({ item, onEdit, onDelete 
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  itemContent: {
-    flex: 1,
-    marginRight: 10,
-  },
-  itemText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  itemSubText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  itemInfo: {
-    fontSize: 12,
-    color: '#333',
-    marginTop: 2,
-  },
-  itemActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
-  },
-});
 
 export default React.memo(PersonListItem);

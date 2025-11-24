@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { PeopleStackParamList } from '../navigation';
 import { PersonGroup } from '../types';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type PersonFormScreenNavigationProp = StackNavigationProp<PeopleStackParamList, 'PersonForm'>;
 type PersonFormScreenRouteProp = RouteProp<PeopleStackParamList, 'PersonForm'>;
@@ -16,7 +17,8 @@ type Props = {
 
 const PersonFormScreen = ({ navigation, route }: Props) => {
   const { personId } = route.params;
-  const { peopleGroups, addPersonGroup, updatePersonGroup } = useDataStore();
+  const { peopleGroups, addPersonGroup, updatePersonGroup, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const [person, setPerson] = useState<Omit<PersonGroup, 'id'>>({
     name: '',
@@ -65,59 +67,65 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
     setPerson(prev => ({ ...prev, [field]: value }));
   };
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      backgroundColor: colors.background,
+    },
+    label: {
+      fontSize: 16,
+      marginBottom: 5,
+      color: colors.text,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      color: colors.text,
+      padding: 10,
+      marginBottom: 15,
+      borderRadius: 5,
+    },
+    inputMulti: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      color: colors.text,
+      padding: 10,
+      marginBottom: 15,
+      borderRadius: 5,
+      height: 100,
+      textAlignVertical: 'top',
+    }
+  }), [colors]);
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.label}>Nom</Text>
-      <TextInput style={styles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} />
+    <ScrollView style={dynamicStyles.container}>
+      <Text style={dynamicStyles.label}>Nom</Text>
+      <TextInput style={dynamicStyles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Rol</Text>
-      <TextInput style={styles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} />
+      <Text style={dynamicStyles.label}>Rol</Text>
+      <TextInput style={dynamicStyles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Telèfon 1</Text>
-      <TextInput style={styles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" />
+      <Text style={dynamicStyles.label}>Telèfon 1</Text>
+      <TextInput style={dynamicStyles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Telèfon 2</Text>
-      <TextInput style={styles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" />
+      <Text style={dynamicStyles.label}>Telèfon 2</Text>
+      <TextInput style={dynamicStyles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Email</Text>
-      <TextInput style={styles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" />
+      <Text style={dynamicStyles.label}>Email</Text>
+      <TextInput style={dynamicStyles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Web</Text>
-      <TextInput style={styles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} />
+      <Text style={dynamicStyles.label}>Web</Text>
+      <TextInput style={dynamicStyles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Notes</Text>
-      <TextInput style={styles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline />
+      <Text style={dynamicStyles.label}>Notes</Text>
+      <TextInput style={dynamicStyles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
 
-      <Button title="Desar" onPress={handleSave} />
+      <Button title="Desar" onPress={handleSave} color={colors.primary} />
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
-  },
-  inputMulti: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
-    height: 100,
-    textAlignVertical: 'top',
-  }
-});
 
 export default PersonFormScreen;

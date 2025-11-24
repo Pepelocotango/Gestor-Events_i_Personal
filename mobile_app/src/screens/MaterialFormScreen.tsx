@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { MaterialStackParamList } from '../navigation';
 import { MaterialItem } from '../types';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type MaterialFormScreenNavigationProp = StackNavigationProp<MaterialStackParamList, 'MaterialForm'>;
 type MaterialFormScreenRouteProp = RouteProp<MaterialStackParamList, 'MaterialForm'>;
@@ -16,7 +17,8 @@ type Props = {
 
 const MaterialFormScreen = ({ navigation, route }: Props) => {
   const { materialId } = route.params;
-  const { materialItems, addMaterialItem, updateMaterialItem } = useDataStore();
+  const { materialItems, addMaterialItem, updateMaterialItem, theme } = useDataStore();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const [item, setItem] = useState<Omit<MaterialItem, 'id'>>({
     name: '',
@@ -67,53 +69,59 @@ const MaterialFormScreen = ({ navigation, route }: Props) => {
     setItem(prev => ({ ...prev, [field]: value }));
   };
 
+  const dynamicStyles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      backgroundColor: colors.background,
+    },
+    label: {
+      fontSize: 16,
+      marginBottom: 5,
+      color: colors.text,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      color: colors.text,
+      padding: 10,
+      marginBottom: 15,
+      borderRadius: 5,
+    },
+    inputMulti: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      color: colors.text,
+      padding: 10,
+      marginBottom: 15,
+      borderRadius: 5,
+      height: 100,
+      textAlignVertical: 'top',
+    }
+  }), [colors]);
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.label}>Nom</Text>
-      <TextInput style={styles.input} value={item.name} onChangeText={(val) => handleChange('name', val)} />
+    <ScrollView style={dynamicStyles.container}>
+      <Text style={dynamicStyles.label}>Nom</Text>
+      <TextInput style={dynamicStyles.input} value={item.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Categoria</Text>
-      <TextInput style={styles.input} value={item.category} onChangeText={(val) => handleChange('category', val)} />
+      <Text style={dynamicStyles.label}>Categoria</Text>
+      <TextInput style={dynamicStyles.input} value={item.category} onChangeText={(val) => handleChange('category', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Stock</Text>
-      <TextInput style={styles.input} value={String(item.stock)} onChangeText={(val) => handleChange('stock', parseInt(val) || 0)} keyboardType="numeric" />
+      <Text style={dynamicStyles.label}>Stock</Text>
+      <TextInput style={dynamicStyles.input} value={String(item.stock)} onChangeText={(val) => handleChange('stock', parseInt(val) || 0)} keyboardType="numeric" placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Ubicació</Text>
-      <TextInput style={styles.input} value={item.location} onChangeText={(val) => handleChange('location', val)} />
+      <Text style={dynamicStyles.label}>Ubicació</Text>
+      <TextInput style={dynamicStyles.input} value={item.location} onChangeText={(val) => handleChange('location', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={styles.label}>Notes</Text>
-      <TextInput style={styles.inputMulti} value={item.notes} onChangeText={(val) => handleChange('notes', val)} multiline />
+      <Text style={dynamicStyles.label}>Notes</Text>
+      <TextInput style={dynamicStyles.inputMulti} value={item.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
 
-      <Button title="Desar" onPress={handleSave} />
+      <Button title="Desar" onPress={handleSave} color={colors.primary} />
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
-  },
-  inputMulti: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
-    height: 100,
-    textAlignVertical: 'top',
-  }
-});
 
 export default MaterialFormScreen;
