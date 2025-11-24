@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import CustomSelect from './CustomSelect';
 import { PersonGroup, EventFrame } from '../types';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
@@ -62,7 +62,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
     },
     pickerContainer: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.card,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border,
@@ -95,30 +95,20 @@ const FilterControls: React.FC<FilterControlsProps> = ({
       </View>
       <View style={dynamicStyles.pickerRow}>
         <View style={dynamicStyles.pickerContainer}>
-          <Picker
-            selectedValue={filters.person}
-            onValueChange={(itemValue) => handleFilterChange('person', itemValue)}
-            style={dynamicStyles.picker}
-            dropdownIconColor={colors.text}
-          >
-            <Picker.Item label="Totes les persones" value="" color={colors.placeholder}/>
-            {peopleGroups.map((p) => (
-              <Picker.Item key={p.id} label={p.name} value={p.id} color={colors.text}/>
-            ))}
-          </Picker>
+          <CustomSelect
+            value={filters.person}
+            onValueChange={(val) => handleFilterChange('person', val)}
+            options={[{ label: 'Totes les persones', value: '' }, ...peopleGroups.map(p => ({ label: p.name, value: p.id }))]}
+            placeholder="Totes les persones"
+          />
         </View>
         <View style={dynamicStyles.pickerContainer}>
-          <Picker
-            selectedValue={filters.eventFrame}
-            onValueChange={(itemValue) => handleFilterChange('eventFrame', itemValue)}
-            style={dynamicStyles.picker}
-            dropdownIconColor={colors.text}
-          >
-            <Picker.Item label="Tots els esdeveniments" value="" color={colors.placeholder} />
-            {eventFrames.map((ef) => (
-              <Picker.Item key={ef.id} label={ef.name} value={ef.id} color={colors.text} />
-            ))}
-          </Picker>
+          <CustomSelect
+            value={filters.eventFrame}
+            onValueChange={(val) => handleFilterChange('eventFrame', val)}
+            options={[{ label: 'Tots els esdeveniments', value: '' }, ...eventFrames.map(ef => ({ label: ef.name, value: ef.id }))]}
+            placeholder="Tots els esdeveniments"
+          />
         </View>
       </View>
     </View>

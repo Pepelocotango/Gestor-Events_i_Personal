@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import CustomSelect from './CustomSelect';
 import { EventFrame, MaterialItem } from '../types';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
@@ -30,6 +30,10 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
   const allOrigins = Array.from(new Set(materialItems.map(item => item.location))).sort();
   const allCategories = Array.from(new Set(materialItems.map(item => item.category))).sort();
 
+  const eventOptions = [{ label: '-- Tots els Esdeveniments --', value: '' }, ...eventFrames.map(ef => ({ label: ef.name, value: ef.id }))];
+  const originOptions = [{ label: '-- Tots els Orígens --', value: '' }, ...allOrigins.map(o => ({ label: o, value: o }))];
+  const categoryOptions = [{ label: '-- Totes les Categories --', value: '' }, ...allCategories.map(c => ({ label: c, value: c }))];
+
   const styles = useMemo(() => StyleSheet.create({
     container: {
       padding: 10,
@@ -38,7 +42,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
       borderBottomColor: colors.border,
     },
     searchInput: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.card,
       color: colors.text,
       paddingVertical: 10,
       paddingHorizontal: 15,
@@ -48,7 +52,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
       borderColor: colors.border,
     },
     pickerContainer: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.card,
       borderRadius: 8,
       marginBottom: 10,
       borderWidth: 1,
@@ -61,6 +65,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
     },
     picker: {
         color: colors.text,
+        backgroundColor: colors.card,
     }
   }), [colors]);
 
@@ -74,43 +79,28 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
         onChangeText={(val) => handleFilterChange('searchText', val)}
       />
       <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={filters.selectedEventIds}
-          onValueChange={(itemValue) => handleFilterChange('selectedEventIds', itemValue || '')}
-          style={styles.picker}
-          dropdownIconColor={colors.text}
-        >
-          <Picker.Item label="-- Tots els Esdeveniments --" value="" color={colors.placeholder} />
-          {eventFrames.map(ef => (
-            <Picker.Item key={ef.id} label={ef.name} value={ef.id} color={colors.text} />
-          ))}
-        </Picker>
+        <CustomSelect
+          value={filters.selectedEventIds}
+          onValueChange={(val) => handleFilterChange('selectedEventIds', val)}
+          options={eventOptions}
+          placeholder="-- Tots els Esdeveniments --"
+        />
       </View>
       <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={filters.selectedOrigins}
-          onValueChange={(itemValue) => handleFilterChange('selectedOrigins', itemValue || '')}
-          style={styles.picker}
-          dropdownIconColor={colors.text}
-        >
-          <Picker.Item label="-- Tots els Orígens --" value="" color={colors.placeholder} />
-          {allOrigins.map(o => (
-            <Picker.Item key={o} label={o} value={o} color={colors.text} />
-          ))}
-        </Picker>
+        <CustomSelect
+          value={filters.selectedOrigins}
+          onValueChange={(val) => handleFilterChange('selectedOrigins', val)}
+          options={originOptions}
+          placeholder="-- Tots els Orígens --"
+        />
       </View>
       <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={filters.selectedCategories}
-          onValueChange={(itemValue) => handleFilterChange('selectedCategories', itemValue || '')}
-          style={styles.picker}
-          dropdownIconColor={colors.text}
-        >
-          <Picker.Item label="-- Totes les Categories --" value="" color={colors.placeholder} />
-          {allCategories.map(c => (
-            <Picker.Item key={c} label={c} value={c} color={colors.text} />
-          ))}
-        </Picker>
+        <CustomSelect
+          value={filters.selectedCategories}
+          onValueChange={(val) => handleFilterChange('selectedCategories', val)}
+          options={categoryOptions}
+          placeholder="-- Totes les Categories --"
+        />
       </View>
       <Button title="Netejar Filtres" onPress={clearFilters} color={colors.primary} />
     </View>

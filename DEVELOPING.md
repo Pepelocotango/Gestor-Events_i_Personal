@@ -1287,6 +1287,33 @@ L'aplicació mòbil ha evolucionat per permetre la gestió completa d'esdevenime
         -   "Editar" navega a `EventFormScreen` passant l'`eventId`.
         -   "Eliminar" mostra un diàleg de confirmació (`Alert.alert`) abans de cridar l'acció `deleteEventFrame`.
 
+### 10.7. Centre de Colors i Nou Selector Personalitzat (Mobile)
+
+- **Font de la veritat (mòbil):** La versió mòbil utilitza `mobile_app/src/utils/themeConfig.ts` com a centre de colors i `mobile_app/src/utils/themes.ts` per exposar `lightTheme` i `darkTheme` que consumeixen els components mòbils.
+- **Arxius nous i ubicació:**
+    - `mobile_app/src/components/CustomSelect.tsx` : component reutilitzable que substitueix el `Picker` natiu per un selector basat en `Modal` + `FlatList`. Assegura control complet sobre fons i text en mode fosc/clar.
+    - `mobile_app/src/components/MaterialControlFilters.tsx` i `mobile_app/src/components/FilterControls.tsx` han estat actualitzats per utilitzar `CustomSelect` en lloc de `@react-native-picker/picker` per evitar problemes de contrast en tema fosc.
+- **Raó del canvi:** Els menús desplegables natius poden utilitzar el tema del sistema i no són sempre estilitzables des de React Native (especialment a Android). `CustomSelect` garanteix que el fons i el color del text dels elements del selector respectin el tema de l'aplicació (fosc/clar).
+- **Com utilitzar `CustomSelect`:**
+    - Importa el component: `import CustomSelect from './components/CustomSelect';`
+    - Props principals:
+        - `value: string` — valor seleccionat
+        - `onValueChange: (v: string) => void` — callback per actualitzar el valor
+        - `options: { label: string; value: string }[]` — llista d'opcions
+        - `placeholder?: string` — text per defecte quan no hi ha selecció
+    - Exemple d'ús (simplificat):
+        ```tsx
+        <CustomSelect
+            value={selectedId}
+            onValueChange={setSelectedId}
+            options={[{label: 'Tots', value: ''}, {label: 'A', value: 'a'}]}
+            placeholder="Tots els elements"
+        />
+        ```
+- **Temes i adaptació:** `CustomSelect` llegeix el tema via `useDataStore()` i aplica `darkTheme` o `lightTheme` automàticament, així que no cal passar colors manualment.
+
+Si afegeixes nous selectores en pantalles mòbils, utilitza `CustomSelect` per garantir coherència visual entre temes i evitar problemes de contrast.
+
 ### 10.4. Com executar l'aplicació mòbil
 
 1.  **Navega al directori de l'aplicació mòbil:**

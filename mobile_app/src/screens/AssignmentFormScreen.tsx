@@ -5,7 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { EventsStackParamList } from '../navigation';
 import { Assignment, AssignmentStatus } from '../types';
-import { Picker } from '@react-native-picker/picker';
+import CustomSelect from '../components/CustomSelect';
 import { formatDateDMY } from '../utils/dateFormat';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { lightTheme, darkTheme } from '../utils/themes';
@@ -182,6 +182,9 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
     }
   }), [colors]);
 
+  const peopleOptions = [{ label: '-- Seleccioneu --', value: '' }, ...peopleGroups.map(pg => ({ label: pg.name, value: pg.id }))];
+  const statusOptions = Object.values(AssignmentStatus).map(s => ({ label: s, value: s }));
+
   if (!event) {
     return <View style={dynamicStyles.container}><Text style={dynamicStyles.text}>No s'ha trobat l'esdeveniment pare.</Text></View>;
   }
@@ -191,15 +194,13 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
       <Text style={dynamicStyles.label}>Persona/Grup</Text>
       <View style={[dynamicStyles.pickerContainer, errors.personGroupId ? dynamicStyles.inputError : null]}>
-        <Picker
-          selectedValue={personGroupId}
-          onValueChange={(itemValue) => setPersonGroupId(itemValue)}
-          style={dynamicStyles.picker}
-          dropdownIconColor={colors.text}
-          >
-          <Picker.Item label="-- Seleccioneu --" value="" color={colors.placeholder} />
-          {peopleGroups.map(pg => <Picker.Item key={pg.id} label={pg.name} value={pg.id} color={colors.text}/>)}
-        </Picker>
+        <CustomSelect
+          value={personGroupId}
+          onValueChange={(val) => setPersonGroupId(val)}
+          options={peopleOptions}
+          placeholder="-- Seleccioneu --"
+          containerStyle={{}}
+        />
       </View>
       {errors.personGroupId && <Text style={dynamicStyles.errorText}>{errors.personGroupId}</Text>}
 
@@ -228,13 +229,12 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
       <Text style={dynamicStyles.label}>Estat General</Text>
       <View style={dynamicStyles.pickerContainer}>
-          <Picker
-            selectedValue={status}
-            onValueChange={(itemValue) => setStatus(itemValue)}
-            style={dynamicStyles.picker}
-            dropdownIconColor={colors.text}>
-            {Object.values(AssignmentStatus).map(s => (<Picker.Item key={s} label={s} value={s} color={colors.text}/>))}
-          </Picker>
+          <CustomSelect
+            value={status}
+            onValueChange={(val) => setStatus(val as AssignmentStatus)}
+            options={statusOptions}
+            placeholder="-- Seleccioneu --"
+          />
       </View>
 
       <Text style={dynamicStyles.label}>Notes</Text>
