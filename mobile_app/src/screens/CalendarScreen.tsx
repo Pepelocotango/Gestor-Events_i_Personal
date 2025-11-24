@@ -22,7 +22,7 @@ const CalendarScreen = () => {
     dayTextColor: colors.text,
     todayTextColor: colors.primary,
     selectedDayBackgroundColor: colors.primary,
-    selectedDayTextColor: '#ffffff',
+    selectedDayTextColor: colors['selected-day-text'],
     monthTextColor: colors.text,
     arrowColor: colors.primary,
     'stylesheet.calendar.header': {

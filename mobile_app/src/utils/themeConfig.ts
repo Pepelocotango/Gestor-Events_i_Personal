@@ -29,5 +29,6 @@ export const themeConfig = {
     'status-mixed':         '#2196F3',     // Blau: estat mixt
     'destructive':          '#FF3B30',     // Vermell iOS: accions destructives (delete)
     'shadow':               '#808080',     // Gris: sombres (visible en light i dark)
+    'selected-day-text':    '#FFFFFF',     // Text per al dia seleccionat al calendari
   },
 };

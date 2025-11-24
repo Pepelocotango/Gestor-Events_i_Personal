@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useDataStore } from '../../stores/dataStore';
+import { lightTheme, darkTheme } from '../../utils/themes';
 
 type ReadOnlyFieldProps = {
   label: string;
@@ -7,10 +9,13 @@ type ReadOnlyFieldProps = {
 };
 
 export default function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
+  const themeName = useDataStore((state) => state.theme);
+  const colors = themeName === 'dark' ? darkTheme : lightTheme;
+
   return (
-    <View style={styles.fieldContainer}>
-      <Text style={styles.label}>{label}:</Text>
-      <Text style={styles.value}>{value || 'No especificat'}</Text>
+    <View style={[styles.fieldContainer, { alignItems: 'flex-start' }]}>
+      <Text style={[styles.label, { color: colors.text }]}>{label}:</Text>
+      <Text style={[styles.value, { color: colors.text }]}>{value || 'No especificat'}</Text>
     </View>
   );
 }
@@ -23,6 +28,7 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: 'bold',
     marginRight: 8,
+    minWidth: 120,
   },
   value: {
     flex: 1,

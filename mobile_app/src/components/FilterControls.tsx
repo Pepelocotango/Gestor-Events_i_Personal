@@ -66,11 +66,15 @@ const FilterControls: React.FC<FilterControlsProps> = ({
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border,
-      justifyContent: 'center'
+      justifyContent: 'center',
+      minHeight: 44,
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      overflow: 'hidden',
     },
     picker: {
       flex: 1,
-      height: 40,
+      height: 44,
       color: colors.text,
     },
   }), [colors]);

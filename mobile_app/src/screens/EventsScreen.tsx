@@ -176,7 +176,7 @@ const EventsScreen = ({ navigation }: Props) => {
       justifyContent: 'center',
       alignItems: 'center',
       elevation: 8,
-      shadowColor: '#000',
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
       shadowRadius: 4,

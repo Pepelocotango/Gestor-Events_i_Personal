@@ -14,6 +14,7 @@ export const lightTheme = {
   'status-mixed': themeConfig.semantic['status-mixed'],
   destructive: themeConfig.semantic.destructive,
   shadow: themeConfig.semantic.shadow,
+  'selected-day-text': themeConfig.semantic['selected-day-text'],
 };
 
 export const darkTheme = {
@@ -30,4 +31,5 @@ export const darkTheme = {
   'status-mixed': themeConfig.semantic['status-mixed'],
   destructive: themeConfig.semantic.destructive,
   shadow: themeConfig.semantic.shadow,
+  'selected-day-text': themeConfig.semantic['selected-day-text'],
 };

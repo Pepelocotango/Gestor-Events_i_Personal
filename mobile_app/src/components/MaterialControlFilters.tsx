@@ -54,6 +54,10 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
       borderWidth: 1,
       borderColor: colors.border,
       justifyContent: 'center',
+      minHeight: 44,
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      overflow: 'hidden',
     },
     picker: {
         color: colors.text,
