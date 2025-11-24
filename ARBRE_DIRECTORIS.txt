@@ -79,15 +79,6 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil (v1.5.0).
 │   ├── package.json              # Dependències i scripts de l'aplicació mòbil.
 │   └── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil.
-├── packages/                     # Paquets del monorepo (llista resumida).
-│   ├── core/                     # Paquet core: utilitats i llibreries compartides
-│   │   └── src/                  # Codi font del paquet `core`
-│   ├── desktop/                  # Paquet desktop (aplicació Electron)
-│   │   └── src/                  # Codi font del paquet `desktop`
-│   └── mobile/                   # Paquet mobile (components/clients mòbils)
-│       ├── .expo/                # Fitxers temporals generats per Expo (ignorats)
-│       └── android/              # Projecte / fitxers Android generats (ignorats)
-
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
 │   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
 ├── scripts/                      # Scripts d'utilitat per al procés de desenvolupament i compilació.
