@@ -1,19 +1,23 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Assignment, AssignmentStatus } from '../types';
 import { getDaysBetween } from '../utils/dates';
 import { useDataStore } from '../stores/dataStore';
 import { getStatusColor } from '../utils/statusUtils';
 import { format } from 'date-fns';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 interface DailyStatusEditorProps {
   assignment: Assignment;
   eventFrameId: string;
-  isUnlocked: boolean; // Nova propietat
+  isUnlocked: boolean;
 }
 
 const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, eventFrameId, isUnlocked }) => {
-  const { updateDailyAssignmentStatus } = useDataStore();
+  const updateDailyAssignmentStatus = useDataStore(state => state.updateDailyAssignmentStatus);
+  const theme = useDataStore(state => state.theme);
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
   const days = getDaysBetween(assignment.startDate, assignment.endDate);
 
   const getStatusForDay = (date: Date): AssignmentStatus => {
@@ -33,6 +37,30 @@ const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, event
 
     updateDailyAssignmentStatus(eventFrameId, assignment.id, format(date, 'yyyy-MM-dd'), nextStatus);
   };
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      marginTop: 10,
+      marginLeft: 15,
+      paddingLeft: 10,
+      borderLeftWidth: 1,
+      borderLeftColor: colors.border,
+    },
+    dayRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 6,
+    },
+    dayText: {
+      fontSize: 14,
+      color: colors.text,
+    },
+    statusText: {
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+  }), [colors]);
 
   return (
     <View style={styles.container}>
@@ -60,29 +88,5 @@ const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, event
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 10,
-    marginLeft: 15,
-    paddingLeft: 10,
-    borderLeftWidth: 1,
-    borderLeftColor: '#ddd',
-  },
-  dayRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  dayText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-});
 
 export default DailyStatusEditor;

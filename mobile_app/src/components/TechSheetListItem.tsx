@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { EventFrame } from '../types';
 import { formatDate } from '../utils/dateFormat';
+import { useDataStore } from '../stores/dataStore';
+import { lightTheme, darkTheme } from '../utils/themes';
 
 type Props = {
   item: EventFrame;
@@ -9,6 +11,40 @@ type Props = {
 };
 
 const TechSheetListItem = ({ item, onPress }: Props) => {
+  const theme = useDataStore((state) => state.theme);
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
+  const styles = useMemo(() => StyleSheet.create({
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 16,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+      borderColor: colors.border,
+      borderWidth: 1,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 8,
+      color: colors.text,
+    },
+    detail: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: colors.text,
+    },
+    bold: {
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+  }), [colors]);
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Text style={styles.title}>{item.name}</Text>
@@ -21,31 +57,5 @@ const TechSheetListItem = ({ item, onPress }: Props) => {
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  detail: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-});
 
 export default React.memo(TechSheetListItem);

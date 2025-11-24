@@ -26,7 +26,9 @@ type EventFrameCardProps = {
 };
 
 const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
-  const { updateEventFrame } = useDataStore();
+  const updateEventFrame = useDataStore((state) => state.updateEventFrame);
+  const themeName = useDataStore((state) => state.theme);
+  const theme = themeName === 'dark' ? darkTheme : lightTheme;
   const isComplete = eventFrame.personnelComplete || false;
   const color = isComplete ? '#4CAF50' : '#FFC107';
 
@@ -211,7 +213,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
       },
       addPersonButtonText: {
         marginLeft: 8,
-        color: '#007AFF',
+        color: theme.primary,
         fontSize: 14,
         fontWeight: 'bold',
       },
@@ -260,7 +262,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
                 </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => handleEditAssignment(assignment.id)} style={styles.actionIcon}>
-              <Icon name="pencil" size={20} color="#007AFF" />
+              <Icon name="pencil" size={20} color={theme.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -320,13 +322,13 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
             style={styles.addPersonButton}
             onPress={() => navigation.navigate('AssignmentForm', { eventFrameId: eventFrame.id })}
           >
-            <Icon name="plus-circle-outline" size={20} color="#007AFF" />
+            <Icon name="plus-circle-outline" size={20} color={theme.primary} />
             <Text style={styles.addPersonButtonText}>Afegir persona</Text>
           </TouchableOpacity>
 
           <View style={styles.cardActions}>
             <TouchableOpacity onPress={() => onEditEvent(eventFrame.id)} style={styles.actionButton}>
-              <Icon name="pencil" size={24} color="#007AFF" />
+              <Icon name="pencil" size={24} color={theme.primary} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => onDeleteEvent(eventFrame.id)} style={styles.actionButton}>
               <Icon name="delete" size={24} color="#FF3B30" />

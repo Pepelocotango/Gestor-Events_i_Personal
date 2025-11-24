@@ -126,7 +126,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
       color: colors.text,
     },
     disabledIconColor: {
-      color: '#ccc',
+      color: colors.placeholder,
     },
     accentIconColor: {
       color: colors.primary,
