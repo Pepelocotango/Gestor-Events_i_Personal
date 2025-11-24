@@ -17,17 +17,31 @@ enllaç a Gestor-Events_i_Personal/
 ├── imatges/                      # Conté imatges i captures de pantalla per a la documentació.
 │   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
 ├── mobile_app/                   # Projecte de l'aplicació mòbil (React Native amb Expo).
-│   ├── .expo/                    # Fitxers temporals generats per Expo.
-│   ├── assets/                   # Actius estàtics (imatges).
+│   ├── .expo/                    # Fitxers temporals generats per Expo (ignorats per `mobile_app/.gitignore`).
+│   ├── .idea/                    # (Opcional) Configuració d'IDE (normalment ignorada).
+│   ├── assets/                   # Actius estàtics (imatges, icones, splash).
+│   │   ├── icon.png              # Icona app mòbil (Splash / launcher)
+│   │   └── splash.png            # Imagen de splash per a l'inici
+│   ├── eas.json                  # Configuració per a Expo Application Services (EAS).
+│   ├── package-lock.json         # Fitxer lock de dependències generat per npm.
+│   ├── index.js                  # Punt de registre inicial de l'aplicació per a Expo.
++│   ├── app.json                  # Fitxer de configuració d'Expo.
+│   ├── babel.config.js           # Fitxer de configuració de Babel.
+│   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòbil (ex. `.expo/`, `/android`, `/ios`, `/builds`, `node_modules/`).
+│   ├── node_modules/             # Dependències locals del mòbil (ignorades per `mobile_app/.gitignore`).
+│   ├── android/                  # Projecte Android (generat / normalment ignorat si es genera localment).
+│   ├── ios/                      # Projecte iOS (generat / normalment ignorat si es genera localment).
+│   ├── builds/                   # Artefactes nadius i builds locals (ignorats).
 │   ├── src/                      # Codi font de l'aplicació mòbil.
 │   │   ├── components/           # Components reutilitzables de la UI mòbil.
-│   │   │   ├── ui/                 # Components d'UI genèrics.
+│   │   │   ├── ui/               # Components d'UI genèrics.
 │   │   │   │   └── ThemeSwitcher.tsx   # Component per canviar entre el tema clar i fosc.
-│   │   │   ├── tech_sheet/         # Components específics per a la visualització de la fitxa de bolo.
+│   │   │   ├── tech_sheet/       # Components específics per a la visualització de la fitxa de bolo.
 │   │   │   │   ├── ReadOnlyField.tsx   # Component per mostrar un camp individual (etiqueta i valor).
 │   │   │   │   └── ReadOnlySection.tsx # Component per agrupar camps sota un títol de secció.
 │   │   │   ├── ActionToolbar.tsx         # Barra d'eines per a la pantalla d'esdeveniments (ordenar, arxivar, expandir).
 │   │   │   ├── CustomHeader.tsx          # Capçalera global de l'aplicació amb accions principals (desar, tancar, desfer/refer).
+│   │   │   ├── DailyStatusEditor.tsx     # Editor d'estat diari dins d'una targeta.
 │   │   │   ├── EventFrameCard.tsx        # Targeta individual per mostrar la informació d'un esdeveniment.
 │   │   │   ├── FilterControls.tsx        # Controls de filtre per a la pantalla d'esdeveniments.
 │   │   │   ├── MaterialControlFilters.tsx# Controls de filtre per al Centre de Control de Material.
@@ -35,12 +49,13 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── MaterialListItem.tsx      # Component per a un element individual a la llista de material.
 │   │   │   ├── MaterialToolbar.tsx       # Barra d'eines per a la pantalla de materials (cerca, ordenar, expandir tot).
 │   │   │   ├── PeopleToolbar.tsx         # Barra d'eines per a la pantalla de persones (cerca, ordenar, filtrar).
+│   │   │   ├── TechSheetListItem.tsx     # Item de llista per a fitxes de bolo.
 │   │   │   └── PersonListItem.tsx        # Component per a un element individual a la llista de persones.
 │   │   ├── navigation.ts         # Defineix els tipus per a la pila de navegació (React Navigation).
 │   │   ├── screens/              # Pantalles principals de l'aplicació.
 │   │   │   ├── EventsScreen.tsx          # Pantalla principal per a la gestió d'esdeveniments.
 │   │   │   ├── EventDetailScreen.tsx     # Pantalla que mostra els detalls d'un esdeveniment.
-│   │   │   ├── TechSheetListScreen.tsx   # Nova pantalla que llista totes les fitxes de bolo disponibles.
+│   │   │   ├── TechSheetListScreen.tsx   # Pantalla que llista fitxes de bolo.
 │   │   │   ├── TechSheetDetailScreen.tsx # Pantalla de només lectura per a la fitxa de bolo.
 │   │   │   ├── EventFormScreen.tsx       # Formulari per crear/editar esdeveniments.
 │   │   │   ├── PeopleScreen.tsx          # Pantalla per a la gestió de persones/contactes.
@@ -51,20 +66,28 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── fileService.ts      # Interfície que defineix el contracte per als serveis de dades.
 │   │   │   └── SAFFileService.ts     # Implementació del servei que utilitza el Storage Access Framework (SAF).
 │   │   ├── stores/               # Gestors d'estat global (Zustand).
-│   │   │   └── dataStore.ts      # Store per a l'estat de les dades de l'aplicació (esdeveniments, etc.).
+│   │   │   └── dataStore.ts      # Store per a l'estat de les dades de l'aplicació.
 │   │   ├── types/                # Definicions de tipus de TypeScript compartides.
-│   │   │   └── index.ts          # Tipus de dades (AppData, EventFrame, etc.), compartits amb l'app d'escriptori.
+│   │   │   └── index.ts          # Tipus de dades (AppData, EventFrame, etc.).
 │   │   └── utils/                # Utilitats generals per a l'aplicació mòbil.
+│   │       ├── dateFormat.ts     # Utilitats per al format de dates (mòbil).
+│   │       ├── dates.ts          # Funcions auxiliars per a dates.
+│   │       ├── statusUtils.ts    # Funcions per gestionar estats i mapatge de colors/labels.
+│   │       ├── themeConfig.ts    # Configuració central de colors (semàntica).
 │   │       └── themes.ts         # Defineix els colors per als temes clar i fosc.
-│   ├── node_modules/             # Dependències del projecte mòbil.
-│   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòbil.
 │   ├── App.tsx                   # Punt d'entrada principal que carrega les pantalles.
-│   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil.
-│   ├── index.js                  # Punt de registre inicial de l'aplicació per a Expo.
-│   ├── app.json                  # Fitxer de configuració d'Expo.
-│   ├── babel.config.js           # Fitxer de configuració de Babel.
+│   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil (v1.5.0).
 │   ├── package.json              # Dependències i scripts de l'aplicació mòbil.
 │   └── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil.
+├── packages/                     # Paquets del monorepo (llista resumida).
+│   ├── core/                     # Paquet core: utilitats i llibreries compartides
+│   │   └── src/                  # Codi font del paquet `core`
+│   ├── desktop/                  # Paquet desktop (aplicació Electron)
+│   │   └── src/                  # Codi font del paquet `desktop`
+│   └── mobile/                   # Paquet mobile (components/clients mòbils)
+│       ├── .expo/                # Fitxers temporals generats per Expo (ignorats)
+│       └── android/              # Projecte / fitxers Android generats (ignorats)
+
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
 │   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
 ├── scripts/                      # Scripts d'utilitat per al procés de desenvolupament i compilació.
@@ -159,6 +182,12 @@ enllaç a Gestor-Events_i_Personal/
 ├── metadata.json                 # Metadades del projecte.
 ├── package.json                  # Fitxer de configuració del projecte: dependències, scripts i metadades.
 ├── package-lock.json             # Fitxer generat automàticament que bloqueja les versions de les dependències.
+├── node_modules/                 # Dependències del projecte (ignorades via `.gitignore`).
+├── .env                          # Fitxers d'entorn locals amb secrets (ignorats via `.gitignore`).
+├── google-credentials.json       # Credencials/API keys (ignorades via `.gitignore`).
+├── service-account.json          # Credencials de servei (ignorades via `.gitignore`).
+├── logs/                         # Carpeta de logs i fitxers `*.log` (ignorats via `.gitignore`).
+├── .vscode/                      # Configuració d'Editor/IDE (ignorada via `.gitignore`).
 ├── postcss.config.cjs            # Fitxer de configuració per a PostCSS (usat per Tailwind).
 ├── preload.cjs                   # Pont de seguretat d'Electron que exposa funcions del backend al frontend de manera segura.
 ├── tailwind.config.cjs           # Fitxer de configuració per al framework de CSS Tailwind.
