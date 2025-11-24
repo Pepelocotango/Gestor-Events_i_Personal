@@ -132,7 +132,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
       color: colors.primary,
     },
     destructiveIconColor: {
-      color: '#FF3B30',
+      color: colors.destructive,
     },
   }), [colors]);
 

@@ -18,7 +18,7 @@ export default function ReadOnlySection({ title, children }: ReadOnlySectionProp
       backgroundColor: colors.card,
       padding: 16,
       borderRadius: 8,
-      shadowColor: '#000',
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.2,
       shadowRadius: 1.41,

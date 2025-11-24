@@ -63,7 +63,7 @@ const PersonListItem: React.FC<PersonListItemProps> = ({ item, onEdit, onDelete 
           <Icon name="pencil" size={24} color={theme.primary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => onDelete(item.id)}>
-          <Icon name="delete" size={24} color="#FF3B30" />
+          <Icon name="delete" size={24} color={theme.destructive} />
         </TouchableOpacity>
       </View>
     </View>

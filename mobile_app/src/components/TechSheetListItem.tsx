@@ -21,7 +21,7 @@ const TechSheetListItem = ({ item, onPress }: Props) => {
       padding: 16,
       marginBottom: 16,
       elevation: 2,
-      shadowColor: '#000',
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.2,
       shadowRadius: 1.41,

@@ -7,6 +7,13 @@ export const lightTheme = {
   card: themeConfig.light.card,
   border: themeConfig.light.border,
   placeholder: themeConfig.light['muted-foreground'],
+  // Colors semàntiques (constants en ambdós temes)
+  'status-yes': themeConfig.semantic['status-yes'],
+  'status-pending': themeConfig.semantic['status-pending'],
+  'status-no': themeConfig.semantic['status-no'],
+  'status-mixed': themeConfig.semantic['status-mixed'],
+  destructive: themeConfig.semantic.destructive,
+  shadow: themeConfig.semantic.shadow,
 };
 
 export const darkTheme = {
@@ -16,4 +23,11 @@ export const darkTheme = {
   card: themeConfig.dark.card,
   border: themeConfig.dark.border,
   placeholder: themeConfig.dark['muted-foreground'],
+  // Colors semàntiques (constants en ambdós temes)
+  'status-yes': themeConfig.semantic['status-yes'],
+  'status-pending': themeConfig.semantic['status-pending'],
+  'status-no': themeConfig.semantic['status-no'],
+  'status-mixed': themeConfig.semantic['status-mixed'],
+  destructive: themeConfig.semantic.destructive,
+  shadow: themeConfig.semantic.shadow,
 };

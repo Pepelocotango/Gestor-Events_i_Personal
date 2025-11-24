@@ -48,11 +48,11 @@ const MaterialControlList: React.FC<MaterialControlListProps> = ({ data }) => {
         marginTop: 5,
     },
     negativeBalance: {
-        color: '#F44336',
+        color: colors['status-no'],
         fontWeight: 'bold',
     },
     positiveBalance: {
-        color: '#4CAF50',
+        color: colors['status-yes'],
         fontWeight: 'bold',
     },
     breakdownContainer: {

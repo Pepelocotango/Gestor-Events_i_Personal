@@ -58,7 +58,7 @@ const MaterialListItem: React.FC<MaterialListItemProps> = ({ item, onEdit, onDel
           <Icon name="pencil" size={24} color={colors.primary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => onDelete(item.id)}>
-          <Icon name="delete" size={24} color="#FF3B30" />
+          <Icon name="delete" size={24} color={colors.destructive} />
         </TouchableOpacity>
       </View>
     </View>

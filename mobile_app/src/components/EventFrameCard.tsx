@@ -30,7 +30,7 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
   const themeName = useDataStore((state) => state.theme);
   const theme = themeName === 'dark' ? darkTheme : lightTheme;
   const isComplete = eventFrame.personnelComplete || false;
-  const color = isComplete ? '#4CAF50' : '#FFC107';
+  const color = isComplete ? theme['status-yes'] : theme['status-pending'];
 
   const handlePress = () => {
     updateEventFrame(eventFrame.id, { personnelComplete: !isComplete });
@@ -104,7 +104,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
         marginVertical: 8,
         marginHorizontal: 16,
         elevation: 2,
-        shadowColor: theme.text,
+        shadowColor: theme.shadow,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.2,
         shadowRadius: 1.41,
@@ -244,7 +244,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
         <View style={styles.assignmentRow}>
           <View style={styles.assignmentPersonContainer}>
             <TouchableOpacity onPress={() => onToggleAssignmentLock(assignment.id)} style={styles.lockIcon}>
-              <Icon name={isUnlocked ? 'lock-open-variant' : 'lock'} size={22} color={isUnlocked ? "#4CAF50" : theme.placeholder} />
+              <Icon name={isUnlocked ? 'lock-open-variant' : 'lock'} size={22} color={isUnlocked ? theme['status-yes'] : theme.placeholder} />
             </TouchableOpacity>
             <View>
               <Text style={styles.assignmentPerson}>
@@ -331,7 +331,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
               <Icon name="pencil" size={24} color={theme.primary} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => onDeleteEvent(eventFrame.id)} style={styles.actionButton}>
-              <Icon name="delete" size={24} color="#FF3B30" />
+              <Icon name="delete" size={24} color={theme.destructive} />
             </TouchableOpacity>
           </View>
         </View>

@@ -21,4 +21,13 @@ export const themeConfig = {
     'muted':                'hsl(40, 4%, 17%)',
     'muted-foreground':     'hsl(40, 4%, 65%)',
   },
+  // Colors semàntiques constants en ambdós temes (no canvien amb dark/light)
+  semantic: {
+    'status-yes':           '#4CAF50',     // Verd: assignació sí, complet
+    'status-pending':       '#FFC107',     // Groc: pendent, incomplet
+    'status-no':            '#F44336',     // Vermell: assignació no, error
+    'status-mixed':         '#2196F3',     // Blau: estat mixt
+    'destructive':          '#FF3B30',     // Vermell iOS: accions destructives (delete)
+    'shadow':               '#808080',     // Gris: sombres (visible en light i dark)
+  },
 };

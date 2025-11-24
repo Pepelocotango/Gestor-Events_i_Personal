@@ -22,10 +22,10 @@ const SummarySection = ({ title, data, groupingType, isExpanded, onToggle }: Pro
 
   const getStatusColor = (status: AssignmentStatus) => {
     switch (status) {
-      case AssignmentStatus.Yes: return '#4CAF50';
-      case AssignmentStatus.Pending: return '#FFC107';
-      case AssignmentStatus.No: return '#F44336';
-      case AssignmentStatus.Mixed: return '#2196F3';
+      case AssignmentStatus.Yes: return colors['status-yes'];
+      case AssignmentStatus.Pending: return colors['status-pending'];
+      case AssignmentStatus.No: return colors['status-no'];
+      case AssignmentStatus.Mixed: return colors['status-mixed'];
       default: return colors.text;
     }
   };
