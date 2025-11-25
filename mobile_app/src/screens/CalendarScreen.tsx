@@ -132,6 +132,7 @@ const CalendarScreen = () => {
   return (
     <View style={dynamicStyles.container}>
       <Calendar
+        key={theme}
         markedDates={markedDates}
         onDayPress={onDayPress}
         theme={calendarTheme}
