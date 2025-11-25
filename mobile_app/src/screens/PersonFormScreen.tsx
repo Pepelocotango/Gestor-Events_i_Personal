@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 're
 import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PeopleStackParamList } from '../navigation';
 import { PersonGroup } from '../types';
 import { lightTheme, darkTheme } from '../utils/themes';
@@ -19,6 +20,7 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
   const { personId } = route.params;
   const { peopleGroups, addPersonGroup, updatePersonGroup, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const insets = useSafeAreaInsets();
 
   const [person, setPerson] = useState<Omit<PersonGroup, 'id'>>({
     name: '',
@@ -68,10 +70,14 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
   };
 
   const dynamicStyles = useMemo(() => StyleSheet.create({
-    container: {
+    outerContainer: {
       flex: 1,
-      padding: 20,
       backgroundColor: colors.background,
+    },
+    container: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: insets.bottom + 20,
     },
     label: {
       fontSize: 16,
@@ -101,30 +107,32 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
   }), [colors]);
 
   return (
-    <ScrollView style={dynamicStyles.container}>
-      <Text style={dynamicStyles.label}>Nom</Text>
-      <TextInput style={dynamicStyles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
+    <View style={dynamicStyles.outerContainer}>
+      <ScrollView contentContainerStyle={dynamicStyles.container}>
+        <Text style={dynamicStyles.label}>Nom</Text>
+        <TextInput style={dynamicStyles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={dynamicStyles.label}>Rol</Text>
-      <TextInput style={dynamicStyles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>Rol</Text>
+        <TextInput style={dynamicStyles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={dynamicStyles.label}>Telèfon 1</Text>
-      <TextInput style={dynamicStyles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>Telèfon 1</Text>
+        <TextInput style={dynamicStyles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
 
-      <Text style={dynamicStyles.label}>Telèfon 2</Text>
-      <TextInput style={dynamicStyles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>Telèfon 2</Text>
+        <TextInput style={dynamicStyles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
 
-      <Text style={dynamicStyles.label}>Email</Text>
-      <TextInput style={dynamicStyles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>Email</Text>
+        <TextInput style={dynamicStyles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" placeholderTextColor={colors.placeholder} />
 
-      <Text style={dynamicStyles.label}>Web</Text>
-      <TextInput style={dynamicStyles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>Web</Text>
+        <TextInput style={dynamicStyles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} placeholderTextColor={colors.placeholder} />
 
-      <Text style={dynamicStyles.label}>Notes</Text>
-      <TextInput style={dynamicStyles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>Notes</Text>
+        <TextInput style={dynamicStyles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
 
-      <Button title="Desar" onPress={handleSave} color={colors.primary} />
-    </ScrollView>
+        <Button title="Desar" onPress={handleSave} color={colors.primary} />
+      </ScrollView>
+    </View>
   );
 };
 
