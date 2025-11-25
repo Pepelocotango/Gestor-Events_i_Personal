@@ -17,14 +17,21 @@ const CalendarScreen = () => {
   const [selectedDate, setSelectedDate] = useState<string>('');
 
   const calendarTheme = useMemo(() => ({
+    backgroundColor: colors.background,
     calendarBackground: colors.background,
     textSectionTitleColor: colors.text,
-    dayTextColor: colors.text,
-    todayTextColor: colors.primary,
+    textSectionTitleDisabledColor: colors.placeholder,
     selectedDayBackgroundColor: colors.primary,
     selectedDayTextColor: colors['selected-day-text'],
-    monthTextColor: colors.text,
+    todayTextColor: colors.primary,
+    dayTextColor: colors.text,
+    textDisabledColor: colors.placeholder,
+    dotColor: colors.primary,
+    selectedDotColor: colors['selected-day-text'],
     arrowColor: colors.primary,
+    disabledArrowColor: colors.placeholder,
+    monthTextColor: colors.text,
+    indicatorColor: colors.primary,
     'stylesheet.calendar.header': {
       week: {
         marginTop: 5,
