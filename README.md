@@ -7,7 +7,7 @@
 
 # Gestor d'Esdeveniments i Personal V1.5.0
 
-Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que funciona com a visor de dades.
+Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que permet la **gestió i edició** de dades en mobilitat.
 
 El projecte està actualment en fase de desenvolupament actiu.
 
@@ -34,19 +34,29 @@ L'aplicació ofereix les següents eines:
 *   **Inventari de Material (Escriptori):**
     *   Manté una base de dades centralitzada de material amb control d'estoc.
     *   El sistema comprova la disponibilitat de l'estoc en temps real en assignar material a una fitxa de bolo.
+    *   **Centre de Control:** Analitza la demanda de material calculant el pic d'ús simultani per dies (demanda concurrent), oferint una previsió d'estoc real.
 
 *   **Connectivitat i Gestió de Dades (Escriptori):**
-    *   **Integració amb Google Calendar:** Sincronitza els esdeveniments a un calendari de Google i visualitza altres calendaris en mode de només lectura.
+    *   **Integració amb Google Calendar:** Sincronitza els esdeveniments a **múltiples calendaris** de Google gestionats per l'app i visualitza altres calendaris personals.
+    
     *   **Importació/Exportació:** Desa i carrega dades en format JSON. Permet fusionar o reemplaçar dades de personal i material.
-    *   **Exportació a PDF/CSV:** Exporta resums, llistes, inventaris i fitxes de bolo a formats professionals.
+    *   **Exportació a PDF/CSV:** Exporta resums, llistes, inventaris i fitxes de bolo a formats professionals amb noms de fitxer intel·ligents.
+
+----
 
 *   **Aplicació Mòbil (iOS/Android):**
-    *   **Interfície Redissenyada:** L'aplicació mòbil s'ha refactoritzat per oferir una experiència d'usuari més visual, intuïtiva i funcional.
+    *   **Funcionalitat Completa:** Ja no és només un visor. Permet crear, editar i eliminar Esdeveniments, Persones i Material.
     *   **Gestió Completa de Dades:** Obre, visualitza i edita fitxers `.json` des de qualsevol lloc. L'aplicació permet la gestió integral d'Esdeveniments, Persones (contactes) i Material.
+
     *   **Mode Fosc:** Gaudeix d'una experiència visual còmoda en condicions de poca llum. El tema es pot canviar fàcilment des de la capçalera i la preferència es desa per a futures sessions.
     *   **Gestió de Fitxers Avançada:**
         *   **Obertura Universal:** Utilitza el selector de fitxers natiu per obrir arxius des de l'emmagatzematge local, Google Drive, Dropbox o qualsevol altre proveïdor.
-        *   **Desar i "Desar com..."**: L'aplicació distingeix entre desar canvis en el fitxer actiu i desar una còpia amb un nou nom o ubicació, proporcionant un flux de treball estàndard i segur.
+
+    *   **Flux de Desat i Exportació (Important):**
+        *   **Desar com a / Compartir:** A causa de les restriccions de seguretat en Android i iOS,l'aplicació no sempre pot sobreescriure directament el fitxer original al núvol.
+
+        *   **Actualització al Núvol:** Per desar canvis en serveis com Google Drive o Dropbox, utilitza el botó **"Compartir"** i selecciona l'opció de reemplaçar el fitxer existent a la teva app de núvol, o desa'l localment i puja'l de nou.
+        
     *   **Navegació Intuïtiva:** Una interfície amb pestanyes per accedir ràpidament a cada secció i icones clares per a totes les accions.
     *   **Interacció Millorada:** S'han afegit Botons d'Acció Flotants (FAB) per a la creació ràpida d'elements, i les accions d'ordenació i filtratge es gestionen a través de modals.
 

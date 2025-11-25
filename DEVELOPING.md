@@ -1,4 +1,5 @@
-branca de desenvolupament * REFAC_OK-PER-REVISAR16-9-25 ## ->PROVES DE REFACTORITZACIÓ
+branca de desenvolupament * DEV_DESKTOP+MOBILE
+
 ## DEVELOPING.md V1.5.0
 
 
@@ -56,7 +57,7 @@ El projecte es basa en un conjunt de tecnologies modernes de l'ecosistema JavaSc
 
 -   **Frontend:**
     -   **React `^18.3.1`**: Llibreria per construir la interfície d'usuari.
-    -   **Vite `^6.3.5`**: Eina de desenvolupament i empaquetat per al frontend, oferint una experiència de desenvolupament ràpida.
+    -   **Vite `^6.4.1`**: Eina de desenvolupament i empaquetat per al frontend, oferint una experiència de desenvolupament ràpida.
     -   **TypeScript `~5.5.3`**: Afegeix un sistema de tipus a JavaScript per a un codi més robust i mantenible.
 
 -   **Estils i UI:**
@@ -356,6 +357,15 @@ L'estat global del frontend es gestiona a través de *stores* de Zustand, la qua
     -   **Contingut:**
         -   **`showToast`**: Manté una referència a la funció `showToast` creada a `App.tsx`. Això permet que altres stores (com `googleConfigStore`) puguin disparar notificacions a la UI de manera desacoblada.
 
+    #### Optimització de Rendiment: Selectors (`src/utils/selectors.ts`)
+    Per evitar re-renderitzats innecessaris i bucles infinits, la lògica complexa de filtratge s'ha extret dels components i dels stores principals:
+         - **`selectFilteredEventFrames`**: Aquesta funció pura rep l'estat complet i retorna la llista filtrada. S'utilitza dins dels components amb `useMemo` o directament en accions d'exportació, garantint que els càlculs pesats només es facin quan canvien les dependències rellevants.
+
+ #### Middleware de Depuració (`loggingMiddleware.ts`)
+ 
+ El projecte inclou un middleware de Zustand personalitzat a `src/stores/loggingMiddleware.ts` dissenyat per a la depuració.
+
+
 #### Middleware de Depuració (`loggingMiddleware.ts`)
 
 El projecte inclou un middleware de Zustand personalitzat a `src/stores/loggingMiddleware.ts` dissenyat per a la depuració.
@@ -514,6 +524,8 @@ El component `Navigation.tsx` renderitza els enllaços (`NavLink`) que permeten 
 
 Aquesta secció descriu el funcionament intern de les característiques més importants de l'aplicació, detallant la interacció entre el backend, el frontend i la lògica de negoci.
 
+
+
 ### 5.1. Flux de Sincronització amb Google Calendar (Multi-Calendari)
 
 La integració amb Google Calendar s'ha refactoritzat per passar d'un model 1-a-1 (una app, un calendari) a un model **1-a-N** (una app, N calendaris). L'aplicació local continua sent sempre la font de veritat.
@@ -557,6 +569,7 @@ El model híbrid es manté:
 
 -   **Eliminació d'un Sol Calendari (`delete-app-calendar`):** Des del modal de configuració, l'usuari pot eliminar un calendari gestionat específic. Aquesta acció l'esborra de Google i de la llista `managedAppCalendars` a la configuració.
 -   **Desconnexió Completa (`google-disconnect`):** Aquesta acció itera sobre **tots** els calendaris a `managedAppCalendars`, els elimina un per un de Google, revoca els tokens de l'usuari i esborra els fitxers de configuració locals.
+
 
 ### 5.2. Gestor de Fitxes de Bolo (`Tech Sheets`)
 
@@ -1188,6 +1201,7 @@ L'aplicació mòbil, situada a `mobile_app/`, ha evolucionat d'un simple visor a
 -   **React Native Vector Icons:** Llibreria per a la inclusió d'icones a la interfície.
 -   **React Native Picker:** Component per a selectors natius.
 -   **Expo Secure Store:** Per a l'emmagatzematge segur i persistent de dades clau-valor, com la preferència del tema de l'usuari.
+- **React Native Calendars:** Llibreria específica (`react-native-calendars`) per al component de calendari natiu interactiu.
 
 ### 10.2. Sistema de Temes (Mode Clar/Fosc)
 
@@ -1208,16 +1222,25 @@ La interfície de l'aplicació mòbil ha estat redissenyada seguint una filosofi
 -   **Accés Ràpid a la Creació (FAB):** L'acció principal de cada pantalla (afegir un nou element) està sempre accessible a través d'un Botó d'Acció Flotant (FAB) a la cantonada inferior dreta.
 -   **Components Reutilitzables (`Toolbar`):** La funcionalitat de cerca, ordenació i filtratge s'ha encapsulat en components `Toolbar` dedicats per a cada pantalla, promovent la reutilització de codi i la consistència.
 
+
 ### 10.4. Arquitectura de Navegació per Pestanyes
 
-L'arquitectura de navegació ha estat completament redissenyada per millorar l'experiència d'usuari i organitzar les funcionalitats de manera intuïtiva.
+L'arquitectura de navegació ha estat completament redissenyada utilitzant `react-navigation` per oferir una experiència d'usuari fluida i organitzada.
 
--   **Navegador Principal (`BottomTabNavigator`):** El punt d'entrada de l'aplicació (`App.tsx`) ara utilitza un navegador de pestanyes a la part inferior de la pantalla, que permet canviar entre tres seccions principals:
-    1.  **Esdeveniments:** Conté tota la funcionalitat relacionada amb la gestió d'esdeveniments.
-    2.  **Persones:** Permet gestionar la llista de contactes i personal.
-    3.  **Material:** Permet gestionar l'inventari de material.
+-   **Navegador Principal (`BottomTabNavigator`):** El punt d'entrada de l'aplicació (`App.tsx`) defineix un navegador de pestanyes inferior que divideix l'aplicació en 7 seccions funcionals:
+    1.  **Esdeveniments (`Events`):** És el cor de l'aplicació.
+        -   **Estat Inicial:** Si no hi ha dades carregades, mostra una pantalla de benvinguda ("Empty State") instant a l'usuari a obrir un fitxer.
+        -   **Estat Actiu:** Un cop carregat un fitxer, mostra la llista filtrable d'esdeveniments i permet la gestió de l'arxiu (Desar, Tancar).
+    2.  **Calendari (`Calendar`):** Implementació de `react-native-calendars` que ofereix una vista visual dels dies ocupats i permet filtrar la llista d'esdeveniments per dia seleccionat.
+    3.  **Fitxes de Bolo (`TechSheets`):** Accés directe de lectura a les fitxes tècniques, optimitzat per a consultes ràpides durant el muntatge.
+    4.  **Persones (`People`):** Gestió completa (CRUD) de la base de dades de contactes i proveïdors.
+    5.  **Material (`Material`):** Gestió de l'inventari amb agrupació per categories i control d'estoc.
+    6.  **Centre de Control (`ControlCenter`):** Versió mòbil de l'eina d'anàlisi de disponibilitat, permetent consultar l'estat del material (Balanç/Demanda) des de qualsevol lloc.
+    7.  **Resums (`Summaries`):** Vistes analítiques agrupades per data, persona o esdeveniment per tenir una visió global de la producció.
 
--   **Piles de Navegació Independents (`StackNavigator`):** Cada pestanya no renderitza una única pantalla, sinó una pila de navegació independent (`StackNavigator`). Aquest enfocament permet un flux de navegació profund dins de cada secció. Per exemple, des de la llista d'esdeveniments, l'usuari pot navegar a la pantalla de detalls o al formulari d'edició sense sortir de la pestanya "Esdeveniments".
+-   **Piles de Navegació Independents (`StackNavigator`):** Cada pestanya no renderitza una única pantalla, sinó que conté una pila de navegació pròpia (ex: `EventsStackNavigator`, `MaterialStackNavigator`).
+    -   Això permet una **navegació profunda** (Drill-down): L'usuari pot entrar a "Esdeveniments" -> "Detall" -> "Editar" -> "Formulari Assignació" sense perdre el context de la pestanya activa.
+    -   Totes les piles comparteixen un `CustomHeader` comú que gestiona les accions globals (Desar, Tancar, Tema).
 
 ### 10.5. Gestió de Dades i Noves Funcionalitats
 
@@ -1253,8 +1276,9 @@ Després d'una anàlisi de les limitacions del sistema de fitxers d'Android, s'h
             1. Accepta el contingut de les dades (com a string JSON) i un nom de fitxer suggerit.
             2. Crea un fitxer temporal al directori de cau de l'aplicació (`FileSystem.cacheDirectory`).
             3. Escriu el contingut JSON en aquest fitxer temporal.
-            4. Invoca `Sharing.shareAsync()` amb la URI del fitxer temporal. Això obre el diàleg natiu del sistema operatiu ("Compartir" o "Desar a..."), donant a l'usuari el control total sobre la ubicació final del fitxer i la confirmació de sobreescriptura.
-        -   Aquest mètode ja no retorna cap URI, ja que el control passa a l'usuari.
+            4. Invoca `Sharing.shareAsync()` amb la URI del fitxer temporal. Això obre el full d'accions natiu del sistema operatiu ("Compartir", "Desar a Fitxers", "Enviar a Drive"), permetent exportar les dades fora de la sandbox de l'aplicació.
+         -   Aquest mètode ja no retorna cap URI, ja que el control passa a l'usuari.
+        
 
 Aquest nou flux de treball és més robust i compatible amb les restriccions d'Android, garantint una experiència d'usuari previsible: cada vegada que es desa, l'usuari ha de seleccionar la ubicació i confirmar l'acció manualment.
 
@@ -1312,6 +1336,9 @@ L'aplicació mòbil ha evolucionat per permetre la gestió completa d'esdevenime
         ```
 - **Temes i adaptació:** `CustomSelect` llegeix el tema via `useDataStore()` i aplica `darkTheme` o `lightTheme` automàticament, així que no cal passar colors manualment.
 
+    #### El "Truc de la Key" per al Calendari
+    El component `react-native-calendars` té una optimització interna que impedeix l'actualització immediata dels estils en canviar de tema. Per solucionar-ho, a `CalendarScreen.tsx`, s'assigna la propietat `key={theme}` al component `<Calendar />`. Això força a React a desmuntar i remuntar el component completament quan l'usuari canvia entre clar i fosc, garantint que els nous colors s'apliquin correctament.
+
 Si afegeixes nous selectores en pantalles mòbils, utilitza `CustomSelect` per garantir coherència visual entre temes i evitar problemes de contrast.
 
 ### 10.4. Com executar l'aplicació mòbil
@@ -1337,6 +1364,8 @@ Si afegeixes nous selectores en pantalles mòbils, utilitza `CustomSelect` per g
     ```
 Això obrirà el Metro Bundler al teu navegador. Pots executar l'aplicació en un dispositiu físic escanejant el codi QR amb l'aplicació Expo Go, o en un emulador/simulador d'Android o iOS.
 
+
+
 ## Arquitectura General (Resum)
 
 - **Frontend:** React amb Vite.
@@ -1344,3 +1373,75 @@ Això obrirà el Metro Bundler al teu navegador. Pots executar l'aplicació en u
 - **Gestió d'Estat:** Zustand.
 - **Estils:** Tailwind CSS.
 - **Llenguatge:** TypeScript.
+
+
+***
+
+## 🛠️ Guia de Comandes Mestres (Flux de Treball)
+
+
+## 📱 Configuració per a Dispositiu Físic (Android USB)
+
+Per executar l'aplicació mòbil directament en un dispositiu físic Android (recomanat per rendiment i accés real a fitxers), segueix aquests passos un sol cop:
+
+1.  **Activar Mode Desenvolupador:**
+    *   Ves a *Configuració > Sobre el telèfon*.
+    *   Prem 7 vegades seguides sobre **"Número de compilació"** (Build number) fins que aparegui el missatge "Ara ets desenvolupador!".
+
+2.  **Habilitar Depuració USB:**
+    *   Ves a *Configuració > Sistema > Opcions de desenvolupador*.
+    *   Activa l'interruptor **"Depuració per USB"**.
+
+3.  **Verificar Connexió (ADB):**
+    *   Connecta el mòbil a l'ordinador via USB.
+    *   Obre un terminal i executa:
+        ```bash
+        adb devices
+        ```
+    *   **Important:** Mira la pantalla del mòbil i accepta el diàleg *"Permetre depuració USB?"* (marca "Permetre sempre...").
+    *   Si la terminal mostra el teu dispositiu seguit de `device` (ex: `LMQ710... device`), ja estàs llest. Si diu `unauthorized`, revisa el mòbil.
+
+4.  **Llançar l'App:**
+    *   Executa la comanda mestre de desenvolupament mòbil.
+    *   Quan aparegui el menú d'Expo al terminal, prem la tecla **`a`** per instal·lar i obrir l'app al teu Android connectat.
+
+Aquestes comandes combinades garanteixen un entorn de treball net i previsible, eliminant errors derivats de dependències corruptes o memòria cau obsoleta.
+
+### 📱 Desenvolupament Mòbil (Reset Total)
+Utilitza aquesta comanda si trobes errors de resolució de paquets o si l'aplicació no reflecteix els canvis recents.
+
+```bash
+cd mobile_app && rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && npm start -- --clear
+```
+*   **Què fa:** Elimina dependències locals, les reinstal·la ignorant conflictes estrictes de versions (necessari per a l'ecosistema React Native actual) i inicia el Metro Bundler forçant la neteja de la memòria cau.
+
+### 🖥️ Desenvolupament Escriptori
+
+Tens dues opcions segons la necessitat del moment:
+
+**Opció A: Restauració i Actualització (Flexible)**
+Ideal quan vols actualitzar dependències o l'entorn sembla corrupte.
+```bash
+rm -rf node_modules package-lock.json dist && npm install && npm run fresh-start
+```
+*   **Què fa:** Elimina tot rastre de l'entorn anterior, regenera el `package-lock.json` amb les últimes versions compatibles i inicia l'aplicació regenerant els temes.
+
+**Opció B: Entorn Estricte (Reproduïble)**
+Ideal per treballar amb la certesa que tens exactament les mateixes versions que al repositori.
+```bash
+npm ci && npm run fresh-start
+```
+*   **Què fa:** Esborra `node_modules` i instal·la **exactament** les versions definides al `package-lock.json` existent, sense modificar-lo.
+
+### 📦 Compilació per a Producció (Linux)
+Genera l'executable final per a distribució.
+
+```bash
+npm ci && npm run build:linux
+```
+*   **Resultat:** Un cop finalitzat el procés, trobaràs l'arxiu executable a:
+    `dist/GestorEsdevenimentsPersonal_vXX-Linux-Ubuntu18.04+.AppImage`
+
+> **⚠️ AVÍS CRÍTIC: Fitxers de Secrets**
+> `npm ci` i el procés de build no toquen els fitxers locals no versionats. Perquè la integració amb Google funcioni a l'aplicació compilada, has d'assegurar-te que els fitxers **`google-credentials.json`** i **`service-account.json`** estan presents a l'arrel del projecte **ABANS** d'executar la comanda de compilació. Si falten, `electron-builder` no els inclourà al paquet final.
+
