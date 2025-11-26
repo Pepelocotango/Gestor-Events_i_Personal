@@ -1,6 +1,7 @@
 import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
 import 'uuid';
+import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
@@ -33,6 +34,8 @@ import {
   CalendarStackParamList,
 } from './src/navigation';
 import { lightTheme, darkTheme } from './src/utils/themes';
+
+SplashScreen.preventAutoHideAsync();
 
 const EventsStack = createStackNavigator<EventsStackParamList>();
 const TechSheetsStack = createStackNavigator<TechSheetsStackParamList>();
@@ -114,6 +117,15 @@ export default function App() {
 
   const isAppReady = !isThemeLoading && isSplashTimeFinished;
 
+  useEffect(() => {
+    async function hideSplash() {
+      if (isAppReady) {
+        await SplashScreen.hideAsync();
+      }
+    }
+    hideSplash();
+  }, [isAppReady]);
+
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const navigationTheme = useMemo(() => ({
@@ -129,11 +141,7 @@ export default function App() {
   }), [theme, colors]);
 
   if (!isAppReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.primary}/>
-      </View>
-    );
+    return null;
   }
 
   return (
