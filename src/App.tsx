@@ -209,12 +209,15 @@ const App: React.FC = () => {
     try {
         const dataToSave = await exportDataFromManager();
         const jsonString = JSON.stringify(dataToSave, null, 2);
-        const fileName = currentFilePath ? currentFilePath.split(/[/\\]/).pop() : 'document.json';
+        const fileName = (currentFilePath ? currentFilePath.split(/[/\\]/).pop() : undefined) || generateDefaultFileName();
 
         const result = await window.electronAPI.showSaveDialog({
             title: 'Guardar com...',
-            defaultPath: fileName || 'document.json',
-            filters: [{ name: 'JSON', extensions: ['json'] }],
+            defaultPath: fileName,
+            filters: [
+              { name: 'Arxiu GEP', extensions: ['gep'] },
+              { name: 'Arxiu JSON', extensions: ['json'] }
+            ],
             data: jsonString,
             isDocumentSave: true, // Indica al backend que això és un desat de document principal
         });
@@ -309,7 +312,13 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
     let filePath = filePathToOpen;
     if (!filePath && window.electronAPI) {
-        const dialogResult = await window.electronAPI.openFileDialog();
+        const dialogResult = await window.electronAPI.openFileDialog({
+            filters: [
+                { name: 'Arxiu GEP', extensions: ['gep'] },
+                { name: 'Arxiu JSON', extensions: ['json'] },
+                { name: 'Tots els fitxers', extensions: ['*'] }
+            ]
+        });
         if (!dialogResult.success || !dialogResult.filePath) {
             return; // User cancelled or error
         }
@@ -382,9 +391,12 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
       if (window.electronAPI?.showSaveDialog) {
         const result = await window.electronAPI.showSaveDialog({
-          title: `Exportar ${type} a JSON`,
+          title: `Exportar dades de ${type}`,
           defaultPath: filename,
-          filters: [{ name: 'JSON', extensions: ['json'] }],
+          filters: [
+            { name: 'Arxiu GEP', extensions: ['gep'] },
+            { name: 'Arxiu JSON', extensions: ['json'] },
+          ],
           data: jsonString,
           isDocumentSave: false, // Indica al backend que això NO és un desat de document
         });
@@ -609,6 +621,17 @@ const handleSaveDocument = async (): Promise<boolean> => {
       };
     }
   }, [showToast]);
+
+  // Listener per a l'obertura de fitxers des del sistema operatiu
+  useEffect(() => {
+    if (window.electronAPI?.onOpenFileTrigger) {
+      const cleanup = window.electronAPI.onOpenFileTrigger((filePath) => {
+        logger.info(`[File Trigger] Rebut un fitxer per obrir des de l'OS: ${filePath}`);
+        handleOpenDocument(filePath);
+      });
+      return cleanup;
+    }
+  }, []);
 
   // Listener per al progrés de sincronització
   useEffect(() => {

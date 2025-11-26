@@ -988,6 +988,21 @@ La clau `build` del `package.json` conté la configuració per a `electron-build
 -   `extraResources`: Permet incloure fitxers addicionals (com exemples o la llicència) que seran accessibles des de l'aplicació instal·lada.
 -   **Configuracions per Plataforma (`linux`, `win`, `mac`):** Defineixen les opcions específiques per a cada sistema operatiu, com els formats de sortida (`AppImage`, `nsis`, `dmg`) i les icones.
 
+### 7.1. Associació de Fitxers `.gep`
+
+Per millorar l'experiència d'usuari, l'aplicació registra l'extensió personalitzada `.gep` (Gestor Esdeveniments Personal) al sistema operatiu, permetent obrir fitxers directament amb un doble clic.
+
+-   **Desktop (`electron-builder`):**
+    -   Al `package.json`, s'ha afegit la clau `fileAssociations` dins de la configuració de `build`.
+    -   Això indica a l'instal·lador que registri l'aplicació com l'editor per defecte per als fitxers amb extensió `.gep`.
+
+-   **Mobile (`Expo`):**
+    -   Al fitxer `mobile_app/app.json`, s'ha configurat:
+        -   **Android:** `intentFilters` per a l'acció `VIEW`, associant l'extensió `.gep` amb el tipus MIME `application/json`.
+        -   **iOS:** `CFBundleDocumentTypes` i `UTExportedTypeDeclarations` per registrar un nou tipus de document (`com.pep.gep`) que s'associa amb l'extensió `.gep` i es basa en `public.json`.
+
+Aquesta configuració garanteix una integració nativa amb l'explorador de fitxers de cada plataforma.
+
 ---
 
 ## 8. Guia per a Desenvolupadors

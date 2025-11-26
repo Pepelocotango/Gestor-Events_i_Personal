@@ -76,6 +76,13 @@
     "directories": {
       "output": "dist"
     },
+    "fileAssociations": [
+      {
+        "ext": "gep",
+        "name": "Document Gestor Esdeveniments",
+        "role": "Editor"
+      }
+    ],
     "files": [
       "dist/**/*",
       "main.cjs",

@@ -21,7 +21,7 @@ export class SAFFileService implements IFileService {
       const pickerOptions = {
         copyToCacheDirectory: true,
         multiple: false,
-        type: '*/*',
+        type: 'application/json',
       };
 
       const result = await DocumentPicker.getDocumentAsync(pickerOptions);

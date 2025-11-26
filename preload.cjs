@@ -20,6 +20,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getRecentFiles: () => ipcRenderer.invoke('get-recent-files'),
   addRecentFile: (filePath) => ipcRenderer.invoke('add-recent-file', filePath),
   getAppMetadata: () => ipcRenderer.invoke('get-app-metadata'),
+  getPlatformSync: () => process.platform,
+
+  // File open trigger from OS
+  onOpenFileTrigger: (callback) => {
+    const subscription = (event, filePath) => callback(filePath);
+    ipcRenderer.on('open-file-trigger', subscription);
+    return () => ipcRenderer.removeListener('open-file-trigger', subscription);
+  },
 
   // Google Integration
   loadGoogleConfig: () => ipcRenderer.invoke('load-google-config'),

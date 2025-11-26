@@ -37,16 +37,16 @@ L'aplicació ofereix les següents eines:
     *   **Centre de Control:** Analitza la demanda de material calculant el pic d'ús simultani per dies (demanda concurrent), oferint una previsió d'estoc real.
 
 *   **Connectivitat i Gestió de Dades (Escriptori):**
+    *   **Format Natiu `.gep`:** L'aplicació utilitza per defecte l'extensió personalitzada **`.gep`** (Gestor Esdeveniments Personal), la qual cosa professionalitza l'eina i permet l'obertura directa de fitxers amb doble clic. Es manté **compatibilitat total** de lectura i escriptura amb arxius `.json` tradicionals.
     *   **Integració amb Google Calendar:** Sincronitza els esdeveniments a **múltiples calendaris** de Google gestionats per l'app i visualitza altres calendaris personals.
-    
-    *   **Importació/Exportació:** Desa i carrega dades en format JSON. Permet fusionar o reemplaçar dades de personal i material.
+    *   **Importació/Exportació:** Permet fusionar o reemplaçar dades de personal i material des d'altres fitxers.
     *   **Exportació a PDF/CSV:** Exporta resums, llistes, inventaris i fitxes de bolo a formats professionals amb noms de fitxer intel·ligents.
 
 ----
 
 *   **Aplicació Mòbil (iOS/Android):**
-    *   **Funcionalitat Completa:** Ja no és només un visor. Permet crear, editar i eliminar Esdeveniments, Persones i Material.
-    *   **Gestió Completa de Dades:** Obre, visualitza i edita fitxers `.json` des de qualsevol lloc. L'aplicació permet la gestió integral d'Esdeveniments, Persones (contactes) i Material.
+    *   **Funcionalitat Completa:** Permet crear, editar i eliminar Esdeveniments, Persones i Material.
+    *   **Gestió de Dades `.gep` i `.json`:** Obre, edita i desa fitxers en el format natiu **`.gep`** o en el format tradicional `.json`, oferint una gestió de dades completa i flexible des de qualsevol lloc.
 
     *   **Mode Fosc:** Gaudeix d'una experiència visual còmoda en condicions de poca llum. El tema es pot canviar fàcilment des de la capçalera i la preferència es desa per a futures sessions.
     *   **Gestió de Fitxers Avançada:**

@@ -16,11 +16,58 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
+          "data": {
+            "scheme": "content",
+            "mimeType": "application/json",
+            "pathPattern": ".*\\.gep"
+          }
+        },
+        {
+          "action": "VIEW",
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
+          "data": {
+            "scheme": "file",
+            "mimeType": "application/json",
+            "pathPattern": ".*\\.gep"
+          }
+        }
+      ]
     },
     "ios": {
       "bundleIdentifier": "com.juli.gestoreventsmobile",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "CFBundleDocumentTypes": [
+          {
+            "LSItemContentTypes": ["public.json"],
+            "LSHandlerRank": "Owner",
+            "CFBundleTypeName": "Document Gestor Esdeveniments",
+            "CFBundleTypeRole": "Editor",
+            "LSItemContentType": "com.pep.gep"
+          }
+        ],
+        "UTExportedTypeDeclarations": [
+          {
+            "UTTypeIdentifier": "com.pep.gep",
+            "UTTypeDescription": "Document Gestor Esdeveniments",
+            "UTTypeConformsTo": ["public.json"],
+            "UTTypeTagSpecification": {
+              "public.filename-extension": ["gep"]
+            }
+          }
+        ]
+      }
     },
     "extra": {
       "eas": {

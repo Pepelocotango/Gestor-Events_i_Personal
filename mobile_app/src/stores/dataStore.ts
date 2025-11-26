@@ -136,7 +136,7 @@ export const useDataStore = create<DataState>()(
       };
 
       const jsonString = JSON.stringify(dataToSave, null, 2);
-      const result = await fileService.saveFileAs(jsonString, fileName || 'dades.json');
+      const result = await fileService.saveFileAs(jsonString, fileName || 'dades.gep');
 
       if (result) {
         set({
@@ -169,7 +169,7 @@ export const useDataStore = create<DataState>()(
       };
 
       const jsonString = JSON.stringify(dataToSave, null, 2);
-      await fileService.shareFile(jsonString, fileName || 'dades.json');
+      await fileService.shareFile(jsonString, fileName || 'dades.gep');
 
       set({
         hasUnsavedChanges: false,

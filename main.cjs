@@ -106,15 +106,23 @@ if (!gotTheLock) {
   // Si aconseguim el candau, som la primera instància.
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     // Aquest esdeveniment es dispara quan un usuari intenta obrir una segona instància.
-    // El que fem és posar la finestra de la nostra instància (la primera) en primer pla.
+    // Posem la finestra de la nostra instància (la primera) en primer pla.
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
+    }
+
+    // Si la segona instància s'ha obert amb un fitxer, l'enviem a la finestra principal.
+    const filePath = commandLine.find(arg => arg.endsWith('.gep') || arg.endsWith('.json'));
+    if (filePath && mainWindow) {
+      console.log(`[Second Instance] Obrint fitxer des de la segona instància: ${filePath}`);
+      mainWindow.webContents.send('open-file-trigger', filePath);
     }
   });
 }
 
 let mainWindow;
+let openFilePathOnStartup = null; // Variable per emmagatzemar el fitxer a obrir a l'inici
 let isQuitting = false;
 let isAuthenticating = false;
 let googleAuthClient;
@@ -124,14 +132,18 @@ let googleServiceAccountClient;
 // REFACCIÓ: La gestió de fitxers ara es fa amb handlers d'IPC específics cridats des del renderer.
 // Aquesta funció ja no és necessària.
 
-ipcMain.handle('open-file-dialog', async () => {
+ipcMain.handle('open-file-dialog', async (event, options) => {
   console.debug("[IPC_IN] Rebut 'open-file-dialog'.");
   if (!mainWindow) return { success: false, message: 'No hi ha cap finestra activa.' };
 
   try {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openFile'],
-      filters: [{ name: 'JSON', extensions: ['json'] }],
+      filters: options?.filters || [
+        { name: 'Arxiu GEP', extensions: ['gep'] },
+        { name: 'Arxiu JSON', extensions: ['json'] },
+        { name: 'Tots els fitxers', extensions: ['*'] }
+      ],
       title: 'Obrir document',
     });
 
@@ -441,6 +453,27 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
   }
 }
 
+// --- GESTIÓ D'OBERTURA DE FITXERS DES DEL SISTEMA OPERATIU ---
+
+// Per a Windows i Linux, l'argument del fitxer ve a `process.argv`.
+// El primer argument és l'executable, el segon pot ser el fitxer.
+const filePathArg = process.argv.find(arg => arg.endsWith('.gep') || arg.endsWith('.json'));
+if (filePathArg) {
+  openFilePathOnStartup = filePathArg;
+}
+
+// Per a macOS, l'obertura de fitxers es gestiona amb l'esdeveniment 'open-file'.
+app.on('open-file', (event, path) => {
+  event.preventDefault();
+  if (mainWindow) {
+    // Si la finestra ja existeix, enviem la ruta directament.
+    mainWindow.webContents.send('open-file-trigger', path);
+  } else {
+    // Si l'app s'està iniciant, guardem la ruta per obrir-la quan la finestra estigui llesta.
+    openFilePathOnStartup = path;
+  }
+});
+
 async function createWindow() {
   console.debug('[Startup] Iniciant createWindow...');
   ensureDirectoriesExist();
@@ -470,6 +503,14 @@ async function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+  });
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (openFilePathOnStartup) {
+      console.log(`[Startup] Enviant fitxer d'inici al frontend: ${openFilePathOnStartup}`);
+      mainWindow.webContents.send('open-file-trigger', openFilePathOnStartup);
+      openFilePathOnStartup = null; // Netegem la variable per evitar re-obrir-lo
+    }
   });
 
   const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;

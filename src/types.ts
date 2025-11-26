@@ -449,13 +449,14 @@ export interface FileLoadedData {
 
 export interface ElectronAPI {
   // Document Management
-  openFileDialog: () => Promise<{ success: boolean; canceled?: boolean; filePath?: string; message?: string; }>;
+  openFileDialog: (options?: { filters?: { name: string; extensions: string[] }[] }) => Promise<{ success: boolean; canceled?: boolean; filePath?: string; message?: string; }>;
   readFile: (filePath: string) => Promise<{ success: boolean; content?: string; message?: string; }>;
   saveFile: (options: { filePath: string, data: string }) => Promise<{ success: boolean; message?: string; }>;
   showSaveDialog: (options: ShowSaveDialogOptions) => Promise<ShowSaveDialogResult>;
   showUnsavedChangesDialog: (options: { message: string; buttons: string[] }) => Promise<{ response: number }>;
 
   // Session & App Lifecycle
+  onOpenFileTrigger: (callback: (filePath: string) => void) => () => void;
   onConfirmQuit: (callback: () => void) => () => void;
   quitApplication: () => void;
   getSessionData: () => Promise<any>;
@@ -495,7 +496,7 @@ export interface ElectronAPI {
   onAppWillRelaunchAfterReset: (callback: () => void) => () => void;
   onSyncError: (callback: (error: string) => void) => () => void;
   onSyncSuccess: (callback: (message: string) => void) => () => void;
-  getPlatformSync: () => string;
+  getPlatformSync: () => 'win32' | 'linux' | 'darwin';
 }
 
 declare global {

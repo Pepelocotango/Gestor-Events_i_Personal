@@ -26,7 +26,7 @@ export function addDaysISO(dateStr: string, days: number): string {
 }
 
 /**
- * Genera un nom de fitxer per defecte amb el format dades_GEP_dd-mm-aa_HH-MM.json.
+ * Genera un nom de fitxer per defecte amb el format dades_GEP_dd-mm-aa_HH-MM.gep.
  * @returns Un string amb el nom del fitxer generat.
  */
 export function generateDefaultFileName(): string {
@@ -37,5 +37,5 @@ export function generateDefaultFileName(): string {
   const hours = String(now.getHours()).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
 
-  return `dades_GEP_${day}-${month}-${year}_${hours}-${minutes}.json`;
+  return `dades_GEP_${day}-${month}-${year}_${hours}-${minutes}.gep`;
 }
