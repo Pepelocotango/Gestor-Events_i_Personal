@@ -50,11 +50,10 @@
       "infoPlist": {
         "CFBundleDocumentTypes": [
           {
-            "LSItemContentTypes": ["public.json"],
+            "LSItemContentTypes": ["com.pep.gep"],
             "LSHandlerRank": "Owner",
             "CFBundleTypeName": "Document Gestor Esdeveniments",
-            "CFBundleTypeRole": "Editor",
-            "LSItemContentType": "com.pep.gep"
+            "CFBundleTypeRole": "Editor"
           }
         ],
         "UTExportedTypeDeclarations": [

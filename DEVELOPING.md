@@ -179,15 +179,16 @@ Per facilitar la depuració i mantenir uns registres nets en producció, l'aplic
 -   **Rotació per Mida:** En lloc de crear un fitxer nou a cada sessió, ara s'utilitza un fitxer principal (`main.log`). Quan aquest fitxer arriba a 1MB, es reanomena amb un timestamp (p. ex., `main.163...log`) i se'n crea un de nou.
 -   **Retenció Automàtica:** El sistema conserva un màxim de 10 fitxers de log (1 actiu i 9 arxivats), eliminant automàticament els més antics per optimitzar l'ús de disc.
 
-#### Còpies de Seguretat Contextuals (Backups)
+#### Còpies de Seguretat Contextuals i Dinàmiques (Backups)
 
-El sistema de còpies de seguretat s'ha fet més intel·ligent per evitar backups innecessaris.
+El sistema de còpies de seguretat s'ha fet més intel·ligent i flexible per evitar backups innecessaris i adaptar-se a la nova extensió de fitxer `.gep`.
 
--   **Activació Contextual:** Les còpies de seguretat només es creen quan es desa un **document de dades principal** (`.json`), i **no** quan s'exporten altres tipus de fitxers (PDF, CSV).
+-   **Activació Contextual:** Les còpies de seguretat només es creen quan es desa un **document de dades principal** (ja sigui `.gep` o `.json`), i **no** quan s'exporten altres tipus de fitxers (PDF, CSV).
 -   **Implementació Tècnica:**
-    -   El gestor IPC `show-save-dialog` a `main.cjs` ara accepta un paràmetre booleà opcional: `isDocumentSave`.
+    -   El gestor IPC `show-save-dialog` a `main.cjs` accepta un paràmetre booleà opcional: `isDocumentSave`.
     -   La lògica de `createBackup()` només s'executa si `isDocumentSave` és `true`.
     -   Totes les crides des del frontend (`App.tsx`, `pdfGenerator.ts`, etc.) han estat actualitzades per passar aquest flag correctament.
+-   **Gestió d'Extensions Dinàmica:** Les funcions `createBackup` i `cleanupOldBackups` ja no depenen d'una extensió fixa. Utilitzen el mòdul `path` de Node.js per extreure l'extensió del fitxer original i generen/gestionen els backups amb la mateixa extensió. Això garanteix que un fitxer `.gep` tingui backups `.gep` i un `.json` tingui backups `.json`.
 -   **Nomenclatura i Neteja:** La nomenclatura (amb el nom del document original) i la neteja automàtica (conservant els 5 backups més recents per document) es mantenen.
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
