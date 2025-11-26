@@ -332,8 +332,9 @@ async function createBackup(sourceFilePath) {
       if (!checkWritePermissions(BACKUP_DIR)) throw new Error(`No hi ha permisos d'escriptura a ${BACKUP_DIR}`);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const sourceFileName = path.basename(sourceFilePath, '.json'); // Get filename without extension
-      const backupFile = path.join(BACKUP_DIR, `backup-${sourceFileName}-${timestamp}.json`);
+      const extension = path.extname(sourceFilePath);
+      const sourceFileName = path.basename(sourceFilePath, extension);
+      const backupFile = path.join(BACKUP_DIR, `backup-${sourceFileName}-${timestamp}${extension}`);
 
       fs.copyFileSync(sourceFilePath, backupFile);
       console.info(`Còpia de seguretat creada a: ${backupFile}`);
@@ -349,14 +350,15 @@ async function cleanupOldBackups(sourceFilePath) {
   if (!fs.existsSync(BACKUP_DIR) || !sourceFilePath) {
     return;
   }
-  
-  const sourceFileName = path.basename(sourceFilePath, '.json');
+
+  const extension = path.extname(sourceFilePath);
+  const sourceFileName = path.basename(sourceFilePath, extension);
   const backupPrefix = `backup-${sourceFileName}-`;
 
   try {
-    console.debug(`Netejant backups antics per a ${sourceFileName}...`);
+    console.debug(`Netejant backups antics per a ${sourceFileName}${extension}...`);
     const backupFiles = fs.readdirSync(BACKUP_DIR)
-      .filter(file => file.startsWith(backupPrefix) && file.endsWith('.json'))
+      .filter(file => file.startsWith(backupPrefix) && file.endsWith(extension))
       .map(file => {
         const filePath = path.join(BACKUP_DIR, file);
         try {
