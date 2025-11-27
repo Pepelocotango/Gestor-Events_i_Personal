@@ -3,7 +3,9 @@ import 'react-native-gesture-handler';
 import 'uuid';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Alert } from 'react-native';
+import * as Linking from 'expo-linking';
+import * as FileSystem from 'expo-file-system';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -106,13 +108,54 @@ export default function App() {
 
   const [isSplashTimeFinished, setIsSplashTimeFinished] = useState(false);
 
+  const handleDeepLink = async (url: string | null) => {
+    if (!url) return;
+
+    try {
+      const content = await FileSystem.readAsStringAsync(url);
+      const parsedData = JSON.parse(content);
+
+      let fileName = "Fitxer Importat";
+      try {
+        const decodedUrl = decodeURIComponent(url);
+        const urlParts = decodedUrl.split('/');
+        fileName = urlParts.pop() || fileName;
+      } catch (e) {
+        console.warn("Could not decode or parse filename from URL", e);
+      }
+
+      useDataStore.getState().setData(parsedData, fileName, url);
+    } catch (error) {
+      console.error("Failed to handle deep link:", error);
+      Alert.alert(
+        "Error a l'obrir el fitxer",
+        "No s'ha pogut llegir o processar el fitxer. Assegura't que el format és correcte."
+      );
+    }
+  };
+
   useEffect(() => {
     init();
     const splashTimer = setTimeout(() => {
       setIsSplashTimeFinished(true);
     }, 2000);
 
-    return () => clearTimeout(splashTimer);
+    // Deep linking for cold start
+    Linking.getInitialURL().then(url => {
+      if (url) {
+        handleDeepLink(url);
+      }
+    });
+
+    // Deep linking for when app is already open
+    const subscription = Linking.addEventListener('url', (event) => {
+      handleDeepLink(event.url);
+    });
+
+    return () => {
+      clearTimeout(splashTimer);
+      subscription.remove();
+    };
   }, []);
 
   const isAppReady = !isThemeLoading && isSplashTimeFinished;
