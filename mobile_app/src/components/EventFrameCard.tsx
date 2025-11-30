@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Assignment, AssignmentStatus, EventFrame } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -33,7 +33,25 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
   const color = isComplete ? theme['status-yes'] : theme['status-pending'];
 
   const handlePress = () => {
-    updateEventFrame(eventFrame.id, { personnelComplete: !isComplete });
+    const newStatus = !isComplete;
+    const action = newStatus ? 'com a complet' : 'com a incomplet';
+    const eventName = eventFrame.name;
+
+    Alert.alert(
+      `Confirmar canvi d'estat`,
+      `L'esdeveniment '${eventName}' es marcarà ${action}. Esteu segur?`,
+      [
+        {
+          text: 'Cancel·lar',
+          style: 'cancel',
+        },
+        {
+          text: 'Acceptar',
+          onPress: () => updateEventFrame(eventFrame.id, { personnelComplete: newStatus }),
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   const styles = useMemo(() => StyleSheet.create({
