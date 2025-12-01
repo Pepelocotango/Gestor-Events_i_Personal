@@ -601,16 +601,26 @@ export const exportTechSheetToPdf = async (
 
     const logisticsBody: any[][] = [];
     if (formData.dressingRooms?.status === 'yes') {
-        logisticsBody.push([
-            { content: 'Camerinos', styles: { cellWidth: 40 } },
-            { content: sane(formData.dressingRooms.details) !== '-' ? sane(formData.dressingRooms.details) : 'SI', colSpan: 2 }
-        ]);
+        const dressingDetails = sane(formData.dressingRooms.details);
+        const value = dressingDetails !== '-' ? dressingDetails : 'SI';
+        // Tres columnes reals, sense colSpan, per evitar problemes de càlcul de columnes
+        logisticsBody.push(['Camerinos', value, '']);
     }
     if (formData.actorsInfo?.status === 'yes') {
-        logisticsBody.push(['Actors', sane(formData.actorsInfo.data?.number), sane(formData.actorsInfo.data?.names)]);
+        const actorsNumber = sane(formData.actorsInfo.data?.number);
+        const actorsNames = sane(formData.actorsInfo.data?.names);
+        // Només afegim la fila si hi ha alguna dada rellevant
+        if (actorsNumber !== '-' || actorsNames !== '-') {
+            logisticsBody.push(['Actors', actorsNumber, actorsNames]);
+        }
     }
     if (formData.techniciansInfo?.status === 'yes') {
-        logisticsBody.push(['Tècnics/Prod. Cia', sane(formData.techniciansInfo.data?.number), sane(formData.techniciansInfo.data?.names)]);
+        const techNumber = sane(formData.techniciansInfo.data?.number);
+        const techNames = sane(formData.techniciansInfo.data?.names);
+        // Només afegim la fila si hi ha alguna dada rellevant
+        if (techNumber !== '-' || techNames !== '-') {
+            logisticsBody.push(['Tècnics/Prod. Cia', techNumber, techNames]);
+        }
     }
 
     if (logisticsBody.length > 0) {
