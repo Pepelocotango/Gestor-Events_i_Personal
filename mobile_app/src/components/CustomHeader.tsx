@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDataStore } from '../stores/dataStore';
@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Constants from 'expo-constants';
 import ThemeSwitcher from './ui/ThemeSwitcher';
 import { lightTheme, darkTheme } from '../utils/themes';
+import AboutModal from './AboutModal';
 
 const fileService = new SAFFileService();
 
@@ -29,6 +30,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const canGoBack = navigation.canGoBack();
+  const [isAboutModalVisible, setAboutModalVisible] = useState(false);
 
   const handleOpenFile = async () => {
     const openAndSetData = async () => {
@@ -137,41 +139,51 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   }), [colors]);
 
   return (
-    <View style={dynamicStyles.container}>
-      <View style={styles.topRow}>
-        <Text style={dynamicStyles.title}>{headerTitle}</Text>
-      </View>
-      <View style={styles.bottomRow}>
-        <View style={styles.buttonGroup}>
-          {canGoBack && (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon name="arrow-left" size={28} style={dynamicStyles.iconColor} />
-            </TouchableOpacity>
-          )}
+    <>
+      <View style={dynamicStyles.container}>
+        <View style={styles.topRow}>
+          <Text style={dynamicStyles.title}>{headerTitle}</Text>
         </View>
-        <View style={styles.buttonGroup}>
-          {fileName ? (
-            <>
-              <TouchableOpacity onPress={handleSaveFileAs}>
-                <Icon name="content-save-all-outline" size={28} style={dynamicStyles.iconColor} />
+        <View style={styles.bottomRow}>
+          <View style={styles.buttonGroup}>
+            {canGoBack && (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon name="arrow-left" size={28} style={dynamicStyles.iconColor} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleShareFile}>
-                <Icon name="share-variant" size={28} style={hasUnsavedChanges ? dynamicStyles.accentIconColor : dynamicStyles.iconColor} />
+            )}
+          </View>
+          <View style={styles.buttonGroup}>
+            {fileName ? (
+              <>
+                <TouchableOpacity onPress={handleSaveFileAs}>
+                  <Icon name="content-save-all-outline" size={28} style={dynamicStyles.iconColor} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleShareFile}>
+                  <Icon name="share-variant" size={28} style={hasUnsavedChanges ? dynamicStyles.accentIconColor : dynamicStyles.iconColor} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleCloseFile}>
+                  <Icon name="close-circle-outline" size={28} style={dynamicStyles.destructiveIconColor} />
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity onPress={handleOpenFile} style={styles.openButton}>
+                <Icon name="folder-open-outline" size={28} style={dynamicStyles.accentIconColor} />
+                <Text style={dynamicStyles.openButtonText}>Obrir</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleCloseFile}>
-                <Icon name="close-circle-outline" size={28} style={dynamicStyles.destructiveIconColor} />
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity onPress={handleOpenFile} style={styles.openButton}>
-              <Icon name="folder-open-outline" size={28} style={dynamicStyles.accentIconColor} />
-              <Text style={dynamicStyles.openButtonText}>Obrir</Text>
+            )}
+            <TouchableOpacity onPress={() => setAboutModalVisible(true)}>
+              <Icon name="information-outline" size={28} style={dynamicStyles.iconColor} />
             </TouchableOpacity>
-          )}
-          <ThemeSwitcher />
+            <ThemeSwitcher />
+          </View>
         </View>
       </View>
-    </View>
+      
+      <AboutModal 
+        visible={isAboutModalVisible}
+        onClose={() => setAboutModalVisible(false)}
+      />
+    </>
   );
 };
 
