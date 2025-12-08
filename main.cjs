@@ -804,13 +804,39 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
 
       const getPersonGroupById = (id) => localData.peopleGroups.find(p => p.id === id);
 
-      // --- CONSTRUCCIÓ DE LA DESCRIPCIÓ ENRIQUIDA (NOU MÈTODE) ---
-      const { formatEventFrameForGoogleCalendar } = require('./dist/utils/googleCalendarSyncFormatter');
-      const eventDescription = formatEventFrameForGoogleCalendar(localFrame, localData.peopleGroups);
+      // --- CONSTRUCCIÓ DE LA DESCRIPCIÓ ENRIQUIDA ---
+      let descriptionParts = [];
+      if (localFrame.generalNotes) {
+        descriptionParts.push(localFrame.generalNotes);
+      }
+
+      // Secció de Personal
+      if (localFrame.techSheet?.technicalProviders?.length > 0) {
+        const personnelList = localFrame.techSheet.technicalProviders.map(provider => {
+          const person = getPersonGroupById(provider.personGroupId);
+          const roles = provider.roles.map(r => `  - ${r.quantity}x ${r.role}${r.notes ? ` (${r.notes})` : ''}`).join('\n');
+          return `${person ? person.name : 'Proveïdor desconegut'}:\n${roles}`;
+        }).join('\n');
+        descriptionParts.push(`--- PERSONAL TÈCNIC ---\n${personnelList}`);
+      }
+
+      // Secció d'Horaris
+      if (localFrame.techSheet?.assemblySchedule?.length > 0) {
+        const scheduleList = localFrame.techSheet.assemblySchedule.map(item => `- ${item.time}: ${item.description}`).join('\n');
+        descriptionParts.push(`--- HORARIS ---\n${scheduleList}`);
+      }
+
+      // Altres detalls
+      let otherDetails = [];
+      if (localFrame.techSheet?.companyContact) otherDetails.push(`Contacte Cia: ${localFrame.techSheet.companyContact}`);
+      if (localFrame.techSheet?.observations) otherDetails.push(`Observacions: ${localFrame.techSheet.observations}`);
+      if (otherDetails.length > 0) {
+        descriptionParts.push(`--- DETALLS ---\n${otherDetails.join('\n')}`);
+      }
 
       const eventResource = {
         summary: localFrame.name,
-        description: eventDescription,
+        description: descriptionParts.join('\n\n'),
         location: localFrame.place || '',
         start: { date: localFrame.startDate },
         end: { date: addDaysISO(localFrame.endDate, 1) },
