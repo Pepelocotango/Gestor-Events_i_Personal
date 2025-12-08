@@ -19,10 +19,11 @@ La capçalera superior és persistent a totes les pantalles i conté accions glo
 
 - **Títol**: Mostra el nom del fitxer obert o el nom de l'aplicació.
 - **Botons d'Acció (Visibles amb un fitxer obert):**
-  - **<Icona `content-save`> Desar**: Guarda els canvis al fitxer actual. Està desactivat si no hi ha canvis pendents.
   - **<Icona `content-save-all-outline`> Desar com...**: Permet desar el contingut actual en un fitxer nou, amb un nom o ubicació diferent.
+  - **<Icona `share-variant`> Compartir**: Acció principal per desar i sobreescriure canvis en serveis al núvol o compartir el fitxer.
   - **<Icona `close-circle-outline`> Tancar**: Tanca el fitxer actiu i torna a la pantalla de benvinguda.
 - **Botons Globals (Sempre visibles):**
+  - **<Icona `information-outline`> Sobre l'aplicació**: Obre un modal amb la informació de l'app.
   - **<Icona `sunny` / `moon`> Commutador de Tema**: Canvia entre el mode clar i fosc.
   - **<Icona `arrow-left`> Enrere**: Apareix quan es pot navegar a la pantalla anterior dins d'una pestanya.
 
@@ -40,10 +41,11 @@ L'aplicació es divideix en pestanyes principals a la part inferior, cadascuna a
 
 - **Esdeveniments**: Llista i gestiona els esdeveniments. És també la pantalla principal per a la gestió de fitxers.
 - **Calendari**: Vista de calendari dels esdeveniments.
+- **Fitxes de Bolo**: Consulta de les fitxes tècniques.
 - **Persones**: Gestiona la llista de contactes/personal.
 - **Material**: Gestiona l'inventari de material.
-
-Les seccions de "Fitxes de Bolo", "Centre de Control" i "Resums" són funcionalitats exclusives de l'aplicació d'escriptori i no es troben a l'aplicació mòbil.
+- **Centre de Control**: Analitza la disponibilitat de material.
+- **Resums**: Mostra vistes analítiques de les dades.
 
 ---
 
@@ -55,16 +57,13 @@ Les seccions de "Fitxes de Bolo", "Centre de Control" i "Resums" són funcionali
 **Estat Principal (amb un fitxer obert):**
 - **Controls de Filtre (`FilterControls`):**
   - **Cerca general**: Camp de text per a cerques lliures.
-  - **Selectors**: Pickers per filtrar per persona i esdeveniment.
+  - **Selectors**: Per filtrar per persona i per esdeveniment específic.
   - **<Icona `filter-remove`>**: Botó per netejar tots els filtres.
 - **Barra d'Accions (`ActionToolbar`):**
   - **<Icona `sort-calendar`> Data**: Ordena la llista per data (ascendent/descendent).
   - **<Icona `archive-eye`> Veure arxivats**: Mostra o amaga els esdeveniments arxivats.
   - **<Icona `arrow-expand`> Expandir**: Expandeix o replega totes les targetes de la llista.
 - **Llista d'Esdeveniments (`EventFrameCard`):**
-  - **Indicador d'Estat**: Un cercle de color clicable a l'esquerra indica si el personal de l'esdeveniment està complet:
-    - **Taronja**: Pendent (el personal no està complet).
-    - **Verd**: Completat (tot el personal assignat està confirmat).
   - **Accions a la Targeta (expandida)**:
     - **<Icona `pencil`>**: Obre el formulari per editar l'esdeveniment.
     - **<Icona `delete`>**: Elimina l'esdeveniment (amb confirmació).
@@ -72,7 +71,7 @@ Les seccions de "Fitxes de Bolo", "Centre de Control" i "Resums" són funcionali
 
 ---
 
-### 3. Pestanya "Persones" (`PeopleScreen`)
+### 2. Pestanya "Persones" (`PeopleScreen`)
 
 - **Barra d'Eines (`PeopleToolbar`):**
   - **Cerca**: Camp de text per cercar persones.
