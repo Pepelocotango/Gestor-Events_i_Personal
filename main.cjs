@@ -805,7 +805,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
       const getPersonGroupById = (id) => localData.peopleGroups.find(p => p.id === id);
 
       // --- CONSTRUCCIÓ DE LA DESCRIPCIÓ ENRIQUIDA (NOU MÈTODE) ---
-      const { formatEventFrameForGoogleCalendar } = require('./dist/main/utils/googleCalendarSyncFormatter');
+      const { formatEventFrameForGoogleCalendar } = require('./dist/utils/googleCalendarSyncFormatter');
       const eventDescription = formatEventFrameForGoogleCalendar(localFrame, localData.peopleGroups);
 
       const eventResource = {
