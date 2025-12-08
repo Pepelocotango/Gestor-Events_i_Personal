@@ -91,6 +91,11 @@ const getStatusSummaryText = (assignment: Assignment): string => {
 // --- Funció principal de format ---
 
 export const formatEventFrameForGoogleCalendar = (eventFrame: EventFrame, peopleGroups: PersonGroup[]): string => {
+  console.log('[GoogleCalendarSync] Iniciant formatEventFrameForGoogleCalendar');
+  console.log(`[GoogleCalendarSync] Processant esdeveniment: ${eventFrame.name} (ID: ${eventFrame.id})`);
+  console.log(`[GoogleCalendarSync] Dates: ${eventFrame.startDate} - ${eventFrame.endDate}`);
+  console.log(`[GoogleCalendarSync] Grups de persones disponibles: ${peopleGroups.length}`);
+  
   const descriptionParts: string[] = [];
 
   // Lloc i Dates
@@ -137,5 +142,12 @@ export const formatEventFrameForGoogleCalendar = (eventFrame: EventFrame, people
     descriptionParts.push('No hi ha assignacions per aquest esdeveniment.');
   }
 
-  return descriptionParts.join('\n');
+  const description = descriptionParts.join('\n');
+  
+  console.log(`[GoogleCalendarSync] Descripció generada per a ${eventFrame.name}:`);
+  console.log('--- INICI DESCRIPCIÓ ---');
+  console.log(description);
+  console.log('--- FI DESCRIPCIÓ ---');
+  
+  return description;
 };
