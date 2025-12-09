@@ -210,6 +210,173 @@ const addDaysISO = (dateStr, days) => {
   return date.toISOString().split('T')[0];
 };
 
+const ASSIGNMENT_STATUS_ICONS = {
+  'Sí': '🟢',
+  'No': '🔴',
+  'Pendent': '🟡',
+};
+
+const MIXED_STATUS_ICON = '🔵';
+
+const formatDateDMY = (dateStr) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return '';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+const formatDateDM = (dateStr) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return '';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${day}/${month}`;
+};
+
+const formatDateRangeDMY = (start, end) => {
+  const startFormatted = formatDateDMY(start);
+  const endFormatted = formatDateDMY(end);
+  if (!startFormatted && !endFormatted) return '';
+  if (startFormatted === endFormatted || !endFormatted) return startFormatted;
+  if (!startFormatted) return endFormatted;
+  return `${startFormatted} - ${endFormatted}`;
+};
+
+const formatCompactDateRange = (start, end) => {
+  const startFormatted = formatDateDM(start);
+  const endFormatted = formatDateDM(end);
+  if (!startFormatted && !endFormatted) return '';
+  if (startFormatted === endFormatted || !endFormatted) return startFormatted;
+  if (!startFormatted) return endFormatted;
+  return `${startFormatted}-${endFormatted}`;
+};
+
+const areConsecutiveDates = (previousDateStr, nextDateStr) => {
+  if (!previousDateStr || !nextDateStr) return false;
+  const previousDate = new Date(previousDateStr);
+  const nextDate = new Date(nextDateStr);
+  if (Number.isNaN(previousDate.getTime()) || Number.isNaN(nextDate.getTime())) return false;
+  const diffDays = Math.round((nextDate - previousDate) / (1000 * 60 * 60 * 24));
+  return diffDays === 1;
+};
+
+const getStatusIcon = (status) => {
+  if (!status) return '⚪';
+  if (status === 'Mixt') return MIXED_STATUS_ICON;
+  return ASSIGNMENT_STATUS_ICONS[status] || '⚪';
+};
+
+const buildDailyStatusRanges = (dailyStatuses = {}) => {
+  const sortedEntries = Object.entries(dailyStatuses)
+    .filter(([date, status]) => date && status)
+    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB));
+
+  const ranges = [];
+  let currentRange = null;
+
+  for (const [date, status] of sortedEntries) {
+    if (!currentRange) {
+      currentRange = { start: date, end: date, status };
+      continue;
+    }
+
+    if (currentRange.status === status && areConsecutiveDates(currentRange.end, date)) {
+      currentRange.end = date;
+    } else {
+      ranges.push(currentRange);
+      currentRange = { start: date, end: date, status };
+    }
+  }
+
+  if (currentRange) {
+    ranges.push(currentRange);
+  }
+
+  return ranges;
+};
+
+const buildAssignmentsDescription = (assignments = [], peopleById) => {
+  if (!Array.isArray(assignments) || assignments.length === 0) return '';
+
+  const resolvePersonName = (assignment) => {
+    if (peopleById instanceof Map) {
+      const person = peopleById.get(assignment.personGroupId);
+      if (person?.name) return person.name;
+    } else if (peopleById && typeof peopleById === 'object') {
+      const person = peopleById[assignment.personGroupId];
+      if (person?.name) return person.name;
+    }
+    return 'Contacte desconegut';
+  };
+
+  const entries = assignments
+    .map((assignment) => {
+      const personName = resolvePersonName(assignment);
+      return { assignment, personName };
+    })
+    .sort((a, b) => {
+      const nameComparison = a.personName.localeCompare(b.personName, undefined, { sensitivity: 'base' });
+      if (nameComparison !== 0) return nameComparison;
+      return (a.assignment.startDate || '').localeCompare(b.assignment.startDate || '');
+    });
+
+  const formattedEntries = entries.map(({ assignment, personName }) => {
+    const lines = [];
+    const dateRange = formatDateRangeDMY(assignment.startDate, assignment.endDate);
+    const hasDailyStatuses = assignment.dailyStatuses && Object.keys(assignment.dailyStatuses).length > 0;
+    const dailyRanges = hasDailyStatuses ? buildDailyStatusRanges(assignment.dailyStatuses) : [];
+
+    if (dailyRanges.length > 0) {
+      let headerLine = `${MIXED_STATUS_ICON} ${personName}:`;
+      if (dateRange) {
+        headerLine += ` ${dateRange}`;
+      }
+      headerLine += ' (Mixt):';
+      lines.push(headerLine);
+
+      for (const range of dailyRanges) {
+        if (!range.status) continue;
+        const icon = getStatusIcon(range.status);
+        const compactRange = formatCompactDateRange(range.start, range.end);
+        const detailParts = [`   ${icon}`];
+        if (compactRange) {
+          detailParts.push(`[${compactRange}]`);
+        }
+        detailParts.push(range.status.toUpperCase());
+        lines.push(detailParts.join(' '));
+      }
+    } else {
+      const statusLabel = assignment.status || '';
+      const icon = getStatusIcon(statusLabel);
+      let baseLine = `${icon} ${personName}:`;
+      if (dateRange) {
+        baseLine += ` ${dateRange}`;
+      }
+      if (statusLabel) {
+        baseLine += ` (${statusLabel})`;
+      }
+      lines.push(baseLine);
+    }
+
+    if (assignment.notes && assignment.notes.trim()) {
+      const noteLines = assignment.notes.trim().split(/\r?\n/);
+      const formattedNoteLines = [`   └ Nota: ${noteLines[0].trim()}`];
+      for (let i = 1; i < noteLines.length; i++) {
+        formattedNoteLines.push(`     ${noteLines[i].trim()}`);
+      }
+      lines.push(formattedNoteLines.join('\n'));
+    }
+
+    return lines.join('\n');
+  });
+
+  return formattedEntries.join('\n');
+};
+
 function ensureDirectoriesExist() {
   [CONFIG_DIR, DATA_DIR, BACKUP_DIR].forEach(dir => {
     if (!fs.existsSync(dir)) {
@@ -761,6 +928,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
     const eventsListRes = await calendar.events.list({ calendarId: targetCalendarId, maxResults: 2500 });
     const eventsToDelete = eventsListRes.data.items || [];
     const localFramesToUpload = localData.eventFrames || [];
+    const peopleById = new Map((localData.peopleGroups || []).map(person => [person.id, person]));
 
     const totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
     let currentProgressStep = 0;
@@ -802,41 +970,22 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
       console.debug(progressMessage);
       sendProgress(progressMessage);
 
-      const getPersonGroupById = (id) => localData.peopleGroups.find(p => p.id === id);
-
       // --- CONSTRUCCIÓ DE LA DESCRIPCIÓ ENRIQUIDA ---
-      let descriptionParts = [];
-      if (localFrame.generalNotes) {
-        descriptionParts.push(localFrame.generalNotes);
+      const descriptionParts = [];
+      if (localFrame.generalNotes && localFrame.generalNotes.trim()) {
+        descriptionParts.push(localFrame.generalNotes.trim());
       }
 
-      // Secció de Personal
-      if (localFrame.techSheet?.technicalProviders?.length > 0) {
-        const personnelList = localFrame.techSheet.technicalProviders.map(provider => {
-          const person = getPersonGroupById(provider.personGroupId);
-          const roles = provider.roles.map(r => `  - ${r.quantity}x ${r.role}${r.notes ? ` (${r.notes})` : ''}`).join('\n');
-          return `${person ? person.name : 'Proveïdor desconegut'}:\n${roles}`;
-        }).join('\n');
-        descriptionParts.push(`--- PERSONAL TÈCNIC ---\n${personnelList}`);
+      const assignmentsDescription = buildAssignmentsDescription(localFrame.assignments || [], peopleById);
+      if (assignmentsDescription) {
+        descriptionParts.push(`--- PERSONAL ASSIGNAT ---\n${assignmentsDescription}`);
       }
 
-      // Secció d'Horaris
-      if (localFrame.techSheet?.assemblySchedule?.length > 0) {
-        const scheduleList = localFrame.techSheet.assemblySchedule.map(item => `- ${item.time}: ${item.description}`).join('\n');
-        descriptionParts.push(`--- HORARIS ---\n${scheduleList}`);
-      }
-
-      // Altres detalls
-      let otherDetails = [];
-      if (localFrame.techSheet?.companyContact) otherDetails.push(`Contacte Cia: ${localFrame.techSheet.companyContact}`);
-      if (localFrame.techSheet?.observations) otherDetails.push(`Observacions: ${localFrame.techSheet.observations}`);
-      if (otherDetails.length > 0) {
-        descriptionParts.push(`--- DETALLS ---\n${otherDetails.join('\n')}`);
-      }
+      const description = descriptionParts.length > 0 ? descriptionParts.join('\n\n') : undefined;
 
       const eventResource = {
         summary: localFrame.name,
-        description: descriptionParts.join('\n\n'),
+        description,
         location: localFrame.place || '',
         start: { date: localFrame.startDate },
         end: { date: addDaysISO(localFrame.endDate, 1) },
