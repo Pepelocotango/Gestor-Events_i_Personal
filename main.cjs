@@ -8,12 +8,9 @@ const http = require('http');
 const log = require('electron-log');
 
 // --- CONFIGURACIÓ DE LOGS AMB ELECTRON-LOG ---
-// Configura la rotació de logs per mida per evitar fitxers excessivament grans
-// i un nombre excessiu de fitxers de log.
-log.transports.file.fileName = 'main.log'; // Nom de fitxer estàtic
+log.transports.file.fileName = 'main.log';
 log.transports.file.maxSize = 1048576; // 1 MB
 
-// Lògica personalitzada per arxivar i netejar logs antics
 log.transports.file.archiveLogFn = (oldLogFile) => {
   const logDir = path.dirname(oldLogFile.path);
   const archiveName = `main.${Date.now()}.log`;
@@ -79,24 +76,16 @@ const GOOGLE_TOKENS_PATH = path.join(CONFIG_DIR, 'google-tokens.json');
 const GOOGLE_CONFIG_PATH = path.join(CONFIG_DIR, 'google-config.json');
 
 // ---  SINGLE INSTANCE LOCK ---
-// Aquest codi assegura que només una instància de l'aplicació s'executi alhora.
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
-  // Si no aconseguim el candau, significa que una altra instància ja s'està executant.
-  // En aquest cas, tanquem aquesta nova instància immediatament.
   app.quit();
 } else {
-  // Si aconseguim el candau, som la primera instància.
   app.on('second-instance', (event, commandLine, workingDirectory) => {
-    // Aquest esdeveniment es dispara quan un usuari intenta obrir una segona instància.
-    // Posem la finestra de la nostra instància (la primera) en primer pla.
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
-
-    // Si la segona instància s'ha obert amb un fitxer, l'enviem a la finestra principal.
     const filePath = commandLine.find(arg => arg.endsWith('.gep') || arg.endsWith('.json'));
     if (filePath && mainWindow) {
       console.log(`[Second Instance] Obrint fitxer des de la segona instància: ${filePath}`);
@@ -112,15 +101,6 @@ let isQuitting = false;
 
 // --- Funcions Auxiliars Genèriques ---
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
-
-function getRelativePath(absolutePath) {
-  if (!absolutePath) return '';
-  const homeDir = os.homedir();
-  if (absolutePath.startsWith(homeDir)) {
-    return absolutePath.replace(homeDir, '~');
-  }
-  return absolutePath;
-}
 
 const addDaysISO = (dateStr, days) => {
   const date = new Date(dateStr);
@@ -145,10 +125,6 @@ function checkWritePermissions(dir) {
   } catch (error) {
     return false;
   }
-}
-
-function getAlternativeDirectory(baseDir) {
-  return path.join(app.getPath('userData'), baseDir);
 }
 
 function loadSessionData() {
@@ -355,7 +331,7 @@ ipcMain.handle('add-recent-file', async (event, filePath) => {
 ipcMain.handle('factory-reset', async () => {
   console.info("[IPC_IN] Rebut 'factory-reset'.");
   console.info("Iniciant Restauració de Fàbrica...");
-
+  
   let success = true;
   let messages = [];
 
@@ -385,7 +361,7 @@ ipcMain.handle('factory-reset', async () => {
     console.info("Credencials de googleAuthClient en memòria netejades.");
     messages.push("Credencials de Google en memòria netejades.");
   }
-
+  
   if (success) {
     console.info("Reset de fàbrica del backend completat.");
     return { success: true, message: `Reset completat:\n${messages.join('\n')}` };
@@ -494,20 +470,15 @@ ipcMain.handle('get-app-metadata', async () => {
 
 // ===================================================================================
 // Region: Google Calendar Integration
-// Aquesta secció agrupa tota la lògica relacionada amb la integració de Google Calendar,
-// incloent autenticació, gestió de calendaris, sincronització i funcions de format.
 // ===================================================================================
 
-// A. Constants i Variables Globals
-// -----------------------------------------------------------------------------------
 const APP_CALENDAR_BASE_NAME = "Gestor d'Esdeveniments (App)";
 let isAuthenticating = false;
 let googleAuthClient;
 let googleCredentials;
 let googleServiceAccountClient;
 
-// B. Funcions Auxiliars d'Autenticació i Configuració
-// -----------------------------------------------------------------------------------
+// --- A. Helpers d'Autenticació ---
 function loadGoogleCredentials() {
   try {
     const credentialsPath = path.join(__dirname, 'google-credentials.json');
@@ -516,7 +487,7 @@ function loadGoogleCredentials() {
     const content = fs.readFileSync(credentialsPath);
     googleCredentials = JSON.parse(content).installed;
     googleAuthClient = new google.auth.OAuth2(googleCredentials.client_id, googleCredentials.client_secret);
-
+    
     if (fs.existsSync(GOOGLE_TOKENS_PATH)) {
       const tokens = JSON.parse(fs.readFileSync(GOOGLE_TOKENS_PATH));
       googleAuthClient.setCredentials(tokens);
@@ -532,30 +503,18 @@ async function loadServiceAccountCredentials() {
   try {
     const serviceAccountPath = path.join(__dirname, 'service-account.json');
     if (!fs.existsSync(serviceAccountPath)) {
-      console.warn('El fitxer service-account.json no es troba. Les funcionalitats avançades de Google Calendar estaran desactivades.');
+      console.warn('El fitxer service-account.json no es troba.');
       return false;
     }
-
     const keys = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-
     googleServiceAccountClient = await new google.auth.GoogleAuth({
-  credentials: {
-    client_email: keys.client_email,
-    private_key: keys.private_key,
-  },
-  scopes: ['https://www.googleapis.com/auth/calendar'],
-  }).getClient();
-
-    console.info("Client del Compte de Servei de Google inicialitzat i autoritzat correctament.");
+        credentials: { client_email: keys.client_email, private_key: keys.private_key },
+        scopes: ['https://www.googleapis.com/auth/calendar'],
+    }).getClient();
+    console.info("Client del Compte de Servei de Google inicialitzat.");
     return true;
-
   } catch (err) {
     console.error('Error carregant les credencials del Compte de Servei de Google:', err);
-    dialog.showErrorBox(
-        'Error d\'Autenticació del Compte de Servei',
-        `No s'ha pogut autenticar amb el compte de servei de Google. Comprova la validesa del teu fitxer "service-account.json" i la configuració a Google Cloud Console.\n\nError: ${err.message}`
-    );
-    googleServiceAccountClient = null;
     return false;
   }
 }
@@ -565,7 +524,6 @@ function loadGoogleConfigFromFile() {
     try {
         return JSON.parse(fs.readFileSync(GOOGLE_CONFIG_PATH, 'utf8'));
     } catch(err) {
-        console.error('Error llegint el fitxer de configuració de Google:', err);
         return null;
     }
 }
@@ -577,15 +535,12 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
     let calendarId;
     let wasNewlyCreated = false;
 
-    console.debug("SA: Buscant calendaris existents per evitar duplicats...");
     const calendarList = await calendarService.calendarList.list();
     const existingCalendar = calendarList.data.items.find(cal => cal.summary === finalCalendarName);
 
     if (existingCalendar) {
-      console.debug(`SA: Trobat calendari existent amb nom "${finalCalendarName}". ID: ${existingCalendar.id}.`);
       calendarId = existingCalendar.id;
     } else {
-      console.info(`SA: No s'ha trobat cap calendari existent. Creant un de nou amb el nom: "${finalCalendarName}"`);
       const newCalendar = await calendarService.calendars.insert({
         requestBody: {
           summary: finalCalendarName,
@@ -595,572 +550,220 @@ async function findOrCreateAppCalendar(calendarService, userEmail, calendarSuffi
       });
       calendarId = newCalendar.data.id;
       wasNewlyCreated = true;
-      console.info(`SA: Calendari creat amb ID: ${calendarId}`);
     }
-
-    if (!userEmail) {
-      throw new Error("L'email de l'usuari és necessari per compartir el calendari.");
-    }
-
-    console.debug(`SA: Assegurant que el calendari ${calendarId} està compartit amb ${userEmail}...`);
     await calendarService.acl.insert({
       calendarId: calendarId,
       sendNotifications: wasNewlyCreated,
-      requestBody: {
-        role: 'reader',
-        scope: { type: 'user', value: userEmail },
-      },
+      requestBody: { role: 'reader', scope: { type: 'user', value: userEmail } },
     });
-
-    console.info('SA: Permisos del calendari verificats/actualitzats amb èxit.');
     return calendarId;
-
   } catch (error) {
-    console.error("SA: Error en findOrCreateAppCalendar:", error.message, error.response?.data);
     throw error;
   }
 }
 
-// C. Funcions Auxiliars de Format (per a descripcions d'esdeveniments)
-// -----------------------------------------------------------------------------------
-const ASSIGNMENT_STATUS_ICONS = {
-  'Sí': '🟢',
-  'No': '🔴',
-  'Pendent': '🟡',
-};
-const MIXED_STATUS_ICON = '🔵';
+// --- B. Helpers de Format Visual (Noves funcions) ---
 
+// 1. Formata YYYY-MM-DD a DD/MM/YYYY
 const formatDateDMY = (dateStr) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return '';
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
 
-const formatDateDM = (dateStr) => {
+// 2. Formata YYYY-MM-DD a [DD/MM]
+const formatSimpleDM = (dateStr) => {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return '';
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  return `${day}/${month}`;
+  const parts = dateStr.split('-');
+  return `[${parts[2]}/${parts[1]}]`;
 };
 
+// 3. Format de rang de dates principal
 const formatDateRangeDMY = (start, end) => {
-  const startFormatted = formatDateDMY(start);
-  const endFormatted = formatDateDMY(end);
-  if (!startFormatted && !endFormatted) return '';
-  if (startFormatted === endFormatted || !endFormatted) return startFormatted;
-  if (!startFormatted) return endFormatted;
-  return `${startFormatted} - ${endFormatted}`;
+  const s = formatDateDMY(start);
+  const e = formatDateDMY(end);
+  if (s && e && s !== e) return `${s} - ${e}`;
+  return s;
 };
 
-const formatCompactDateRange = (start, end) => {
-  const startFormatted = formatDateDM(start);
-  const endFormatted = formatDateDM(end);
-  if (!startFormatted && !endFormatted) return '';
-  if (startFormatted === endFormatted || !endFormatted) return startFormatted;
-  if (!startFormatted) return endFormatted;
-  return `${startFormatted}-${endFormatted}`;
+// 4. Comprova si dates són consecutives
+const areDatesConsecutive = (dateStr1, dateStr2) => {
+  const d1 = new Date(dateStr1);
+  d1.setUTCHours(0, 0, 0, 0);
+  d1.setDate(d1.getDate() + 1);
+  return d1.toISOString().split('T')[0] === dateStr2;
 };
 
-const areConsecutiveDates = (previousDateStr, nextDateStr) => {
-  if (!previousDateStr || !nextDateStr) return false;
-  const previousDate = new Date(previousDateStr);
-  const nextDate = new Date(nextDateStr);
-  if (Number.isNaN(previousDate.getTime()) || Number.isNaN(nextDate.getTime())) return false;
-  const diffDays = Math.round((nextDate - previousDate) / (1000 * 60 * 60 * 24));
-  return diffDays === 1;
-};
-
-const getStatusIcon = (status) => {
-  if (!status) return '⚪';
-  if (status === 'Mixt') return MIXED_STATUS_ICON;
-  return ASSIGNMENT_STATUS_ICONS[status] || '⚪';
-};
-
-const buildDailyStatusRanges = (dailyStatuses = {}) => {
-  const sortedEntries = Object.entries(dailyStatuses)
-    .filter(([date, status]) => date && status)
-    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB));
-
+// 5. Crea rangs compactes per al detall
+const formatDateRanges = (dates) => {
+  if (!dates || dates.length === 0) return '';
+  const sortedDates = [...dates].sort();
   const ranges = [];
-  let currentRange = null;
-
-  for (const [date, status] of sortedEntries) {
-    if (!currentRange) {
-      currentRange = { start: date, end: date, status };
-      continue;
+  let i = 0;
+  while (i < sortedDates.length) {
+    let rangeStart = sortedDates[i];
+    let rangeEnd = sortedDates[i];
+    let j = i;
+    while (j + 1 < sortedDates.length && areDatesConsecutive(sortedDates[j], sortedDates[j + 1])) {
+      rangeEnd = sortedDates[j + 1];
+      j++;
     }
-
-    if (currentRange.status === status && areConsecutiveDates(currentRange.end, date)) {
-      currentRange.end = date;
+    const startFmt = formatSimpleDM(rangeStart).replace('[','').replace(']','');
+    if (rangeStart === rangeEnd) {
+      ranges.push(`[${startFmt}]`);
     } else {
-      ranges.push(currentRange);
-      currentRange = { start: date, end: date, status };
+      const endFmt = formatSimpleDM(rangeEnd).replace('[','').replace(']','');
+      ranges.push(`[${startFmt}-${endFmt}]`);
     }
+    i = j + 1;
   }
-
-  if (currentRange) {
-    ranges.push(currentRange);
-  }
-
-  return ranges;
+  return ranges.join(', ');
 };
 
-const buildAssignmentsDescription = (assignments = [], peopleById) => {
-  if (!Array.isArray(assignments) || assignments.length === 0) return '';
-
-  const resolvePersonName = (assignment) => {
-    if (peopleById instanceof Map) {
-      const person = peopleById.get(assignment.personGroupId);
-      if (person?.name) return person.name;
-    } else if (peopleById && typeof peopleById === 'object') {
-      const person = peopleById[assignment.personGroupId];
-      if (person?.name) return person.name;
-    }
-    return 'Contacte desconegut';
-  };
-
-  const entries = assignments
-    .map((assignment) => {
-      const personName = resolvePersonName(assignment);
-      return { assignment, personName };
-    })
-    .sort((a, b) => {
-      const nameComparison = a.personName.localeCompare(b.personName, undefined, { sensitivity: 'base' });
-      if (nameComparison !== 0) return nameComparison;
-      return (a.assignment.startDate || '').localeCompare(b.assignment.startDate || '');
-    });
-
-  const formattedEntries = entries.map(({ assignment, personName }) => {
-    const lines = [];
-    const dateRange = formatDateRangeDMY(assignment.startDate, assignment.endDate);
-    const hasDailyStatuses = assignment.dailyStatuses && Object.keys(assignment.dailyStatuses).length > 0;
-    const dailyRanges = hasDailyStatuses ? buildDailyStatusRanges(assignment.dailyStatuses) : [];
-
-    if (dailyRanges.length > 0) {
-      let headerLine = `${MIXED_STATUS_ICON} ${personName}:`;
-      if (dateRange) {
-        headerLine += ` ${dateRange}`;
-      }
-      headerLine += ' (Mixt):';
-      lines.push(headerLine);
-
-      for (const range of dailyRanges) {
-        if (!range.status) continue;
-        const icon = getStatusIcon(range.status);
-        const compactRange = formatCompactDateRange(range.start, range.end);
-        const detailParts = [`   ${icon}`];
-        if (compactRange) {
-          detailParts.push(`[${compactRange}]`);
-        }
-        detailParts.push(range.status.toUpperCase());
-        lines.push(detailParts.join(' '));
-      }
-    } else {
-      const statusLabel = assignment.status || '';
-      const icon = getStatusIcon(statusLabel);
-      let baseLine = `${icon} ${personName}:`;
-      if (dateRange) {
-        baseLine += ` ${dateRange}`;
-      }
-      if (statusLabel) {
-        baseLine += ` (${statusLabel})`;
-      }
-      lines.push(baseLine);
-    }
-
-    if (assignment.notes && assignment.notes.trim()) {
-      const noteLines = assignment.notes.trim().split(/\r?\n/);
-      const formattedNoteLines = [`   └ Nota: ${noteLines[0].trim()}`];
-      for (let i = 1; i < noteLines.length; i++) {
-        formattedNoteLines.push(`     ${noteLines[i].trim()}`);
-      }
-      lines.push(formattedNoteLines.join('\n'));
-    }
-
-    return lines.join('\n');
-  });
-
-  return formattedEntries.join('\n');
-};
-
-// D. Handlers IPC (L'API de Google)
-// -----------------------------------------------------------------------------------
-ipcMain.handle('google-auth-start', async () => {
-  console.info("[IPC_IN] Iniciant 'google-auth-start'.");
-
-  if (isAuthenticating) {
-    console.warn("AUTH WARN: Ja hi ha un procés d'autenticació en curs.");
-    return { success: false, message: "Ja hi ha un procés d'autenticació en curs. Si us plau, espera que acabi." };
-  }
-
-  if (!googleAuthClient) {
-    console.error("AUTH ERROR: googleAuthClient no inicialitzat.");
-    return { success: false, message: "El client d'autenticació de Google no s'ha iniciat correctament." };
-  }
-
-  isAuthenticating = true;
-
-  return new Promise((resolve) => {
-    const server = http.createServer();
-    let state;
-
-    const closeServerAndResolve = (result) => {
-      if (server.listening) {
-        server.close();
-      }
-      isAuthenticating = false;
-      resolve(result);
-    };
-
-    server.listen(0, '127.0.0.1', () => {
-      const { port } = server.address();
-      const redirectUri = `http://localhost:${port}`;
-      googleAuthClient.redirectUri = redirectUri;
-
-      state = generateId();
-      const authUrl = googleAuthClient.generateAuthUrl({
-        access_type: 'offline', prompt: 'consent',
-        scope: [
-          'https://www.googleapis.com/auth/userinfo.email',
-          'https://www.googleapis.com/auth/userinfo.profile',
-          'https://www.googleapis.com/auth/calendar.readonly'
-        ],        
-        state: state,
-      });
-      
-      console.debug(`Servidor d'autenticació escoltant al port ${port}. Obrint URL d'autenticació.`);
-      require('electron').shell.openExternal(authUrl);
-    });
-
-    server.on('request', async (req, res) => {
-      const qs = new url.URL(req.url, 'http://localhost').searchParams;
-      const code = qs.get('code');
-      const receivedState = qs.get('state');
-
-      if (receivedState !== state) {
-        console.error("Error d'estat CSRF: l'estat rebut no coincideix.");
-        res.writeHead(400);
-        res.end('<h1>Error: Petició invàlida (CSRF detectat)</h1>');
-        req.socket.destroy();
-        closeServerAndResolve({ success: false, message: 'Error de validació de l\'estat (CSRF).' });
-        return;
-      }
-      
-      if (!code) {
-        console.warn("Callback d'autenticació rebut sense codi. L'usuari podria haver cancel·lat.");
-        res.end('<h1>Esperant codi...</h1>');
-        return;
-      }
-      
-      console.debug("Callback rebut amb codi d'autorització. Obtenint tokens...");
-
-      try {
-        const { tokens } = await googleAuthClient.getToken(code);
-        googleAuthClient.setCredentials(tokens);
-        fs.writeFileSync(GOOGLE_TOKENS_PATH, JSON.stringify(tokens));
-        console.info("Tokens de Google obtinguts i desats correctament.");
-
-        const people = google.people({ version: 'v1', auth: googleAuthClient });
-        const profile = await people.people.get({
-            resourceName: 'people/me',
-            personFields: 'emailAddresses',
-        });
-
-        const primaryEmail = profile.data.emailAddresses?.find(e => e.metadata?.primary)?.value;
-        if (!primaryEmail) {
-            throw new Error("No s'ha pogut obtenir l'adreça de correu principal de l'usuari.");
-        }
-        console.info(`Correu de l'usuari obtingut: ${primaryEmail}`);
-
-        let config = loadGoogleConfigFromFile() || {};
-        config.userEmail = primaryEmail;
-        if (!config.managedAppCalendars) config.managedAppCalendars = [];
-        if (config.activeAppCalendarId === undefined) config.activeAppCalendarId = null;
-        if (!config.selectedCalendarIds) config.selectedCalendarIds = [];
-
-        fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-        console.info("Correu de l'usuari desat i estructura de configuració inicialitzada.");
-
-        mainWindow.webContents.send('google-auth-success');
-        res.end('<h1>Autenticació completada!</h1><p>Pots tancar aquesta pestanya.</p>');
-        req.socket.destroy();
-        closeServerAndResolve({ success: true });
-
-      } catch (e) {
-        console.error("Error en el callback d'autenticació:", e.message, e.response?.data);
-        mainWindow.webContents.send('google-auth-error', e.message);
-        res.writeHead(500);
-        res.end('<h1>Error d\'autenticació</h1>');
-        req.socket.destroy();
-        closeServerAndResolve({ success: false, message: e.message });
-      }
-    });
-
-    server.on('error', (err) => {
-      console.error("Error del servidor d'autenticació:", err);
-      dialog.showErrorBox('Error de Servidor', `No s'ha pogut iniciar el servidor d'autenticació: ${err.message}`);
-      closeServerAndResolve({ success: false, message: err.message });
-    });
-  });
-});
-
-ipcMain.handle('load-google-config', async () => {
-  console.debug("[IPC_IN] Rebut 'load-google-config'.");
-  return loadGoogleConfigFromFile();
-});
-
-ipcMain.handle('save-google-config', async (event, config) => {
-  console.debug("[IPC_IN] Rebut 'save-google-config' amb:", config);
-  try {
-    const existingConfig = loadGoogleConfigFromFile() || {};
-    const mergedConfig = { ...existingConfig, ...config };
-
-    fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(mergedConfig, null, 2));
-    console.info("Configuració de Google desada correctament:", mergedConfig);
-    return { success: true, data: mergedConfig };
-  } catch (err) {
-    console.error('Error desant configuració de Google:', err);
-    return { success: false, message: err.message };
-  }
-});
-
-ipcMain.handle('google-get-calendar-list', async () => {
-  console.debug("[IPC_IN] Rebut 'google-get-calendar-list'.");
-  try {
-    if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
-        throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
-    }
-    const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
-    const res = await calendar.calendarList.list();
-    return {
-      success: true,
-      calendars: res.data.items?.map(cal => ({
-        id: cal.id,
-        summary: cal.summary,
-        backgroundColor: cal.backgroundColor,
-        primary: cal.primary,
-      })) || [],
-    };
-  } catch (error) {
-    console.error('Error obtenint la llista de calendaris:', error);
-    return { success: false, message: error.message };
-  }
-});
-
-ipcMain.handle('get-google-events', async () => {
-  console.debug("[IPC_IN] Rebut 'get-google-events'.");
-  try {
-    const config = loadGoogleConfigFromFile();
-    if (!config?.selectedCalendarIds?.length) {
-      console.debug("No hi ha calendaris de Google seleccionats per mostrar, retornant llista buida.");
-      return { success: true, events: [] };
-    }
-    if (!googleAuthClient?.credentials?.access_token) {
-      throw new Error('No autenticat amb Google.');
-    }
-    
-    const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
-    const timeMin = new Date(); timeMin.setMonth(timeMin.getMonth() - 6);
-    const timeMax = new Date(); timeMax.setMonth(timeMax.getMonth() + 6);
-    const allEvents = [];
-
-    const calendarListResponse = await calendar.calendarList.list();
-    const availableCalendars = calendarListResponse.data.items || [];
-    const managedIds = new Set(config.managedAppCalendars?.map(c => c.id) || []);
-
-    console.info(`Iniciant la cerca d'esdeveniments per a ${config.selectedCalendarIds.length} calendaris.`);
-    for (const calendarId of config.selectedCalendarIds) {
-      try {
-        const res = await calendar.events.list({
-          calendarId: calendarId,
-          timeMin: timeMin.toISOString(),
-          timeMax: timeMax.toISOString(),
-          singleEvents: true,
-          orderBy: 'startTime',
-        });
-        
-        const calendarInfo = availableCalendars.find(c => c.id === calendarId);
-        let color = calendarInfo?.backgroundColor || '#2196F3';
-        if (managedIds.has(calendarId)) {
-            color = calendarId === config.activeAppCalendarId ? '#D32F2F' : '#E67C73';
-        }
-
-        const events = res.data.items?.map(event => ({
-          id: event.id,
-          title: event.summary,
-          start: event.start.dateTime || event.start.date,
-          end: event.end.dateTime || event.end.date,
-          allDay: !!event.start.date,
-          backgroundColor: color,
-          borderColor: color,
-          extendedProps: { type: 'google', calendarId: calendarId }
-        })) || [];
-        
-        console.debug(`  -> Trobat(s) ${events.length} esdeveniment(s) per al calendari ${calendarId}.`);
-        allEvents.push(...events);
-
-      } catch (loopError) {
-        console.error(`Error obtenint esdeveniments del calendari ${calendarId}:`, loopError);
-      }
-    }
-    console.info(`Total d'esdeveniments de Google recuperats: ${allEvents.length}.`);
-    return { success: true, events: allEvents };
-  } catch (error) {
-    console.error('Error general a get-google-events:', error);
-    return { success: false, message: error.message };
-  }
-});
-
-ipcMain.handle('google-get-event-details', async (event, { calendarId, eventId }) => {
-  console.debug(`[IPC_IN] Rebut 'google-get-event-details' per a: calendarId=${calendarId}, eventId=${eventId}`);
-  try {
-    if (!googleAuthClient || !googleAuthClient.credentials.access_token) {
-        throw new Error('No autenticat. Si us plau, connecta\'t a Google primer.');
-    }
-    if (!calendarId || !eventId) {
-      throw new Error('Es requereix calendarId i eventId.');
-    }
-
-    const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
-
-    const res = await calendar.events.get({
-      calendarId: calendarId,
-      eventId: eventId,
-    });
-
-    console.debug(`  -> Detalls de l'esdeveniment obtinguts amb èxit per a ${eventId}.`);
-    return { success: true, event: res.data };
-
-  } catch (error) {
-    console.error(`Error obtenint detalls de l'esdeveniment de Google ${eventId}:`, error);
-    const errorMessage = error.response?.data?.error?.message || error.message;
-    return { success: false, message: `No s'han pogut obtenir els detalls de l'esdeveniment: ${errorMessage}` };
-  }
-});
-
+// --- C. HANDLER PRINCIPAL DE SINCRONITZACIÓ (CORREGIT) ---
 ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }) => {
   console.info(`[IPC_IN] Iniciant 'sync-with-google' cap a ${targetCalendarId}.`);
-  if (!googleServiceAccountClient) {
-    console.error("SYNC ERROR: El client del compte de servei de Google no està inicialitzat.");
-    return { success: false, message: 'El client del compte de servei de Google no està inicialitzat. Assegura\'t que el fitxer "service-account.json" existeix i és correcte.' };
-  }
+  
+  if (!googleServiceAccountClient) return { success: false, message: 'Client Service Account no inicialitzat.' };
   let config = loadGoogleConfigFromFile();
-  if (!config?.userEmail) {
-    console.error("SYNC ERROR: No s'ha trobat l'email de l'usuari a la configuració.");
-    return { success: false, message: 'No s\'ha trobat l\'email de l\'usuari. Si us plau, connecta\'t a Google primer.' };
-  }
-  if (!targetCalendarId) {
-    console.error("SYNC ERROR: No s'ha proporcionat un targetCalendarId.");
-    return { success: false, message: "No s'ha especificat cap calendari de destinació per a la sincronització." };
-  }
+  if (!config?.userEmail) return { success: false, message: 'No s\'ha trobat l\'email de l\'usuari.' };
   
   const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-  const targetCalendar = config.managedAppCalendars?.find(c => c.id === targetCalendarId);
-  if (!targetCalendar) {
-    return { success: false, message: "El calendari de destinació no es troba a la llista de calendaris gestionats." };
-  }
-  const finalCalendarName = targetCalendar.name;
-
+  // --- Verificació del calendari ---
   try {
-    console.debug(`SA: Verificant existència del calendari a Google: ${targetCalendarId}`);
     await calendar.calendars.get({ calendarId: targetCalendarId });
-    console.debug('SA: El calendari existeix.');
   } catch (err) {
     if (err.code === 404) {
-      console.warn(`SA: El calendari amb ID ${targetCalendarId} no s'ha trobat. Ha estat eliminat per l'usuari.`);
       config.managedAppCalendars = config.managedAppCalendars.filter(c => c.id !== targetCalendarId);
-      if (config.activeAppCalendarId === targetCalendarId) {
-        config.activeAppCalendarId = config.managedAppCalendars.length > 0 ? config.managedAppCalendars[0].id : null;
-      }
       fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-      return { success: false, code: 'CALENDAR_NOT_FOUND', message: `El calendari "${finalCalendarName}" ja no existeix a Google. S'ha eliminat de la llista.` };
-    } else {
-      console.error('Error de xarxa o desconegut verificant el calendari:', err.message, err.response?.data);
-      const customMessage = err.code === 403
-        ? "Permís denegat per accedir al calendari. Revisa els permisos del Compte de Servei."
-        : `No s'ha pogut connectar a Google. Comprova la teva connexió. (${err.message})`;
-      return { success: false, message: customMessage };
+      return { success: false, code: 'CALENDAR_NOT_FOUND', message: `El calendari no existeix.` };
     }
+    return { success: false, message: `Error de connexió: ${err.message}` };
   }
 
+  // --- Diàleg de confirmació ---
   const choice = await dialog.showMessageBox(mainWindow, {
     type: 'question',
     buttons: ['Sí, sincronitzar', 'Cancel·lar'],
-    defaultId: 1,
-    cancelId: 1,
+    defaultId: 1, cancelId: 1,
     title: 'Confirmar Sincronització',
-    message: `Estàs a punt de sobreescriure el calendari "${finalCalendarName}" a Google Calendar.`,
-    detail: 'Totes les dades d\'aquest calendari a Google s\'esborraran i se substituiran per les dades actuals de l\'aplicació. Qualsevol canvi que hagis fet directament a Google es perdrà. Aquesta acció és irreversible. Vols continuar?',
+    message: `Estàs a punt de sobreescriure el calendari a Google.`,
+    detail: 'Aquesta acció és irreversible. Vols continuar?',
   });
-
-  if (choice.response !== 0) {
-    console.info("Sincronització cancel·lada per l'usuari.");
-    return { success: false, message: 'Sincronització cancel·lada.' };
-  }
+  if (choice.response !== 0) return { success: false, message: 'Cancel·lat.' };
 
   try {
+    // 1. Obtenir llista per esborrar
     const eventsListRes = await calendar.events.list({ calendarId: targetCalendarId, maxResults: 2500 });
     const eventsToDelete = eventsListRes.data.items || [];
     const localFramesToUpload = localData.eventFrames || [];
-    const peopleById = new Map((localData.peopleGroups || []).map(person => [person.id, person]));
+
+    // Progrés
     const totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
     let currentProgressStep = 0;
+    const sendProgress = (msg) => { if (mainWindow) mainWindow.webContents.send('sync-progress', { current: currentProgressStep, total: totalProgressSteps, message: msg }); };
 
-    const sendProgress = (message) => {
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('sync-progress', {
-          current: currentProgressStep,
-          total: totalProgressSteps,
-          message: message,
-        });
-      }
-    };
-
-    console.info(`Buidant el calendari de l'app a Google: ${targetCalendarId}`);
-    if (eventsToDelete.length > 0) {
-      console.debug(`Trobats ${eventsToDelete.length} esdeveniments per eliminar...`);
-      for (const event of eventsToDelete) {
-        currentProgressStep++;
-        const progressMessage = `Eliminant ${currentProgressStep} de ${totalProgressSteps}: "${event.summary || 'Esdeveniment sense títol'}"`;
-        console.debug(progressMessage);
-        sendProgress(progressMessage);
-        try {
-          await calendar.events.delete({ calendarId: targetCalendarId, eventId: event.id });
-          await delay(200);
-        } catch (err) {
-          if (err.code !== 404 && err.code !== 410) console.error(`Error eliminant l'esdeveniment "${event.summary}":`, err.message);
-        }
-      }
+    // FASE 1: BUIDAR
+    console.info(`Buidant calendari...`);
+    for (const event of eventsToDelete) {
+      currentProgressStep++;
+      sendProgress(`Eliminant: ${event.summary}`);
+      try { await calendar.events.delete({ calendarId: targetCalendarId, eventId: event.id }); } catch (e) {}
+      await delay(150);
     }
 
-    console.info(`Pujant ${localFramesToUpload.length} esdeveniments locals al calendari de l'app...`);
+    // FASE 2: PUJAR
+    console.info(`Pujant ${localFramesToUpload.length} esdeveniments...`);
+    
     for (const localFrame of localFramesToUpload) {
       currentProgressStep++;
-      const progressMessage = `Pujant ${currentProgressStep} de ${totalProgressSteps}: "${localFrame.name}"`;
-      console.debug(progressMessage);
-      sendProgress(progressMessage);
+      sendProgress(`Pujant: ${localFrame.name}`);
 
-      const descriptionParts = [];
-      if (localFrame.generalNotes && localFrame.generalNotes.trim()) {
-        descriptionParts.push(localFrame.generalNotes.trim());
+      // *** CORRECCIÓ CLAU: Buscar les assignacions a la llista global ***
+      const eventAssignments = (localData.assignments || []).filter(a => a.eventFrameId === localFrame.id);
+
+      let descriptionParts = [];
+
+      // A. Notes Generals
+      if (localFrame.generalNotes) {
+        descriptionParts.push(localFrame.generalNotes);
+        descriptionParts.push('');
       }
-      const assignmentsDescription = buildAssignmentsDescription(localFrame.assignments || [], peopleById);
-      if (assignmentsDescription) {
-        descriptionParts.push(`--- PERSONAL ASSIGNAT ---\n${assignmentsDescription}`);
+
+      // B. Assignacions (FORMAT VISUAL MODAL)
+      if (eventAssignments.length > 0) {
+        descriptionParts.push('--- PERSONAL ASSIGNAT ---');
+        
+        // Ordenar per nom
+        const sortedAssignments = [...eventAssignments].sort((a, b) => {
+          const nameA = localData.peopleGroups.find(p => p.id === a.personGroupId)?.name || '';
+          const nameB = localData.peopleGroups.find(p => p.id === b.personGroupId)?.name || '';
+          return nameA.localeCompare(nameB);
+        });
+
+        sortedAssignments.forEach(assign => {
+          const person = localData.peopleGroups.find(p => p.id === assign.personGroupId);
+          const personName = person ? person.name : 'Desconegut';
+          const dateRange = formatDateRangeDMY(assign.startDate, assign.endDate);
+          
+          // *** CORRECCIÓ DE LÒGICA PER DETECTAR MIXT ***
+          // Mirem si hi ha dades, no només si l'etiqueta diu 'Mixt'
+          const hasDailyDetails = assign.dailyStatuses && Object.keys(assign.dailyStatuses).length > 0;
+
+          if (hasDailyDetails) {
+            // Capçalera: 🔵 Nom: Dates Mixt:
+            descriptionParts.push(`🔵 ${personName}: ${dateRange} (Mixt):`);
+            
+            // Agrupem dies per estat
+            const datesByStatus = {};
+            Object.entries(assign.dailyStatuses).forEach(([date, status]) => {
+              if (!datesByStatus[status]) datesByStatus[status] = [];
+              datesByStatus[status].push(date);
+            });
+
+            // Ordre específic: Sí, No, Pendent
+            const statusOrder = ['Sí', 'No', 'Pendent'];
+            statusOrder.forEach(status => {
+              if (datesByStatus[status]?.length > 0) {
+                const ranges = formatDateRanges(datesByStatus[status]);
+                let icon = '•'; 
+                if (status === 'Sí') icon = '🟢';
+                if (status === 'No') icon = '🔴';
+                if (status === 'Pendent') icon = '🟡';
+                
+                // Format idèntic al modal: "   🟢 [09/12] SÍ"
+                descriptionParts.push(`   ${icon} ${ranges} ${status.toUpperCase()}`);
+              }
+            });
+
+          } else {
+            // CAS 2: ESTÀNDARD (Una sola línia)
+            let icon = '⚪';
+            let statusText = assign.status;
+            
+            if (assign.status === 'Sí') { icon = '🟢'; statusText = 'Sí'; }
+            else if (assign.status === 'No') { icon = '🔴'; statusText = 'No'; }
+            else if (assign.status === 'Pendent') { icon = '🟡'; statusText = 'Pendent'; }
+
+            // Format: "🟢 Nom: Dates (Sí)"
+            descriptionParts.push(`${icon} ${personName}: ${dateRange} (${statusText})`);
+          }
+
+          // Notes de l'assignació
+          if (assign.notes) {
+            descriptionParts.push(`   └ Nota: ${assign.notes}`);
+          }
+        });
       }
-      const description = descriptionParts.length > 0 ? descriptionParts.join('\n\n') : undefined;
 
       const eventResource = {
         summary: localFrame.name,
-        description,
+        description: descriptionParts.join('\n'),
         location: localFrame.place || '',
         start: { date: localFrame.startDate },
         end: { date: addDaysISO(localFrame.endDate, 1) },
@@ -1173,273 +776,255 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
         });
         localFrame.googleEventId = newGoogleEvent.data.id;
         localFrame.googleCalendarId = targetCalendarId;
-        localFrame.lastModified = newGoogleEvent.data.updated;
         localFrame.lastSync = new Date().toISOString();
-        console.debug(`  -> Esdeveniment "${localFrame.name}" pujat amb èxit. ID de Google: ${newGoogleEvent.data.id}`);
       } catch (err) {
-        console.error(`Error creant "${localFrame.name}" a Google:`, err.message, err.response?.data);
+        console.error(`Error creant "${localFrame.name}":`, err.message);
       }
       await delay(250);
     }
 
-    console.info(`Sincronització amb ${targetCalendarId} completada. Establint-lo com a calendari actiu.`);
     config.activeAppCalendarId = targetCalendarId;
     fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-
-    console.info("SYNC: Sincronització completada amb èxit.");
     return { success: true, message: 'Sincronització completada amb èxit.', data: localData };
 
   } catch (error) {
-    console.error('Error crític durant la sincronització unidireccional:', error.message, error.response?.data);
-    const customMessage = error.code === 403
-      ? "Permís denegat durant la sincronització. Assegura't que el Compte de Servei té permisos d'Editor sobre el calendari de l'aplicació."
-      : `Error de sincronització: ${error.message}`;
-    return { success: false, message: customMessage };
+    console.error('Error crític sync:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+// --- Altres Handlers Google ---
+
+ipcMain.handle('google-auth-start', async () => {
+  if (isAuthenticating) return { success: false, message: "Autenticació en curs." };
+  if (!googleAuthClient) return { success: false, message: "Client no inicialitzat." };
+
+  isAuthenticating = true;
+  return new Promise((resolve) => {
+    const server = http.createServer();
+    let state;
+
+    const closeServerAndResolve = (result) => {
+      if (server.listening) server.close();
+      isAuthenticating = false;
+      resolve(result);
+    };
+
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      googleAuthClient.redirectUri = `http://localhost:${port}`;
+      state = generateId();
+      const authUrl = googleAuthClient.generateAuthUrl({
+        access_type: 'offline', prompt: 'consent',
+        scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/calendar.readonly'],        
+        state: state,
+      });
+      require('electron').shell.openExternal(authUrl);
+    });
+
+    server.on('request', async (req, res) => {
+      const qs = new url.URL(req.url, 'http://localhost').searchParams;
+      const code = qs.get('code');
+      const receivedState = qs.get('state');
+
+      if (receivedState !== state) {
+        res.end('<h1>Error CSRF</h1>');
+        req.socket.destroy();
+        closeServerAndResolve({ success: false });
+        return;
+      }
+      
+      try {
+        const { tokens } = await googleAuthClient.getToken(code);
+        googleAuthClient.setCredentials(tokens);
+        fs.writeFileSync(GOOGLE_TOKENS_PATH, JSON.stringify(tokens));
+
+        const people = google.people({ version: 'v1', auth: googleAuthClient });
+        const profile = await people.people.get({ resourceName: 'people/me', personFields: 'emailAddresses' });
+        const primaryEmail = profile.data.emailAddresses?.find(e => e.metadata?.primary)?.value;
+
+        let config = loadGoogleConfigFromFile() || {};
+        config.userEmail = primaryEmail;
+        if (!config.managedAppCalendars) config.managedAppCalendars = [];
+        fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+
+        mainWindow.webContents.send('google-auth-success');
+        res.end('<h1>Autenticació completada!</h1>');
+        req.socket.destroy();
+        closeServerAndResolve({ success: true });
+      } catch (e) {
+        mainWindow.webContents.send('google-auth-error', e.message);
+        res.end('<h1>Error</h1>');
+        req.socket.destroy();
+        closeServerAndResolve({ success: false, message: e.message });
+      }
+    });
+  });
+});
+
+ipcMain.handle('load-google-config', async () => loadGoogleConfigFromFile());
+
+ipcMain.handle('save-google-config', async (event, config) => {
+  try {
+    const existingConfig = loadGoogleConfigFromFile() || {};
+    const mergedConfig = { ...existingConfig, ...config };
+    fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(mergedConfig, null, 2));
+    return { success: true, data: mergedConfig };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+});
+
+ipcMain.handle('google-get-calendar-list', async () => {
+  try {
+    if (!googleAuthClient?.credentials?.access_token) throw new Error('No autenticat.');
+    const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
+    const res = await calendar.calendarList.list();
+    return { success: true, calendars: res.data.items?.map(cal => ({ id: cal.id, summary: cal.summary, backgroundColor: cal.backgroundColor, primary: cal.primary })) || [] };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('get-google-events', async () => {
+  try {
+    const config = loadGoogleConfigFromFile();
+    if (!config?.selectedCalendarIds?.length) return { success: true, events: [] };
+    if (!googleAuthClient?.credentials?.access_token) throw new Error('No autenticat.');
+    
+    const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
+    const timeMin = new Date(); timeMin.setMonth(timeMin.getMonth() - 6);
+    const timeMax = new Date(); timeMax.setMonth(timeMax.getMonth() + 6);
+    const allEvents = [];
+    const calendarListResponse = await calendar.calendarList.list();
+    const availableCalendars = calendarListResponse.data.items || [];
+    const managedIds = new Set(config.managedAppCalendars?.map(c => c.id) || []);
+
+    for (const calendarId of config.selectedCalendarIds) {
+      try {
+        const res = await calendar.events.list({
+          calendarId: calendarId,
+          timeMin: timeMin.toISOString(),
+          timeMax: timeMax.toISOString(),
+          singleEvents: true,
+          orderBy: 'startTime',
+        });
+        const calendarInfo = availableCalendars.find(c => c.id === calendarId);
+        let color = calendarInfo?.backgroundColor || '#2196F3';
+        if (managedIds.has(calendarId)) color = calendarId === config.activeAppCalendarId ? '#D32F2F' : '#E67C73';
+
+        const events = res.data.items?.map(event => ({
+          id: event.id,
+          title: event.summary,
+          start: event.start.dateTime || event.start.date,
+          end: event.end.dateTime || event.end.date,
+          allDay: !!event.start.date,
+          backgroundColor: color,
+          borderColor: color,
+          extendedProps: { type: 'google', calendarId: calendarId }
+        })) || [];
+        allEvents.push(...events);
+      } catch (e) {}
+    }
+    return { success: true, events: allEvents };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('google-get-event-details', async (event, { calendarId, eventId }) => {
+  try {
+    if (!googleAuthClient?.credentials?.access_token) throw new Error('No autenticat.');
+    const calendar = google.calendar({ version: 'v3', auth: googleAuthClient });
+    const res = await calendar.events.get({ calendarId, eventId });
+    return { success: true, event: res.data };
+  } catch (error) {
+    return { success: false, message: error.message };
   }
 });
 
 ipcMain.handle('google-disconnect', async () => {
-  console.info("[IPC_IN] Rebut 'google-disconnect'.");
   try {
     const config = loadGoogleConfigFromFile();
-
     if (config?.managedAppCalendars?.length > 0 && googleServiceAccountClient) {
       const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
-      console.info(`Eliminant ${config.managedAppCalendars.length} calendaris de l'app de Google...`);
       for (const cal of config.managedAppCalendars) {
-        try {
-          console.debug(`  -> Eliminant ${cal.name} (${cal.id})`);
-          await calendar.calendars.delete({ calendarId: cal.id });
-        } catch (err) {
-          if (err.code === 404 || err.code === 410) {
-            console.warn(`El calendari ${cal.name} (${cal.id}) no s'ha trobat (potser ja estava eliminat).`);
-          } else {
-            console.error(`Error eliminant el calendari ${cal.name}:`, err.message);
-            dialog.showMessageBox(mainWindow, {
-              type: 'warning',
-              title: 'Avís de Desconnexió',
-              message: `No s'ha pogut eliminar el calendari "${cal.name}". Potser hauràs d'esborrar-lo manualment des de Google Calendar.`,
-            });
-          }
-        }
+        try { await calendar.calendars.delete({ calendarId: cal.id }); } catch (e) {}
       }
-    } else {
-      console.debug("No hi ha calendaris gestionats per eliminar, o el client de servei no està disponible.");
     }
-
-    if (googleAuthClient && googleAuthClient.credentials.access_token) {
-        await googleAuthClient.revokeCredentials();
-        console.info("Tokens de l'usuari revocats correctament.");
-    }
-
-    const eliminarFitxer = (filePath, fileName) => {
-      if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.info(`Fitxer local eliminat: ${fileName}`);
-      }
-    };
-
-    eliminarFitxer(GOOGLE_TOKENS_PATH, 'google-tokens.json');
-    eliminarFitxer(GOOGLE_CONFIG_PATH, 'google-config.json');
-
-    if (googleAuthClient) {
-      googleAuthClient.setCredentials(null);
-    }
-
-    return { success: true, message: 'Desconnexió de Google completada.' };
+    if (googleAuthClient?.credentials?.access_token) await googleAuthClient.revokeCredentials();
+    if (fs.existsSync(GOOGLE_TOKENS_PATH)) fs.unlinkSync(GOOGLE_TOKENS_PATH);
+    if (fs.existsSync(GOOGLE_CONFIG_PATH)) fs.unlinkSync(GOOGLE_CONFIG_PATH);
+    if (googleAuthClient) googleAuthClient.setCredentials(null);
+    return { success: true, message: 'Desconnexió completada.' };
   } catch (err) {
-    console.error("Error durant la desconnexió de Google:", err.message);
-    return { success: false, message: `S'ha produït un error durant la desconnexió: ${err.message}` };
+    return { success: false, message: err.message };
   }
 });
 
 ipcMain.handle('create-new-app-calendar', async (event, suffix) => {
-    console.info(`[IPC_IN] Rebut 'create-new-app-calendar' amb sufix: "${suffix}"`);
-    if (!googleServiceAccountClient) {
-        return { success: false, message: 'El client del compte de servei de Google no està inicialitzat.' };
-    }
-
+    if (!googleServiceAccountClient) return { success: false, message: 'Client Service Account no inicialitzat.' };
     const config = loadGoogleConfigFromFile();
-    console.debug("Configuració de Google actual carregada:", config);
-
-    if (!config) {
-        return { success: false, message: 'El fitxer de configuració de Google no existeix. Si us plau, connecta\'t a Google primer.' };
-    }
-    if (!config.userEmail) {
-        return { success: false, message: 'No s\'ha trobat l\'email de l\'usuari. Si us plau, connecta\'t a Google primer.' };
-    }
+    if (!config?.userEmail) return { success: false, message: 'No email usuari.' };
 
     const finalSuffix = suffix.trim();
     const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${finalSuffix ? ` - ${finalSuffix}` : ''}`;
-
-    if (config.managedAppCalendars?.some(cal => cal.name === finalCalendarName)) {
-        return { success: false, message: `Ja existeix un calendari gestionat amb el nom "${finalCalendarName}".` };
-    }
+    if (config.managedAppCalendars?.some(cal => cal.name === finalCalendarName)) return { success: false, message: `El calendari ja existeix.` };
 
     try {
         const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
         const newCalendarId = await findOrCreateAppCalendar(calendar, config.userEmail, finalSuffix);
-
-        if (config.managedAppCalendars?.some(cal => cal.id === newCalendarId)) {
-            console.warn(`S'ha intentat crear un calendari que ja existeix i està gestionat: ID ${newCalendarId}`);
-            return { success: false, message: `El calendari resultant ("${finalCalendarName}") ja existeix i està gestionat per l'aplicació. No es pot afegir un duplicat.` };
-        }
-
-        const newCalendarObject = {
-            id: newCalendarId,
-            name: finalCalendarName,
-            suffix: finalSuffix,
-        };
+        const newCalendarObject = { id: newCalendarId, name: finalCalendarName, suffix: finalSuffix };
 
         config.managedAppCalendars = [...(config.managedAppCalendars || []), newCalendarObject];
         config.activeAppCalendarId = newCalendarId;
-
         fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
 
-        console.info(`Nou calendari de l'app creat i afegit a la configuració:`, newCalendarObject);
         return { success: true, data: { managedAppCalendars: config.managedAppCalendars, activeAppCalendarId: config.activeAppCalendarId } };
-
     } catch (error) {
-        console.error("Error creant el nou calendari de l'app:", error);
-        return { success: false, message: `No s'ha pogut crear el calendari: ${error.message}` };
+        return { success: false, message: error.message };
     }
 });
 
 ipcMain.handle('delete-app-calendar', async (event, calendarIdToDelete) => {
-  console.info(`[IPC_IN] Rebut 'delete-app-calendar' per a l'ID: ${calendarIdToDelete}`);
-
-  if (!googleServiceAccountClient) {
-    return { success: false, message: 'El client del compte de servei de Google no està inicialitzat.' };
-  }
-
-  if (!calendarIdToDelete) {
-    return { success: false, message: "No s'ha proporcionat cap ID de calendari per eliminar." };
-  }
-
+  if (!googleServiceAccountClient) return { success: false, message: 'Client Service Account no inicialitzat.' };
   const config = loadGoogleConfigFromFile();
-  if (!config?.managedAppCalendars?.some(c => c.id === calendarIdToDelete)) {
-      return { success: false, message: "El calendari no es troba a la llista de calendaris gestionats." };
-  }
+  if (!config?.managedAppCalendars?.some(c => c.id === calendarIdToDelete)) return { success: false, message: "Calendari no gestionat." };
 
   try {
     const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
-    console.debug(`Eliminant el calendari de Google: ${calendarIdToDelete}`);
     await calendar.calendars.delete({ calendarId: calendarIdToDelete });
-    console.info('Calendari eliminat correctament de Google.');
-  } catch (err) {
-    if (err.code === 404 || err.code === 410) {
-      console.warn(`El calendari ${calendarIdToDelete} no s'ha trobat a Google (potser ja estava eliminat).`);
-    } else {
-      console.error("Error eliminant el calendari de Google:", err.message, err.response?.data);
-      const message = err.code === 403
-        ? "No s'ha pogut eliminar el calendari de Google per falta de permisos."
-        : "No s'ha pogut eliminar el calendari de Google.";
-      return { success: false, message: message };
-    }
-  }
+  } catch (err) {}
 
   config.managedAppCalendars = config.managedAppCalendars.filter(c => c.id !== calendarIdToDelete);
-
-  if (config.activeAppCalendarId === calendarIdToDelete) {
-      config.activeAppCalendarId = config.managedAppCalendars.length > 0 ? config.managedAppCalendars[0].id : null;
-  }
-
-  if (config.selectedCalendarIds) {
-    config.selectedCalendarIds = config.selectedCalendarIds.filter(id => id !== calendarIdToDelete);
-  }
+  if (config.activeAppCalendarId === calendarIdToDelete) config.activeAppCalendarId = config.managedAppCalendars.length > 0 ? config.managedAppCalendars[0].id : null;
+  if (config.selectedCalendarIds) config.selectedCalendarIds = config.selectedCalendarIds.filter(id => id !== calendarIdToDelete);
 
   fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-  console.info('Calendari eliminat de la configuració local.');
-
-  return { success: true, message: 'El calendari ha estat eliminat correctament.', data: { managedAppCalendars: config.managedAppCalendars, activeAppCalendarId: config.activeAppCalendarId } };
-});
-
-ipcMain.handle('google-disconnect', async () => {
-  console.info("[IPC_IN] Rebut 'google-disconnect'.");
-  try {
-    const config = loadGoogleConfigFromFile();
-
-    if (config?.managedAppCalendars?.length > 0 && googleServiceAccountClient) {
-      const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
-      console.info(`Eliminant ${config.managedAppCalendars.length} calendaris de l'app de Google...`);
-      for (const cal of config.managedAppCalendars) {
-        try {
-          console.debug(`  -> Eliminant ${cal.name} (${cal.id})`);
-          await calendar.calendars.delete({ calendarId: cal.id });
-        } catch (err) {
-          if (err.code === 404 || err.code === 410) {
-            console.warn(`El calendari ${cal.name} (${cal.id}) no s'ha trobat (potser ja estava eliminat).`);
-          } else {
-            console.error(`Error eliminant el calendari ${cal.name}:`, err.message);
-            dialog.showMessageBox(mainWindow, {
-              type: 'warning',
-              title: 'Avís de Desconnexió',
-              message: `No s'ha pogut eliminar el calendari "${cal.name}". Potser hauràs d'esborrar-lo manualment des de Google Calendar.`,
-            });
-          }
-        }
-      }
-    } else {
-      console.debug("No hi ha calendaris gestionats per eliminar, o el client de servei no està disponible.");
-    }
-
-    if (googleAuthClient && googleAuthClient.credentials.access_token) {
-        await googleAuthClient.revokeCredentials();
-        console.info("Tokens de l'usuari revocats correctament.");
-    }
-
-    const eliminarFitxer = (filePath, fileName) => {
-      if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.info(`Fitxer local eliminat: ${fileName}`);
-      }
-    };
-
-    eliminarFitxer(GOOGLE_TOKENS_PATH, 'google-tokens.json');
-    eliminarFitxer(GOOGLE_CONFIG_PATH, 'google-config.json');
-
-    if (googleAuthClient) {
-      googleAuthClient.setCredentials(null);
-    }
-
-    return { success: true, message: 'Desconnexió de Google completada.' };
-  } catch (err) {
-    console.error("Error durant la desconnexió de Google:", err.message);
-    return { success: false, message: `S'ha produït un error durant la desconnexió: ${err.message}` };
-  }
+  return { success: true, message: 'Calendari eliminat.', data: { managedAppCalendars: config.managedAppCalendars, activeAppCalendarId: config.activeAppCalendarId } };
 });
 
 // ===================================================================================
 // EndRegion: Google Calendar Integration
 // ===================================================================================
 
+// --- Cicle de Vida ---
 
-// --- Cicle de Vida de l'Aplicació ---
-
-// Gestió d'obertura de fitxers des del sistema operatiu
 const filePathArg = process.argv.find(arg => arg.endsWith('.gep') || arg.endsWith('.json'));
-if (filePathArg) {
-  openFilePathOnStartup = filePathArg;
-}
+if (filePathArg) openFilePathOnStartup = filePathArg;
+
 app.on('open-file', (event, path) => {
   event.preventDefault();
-  if (mainWindow) {
-    mainWindow.webContents.send('open-file-trigger', path);
-  } else {
-    openFilePathOnStartup = path;
-  }
+  if (mainWindow) mainWindow.webContents.send('open-file-trigger', path);
+  else openFilePathOnStartup = path;
 });
 
 async function createWindow() {
   console.debug('[Startup] Iniciant createWindow...');
   ensureDirectoriesExist();
-  console.debug('[Startup] Directoris assegurats.');
-  loadGoogleCredentials();
-  console.debug('[Startup] Credencials de Google carregades (si existeixen).');
+  loadGoogleCredentials(); 
   await loadServiceAccountCredentials();
-  console.debug('[Startup] Credencials del compte de servei carregades (si existeixen).');
   const sessionData = loadSessionData();
-  console.debug('[Startup] Dades de la sessió anterior carregades.');
 
   mainWindow = new BrowserWindow({
     width: sessionData.width || 1200,
@@ -1457,41 +1042,25 @@ async function createWindow() {
     },
   });
 
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-  });
+  mainWindow.once('ready-to-show', () => mainWindow.show());
 
   mainWindow.webContents.on('did-finish-load', () => {
     if (openFilePathOnStartup) {
-      console.log(`[Startup] Enviant fitxer d'inici al frontend: ${openFilePathOnStartup}`);
       mainWindow.webContents.send('open-file-trigger', openFilePathOnStartup);
       openFilePathOnStartup = null;
     }
   });
 
   const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
-  console.debug('[Startup] Mode de desenvolupament:', isDev);
-
   if (isDev) {
     const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
-    console.debug('[Startup] Carregant des del servidor de desenvolupament:', devUrl);
-    mainWindow.loadURL(devUrl).catch(err => {
-      console.error('Error loading dev URL:', devUrl, err);
-      dialog.showErrorBox('Error de Desenvolupament', `No s'ha pogut carregar ${devUrl}: ${err.message}`);
-    });
+    mainWindow.loadURL(devUrl).catch(err => console.error(err));
   } else {
     const indexPath = path.resolve(__dirname, 'dist', 'index.html');
-    console.info('[Startup] Carregant des del fitxer de producció:', indexPath);
-    mainWindow.loadFile(indexPath).catch(err => {
-      console.error('Error loading production index file:', indexPath, err);
-      dialog.showErrorBox('Error de Càrrega', `No s'ha pogut carregar l'aplicació: ${err.message}`);
-    });
+    mainWindow.loadFile(indexPath).catch(err => console.error(err));
   }
 
-  console.debug('[Startup] Menú de l\'aplicació configurat (actualment desactivat en favor de la UI).');
-
   mainWindow.on('close', (event) => {
-    console.debug(`[Exit Flow] Event 'close' rebut a la finestra. isQuitting: ${isQuitting}`);
     if (!isQuitting) {
       event.preventDefault();
       app.quit();
@@ -1501,9 +1070,7 @@ async function createWindow() {
 
 app.on('web-contents-created', (event, contents) => {
   contents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('http:') || url.startsWith('https:')) {
-      shell.openExternal(url);
-    }
+    if (url.startsWith('http:') || url.startsWith('https:')) shell.openExternal(url);
     return { action: 'deny' };
   });
   contents.on('will-navigate', (event, url) => {
@@ -1515,40 +1082,26 @@ app.on('web-contents-created', (event, contents) => {
 });
 
 app.on('before-quit', async (event) => {
-  console.debug(`[Exit Flow] Event 'before-quit' rebut. isQuitting: ${isQuitting}`);
   if (isQuitting) return;
-
   event.preventDefault();
-
   if (mainWindow && !mainWindow.isDestroyed()) {
     const windowBounds = mainWindow.getBounds();
     await saveSessionData({
-      width: windowBounds.width,
-      height: windowBounds.height,
-      x: windowBounds.x,
-      y: windowBounds.y
+      width: windowBounds.width, height: windowBounds.height,
+      x: windowBounds.x, y: windowBounds.y
     });
-
-    console.info('[Exit Flow] Estat de la finestra desat. Enviant senyal de confirmació al frontend...');
     mainWindow.webContents.send('confirm-quit-signal');
-
   } else {
-    console.info('[Exit Flow] No hi ha finestra principal, sortint directament.');
     isQuitting = true;
     app.quit();
   }
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
 let hasShownUncaughtExceptionDialog = false;
 process.on('uncaughtException', (error) => {
   log.error('Excepció no capturada:', error);
-
   if (!hasShownUncaughtExceptionDialog) {
     hasShownUncaughtExceptionDialog = true;
     dialog.showErrorBox('Error Inesperat', `S'ha produït un error no controlat: ${error.message}\n\nL'aplicació es tancarà.`);
@@ -1557,60 +1110,31 @@ process.on('uncaughtException', (error) => {
 });
 
 app.whenReady().then(() => {
-  console.debug('[Startup] App està llesta, cridant a createWindow...');
   createWindow();
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
 ipcMain.on('trigger-menu-action', (event, action) => {
   const focusedWindow = BrowserWindow.getFocusedWindow();
-
-  if (!focusedWindow && !['quit', 'load-all', 'load-material', 'load-people'].includes(action)) {
-    console.warn(`S'ha rebut l'acció de menú "${action}" però no hi ha cap finestra enfocada.`);
-    return;
-  }
+  if (!focusedWindow && !['quit', 'load-all', 'load-material', 'load-people'].includes(action)) return;
 
   switch (action) {
     case 'load-all':
     case 'load-material':
     case 'load-people':
-      if (mainWindow) {
-        mainWindow.webContents.send('menu-action', action);
-      }
+      if (mainWindow) mainWindow.webContents.send('menu-action', action);
       break;
-    case 'quit':
-      app.quit();
-      break;
-    case 'reload':
-      focusedWindow.webContents.reload();
-      break;
-    case 'forceReload':
-      focusedWindow.webContents.reloadIgnoringCache();
-      break;
-    case 'toggleDevTools':
-      focusedWindow.webContents.toggleDevTools();
-      break;
-    case 'resetZoom':
-      focusedWindow.webContents.setZoomLevel(0);
-      break;
-    case 'zoomIn':
-      focusedWindow.webContents.setZoomLevel(focusedWindow.webContents.getZoomLevel() + 0.5);
-      break;
-    case 'zoomOut':
-      focusedWindow.webContents.setZoomLevel(focusedWindow.webContents.getZoomLevel() - 0.5);
-      break;
-    case 'togglefullscreen':
-      focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
-      break;
-    default:
-      if (mainWindow) {
-        mainWindow.webContents.send('menu-action', action);
-      }
-      break;
+    case 'quit': app.quit(); break;
+    case 'reload': focusedWindow.webContents.reload(); break;
+    case 'forceReload': focusedWindow.webContents.reloadIgnoringCache(); break;
+    case 'toggleDevTools': focusedWindow.webContents.toggleDevTools(); break;
+    case 'resetZoom': focusedWindow.webContents.setZoomLevel(0); break;
+    case 'zoomIn': focusedWindow.webContents.setZoomLevel(focusedWindow.webContents.getZoomLevel() + 0.5); break;
+    case 'zoomOut': focusedWindow.webContents.setZoomLevel(focusedWindow.webContents.getZoomLevel() - 0.5); break;
+    case 'togglefullscreen': focusedWindow.setFullScreen(!focusedWindow.isFullScreen()); break;
+    default: if (mainWindow) mainWindow.webContents.send('menu-action', action); break;
   }
 });
