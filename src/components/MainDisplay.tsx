@@ -463,14 +463,14 @@ const MainDisplay = React.forwardRef<
               </button>
             </Tooltip>
             <div className="flex-grow"></div>
-            <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'un mes)">
+            <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'una setmana)">
                 <button
                     onClick={() => {
                         const eventsToArchive = archiveOldEventFrames();
                         if (eventsToArchive.length > 0) {
-                            const oneMonthAgo = new Date();
-                            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-                            const formattedDate = oneMonthAgo.toLocaleDateString('ca-ES');
+                            const oneWeekAgo = new Date();
+                            oneWeekAgo.setMonth(oneWeekAgo.getMonth() - 1);
+                            const formattedDate = oneWeekAgo.toLocaleDateString('ca-ES');
 
                             openModal('confirmDelete', {
                                 itemType: 'Esdeveniments',

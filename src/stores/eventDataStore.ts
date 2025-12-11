@@ -785,12 +785,12 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     // ARCHIVING
     archiveOldEventFrames: () => {
         const { eventFrames } = get();
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
         return eventFrames.filter(ef => {
             const endDate = new Date(ef.endDate);
-            return endDate < oneMonthAgo && !ef.isArchived;
+            return endDate < oneWeekAgo && !ef.isArchived;
         });
     },
 
