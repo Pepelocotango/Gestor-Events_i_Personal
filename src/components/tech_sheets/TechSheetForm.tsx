@@ -6,11 +6,13 @@ import { arrayMove } from '@dnd-kit/sortable';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
 import { formatDateDMY } from '../../utils/dateFormat';
-import { exportTechSheetToPdf } from '../../utils/pdfGenerator';
+import { generateTechSheetPdfObject, exportTechSheetToPdf } from '../../utils/pdfGenerator';
 import TechnicalPersonnelSection from './TechnicalPersonnelSection';
 import NeedsList from './NeedsList';
 import Tooltip from '../ui/Tooltip';
 import ConditionalFormControl from './ConditionalFormControl';
+import { EyeIcon } from '../../constants';
+import { useModalStore } from '../../stores/modalStore';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
@@ -598,6 +600,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     }
   };
 
+  const openModal = useModalStore(state => state.openModal);
+
+  const handlePreview = () => {
+    // No cal desar els canvis, ja que volem una previsualització WYSIWYG
+    const doc = generateTechSheetPdfObject(formData, (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' }));
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    openModal('pdfPreview', {
+      pdfUrl,
+      titleOverride: `Vista Prèvia: ${eventFrame.name}`
+    });
+  };
+
   const handleExportToPdf = () => {
     if (isDirtyRef.current) {
         showToast('Desant canvis pendents abans d\'exportar...', 'info');
@@ -779,6 +794,12 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
             </Tooltip>
             <Tooltip text="Forçar el desat immediat de tots els canvis pendents">
               <button onClick={handleManualSave} className="save-changes-button px-3 py-1 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-semibold no-print">Desar Canvis</button>
+            </Tooltip>
+            <Tooltip text="Vista prèvia del document PDF">
+              <button onClick={handlePreview} className="preview-pdf-button px-3 py-1 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 font-semibold no-print flex items-center gap-2">
+                <EyeIcon className="h-4 w-4" />
+                <span>Vista Prèvia</span>
+              </button>
             </Tooltip>
             <Tooltip text="Generar i descarregar un PDF amb la fitxa tècnica actual">
               <button onClick={handleExportToPdf} className="export-pdf-button px-3 py-1 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-semibold no-print">Exportar a PDF</button>

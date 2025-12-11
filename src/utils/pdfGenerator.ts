@@ -420,6 +420,326 @@ export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: 
 };
 
 // --- FITXA TÈCNICA ---
+export const generateTechSheetPdfObject = (
+  formData: TechSheetData,
+  getPersonGroupById: (id: string) => PersonGroup | undefined,
+): jsPDF => {
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  let y = 10;
+
+  // Define vertical spacing between sections
+  const VERTICAL_SPACING = 3;
+
+  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+  const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
+  const subHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
+
+  const checkPageBreak = (currentY: number): number => {
+      if (currentY > 290) {
+          pdf.addPage();
+          return 10;
+      }
+      return currentY;
+  };
+
+  // --- Header ---
+  const headerBody = [
+      [{ content: 'FITXA DE BOLO', colSpan: 2, styles: { halign: 'center' as 'center', fontSize: 16, fontStyle: 'bold' as 'bold' } }],
+      [{ content: 'NOM DEL BOLO:', styles: labelStyles }, sane(formData.eventName)],
+      [{ content: 'LLOC:', styles: labelStyles }, sane(formData.location)],
+      [{ content: 'DATA:', styles: labelStyles }, sane(formData.date)],
+      [{ content: 'HORA:', styles: labelStyles }, formData.showTimes && formData.showTimes.length > 0 ? formData.showTimes.map(st => st.time).join(', ') : '-'],
+      [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
+  ];
+  autoTable(pdf, {
+    body: headerBody,
+    theme: 'grid',
+    startY: y,
+    pageBreak: 'avoid',
+    margin: { left: 10, right: 10 },
+    styles: { cellPadding: 2 }
+  });
+  y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
+
+  if (formData.showGeneralNotesInPdf && sane(formData.generalNotes) !== '-') {
+      y = checkPageBreak(y);
+      autoTable(pdf, {
+          head: [[{ content: 'NOTES GENERALS DE LA FITXA', styles: headStyles }]],
+          body: [[sane(formData.generalNotes)]],
+          startY: y, 
+          theme: 'grid', 
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  if (formData.parking?.status === 'yes' || formData.parking?.status === 'no') {
+    y = checkPageBreak(y);
+    const parkingDetails = formData.parking.status === 'yes'
+        ? (sane(formData.parking.details) !== '-' ? sane(formData.parking.details) : 'SI')
+        : 'NO';
+    autoTable(pdf, {
+        head: [[{ content: 'PÀRQUING', styles: headStyles }]],
+        body: [[parkingDetails]],
+        startY: y,
+        theme: 'grid',
+        pageBreak: 'avoid',
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
+  }
+
+  const personnelBody: any[][] = [];
+  let hasAnyNotes = false;
+
+  if (formData.technicalProviders && formData.technicalProviders.length > 0) {
+    formData.technicalProviders.forEach(provider => {
+      const person = getPersonGroupById(provider.personGroupId);
+      if (provider.roles && provider.roles.length > 0) {
+        provider.roles.forEach(role => {
+          if (sane(role.role) !== '-' || sane(role.quantity) !== '-') {
+              const row = [sane(role.quantity), sane(role.role), sane(person?.name)];
+              if (role.printNotes && sane(role.notes) !== '-') {
+                  hasAnyNotes = true;
+                  row.push(sane(role.notes));
+              }
+              personnelBody.push(row);
+          }
+        });
+      }
+    });
+  }
+  if (personnelBody.length > 0) {
+      y = checkPageBreak(y);
+      const tableBody: any[][] = [];
+      const totalColumns = hasAnyNotes ? 4 : 3;
+
+      if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
+          tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: totalColumns, styles: { fontStyle: 'italic' as 'italic', halign: 'left' as 'left' } }]);
+      }
+      personnelBody.forEach(row => tableBody.push(row));
+
+      autoTable(pdf, {
+          head: [[{ content: 'PERSONAL TÈCNIC', colSpan: totalColumns, styles: headStyles }]],
+          body: tableBody,
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 },
+          headStyles: { ...headStyles, halign: 'center' as 'center' },
+          columnStyles: hasAnyNotes
+              ? { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
+              : { 0: { cellWidth: 15, halign: 'right' as 'right' } }
+      });
+      y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
+  }
+
+  if (formData.preAssembly?.status === 'yes') {
+      y = checkPageBreak(y);
+      autoTable(pdf, {
+          head: [[{ content: 'PREMUNTATGE', styles: headStyles }]],
+          body: [[sane(formData.preAssembly.details)]],
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  if (formData.schedule?.status === 'yes' && formData.schedule.data && formData.schedule.data.length > 0) {
+      y = checkPageBreak(y);
+
+      const groupedSchedule = formData.schedule.data.reduce((acc, item) => {
+          const date = item.date || 'Sense data';
+          if (!acc[date]) {
+              acc[date] = [];
+          }
+          acc[date].push(item);
+          return acc;
+      }, {} as Record<string, any[]>);
+
+      const scheduleBody: any[][] = [];
+      const dateSubHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
+
+      if (formData.showScheduleNotesInPdf && sane(formData.schedule.details) !== '-') {
+          scheduleBody.push([{ content: sane(formData.schedule.details), colSpan: 2, styles: { fontStyle: 'italic' as 'italic' } }]);
+      }
+
+      Object.entries(groupedSchedule).forEach(([date, items]) => {
+          scheduleBody.push([{ content: `Data: ${formatDateDMY(date)}`, colSpan: 2, styles: dateSubHeadStyles }]);
+          items.forEach(item => {
+              const timeRange = [sane(item.time), sane(item.timeEnd)].filter(t => t !== '-').join(' - ');
+              scheduleBody.push([timeRange, sane(item.description)]);
+          });
+      });
+
+      autoTable(pdf, {
+          head: [[{ content: 'HORARIS', colSpan: 2, styles: headStyles }]],
+          body: scheduleBody,
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 },
+          columnStyles: { 0: { cellWidth: 40 } },
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  const logisticsBody: any[][] = [];
+  if (formData.dressingRooms?.status === 'yes') {
+      const dressingDetails = sane(formData.dressingRooms.details);
+      const value = dressingDetails !== '-' ? dressingDetails : 'SI';
+      logisticsBody.push(['Camerinos', value, '']);
+  }
+  if (formData.actorsInfo?.status === 'yes') {
+      const actorsNumber = sane(formData.actorsInfo.data?.number);
+      const actorsNames = sane(formData.actorsInfo.data?.names);
+      if (actorsNumber !== '-' || actorsNames !== '-') {
+          logisticsBody.push(['Actors', actorsNumber, actorsNames]);
+      }
+  }
+  if (formData.techniciansInfo?.status === 'yes') {
+      const techNumber = sane(formData.techniciansInfo.data?.number);
+      const techNames = sane(formData.techniciansInfo.data?.names);
+      if (techNumber !== '-' || techNames !== '-') {
+          logisticsBody.push(['Tècnics/Prod. Cia', techNumber, techNames]);
+      }
+  }
+
+  if (logisticsBody.length > 0) {
+      y = checkPageBreak(y);
+      autoTable(pdf, {
+          head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
+          body: logisticsBody,
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 },
+          columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
+      });
+      y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
+  }
+
+  const needsBody: any[][] = [];
+  if (formData.showTechnicalNeedsNotesInPdf && sane(formData.technicalNeedsNotes) !== '-') {
+      needsBody.push([{ content: sane(formData.technicalNeedsNotes), colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
+  }
+  const addNeedsToBody = (title: string, section: TechSheetData[keyof TechSheetData]) => {
+      const needsSection = section as { status: 'yes' | 'no' | 'unset', details?: string, data?: { needs: NeedItem[] } };
+      if (!needsSection || needsSection.status !== 'yes') return;
+
+      const hasDetails = sane(needsSection.details) !== '-';
+      const validNeeds = (needsSection.data?.needs || []).filter((n: NeedItem) => sane(n.description) !== '-' || sane(n.quantity) !== '-');
+
+      if (hasDetails || validNeeds.length > 0) {
+          needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
+          if (hasDetails) needsBody.push([{ content: needsSection.details!, colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
+          validNeeds.forEach((n: NeedItem) => {
+              needsBody.push([ { content: sane(n.quantity), styles: { halign: 'right' as 'right' } }, sane(n.description), sane(n.origin) ]);
+          });
+      }
+  };
+
+  addNeedsToBody('Il·luminació', formData.lighting);
+  addNeedsToBody('So', formData.sound);
+  addNeedsToBody('Vídeo', formData.video);
+  addNeedsToBody('Maquinària', formData.machinery);
+  addNeedsToBody('Lloguers', formData.rentals);
+  addNeedsToBody("Material d'Altres Equipaments", formData.otherEquipment);
+  addNeedsToBody('Infraestructures Elèctriques', formData.electrical);
+  addNeedsToBody('Estructures', formData.structures);
+  addNeedsToBody('Tarimes', formData.platforms);
+  addNeedsToBody('Consumibles', formData.consumables);
+  addNeedsToBody('Cortinatges', formData.curtains);
+  addNeedsToBody('Transport', formData.transport);
+
+  if (needsBody.length > 0) {
+      y = checkPageBreak(y);
+      autoTable(pdf, {
+          head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
+          body: needsBody,
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 },
+          columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  const otherDetailsBody = [];
+  if (sane(formData.controlLocation) !== '-') otherDetailsBody.push([{ content: 'Control a:', styles: labelStyles }, sane(formData.controlLocation)]);
+  if (sane(formData.blueprints) !== '-') otherDetailsBody.push([{ content: 'Plànols:', styles: labelStyles }, sane(formData.blueprints)]);
+  if (otherDetailsBody.length > 0) {
+    y = checkPageBreak(y);
+    autoTable(pdf, {
+        head: [[{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }]],
+        body: otherDetailsBody,
+        startY: y,
+        theme: 'grid',
+        pageBreak: 'avoid',
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
+  }
+
+  const contactBody: any[][] = [];
+  if (formData.contacts && formData.contacts.length > 0) {
+      formData.contacts.forEach(contact => {
+          if (Object.values(contact).some(val => sane(val) !== '-')) {
+              const contactInfo = `Email: ${sane(contact.email)}\nTel: ${sane(contact.phone)}`;
+              contactBody.push([sane(contact.name), sane(contact.role), contactInfo]);
+          }
+      });
+  }
+  if (contactBody.length > 0) {
+      y = checkPageBreak(y);
+      autoTable(pdf, {
+          head: [[{ content: 'CONTACTES COMPANYIA', colSpan: 3, styles: headStyles }]],
+          body: contactBody,
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 },
+          columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 50 }, 2: { cellWidth: 'auto' } },
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  if (sane(formData.observations) !== '-') {
+      y = checkPageBreak(y);
+      autoTable(pdf, {
+          head: [[{ content: 'OBSERVACIONS', styles: headStyles }]],
+          body: [[sane(formData.observations)]],
+          startY: y,
+          theme: 'grid',
+          pageBreak: 'avoid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 }
+      });
+  }
+
+  const totalPages = (pdf.internal as any).getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    pdf.setPage(i);
+    addFooter(pdf, i);
+  }
+
+  return pdf;
+};
+
 export const exportTechSheetToPdf = async (
   formData: TechSheetData,
   eventName: string,
@@ -427,325 +747,7 @@ export const exportTechSheetToPdf = async (
   showToast: ShowToastFunction
 ) => {
   try {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    let y = 10;
-
-    // Define vertical spacing between sections
-    const VERTICAL_SPACING = 3;
-
-    const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-    const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
-    const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
-    const subHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
-
-    const checkPageBreak = (currentY: number): number => {
-        if (currentY > 290) {
-            pdf.addPage();
-            return 10;
-        }
-        return currentY;
-    };
-
-    // --- Header ---
-    const headerBody = [
-        [{ content: 'FITXA DE BOLO', colSpan: 2, styles: { halign: 'center' as 'center', fontSize: 16, fontStyle: 'bold' as 'bold' } }],
-        [{ content: 'NOM DEL BOLO:', styles: labelStyles }, sane(formData.eventName)],
-        [{ content: 'LLOC:', styles: labelStyles }, sane(formData.location)],
-        [{ content: 'DATA:', styles: labelStyles }, sane(formData.date)],
-        [{ content: 'HORA:', styles: labelStyles }, formData.showTimes && formData.showTimes.length > 0 ? formData.showTimes.map(st => st.time).join(', ') : '-'],
-        [{ content: 'DURADA:', styles: labelStyles }, sane(formData.showDuration)],
-    ];
-    autoTable(pdf, { 
-      body: headerBody, 
-      theme: 'grid', 
-      startY: y, 
-      pageBreak: 'avoid',
-      margin: { left: 10, right: 10 },
-      styles: { cellPadding: 2 }
-    });
-    y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
-
-    // ... (rest of the function remains the same, just applying the color conversion)
-
-    // Example for one section:
-    if (formData.showGeneralNotesInPdf && sane(formData.generalNotes) !== '-') {
-        y = checkPageBreak(y);
-        autoTable(pdf, {
-            head: [[{ content: 'NOTES GENERALS DE LA FITXA', styles: headStyles }]],
-            body: [[sane(formData.generalNotes)]],
-            startY: y, 
-            theme: 'grid', 
-            pageBreak: 'avoid',
-            margin: { left: 10, right: 10 },
-            styles: { cellPadding: 2 }
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-    }
-
-    if (formData.parking?.status === 'yes' || formData.parking?.status === 'no') {
-      y = checkPageBreak(y);
-      const parkingDetails = formData.parking.status === 'yes'
-          ? (sane(formData.parking.details) !== '-' ? sane(formData.parking.details) : 'SI')
-          : 'NO';
-      autoTable(pdf, {
-          head: [[{ content: 'PÀRQUING', styles: headStyles }]],
-          body: [[parkingDetails]],
-          startY: y, 
-          theme: 'grid', 
-          pageBreak: 'avoid',
-          margin: { left: 10, right: 10 },
-          styles: { cellPadding: 2 }
-      });
-      y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
-    }
-
-    const personnelBody: any[][] = [];
-    let hasAnyNotes = false;
-
-    if (formData.technicalProviders && formData.technicalProviders.length > 0) {
-      formData.technicalProviders.forEach(provider => {
-        const person = getPersonGroupById(provider.personGroupId);
-        if (provider.roles && provider.roles.length > 0) {
-          provider.roles.forEach(role => {
-            if (sane(role.role) !== '-' || sane(role.quantity) !== '-') {
-                const row = [sane(role.quantity), sane(role.role), sane(person?.name)];
-                if (role.printNotes && sane(role.notes) !== '-') {
-                    hasAnyNotes = true;
-                    row.push(sane(role.notes));
-                }
-                personnelBody.push(row);
-            }
-          });
-        }
-      });
-    }
-    if (personnelBody.length > 0) {
-        y = checkPageBreak(y);
-        const tableBody: any[][] = [];
-        const totalColumns = hasAnyNotes ? 4 : 3;
-
-        if (formData.showTechnicalPersonnelNotesInPdf && sane(formData.technicalPersonnelNotes) !== '-') {
-            tableBody.push([{ content: sane(formData.technicalPersonnelNotes), colSpan: totalColumns, styles: { fontStyle: 'italic' as 'italic', halign: 'left' as 'left' } }]);
-        }
-        personnelBody.forEach(row => tableBody.push(row));
-
-        autoTable(pdf, {
-            head: [[{ content: 'PERSONAL TÈCNIC', colSpan: totalColumns, styles: headStyles }]],
-            body: tableBody,
-            startY: y,
-            theme: 'grid',
-            pageBreak: 'avoid',
-            margin: { left: 10, right: 10 },
-            styles: { cellPadding: 2 },
-            headStyles: { ...headStyles, halign: 'center' as 'center' },
-            columnStyles: hasAnyNotes 
-                ? { 0: { cellWidth: 15, halign: 'right' as 'right' }, 3: {cellWidth: 'auto'} }
-                : { 0: { cellWidth: 15, halign: 'right' as 'right' } }
-        });
-        y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
-    }
-
-    if (formData.preAssembly?.status === 'yes') {
-        y = checkPageBreak(y);
-        autoTable(pdf, {
-            head: [[{ content: 'PREMUNTATGE', styles: headStyles }]],
-            body: [[sane(formData.preAssembly.details)]],
-            startY: y,
-            theme: 'grid',
-            pageBreak: 'avoid',
-            margin: { left: 10, right: 10 },
-            styles: { cellPadding: 2 }
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-    }
-
-    if (formData.schedule?.status === 'yes' && formData.schedule.data && formData.schedule.data.length > 0) {
-        y = checkPageBreak(y);
-
-        const groupedSchedule = formData.schedule.data.reduce((acc, item) => {
-            const date = item.date || 'Sense data';
-            if (!acc[date]) {
-                acc[date] = [];
-            }
-            acc[date].push(item);
-            return acc;
-        }, {} as Record<string, any[]>);
-
-        const scheduleBody: any[][] = [];
-        const dateSubHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
-
-        if (formData.showScheduleNotesInPdf && sane(formData.schedule.details) !== '-') {
-            scheduleBody.push([{ content: sane(formData.schedule.details), colSpan: 2, styles: { fontStyle: 'italic' as 'italic' } }]);
-        }
-
-        Object.entries(groupedSchedule).forEach(([date, items]) => {
-            scheduleBody.push([{ content: `Data: ${formatDateDMY(date)}`, colSpan: 2, styles: dateSubHeadStyles }]);
-            items.forEach(item => {
-                const timeRange = [sane(item.time), sane(item.timeEnd)].filter(t => t !== '-').join(' - ');
-                scheduleBody.push([timeRange, sane(item.description)]);
-            });
-        });
-
-        autoTable(pdf, {
-            head: [[{ content: 'HORARIS', colSpan: 2, styles: headStyles }]],
-            body: scheduleBody,
-            startY: y,
-            theme: 'grid',
-            pageBreak: 'avoid',
-            margin: { left: 10, right: 10 },
-            styles: { cellPadding: 2 },
-            columnStyles: { 0: { cellWidth: 40 } },
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-    }
-
-    const logisticsBody: any[][] = [];
-    if (formData.dressingRooms?.status === 'yes') {
-        const dressingDetails = sane(formData.dressingRooms.details);
-        const value = dressingDetails !== '-' ? dressingDetails : 'SI';
-        // Tres columnes reals, sense colSpan, per evitar problemes de càlcul de columnes
-        logisticsBody.push(['Camerinos', value, '']);
-    }
-    if (formData.actorsInfo?.status === 'yes') {
-        const actorsNumber = sane(formData.actorsInfo.data?.number);
-        const actorsNames = sane(formData.actorsInfo.data?.names);
-        // Només afegim la fila si hi ha alguna dada rellevant
-        if (actorsNumber !== '-' || actorsNames !== '-') {
-            logisticsBody.push(['Actors', actorsNumber, actorsNames]);
-        }
-    }
-    if (formData.techniciansInfo?.status === 'yes') {
-        const techNumber = sane(formData.techniciansInfo.data?.number);
-        const techNames = sane(formData.techniciansInfo.data?.names);
-        // Només afegim la fila si hi ha alguna dada rellevant
-        if (techNumber !== '-' || techNames !== '-') {
-            logisticsBody.push(['Tècnics/Prod. Cia', techNumber, techNames]);
-        }
-    }
-
-    if (logisticsBody.length > 0) {
-        y = checkPageBreak(y);
-        autoTable(pdf, {
-            head: [[{ content: 'LOGÍSTICA', colSpan: 3, styles: headStyles }]],
-            body: logisticsBody,
-            startY: y,
-            theme: 'grid',
-            pageBreak: 'avoid',
-            margin: { left: 10, right: 10 },
-            styles: { cellPadding: 2 },
-            columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' } },
-        });
-        y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
-    }
-
-    const needsBody: any[][] = [];
-    if (formData.showTechnicalNeedsNotesInPdf && sane(formData.technicalNeedsNotes) !== '-') {
-        needsBody.push([{ content: sane(formData.technicalNeedsNotes), colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
-    }
-    const addNeedsToBody = (title: string, section: TechSheetData[keyof TechSheetData]) => {
-        const needsSection = section as { status: 'yes' | 'no' | 'unset', details?: string, data?: { needs: NeedItem[] } };
-        if (!needsSection || needsSection.status !== 'yes') return;
-
-        const hasDetails = sane(needsSection.details) !== '-';
-        const validNeeds = (needsSection.data?.needs || []).filter((n: NeedItem) => sane(n.description) !== '-' || sane(n.quantity) !== '-');
-
-        if (hasDetails || validNeeds.length > 0) {
-            needsBody.push([{ content: title, colSpan: 3, styles: subHeadStyles }]);
-            if (hasDetails) needsBody.push([{ content: needsSection.details!, colSpan: 3, styles: { fontStyle: 'italic' as 'italic' } }]);
-            validNeeds.forEach((n: NeedItem) => {
-                needsBody.push([ { content: sane(n.quantity), styles: { halign: 'right' as 'right' } }, sane(n.description), sane(n.origin) ]);
-            });
-        }
-    };
-
-    addNeedsToBody('Il·luminació', formData.lighting);
-    addNeedsToBody('So', formData.sound);
-    addNeedsToBody('Vídeo', formData.video);
-    addNeedsToBody('Maquinària', formData.machinery);
-    addNeedsToBody('Lloguers', formData.rentals);
-    addNeedsToBody("Material d'Altres Equipaments", formData.otherEquipment);
-    addNeedsToBody('Infraestructures Elèctriques', formData.electrical);
-    addNeedsToBody('Estructures', formData.structures);
-    addNeedsToBody('Tarimes', formData.platforms);
-    addNeedsToBody('Consumibles', formData.consumables);
-    addNeedsToBody('Cortinatges', formData.curtains);
-    addNeedsToBody('Transport', formData.transport);
-
-    if (needsBody.length > 0) {
-        y = checkPageBreak(y);
-        autoTable(pdf, {
-            head: [[{ content: 'NECESSITATS TÈCNIQUES', colSpan: 3, styles: headStyles }]],
-            body: needsBody,
-            startY: y,
-            theme: 'grid',
-            pageBreak: 'avoid',
-            margin: { left: 10, right: 10 },
-            styles: { cellPadding: 2 },
-            columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 40 } },
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-    }
-
-    const otherDetailsBody = [];
-    if (sane(formData.controlLocation) !== '-') otherDetailsBody.push([{ content: 'Control a:', styles: labelStyles }, sane(formData.controlLocation)]);
-    if (sane(formData.blueprints) !== '-') otherDetailsBody.push([{ content: 'Plànols:', styles: labelStyles }, sane(formData.blueprints)]);
-    if (otherDetailsBody.length > 0) {
-      y = checkPageBreak(y);
-      autoTable(pdf, {
-          head: [[{ content: 'ALTRES DETALLS', colSpan: 2, styles: headStyles }]],
-          body: otherDetailsBody,
-          startY: y,
-          theme: 'grid',
-          pageBreak: 'avoid',
-          margin: { left: 10, right: 10 },
-          styles: { cellPadding: 2 }
-      });
-      y = (pdf as any).lastAutoTable.finalY + VERTICAL_SPACING;
-    }
-
-    const contactBody: any[][] = [];
-    if (formData.contacts && formData.contacts.length > 0) {
-        formData.contacts.forEach(contact => {
-            if (Object.values(contact).some(val => sane(val) !== '-')) {
-                const contactInfo = `Email: ${sane(contact.email)}\nTel: ${sane(contact.phone)}`;
-                contactBody.push([sane(contact.name), sane(contact.role), contactInfo]);
-            }
-        });
-    }
-    if (contactBody.length > 0) {
-        y = checkPageBreak(y);
-        autoTable(pdf, {
-            head: [[{ content: 'CONTACTES COMPANYIA', colSpan: 3, styles: headStyles }]],
-            body: contactBody,
-            startY: y,
-            theme: 'grid',
-            pageBreak: 'avoid',
-            margin: { left: 10, right: 10 },
-            styles: { cellPadding: 2 },
-            columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 50 }, 2: { cellWidth: 'auto' } },
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-    }
-
-    if (sane(formData.observations) !== '-') {
-        y = checkPageBreak(y);
-        autoTable(pdf, {
-            head: [[{ content: 'OBSERVACIONS', styles: headStyles }]],
-            body: [[sane(formData.observations)]],
-            startY: y,
-            theme: 'grid',
-            pageBreak: 'avoid',
-            margin: { left: 10, right: 10 },
-            styles: { cellPadding: 2 }
-        });
-    }
-
-    const totalPages = (pdf.internal as any).getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      pdf.setPage(i);
-      addFooter(pdf, i);
-    }
-
+    const pdf = generateTechSheetPdfObject(formData, getPersonGroupById);
     const fileName = generateTechSheetFileName(eventName, formData.date || '');
     await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {

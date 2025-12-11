@@ -41,6 +41,7 @@ const UpdateFromAssignmentsModal = lazy(() => import('./components/modals/Update
 const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairModal'));
 const HistoryModal = lazy(() => import('./components/modals/HistoryModal'));
 const GoogleEventDetailsModal = lazy(() => import('./components/modals/GoogleEventDetailsModal'));
+const PdfPreviewModal = lazy(() => import('./components/modals/PdfPreviewModal'));
 
 
 import { useRef } from 'react';
@@ -919,6 +920,12 @@ const handleSaveDocument = async (): Promise<boolean> => {
             onClose={closeModal}
           />
         ) : null;
+      case 'pdfPreview':
+        return <PdfPreviewModal
+          onClose={closeModal}
+          pdfUrl={data!.pdfUrl!}
+          title={data?.titleOverride || 'Vista Prèvia'}
+        />;
       default:
         return null;
     }
@@ -926,8 +933,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
   const getModalTitle = (): string => {
     if (!type) return '';
-    if (type === 'confirmDeleteEventFrame' && data?.titleOverride) {
-        return data.titleOverride;
+    if (data?.titleOverride) {
+      return data.titleOverride;
     }
     switch (type) {
       case 'googleEventDetails': return "Detalls de l'Esdeveniment de Google";
@@ -956,6 +963,8 @@ const handleSaveDocument = async (): Promise<boolean> => {
   const getModalSize = (): 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' => {
     if (!type) return 'xl';
     switch (type) {
+      case 'pdfPreview':
+        return '5xl';
       case 'addEventFrame':
       case 'editEventFrame':
       case 'addAssignment':

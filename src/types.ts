@@ -253,9 +253,11 @@ export type ModalType =
   | 'history'
   | 'googleEventDetails'
   | 'about'
+  | 'pdfPreview'
   | null;
 
 export interface ModalData {
+    pdfUrl?: string;
     eventData?: any;
     toAdd?: Assignment[];
     toRemove?: (TechSheetRoleItem & { personGroupId: string })[];

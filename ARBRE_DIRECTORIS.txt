@@ -107,6 +107,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── GoogleSettingsModal.tsx         # Panell de configuració de la integració amb Google Calendar.
 │   │   │   ├── HistoryModal.tsx                # Modal que mostra l'historial de canvis (desfer/refer). Mostra la descripció de l'acció que es desfarà/refer (no la de l'estat actual).
 │   │   │   ├── MergeOrReplaceModal.tsx         # Opcions per fusionar o reemplaçar dades en importar.
+│   │   │   ├── PdfPreviewModal.tsx             # Modal per a la vista prèvia (WYSIWYG) d'un PDF generat.
 │   │   │   ├── SelectSyncCalendarModal.tsx     # Permet triar el calendari de destí per a la sincronització.
 │   │   │   └── UpdateFromAssignmentsModal.tsx  # Previsualitza i aplica canvis des d'assignacions a la fitxa.
 │   │   ├── tech_sheets/          # Components específics per a la gestió de les Fitxes de Bolo.

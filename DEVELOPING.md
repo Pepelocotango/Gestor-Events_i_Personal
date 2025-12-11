@@ -735,6 +735,21 @@ L'aplicació ofereix múltiples opcions per externalitzar i internalitzar dades,
     -   Quan l'usuari clica "Exportar a CSV/PDF", aquesta llista filtrada és la que es passa a les funcions d'exportació, assegurant que l'arxiu generat sigui un reflex fidel del que l'usuari veu a la pantalla.
 -   **Compatibilitat amb Excel (BOM):** Per garantir la correcta visualització d'accents i caràcters especials en programes com Microsoft Excel, els components que generen fitxers CSV (com `PeopleDisplay.tsx`) afegeixen un **Byte Order Mark (BOM)** (`\uFEFF`) a l'inici del contingut del fitxer.
 
+#### Vista Prèvia de Documents (WYSIWYG)
+
+Per millorar l'experiència d'usuari en generar documents complexos com les fitxes de bolo, s'ha implementat una funcionalitat de vista prèvia "El que veus és el que obtens" (WYSIWYG).
+
+-   **Refactorització del Generador de PDF (`pdfGenerator.ts`):** La lògica de generació de PDFs s'ha separat de la lògica de desat.
+    -   `generateTechSheetPdfObject()`: Una nova funció pura que construeix i retorna l'objecte `jsPDF` sense desar-lo a disc.
+    -   `exportTechSheetToPdf()`: La funció original, ara refactoritzada per cridar `generateTechSheetPdfObject` i després gestionar el diàleg de desat.
+-   **Generació en Memòria (`TechSheetForm.tsx`):**
+    -   En fer clic al nou botó "Vista Prèvia", es crida a `generateTechSheetPdfObject` amb l'estat actual del formulari (`formData`), incloent els canvis no desats.
+    -   El document PDF es genera com un `Blob` en memòria.
+    -   Es crea una URL temporal (`Blob URL`) per a aquest objecte.
+-   **Modal de Visualització (`PdfPreviewModal.tsx`):**
+    -   Un nou component modal rep la `Blob URL` i la mostra dins d'un `<iframe>`.
+    -   Això utilitza el visor de PDF natiu del motor Chromium d'Electron per oferir una previsualització fidel i d'alt rendiment sense haver de desar cap fitxer temporal al disc.
+
 ##### Millores a les Exportacions del Centre de Control de Material
 S'han implementat millores significatives a les funcions d'exportació del Centre de Control de Material per augmentar-ne la claredat i la fiabilitat.
 
