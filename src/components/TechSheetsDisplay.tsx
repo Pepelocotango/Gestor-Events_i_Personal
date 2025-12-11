@@ -14,6 +14,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const fullEventDataStore = useEventDataStore(state => state);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
+  const [includeArchived, setIncludeArchived] = useState(false);
 
   useEffect(() => {
     const loadLastViewed = async () => {
@@ -36,9 +37,9 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
 
   const sortedEventFrames = useMemo(() => {
     return eventFrames
-      .filter(ef => !ef.isArchived)
+      .filter(ef => includeArchived || !ef.isArchived)
       .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-  }, [eventFrames]);
+  }, [eventFrames, includeArchived]);
 
   const selectedEventFrame = useMemo((): EventFrame | undefined => {
     return eventFrames.find((ef: EventFrame) => ef.id === selectedEventFrameId);
@@ -76,11 +77,25 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
       defaultOpen={true}
     >
       <div className="space-y-4">
-        <div className="max-w-md">
-          <label htmlFor="event-selector" className="block text-sm font-medium text-muted-foreground">
-            Selecciona un esdeveniment per veure o editar la seva fitxa:
-          </label>
-          <Tooltip text="Llista d'esdeveniments ordenats per data més recent">
+        <div className="max-w-md space-y-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="event-selector" className="block text-sm font-medium text-muted-foreground">
+              Selecciona un esdeveniment:
+            </label>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="includeArchivedTechSheets"
+                checked={includeArchived}
+                onChange={(e) => setIncludeArchived(e.target.checked)}
+                className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-ring"
+              />
+              <label htmlFor="includeArchivedTechSheets" className="ml-2 text-sm font-medium text-foreground">
+                Incloure arxivats
+              </label>
+            </div>
+          </div>
+          <Tooltip text={includeArchived ? "Mostrant tots els esdeveniments, incloent arxivats" : "Mostrant només esdeveniments actius"}>
             <select
               id="event-selector"
               value={selectedEventFrameId}
