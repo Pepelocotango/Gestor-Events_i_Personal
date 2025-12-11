@@ -287,6 +287,7 @@ export interface ModalData {
     cancelButtonText?: string;
     onCloseModal?: () => void;
     titleOverride?: string;
+    onSave?: () => void;
     newData?: PersonGroup[] | MaterialItem[];
     requiresInput?: boolean;
     suppressSuccessToast?: boolean;

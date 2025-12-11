@@ -925,6 +925,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
           onClose={closeModal}
           pdfUrl={data!.pdfUrl!}
           title={data?.titleOverride || 'Vista Prèvia'}
+          onSave={data?.onSave}
         />;
       default:
         return null;

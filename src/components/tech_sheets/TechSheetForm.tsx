@@ -606,10 +606,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     // No cal desar els canvis, ja que volem una previsualització WYSIWYG
     const doc = generateTechSheetPdfObject(formData, (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' }));
     const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const pdfUrl = URL.createObjectURL(pdfBlob) + '#toolbar=0&navpanes=0&view=FitH';
     openModal('pdfPreview', {
       pdfUrl,
-      titleOverride: `Vista Prèvia: ${eventFrame.name}`
+      titleOverride: `Vista Prèvia: ${eventFrame.name}`,
+      onSave: () => handleExportToPdf() // Reutilitzem la funció d'exportació existent que ja funciona bé
     });
   };
 
