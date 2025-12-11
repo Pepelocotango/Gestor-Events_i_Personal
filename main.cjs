@@ -17,7 +17,7 @@ log.transports.file.archiveLogFn = (oldLogFile) => {
   const archivePath = path.join(logDir, archiveName);
   try {
     fs.renameSync(oldLogFile.path, archivePath);
-    const MAX_ARCHIVES = 9;
+    const MAX_ARCHIVES = 5;
     const files = fs.readdirSync(logDir);
     const logArchives = files
       .filter(f => f.startsWith('main.') && f.endsWith('.log'))
@@ -186,7 +186,7 @@ async function createBackup(sourceFilePath) {
 }
 
 async function cleanupOldBackups(sourceFilePath) {
-  const MAX_BACKUPS_TO_KEEP = 5;
+  const MAX_BACKUPS_TO_KEEP = 3;
   if (!fs.existsSync(BACKUP_DIR) || !sourceFilePath) {
     return;
   }
@@ -315,7 +315,7 @@ ipcMain.handle('add-recent-file', async (event, filePath) => {
     let recentFiles = sessionData.recentFiles || [];
     recentFiles = recentFiles.filter(f => f !== filePath);
     recentFiles.unshift(filePath);
-    const MAX_RECENT_FILES = 10;
+    const MAX_RECENT_FILES = 4;
     if (recentFiles.length > MAX_RECENT_FILES) {
       recentFiles = recentFiles.slice(0, MAX_RECENT_FILES);
     }
