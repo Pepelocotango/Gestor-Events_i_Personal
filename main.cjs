@@ -658,18 +658,34 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
   if (choice.response !== 0) return { success: false, message: 'Cancel·lat.' };
 
   try {
-    // 1. Obtenir llista per esborrar
-    const eventsListRes = await calendar.events.list({ calendarId: targetCalendarId, maxResults: 2500 });
+    // 1. Definir data de tall (7 dies enrere)
+    const thresholdDate = new Date();
+    thresholdDate.setDate(thresholdDate.getDate() - 7);
+    const timeMin = thresholdDate.toISOString();
+    console.info(`Sincronització parcial des de: ${new Date(timeMin).toLocaleDateString('ca-ES')}`);
+
+    // 2. Obtenir llista per esborrar (només esdeveniments nous o modificats)
+    const eventsListRes = await calendar.events.list({ 
+      calendarId: targetCalendarId, 
+      maxResults: 2500,
+      timeMin: timeMin
+    });
     const eventsToDelete = eventsListRes.data.items || [];
-    const localFramesToUpload = localData.eventFrames || [];
+    
+    // 3. Filtrar esdeveniments locals per pujar (només els que acaben després del threshold)
+    const localFramesToUpload = (localData.eventFrames || []).filter(frame => 
+      new Date(frame.endDate) >= thresholdDate
+    );
+    
+    console.info(`Sincronitzant ${localFramesToUpload.length} esdeveniments de ${(localData.eventFrames || []).length} totals`);
 
     // Progrés
     const totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
     let currentProgressStep = 0;
     const sendProgress = (msg) => { if (mainWindow) mainWindow.webContents.send('sync-progress', { current: currentProgressStep, total: totalProgressSteps, message: msg }); };
 
-    // FASE 1: BUIDAR
-    console.info(`Buidant calendari...`);
+    // FASE 1: BUIDAR (només esdeveniments recents)
+    console.info(`Eliminant esdeveniments des de ${new Date(timeMin).toLocaleDateString('ca-ES')}...`);
     for (const event of eventsToDelete) {
       currentProgressStep++;
       sendProgress(`Eliminant: ${event.summary}`);
@@ -677,8 +693,8 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
       await delay(150);
     }
 
-    // FASE 2: PUJAR
-    console.info(`Pujant ${localFramesToUpload.length} esdeveniments...`);
+    // FASE 2: PUJAR (només esdeveniments nous o modificats)
+    console.info(`Pujant ${localFramesToUpload.length} esdeveniments recents...`);
     
     for (const localFrame of localFramesToUpload) {
       currentProgressStep++;
