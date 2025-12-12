@@ -105,7 +105,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── EventFrameFormModal.tsx         # Formulari per crear/editar un esdeveniment marc. [REFACTORITZAT: usa modalStore]
 │   │   │   ├── GoogleEventDetailsModal.tsx     # Mostra els detalls complets d'un esdeveniment extern de Google Calendar.
 │   │   │   ├── GoogleSettingsModal.tsx         # Panell de configuració de la integració amb Google Calendar.
-│   │   │   ├── HistoryModal.tsx                # Modal que mostra l'historial de canvis (desfer/refer). Mostra la descripció de l'acció que es desfarà/refer (no la de l'estat actual).
+│   │   │   ├── HistoryModal.tsx                # Modal per a l'historial de canvis (desfer/refer). Mostra la descripció de l'estat anterior per a accions futures i l'estat actual per a l'acció més recent. Veure DEVELOPING.md per a més detalls.
 │   │   │   ├── MergeOrReplaceModal.tsx         # Opcions per fusionar o reemplaçar dades en importar.
 │   │   │   ├── PdfPreviewModal.tsx             # Modal per a la vista prèvia (WYSIWYG) d'un PDF generat.
 │   │   │   ├── SelectSyncCalendarModal.tsx     # Permet triar el calendari de destí per a la sincronització.
@@ -127,14 +127,14 @@ enllaç a Gestor-Events_i_Personal/
 │   │       ├── SyncProgressOverlay.tsx         # Overlay amb la barra de progrés per a la sincronització.
 │   │       ├── Tooltip.tsx                     # Component per a missatges d'ajuda emergents (usa Portals).
 │   │       └── WelcomeScreen.tsx               # Pantalla de benvinguda per a la gestió de documents.
-│   │   ├── AssignmentCard.tsx      # Renderitza una assignació individual dins d'un esdeveniment. [REFACTORITZAT: usa eventDataStore]
+│   │   ├── AssignmentCard.tsx      # Renderitza una assignació individual dins d'un esdeveniment. Inclou un botó explícit "Mostrar"/"Ocultar" per a l'expansió. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── Controls.tsx            # Barra de controls superior (desar, carregar, tema, etc.). [REFACTORITZAT: usa stores]
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.
 │   │   ├── EventFrameCard.tsx      # Renderitza una targeta per a un esdeveniment marc a la llista. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── MainDisplay.tsx         # Vista principal. Gestiona la detecció de conflictes en modificar estats. [REFACTORITZAT: usa stores]
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa MaterialForm]
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
-│   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. [REFACTORITZAT: usa eventDataStore]
+│   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. Accedeix a peopleGroups via selector reactiu i usa getState() per a les accions. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades. [REFACTORITZAT: usa eventDataStore]
 │   │   └── TechSheetsDisplay.tsx   # Nova vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
 │   ├── stores/                 # Gestors d'estat global (Zustand).

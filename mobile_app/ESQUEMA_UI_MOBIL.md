@@ -19,9 +19,9 @@ La capçalera superior és persistent a totes les pantalles i conté accions glo
 
 - **Títol**: Mostra el nom del fitxer obert o el nom de l'aplicació.
 - **Botons d'Acció (Visibles amb un fitxer obert):**
-  - **<Icona `content-save-all-outline`> Desar com...**: Permet desar el contingut actual en un fitxer nou, amb un nom o ubicació diferent.
-  - **<Icona `share-variant`> Compartir**: Acció principal per desar i sobreescriure canvis en serveis al núvol o compartir el fitxer.
-  - **<Icona `close-circle-outline`> Tancar**: Tanca el fitxer actiu i torna a la pantalla de benvinguda.
+  - **<Icona `content-save-all-outline`> Desar a...**: Obre el gestor de fitxers per desar una còpia del document en una ubicació específica (emmagatzematge local, targeta SD, etc.). Ideal per a desar versions noves del document.
+  - **<Icona `share-variant`> Compartir/Actualitzar**: **Acció recomanada per actualitzar fitxers en serveis al núvol** (Google Drive, Dropbox, etc.). Obre el menú de compartir per reemplaçar el fitxer original o enviar-lo a una altra app.
+  - **<Icona `close-circle-outline`> Tancar**: Tanca el fitxer actiu i torna a la pantalla de benvinguda. Demana confirmació si hi ha canvis no desats.
 - **Botons Globals (Sempre visibles):**
   - **<Icona `information-outline`> Sobre l'aplicació**: Obre un modal amb la informació de l'app.
   - **<Icona `sunny` / `moon`> Commutador de Tema**: Canvia entre el mode clar i fosc.

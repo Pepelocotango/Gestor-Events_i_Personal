@@ -105,18 +105,20 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
 
 ### Diagrama de Flux de Dades: Exemple d'una Acció de "Guardar"
 
-Per il·lustrar com col·laboren aquestes capes, analitzem el flux quan un usuari desa totes les dades:
+Per il·lustrar com col·laboren aquestes capes, analitzem el flux quan un usuari desa les dades:
 
-1.  **[Frontend]** L'usuari fa clic al botó "Guardar Tot" al component `Controls.tsx`.
-2.  **[Frontend]** S'activa una funció que crida a l'acció `exportData()` de l'store de Zustand (`useEventDataStore`).
-3.  **[Frontend - Zustand]** L'store recopila totes les dades del seu estat actual (`eventFrames`, `peopleGroups`, etc.) i les retorna com un objecte `AppData`.
+1.  **[Frontend]** L'usuari selecciona "Arxiu > Guardar" al menú superior personalitzat (`CustomMenuBar.tsx`).
+2.  **[Frontend]** Es dispara l'acció `handleSave` a `App.tsx`, que gestiona la lògica de desat.
+3.  **[Frontend - Zustand]** L'store recull totes les dades de l'estat actual (`eventFrames`, `peopleGroups`, etc.) i les retorna com un objecte `AppData`.
 4.  **[Frontend]** La funció crida a `window.electronAPI.showSaveDialog()` amb les dades serialitzades en format JSON.
 5.  **[Pont]** `preload.cjs` rep la crida i, de forma segura, envia una petició IPC (`ipcRenderer.invoke`) al backend a través del canal `'show-save-dialog'`.
 6.  **[Backend]** El gestor `ipcMain.handle('show-save-dialog', ...)` a `main.cjs` rep la petició.
 7.  **[Backend]** Utilitzant el mòdul `dialog` d'Electron, obre una finestra de diàleg nativa del sistema operatiu perquè l'usuari triï on desar el fitxer.
 8.  **[Backend]** Un cop l'usuari confirma, utilitza el mòdul `fs` de Node.js per escriure les dades rebudes al disc.
 9.  **[Backend -> Pont -> Frontend]** El resultat de l'operació (èxit o error) es retorna a través de la `Promise` de `ipcRenderer.invoke`.
-10. **[Frontend]** El component que va iniciar l'acció rep el resultat i mostra una notificació (toast) a l'usuari.
+10. **[Frontend]** Es mostra una notificació (toast) a l'usuari amb el resultat de l'operació.
+
+El component `Controls.tsx` ara s'encarrega principalment de la sincronització amb Google i mostra la ruta del fitxer actual, mentre que la funcionalitat de desat s'ha mogut al menú superior per a una millor organització i per seguir els estàndards d'ús de l'aplicació d'escriptori.
 
 Aquest flux demostra la clara separació de responsabilitats: el frontend gestiona la UI i l'estat, mentre que el backend s'encarrega de les operacions a nivell de sistema, garantint seguretat i un rendiment natiu.
 
@@ -139,9 +141,10 @@ Les rutes principals es defineixen com a constants a l'inici del fitxer:
 -   `CONFIG_DIR`: Apunta a `app.getPath('userData')`. És el directori arrel per a totes les dades de configuració de l'aplicació.
 -   `SESSION_FILE`: (`.../session.json`) Emmagatzema l'estat de la sessió. Les seves responsabilitats s'han ampliat:
     -   Estat de la finestra (mida i posició).
-    -   `recentFiles`: Un array amb les rutes dels últims 10 documents oberts per l'usuari.
--   `BACKUP_DIR`: (`.../backups/`) Subdirectori on es guarden les còpies de seguretat del fitxer de dades per defecte. **Nota:** La lògica de backup actual encara està lligada a l'antic `events_data.json` i es manté per compatibilitat.
--   `LOGS_DIR`: (`.../logs/`) Subdirectori per als fitxers de log de cada sessió.
+    -   Ruta de l'últim fitxer obert.
+    -   Últim directori utilitzat en els diàlegs d'obertura/desat.
+-   `BACKUP_DIR`: (`.../backups/`) Directori on es guarden les còpies de seguretat automàtiques.
+-   Els logs es gestionen automàticament per la llibreria `electron-log`, que engega un fitxer `main.log` al directori de dades de l'aplicació. Es conserven fins a 5 arxius de log rotatius, amb una mida màxima de 1 MB per arxiu.
 -   `GOOGLE_TOKENS_PATH`: (`.../google-tokens.json`) Emmagatzema els tokens d'accés i de refresc d'OAuth 2.0 un cop l'usuari s'ha autenticat.
 -   `GOOGLE_CONFIG_PATH`: (`.../google-config.json`) Desa la configuració de Google Calendar. La seva estructura ha evolucionat per suportar múltiples calendaris:
     ```json
@@ -243,11 +246,16 @@ Això no només soluciona el bug d'escriptura, sinó que també millora l'experi
 
 Aquesta funció s'encarrega de:
 1.  Assegurar que tots els directoris necessaris existeixin (`ensureDirectoriesExist`).
-2.  Carregar les credencials de Google si estan disponibles (`loadGoogleCredentials`).
+2.  Carregar les credencials de Google si estan disponibles (`loadGoogleCredentials` i `loadServiceAccountCredentials`).
 3.  Llegir `session.json` per restaurar la mida i posició anteriors de la finestra.
-4.  Crear la `BrowserWindow` amb les opcions de seguretat adequades, incloent la càrrega del script `preload.cjs`.
+4.  Crear la `BrowserWindow` amb les opcions de seguretat adequades, incloent:
+    -   La càrrega del script `preload.cjs`
+    -   `autoHideMenuBar: true` per amagar la barra de menú nativa
+    -   Configuració de seguretat com `contextIsolation: true` i `sandbox: true`
 5.  Carregar la URL del servidor de desenvolupament de Vite o el fitxer `index.html` de producció.
-6.  Construir i establir el menú natiu de l'aplicació (`Menu.buildFromTemplate`).
+6.  Configurar els manejadors d'esdeveniments per a la finestra, incloent el tancament i la càrrega de fitxers arrossegats.
+
+La gestió del menú s'ha traslladat completament al frontend, concretament al component `CustomMenuBar.tsx`, per millorar la consistència de la interfíció d'usuari i simplificar la gestió d'estat.
 
 #### Flux de Tancament Intel·ligent
 
@@ -354,9 +362,12 @@ L'estat global del frontend es gestiona a través de *stores* de Zustand, la qua
         -   **Accions:** Centralitza tota la interacció amb el backend per a la configuració de Google, incloent `fetchAndLoadConfig`, `saveConfig`, `createNewCalendar`, `deleteCalendar` i `disconnectGoogle`.
 
 3.  **`modalStore.ts`**:
-    -   **Descripció:** Gestiona quin modal està obert (`type`), les dades inicials amb què es va obrir (`data`) i si és visible (`isOpen`). També actua com un vehicle per a funcionalitats globals com les notificacions.
+    -   **Descripció:** Gestiona quin modal està obert (`type`), les dades inicials amb què es va obrir (`data`) i si és visible (`isOpen`).
     -   **Contingut:**
-        -   **`showToast`**: Manté una referència a la funció `showToast` creada a `App.tsx`. Això permet que altres stores (com `googleConfigStore`) puguin disparar notificacions a la UI de manera desacoblada.
+        -   **`type`**: Indica el tipus de modal que s'ha d'obrir.
+        -   **`data`**: Dades addicionals que es poden passar al modal.
+        -   **`isOpen`**: Controla si el modal està obert o tancat.
+    -   **Nota:** La gestió de notificacions s'ha centralitzat al servei `notificationService.ts`, que utilitza directament `react-hot-toast` i s'importa directament allà on es necessiti.
 
     #### Optimització de Rendiment: Selectors (`src/utils/selectors.ts`)
     Per evitar re-renderitzats innecessaris i bucles infinits, la lògica complexa de filtratge s'ha extret dels components i dels stores principals:
@@ -448,7 +459,12 @@ El modal d'historial mostra ara la descripció de l'acció que es desfarà/refer
 ### 4.3. Menú d'Aplicació i UI
 -   **`WelcomeScreen.tsx`**: Nou component que actua com a pantalla d'inici, oferint accés ràpid a les accions de fitxer.
 -   **`CustomMenuBar.tsx`**: El menú s'ha reestructurat per reflectir les accions estàndard de gestió de fitxers. Està connectat a l'estat d'`App.tsx` per activar/desactivar opcions de manera dinàmica (p. ex., "Guardar" només està actiu si hi ha canvis no desats).
--   **`Controls.tsx`**: Aquest component mostra ara la ruta del fitxer actiu (`currentFilePath`). La seva funcionalitat de càrrega/desat s'ha tornat redundant amb el nou menú, però es manté de moment.
+-   **`Controls.tsx`**: Aquest component s'encarrega exclusivament de la integració amb Google Calendar i mostra la ruta del fitxer actual. Inclou els següents elements:
+    -   Visualització de la ruta del fitxer actual
+    -   Botó per a la sincronització manual amb Google Calendar
+    -   Accés a la configuració de la connexió amb Google
+    -   Botó per iniciar el flux d'autenticació amb Google
+    -   Tots els botons inclouen tooltips descriptius i retroalimentació visual durant les operacions
 
 ### 4.4. Component Reutilitzable: `AutosizeTextarea`
 
@@ -458,7 +474,7 @@ Per donar resposta a la necessitat que les àrees de text s'ajustin al seu conti
 -   **Gestió de `ref` (Ref Forwarding):** Per solucionar l'advertència de React "Function components cannot be given refs", el component està embolicat amb `React.forwardRef`. Això li permet rebre una `ref` d'un component pare (com el component `Tooltip`, que la necessita per posicionar-se) i passar-la directament a l'element `<textarea>` intern. La lògica de `useLayoutEffect` també ha estat actualitzada per utilitzar aquesta `ref` reenviada.
 -   **Integració:** Per aplicar aquest canvi de manera eficient, el component genèric `TechSheetField.tsx` ha estat modificat per renderitzar `AutosizeTextarea` quan se li passa la propietat `as="textarea"`. La resta de formularis de l'aplicació també han estat actualitzats per utilitzar aquest nou component.
 
-### 4.4. Model de Dades i Tipus (`src/types.ts`)
+### 4.5. Model de Dades i Tipus (`src/types.ts`)
 
 Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les estructures de dades clau mitjançant interfícies de TypeScript.
 
@@ -475,7 +491,7 @@ Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les
 -   **`GoogleConfig` i `ManagedAppCalendar`**: Tipifiquen la nova estructura de dades per a la configuració de Google.
 -   **`ElectronAPI`**: Tipifica l'objecte `window.electronAPI`, proporcionant autocompletat i seguretat de tipus en les comunicacions amb el backend.
 
-### 4.3. Estructura de Components i Vistes
+### 4.6. Estructura de Components i Vistes
 
 El directori `src/components/` està organitzat seguint una lògica de funcionalitat.
 
@@ -560,7 +576,11 @@ El model híbrid es manté:
 5.  **[Backend]** El gestor `sync-with-google` a `main.cjs` executa la lògica:
     a. **Verificació i Autoreparació:** Comprova si `targetCalendarId` encara existeix a Google. Si rep un error `404 Not Found`, l'elimina de la llista `managedAppCalendars` a la configuració local i retorna un error `CALENDAR_NOT_FOUND` al frontend.
     b. **Confirmació de l'Usuari:** Mostra un diàleg advertint que l'operació sobreescriurà les dades.
-    c. **Buidatge i Càrrega:** Si es confirma, buida completament el calendari de destinació i hi puja tots els esdeveniments locals, enriquint la descripció amb dades de la fitxa de bolo.
+    c. **Sincronització Eficient:** Si es confirma, el sistema:
+       - Calcula una `thresholdDate` (normalment 7 dies enrere des de la data actual)
+       - Elimina només els esdeveniments del calendari de destinació que siguin posteriors a `thresholdDate`
+       - Puja tots els esdeveniments locals que siguin nous o actualitzats, enriquint la descripció amb dades de la fitxa de bolo
+       - Aquesta optimització millora significativament el rendiment en calendaris grans
     d. **Actualització del Calendari Actiu:** Després d'una sincronització amb èxit, actualitza `activeAppCalendarId` al fitxer de configuració amb el `targetCalendarId` que s'acaba d'utilitzar.
 6.  **[Frontend]** El frontend gestiona la resposta:
     -   En cas d'èxit, actualitza les dades i mostra una notificació.
@@ -769,9 +789,9 @@ S'han implementat millores significatives a les funcions d'exportació del Centr
 
 La lògica d'exportació de les Fitxes de Bolo a PDF (`pdfGenerator.ts`) ha estat optimitzada per crear documents nets i rellevants:
 
--   **Omissió de Seccions Buides:** Les seccions completes (com 'Il·luminació', 'So', etc.) només apareixen al PDF si contenen alguna dada. Si una llista de necessitats està buida, la secció sencera no s'inclou.
--   **Gestió de Camps Condicionals:** Els camps que depenen d'un selector (com 'Vídeo' o 'Lloguers') només s'inclouen si estan marcats com a 'SI' i tenen informació addicional. Les opcions 'NO' o buides s'ometen.
--   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (p. ex., canviant de 'SI' a 'NO'), les dades associades s'esborren de l'estat, assegurant que el PDF reflecteixi sempre la informació visible.
+*   **Omissió de Seccions Condicionals:** Les seccions tècniques (com 'Il·luminació', 'So', etc.) només s'inclouen al PDF si estan explícitament marcades com a 'SI' al formulari. Les seccions marcades com a 'NO' o sense seleccionar s'ometen completament.
+*   **Gestió de Seccions Buides:** Si una secció està marcada com a 'SI' però no conté cap ítem a la seva llista de necessitats, el PDF renderitzarà el títol de la secció (i els detalls generals si n'hi ha), però la taula d'ítems estarà buida.
+*   **Consistència de Dades:** Per garantir la precisió, quan un camp condicional es desactiva al formulari (canviant de 'SI' a 'NO'), les dades associades (com la llista de necessitats) s'esborren automàticament de l'estat. Això assegura que el PDF reflecteixi sempre la informació visible al formulari.
 
 ### 5.6. Generació de Noms de Fitxer Intel·ligents
 
@@ -1083,13 +1103,13 @@ El projecte segueix una sèrie de bones pràctiques per garantir un codi segur, 
 -   **Superfície d'Atac Mínima: L'API exposada a través de preload.cjs es manté al mínim necessari, eliminant qualsevol funció o listener IPC que no estigui en ús per reduir possibles vectors d'atac.
 -   **Ús de Modals Interns per a Confirmacions**: Per evitar bugs de pèrdua de focus i mantenir una experiència d'usuari consistent, s'ha estandarditzat l'ús del sistema de modals interns de l'aplicació (`useModalStore`) en lloc de les funcions natives del navegador com `window.confirm()`. Qualsevol nova acció que requereixi confirmació de l'usuari ha d'implementar un modal a través d'aquest sistema.
 
-### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Reparació)
+### 5.9. Càrrega de Dades Resilient (Migració -> Validació -> Confirmació -> Reparació)
 
 Per garantir la màxima robustesa i evitar pèrdues de dades o bloquejos de l'aplicació a causa de fitxers de dades corruptes o amb formats antics, s'ha implementat un pipeline de càrrega de dades de diversos passos. Aquest sistema prioritza una experiència d'usuari ràpida per a dades vàlides (el "camí feliç") mentre proporciona una xarxa de seguretat per a dades que requereixen correccions.
 
 #### El Pipeline de Processament de Dades
 
-La lògica central resideix a l'acció `loadData` de l'store `useEventDataStore` i segueix aquesta seqüència:
+La lògica central es troba distribuïda entre l'acció `loadData` de l'store `useEventDataStore` i el component `App.tsx`, seguint aquesta seqüència:
 
 1.  **Migració (Sempre):**
     -   **Objectiu:** Assegurar que les dades, independentment de la seva versió original, tinguin sempre l'estructura de dades més recent definida a `types.ts`.
@@ -1098,7 +1118,7 @@ La lògica central resideix a l'acció `loadData` de l'store `useEventDataStore`
 
 2.  **Validació (Sempre):**
     -   **Objectiu:** Comprovar la integritat referencial de les dades ja migrades.
-    -   **Implementació:** Les dades migradas es passen a la funció `validateData` (`src/utils/dataIntegrity.ts`). Aquesta funció comprova, per exemple, que cada `assignment` apunti a un `eventFrameId` i a un `personGroupId` que realment existeixin a les llistes corresponents.
+    -   **Implementació:** Les dades migrades es passen a la funció `validateData` (`src/utils/dataIntegrity.ts`). Aquesta funció comprova, per exemple, que cada `assignment` apunti a un `eventFrameId` i a un `personGroupId` que realment existeixin a les llistes corresponents.
     -   **Resultat:** Retorna un objecte `{ isValid: boolean, errors: ValidationError[] }`.
 
 3.  **Decisió i Rutes Condicionals:**
@@ -1106,8 +1126,27 @@ La lògica central resideix a l'acció `loadData` de l'store `useEventDataStore`
         -   **Acció:** S'executa la funció `_applyDataToState`, que carrega les dades directament a l'estat de React.
         -   **Feedback:** Es mostra un missatge d'èxit simple i ràpid a l'usuari. El procés acaba aquí.
     -   **Cas B: Dades Invàlides (isValid: false)**
-        -   **Reparació:** Les dades i l'informe d'errors es passen a la funció `repairData` (`src/utils/dataIntegrity.ts`). Aquesta funció elimina els elements trencats (p. ex., les assignacions invàlides) i retorna les dades netes i un array de missatges explicant les correccions (`fixes`).
-        -   **Confirmació de l'Usuari:** S'obre el modal `ConfirmRepairModal.tsx`, mostrant la llista de `fixes` a l'usuari.
+        -   **Preparació:** Les dades i l'informe d'errors es desen a l'estat de l'aplicació (`dataRepairInfo`).
+        -   **Confirmació de l'Usuari:** Es mostra el component `ConfirmRepairModal` amb els detalls dels errors trobats. L'usuari pot:
+            -   **Cancel·lar:** Es descarten les dades i es carrega un document nou.
+            -   **Reparar i Continuar:** Es crida a `repairData` per a aplicar les correccions necessàries.
+
+4.  **Reparació (Només amb confirmació de l'usuari):**
+    -   **Ubicació:** `App.tsx` (quan l'usuari confirma la reparació al `ConfirmRepairModal`).
+    -   **Acció:** Es crida a `repairData` amb les dades i errors desats prèviament.
+    -   **Resultat:** Es retornen les dades netes i un llistat de correccions aplicades.
+    -   **Finalització:** Les dades reparades es carreguen a l'estat de l'aplicació.
+
+#### Punt Clau d'Arquitectura
+
+La reparació no és automàtica per disseny. La decisió sobre com procedir amb dades invàlides sempre recau en l'usuari, assegurant que sigui conscient de quines correccions s'aplicaran abans que es facin canvis a les seves dades. Això és especialment important en un entorn on les dades podrien ser crítiques i la pèrdua accidental d'informació ha de ser una decisió conscient.
+
+#### Components Clau
+
+-   **`eventDataStore.ts`:** Gestiona la migració i validació inicial.
+-   **`App.tsx`:** Gestiona la interfície d'usuari per a la confirmació de reparació.
+-   **`ConfirmRepairModal.tsx`:** Mostra els errors i permet a l'usuari decidir com procedir.
+-   **`dataIntegrity.ts`:** Conté la lògica de validació i reparació de dades.rant la llista de `fixes` a l'usuari.
         -   **Decisió Final:** L'usuari pot triar entre carregar la versió reparada o cancel·lar l'operació. Les dades només es carreguen si l'usuari dona el seu consentiment explícit.
 
 Aquest sistema garanteix que l'aplicació sigui extremadament resilient a errors de dades, alhora que manté una experiència fluida per a la majoria d'usuaris les dades dels quals són correctes.
@@ -1143,8 +1182,15 @@ S'ha restaurat l'acció "Mostrar a la Llista" i s'ha corregit una condició de c
 
 S'ha restaurat la capacitat d'exportar a PDF o CSV només els esdeveniments que coincideixen amb els filtres actius a la vista principal.
 
--   **Lògica:** La funcionalitat d'exportació, ubicada a `Controls.tsx`, utilitza un selector (`selectFilteredEventFrames`) per accedir a la llista filtrada directament des de l'store `useEventDataStore`.
--   **Implementació:** Quan l'usuari clica a "Exportar a PDF/CSV", `Controls.tsx` obté l'estat complet de l'store, el passa al selector per obtenir la llista filtrada, i finalment envia aquesta llista a les utilitats `pdfGenerator` o `csvUtils`. Si no hi ha cap filtre actiu, s'exporta la llista completa per defecte.
+-   **Ubicació:** La funcionalitat d'exportació es troba a la barra d'eines superior del component `MainDisplay.tsx`, dins de la secció "Llista d'Esdeveniments".
+-   **Lògica:** El component utilitza l'estat local `currentlyDisplayedFrames` per mantenir una referència als esdeveniments actualment visibles segons els filtres aplicats.
+-   **Implementació:** 
+    - Quan l'usuari clica a "Exportar a PDF" o "Exportar a CSV", `MainDisplay.tsx` utilitza la llista de marcs d'esdeveniments actualment mostrats (`currentlyDisplayedFrames`).
+    - Aquesta llista es passa a les funcions d'exportació a `pdfGenerator.ts` o `csvUtils.ts` segons correspongui.
+    - Si no hi ha cap filtre actiu, s'exporta automàticament la llista completa d'esdeveniments.
+-   **Integració amb Filtres:** La llista d'esdeveniments es manté sincronitzada amb els filtres actius gràcies a la funció `updateDisplayedFrames`, que s'executa cada vegada que canvien els filtres o l'ordre de classificació.
+-   **Experiència d'usuari:** La ubicació dels botons d'exportació a la barra d'eines principal, a prop dels controls de filtrat, permet una experiència més intuïtiva, ja que els usuaris poden veure exactament quins esdeveniments s'exportaran abans de fer-ho.
+-   **Consistència:** Aquest enfocament garanteix que el que l'usuari veu a la pantalla sigui exactament el que s'exporta, eliminant qualsevol confusió sobre quines dades s'inclouran a l'arxiu generat.
 
 ### 9.4. Avís de Conflictes en Assignacions
 
@@ -1152,8 +1198,8 @@ S'ha reimplementat i estandarditzat el diàleg modal que adverteix l'usuari quan
 
 -   **Arquitectura:** La detecció de conflictes es realitza a l'store (`useEventDataStore`). Si se'n troba un, es comunica a la UI a través d'un missatge de retorn amb un prefix especial.
 -   **Gestió a la UI:**
-    -   **`AssignmentFormModal.tsx`**: Gestiona els conflictes en crear o editar una assignació completa.
-    -   **`MainDisplay.tsx`**: S'ha corregit un error pel qual l'avís no apareixia en modificar l'estat d'una assignació directament des de la vista principal. Ara, els seus gestors també comproven el missatge de conflicte.
+    -   **`MainDisplay.tsx`**: Gestiona els conflictes quan es canvia l'estat d'una assignació directament des de la vista principal, utilitzant les funcions `handleGeneralStatusChange` i `handleDailyStatusChange`. Aquestes funcions comproven els conflictes abans d'aplicar els canvis.
+    -   **`AssignmentFormModal.tsx`**: Gestiona els conflictes en crear o editar una assignació completa a través del formulari.
     -   **Consistència:** Ambdós components utilitzen el mateix modal de confirmació (`ConfirmDuplicateModal`) per oferir una experiència d'usuari unificada.
 
 ### 9.5. Barra de Progrés Detallada per a la Sincronització
@@ -1285,33 +1331,57 @@ El gestor d'estat (`dataStore.ts`) ha estat ampliat per donar suport a totes les
 -   **Estat de l'Esdeveniment:** S'ha afegit la propietat `status` ('pending' o 'completed') a l'objecte `EventFrame`. La UI ho reflecteix amb un indicador visual i permet la seva edició al formulari.
 -   **Seccions Col·lapsables:** La pantalla de Materials ara permet expandir i contraure les categories per a una millor organització.
 
-### 10.6. Arquitectura i Gestió de Fitxers amb `expo-sharing`
+### 10.6. Arquitectura i Gestió de Fitxers Mòbils
 
-Després d'una anàlisi de les limitacions del sistema de fitxers d'Android, s'ha confirmat que no és possible sobreescriure directament un fitxer obert des d'un proveïdor de núvol (com Google Drive) sense utilitzar APIs natives. Per solucionar-ho, l'arquitectura de desat s'ha redissenyat per utilitzar un flux de "Desar Com a" cada vegada, implementat amb la llibreria `expo-sharing`.
+#### Problema de Fons
 
-1.  **Capa de Presentació (UI):**
-    -   **`HomeScreen.tsx`**: La interfície s'ha simplificat. Ara només hi ha un botó "Desar", que sempre activa el flux de "Desar Com a". Aquest botó està desactivat si no hi ha canvis pendents (`hasUnsavedChanges` és `false`). S'ha eliminat el botó "Desar Com a" per evitar redundància.
+Les aplicacions a Android, a causa de les restriccions de seguretat (scoped storage), no poden sobreescriure directament un fitxer que l'usuari ha obert des d'un servei al núvol com Google Drive. Les intents d'accés directe a la URI original per escriure-hi fallen o creen duplicats no desitjats.
 
-2.  **Capa d'Estat (Gestió de Dades):**
-    -   **Store Central (`src/stores/dataStore.ts`):** L'store s'ha simplificat significativament.
-        -   S'ha **eliminat** l'estat `fileUri`. Ja no es guarda cap URI persistent, ja que cada operació de desat és independent.
-        -   Només es conserva `fileName` per utilitzar-lo com a nom de fitxer suggerit.
-        -   L'acció `saveData` ara construeix l'objecte de dades, el converteix a un string JSON i crida al nou mètode `fileService.saveFileAs`, passant-li el contingut i el nom del fitxer. Després, restableix `hasUnsavedChanges` a `false`.
-        -   L'acció `createFile` ha estat eliminada.
+#### Solució Implementada
 
-3.  **Capa de Serveis (Accés a Dades amb `expo-sharing`):**
-    -   **Abstracció (`src/services/fileService.ts`):** La interfície `IFileService` ara defineix només dos mètodes: `openFile` i `saveFileAs`.
-    -   **Implementació (`src/services/SAFFileService.ts`):**
-        -   El mètode `saveFile` ha estat eliminat.
-        -   El mètode `createFile` ha estat reanomenat a `saveFileAs` i la seva lògica s'ha reescrit completament:
-            1. Accepta el contingut de les dades (com a string JSON) i un nom de fitxer suggerit.
-            2. Crea un fitxer temporal al directori de cau de l'aplicació (`FileSystem.cacheDirectory`).
-            3. Escriu el contingut JSON en aquest fitxer temporal.
-            4. Invoca `Sharing.shareAsync()` amb la URI del fitxer temporal. Això obre el full d'accions natiu del sistema operatiu ("Compartir", "Desar a Fitxers", "Enviar a Drive"), permetent exportar les dades fora de la sandbox de l'aplicació.
-         -   Aquest mètode ja no retorna cap URI, ja que el control passa a l'usuari.
-        
+S'han implementat dos mètodes complementaris per gestionar el desat de fitxers, cadascú amb el seu propi cas d'ús:
 
-Aquest nou flux de treball és més robust i compatible amb les restriccions d'Android, garantint una experiència d'usuari previsible: cada vegada que es desa, l'usuari ha de seleccionar la ubicació i confirmar l'acció manualment.
+1. **Mètode "Desar a..." (content-save-all-outline)**
+   - **Flux**:
+     1. Obre el gestor de fitxers natiu
+     2. Permet a l'usuari seleccionar una ubicació i nom de fitxer
+     3. Desa una còpia nova del document a la ubicació seleccionada
+   - **Cas d'ús principal**: Desar una còpia nova del document en una ubicació específica (emmagatzematge local, targeta SD, etc.)
+
+2. **Mètode "Compartir" (share-variant) [RECOMANAT PER A NÚVOL]**
+   - **Tecnologia**: Utilitza la llibreria `expo-sharing`
+   - **Flux**:
+     1. Desa les dades actualitzades en un fitxer temporal a la memòria cau de l'aplicació
+     2. Invoca `Sharing.shareAsync()` amb la ruta del fitxer temporal
+     3. Mostra el menú "Compartir" del sistema
+     4. L'usuari selecciona l'aplicació de núvol (p. ex., "Pujar a Drive")
+     5. A l'aplicació de destí, l'usuari ha de navegar i seleccionar l'opció de sobreescriure el fitxer original
+   - **Cas d'ús principal**: Actualitzar fitxers en serveis al núvol (Google Drive, Dropbox, etc.)
+
+#### Implementació Tècnica
+
+1. **Capa de Presentació (UI)**
+   - **`CustomHeader.tsx`**: Conté els dos botons d'acció principals
+     - "Desar a..." (content-save-all-outline) - Per a desar còpies noves
+     - "Compartir" (share-variant) - Per a actualitzar fitxers al núvol
+
+2. **Capa d'Estat (Gestió de Dades)**
+   - **`src/stores/dataStore.ts`**:
+     - Gestiona l'estat de les dades de l'aplicació
+     - Manté el nom del fitxer actual i l'estat dels canvis no desats
+     - Proporciona accions per a `saveFileAs()` i `shareFile()`
+
+3. **Capa de Serveis**
+   - **`src/services/SAFFileService.ts`**:
+     - `saveFileAs()`: Utilitza `FileSystem.StorageAccessFramework` per permetre a l'usuari desar el fitxer en una ubicació específica del dispositiu. Crea una còpia nova del document.
+     - `shareFile()`: Crea un fitxer temporal a la memòria cau i obre el diàleg de compartir del sistema. És el mètode recomanat per actualitzar fitxers en serveis al núvol.
+     - **Nota important**: No hi ha cap mètode `createFile`. La funcionalitat de crear nous fitxers es gestiona a través d'aquests dos mètodes segons el cas d'ús específic.
+
+#### Recomanacions d'Ús
+
+- Per actualitzar fitxers en serveis al núvol, sempre s'hauria d'utilitzar el botó **"Compartir"**
+- El botó **"Desar a..."** s'hauria d'utilitzar principalment per a desar còpies locals o en ubicacions específiques
+- El sistema està dissenyat per funcionar sense mantenir cap URI persistent dels fitxers, la qual cosa el fa més robust davant els canvis en els permisos d'emmagatzematge
 
 4.  **Capa de Tipus (Model de Dades):**
     -   **Tipus Compartits (`src/types/index.ts`):** Aquest fitxer conté les definicions de tipus de TypeScript (`AppData`, `EventFrame`, `PersonGroup`, etc.). És una còpia directa del `types.ts` de l'aplicació d'escriptori, garantint que ambdues aplicacions comparteixin el mateix "llenguatge" de dades i puguin interoperar de manera consistent.

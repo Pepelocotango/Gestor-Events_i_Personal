@@ -12,13 +12,15 @@ L'aplicació ha estat dissenyada amb un enfocament **100% local**. Això signifi
 *   Les dades **mai surten del teu dispositiu**, tret que tu decideixis explícitament desar el fitxer de dades en una ubicació de xarxa o un servei al núvol (com Google Drive o Dropbox).
 *   **L'autor de l'aplicació (Pëp) no té, ni pot tenir, cap accés a la teva informació.**
 
-### 2. Dades de l'Aplicació (Fitxer `.json`)
+### 2. Dades de l'Aplicació (Fitxers de Dades)
 
-Quan utilitzes l'aplicació, totes les teves dades de treball (esdeveniments, contactes) s'emmagatzemen en un fitxer amb format `.json`.
+Quan utilitzes l'aplicació, totes les teves dades de treball (esdeveniments, contactes) s'emmagatzemen en un fitxer amb format `.gep` per defecte. L'aplicació també manté compatibilitat amb l'obertura i desat de fitxers en format `.json`.
 
-*   **Ubicació:** Tu, com a usuari, tries on desar aquest fitxer. Pot ser a qualsevol carpeta del teu ordinador.
-*   **Format:** Aquest fitxer s'emmagatzema en **text pla**. Això vol dir que no està xifrat. Qualsevol persona amb accés a aquest fitxer podria llegir-ne el contingut.
-*   **Responsabilitat:** La seguretat d'aquest fitxer `.json` és la teva responsabilitat. Et recomanem que el guardis en una ubicació segura i protegida, com una carpeta xifrada o un directori protegit per contrasenya si el teu sistema operatiu ho permet.
+*   **Format Predeterminat (.gep):** A partir de la versió 1.5.0, l'aplicació utilitza el format natiu `.gep` per desar les teves dades. Aquest format és idèntic en contingut al format `.json` però amb una extensió específica que facilita la identificació dels fitxers de l'aplicació.
+*   **Compatibilitat amb .json:** L'aplicació pot obrir i desar fitxers en format `.json` per mantenir la compatibilitat amb versions anteriors o amb altres eines.
+*   **Ubicació:** Tu, com a usuari, tries on desar aquests fitxers. Poden estar a qualsevol carpeta del teu ordinador.
+*   **Format de dades:** Aquests fitxers s'emmagatzemen en **text pla**. Això vol dir que no estan xifrats. Qualsevol persona amb accés a aquests fitxers podria llegir-ne el contingut.
+*   **Responsabilitat:** La seguretat d'aquests fitxers de dades és la teva responsabilitat. Et recomanem que els guardis en una ubicació segura i protegida, com una carpeta xifrada o un directori protegit per contrasenya si el teu sistema operatiu ho permet.
 
 ### 3. Fitxers de Configuració Locals
 
@@ -77,13 +79,15 @@ The application has been designed with a **100% local-first** approach. This mea
 *   The data **never leaves your device** unless you explicitly choose to save the data file in a network location or a cloud service (like Google Drive or Dropbox).
 *   **The application's author (Pëp) does not have, and cannot have, any access to your information.**
 
-### 2. Application Data (`.json` File)
+### 2. Application Data (`.gep` and `.json` Files)
 
-When you use the application, all your work data (events, contacts) is stored in a file with the `.json` format.
+When you use the application, all your work data (events, contacts) is stored by default in a file with a `.gep` format. The application also maintains compatibility with opening and saving files in `.json` format.
 
-*   **Location:** You, as the user, choose where to save this file. It can be in any folder on your computer.
-*   **Format:** This file is stored in **plain text**. This means it is not encrypted. Anyone with access to this file could read its contents.
-*   **Responsibility:** The security of this `.json` file is your responsibility. We recommend that you store it in a safe and protected location, such as an encrypted folder or a password-protected directory if your operating system allows it.
+*   **Default Format (.gep):** Starting from version 1.5.0, the application uses the native `.gep` format to save your data. This format is identical in content to the `.json` format but with a specific extension that makes it easier to identify the application's data files.
+*   **JSON Compatibility:** The application can open and save files in `.json` format to maintain compatibility with previous versions or other tools.
+*   **Location:** You, as the user, choose where to save these files. They can be in any folder on your computer.
+*   **Data Format:** These files are stored in **plain text**. This means they are not encrypted. Anyone with access to these files could read their contents.
+*   **Responsibility:** The security of these data files is your responsibility. We recommend storing them in a secure and protected location, such as an encrypted folder or a password-protected directory if your operating system allows it.
 
 ### 3. Local Configuration Files
 
