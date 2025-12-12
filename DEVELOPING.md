@@ -180,7 +180,7 @@ Per facilitar la depuració i mantenir uns registres nets en producció, l'aplic
 -   **Integració Transparent:** `electron-log` sobreescriu automàticament els mètodes de `console` (`log`, `error`, etc.). Això permet que les crides de log des del frontend siguin capturades pel backend i escrites al fitxer de log sense necessitat de cap canal IPC personalitzat.
 -   **Accés per a l'Usuari:** S'ha afegit una opció de menú ("Ajuda -> Obrir Carpeta de Logs") que obre directament el directori on es desen els fitxers de log, facilitant a l'usuari final l'enviament de registres per a la depuració.
 -   **Rotació per Mida:** En lloc de crear un fitxer nou a cada sessió, ara s'utilitza un fitxer principal (`main.log`). Quan aquest fitxer arriba a 1MB, es reanomena amb un timestamp (p. ex., `main.163...log`) i se'n crea un de nou.
--   **Retenció Automàtica:** El sistema conserva un màxim de 10 fitxers de log (1 actiu i 9 arxivats), eliminant automàticament els més antics per optimitzar l'ús de disc.
+-   **Retenció Automàtica:** El sistema conserva un màxim de 6 fitxers de log (1 actiu i 5 arxivats), eliminant automàticament els més antics per optimitzar l'ús de disc.
 
 #### Còpies de Seguretat Contextuals i Dinàmiques (Backups)
 
