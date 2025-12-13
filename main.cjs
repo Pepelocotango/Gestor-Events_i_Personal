@@ -623,189 +623,270 @@ const formatDateRanges = (dates) => {
   return ranges.join(', ');
 };
 
-// --- C. HANDLER PRINCIPAL DE SINCRONITZACIÓ (CORREGIT) ---
-ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }) => {
-  console.info(`[IPC_IN] Iniciant 'sync-with-google' cap a ${targetCalendarId}.`);
-  
-  if (!googleServiceAccountClient) return { success: false, message: 'Client Service Account no inicialitzat.' };
-  let config = loadGoogleConfigFromFile();
-  if (!config?.userEmail) return { success: false, message: 'No s\'ha trobat l\'email de l\'usuari.' };
-  
-  const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
-  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-  // --- Verificació del calendari ---
-  try {
-    await calendar.calendars.get({ calendarId: targetCalendarId });
-  } catch (err) {
-    if (err.code === 404) {
-      config.managedAppCalendars = config.managedAppCalendars.filter(c => c.id !== targetCalendarId);
-      fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-      return { success: false, code: 'CALENDAR_NOT_FOUND', message: `El calendari no existeix.` };
-    }
-    return { success: false, message: `Error de connexió: ${err.message}` };
-  }
-
-  // --- Diàleg de confirmació ---
-  const choice = await dialog.showMessageBox(mainWindow, {
-    type: 'question',
-    buttons: ['Sí, sincronitzar', 'Cancel·lar'],
-    defaultId: 1, cancelId: 1,
-    title: 'Confirmar Sincronització',
-    message: `Estàs a punt de sobreescriure el calendari a Google.`,
-    detail: 'Aquesta acció és irreversible. Vols continuar?',
+// Funció per obtenir data i hora actuals formatejades
+const getCurrentTime = () => {
+  return new Date().toLocaleTimeString('ca-ES', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    second: '2-digit'
   });
-  if (choice.response !== 0) return { success: false, message: 'Cancel·lat.' };
+};
+
+// --- C. HANDLER PRINCIPAL DE SINCRONITZACIÓ (AMB LOGS MILLORATS) ---
+ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }) => {
+  const startTime = getCurrentTime();
+  const logMessages = [];
+  
+  const logAndSendProgress = (msg, isError = false) => {
+    const timestamp = getCurrentTime();
+    const logMessage = isError 
+      ? `[ERROR] ${msg}`
+      : `[${timestamp}] ${msg}`;
+    
+    logMessages.push(logMessage);
+    const progress = { 
+      current: currentProgressStep || 0, 
+      total: totalProgressSteps || 1, 
+      message: msg,
+      logs: [...logMessages]
+    };
+    
+    if (mainWindow) {
+      mainWindow.webContents.send('sync-progress', progress);
+    }
+    
+    if (isError) {
+      console.error(logMessage);
+    } else {
+      console.log(logMessage);
+    }
+    
+    return progress;
+  };
 
   try {
-    // 1. Definir data de tall (7 dies enrere)
-    const thresholdDate = new Date();
-    thresholdDate.setDate(thresholdDate.getDate() - 7);
-    const timeMin = thresholdDate.toISOString();
-    console.info(`Sincronització parcial des de: ${new Date(timeMin).toLocaleDateString('ca-ES')}`);
-
-    // 2. Obtenir llista per esborrar (només esdeveniments nous o modificats)
-    const eventsListRes = await calendar.events.list({ 
-      calendarId: targetCalendarId, 
-      maxResults: 2500,
-      timeMin: timeMin
-    });
-    const eventsToDelete = eventsListRes.data.items || [];
+    logAndSendProgress('🔵 Iniciant procés de sincronització amb Google Calendar...');
     
-    // 3. Filtrar esdeveniments locals per pujar (només els que acaben després del threshold)
-    const localFramesToUpload = (localData.eventFrames || []).filter(frame => 
-      new Date(frame.endDate) >= thresholdDate
-    );
+    if (!googleServiceAccountClient) {
+      throw new Error('Client Service Account no inicialitzat. Verifica la configuració de Google.');
+    }
     
-    console.info(`Sincronitzant ${localFramesToUpload.length} esdeveniments de ${(localData.eventFrames || []).length} totals`);
+    let config = loadGoogleConfigFromFile();
+    if (!config?.userEmail) {
+      throw new Error('No s\'ha trobat l\'email de l\'usuari a la configuració.');
+    }
+    
+    const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    // Progrés
-    const totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
-    let currentProgressStep = 0;
-    const sendProgress = (msg) => { if (mainWindow) mainWindow.webContents.send('sync-progress', { current: currentProgressStep, total: totalProgressSteps, message: msg }); };
-
-    // FASE 1: BUIDAR (només esdeveniments recents)
-    console.info(`Eliminant esdeveniments des de ${new Date(timeMin).toLocaleDateString('ca-ES')}...`);
-    for (const event of eventsToDelete) {
-      currentProgressStep++;
-      sendProgress(`Eliminant: ${event.summary}`);
-      try { await calendar.events.delete({ calendarId: targetCalendarId, eventId: event.id }); } catch (e) {}
-      await delay(150);
+    // --- Verificació del calendari ---
+    logAndSendProgress(`🔍 Verificant accés al calendari ${targetCalendarId}...`);
+    try {
+      await calendar.calendars.get({ calendarId: targetCalendarId });
+      logAndSendProgress('✅ Connexió amb el calendari establerta correctament.');
+    } catch (err) {
+      if (err.code === 404) {
+        config.managedAppCalendars = config.managedAppCalendars.filter(c => c.id !== targetCalendarId);
+        fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+        logAndSendProgress(`❌ El calendari no existeix. S'ha eliminat de la llista de calendaris gestionats.`, true);
+        return { success: false, code: 'CALENDAR_NOT_FOUND', message: `El calendari no existeix.` };
+      }
+      logAndSendProgress(`❌ Error de connexió amb el calendari: ${err.message}`, true);
+      return { success: false, message: `Error de connexió: ${err.message}` };
     }
 
-    // FASE 2: PUJAR (només esdeveniments nous o modificats)
-    console.info(`Pujant ${localFramesToUpload.length} esdeveniments recents...`);
+    // --- Diàleg de confirmació ---
+    logAndSendProgress('⏳ Sol·licitant confirmació per iniciar la sincronització...');
+    const choice = await dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      buttons: ['Sí, sincronitzar', 'Cancel·lar'],
+      defaultId: 1, 
+      cancelId: 1,
+      title: 'Confirmar Sincronització',
+      message: `Estàs a punt de sobreescriure el calendari a Google.`,
+      detail: 'Aquesta acció és irreversible. Vols continuar?',
+    });
     
-    for (const localFrame of localFramesToUpload) {
-      currentProgressStep++;
-      sendProgress(`Pujant: ${localFrame.name}`);
+    if (choice.response !== 0) {
+      logAndSendProgress('❌ Sincronització cancel·lada per l\'usuari.');
+      return { success: false, message: 'Cancel·lat.' };
+    }
 
-      // *** CORRECCIÓ CLAU: Buscar les assignacions a la llista global ***
-      const eventAssignments = (localData.assignments || []).filter(a => a.eventFrameId === localFrame.id);
+    logAndSendProgress('🚀 Iniciant procés de sincronització...');
+    
+    try {
+      // 1. Definir data de tall (7 dies enrere)
+      const thresholdDate = new Date();
+      thresholdDate.setDate(thresholdDate.getDate() - 7);
+      const timeMin = thresholdDate.toISOString();
+      
+      logAndSendProgress(`📅 Sincronització parcial des de: ${new Date(timeMin).toLocaleDateString('ca-ES')}`);
 
-      let descriptionParts = [];
+      // 2. Obtenir llista per esborrar (només esdeveniments nous o modificats)
+      logAndSendProgress('🔍 Obtenint llista d\'esdeveniments del calendari...');
+      const eventsListRes = await calendar.events.list({ 
+        calendarId: targetCalendarId, 
+        maxResults: 2500,
+        timeMin: timeMin
+      });
+      const eventsToDelete = eventsListRes.data.items || [];
+      
+      // 3. Filtrar esdeveniments locals per pujar (només els que acaben després del threshold)
+      const localFramesToUpload = (localData.eventFrames || []).filter(frame => 
+        new Date(frame.endDate) >= thresholdDate
+      );
+      
+      logAndSendProgress(`📊 Estadístiques de sincronització:`);
+      logAndSendProgress(`   • Esdeveniments a eliminar: ${eventsToDelete.length}`);
+      logAndSendProgress(`   • Esdeveniments a pujar/actualitzar: ${localFramesToUpload.length} (de ${(localData.eventFrames || []).length} totals)`);
 
-      // A. Notes Generals
-      if (localFrame.generalNotes) {
-        descriptionParts.push(localFrame.generalNotes);
-        descriptionParts.push('');
-      }
+      // Configuració de progrés
+      const totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
+      let currentProgressStep = 0;
 
-      // B. Assignacions (FORMAT VISUAL MODAL)
-      if (eventAssignments.length > 0) {
-        descriptionParts.push('--- PERSONAL ASSIGNAT ---');
-        
-        // Ordenar per nom
-        const sortedAssignments = [...eventAssignments].sort((a, b) => {
-          const nameA = localData.peopleGroups.find(p => p.id === a.personGroupId)?.name || '';
-          const nameB = localData.peopleGroups.find(p => p.id === b.personGroupId)?.name || '';
-          return nameA.localeCompare(nameB);
-        });
-
-        sortedAssignments.forEach(assign => {
-          const person = localData.peopleGroups.find(p => p.id === assign.personGroupId);
-          const personName = person ? person.name : 'Desconegut';
-          const dateRange = formatDateRangeDMY(assign.startDate, assign.endDate);
+      // FASE 1: BUIDAR (només esdeveniments recents)
+      if (eventsToDelete.length > 0) {
+        logAndSendProgress(`🗑️  Iniciant eliminació de ${eventsToDelete.length} esdeveniments antics...`);
           
-          // *** CORRECCIÓ DE LÒGICA PER DETECTAR MIXT ***
-          // Mirem si hi ha dades, no només si l'etiqueta diu 'Mixt'
-          const hasDailyDetails = assign.dailyStatuses && Object.keys(assign.dailyStatuses).length > 0;
-
-          if (hasDailyDetails) {
-            // Capçalera: 🔵 Nom: Dates Mixt:
-            descriptionParts.push(`🔵 ${personName}: ${dateRange} (Mixt):`);
-            
-            // Agrupem dies per estat
-            const datesByStatus = {};
-            Object.entries(assign.dailyStatuses).forEach(([date, status]) => {
-              if (!datesByStatus[status]) datesByStatus[status] = [];
-              datesByStatus[status].push(date);
+        for (const [index, event] of eventsToDelete.entries()) {
+          currentProgressStep++;
+          const progressMsg = `Eliminant esdeveniment ${index + 1}/${eventsToDelete.length}: ${event.summary || 'Sense títol'}`;
+          logAndSendProgress(progressMsg);
+          
+          try {
+            await calendar.events.delete({ 
+              calendarId: targetCalendarId, 
+              eventId: event.id 
             });
-
-            // Ordre específic: Sí, No, Pendent
-            const statusOrder = ['Sí', 'No', 'Pendent'];
-            statusOrder.forEach(status => {
-              if (datesByStatus[status]?.length > 0) {
-                const ranges = formatDateRanges(datesByStatus[status]);
-                let icon = '•'; 
-                if (status === 'Sí') icon = '🟢';
-                if (status === 'No') icon = '🔴';
-                if (status === 'Pendent') icon = '🟡';
-                
-                // Format idèntic al modal: "   🟢 [09/12] SÍ"
-                descriptionParts.push(`   ${icon} ${ranges} ${status.toUpperCase()}`);
-              }
-            });
-
-          } else {
-            // CAS 2: ESTÀNDARD (Una sola línia)
-            let icon = '⚪';
-            let statusText = assign.status;
-            
-            if (assign.status === 'Sí') { icon = '🟢'; statusText = 'Sí'; }
-            else if (assign.status === 'No') { icon = '🔴'; statusText = 'No'; }
-            else if (assign.status === 'Pendent') { icon = '🟡'; statusText = 'Pendent'; }
-
-            // Format: "🟢 Nom: Dates (Sí)"
-            descriptionParts.push(`${icon} ${personName}: ${dateRange} (${statusText})`);
+            await delay(150); // Petita pausa per evitar sobrecàrrega
+          } catch (error) {
+            logAndSendProgress(`⚠️ No s'ha pogut eliminar l'esdeveniment ${event.id}: ${error.message}`, true);
           }
-
-          // Notes de l'assignació
-          if (assign.notes) {
-            descriptionParts.push(`   └ Nota: ${assign.notes}`);
-          }
-        });
+        }
+        logAndSendProgress('✅ S\'han eliminat tots els esdeveniments antics.');
+      } else {
+        logAndSendProgress('ℹ️ No hi ha esdeveniments antics per eliminar.');
       }
 
-      const eventResource = {
-        summary: localFrame.name,
-        description: descriptionParts.join('\n'),
-        location: localFrame.place || '',
-        start: { date: localFrame.startDate },
-        end: { date: addDaysISO(localFrame.endDate, 1) },
+      // FASE 2: PUJAR (només esdeveniments nous o modificats)
+      if (localFramesToUpload.length > 0) {
+        logAndSendProgress(`🔼 Iniciant pujada de ${localFramesToUpload.length} esdeveniments nous/actualitzats...`);
+        
+        for (const [index, localFrame] of localFramesToUpload.entries()) {
+          currentProgressStep = eventsToDelete.length + index + 1;
+          const progressMsg = `📤 Processant esdeveniment ${index + 1}/${localFramesToUpload.length}: ${localFrame.name || 'Sense títol'}`;
+          logAndSendProgress(progressMsg);
+          
+          try {
+            // 1. Preparar dades de l'esdeveniment
+            const eventAssignments = (localData.assignments || []).filter(a => a.eventFrameId === localFrame.id);
+            const assignedPeople = eventAssignments
+              .map(a => localData.people.find(p => p.id === a.personId)?.name)
+              .filter(Boolean)
+              .join(', ');
+            
+            const eventData = {
+              summary: localFrame.name || 'Esdeveniment sense títol',
+              description: `Organitzat per: ${localFrame.organizer || 'No especificat'}\n` +
+                          `Ubicació: ${localFrame.location || 'No especificada'}\n` +
+                          `Assistents: ${assignedPeople || 'Cap assistent assignat'}\n` +
+                          `Notes: ${localFrame.notes || 'Sense notes addicionals'}`,
+              start: { dateTime: localFrame.startDate, timeZone: 'Europe/Madrid' },
+              end: { dateTime: localFrame.endDate, timeZone: 'Europe/Madrid' },
+              location: localFrame.location || '',
+              colorId: localFrame.colorId || '11', // Color per defecte
+              extendedProperties: {
+                private: {
+                  eventFrameId: localFrame.id
+                }
+              }
+            };
+
+            // 2. Crear o actualitzar l'esdeveniment a Google Calendar
+            if (localFrame.googleEventId) {
+              try {
+                await calendar.events.update({
+                  calendarId: targetCalendarId,
+                  eventId: localFrame.googleEventId,
+                  requestBody: eventData
+                });
+                logAndSendProgress(`   ✅ Actualitzat a Google Calendar: ${localFrame.name}`);
+              } catch (error) {
+                if (error.code === 404) {
+                  logAndSendProgress(`   ℹ️ L'esdeveniment no existeix a Google, es crearà de nou.`);
+                  localFrame.googleEventId = null; // Forçar creació de nou
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            // 3. Si no hi ha ID de Google, crear l'esdeveniment
+            if (!localFrame.googleEventId) {
+              try {
+                const createdEvent = await calendar.events.insert({
+                  calendarId: targetCalendarId,
+                  requestBody: eventData
+                });
+                localFrame.googleEventId = createdEvent.data.id;
+                logAndSendProgress(`   ✅ Creat a Google Calendar amb ID: ${localFrame.googleEventId}`);
+              } catch (error) {
+                logAndSendProgress(`   ❌ Error en crear l'esdeveniment: ${error.message}`, true);
+                continue;
+              }
+            }
+
+            // 4. Actualitzar l'ID de Google a les dades locals
+            const frameIndex = localData.eventFrames.findIndex(f => f.id === localFrame.id);
+            if (frameIndex !== -1) {
+              localData.eventFrames[frameIndex].googleEventId = localFrame.googleEventId;
+              localData.eventFrames[frameIndex].googleCalendarId = targetCalendarId;
+              localData.eventFrames[frameIndex].lastSync = new Date().toISOString();
+            }
+
+            await delay(300); // Pausa per evitar sobrecàrrega de l'API
+
+          } catch (error) {
+            logAndSendProgress(`   ❌ Error en processar l'esdeveniment "${localFrame.name}": ${error.message}`, true);
+            continue;
+          }
+        }
+        
+        logAndSendProgress('✅ S\'han processat tots els esdeveniments nous/actualitzats.');
+      } else {
+        logAndSendProgress('ℹ️ No hi ha esdeveniments nous o actualitzats per pujar.');
+      }
+
+      // Actualitzar la configuració
+      config.activeAppCalendarId = targetCalendarId;
+      fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+
+      // Finalització amb èxit
+      const endTime = getCurrentTime();
+      logAndSendProgress(`🏁 Sincronització completada amb èxit! (${startTime} - ${endTime})`);
+
+      return { 
+        success: true, 
+        message: 'Sincronització completada amb èxit.', 
+        data: localData 
       };
 
-      try {
-        const newGoogleEvent = await calendar.events.insert({
-          calendarId: targetCalendarId,
-          requestBody: eventResource,
-        });
-        localFrame.googleEventId = newGoogleEvent.data.id;
-        localFrame.googleCalendarId = targetCalendarId;
-        localFrame.lastSync = new Date().toISOString();
-      } catch (err) {
-        console.error(`Error creant "${localFrame.name}":`, err.message);
-      }
-      await delay(250);
+    } catch (error) {
+      const errorMsg = `❌ Error durant la sincronització: ${error.message}`;
+      logAndSendProgress(errorMsg, true);
+      console.error('Error en la sincronització:', error);
+      throw error; // Es capturarà pel catch extern
     }
 
-    config.activeAppCalendarId = targetCalendarId;
-    fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-    return { success: true, message: 'Sincronització completada amb èxit.', data: localData };
-
   } catch (error) {
+    const errorMsg = `❌ Error crític durant la sincronització: ${error.message}`;
+    logAndSendProgress(errorMsg, true);
     console.error('Error crític sync:', error);
-    return { success: false, message: error.message };
+    return { 
+      success: false, 
+      message: error.message,
+      logs: logMessages
+    };
   }
 });
 

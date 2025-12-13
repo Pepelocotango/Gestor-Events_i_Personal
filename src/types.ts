@@ -315,6 +315,7 @@ export interface SyncProgressState {
   total: number;
   message: string;
   visible: boolean;
+  logs: string[];
 }
 
 export interface EventDataConteImplicits {

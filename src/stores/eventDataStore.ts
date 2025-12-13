@@ -143,7 +143,13 @@ const initialState: EventDataState = {
     hasUnsavedChanges: false,
     isSyncing: false,
     isUpdatingMaterial: false,
-    syncProgress: { current: 0, total: 0, message: '', visible: false },
+    syncProgress: {
+      current: 0,
+      total: 0,
+      message: '',
+      visible: false,
+      logs: [],
+    },
     dataRepairInfo: null,
     filterUIEventFrame: null,
     highlightedEventId: null,
@@ -217,7 +223,14 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             filterUIEventFrame: null,
             highlightedEventId: null
         }),
-        setSyncProgress: (progress: SyncProgressState) => set({ syncProgress: progress }),
+        setSyncProgress: (progress: SyncProgressState) => set((state) => ({
+          syncProgress: {
+            ...progress,
+            logs: progress.message && progress.message !== state.syncProgress.message
+              ? [...(state.syncProgress.logs || []), progress.message]
+              : state.syncProgress.logs || []
+          }
+        })),
         showAndHighlightEvent: (eventId: string) => {
             logger.info(`[eventDataStore] showAndHighlightEvent called for ID: ${eventId}`);
             const newManualExpandedFrameIds = new Set(get().manualExpandedFrameIds);
@@ -762,7 +775,16 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         const { exportData, loadData, refreshGoogleEvents } = get();
         let finalResult: any = { success: false, message: 'La sincronització no es va completar.', type: 'error' };
 
-        set({ isSyncing: true, syncProgress: { current: 0, total: 0, message: 'Iniciant...', visible: true } });
+        set({ 
+          isSyncing: true, 
+          syncProgress: { 
+            current: 0, 
+            total: 0, 
+            message: 'Iniciant...', 
+            visible: true, 
+            logs: ['[INFO] Iniciant procés de sincronització...'] 
+          } 
+        });
 
         if (window.electronAPI) {
           const localData = await exportData();
