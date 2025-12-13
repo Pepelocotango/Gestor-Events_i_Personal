@@ -223,14 +223,9 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             filterUIEventFrame: null,
             highlightedEventId: null
         }),
-        setSyncProgress: (progress: SyncProgressState) => set((state) => ({
-          syncProgress: {
-            ...progress,
-            logs: progress.message && progress.message !== state.syncProgress.message
-              ? [...(state.syncProgress.logs || []), progress.message]
-              : state.syncProgress.logs || []
-          }
-        })),
+        setSyncProgress: (progress: SyncProgressState) => set({ 
+    syncProgress: progress // Confiem directament en el que envia el backend
+}),
         showAndHighlightEvent: (eventId: string) => {
             logger.info(`[eventDataStore] showAndHighlightEvent called for ID: ${eventId}`);
             const newManualExpandedFrameIds = new Set(get().manualExpandedFrameIds);

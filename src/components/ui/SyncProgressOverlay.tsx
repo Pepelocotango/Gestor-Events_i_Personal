@@ -56,7 +56,6 @@ const SyncProgressOverlay: React.FC<SyncProgressOverlayProps> = ({ progress }) =
         <div className="mt-4 bg-black/90 text-green-400 font-mono text-xs p-3 h-48 overflow-y-auto rounded border border-zinc-800 shadow-inner">
           {progress.logs.map((log, index) => (
             <div key={index} className="mb-1 border-b border-zinc-900/50 pb-1 last:border-0">
-              <span className="text-zinc-500">[{new Date().toLocaleTimeString()}]</span>{' '}
               <span className={log.includes('[ERROR]') ? 'text-red-400' : 'text-emerald-400'}>
                 {log}
               </span>
