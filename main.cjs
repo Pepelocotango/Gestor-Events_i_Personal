@@ -780,23 +780,26 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
           logAndSendProgress(progressMsg);
           
           try {
-            // 1. Preparar dades de l'esdeveniment
+            // 1. Preparar dades de l'esdeveniment (CORREGIT)
+            // Filtrem les assignacions per aquest esdeveniment
             const eventAssignments = (localData.assignments || []).filter(a => a.eventFrameId === localFrame.id);
+            
+            // Obtenim els noms utilitzant les propietats correctes (peopleGroups i personGroupId)
             const assignedPeople = eventAssignments
-              .map(a => localData.people.find(p => p.id === a.personId)?.name)
+              .map(a => localData.peopleGroups.find(p => p.id === a.personGroupId)?.name)
               .filter(Boolean)
               .join(', ');
             
+            // Construïm l'objecte per a Google amb el format de data correcte (YYYY-MM-DD)
+            // Utilitzem 'date' en lloc de 'dateTime' per a esdeveniments de dia complet
             const eventData = {
               summary: localFrame.name || 'Esdeveniment sense títol',
-              description: `Organitzat per: ${localFrame.organizer || 'No especificat'}\n` +
-                          `Ubicació: ${localFrame.location || 'No especificada'}\n` +
-                          `Assistents: ${assignedPeople || 'Cap assistent assignat'}\n` +
-                          `Notes: ${localFrame.notes || 'Sense notes addicionals'}`,
-              start: { dateTime: localFrame.startDate, timeZone: 'Europe/Madrid' },
-              end: { dateTime: localFrame.endDate, timeZone: 'Europe/Madrid' },
-              location: localFrame.location || '',
-              colorId: localFrame.colorId || '11', // Color per defecte
+              description: `Lloc: ${localFrame.place || 'No especificat'}\n` +
+                          `Notes: ${localFrame.generalNotes || ''}\n` +
+                          `--- PERSONAL ---\n${assignedPeople || 'Cap assignació'}`,
+              location: localFrame.place || '',
+              start: { date: localFrame.startDate }, // Format YYYY-MM-DD
+              end: { date: addDaysISO(localFrame.endDate, 1) }, // Google demana data final exclusiva (+1 dia)
               extendedProperties: {
                 private: {
                   eventFrameId: localFrame.id
@@ -823,7 +826,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
               }
             }
 
-            // 3. Si no hi ha ID de Google, crear l'esdeveniment
+            // 3. Si no hi ha ID de Google (o ha fallat l'update per 404), crear l'esdeveniment
             if (!localFrame.googleEventId) {
               try {
                 const createdEvent = await calendar.events.insert({
