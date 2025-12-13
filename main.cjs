@@ -636,6 +636,8 @@ const getCurrentTime = () => {
 ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }) => {
   const startTime = getCurrentTime();
   const logMessages = [];
+  let currentProgressStep = 0;
+  let totalProgressSteps = 1; // 1 per defecte per evitar divisions per zero a la UI
   
   const logAndSendProgress = (msg, isError = false) => {
     const timestamp = getCurrentTime();
@@ -740,9 +742,9 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
       logAndSendProgress(`   • Esdeveniments a eliminar: ${eventsToDelete.length}`);
       logAndSendProgress(`   • Esdeveniments a pujar/actualitzar: ${localFramesToUpload.length} (de ${(localData.eventFrames || []).length} totals)`);
 
-      // Configuració de progrés
-      const totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
-      let currentProgressStep = 0;
+      // Actualitzar total de passos de progrés
+      totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
+      currentProgressStep = 0;
 
       // FASE 1: BUIDAR (només esdeveniments recents)
       if (eventsToDelete.length > 0) {
