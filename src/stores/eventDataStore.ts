@@ -82,6 +82,7 @@ export interface EventDataState {
 }
 
 interface EventDataActions {
+    closeSyncProgress: () => void;
     setFilterUIEventFrame: (id: string | null) => void;
     setHighlightedEventId: (id: string | null) => void;
     // Accions per als filtres centralitzats
@@ -170,6 +171,10 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     immer(
       (set, get) => ({
         ...initialState,
+        
+        closeSyncProgress: () => set((state) => ({
+          syncProgress: { ...state.syncProgress, visible: false, logs: [] }
+        })),
 
         setIsUpdatingMaterial: (isUpdating: boolean) => set({ isUpdatingMaterial: isUpdating }),
 
@@ -795,7 +800,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
           }
         }
 
-        set({ isSyncing: false, syncProgress: { ...get().syncProgress, visible: false } });
+        set({ isSyncing: false });
         return finalResult;
       },
 
