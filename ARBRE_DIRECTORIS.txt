@@ -1,9 +1,10 @@
 enllaç a Gestor-Events_i_Personal/
 ├── .github/
-│   └── workflows/                # CI/CD: Conté els scripts per a la compilació automàtica a GitHub.
+│   └── workflows/                # CI/CD: Conté els scripts per a la compilació i desplegament automàtics a GitHub.
 │       ├── build-linuxv20-04.yml # Script per compilar la versió per a Linux (AppImage).
 │       ├── build-macos12.yml     # Script per compilar la versió per a macOS (DMG).
-│       └── build-win10.yml       # Script per compilar la versió per a Windows (EXE).
+│       ├── build-win10.yml       # Script per compilar la versió per a Windows (EXE).
+│       └── mobile-build.yml      # Script per a la construcció i desplegament de l'aplicació mòbil a les stores.
 ├── build/                        # Carpeta de sortida per als fitxers de producció.
 │   └── icons/                    # Icones per a la compilació.
 │       └── icon.png              # Icona principal.
@@ -16,12 +17,27 @@ enllaç a Gestor-Events_i_Personal/
 │   └── example_person.json       # JSON amb dades de contactes.
 ├── imatges/                      # Conté imatges i captures de pantalla per a la documentació.
 │   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
+├── captures_pantalla/            # Carpeta per emmagatzemar captures de pantalla útils per a la documentació.
+│                                  # Inclou imatges per al README, informes d'errors i documentació visual.
+│                                  # Aquesta carpeta s'hauria d'organitzar per versions o funcionalitats.
+├── imatges/                      # Conté imatges i gràfics per a la documentació.
+│   └── en_construcció_GV.png     # Imatges d'exemple i recursos gràfics.
 ├── mobile_app/                   # Projecte de l'aplicació mòbil (React Native amb Expo).
 │   ├── .expo/                    # Fitxers temporals generats per Expo (ignorats per `mobile_app/.gitignore`).
 │   ├── .idea/                    # (Opcional) Configuració d'IDE (normalment ignorada).
+│   ├── android/                  # Codi font específic d'Android (generat per Expo)
+│   │   ├── app/                 # Codi font de l'aplicació Android
+│   │   └── build.gradle         # Configuració de construcció d'Android
+│   ├── ios/                     # Codi font específic d'iOS (generat per Expo)
+│   │   ├── Podfile              # Configuració de dependències d'iOS
+│   │   └── [NomProjecte].xcodeproj # Projecte Xcode
 │   ├── assets/                   # Actius estàtics (imatges, icones, splash).
 │   │   ├── icon.png              # Icona app mòbil (Splash / launcher)
 │   │   └── splash.png            # Imagen de splash per a l'inici
+│   ├── app.json                 # Configuració principal de l'aplicació Expo
+│   ├── babel.config.js          # Configuració de Babel
+│   ├── eas.json                 # Configuració per a Expo Application Services
+│   └── metro.config.js          # Configuració del bundler Metro
 │   ├── eas.json                  # Configuració per a Expo Application Services (EAS).
 │   ├── package-lock.json         # Fitxer lock de dependències generat per npm.
 │   ├── index.js                  # Punt de registre inicial de l'aplicació per a Expo.
