@@ -44,6 +44,8 @@ const MainDisplay = React.forwardRef<
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const googleEvents = useEventDataStore(state => state.googleEvents);
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
+  const focusedEventFrameId = useEventDataStore(state => state.focusedEventFrameId);
+  const setFocusedEventFrameId = useEventDataStore(state => state.setFocusedEventFrameId);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
     peopleGroups.forEach(p => m.set(p.id, p.name));
@@ -202,13 +204,14 @@ const MainDisplay = React.forwardRef<
 
   const handleToggleAllCards = () => {
     if (areAllVisibleExpanded) {
-      // If all are expanded, collapse all
+      // Clear all expanded frames
       setManualExpandedFrameIds(() => new Set());
     } else {
-      // If some or none are expanded, expand all
-      const allVisibleIds = new Set(filteredAndSortedEventFrames.map(ef => ef.id));
-      setManualExpandedFrameIds(() => allVisibleIds);
+      // Expand all visible frames
+      const allIds = new Set(filteredAndSortedEventFrames.map(ef => ef.id));
+      setManualExpandedFrameIds(() => allIds);
     }
+    setFocusedEventFrameId(null); // Clear focus when toggling all
   };
 
   const expandedDailyViewAssignmentIds = useMemo(() => {
@@ -545,6 +548,8 @@ const MainDisplay = React.forwardRef<
             key={ef.id}
             eventFrame={ef}
             isArchived={showArchived}
+            isFocused={focusedEventFrameId === ef.id}
+            onFocus={() => setFocusedEventFrameId(ef.id)}
             isExpanded={expandedEventFrameIds.has(ef.id)}
             expandedDailyViewAssignmentIds={expandedDailyViewAssignmentIds}
             filters={{ person: localFilterUIPerson, status: filterStatus }}

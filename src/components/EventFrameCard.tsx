@@ -23,13 +23,15 @@ interface EventFrameCardProps {
   onDeleteAssignment: (eventFrameId: string, assignmentId: string) => void;
   setToastMessage: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   isArchived?: boolean;
+  isFocused?: boolean;
+  onFocus?: () => void;
 }
 
 const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   eventFrame, isExpanded, expandedDailyViewAssignmentIds, filters, onToggleExpand,
   onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
-  isArchived = false,
+  isArchived = false, isFocused = false, onFocus,
 }, ref) => {
   logger.info(`[EventFrameCard] Render for ${eventFrame.name}. isExpanded: ${isExpanded}`);
   const { peopleGroups, restoreEventFrame } = useEventDataStore.getState();
@@ -48,17 +50,31 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
 
   return (
-    <div ref={ref} id={`event-card-${eventFrame.id}`} className="mb-2 rounded-xl overflow-hidden bg-card text-card-foreground border-2 border-border" aria-labelledby={`event-frame-title-${eventFrame.id}`}>
+    <div 
+      ref={ref} 
+      id={`event-card-${eventFrame.id}`} 
+      className={`mb-2 rounded-xl overflow-hidden bg-card text-card-foreground transition-all duration-200 ${
+        isFocused 
+          ? 'border-4 border-primary ring-4 ring-primary/20' 
+          : 'border-2 border-border hover:border-muted-foreground/30'
+      } ${isArchived ? 'opacity-70' : ''}`} 
+      aria-labelledby={`event-frame-title-${eventFrame.id}`}
+      onClick={(e) => {
+        // Only toggle expand if the click is not on an interactive element like a button.
+        // Those elements have their own onClick handlers with e.stopPropagation().
+        if ((e.target as HTMLElement).closest('button, input, select, a')) {
+          return;
+        }
+        onToggleExpand(eventFrame.id);
+        onFocus?.();
+      }}
+    >
       <div
         className="px-3 py-2 bg-muted/50 cursor-pointer border-b-2 border-border"
         onClick={(e) => {
           e.stopPropagation();
-          // Only toggle expand if the click is not on an interactive element like a button.
-          // Those elements have their own onClick handlers with e.stopPropagation().
-          if ((e.target as HTMLElement).closest('button, input, select, a')) {
-            return;
-          }
           onToggleExpand(eventFrame.id);
+          onFocus?.();
         }}
       >
         <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">

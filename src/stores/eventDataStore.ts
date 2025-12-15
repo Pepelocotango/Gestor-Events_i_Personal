@@ -69,6 +69,7 @@ export interface EventDataState {
     dataRepairInfo: { fixes: any[], repairedData: AppData } | null;
     filterUIEventFrame: string | null;
     highlightedEventId: string | null;
+    focusedEventFrameId: string | null;
     lastActionDescription: string | null;
     // Filtres centralitzats
     filterText: string;
@@ -82,6 +83,7 @@ export interface EventDataState {
 }
 
 interface EventDataActions {
+    setFocusedEventFrameId: (id: string | null) => void;
     closeSyncProgress: () => void;
     setFilterUIEventFrame: (id: string | null) => void;
     setHighlightedEventId: (id: string | null) => void;
@@ -154,6 +156,7 @@ const initialState: EventDataState = {
     dataRepairInfo: null,
     filterUIEventFrame: null,
     highlightedEventId: null,
+    focusedEventFrameId: null,
     lastActionDescription: null,
     // Filtres centralitzats - valors inicials
     filterText: '',
@@ -209,6 +212,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         clearDataRepairInfo: () => set({ dataRepairInfo: null }),
 
         // UTILS
+        setFocusedEventFrameId: (id: string | null) => set({ focusedEventFrameId: id }),
         setHasUnsavedChanges: (value: boolean) => set({ hasUnsavedChanges: value }),
         setFilterUIEventFrame: (id: string | null) => set({ filterUIEventFrame: id }),
         setHighlightedEventId: (id: string | null) => set({ highlightedEventId: id }),
