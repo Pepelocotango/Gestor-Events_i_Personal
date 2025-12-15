@@ -179,7 +179,7 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── images.d.ts               # Permet la importació de fitxers d'imatge (.png) a TypeScript.
 │   ├── index.css                 # [AUTO-GENERAT] Fitxer principal d'estils. No editar manualment.
 │   ├── index.tsx                 # Punt d'entrada de React que renderitza l'App al DOM.
-│   └── types.ts                  # Fitxer crític. Defineix totes les interfícies i tipus de dades de l'aplicació (EventFrame amb el flag isArchived, Assignment, MaterialItem, TechSheetData, AppData, GoogleConfig, ElectronAPI). La font de veritat per la robustesa i mantenibilitat del projecte.
+│   └── types.ts                  # Fitxer crític. Defineix totes les interfícies i tipus de dades de l'aplicació (EventFrame amb el flag isArchived, Assignment amb el nou camp `role`, MaterialItem, TechSheetData, AppData, GoogleConfig, ElectronAPI). La font de veritat per la robustesa i mantenibilitat del projecte.
 ├── .gitattributes                # Fitxer per definir atributs per a rutes de git.
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
 ├── DEVELOPING.md                 # Documentació tècnica detallada de l'arquitectura i funcionalitats per a desenvolupadors.
