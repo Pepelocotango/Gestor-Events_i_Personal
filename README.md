@@ -198,6 +198,10 @@ Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del pr
 
 *   **Finestra "Sobre l'aplicació":** Accessible des del menú "Ajuda", mostra informació rellevant sobre la versió, descripció i enllaços del projecte.
 
+*   **Interfície d'Usuari Renovada (Disseny XL):**
+    *   **Alta Visibilitat:** Les targetes d'esdeveniments i assignacions s'han redissenyat amb una escala més gran, tipografies clares i botons més accessibles.
+    *   **Mode "Focus Únic":** En treballar amb la llista, l'esdeveniment que estàs editant es destaca visualment amb un marc de color, ajudant-te a mantenir el context fins i tot quan tens molts elements oberts alhora.
+
 * **Altres millores:**
   * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`npm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).
   * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.

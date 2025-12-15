@@ -70,16 +70,17 @@ Aquesta barra substitueix el menú natiu. A la dreta, inclou icones d'accés rà
 
 ## 4. Secció Principal (`MainDisplay`)
 
-Aquesta secció és el cor de l'aplicació i està dividida en àrees plegables.
+Aquesta pantalla presenta una estructura plana (sense contenidor mestre plegable) per a un accés més directe a la informació.
 
-### 4.1. Vista de Calendari
+### 4.1. Vista de Calendari (Secció Plegable Independent)
 - **Funcionalitat**: Mostra tots els esdeveniments locals i de Google.
 - **Interaccions**:
   - **Clic en un dia buit**: Obre el modal per **crear un nou esdeveniment**.
   - **Clic en un esdeveniment**: Obre el modal de **detalls** (local o de Google).
 - **Controls**: Botons per canviar de vista (Mes, Setmana, Agenda, 2/4/6 Mesos), navegar i tornar a "Avui".
 
-### 4.2. Llista d'Esdeveniments
+### 4.2. Llista d'Esdeveniments (Secció Plegable Independent)
+- **Disseny XL**: Targetes de gran format per a millor llegibilitat.
 - **Controls Generals**:
   - **Botó "Afegir Nou Marc"**: Obre el modal per crear un nou esdeveniment.
   - **Botó "Ordena"**: Canvia l'ordre per data (ascendent/descendent).
@@ -93,11 +94,16 @@ Aquesta secció és el cor de l'aplicació i està dividida en àrees plegables.
   - **Filtre de Data**: Per mostrar esdeveniments actius en una data específica.
   - **Botó "Netejar"**: Restableix tots els filtres.
 - **Targeta d'Esdeveniment (`EventFrameCard`)**:
-  - **Capçalera**: Nom, dates, lloc i botons per editar, eliminar, duplicar o arxivar.
-  - **Cos (plegable)**: Llista de les assignacions de personal.
-  - **Interaccions per Assignació**: Canvi d'estat general, vista diària i botons d'editar/eliminar.
+  - **Comportament de Focus**: En fer clic, la targeta es marca visualment (vora blava) per indicar que és l'element actiu, diferenciant-la de la resta encara que estiguin obertes.
+  - **Capçalera**: Estat complet (icona gran), Títol, Lloc, Dates i accions ràpides.
+  - **Cos**: Notes generals i llista d'assignacions.
+  - **Targeta d'Assignació (`AssignmentCard`)**:
+    - Inclou indicadors visuals d'estat (vora lateral de color) i botons d'acció grans.
+    - Suport per a vista detallada de dies (multidia).
 
-### 4.3. Resums (`SummaryReports`)
+### 4.3. Resums (Secció Plegable Independent)
+- Secció plegada per defecte.
+- Genera informes basats en les dades filtrades actualment visibles a la llista.
 - Secció plegada per defecte que mostra informes basats en les dades filtrades (per Esdeveniment, Data o Persona).
 - Cada informe té opcions d'ordenació i exportació (CSV/PDF).
 

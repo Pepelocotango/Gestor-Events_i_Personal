@@ -1546,3 +1546,99 @@ npm ci && npm run build:linux
 > **⚠️ AVÍS CRÍTIC: Fitxers de Secrets**
 > `npm ci` i el procés de build no toquen els fitxers locals no versionats. Perquè la integració amb Google funcioni a l'aplicació compilada, has d'assegurar-te que els fitxers **`google-credentials.json`** i **`service-account.json`** estan presents a l'arrel del projecte **ABANS** d'executar la comanda de compilació. Si falten, `electron-builder` no els inclourà al paquet final.
 
+## 9.7. Arquitectura UI: Escala XL i Lògica de Focus Únic
+
+A la versió 1.5.0 s'ha implementat un redisseny visual important a la llista d'esdeveniments (`MainDisplay`):
+
+1. **Disseny d'Alta Visibilitat (Escala XL):**
+   - S'han augmentat significativament (aprox. 200%) els paddings, mides de font i icones de les targetes (`EventFrameCard` i `AssignmentCard`).
+   - **Objectiu:** Millorar la llegibilitat i facilitar la interacció en pantalles tàctils o monitors d'alta resolució, creant àrees de clic (hitboxes) més generoses.
+
+2. **Separació d'Estats: Expansió vs. Focus:**
+   - S'ha separat el concepte d'estar "Obert" (`isExpanded`) del d'estar "Seleccionat" (`isFocused`).
+   - **Estat `isExpanded`:** Controla la visibilitat del contingut. El botó "Expandir Tot" afecta aquest estat.
+   - **Estat `isFocused`:** Controla el ressaltat visual (vora blava / ring).
+   - **Lògica de "Focus Únic":** Només una targeta pot estar enfocada alhora (`focusedEventFrameId` a l'store). Això evita que, en expandir tota la llista, l'usuari es vegi aclaparat per un "mur de color". El focus només s'activa quan l'usuari interactua explícitament (clic) amb una targeta específica.
+
+### Implementació Tècnica
+
+#### EventFrameCard.tsx
+```tsx
+// Props del component
+interface EventFrameCardProps {
+  // ... altres props
+  isFocused?: boolean;
+  onFocus?: () => void;
+}
+
+// Ús al render
+<div 
+  className={`mb-2 rounded-xl overflow-hidden bg-card text-card-foreground transition-all duration-200 ${
+    isFocused 
+      ? 'border-4 border-primary ring-4 ring-primary/20' 
+      : 'border-2 border-border hover:border-muted-foreground/30'
+  }`}
+  onClick={(e) => {
+    if ((e.target as HTMLElement).closest('button, input, select, a')) {
+      return;
+    }
+    onToggleExpand(eventFrame.id);
+    onFocus?.();
+  }}
+>
+  {/* Contingut de la targeta */}
+</div>
+```
+
+#### eventDataStore.ts
+```typescript
+interface EventDataState {
+  // ... altres estats
+  focusedEventFrameId: string | null;
+}
+
+interface EventDataActions {
+  // ... altres accions
+  setFocusedEventFrameId: (id: string | null) => void;
+}
+
+const initialState: EventDataState = {
+  // ... altres valors inicials
+  focusedEventFrameId: null,
+};
+
+// A l'store
+setFocusedEventFrameId: (id) => set({ focusedEventFrameId: id }),
+```
+
+#### MainDisplay.tsx
+```typescript
+// Obtenir l'ID de la targeta enfocada i la funció per canviar-la
+const { focusedEventFrameId, setFocusedEventFrameId } = useEventDataStore();
+
+// Al renderitzar cada EventFrameCard
+<EventFrameCard
+  // ... altres props
+  isFocused={focusedEventFrameId === eventFrame.id}
+  onFocus={() => setFocusedEventFrameId(eventFrame.id)}
+/>
+
+// Al botó "Expandir Tot"
+const handleToggleAllCards = () => {
+  if (areAllVisibleExpanded) {
+    setManualExpandedFrameIds(() => new Set());
+  } else {
+    const allIds = new Set(filteredAndSortedEventFrames.map(ef => ef.id));
+    setManualExpandedFrameIds(() => allIds);
+  }
+  setFocusedEventFrameId(null); // Neteja el focus en expandir/col·lapsar tot
+};
+```
+
+### Consideracions de Disseny
+
+1. **Retroacció Visual:** El canvi de mida de la vora (de 2px a 4px) i l'efecte de ring proporcionen una clara indicació visual de quin element està enfocat.
+2. **Accessibilitat:** L'estat de focus és important per a usuaris que naveguen amb teclat o lectors de pantalla.
+3. **Rendiment:** La gestió del focus és lleugera i no afecta el rendiment, ja que només canvia una classe CSS.
+4. **Consistència:** El comportament és consistent amb els estàndards d'usabilitat, on un sol element pot estar enfocat en un moment donat.
+
