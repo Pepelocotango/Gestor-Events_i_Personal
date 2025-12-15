@@ -192,6 +192,12 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
         fontWeight: '500',
         color: theme.text,
       },
+      assignmentRole: {
+        fontSize: 14,
+        fontWeight: 'normal',
+        color: theme.placeholder,
+        fontStyle: 'italic',
+      },
       assignmentDate: {
         fontSize: 12,
         color: theme.placeholder,
@@ -267,6 +273,9 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
             <View>
               <Text style={styles.assignmentPerson}>
                 {peopleMap.get(assignment.personGroupId) || 'Persona desconeguda'}
+                {assignment.role ? (
+                  <Text style={styles.assignmentRole}> - {assignment.role}</Text>
+                ) : null}
               </Text>
               <Text style={styles.assignmentDate}>
                 {formatDateRange(assignment.startDate, assignment.endDate)}

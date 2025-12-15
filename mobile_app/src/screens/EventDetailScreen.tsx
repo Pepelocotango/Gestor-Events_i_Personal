@@ -106,6 +106,10 @@ export default function EventDetailScreen({ route, navigation }: Props) {
     text: {
       color: colors.text,
     },
+    roleText: {
+      fontStyle: 'italic',
+      color: colors.placeholder,
+    },
     button: {
       marginTop: 16,
       backgroundColor: colors.primary,
@@ -183,13 +187,13 @@ export default function EventDetailScreen({ route, navigation }: Props) {
         <Text style={dynamicStyles.subtitle}>Assignacions</Text>
         {event.assignments.map((assignment: Assignment) => (
           <View key={assignment.id} style={dynamicStyles.assignmentContainer}>
-            <Text style={dynamicStyles.text}>
-              <Text style={dynamicStyles.bold}>
-                {peopleGroups.find((p) => p.id === assignment.personGroupId)
-                  ?.role || 'Rol'}
-                :
-              </Text>{' '}
-              {getPersonName(assignment.personGroupId) || 'No assignat'}
+            <Text>
+              <Text style={[dynamicStyles.text, dynamicStyles.bold]}>
+                {getPersonName(assignment.personGroupId) || 'No assignat'}
+              </Text>
+              {assignment.role && (
+                <Text style={dynamicStyles.roleText}> - {assignment.role}</Text>
+              )}
             </Text>
           </View>
         ))}

@@ -19,6 +19,7 @@ export interface PersonGroup {
 export interface Assignment {
   id:string;
   personGroupId: string;
+  role?: string;
   eventFrameId: string;
   startDate: string;
   endDate: string;

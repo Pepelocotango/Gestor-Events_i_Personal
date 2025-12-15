@@ -27,6 +27,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   const originalAssignment = event?.assignments.find(a => a.id === assignmentId);
 
   const [personGroupId, setPersonGroupId] = useState('');
+  const [role, setRole] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(event ? new Date(event.startDate) : null);
   const [endDate, setEndDate] = useState<Date | null>(event ? new Date(event.endDate) : null);
   const [status, setStatus] = useState<AssignmentStatus>(AssignmentStatus.Pending);
@@ -40,12 +41,21 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   useEffect(() => {
     if (originalAssignment) {
       setPersonGroupId(originalAssignment.personGroupId);
+      setRole(originalAssignment.role || '');
       setStartDate(new Date(originalAssignment.startDate));
       setEndDate(new Date(originalAssignment.endDate));
       setStatus(originalAssignment.status);
       setNotes(originalAssignment.notes || '');
     }
   }, [eventFrameId, assignmentId, originalAssignment]);
+
+  const handlePersonChange = (newPersonGroupId: string) => {
+    setPersonGroupId(newPersonGroupId);
+    const selectedPerson = peopleGroups.find(p => p.id === newPersonGroupId);
+    if (selectedPerson?.role && role === '') {
+      setRole(selectedPerson.role);
+    }
+  };
 
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
@@ -82,6 +92,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         endDate: endDate!.toISOString().split('T')[0],
         status,
         notes,
+        role,
     };
 
     let conflictMessage: string | null = null;
@@ -196,13 +207,22 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
       <View style={[dynamicStyles.pickerContainer, errors.personGroupId ? dynamicStyles.inputError : null]}>
         <CustomSelect
           value={personGroupId}
-          onValueChange={(val) => setPersonGroupId(val)}
+          onValueChange={handlePersonChange}
           options={peopleOptions}
           placeholder="-- Seleccioneu --"
           containerStyle={{}}
         />
       </View>
       {errors.personGroupId && <Text style={dynamicStyles.errorText}>{errors.personGroupId}</Text>}
+
+      <Text style={dynamicStyles.label}>Rol (Opcional)</Text>
+      <TextInput
+        style={dynamicStyles.input}
+        value={role}
+        onChangeText={setRole}
+        placeholder="Especifica el rol..."
+        placeholderTextColor={colors.placeholder}
+      />
 
       <View>
           <Text style={dynamicStyles.label}>Data d'Inici</Text>
