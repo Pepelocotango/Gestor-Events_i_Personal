@@ -101,9 +101,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 }, [assignment.status, borderClass]);
 
   return (
-    <li className={liClasses}>
+    <li className={`${liClasses} mb-3`}>
       <div
-        className={`flex flex-col sm:flex-row justify-between sm:items-start gap-0.5 p-2 ${isMultiDay ? 'cursor-pointer' : ''}`}
+        className={`flex flex-col sm:flex-row justify-between sm:items-start gap-3 p-4 ${isMultiDay ? 'cursor-pointer' : ''}`}
         onClick={(e) => {
           if (!isMultiDay) return;
           if ((e.target as HTMLElement).closest('button, input, select, a')) {
@@ -117,15 +117,27 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         }}
       >
         <div className="flex-grow">
-          <p className="font-semibold text-sm">{personName || 'Persona Desconeguda'}</p>
-          <p className="text-xs text-muted-foreground">{formatDateRangeDMY(assignment.startDate, assignment.endDate)}</p>
-          <p className="text-xs font-bold">
-            {getStatusSummaryText(assignment)}
-          </p>
-          {assignment.notes && <p className="text-xs mt-0.5 italic text-muted-foreground whitespace-pre-wrap">Nota: {assignment.notes}</p>}
+          <div className="space-y-1.5">
+            <p className="text-lg font-bold text-foreground">
+              {personName || 'Persona Desconeguda'}
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-base text-muted-foreground">
+                {formatDateRangeDMY(assignment.startDate, assignment.endDate)}
+              </p>
+              <span className="text-base font-semibold text-foreground/90">
+                {getStatusSummaryText(assignment)}
+              </span>
+            </div>
+            {assignment.notes && (
+              <p className="text-sm mt-1.5 text-muted-foreground/90 italic bg-muted/30 p-2 rounded-md">
+                {assignment.notes}
+              </p>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col space-y-0.5 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-0.5 self-start sm:self-center flex-shrink-0">
-          <div className="flex items-center space-x-0.5">
+        <div className="flex flex-col items-end gap-2 sm:items-center sm:flex-row sm:gap-3 self-start sm:self-center flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
             {isMultiDay && (
               <Tooltip text={isDailyViewExpanded ? "Ocultar vista diària" : "Mostrar vista diària"}>
                 <button
@@ -133,72 +145,109 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                     e.stopPropagation();
                     toggleDailyView();
                   }}
-                  className={`px-1.5 py-0.5 rounded-md text-xs font-medium transition-colors ${
-                    isDailyViewExpanded ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    isDailyViewExpanded 
+                      ? 'bg-primary text-primary-foreground shadow-md' 
+                      : 'bg-secondary text-secondary-foreground hover:bg-accent/50 hover:shadow-sm'
                   }`}
                 >
-                  {isDailyViewExpanded ? "Ocultar" : "Mostrar"}
+                  {isDailyViewExpanded ? "Ocultar" : "Mostrar dies"}
                 </button>
               </Tooltip>
             )}
-            {[AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No].map(status => (
-              <Tooltip key={status} text={`Marcar tot com a '${status}'`}>
-                <button
-                  onClick={() => onGeneralStatusChange(eventFrame.id, assignment.id, status)}
-                  className={`font-semibold px-1.5 py-0.5 text-xs rounded-md transition-opacity ${
-                    assignment.status === status && assignment.status !== AssignmentStatus.Mixed
-                      ? 'opacity-100 ring-1 ring-offset-1 ring-offset-card ring-ring/50'
-                      : 'opacity-60 hover:opacity-100'
-                  } ${statusButtonClasses[status]}`}
-                >
-                  {status}
-                </button>
-              </Tooltip>
-            ))}
+            <div className="flex flex-wrap items-center gap-2">
+              {[AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No].map(status => (
+                <Tooltip key={status} text={`Marcar tot com a '${status}'`}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onGeneralStatusChange(eventFrame.id, assignment.id, status);
+                    }}
+                    className={`font-semibold px-4 py-2 text-sm rounded-md transition-all ${
+                      assignment.status === status && assignment.status !== AssignmentStatus.Mixed
+                        ? 'opacity-100 ring-2 ring-offset-1 ring-offset-card ring-ring/50 scale-105 shadow-md'
+                        : 'opacity-90 hover:opacity-100 hover:scale-105 hover:shadow-sm'
+                    } ${statusButtonClasses[status]}`}
+                  >
+                    {status}
+                  </button>
+                </Tooltip>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center justify-end space-x-0.5">
+          <div className="flex items-center justify-end gap-2 mt-2 sm:mt-0">
             <Tooltip text="Editar assignació">
-              <button onClick={() => onEdit(eventFrame.id, assignment.id)} className="p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent">
-                <EditIcon className="w-4 h-4" />
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(eventFrame.id, assignment.id);
+                }} 
+                className="p-2.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                aria-label="Editar assignació"
+              >
+                <EditIcon className="w-5 h-5" />
               </button>
             </Tooltip>
             <Tooltip text="Eliminar assignació">
-              <button onClick={() => onDelete(eventFrame.id, assignment.id)} className="p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent">
-                <TrashIcon className="w-4 h-4" />
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(eventFrame.id, assignment.id);
+                }} 
+                className="p-2.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-accent/50 transition-colors"
+                aria-label="Eliminar assignació"
+              >
+                <TrashIcon className="w-5 h-5" />
               </button>
             </Tooltip>
           </div>
         </div>
       </div>
       {isMultiDay && isDailyViewExpanded && (
-        <div className="mt-1 pt-1 border-t border-border bg-muted/50 p-1 rounded-b-lg">
-          <h6 className="text-xs font-semibold mb-0.5">Estat per dia:</h6>
-          <div className="space-y-0.5">
+        <div className="mt-3 pt-3 border-t-2 border-border/50 bg-muted/20 p-4 rounded-b-lg">
+          <h6 className="text-base font-semibold mb-3 text-foreground/90">Estat per dia:</h6>
+          <div className="space-y-2.5">
             {getDaysInRange(assignment.startDate, assignment.endDate).map(date => {
               const currentDailyStatus = assignment.dailyStatuses?.[date] || (assignment.status !== AssignmentStatus.Mixed ? assignment.status : AssignmentStatus.Pending);
               
               const statusRowClasses: { [key in AssignmentStatus]?: string } = {
-                [AssignmentStatus.Yes]: 'bg-success/60',      // Fons verd al 60%
-                [AssignmentStatus.No]: 'bg-destructive/60',   // Fons vermell al 60%
-                [AssignmentStatus.Pending]: 'bg-warning/60',   // Fons groc al 60%
+                [AssignmentStatus.Yes]: 'bg-success/20',
+                [AssignmentStatus.Pending]: 'bg-warning/20',
+                [AssignmentStatus.No]: 'bg-destructive/20',
               };
-              const rowClass = statusRowClasses[currentDailyStatus] || 'bg-muted/50';
 
               return (
-                <div key={date} className={`flex items-center justify-between p-0.5 rounded-md transition-colors duration-200 ${rowClass}`}>
-                  <span className="text-xs font-medium">{formatDateDMY(date)}:</span>
-                  <div className="flex space-x-0.5">
-                    {[AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No].map(s => (
-                      <Tooltip key={s} text={`Marcar dia com a '${s}'`}>
-                        <button
-                          onClick={() => onDailyStatusChange(eventFrame.id, assignment, date, s)}
-                          className={`status-pill ${currentDailyStatus === s ?
-                              (s === AssignmentStatus.Yes ? 'status-pill-selected-yes' : s === AssignmentStatus.No ? 'status-pill-selected-no' : 'status-pill-selected-pending') :
-                              'status-pill-unselected'}`}
-                        >
-                          {s}
-                        </button>
-                      </Tooltip>
+                <div 
+                  key={date} 
+                  className={`
+                    flex items-center justify-between p-3 rounded-lg 
+                    ${statusRowClasses[currentDailyStatus] || 'bg-muted/30'}
+                    transition-all hover:shadow-sm
+                  `}
+                >
+                  <span className="text-sm font-medium text-foreground/90">
+                    {formatDateDMY(date)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {[AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No].map(status => (
+                      <button
+                        key={status}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDailyStatusChange(eventFrame.id, assignment, date, status);
+                        }}
+                        className={`
+                          px-3 py-1.5 text-sm rounded-md transition-all
+                          ${
+                            currentDailyStatus === status
+                              ? 'font-semibold text-foreground bg-background/90 shadow-md scale-105'
+                              : 'opacity-90 hover:opacity-100 bg-background/70 hover:bg-background/90 hover:scale-105 hover:shadow-sm'
+                          }
+                          ${statusButtonClasses[status]}
+                        `}
+                      >
+                        {status}
+                      </button>
                     ))}
                   </div>
                 </div>

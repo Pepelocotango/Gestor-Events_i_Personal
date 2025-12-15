@@ -347,67 +347,64 @@ const MainDisplay = React.forwardRef<
   };
 
     return (
-    <CollapsibleSection
-      title="Calendari i Llista"
-      defaultOpen={true}
-    >
-      <div className="space-y-1">
-        <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
-          <div className="calendar-wrapper border border-border rounded-lg" style={{ padding: '0.25rem' }}>
-            <FullCalendar
-                  ref={calendarRef}
-                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
-                initialView="dayGridMonth"
-                views={{
-                  dayGridMonth: { buttonText: 'Mes' },
-                  timeGridWeek: { buttonText: 'Setmana' },
-                  listWeek: { buttonText: 'Agenda' },
-                  multiMonth2: { type: 'multiMonth', duration: { months: 2 }, buttonText: '2 Mesos', multiMonthMaxColumns: 2 },
-                  multiMonth4: { type: 'multiMonth', duration: { months: 4 }, buttonText: '4 Mesos', multiMonthMaxColumns: 2 },
-                  multiMonth6: { type: 'multiMonth', duration: { months: 6 }, buttonText: '6 Mesos', multiMonthMaxColumns: 2 }
-                }}
-                headerToolbar={{ left: 'prev,next today', center: 'title', right: 'multiMonth6,multiMonth4,multiMonth2,dayGridMonth,timeGridWeek,listWeek' }}
-                locale={caLocale}
-                buttonText={{ today: 'Avui' }}
-                height="auto"
-                contentHeight="auto"
-                aspectRatio={1.5}
-                events={calendarEvents}
-                dateClick={(info) => openModal('addEventFrame', {
-                  name: '',
-                  place: '',
-                  startDate: info.dateStr,
-                  endDate: info.dateStr,
-                  generalNotes: '',
-                })}
-                eventClick={async (info) => {
-                  info.jsEvent.preventDefault(); // Prevenim l'acció per defecte per a tots els clics
-
-                  if (info.event.extendedProps.type === 'google') {
-                    if (window.electronAPI) {
-                      const { calendarId } = info.event.extendedProps;
-                      const eventId = info.event.id;
-
-                      try {
-                        const result = await window.electronAPI.getEventDetails(calendarId, eventId);
-                        if (result.success && result.event) {
-                          openModal('googleEventDetails', { eventData: result.event });
-                        } else {
-                          setToastMessage(result.message || "No s'han pogut obtenir els detalls de l'esdeveniment.", 'error');
-                        }
-                      } catch (error) {
-                        setToastMessage(`Error de comunicació: ${(error as Error).message}`, 'error');
-                      }
+    <div className="space-y-2"> {/* Contenidor simple en lloc de CollapsibleSection */}
+      
+      {/* SECCIÓ 1: CALENDARI */}
+      <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
+        <div className="calendar-wrapper border border-border rounded-lg" style={{ padding: '0.25rem' }}>
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
+            initialView="dayGridMonth"
+            views={{
+              dayGridMonth: { buttonText: 'Mes' },
+              timeGridWeek: { buttonText: 'Setmana' },
+              listWeek: { buttonText: 'Agenda' },
+              multiMonth2: { type: 'multiMonth', duration: { months: 2 }, buttonText: '2 Mesos', multiMonthMaxColumns: 2 },
+              multiMonth4: { type: 'multiMonth', duration: { months: 4 }, buttonText: '4 Mesos', multiMonthMaxColumns: 2 },
+              multiMonth6: { type: 'multiMonth', duration: { months: 6 }, buttonText: '6 Mesos', multiMonthMaxColumns: 2 }
+            }}
+            headerToolbar={{ left: 'prev,next today', center: 'title', right: 'multiMonth6,multiMonth4,multiMonth2,dayGridMonth,timeGridWeek,listWeek' }}
+            locale={caLocale}
+            buttonText={{ today: 'Avui' }}
+            height="auto"
+            contentHeight="auto"
+            aspectRatio={1.5}
+            events={calendarEvents}
+            dateClick={(info) => openModal('addEventFrame', {
+              name: '',
+              place: '',
+              startDate: info.dateStr,
+              endDate: info.dateStr,
+              generalNotes: '',
+            })}
+            eventClick={async (info) => {
+              info.jsEvent.preventDefault();
+              if (info.event.extendedProps.type === 'google') {
+                if (window.electronAPI) {
+                  const { calendarId } = info.event.extendedProps;
+                  const eventId = info.event.id;
+                  try {
+                    const result = await window.electronAPI.getEventDetails(calendarId, eventId);
+                    if (result.success && result.event) {
+                      openModal('googleEventDetails', { eventData: result.event });
+                    } else {
+                      setToastMessage(result.message || "No s'han pogut obtenir els detalls.", 'error');
                     }
-                  } else {
-                    const ef = getEventFrameById(info.event.id);
-                    if (ef) openModal('eventFrameDetails', { eventFrame: ef });
+                  } catch (error) {
+                    setToastMessage(`Error: ${(error as Error).message}`, 'error');
                   }
-                }}
-                />
+                }
+              } else {
+                const ef = getEventFrameById(info.event.id);
+                if (ef) openModal('eventFrameDetails', { eventFrame: ef });
+              }
+            }}
+          />
         </div>
       </CollapsibleSection>
 
+      {/* SECCIÓ 2: LLISTA D'ESDEVENIMENTS */}
       <CollapsibleSection
         title={showArchived ? `Esdeveniments Arxivats (${filteredAndSortedEventFrames.length})` : `Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`}
         icon={<ListIcon />}
@@ -438,109 +435,108 @@ const MainDisplay = React.forwardRef<
               {sortOrder === 'asc' ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />} Ordena
             </button>
           </Tooltip>
-            <div className="border-l border-border h-6 mx-1"></div>
-            <Tooltip text="Mostrar o ocultar els esdeveniments arxivats">
-                <div className="flex items-center">
-                    <input
-                        type="checkbox"
-                        id="showArchived"
-                        checked={showArchived}
-                        onChange={(e) => setShowArchived(e.target.checked)}
-                        className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-ring"
-                    />
-                    <label htmlFor="showArchived" className="ml-2 text-sm font-medium text-foreground">
-                        Mostrar arxivats
-                    </label>
-                </div>
-            </Tooltip>
-            <Tooltip text={areAllVisibleExpanded ? "Col·lapsar totes les targetes" : "Expandir totes les targetes"}>
-              <button
-                onClick={handleToggleAllCards}
-                className="px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
-                disabled={isAnyFilterActive || filteredAndSortedEventFrames.length === 0}
-              >
-                {areAllVisibleExpanded ? "Col·lapsar Tot" : "Expandir Tot"}
-              </button>
-            </Tooltip>
-            <div className="flex-grow"></div>
-            <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'una setmana)">
-                <button
-                    onClick={() => {
-                        const eventsToArchive = archiveOldEventFrames();
-                        if (eventsToArchive.length > 0) {
-                            const oneWeekAgo = new Date();
-                            oneWeekAgo.setMonth(oneWeekAgo.getMonth() - 1);
-                            const formattedDate = oneWeekAgo.toLocaleDateString('ca-ES');
+          <div className="border-l border-border h-6 mx-1"></div>
+          <Tooltip text="Mostrar o ocultar els esdeveniments arxivats">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="showArchived"
+                checked={showArchived}
+                onChange={(e) => setShowArchived(e.target.checked)}
+                className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-ring"
+              />
+              <label htmlFor="showArchived" className="ml-2 text-sm font-medium text-foreground">
+                Mostrar arxivats
+              </label>
+            </div>
+          </Tooltip>
+          <Tooltip text={areAllVisibleExpanded ? "Col·lapsar totes les targetes" : "Expandir totes les targetes"}>
+            <button
+              onClick={handleToggleAllCards}
+              className="px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
+              disabled={isAnyFilterActive || filteredAndSortedEventFrames.length === 0}
+            >
+              {areAllVisibleExpanded ? "Col·lapsar Tot" : "Expandir Tot"}
+            </button>
+          </Tooltip>
+          <div className="flex-grow"></div>
+          <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'una setmana)">
+            <button
+              onClick={() => {
+                const eventsToArchive = archiveOldEventFrames();
+                if (eventsToArchive.length > 0) {
+                  const oneWeekAgo = new Date();
+                  oneWeekAgo.setMonth(oneWeekAgo.getMonth() - 1);
+                  const formattedDate = oneWeekAgo.toLocaleDateString('ca-ES');
 
-                            openModal('confirmDelete', {
-                                itemType: 'Esdeveniments',
-                                itemName: `S'arxivaran <strong>${eventsToArchive.length}</strong> esdeveniments finalitzats abans del <strong>${formattedDate}</strong>.`,
-                                onConfirm: () => {
-                                    const eventIds = eventsToArchive.map(e => e.id);
-                                    confirmArchiveEventFrames(eventIds);
-                                    setToastMessage(`${eventIds.length} esdeveniment(s) arxivat(s) correctament.`, 'success');
-                                },
-                                titleOverride: "Confirmació Arxivar",
-                                confirmButtonText: "Arxivar Antics",
-                                suppressSuccessToast: true,
-                                intent: 'destructive'
-                            });
-                        } else {
-                            setToastMessage("No hi ha esdeveniments antics per arxivar.", 'info');
-                        }
-                    }}
-                    className="flex items-center justify-center gap-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
-                >
-                    <ArchiveIcon className="w-4 h-4" /> Arxivar Antics
-                </button>
-            </Tooltip>
-              <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
-                <button
-                  onClick={() => exportEventListToPdf(
-                    filteredAndSortedEventFrames,
-                    peopleGroups,
-                    setToastMessage,
-                    { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
-                  )}
-                  className="flex items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
-                >
-                  <DocumentArrowDownIcon className="w-4 h-4" /> PDF
-                </button>
-              </Tooltip>
-              <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
-                <button
-                  onClick={() => exportEventListToCsv(
-                    filteredAndSortedEventFrames,
-                    peopleGroups,
-                    setToastMessage,
-                    { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
-                  )}
-                  className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
-                >
-                  <DocumentArrowDownIcon className="w-4 h-4" /> CSV
-                </button>
-              </Tooltip>
+                  openModal('confirmDelete', {
+                    itemType: 'Esdeveniments',
+                    itemName: `S'arxivaran <strong>${eventsToArchive.length}</strong> esdeveniments finalitzats abans del <strong>${formattedDate}</strong>.`,
+                    onConfirm: () => {
+                      const eventIds = eventsToArchive.map(e => e.id);
+                      confirmArchiveEventFrames(eventIds);
+                      setToastMessage(`${eventIds.length} esdeveniment(s) arxivat(s) correctament.`, 'success');
+                    },
+                    titleOverride: "Confirmació Arxivar",
+                    confirmButtonText: "Arxivar Antics",
+                    suppressSuccessToast: true,
+                    intent: 'destructive'
+                  });
+                } else {
+                  setToastMessage("No hi ha esdeveniments antics per arxivar.", 'info');
+                }
+              }}
+              className="flex items-center justify-center gap-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+            >
+              <ArchiveIcon className="w-4 h-4" /> Arxivar Antics
+            </button>
+          </Tooltip>
+          <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
+            <button
+              onClick={() => exportEventListToPdf(
+                filteredAndSortedEventFrames,
+                peopleGroups,
+                setToastMessage,
+                { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
+              )}
+              className="flex items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+            >
+              <DocumentArrowDownIcon className="w-4 h-4" /> PDF
+            </button>
+          </Tooltip>
+          <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
+            <button
+              onClick={() => exportEventListToCsv(
+                filteredAndSortedEventFrames,
+                peopleGroups,
+                setToastMessage,
+                { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
+              )}
+              className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
+            >
+              <DocumentArrowDownIcon className="w-4 h-4" /> CSV
+            </button>
+          </Tooltip>
         </div>
         
         <div className="mb-1 p-1 bg-muted rounded-lg flex flex-wrap items-end gap-1 border border-border">
-            <div className="flex-grow min-w-[180px]"><label htmlFor="filterText" className="block text-xs font-medium text-muted-foreground">Cerca general</label><Tooltip text="Cerca per nom d'esdeveniment, lloc, notes o nom de persona assignada"><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm" placeholder="Nom, lloc, persona..."/></Tooltip></div>
-            <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIEventFrame" className="block text-xs font-medium text-muted-foreground">Marc</label><Tooltip text="Filtrar per un marc d'esdeveniment específic"><select id="filterUIEventFrame" value={filterUIEventFrame || ''} onChange={e => setFilterUIEventFrame(e.target.value || null)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></Tooltip></div>
-            <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIPerson" className="block text-xs font-medium text-muted-foreground">Persona</label><Tooltip text="Filtrar per persona o grup assignat"><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Totes --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Tooltip></div>
-            <div className="flex-grow min-w-[110px]"><label htmlFor="filterStatus" className="block text-xs font-medium text-muted-foreground">Estat</label><Tooltip text="Filtrar per estat de l'assignació"><select id="filterStatus" value={filterStatus} onChange={e => setFilterStatus(e.target.value as AssignmentStatus | '')} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{Object.values(AssignmentStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></Tooltip></div>
-            
-            <div className="flex-grow min-w-[140px]"><label htmlFor="filterDate" className="block text-xs font-medium text-muted-foreground">Conté Data</label>
-              <Tooltip text="Mostrar només esdeveniments que estiguin actius en aquesta data">
-                <input type="date" id="filterDate" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm" />
-              </Tooltip>
-               
-                {filterDate && <p className="text-xs text-primary mt-0.5"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
-            </div>
-            <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-muted-foreground">Lloc</label><Tooltip text="Filtrar per lloc de l'esdeveniment"><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></Tooltip></div>
-            <div className="flex items-center gap-1">
-              <Tooltip text="Netejar tots els filtres">
-                <button onClick={clearAllFilters} className="px-2 py-1 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border">Netejar</button>
-              </Tooltip>
-            </div>
+          <div className="flex-grow min-w-[180px]"><label htmlFor="filterText" className="block text-xs font-medium text-muted-foreground">Cerca general</label><Tooltip text="Cerca per nom d'esdeveniment, lloc, notes o nom de persona assignada"><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm" placeholder="Nom, lloc, persona..."/></Tooltip></div>
+          <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIEventFrame" className="block text-xs font-medium text-muted-foreground">Marc</label><Tooltip text="Filtrar per un marc d'esdeveniment específic"><select id="filterUIEventFrame" value={filterUIEventFrame || ''} onChange={e => setFilterUIEventFrame(e.target.value || null)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></Tooltip></div>
+          <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIPerson" className="block text-xs font-medium text-muted-foreground">Persona</label><Tooltip text="Filtrar per persona o grup assignat"><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Totes --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Tooltip></div>
+          <div className="flex-grow min-w-[110px]"><label htmlFor="filterStatus" className="block text-xs font-medium text-muted-foreground">Estat</label><Tooltip text="Filtrar per estat de l'assignació"><select id="filterStatus" value={filterStatus} onChange={e => setFilterStatus(e.target.value as AssignmentStatus | '')} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{Object.values(AssignmentStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></Tooltip></div>
+          
+          <div className="flex-grow min-w-[140px]"><label htmlFor="filterDate" className="block text-xs font-medium text-muted-foreground">Conté Data</label>
+            <Tooltip text="Mostrar només esdeveniments que estiguin actius en aquesta data">
+              <input type="date" id="filterDate" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm" />
+            </Tooltip>
+            {filterDate && <p className="text-xs text-primary mt-0.5"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
+          </div>
+          <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-muted-foreground">Lloc</label><Tooltip text="Filtrar per lloc de l'esdeveniment"><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></Tooltip></div>
+          <div className="flex items-center gap-1">
+            <Tooltip text="Netejar tots els filtres">
+              <button onClick={clearAllFilters} className="px-2 py-1 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border">Netejar</button>
+            </Tooltip>
+          </div>
         </div>
 
         {filteredAndSortedEventFrames.length === 0 && <p className="text-center text-muted-foreground py-4">No s'han trobat marcs d'esdeveniment.</p>}
@@ -564,15 +560,15 @@ const MainDisplay = React.forwardRef<
         ))}
       </CollapsibleSection>
 
+      {/* SECCIÓ 3: RESUMS */}
       <CollapsibleSection title="Resums" icon={<ChartBarIcon />} defaultOpen={false} id="summary-section">
-         <SummaryReports
-            setToastMessage={setToastMessage}
-            filteredEventFrames={filteredAndSortedEventFrames}
-            activeFilters={{ filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }}
-         />
+        <SummaryReports
+          setToastMessage={setToastMessage}
+          filteredEventFrames={filteredAndSortedEventFrames}
+          activeFilters={{ filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }}
+        />
       </CollapsibleSection>
     </div>
-  </CollapsibleSection>
   );
 });
 
