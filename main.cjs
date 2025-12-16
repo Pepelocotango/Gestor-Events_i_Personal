@@ -632,6 +632,35 @@ const getCurrentTime = () => {
   });
 };
 
+// Helper per generar resum de necessitats tècniques per a Google Calendar
+const generateTechNeedsSummary = (techSheet) => {
+  if (!techSheet) return '';
+  const parts = [];
+  
+  const addSectionCount = (key, label) => {
+    const section = techSheet[key];
+    if (section && section.status === 'yes' && section.data && Array.isArray(section.data.needs)) {
+      // Sumem quantitats (assumint que quantity pot ser string o number)
+      const count = section.data.needs.reduce((acc, item) => {
+        const qty = parseInt(item.quantity) || 0;
+        return acc + qty;
+      }, 0);
+      if (count > 0) parts.push(`${count} ${label}`);
+    }
+  };
+
+  addSectionCount('lighting', 'LLUMS');
+  addSectionCount('sound', 'SO');
+  addSectionCount('machinery', 'MAQUI');
+  addSectionCount('video', 'VIDEO');
+  addSectionCount('structures', 'ESTR');
+  
+  // Per a auxiliars/càrrega (sovint a 'personnel' o 'rentals', ajustem segons model)
+  // Si no hi ha una secció específica de personal de càrrega, ho deixem així.
+  
+  return parts.length > 0 ? `Necessitats TEC: ${parts.join(', ')}` : '';
+};
+
 // --- C. HANDLER PRINCIPAL DE SINCRONITZACIÓ (AMB LOGS MILLORATS) ---
 ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }) => {
   const startTime = getCurrentTime();
@@ -780,32 +809,65 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
           logAndSendProgress(progressMsg);
           
           try {
-            // 1. Preparar dades de l'esdeveniment (CORREGIT)
-            // Filtrem les assignacions per aquest esdeveniment
+            // 1. Preparar dades de l'esdeveniment (FORMAT RIC + MIXT DETALLAT)
             const eventAssignments = (localData.assignments || []).filter(a => a.eventFrameId === localFrame.id);
             
-            // Obtenim els noms utilitzant les propietats correctes (peopleGroups i personGroupId)
+            const statusIcons = {
+              'Sí': '🟢',
+              'No': '🔴',
+              'Pendent': '🟡',
+              'Mixt': '🔵'
+            };
+
             const assignedPeopleList = eventAssignments
               .map(a => {
                   const person = localData.peopleGroups.find(p => p.id === a.personGroupId);
                   if (!person) return null;
-                  return a.role
-                      ? `- ${person.name} (${a.role})`
-                      : `- ${person.name}`;
+                  
+                  const roleStr = a.role ? ` (${a.role})` : '';
+                  const notePart = a.notes ? `\n   └ 📝 Nota: ${a.notes}` : '';
+
+                  // CAS A: Assignació MIXTA (Detall per dies)
+                  if (a.status === 'Mixt' && a.dailyStatuses) {
+                    const sortedDates = Object.keys(a.dailyStatuses).sort();
+                    const dailyDetails = sortedDates.map(date => {
+                        const dayStatus = a.dailyStatuses[date];
+                        const dayIcon = statusIcons[dayStatus] || '⚪';
+                        // Usem la funció formatSimpleDM existent a main.cjs o fem un format ràpid
+                        const dayStr = date.split('-').reverse().slice(0, 2).join('/'); // DD/MM
+                        return `   ${dayIcon} ${dayStr}: ${dayStatus}`;
+                    }).join('\n');
+
+                    return `${statusIcons['Mixt']} ${person.name}${roleStr} [MIXT]:\n${dailyDetails}${notePart}`;
+                  } 
+                  
+                  // CAS B: Assignació ESTÀNDARD (Sí/No/Pendent)
+                  else {
+                    const icon = statusIcons[a.status] || '⚪';
+                    // Si és un sol dia, mostrem data simple. Si és rang, mostrem inici-fi.
+                    const dateStr = (a.startDate === a.endDate) 
+                        ? formatDateDMY(a.startDate) 
+                        : `${formatDateDMY(a.startDate)} - ${formatDateDMY(a.endDate)}`;
+                    
+                    return `${icon} ${person.name}${roleStr}: ${dateStr} (${a.status})${notePart}`;
+                  }
               })
               .filter(Boolean)
               .join('\n');
             
-            // Construïm l'objecte per a Google amb el format de data correcte (YYYY-MM-DD)
-            // Utilitzem 'date' en lloc de 'dateTime' per a esdeveniments de dia complet
+            // Generar resum tècnic (Assegura't d'haver afegit la funció generateTechNeedsSummary abans)
+            const techSummary = generateTechNeedsSummary(localFrame.techSheet);
+            const techLine = techSummary ? `${techSummary}\n\n` : '';
+
             const eventData = {
               summary: localFrame.name || 'Esdeveniment sense títol',
               description: `Lloc: ${localFrame.place || 'No especificat'}\n` +
-                          `Notes: ${localFrame.generalNotes || ''}\n` +
-                          `--- PERSONAL ---\n${assignedPeopleList || 'Cap assignació'}`,
+                          `${techLine}` + 
+                          `Notes: ${localFrame.generalNotes || ''}\n\n` +
+                          `--- PERSONAL ASSIGNAT ---\n${assignedPeopleList || 'Cap assignació'}`,
               location: localFrame.place || '',
-              start: { date: localFrame.startDate }, // Format YYYY-MM-DD
-              end: { date: addDaysISO(localFrame.endDate, 1) }, // Google demana data final exclusiva (+1 dia)
+              start: { date: localFrame.startDate }, 
+              end: { date: addDaysISO(localFrame.endDate, 1) }, 
               extendedProperties: {
                 private: {
                   eventFrameId: localFrame.id
