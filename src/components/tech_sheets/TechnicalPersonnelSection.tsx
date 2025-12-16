@@ -309,6 +309,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                                     value={displayRole}
                                     onChange={(e) => handleRoleChange(roleIndex, e.target.value)}
                                     suggestions={TECH_SHEET_ROLE_SUGGESTIONS}
+                                    tooltipText="Defineix el rol tècnic específic per a aquesta tasca. ⚠️ ATENCIÓ: Aquest camp està vinculat. Si el modifiques aquí, s'actualitzarà automàticament a l'assignació principal de la llista d'esdeveniments."
                                 />
                             </div>
                             <div className="w-5/12">

@@ -98,6 +98,7 @@ Aquesta pantalla presenta una estructura plana (sense contenidor mestre plegable
   - **Capçalera**: Estat complet (icona gran), Títol, Lloc, Dates i accions ràpides.
   - **Cos**: Notes generals i llista d'assignacions.
   - **Targeta d'Assignació (`AssignmentCard`)**:
+    - Mostra el nom de la persona i el seu rol específic (`Nom - Rol`) si està definit.
     - Inclou indicadors visuals d'estat (vora lateral de color) i botons d'acció grans.
     - Suport per a vista detallada de dies (multidia).
 
