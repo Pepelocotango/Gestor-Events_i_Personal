@@ -11,7 +11,10 @@ import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
 import { EventsStackParamList } from '../navigation';
-import { Assignment } from '../types';
+import { Assignment, AssignmentStatus } from '../types';
+import { getStatusColor } from '../utils/statusUtils';
+import { formatDateRangeDMY } from '../utils/dateFormat';
+import { formatDateRanges } from '../utils/dateRangeFormatter';
 import { lightTheme, darkTheme } from '../utils/themes';
 
 type EventDetailScreenRouteProp = RouteProp<EventsStackParamList, 'EventDetail'>;
@@ -153,6 +156,29 @@ export default function EventDetailScreen({ route, navigation }: Props) {
     return person ? person.name : 'Desconegut';
   };
 
+  const renderMixedDetails = (assignment: Assignment) => {
+    if (!assignment.dailyStatuses) return null;
+    
+    const grouped: Record<string, string[]> = {};
+    Object.entries(assignment.dailyStatuses).forEach(([date, status]) => {
+      if (!grouped[status]) grouped[status] = [];
+      grouped[status].push(date);
+    });
+
+    return (
+      <View style={{ marginTop: 4, paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: colors.border }}>
+        {Object.entries(grouped).map(([status, dates]) => (
+          <Text key={status} style={{ fontSize: 12, color: colors.text }}>
+            <Text style={{ color: getStatusColor(status as AssignmentStatus), fontWeight: 'bold' }}>
+              {status}:{' '}
+            </Text>
+            {formatDateRanges(dates)}
+          </Text>
+        ))}
+      </View>
+    );
+  };
+
   return (
     <ScrollView style={dynamicStyles.container}>
       <View style={dynamicStyles.card}>
@@ -186,15 +212,42 @@ export default function EventDetailScreen({ route, navigation }: Props) {
       <View style={dynamicStyles.card}>
         <Text style={dynamicStyles.subtitle}>Assignacions</Text>
         {event.assignments.map((assignment: Assignment) => (
-          <View key={assignment.id} style={dynamicStyles.assignmentContainer}>
-            <Text>
-              <Text style={[dynamicStyles.text, dynamicStyles.bold]}>
-                {getPersonName(assignment.personGroupId) || 'No assignat'}
+          <View key={assignment.id} style={[dynamicStyles.assignmentContainer, { marginBottom: 12 }]}>
+            {/* FILA 1: NOM I ROL */}
+            <View style={{ marginBottom: 4 }}>
+              <Text>
+                <Text style={[dynamicStyles.text, dynamicStyles.bold, { fontSize: 16 }]}>
+                  {getPersonName(assignment.personGroupId) || 'No assignat'}
+                </Text>
+                {assignment.role && (
+                  <Text style={dynamicStyles.roleText}> - {assignment.role}</Text>
+                )}
               </Text>
-              {assignment.role && (
-                <Text style={dynamicStyles.roleText}> - {assignment.role}</Text>
-              )}
-            </Text>
+            </View>
+
+            {/* FILA 2: DATES I ESTAT GENERAL */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: 13, color: colors.text, opacity: 0.8 }}>
+                {formatDateRangeDMY(assignment.startDate, assignment.endDate)}
+              </Text>
+              <Text style={{ 
+                fontWeight: 'bold', 
+                color: getStatusColor(assignment.status),
+                fontSize: 14 
+              }}>
+                {assignment.status}
+              </Text>
+            </View>
+
+            {/* FILA 3: DETALL MIXT (Condicional) */}
+            {assignment.status === AssignmentStatus.Mixed && renderMixedDetails(assignment)}
+
+            {/* FILA 4: NOTES (Condicional) */}
+            {assignment.notes ? (
+              <Text style={{ fontSize: 12, fontStyle: 'italic', color: colors.placeholder, marginTop: 4 }}>
+                📝 {assignment.notes}
+              </Text>
+            ) : null}
           </View>
         ))}
       </View>
