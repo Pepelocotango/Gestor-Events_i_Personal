@@ -120,6 +120,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <div className="space-y-1.5">
             <p className="text-lg font-bold text-foreground">
               {personName || 'Persona Desconeguda'}
+              {assignment.role && (
+                <span className="ml-2 text-base font-medium italic text-muted-foreground">
+                  - {assignment.role}
+                </span>
+              )}
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-base text-muted-foreground">

@@ -26,7 +26,18 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
   }
 
   const isEditing = !!data.assignmentToEdit;
-  const formData = isEditing ? data.assignmentToEdit! : data;
+
+  // Define a comprehensive type for the form's data state
+  type FormData = Partial<Omit<Assignment, 'id' | 'eventFrameId'>> & {
+    personGroupId?: string;
+    startDate?: string;
+    endDate?: string;
+    status?: AssignmentStatus;
+    notes?: string;
+    role?: string;
+  };
+
+  const formData: FormData = isEditing ? data.assignmentToEdit! : data;
   const eventFrame = data.eventFrame!;
 
   const [isEditingMixed, setIsEditingMixed] = useState(isEditing && formData.status === AssignmentStatus.Mixed);
@@ -49,6 +60,14 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
       updateModalData({ assignmentToEdit: newFormData as Assignment });
     } else {
       updateModalData({ [field]: value });
+    }
+  };
+
+  const handlePersonChange = (personGroupId: string) => {
+    handleFieldChange('personGroupId', personGroupId);
+    const selectedPerson = peopleGroups.find(p => p.id === personGroupId);
+    if (selectedPerson?.role && !formData.role) {
+      handleFieldChange('role', selectedPerson.role);
     }
   };
 
@@ -110,7 +129,8 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
           startDate: formData.startDate!,
           endDate: formData.endDate!,
           status: formData.status!,
-          notes: formData.notes!
+          notes: formData.notes!,
+          role: formData.role,
       };
       const result = addAssignment(eventFrame.id, assignmentData, force);
       handleResult(result);
@@ -142,7 +162,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
           <select
             id="as-person"
             value={formData.personGroupId || ''}
-            onChange={e => handleFieldChange('personGroupId', e.target.value)}
+            onChange={e => handlePersonChange(e.target.value)}
             className={commonInputClass}
             required
             disabled={peopleGroups.length === 0}
@@ -156,6 +176,19 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
           </select>
         </Tooltip>
         {errors.personGroupId && <p className="text-destructive text-xs mt-1">{errors.personGroupId}</p>}
+      </div>
+       <div>
+        <label htmlFor="as-role" className="block text-sm font-medium text-muted-foreground">Rol (Opcional)</label>
+        <Tooltip text="Especifica el rol o funció per a aquesta assignació">
+          <input
+            type="text"
+            id="as-role"
+            value={formData.role || ''}
+            onChange={e => handleFieldChange('role', e.target.value)}
+            className={commonInputClass}
+            placeholder="Especifica el rol..."
+          />
+        </Tooltip>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>

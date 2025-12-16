@@ -91,7 +91,8 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
                   return (
                     <li key={assign.id} className="text-muted-foreground border-b border-border/50 pb-2 last:border-0">
                       <div className="font-medium text-foreground">
-                        {personName}: <span className="text-xs font-normal text-muted-foreground">{dateRange}</span> <span className={`${getStatusColorClass(AssignmentStatus.Mixed)} font-bold`}>Mixt:</span>
+                        {personName}
+                        {assign.role && <span className="italic text-muted-foreground font-normal"> - {assign.role}</span>}: <span className="text-xs font-normal text-muted-foreground">{dateRange}</span> <span className={`${getStatusColorClass(AssignmentStatus.Mixed)} font-bold`}>Mixt:</span>
                       </div>
                       <ul className="pl-4 mt-1 space-y-0.5">
                         {statusOrder.map(status => {
@@ -113,7 +114,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
                   // Cas estàndard (Sí, No, Pendent)
                   return (
                     <li key={assign.id} className="text-muted-foreground py-1 border-b border-border/50 last:border-0">
-                      <span className="font-medium text-foreground">{personName}</span>: <span className="text-xs text-muted-foreground">{dateRange}</span> <span className={`${getStatusColorClass(assign.status)} font-bold`}>{assign.status}</span>
+                      <span className="font-medium text-foreground">{personName}{assign.role && <span className="italic text-muted-foreground font-normal"> - {assign.role}</span>}</span>: <span className="text-xs text-muted-foreground">{dateRange}</span> <span className={`${getStatusColorClass(assign.status)} font-bold`}>{assign.status}</span>
                       {assign.notes && <div className="text-xs italic pl-4 text-muted-foreground mt-0.5">Nota: {assign.notes}</div>}
                     </li>
                   );

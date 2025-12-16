@@ -67,7 +67,7 @@ L'aplicació es divideix en pestanyes principals a la part inferior, cadascuna a
   - **Accions a la Targeta (expandida)**:
     - **<Icona `pencil`>**: Obre el formulari per editar l'esdeveniment.
     - **<Icona `delete`>**: Elimina l'esdeveniment (amb confirmació).
-  - **Editor d'Assignacions**: Dins de la targeta expandida, cada assignació es pot expandir per veure i editar l'estat diari (Confirmat, Pendent, No disponible). Aquest canvi es pot fer directament a la llista.
+  - **Editor d'Assignacions**: Dins de la targeta expandida, cada assignació mostra el nom de la persona i, si s'ha especificat, el seu rol (`Nom - Rol`). També permet expandir-la per veure i editar l'estat diari (Confirmat, Pendent, No disponible).
 
 ---
 
@@ -100,5 +100,22 @@ L'aplicació es divideix en pestanyes principals a la part inferior, cadascuna a
   - **Accions a cada element**:
     - **<Icona `pencil`>**: Obre el formulari per editar l'ítem.
     - **<Icona `delete`>**: Elimina l'ítem (amb confirmació).
+
+---
+
+### 4. Formularis de Creació/Edició
+
+Totes les pantalles de formulari (Esdeveniment, Persona, Material, Assignació) comparteixen una estructura similar:
+
+- **Camps d'Entrada**: Controls natius (`TextInput`, `Switch`, etc.) per introduir les dades.
+- **Validació**: Mostra missatges d'error si les dades no són correctes.
+- **Botó "Desar"**: Desa els canvis i torna a la pantalla de llista.
+
+#### Formulari d'Assignació (`AssignmentFormScreen`)
+
+Aquest formulari inclou una funcionalitat addicional per al camp "Rol":
+
+-   **Camp "Rol"**: Un nou camp de text permet especificar el rol d'una persona per a una assignació concreta.
+-   **Autocompletat Intel·ligent**: Si se selecciona una persona que té un "Rol Base" definit a la seva fitxa de contacte i el camp "Rol" del formulari està buit, aquest s'omplirà automàticament amb el rol base. Això agilitza l'entrada de dades, però permet a l'usuari sobreescriure'l si cal un rol específic per a aquella assignació.
 
   

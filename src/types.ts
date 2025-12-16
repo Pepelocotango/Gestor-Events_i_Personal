@@ -19,6 +19,7 @@ export interface PersonGroup {
 export interface Assignment {
   id:string;
   personGroupId: string;
+  role?: string;
   eventFrameId: string;
   startDate: string;
   endDate: string;
@@ -272,6 +273,7 @@ export interface ModalData {
     itemId?: string;
     eventFrameId?: string;
     assignmentId?: string;
+    role?: string;
     startDate?: string;
     endDate?: string;
     status?: AssignmentStatus;

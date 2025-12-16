@@ -479,7 +479,7 @@ Per donar resposta a la necessitat que les àrees de text s'ajustin al seu conti
 Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les estructures de dades clau mitjançant interfícies de TypeScript.
 
 -   **`EventFrame`**: Representa un esdeveniment marc. Conté propietats com `id`, `name`, `startDate`, `endDate`, i, de manera crucial, un array niat `assignments: Assignment[]` i un objecte opcional `techSheet: TechSheetData`.
--   **`Assignment`**: Defineix una assignació de personal. Enllaça un `personGroupId` amb un `eventFrameId` i gestiona l'estat (`status`) i els estats diaris (`dailyStatuses`).
+-   **`Assignment`**: Defineix una assignació de personal. Enllaça un `personGroupId` amb un `eventFrameId` i gestiona l'estat (`status`) i els estats diaris (`dailyStatuses`). S'ha afegit el camp `role?: string` com a font única de veritat per al rol específic d'aquesta assignació, independentment del rol base de la persona.
 -   **`PersonGroup`**: Representa una entrada a l'agenda (una persona, una empresa, etc.).
 -   **`MaterialItem`**: Defineix un article a l'inventari, amb propietats com `stock` i `category`.
 -   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo. S'han afegit els camps següents per a les notes generals de personal i necessitats tècniques:

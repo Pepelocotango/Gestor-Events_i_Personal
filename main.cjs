@@ -785,10 +785,16 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
             const eventAssignments = (localData.assignments || []).filter(a => a.eventFrameId === localFrame.id);
             
             // Obtenim els noms utilitzant les propietats correctes (peopleGroups i personGroupId)
-            const assignedPeople = eventAssignments
-              .map(a => localData.peopleGroups.find(p => p.id === a.personGroupId)?.name)
+            const assignedPeopleList = eventAssignments
+              .map(a => {
+                  const person = localData.peopleGroups.find(p => p.id === a.personGroupId);
+                  if (!person) return null;
+                  return a.role
+                      ? `- ${person.name} (${a.role})`
+                      : `- ${person.name}`;
+              })
               .filter(Boolean)
-              .join(', ');
+              .join('\n');
             
             // Construïm l'objecte per a Google amb el format de data correcte (YYYY-MM-DD)
             // Utilitzem 'date' en lloc de 'dateTime' per a esdeveniments de dia complet
@@ -796,7 +802,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
               summary: localFrame.name || 'Esdeveniment sense títol',
               description: `Lloc: ${localFrame.place || 'No especificat'}\n` +
                           `Notes: ${localFrame.generalNotes || ''}\n` +
-                          `--- PERSONAL ---\n${assignedPeople || 'Cap assignació'}`,
+                          `--- PERSONAL ---\n${assignedPeopleList || 'Cap assignació'}`,
               location: localFrame.place || '',
               start: { date: localFrame.startDate }, // Format YYYY-MM-DD
               end: { date: addDaysISO(localFrame.endDate, 1) }, // Google demana data final exclusiva (+1 dia)
