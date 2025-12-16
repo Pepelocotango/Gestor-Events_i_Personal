@@ -10,6 +10,7 @@ import DailyStatusEditor from './DailyStatusEditor';
 import { format } from 'date-fns';
 import { ca } from 'date-fns/locale';
 import { darkTheme, lightTheme } from '../utils/themes';
+import { formatDateRanges } from '../utils/dateRangeFormatter';
 
 type EventFrameCardProps = {
   eventFrame: EventFrame;
@@ -278,7 +279,24 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
                 ) : null}
               </Text>
               <Text style={styles.assignmentDate}>
-                {formatDateRange(assignment.startDate, assignment.endDate)}
+                {assignment.status === 'Mixt' && assignment.dailyStatuses ? (
+                  (() => {
+                    const yesDates = Object.entries(assignment.dailyStatuses)
+                      .filter(([, s]) => s === 'Sí')
+                      .map(([d]) => d);
+                    const noDates = Object.entries(assignment.dailyStatuses)
+                      .filter(([, s]) => s === 'No')
+                      .map(([d]) => d);
+                    
+                    const parts = [];
+                    if (yesDates.length) parts.push(`✅ ${formatDateRanges(yesDates)}`);
+                    if (noDates.length) parts.push(`❌ ${formatDateRanges(noDates)}`);
+                    
+                    return parts.length ? parts.join('  ') : formatDateRange(assignment.startDate, assignment.endDate);
+                  })()
+                ) : (
+                  formatDateRange(assignment.startDate, assignment.endDate)
+                )}
               </Text>
             </View>
           </View>
