@@ -1,5 +1,9 @@
 branca de desenvolupament * DEV_DESKTOP+MOBILE+WEBS
 
+web de la app a Vercel a la branca main:
+https://gestor-events-i-personal-landingpag.vercel.app/
+
+
 ## DEVELOPING.md V1.5.0
 
 
