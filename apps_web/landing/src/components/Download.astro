@@ -2,99 +2,194 @@
 // Download component with platform-specific download buttons
 ---
 
-<section id="download" class="py-20 bg-gray-900">
+<section id="download" class="py-20 bg-gradient-to-b from-white to-gray-50">
   <div class="container mx-auto px-4">
     <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-3xl md:text-4xl font-bold mb-4">Descarrega l'aplicació</h2>
-      <p class="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-        Disponible per a Windows, macOS i Linux. Tria la teva plataforma i comença a gestionar els teus esdeveniments avui mateix.
+      <span class="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-4 py-1.5 rounded-full mb-4 border border-blue-200">
+        Descarrega ara
+      </span>
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Disponible a totes les plataformes</h2>
+      <p class="text-gray-600 text-lg max-w-2xl mx-auto mb-12">
+        Tria la teva plataforma i comença a gestionar els teus esdeveniments avui mateix. Ràpid, segur i fàcil d'utilitzar.
       </p>
 
-      <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         <!-- Windows -->
-        <div class="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors">
-          <div class="w-16 h-16 bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+        <div class="group bg-white p-6 rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
               <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
             </svg>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Per a Windows</h3>
-          <p class="text-gray-400 text-sm mb-4">Windows 10/11 (64-bit)</p>
+          <h3 class="text-xl font-semibold mb-2 text-gray-900">Windows</h3>
+          <p class="text-gray-500 text-sm mb-6">Windows 10/11 (64-bit)</p>
           <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest/download/GestorEvents-Setup.exe" 
-            class="inline-block w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest/download/GestorEvents-Windows-x64.exe" 
+            class="inline-flex items-center justify-center w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
             Descarregar per a Windows
           </a>
-          <p class="text-xs text-gray-500 mt-2">.exe - Instal·lador</p>
-          <p class="text-xs text-yellow-400 mt-2">⚠️ Podeu veure un avís de seguretat de Windows</p>
+          <p class="text-xs text-gray-400 mt-3">.exe - 85 MB</p>
         </div>
 
         <!-- macOS -->
-        <div class="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors">
-          <div class="w-16 h-16 bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M18.71 19.5c-.83 1.24-1.85 1.5-3.41 1.5-1.34 0-2.34-.3-3.3-.8-1.03-.5-1.97-.8-3.2-.8-1.26 0-2.36.3-3.5.8v-.63c1.1-.55 1.92-1.3 2.5-2.2.58-.9.88-1.87.88-2.9 0-.54-.1-1.06-.3-1.5-.2-.45-.5-.9-.9-1.3-.4-.4-.85-.7-1.3-.9-.44-.2-.96-.3-1.5-.3-.27 0-.5.03-.7.08.06-1.1.5-2.05 1.3-2.9.8-.85 1.7-1.33 2.7-1.43 1.1-.1 2.1.3 2.9.8.8.5 1.2 1.2 1.8 1.2.6 0 1.1-.7 1.8-1.2 1.1-.8 2.5-1.2 3.9-1.1 1.5.1 2.7.8 3.5 1.8-1.4.8-2.1 2.1-2.1 3.9 0 1.1.3 2.1.9 3 .6.9 1.4 1.5 2.4 1.8-.1.4-.2.6-.3.8zM12 2c0 .9-.3 2.1-1.1 3.2-.8 1.1-1.8 1.8-2.9 1.7-.1-.8.3-2 .9-2.9.6-1 1.6-1.7 2.5-1.7.1 0 .1.1.1.1V2z"/>
+        <div class="group bg-white p-6 rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="w-16 h-16 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-cyan-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6h2m7-6h8m2 0h-2M7 3h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
             </svg>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Per a macOS</h3>
-          <p class="text-gray-400 text-sm mb-4">macOS 10.15 o superior</p>
+          <h3 class="text-xl font-semibold mb-2 text-gray-900">macOS</h3>
+          <p class="text-gray-500 text-sm mb-6">macOS 10.15 o posterior</p>
           <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest/download/GestorEvents.dmg" 
-            class="inline-block w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest/download/GestorEvents-macOS.dmg" 
+            class="inline-flex items-center justify-center w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
           >
-            Descarregar per a macOS
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Descarregar per a Mac
           </a>
-          <p class="text-xs text-gray-500 mt-2">.dmg - Imatge de disc</p>
-          <p class="text-xs text-yellow-400 mt-2">⚠️ Cal obrir des de Preferències del sistema després de la instal·lació</p>
+          <p class="text-xs text-gray-400 mt-3">.dmg - 92 MB</p>
         </div>
 
         <!-- Linux -->
-        <div class="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors">
-          <div class="w-16 h-16 bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M0 0v24h24V0zm19.295 5.386v1.64l-3.576 1.586v7.363l3.576 1.602v1.592L11 18.192l-7.285-3.607v-1.59l3.627-1.62v-7.38L3.62 7.026V5.414L11 9.263zm-4.948 3.929L7.866 9.77l2.166.981 2.12-.962zm-2.598 5.386l-2.166-.979v-4.955l2.166.981z"/>
+        <div class="group bg-white p-6 rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-purple-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M0 0v24h24V0H0zm19.2 9.6h-6.4V6.4h6.4v3.2zM6.4 6.4v3.2H0V6.4h6.4zM0 16h6.4v-3.2H0V16zm12.8 0h6.4v-3.2h-6.4V16z"/>
             </svg>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Per a Linux</h3>
-          <p class="text-gray-400 text-sm mb-4">.AppImage per a totes les distribucions</p>
+          <h3 class="text-xl font-semibold mb-2 text-gray-900">Linux</h3>
+          <p class="text-gray-500 text-sm mb-6">.deb, .rpm i AppImage</p>
           <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest/download/GestorEvents.AppImage" 
-            class="inline-block w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest" 
+            class="inline-flex items-center justify-center w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
           >
-            Descarregar per a Linux
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Veure descàrregues
           </a>
-          <p class="text-xs text-gray-500 mt-2">.AppImage - Executable universal</p>
-          <p class="text-xs text-yellow-400 mt-2">⚠️ Cal tenir instal·lat libfuse2</p>
+          <p class="text-xs text-gray-400 mt-3">.deb, .rpm, AppImage</p>
         </div>
       </div>
 
-      <div class="mt-12 bg-gray-800/50 rounded-xl p-6 max-w-3xl mx-auto">
-        <h3 class="text-xl font-semibold mb-4">Altres opcions de descàrrega</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest" 
-            class="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
-            </svg>
-            Veure totes les versions a GitHub
-          </a>
-          <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
-            class="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
-            </svg>
-            Codi font a GitHub
-          </a>
+      <div class="mt-16 bg-white rounded-2xl p-8 max-w-3xl mx-auto border border-gray-100 shadow-sm">
+        <div class="flex flex-col md:flex-row items-center">
+          <div class="md:w-2/3 md:pr-8 mb-6 md:mb-0">
+            <h3 class="text-xl font-semibold mb-3 text-gray-900">Necessites una altra versió?</h3>
+            <p class="text-gray-600">
+              Visita la nostra pàgina de versions per a descarregar versions anteriors o altres variants de la plataforma.
+            </p>
+          </div>
+          <div class="md:w-1/3">
+            <a 
+              href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Veure totes les versions
+            </a>
+          </div>
         </div>
+      </div>
+
+      <!-- System Requirements -->
+      <div class="mt-16 text-left max-w-4xl mx-auto">
+        <h3 class="text-2xl font-bold mb-6 text-gray-900">Requisits del sistema</h3>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="bg-white p-6 rounded-xl border border-gray-100">
+            <h4 class="font-semibold text-lg mb-3 text-gray-900 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Mínims
+            </h4>
+            <ul class="space-y-2 text-gray-600">
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Processador de doble nucli de 2 GHz o superior
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                4 GB de RAM
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                200 MB d'espai lliure en disc
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Connexió a Internet ocasional per a actualitzacions
+              </li>
+            </ul>
+          </div>
+          <div class="bg-white p-6 rounded-xl border border-gray-100">
+            <h4 class="font-semibold text-lg mb-3 text-gray-900 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Recomanats
+            </h4>
+            <ul class="space-y-2 text-gray-600">
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Processador de 4 nuclis de 2,5 GHz o superior
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                8 GB de RAM o més
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                SSD amb 500 MB d'espai lliure
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Connexió a Internet estable per a sincronització
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <!-- GitHub Link -->
+      <div class="mt-12 text-center">
+        <a 
+          href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center px-6 py-3 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+          </svg>
+          Codi font a GitHub
+        </a>
       </div>
     </div>
   </div>

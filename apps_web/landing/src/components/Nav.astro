@@ -1,0 +1,180 @@
+---
+// Nav.astro
+const { currentPath } = Astro.props;
+
+const navLinks = [
+  { name: 'Inici', path: '#home' },
+  { name: 'Funcionalitats', path: '#features' },
+  { name: 'Galeria', path: '#gallery' },
+  { name: 'Descarrega', path: '#download' },
+];
+---
+
+<header class="fixed top-0 left-0 right-0 z-50">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 md:h-20">
+      {/* Logo */}
+      <a 
+        href="/" 
+        class="flex items-center space-x-2 group"
+        aria-label="Inici"
+      >
+        <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+          GE
+        </div>
+        <span class="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+          Gestor d'Esdeveniments
+        </span>
+      </a>
+
+      {/* Desktop Navigation */}
+      <nav class="hidden md:flex items-center space-x-1">
+        {navLinks.map(link => (
+          <a 
+            href={link.path}
+            class={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${currentPath === link.path 
+              ? 'bg-white/10 text-white' 
+              : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
+            aria-current={currentPath === link.path ? 'page' : undefined}
+          >
+            {link.name}
+          </a>
+        ))}
+        <a 
+          href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="ml-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-brand-500 to-brand-600 rounded-lg hover:opacity-90 transition-opacity flex items-center space-x-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </nav>
+
+      {/* Mobile menu button */}
+      <button 
+        id="mobile-menu-button" 
+        class="md:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 focus:outline-none"
+        aria-label="Menú"
+      >
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  {/* Mobile menu */}
+  <div id="mobile-menu" class="hidden md:hidden bg-dark-800/95 backdrop-blur-lg border-t border-dark-700">
+    <div class="px-2 pt-2 pb-3 space-y-1">
+      {navLinks.map(link => (
+        <a 
+          href={link.path}
+          class={`block px-3 py-2 rounded-md text-base font-medium ${currentPath === link.path 
+            ? 'bg-white/10 text-white' 
+            : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+          aria-current={currentPath === link.path ? 'page' : undefined}
+        >
+          {link.name}
+        </a>
+      ))}
+      <a 
+        href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        class="block px-3 py-2.5 mt-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:opacity-90 transition-opacity flex items-center space-x-2 justify-center"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+        </svg>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<script is:inline>
+  // Mobile menu toggle
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  if (mobileMenuButton && mobileMenu) {
+    mobileMenuButton.addEventListener('click', () => {
+      const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+      mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+      mobileMenu.classList.toggle('hidden');
+    });
+  }
+  
+  // Close mobile menu when clicking on a link
+  const mobileMenuLinks = document.querySelectorAll('#mobile-menu a');
+  mobileMenuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.add('hidden');
+      mobileMenuButton.setAttribute('aria-expanded', 'false');
+    });
+  });
+  
+  // Add scroll effect to header
+  const header = document.querySelector('header');
+  let lastScroll = 0;
+  
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset;
+    
+    if (currentScroll <= 0) {
+      header.classList.remove('shadow-lg');
+      header.classList.remove('bg-dark-900/80');
+      header.classList.add('bg-transparent');
+      return;
+    }
+    
+    if (currentScroll > lastScroll && currentScroll > 100) {
+      // Scrolling down
+      header.classList.add('-translate-y-full');
+    } else {
+      // Scrolling up
+      header.classList.remove('-translate-y-full');
+      header.classList.add('shadow-lg');
+      header.classList.add('bg-dark-900/80');
+      header.classList.add('backdrop-blur-md');
+      header.classList.remove('bg-transparent');
+    }
+    
+    lastScroll = currentScroll;
+  });
+  
+  // Add shadow on scroll
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 10) {
+      header.classList.add('shadow-lg', 'bg-dark-900/80', 'backdrop-blur-md');
+    } else {
+      header.classList.remove('shadow-lg', 'bg-dark-900/80');
+      header.classList.add('bg-transparent');
+    }
+  });
+</script>
+
+<style>
+  header {
+    transition: all 0.3s ease-in-out;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  @media (max-width: 768px) {
+    #mobile-menu {
+      position: fixed;
+      top: 4rem;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      padding: 1rem 0;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+  }
+</style>

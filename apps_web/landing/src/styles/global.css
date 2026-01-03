@@ -1,0 +1,136 @@
+/* Global Styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Custom CSS Variables */
+  :root {
+    --color-primary: 79 70 229;
+    --color-primary-light: 129 140 248;
+    --color-primary-dark: 67 56 202;
+    --color-dark: 15 23 42;
+    --color-dark-900: 5 5 5;
+    --color-dark-800: 30 30 30;
+    --color-dark-700: 45 45 45;
+    --color-dark-600: 61 61 61;
+    --color-dark-500: 107 114 128;
+    --color-dark-400: 156 163 175;
+    --color-dark-300: 209 213 219;
+    --color-dark-200: 229 231 235;
+    --color-dark-100: 243 244 246;
+    --color-dark-50: 249 250 251;
+  }
+
+  /* Base styles */
+  html {
+    @apply scroll-smooth;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark-900 text-gray-100 font-sans antialiased leading-relaxed;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-white;
+    line-height: 1.2;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  /* Links */
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-500;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-brand to-brand/90 text-white shadow-lg hover:shadow-xl hover:shadow-brand/20;
+  }
+
+  /* Forms */
+  input,
+  select,
+  textarea {
+    @apply w-full px-4 py-3 rounded-lg bg-dark-800 border border-dark-700 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all duration-200 text-white;
+  }
+
+  /* Utility classes */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand to-cyan-400;
+  }
+
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+}
