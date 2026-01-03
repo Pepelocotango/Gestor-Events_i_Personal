@@ -1,0 +1,71 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Gestor d\'Esdeveniments i Personal - Eina integral per a la gestió de personal i material en esdeveniments' } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="ca" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>{title} | Gestor d'Esdeveniments i Personal</title>
+  </head>
+  <body class="min-h-screen bg-gray-900 text-gray-100 font-sans">
+    <div class="min-h-screen flex flex-col">
+      <header class="border-b border-gray-800">
+        <div class="container mx-auto px-4 py-6 flex justify-between items-center">
+          <a href="/" class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            Gestor d'Esdeveniments
+          </a>
+          <nav>
+            <ul class="flex space-x-6">
+              <li><a href="#features" class="hover:text-blue-400 transition-colors">Funcionalitats</a></li>
+              <li><a href="#download" class="hover:text-blue-400 transition-colors">Descarrega</a></li>
+              <li><a href="#gallery" class="hover:text-blue-400 transition-colors">Galeria</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <main class="flex-grow">
+        <slot />
+      </main>
+
+      <footer class="bg-gray-800 py-12">
+        <div class="container mx-auto px-4">
+          <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0">
+              <h3 class="text-lg font-semibold mb-2">Gestor d'Esdeveniments i Personal</h3>
+              <p class="text-gray-400">Versió 1.5.0 - Sota llicència GPL v3.0</p>
+            </div>
+            <div class="flex space-x-6">
+              <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">
+                Codi Font
+              </a>
+              <a href="/docs" class="text-gray-400 hover:text-white transition-colors">
+                Documentació
+              </a>
+            </div>
+          </div>
+          <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-500 text-sm">
+            <p>© 2024 Gestor d'Esdeveniments i Personal. Tots els drets reservats.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style>
+  body {
+    background-color: #111827;
+  }
+</style>
