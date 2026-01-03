@@ -1,0 +1,1937 @@
+{
+  "peopleGroups": [
+    {
+      "id": "prov-02",
+      "name": "Càtering Deliciós",
+      "role": "Càtering",
+      "tel1": "93 987 xx xx",
+      "email": "hola@catering.cat",
+      "notes": "Opcions veganes disponibles.",
+      "tel2": "",
+      "web": ""
+    },
+    {
+      "id": "p-01",
+      "name": "Gerard Tècnic",
+      "role": "Cap Tècnic",
+      "tel1": "600 11 22xx",
+      "email": "gerard@exemple.cat",
+      "notes": "Coordinador general. Té claus del magatzem.",
+      "tel2": "",
+      "web": ""
+    },
+    {
+      "id": "p-04",
+      "name": "Laura Vídeo",
+      "role": "Tècnic de Vídeo",
+      "tel1": "600 12 34 xx",
+      "email": "laura@exemple.cat",
+      "notes": "Resolume i QLab.",
+      "tel2": "",
+      "web": ""
+    },
+    {
+      "id": "prov-01",
+      "name": "Lloguers SL",
+      "role": "Proveïdor Material",
+      "tel1": "93 123 45xx",
+      "email": "info@lloguers.sl",
+      "notes": "Empresa externa per reforç de PA.",
+      "tel2": "",
+      "web": ""
+    },
+    {
+      "id": "p-05",
+      "name": "Marc Producció",
+      "role": "Producció",
+      "tel1": "600 22 11 xx",
+      "email": "marc@exemple.cat",
+      "notes": "Encarregat de logística i càtering.",
+      "tel2": "",
+      "web": ""
+    },
+    {
+      "id": "p-02",
+      "name": "Marta Llums",
+      "role": "Tècnic de Llums",
+      "tel1": "600 44 55 xx",
+      "email": "maria@exemple.cat",
+      "notes": "Operadora de GrandMA.",
+      "tel2": "",
+      "web": ""
+    },
+    {
+      "id": "p-03",
+      "name": "Paco So",
+      "role": "Tècnic de So",
+      "tel1": "600 77 88 xx",
+      "email": "pere@exemple.cat",
+      "notes": "Especialista en monitors.",
+      "tel2": "",
+      "web": ""
+    }
+  ],
+  "eventFrames": [
+    {
+      "id": "evt-10",
+      "name": "Gala Benèfica Anual",
+      "place": "Gran Hotel",
+      "startDate": "2026-01-30",
+      "endDate": "2026-01-30",
+      "generalNotes": "Sopar amb espectacle. Etiqueta.",
+      "personnelComplete": false,
+      "techSheet": {
+        "eventName": "Gala Benèfica",
+        "location": "Gran Hotel",
+        "date": "30/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-09",
+      "name": "Teatre Escolar",
+      "place": "Centre Cívic",
+      "startDate": "2026-01-27",
+      "endDate": "2026-01-28",
+      "generalNotes": "Assaig el 27, funció el 28 al matí.",
+      "personnelComplete": false,
+      "techSheet": {
+        "eventName": "Teatre Escolar",
+        "location": "Centre Cívic",
+        "date": "27/01/2026 - 28/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-08",
+      "name": "Monòleg d'Humor",
+      "place": "Cafè Teatre",
+      "startDate": "2026-01-25",
+      "endDate": "2026-01-25",
+      "generalNotes": "Setup molt senzill. Un micro i un tamboret.",
+      "personnelComplete": true,
+      "techSheet": {
+        "eventName": "Nit d'Humor",
+        "location": "Cafè Teatre",
+        "date": "25/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-07",
+      "name": "Conferència Tecnologia i Futur",
+      "place": "Palau de Congressos",
+      "startDate": "2026-01-20",
+      "endDate": "2026-01-22",
+      "generalNotes": "Esdeveniment gran. Molt material de vídeo.",
+      "personnelComplete": false,
+      "techSheet": {
+        "eventName": "Tech Future Conf",
+        "location": "Palau Congressos",
+        "date": "20/01/2026 - 22/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-06",
+      "name": "Concert Banda Local",
+      "place": "Plaça Major",
+      "startDate": "2026-01-18",
+      "endDate": "2026-01-18",
+      "generalNotes": "Escenari exterior petit.",
+      "personnelComplete": true,
+      "techSheet": {
+        "eventName": "Concert Banda Local",
+        "location": "Plaça Major",
+        "date": "18/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-05",
+      "name": "Festival de Dansa Contemporània",
+      "place": "Teatre Principal",
+      "startDate": "2026-01-15",
+      "endDate": "2026-01-16",
+      "generalNotes": "Necessiten terra de linòleum (dansa).",
+      "personnelComplete": false,
+      "techSheet": {
+        "eventName": "Festival Dansa",
+        "location": "Teatre Principal",
+        "date": "15/01/2026 - 16/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-04",
+      "name": "Reunió Corporativa Empresa X",
+      "place": "Auditori",
+      "startDate": "2026-01-12",
+      "endDate": "2026-01-12",
+      "generalNotes": "Streaming en directe.",
+      "personnelComplete": true,
+      "techSheet": {
+        "eventName": "Reunió Empresa X",
+        "location": "Auditori",
+        "date": "12/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-03",
+      "name": "Obra de Teatre 'Hamlet'",
+      "place": "Sala Petita",
+      "startDate": "2026-01-08",
+      "endDate": "2026-01-10",
+      "generalNotes": "Companyia externa. Porten la seva escenografia.",
+      "personnelComplete": false,
+      "techSheet": {
+        "eventName": "Hamlet",
+        "location": "Sala Petita",
+        "date": "08/01/2026 - 10/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-02",
+      "name": "Cavalcada de Reis",
+      "place": "Carrers de la Ciutat",
+      "startDate": "2026-01-05",
+      "endDate": "2026-01-05",
+      "generalNotes": "Logística complexa. Coordinació amb policia local.",
+      "personnelComplete": false,
+      "techSheet": {
+        "eventName": "Cavalcada de Reis",
+        "location": "Carrers",
+        "date": "05/01/2026",
+        "showTimes": [],
+        "showDuration": "",
+        "technicalProviders": [],
+        "generalNotes": "",
+        "parking": {
+          "status": "unset",
+          "details": ""
+        },
+        "preAssembly": {
+          "status": "unset",
+          "details": ""
+        },
+        "schedule": {
+          "status": "unset",
+          "details": "",
+          "data": []
+        },
+        "dressingRooms": {
+          "status": "unset",
+          "details": ""
+        },
+        "actorsInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "techniciansInfo": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "number": 0,
+            "names": ""
+          }
+        },
+        "lighting": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "sound": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "video": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "machinery": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "rentals": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "otherEquipment": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "electrical": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "structures": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "platforms": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "consumables": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "curtains": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "transport": {
+          "status": "unset",
+          "details": "",
+          "data": {
+            "needs": []
+          }
+        },
+        "controlLocation": "",
+        "blueprints": "",
+        "contacts": [],
+        "observations": "",
+        "showLogistics": true,
+        "showPreAssembly": true,
+        "showSchedule": true,
+        "showNeeds": true,
+        "showOther": true,
+        "showGeneralNotesInPdf": true,
+        "technicalPersonnelNotes": "",
+        "showTechnicalPersonnelNotesInPdf": true,
+        "technicalNeedsNotes": "",
+        "showTechnicalNeedsNotesInPdf": true,
+        "showScheduleNotesInPdf": true
+      }
+    },
+    {
+      "id": "evt-01",
+      "name": "Concert d'any nou (exemple complert fitxa de bolo)",
+      "place": "Gran Teatre Principal",
+      "startDate": "2026-01-01",
+      "endDate": "2026-01-02",
+      "generalNotes": "Esdeveniment VIP. Requereix etiqueta per al personal de sala. Atenció: L'accés de càrrega és pel carrer posterior (C/ Unió).",
+      "personnelComplete": true,
+      "techSheet": {
+        "eventName": "Concert d'any nou (exemple complert fitxa de bolo)",
+        "location": "Gran Teatre Principal",
+        "date": "01/01/2026 - 02/01/2026",
+        "showDuration": "120 min + 20 min pausa",
+        "showTimes": [
+          {
+            "id": "t1",
+            "time": "20:00"
+          },
+          {
+            "id": "t2",
+            "time": "22:30 (Sessió Golfa)"
+          }
+        ],
+        "generalNotes": "Important: Coordinar amb seguretat per l'arribada de les autoritats a les 19:30. El rider tècnic de l'orquestra és la versió V3 (actualitzada).",
+        "showGeneralNotesInPdf": true,
+        "parking": {
+          "status": "yes",
+          "details": "Reserva de 20 metres lineals al C/ Unió per a 1 tràiler i 2 camions de 3500kg. Permís d'ocupació tramitat amb l'Ajuntament (Exp. 2025/998)."
+        },
+        "preAssembly": {
+          "status": "yes",
+          "details": "Dia 31/12/2025: Implantació de motors i truss de 08:00 a 14:00. Només maquinària."
+        },
+        "schedule": {
+          "status": "yes",
+          "details": "Horaris molt ajustats. Respectar puntualitat.",
+          "data": [
+            {
+              "id": "s1",
+              "date": "2026-01-01",
+              "time": "08:00",
+              "timeEnd": "14:00",
+              "description": "Descàrrega material SO i LLUMS + Muntatge Escenari"
+            },
+            {
+              "id": "s2",
+              "date": "2026-01-01",
+              "time": "14:00",
+              "timeEnd": "15:30",
+              "description": "Dinar Equip Tècnic"
+            },
+            {
+              "id": "s3",
+              "date": "2026-01-01",
+              "time": "15:30",
+              "timeEnd": "17:00",
+              "description": "Enfocament i Line Check"
+            },
+            {
+              "id": "s4",
+              "date": "2026-01-01",
+              "time": "17:00",
+              "timeEnd": "19:00",
+              "description": "Proves de so Orquestra (Tutti)"
+            },
+            {
+              "id": "s5",
+              "date": "2026-01-01",
+              "time": "19:30",
+              "description": "Obertura de Portes"
+            },
+            {
+              "id": "s6",
+              "date": "2026-01-01",
+              "time": "20:00",
+              "description": "INICI CONCERT"
+            },
+            {
+              "id": "s7",
+              "date": "2026-01-02",
+              "time": "00:30",
+              "description": "Desmuntatge i Càrrega"
+            }
+          ]
+        },
+        "dressingRooms": {
+          "status": "yes",
+          "details": "1 Camerino Triple (Director + Solistes) amb catering (fruita, aigua, cafè). 2 Camerinos col·lectius per a l'orquestra (homes/dones)."
+        },
+        "actorsInfo": {
+          "status": "yes",
+          "data": {
+            "number": 45,
+            "names": "Orquestra Simfònica del Vallès + 3 Solistes"
+          }
+        },
+        "techniciansInfo": {
+          "status": "yes",
+          "details": "Porten el seu propi operador de llums (només taula).",
+          "data": {
+            "number": 4,
+            "names": "1 Tècnic So, 1 Dissenyador Llums, 2 Backline"
+          }
+        },
+        "lighting": {
+          "status": "yes",
+          "details": "Disseny basat en contra-llums càlids i frontals blancs 3200K. Màquina de fum ha d'estar a baix volum.",
+          "data": {
+            "needs": [
+              {
+                "id": "l1",
+                "materialItemId": "mat-01",
+                "quantity": 1,
+                "description": "Taula de Llums GrandMA3",
+                "origin": "Control 1"
+              },
+              {
+                "id": "l2",
+                "materialItemId": "mat-02",
+                "quantity": 12,
+                "description": "Focus Mòbil Wash LED",
+                "origin": "Prestatgeria A"
+              },
+              {
+                "id": "l3",
+                "materialItemId": "mat-03",
+                "quantity": 8,
+                "description": "Focus Recort 19º (Frontal)",
+                "origin": "Prestatgeria B"
+              },
+              {
+                "id": "l4",
+                "materialItemId": "mat-06",
+                "quantity": 6,
+                "description": "Cegadora 4x100W halògena",
+                "origin": "Magatzem 1 - Prestatge C2"
+              }
+            ]
+          }
+        },
+        "sound": {
+          "status": "yes",
+          "details": "PA del teatre. Control des de FOH (Fila 12).",
+          "data": {
+            "needs": [
+              {
+                "id": "s1",
+                "materialItemId": "mat-05",
+                "quantity": 1,
+                "description": "Taula de So Yamaha CL5 + RIO3224",
+                "origin": "Control 2"
+              },
+              {
+                "id": "s2",
+                "materialItemId": "mat-04",
+                "quantity": 8,
+                "description": "Micròfon Shure SM58 (Veus i presentador)",
+                "origin": "Calaix Micros"
+              },
+              {
+                "id": "s3",
+                "materialItemId": "mat-S-005",
+                "quantity": 2,
+                "description": "Micròfon de diadema DPA 4066 (Solistes)",
+                "origin": "Calaix de micros B"
+              },
+              {
+                "id": "s4",
+                "materialItemId": "mat-S-006",
+                "quantity": 4,
+                "description": "Sistema In-Ear Shure PSM1000",
+                "origin": "Rack de Ràdios"
+              }
+            ]
+          }
+        },
+        "video": {
+          "status": "yes",
+          "details": "Projecció de compte enrere i logos patrocinadors al fons de l'escenari.",
+          "data": {
+            "needs": [
+              {
+                "id": "v1",
+                "materialItemId": "mat-07",
+                "quantity": 1,
+                "description": "Projector Làser 10k",
+                "origin": "Seguretat"
+              },
+              {
+                "id": "v2",
+                "materialItemId": "mat-08",
+                "quantity": 1,
+                "description": "Pantalla Projecció 4x3m",
+                "origin": "Magatzem Fons"
+              },
+              {
+                "id": "v3",
+                "materialItemId": "mat-V-003",
+                "quantity": 1,
+                "description": "Ordinador portàtil MacBook Pro M2 (Qlab)",
+                "origin": "Oficina Tècnica"
+              }
+            ]
+          }
+        },
+        "structures": {
+          "status": "yes",
+          "details": "Estructura per a la pantalla de vídeo i tarimes per a la secció de percussió.",
+          "data": {
+            "needs": [
+              {
+                "id": "e1",
+                "materialItemId": "mat-09",
+                "quantity": 12,
+                "description": "Tarima 2x1m (Alçada 40cm i 60cm)",
+                "origin": "Pati"
+              },
+              {
+                "id": "e2",
+                "materialItemId": "mat-E-003",
+                "quantity": 4,
+                "description": "Truss Prolyte H30V - Tram 2m (Potes pantalla)",
+                "origin": "Magatzem 1 - Zona Truss"
+              }
+            ]
+          }
+        },
+        "consumables": {
+          "status": "yes",
+          "details": "Marcar posicions a terra.",
+          "data": {
+            "needs": [
+              {
+                "id": "c1",
+                "materialItemId": "mat-10",
+                "quantity": 2,
+                "description": "Cinta Americana Negra",
+                "origin": "Armari Consumibles"
+              },
+              {
+                "id": "c2",
+                "materialItemId": null,
+                "quantity": 1,
+                "description": "Cinta de marcar blanca",
+                "origin": "Compravenda"
+              }
+            ]
+          }
+        },
+        "transport": {
+          "status": "yes",
+          "details": "Recollida de material extra a FocusPro.",
+          "data": {
+            "needs": [
+              {
+                "id": "tr1",
+                "materialItemId": "mat-TR-001",
+                "quantity": 1,
+                "description": "Furgoneta Mercedes Sprinter",
+                "origin": "Pàrquing"
+              }
+            ]
+          }
+        },
+        "controlLocation": "FOH: Platea Fila 12, seients 10-16. MONITORS: Hombro esquerre.",
+        "blueprints": "Adjunt al correu 'planol_implantacio_v4.pdf'. Link: dropbox.com/...",
+        "contacts": [
+          {
+            "id": "ct1",
+            "name": "Cristina Director",
+            "role": "Directora Tècnica Teatre",
+            "phone": "600 00 00 01",
+            "email": "anna@teatre.cat"
+          },
+          {
+            "id": "ct2",
+            "name": "Roger Regidor",
+            "role": "Regidor Companyia",
+            "phone": "600 00 00 02",
+            "email": "pep@orquestra.cat"
+          }
+        ],
+        "observations": "L'orquestra necessita 45 cadires sense braços (model negre). Aigua a l'escenari (ampolles petites sense tap).",
+        "technicalProviders": [
+          {
+            "id": "tp1",
+            "personGroupId": "p-01",
+            "roles": [
+              {
+                "id": "r1",
+                "role": "Direcció Tècnica",
+                "quantity": 1,
+                "notes": "Supervisió general"
+              }
+            ]
+          },
+          {
+            "id": "tp2",
+            "personGroupId": "p-02",
+            "roles": [
+              {
+                "id": "r2",
+                "role": "Tècnic de Llums",
+                "quantity": 1,
+                "notes": "Muntatge i assistència operador"
+              }
+            ]
+          },
+          {
+            "id": "tp3",
+            "personGroupId": "p-03",
+            "roles": [
+              {
+                "id": "r3",
+                "role": "Tècnic de So (PA)",
+                "quantity": 1
+              }
+            ]
+          },
+          {
+            "id": "tp4",
+            "personGroupId": "p-05",
+            "roles": [
+              {
+                "id": "r4",
+                "role": "Auxiliar Escenari",
+                "quantity": 2,
+                "notes": "Càrrega i descàrrega"
+              }
+            ]
+          }
+        ],
+        "technicalPersonnelNotes": "Tot el personal ha de portar calçat de seguretat durant el muntatge. Roba negra rigorosa durant el bolo.",
+        "showTechnicalPersonnelNotesInPdf": true
+      }
+    }
+  ],
+  "materialItems": [
+    {
+      "id": "mat-06",
+      "name": "Altaveu Autoamplificat 12\"",
+      "category": "So",
+      "stock": 6,
+      "location": "Passadís",
+      "notes": "QSC K12."
+    },
+    {
+      "id": "mat-10",
+      "name": "Cinta Americana Negra",
+      "category": "Consumibles",
+      "stock": 50,
+      "location": "Armari Consumibles",
+      "notes": "Caixa nova."
+    },
+    {
+      "id": "mat-02",
+      "name": "Focus Mòbil Wash LED",
+      "category": "Il·luminació",
+      "stock": 12,
+      "location": "Prestatgeria A",
+      "notes": "Marca Robe."
+    },
+    {
+      "id": "mat-03",
+      "name": "Focus Recort 19º",
+      "category": "Il·luminació",
+      "stock": 8,
+      "location": "Prestatgeria B",
+      "notes": "ETC Source Four."
+    },
+    {
+      "id": "mat-04",
+      "name": "Micròfon Shure SM58",
+      "category": "So",
+      "stock": 10,
+      "location": "Calaix Micros",
+      "notes": "Dinàmic vocal."
+    },
+    {
+      "id": "mat-08",
+      "name": "Pantalla Projecció 4x3m",
+      "category": "Vídeo",
+      "stock": 1,
+      "location": "Magatzem Fons",
+      "notes": "Frontal i Retro."
+    },
+    {
+      "id": "mat-07",
+      "name": "Projector Làser 10k",
+      "category": "Vídeo",
+      "stock": 2,
+      "location": "Seguretat",
+      "notes": "Panasonic. Lents intercanviables."
+    },
+    {
+      "id": "mat-09",
+      "name": "Tarima 2x1m",
+      "category": "Estructures",
+      "stock": 20,
+      "location": "Pati",
+      "notes": "Potes de 20/40/60/80."
+    },
+    {
+      "id": "mat-01",
+      "name": "Taula de Llums GrandMA3",
+      "category": "Il·luminació",
+      "stock": 1,
+      "location": "Control 1",
+      "notes": "Flightcase vermell."
+    },
+    {
+      "id": "mat-05",
+      "name": "Taula de So Yamaha CL5",
+      "category": "So",
+      "stock": 1,
+      "location": "Control 2",
+      "notes": "Inclou Rio 3224."
+    }
+  ],
+  "assignments": [
+    {
+      "id": "as-08",
+      "eventFrameId": "evt-10",
+      "personGroupId": "prov-02",
+      "startDate": "2026-01-30",
+      "endDate": "2026-01-30",
+      "status": "Sí",
+      "notes": "Sopar per a 200 pax."
+    },
+    {
+      "id": "as-06",
+      "eventFrameId": "evt-07",
+      "personGroupId": "p-04",
+      "startDate": "2026-01-20",
+      "endDate": "2026-01-22",
+      "status": "Sí",
+      "notes": "Control de vídeo principal."
+    },
+    {
+      "id": "as-07",
+      "eventFrameId": "evt-07",
+      "personGroupId": "prov-01",
+      "startDate": "2026-01-20",
+      "endDate": "2026-01-22",
+      "status": "Sí",
+      "role": "Reforç Tècnic",
+      "notes": "2 tècnics de suport de l'empresa de lloguer."
+    },
+    {
+      "id": "as-05",
+      "eventFrameId": "evt-05",
+      "personGroupId": "p-05",
+      "startDate": "2026-01-15",
+      "endDate": "2026-01-16",
+      "status": "Pendent",
+      "notes": "Falta confirmar horari d'arribada."
+    },
+    {
+      "id": "as-03",
+      "eventFrameId": "evt-03",
+      "personGroupId": "p-03",
+      "startDate": "2026-01-08",
+      "endDate": "2026-01-10",
+      "status": "Mixt",
+      "notes": "Només pot fer el muntatge i la primera funció.",
+      "dailyStatuses": {
+        "2026-01-08": "Sí",
+        "2026-01-09": "Sí",
+        "2026-01-10": "No"
+      }
+    },
+    {
+      "id": "as-04",
+      "eventFrameId": "evt-03",
+      "personGroupId": "p-01",
+      "startDate": "2026-01-10",
+      "endDate": "2026-01-10",
+      "status": "Sí",
+      "role": "Substitut So",
+      "notes": "Cobreix al Pere el dissabte."
+    },
+    {
+      "id": "as-01",
+      "eventFrameId": "evt-01",
+      "personGroupId": "p-01",
+      "startDate": "2026-01-01",
+      "endDate": "2026-01-02",
+      "status": "Sí",
+      "notes": "Responsable del muntatge."
+    },
+    {
+      "id": "as-02",
+      "eventFrameId": "evt-01",
+      "personGroupId": "p-02",
+      "startDate": "2026-01-01",
+      "endDate": "2026-01-02",
+      "status": "Sí",
+      "role": "Operadora de Llums",
+      "notes": ""
+    }
+  ],
+  "googleConfig": {
+    "userEmail": "audiophycal@gmail.com",
+    "activeAppCalendarId": "mock-calendar-id-1",
+    "managedAppCalendars": [
+      {
+        "id": "mock-calendar-id-1",
+        "name": "Gestor d'Esdeveniments (App) - Principal",
+        "suffix": "Principal"
+      }
+    ]
+  }
+}
