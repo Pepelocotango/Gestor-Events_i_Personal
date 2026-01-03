@@ -1,6 +1,6 @@
 ![Captura de pantalla del gestor d'events i personal](imatges/en_construcció_GV.png)
 
-### NOVA BRANCA DESENVOLUPAMENT --> DEV_DESKTOP+MOBILE
+### NOVA BRANCA DESENVOLUPAMENT --> DEV_DESKTOP+MOBILE+WEBS
 
 
 ### `README.md`**

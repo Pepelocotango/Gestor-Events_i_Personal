@@ -1,4 +1,4 @@
-branca de desenvolupament * DEV_DESKTOP+MOBILE
+branca de desenvolupament * DEV_DESKTOP+MOBILE+WEBS
 
 ## DEVELOPING.md V1.5.0
 

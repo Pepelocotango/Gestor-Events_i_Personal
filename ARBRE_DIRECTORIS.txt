@@ -22,6 +22,49 @@ enllaç a Gestor-Events_i_Personal/
 │                                  # Aquesta carpeta s'hauria d'organitzar per versions o funcionalitats.
 ├── imatges/                      # Conté imatges i gràfics per a la documentació.
 │   └── en_construcció_GV.png     # Imatges d'exemple i recursos gràfics.
+├── apps_web/                     # Aplicacions web del projecte
+│   ├── landing/                  # Pàgina web de presentació (Astro/HTML) desplegada a Vercel
+│   │   ├── public/              # Arxius estàtics i imatges
+│   │   │   └── images/          # Imatges utilitzades al lloc web
+│   │   │       ├── desktop-dashboard.png  # Captura del panell de control d'escriptori
+│   │   │       ├── grid.svg               # Patró de fons per al disseny
+│   │   │       └── under-construction.png # Imatge de construcció per a seccions en desenvolupament
+│   │   ├── src/
+│   │   │   ├── components/       # Components reutilitzables d'Astro
+│   │   │   │   ├── Download.astro  # Secció de descàrregues per a diferents plataformes
+│   │   │   │   ├── Features.astro  # Secció de funcionalitats amb targetes il·lustrades
+│   │   │   │   ├── Gallery.astro   # Galeria d'imatges de l'aplicació
+│   │   │   │   ├── Hero.astro      # Secció hero amb títol, subtítol i CTA principal
+│   │   │   │   └── Nav.astro       # Barra de navegació superior amb mode fosc/il·luminat
+│   │   │   ├── layouts/          # Plantilles de disseny
+│   │   │   │   └── Layout.astro   # Plantilla base de la pàgina amb metaetiquetes i estils globals
+│   │   │   ├── pages/            # Pàgines de l'aplicació (genera rutes automàtiques)
+│   │   │   │   └── index.astro   # Pàgina d'inici
+│   │   │   └── styles/           # Estils globals
+│   │   │       └── global.css    # Estils CSS globals i variables personalitzades
+│   │   ├── astro.config.mjs     # Configuració principal d'Astro
+│   │   ├── package.json         # Dependències i scripts de la pàgina web
+│   │   ├── package-lock.json    # Versions bloquejades de les dependències
+│   │   ├── postcss.config.js    # Configuració de PostCSS per a Tailwind
+│   │   ├── README.md            # Documentació específica del projecte landing
+│   │   └── tailwind.config.mjs  # Configuració de Tailwind CSS amb plugins i personalitzacions
+│   │   
+│   └── documentation/          # Documentació tècnica (Docusaurus) desplegada a GitHub Pages
+│       # (Estructura pendent d'implementar)
+│
+│   # Nota: Els directoris .astro/ i node_modules/ són generats automàticament i no s'inclouen
+│   │   └── vercel.json          # Configuració de desplegament a Vercel
+│   │   └── node_modules/        # Dependències instal·lades (generada automàticament, no versionada)
+│   │
+│   └── documentation/          # Documentació tècnica (Docusaurus) desplegada a GitHub Pages
+│       ├── docs/               # Arxius de documentació en format Markdown
+│       ├── src/                # Codi font personalitzat
+│       └── docusaurus.config.js # Configuració de Docusaurus
+│
+│   # Nota: node_modules/ conté totes les dependències del projecte instal·lades
+│   # mitjançant npm install. Inclou totes les llibreries i eines necessàries
+│   # com Astro, React, Tailwind CSS, i els seus respectius plugins i dependències.
+│
 ├── mobile_app/                   # Projecte de l'aplicació mòbil (React Native amb Expo).
 │   ├── .expo/                    # Fitxers temporals generats per Expo (ignorats per `mobile_app/.gitignore`).
 │   ├── .idea/                    # (Opcional) Configuració d'IDE (normalment ignorada).
