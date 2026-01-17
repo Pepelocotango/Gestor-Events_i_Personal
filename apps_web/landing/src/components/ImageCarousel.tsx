@@ -79,12 +79,12 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
 
   return (
     <div 
-      className="relative w-full max-w-4xl mx-auto"
+      className="relative w-full max-w-7xl mx-auto px-4"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Controls del tema (Clar/Fosc) */}
-      <div className="flex justify-center mb-6 gap-2">
+      <div className="flex justify-center mb-8 gap-2">
         <button
           onClick={() => setViewMode('light')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
@@ -116,35 +116,23 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
           Tema fosc
         </button>
       </div>
-      {/* Contenidor de la imatge principal */}
-      <div className="relative overflow-hidden rounded-xl bg-white shadow-lg">
-        <div className="aspect-w-16 aspect-h-9">
+
+      {/* Contenidor de la imatge principal - SIMPLE I GRAN */}
+      <div className="relative rounded-2xl bg-white shadow-2xl overflow-hidden mb-6">
+        <div className="aspect-video flex items-center justify-center bg-gray-100">
           <img
             src={`/images/${currentImage}`}
             alt={getImageTitle(currentImage)}
-            className="w-full h-auto max-h-[70vh] object-contain"
+            className="w-full h-full object-contain max-w-full max-h-full"
             loading="eager"
-            width={1200}
-            height={675}
           />
-        </div>
-        
-        {/* Informació de la imatge */}
-        <div className="p-4 border-t border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 text-center">
-            {getImageTitle(currentImage)}
-          </h3>
-          <p className="text-sm text-gray-500 text-center">
-            {currentImage.includes('_clar') ? 'Tema clar' : 
-             currentImage.includes('_fosc') ? 'Tema fosc' : 'Captura de pantalla'}
-          </p>
         </div>
       </div>
 
       {/* Botons de navegació */}
       <button 
         onClick={prevSlide}
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-lg text-blue-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full shadow-lg text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
         aria-label="Imatge anterior"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,7 +142,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
       
       <button 
         onClick={nextSlide}
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-lg text-blue-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full shadow-lg text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
         aria-label="Següent imatge"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -163,15 +151,18 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
       </button>
 
       {/* Indicadors de pàgina */}
-      <div className="flex justify-center mt-6 space-x-2">
+      <div className="flex justify-center gap-2 flex-wrap">
         {filteredImages.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all ${
-              index === currentIndex ? 'bg-blue-600 w-8' : 'bg-gray-300 hover:bg-gray-400'
+            className={`transition-all rounded-full ${
+              index === currentIndex 
+                ? 'bg-blue-600 w-8 h-2' 
+                : 'bg-gray-300 dark:bg-gray-600 w-2 h-2 hover:bg-gray-400 dark:hover:bg-gray-500'
             }`}
             aria-label={`Anar a la imatge ${index + 1}`}
+            aria-current={index === currentIndex}
           />
         ))}
       </div>
