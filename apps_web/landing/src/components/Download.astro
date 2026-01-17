@@ -3,24 +3,24 @@
 import GithubReleases from './GithubReleases';
 ---
 
-<section id="download" class="py-20 bg-gradient-to-b from-white to-gray-50">
+<section id="download" class="py-20 bg-gray-900 border-t border-gray-800">
   <div class="container mx-auto px-4">
     <div class="max-w-4xl mx-auto text-center">
-      <span class="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-4 py-1.5 rounded-full mb-4 border border-blue-200">
+      <span class="inline-block bg-blue-500/10 text-blue-400 text-sm font-medium px-4 py-1.5 rounded-full mb-4 border border-blue-500/20">
         Descarrega ara
       </span>
-      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Disponible a totes les plataformes</h2>
-      <p class="text-gray-600 text-lg max-w-2xl mx-auto mb-12">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">Disponible a totes les plataformes</h2>
+      <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-12">
         Tria la teva plataforma i comença a gestionar els teus esdeveniments avui mateix. Ràpid, segur i fàcil d'utilitzar.
       </p>
 
       <GithubReleases client:load />
 
-      <div class="mt-16 bg-white rounded-2xl p-8 max-w-3xl mx-auto border border-gray-100 shadow-sm">
+      <div class="mt-16 bg-gray-800 rounded-2xl p-8 max-w-3xl mx-auto border border-gray-700 shadow-sm">
         <div class="flex flex-col md:flex-row items-center">
           <div class="md:w-2/3 md:pr-8 mb-6 md:mb-0">
-            <h3 class="text-xl font-semibold mb-3 text-gray-900">Necessites una altra versió?</h3>
-            <p class="text-gray-600">
+            <h3 class="text-xl font-semibold mb-3 text-white">Necessites una altra versió?</h3>
+            <p class="text-gray-400">
               Visita la nostra pàgina de versions per a descarregar versions anteriors o altres variants de la plataforma.
             </p>
           </div>
@@ -29,9 +29,9 @@ import GithubReleases from './GithubReleases';
               href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases" 
               target="_blank" 
               rel="noopener noreferrer"
-              class="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+              class="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-600 text-gray-300 font-medium rounded-lg hover:bg-gray-700 transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
               Veure totes les versions
@@ -42,16 +42,16 @@ import GithubReleases from './GithubReleases';
 
       <!-- System Requirements -->
       <div class="mt-16 text-left max-w-4xl mx-auto">
-        <h3 class="text-2xl font-bold mb-6 text-gray-900">Requisits del sistema</h3>
+        <h3 class="text-2xl font-bold mb-6 text-white">Requisits del sistema</h3>
         <div class="grid md:grid-cols-2 gap-8">
-          <div class="bg-white p-6 rounded-xl border border-gray-100">
-            <h4 class="font-semibold text-lg mb-3 text-gray-900 flex items-center">
+          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+            <h4 class="font-semibold text-lg mb-3 text-white flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Mínims
             </h4>
-            <ul class="space-y-2 text-gray-600">
+            <ul class="space-y-2 text-gray-400">
               <li class="flex items-start">
                 <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -78,14 +78,14 @@ import GithubReleases from './GithubReleases';
               </li>
             </ul>
           </div>
-          <div class="bg-white p-6 rounded-xl border border-gray-100">
-            <h4 class="font-semibold text-lg mb-3 text-gray-900 flex items-center">
+          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+            <h4 class="font-semibold text-lg mb-3 text-white flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               Recomanats
             </h4>
-            <ul class="space-y-2 text-gray-600">
+            <ul class="space-y-2 text-gray-400">
               <li class="flex items-start">
                 <svg class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -121,9 +121,9 @@ import GithubReleases from './GithubReleases';
           href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center justify-center px-6 py-3 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+          class="inline-flex items-center justify-center px-6 py-3 border border-gray-600 text-gray-300 font-medium rounded-lg hover:bg-gray-800 transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
           </svg>
           Codi font a GitHub
