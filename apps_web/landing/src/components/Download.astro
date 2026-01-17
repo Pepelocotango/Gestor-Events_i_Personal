@@ -1,5 +1,6 @@
 ---
-// Download component with platform-specific download buttons
+// Download component with dynamic platform-specific download buttons
+import GithubReleases from './GithubReleases';
 ---
 
 <section id="download" class="py-20 bg-gradient-to-b from-white to-gray-50">
@@ -13,94 +14,7 @@
         Tria la teva plataforma i comença a gestionar els teus esdeveniments avui mateix. Ràpid, segur i fàcil d'utilitzar.
       </p>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-        <!-- Windows -->
-        <div class="group bg-white p-6 rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2 text-gray-900">Windows</h3>
-          <p class="text-gray-500 text-sm mb-6">Windows 10/11 (64-bit)</p>
-          <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest/download/GestorEvents-Windows-x64.exe" 
-            class="inline-flex items-center justify-center w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Descarregar per a Windows
-          </a>
-          <p class="text-xs text-gray-400 mt-3">.exe - 85 MB</p>
-        </div>
-
-        <!-- macOS -->
-        <div class="group bg-white p-6 rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="w-16 h-16 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-cyan-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6h2m7-6h8m2 0h-2M7 3h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2 text-gray-900">macOS</h3>
-          <p class="text-gray-500 text-sm mb-6">macOS 10.15 o posterior</p>
-          <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest/download/GestorEvents-macOS.dmg" 
-            class="inline-flex items-center justify-center w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Descarregar per a Mac
-          </a>
-          <p class="text-xs text-gray-400 mt-3">.dmg - 92 MB</p>
-        </div>
-
-        <!-- Linux -->
-        <div class="group bg-white p-6 rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-purple-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M0 0v24h24V0H0zm19.2 9.6h-6.4V6.4h6.4v3.2zM6.4 6.4v3.2H0V6.4h6.4zM0 16h6.4v-3.2H0V16zm12.8 0h6.4v-3.2h-6.4V16z"/>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2 text-gray-900">Linux</h3>
-          <p class="text-gray-500 text-sm mb-6">.deb, .rpm i AppImage</p>
-          <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases/latest" 
-            class="inline-flex items-center justify-center w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Veure descàrregues
-          </a>
-          <p class="text-xs text-gray-400 mt-3">.deb, .rpm, AppImage</p>
-        </div>
-
-        <!-- Android APK -->
-        <div class="group bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-green-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2 text-gray-900">Android</h3>
-          <p class="text-gray-500 text-sm mb-6">Android 6.0+</p>
-          <a 
-            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/releases" 
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center justify-center w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Descarregar APK
-          </a>
-          <p class="text-xs text-gray-500 mt-3 font-medium">Instal·lació manual (Sideloading)</p>
-          <p class="text-xs text-gray-400 mt-1">No disponible a Play Store</p>
-        </div>
-      </div>
+      <GithubReleases client:load />
 
       <div class="mt-16 bg-white rounded-2xl p-8 max-w-3xl mx-auto border border-gray-100 shadow-sm">
         <div class="flex flex-col md:flex-row items-center">
