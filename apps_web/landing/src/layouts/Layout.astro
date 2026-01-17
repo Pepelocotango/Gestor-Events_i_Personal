@@ -34,20 +34,20 @@ const fontLink3 = {
     <link {...fontLink2} />
     <link {...fontLink3} />
     
-    <title>{title}</title>
+    <title>Gestor d'Esdeveniments | {title}</title>
     
     <!-- Open Graph / Social Media -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={url} />
-    <meta property="og:image" content={`${url}/og-image.jpg`} />
+    <meta property="og:image" content={`${url}/images/desktop-dashboard.png`} />
     <meta property="og:type" content="website" />
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={`${url}/og-image.jpg`} />
+    <meta name="twitter:image" content={`${url}/images/desktop-dashboard.png`} />
     
     <!-- Theme Color for Mobile Browsers -->
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
@@ -135,7 +135,7 @@ const fontLink3 = {
             </div>
           </div>
           <div class="border-t border-gray-100 mt-8 pt-8 text-center text-gray-500 text-sm">
-            <p>© 2024 Gestor d'Esdeveniments i Personal. Tots els drets reservats.</p>
+            <p>© {new Date().getFullYear()} Gestor d'Esdeveniments i Personal. Tots els drets reservats.</p>
           </div>
         </div>
       </footer>
