@@ -146,35 +146,6 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
     2.  Ves al menú **`Arxiu > Importar / Exportar > Importar Material...`**.
     3.  Tria entre **fusionar** l'inventari o **reemplaçar-lo**.
 
-## ✒️ Autoria i Agraïments
-
--   **Autor Principal:** Pëp 
--   **Suport Tècnic i Co-pilots:** Isaac ;) / Google Gemini, Google Studio IA, Jules, GitHub Copilot, Perplexity, ChatGPT, Claude.
--   **Entorn de Desenvolupament:** VSCode, Windsurf, Cursor, Android Studio, Sublime Text, GitHub Desktop i Antigravity.
-
-Aquest projecte se sosté sobre les espatlles de gegants. Un agraïment especial a:
-
-*   **Ecosistema Web i Escriptori:** Als creadors de **React, Electron, Vite i Tailwind CSS** per la potència i flexibilitat, i a **FullCalendar** per la seva excel·lent llibreria.
-*   **Món Mòbil:** A l'equip de **React Native** i molt especialment a **Expo**, per fer el desenvolupament mòbil accessible i modern.
-*   **Web:** A **Astro** per l'arquitectura de la web i a **Vercel** per l'allotjament.
-*   **Recursos:** Als dissenyadors de **Heroicons** i **Lucide**.
-*   **La Comunitat:** A tot l'univers **GNU/LINUX** i Open Source.
-*   **L'Origen:** Al **Planeta Terra**, per donar-nos els recursos, l'energia i la vida per crear.
-
-I finalment, gràcies a la paciència dels que m'envolten mentre estic immers en el projecte.
-
-**Visca el codi lliure!!** 🐧
-
----------------------------------
-
-
-## 📄 Llicència
-
-Aquest projecte està sota la llicència **GNU General Public License v3.0**.
-
-Això significa que ets lliure d'utilitzar, estudiar, modificar i compartir aquest software. No obstant això, qualsevol treball derivat que distribueixis ha de ser publicat sota aquesta mateixa llicència, garantint que el codi romangui sempre lliure i obert per a tota la comunitat.
-
-Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del projecte.
 
 ---
 ## 🚀 Novetats i Funcionalitats Clau
@@ -240,3 +211,35 @@ La configuració de Google Calendar es gestiona de forma separada:
 - Això garanteix que la configuració personal no es perdi ni se sobreescrigui accidentalment.
 
 Si vols contribuir al projecte, consulta la nostra [guia de desenvolupament](DEVELOPING.md) per obtenir informació sobre com configurar l'entorn i entendre els canvis recents.
+
+
+## 📄 Llicència
+
+Aquest projecte està sota la llicència **GNU General Public License v3.0**.
+
+Això significa que ets lliure d'utilitzar, estudiar, modificar i compartir aquest software. No obstant això, qualsevol treball derivat que distribueixis ha de ser publicat sota aquesta mateixa llicència, garantint que el codi romangui sempre lliure i obert per a tota la comunitat.
+
+Pots llegir el text complet de la llicència al fitxer [LICENSE](LICENSE) del projecte.
+
+-------------------------------
+
+## ✒️ Autoria i Agraïments
+
+-   **Autor Principal:** Pëp 
+-   **Suport Tècnic i Co-pilots:** Isaac ;) / Google Gemini, Google Studio IA, Jules, GitHub Copilot, Perplexity, ChatGPT, Claude.
+-   **Entorn de Desenvolupament:** VSCode, Windsurf, Cursor, Android Studio, Sublime Text, GitHub Desktop i Antigravity.
+
+Aquest projecte se sosté sobre les espatlles de gegants. Un agraïment especial a:
+
+*   **Ecosistema Web i Escriptori:** Als creadors de **React, Electron, Vite i Tailwind CSS** per la potència i flexibilitat, i a **FullCalendar** per la seva excel·lent llibreria.
+*   **Món Mòbil:** A l'equip de **React Native** i molt especialment a **Expo**, per fer el desenvolupament mòbil accessible i modern.
+*   **Web:** A **Astro** per l'arquitectura de la web i a **Vercel** per l'allotjament.
+*   **Recursos:** Als dissenyadors de **Heroicons** i **Lucide**.
+*   **La Comunitat:** A tot l'univers **GNU/LINUX** i Open Source.
+*   **L'Origen:** Al **Planeta Terra**, per donar-nos els recursos, l'energia i la vida per crear.
+
+Vull estendre aquest agraïment a tots els creadors de recursos, eines i dependències que fan possible aquest projecte i que, per desconeixement o omissió involuntària, no he esmentat explícitament.
+
+I finalment, gràcies a la paciència dels que m'envolten mentre estic immers en el projecte.
+
+**Visca el codi lliure!!** 🐧
