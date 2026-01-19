@@ -50,7 +50,7 @@ export default function ProductTour() {
   const currentSection = tourSections[activeSection];
 
   return (
-    <section className="py-20 bg-dark-900 relative overflow-hidden">
+    <section id="product-tour" className="py-20 bg-dark-900 relative overflow-hidden">
       {/* Background gradient effect */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/5 to-transparent pointer-events-none" />
 
