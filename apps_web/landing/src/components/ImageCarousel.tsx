@@ -44,7 +44,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
     
     const interval = setInterval(() => {
       nextSlide();
-    }, 5000);
+    }, 1500);
     
     return () => clearInterval(interval);
   }, [isPaused, isClient, currentIndex, filteredImages.length]);
