@@ -152,7 +152,11 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 ## ✒️ Autoria
 
 -   **Autor Principal:** Pëp 
--   **Co-autoria i Suport Tècnic:** Isaac ;) / Google Gemini - Google Studio IA - Jules / Github Copilot / Perplexity / ChatGPT / Claude /
+-   **Suport Tècnic:** Isaac ;) / Google Gemini - Google Studio IA - Jules / Github Copilot / Perplexity / ChatGPT / Claude / Windsurf / Cursor / Antigravity / Android Studio / Sublime Text / Github Desktop
+i un llarg etc de programes i IA's, els seus desenvolupadors i al Planeta Terra per donar-nos els recursos i la vida. 
+
+Agraïments a tota la comunitat GNU/LINUX i a tots els desenvolupadors de llibreríes i dependències utilitzades.
+Visca el codi lliure!!
 
 ## 📄 Llicència
 
