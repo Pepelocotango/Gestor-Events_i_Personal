@@ -1,8 +1,5 @@
 ![Captura de pantalla del gestor d'events i personal](imatges/en_construcció_GV.png)
 
-### NOVA BRANCA DESENVOLUPAMENT --> DEV_DESKTOP+MOBILE+WEBS
-
-
 ### `README.md`**
 
 # Gestor d'Esdeveniments i Personal V1.5.0
@@ -149,14 +146,27 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
     2.  Ves al menú **`Arxiu > Importar / Exportar > Importar Material...`**.
     3.  Tria entre **fusionar** l'inventari o **reemplaçar-lo**.
 
-## ✒️ Autoria
+## ✒️ Autoria i Agraïments
 
 -   **Autor Principal:** Pëp 
--   **Suport Tècnic:** Isaac ;) / Google Gemini - Google Studio IA - Jules / Github Copilot / Perplexity / ChatGPT / Claude / Windsurf / Cursor / Antigravity / Android Studio / Sublime Text / Github Desktop
-i un llarg etc de programes i IA's, els seus desenvolupadors i al Planeta Terra per donar-nos els recursos i la vida. 
+-   **Suport Tècnic i Co-pilots:** Isaac ;) / Google Gemini, Google Studio IA, Jules, GitHub Copilot, Perplexity, ChatGPT, Claude.
+-   **Entorn de Desenvolupament:** VSCode, Windsurf, Cursor, Android Studio, Sublime Text, GitHub Desktop i Antigravity.
 
-Agraïments a tota la comunitat GNU/LINUX i a tots els desenvolupadors de llibreríes i dependències utilitzades.
-Visca el codi lliure!!
+Aquest projecte se sosté sobre les espatlles de gegants. Un agraïment especial a:
+
+*   **Ecosistema Web i Escriptori:** Als creadors de **React, Electron, Vite i Tailwind CSS** per la potència i flexibilitat, i a **FullCalendar** per la seva excel·lent llibreria.
+*   **Món Mòbil:** A l'equip de **React Native** i molt especialment a **Expo**, per fer el desenvolupament mòbil accessible i modern.
+*   **Web:** A **Astro** per l'arquitectura de la web i a **Vercel** per l'allotjament.
+*   **Recursos:** Als dissenyadors de **Heroicons** i **Lucide**.
+*   **La Comunitat:** A tot l'univers **GNU/LINUX** i Open Source.
+*   **L'Origen:** Al **Planeta Terra**, per donar-nos els recursos, l'energia i la vida per crear.
+
+I finalment, gràcies a la paciència dels que m'envolten mentre estic immers en el projecte.
+
+**Visca el codi lliure!!** 🐧
+
+---------------------------------
+
 
 ## 📄 Llicència
 
