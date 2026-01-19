@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
 import Features from '../components/Features.astro';
+import ProductTour from '../components/ProductTour';
 import Gallery from '../components/Gallery.astro';
 import Download from '../components/Download.astro';
 
@@ -13,6 +14,7 @@ const description = 'Gestor d\'Esdeveniments i Personal - Eina integral per a la
 <Layout title={title} description={description}>
   <Hero />
   <Features />
+  <ProductTour client:visible />
   <Gallery />
   <Download />
   
