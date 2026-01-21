@@ -16,7 +16,7 @@ export const tourSections: TourSection[] = [
   {
     id: 'welcome-screen',
     title: 'Pantalla de Benvinguda',
-    description: 'Comença el teu projecte des de zero o obri un document existent en tan sols un clic.',
+    description: 'Comença el teu projecte des de zero o obre un document existent en tan sols un clic.',
     features: [
       'Crear nous documents buits',
       'Obrir fitxers .gep o .json existents',
@@ -46,7 +46,7 @@ export const tourSections: TourSection[] = [
     features: [
       'Filtres avançats (lloc, persona, estat, data)',
       'Ordenació dinàmica i cerca global',
-      'Targetes d\'assignacions amb estatus visual',
+      'Targetes d\'assignacions amb estat visual',
       'Exporta a PDF i CSV instantàniament',
     ],
     icon: 'ListIcon',
@@ -60,7 +60,7 @@ export const tourSections: TourSection[] = [
       'Informes per esdeveniment, data o persona',
       'Opcions d\'ordenació flexible',
       'Exportació a CSV i PDF',
-      'Análisi instantani de dades',
+      'Anàlisi instantània de dades',
     ],
     icon: 'ChartIcon',
     image: '04_resums_fosc.png',
@@ -94,7 +94,7 @@ export const tourSections: TourSection[] = [
   {
     id: 'material-management',
     title: 'Gestor de Material',
-    description: 'Controla l\'inventari i la demanda de material per a cada event amb precisió.',
+    description: 'Controla l\'inventari i la demanda de material per a cada esdeveniment amb precisió.',
     features: [
       'Inventari per categories o per nom',
       'Estoc en temps real i detecció de demanda',

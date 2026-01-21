@@ -62,7 +62,7 @@ export default function ProductTour() {
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Tour Interactiu de Funcionalitats</h2>
           <p className="text-lg text-gray-400">
-            Descobreix les principals funcions de la nostra aplicació i com pot transformar la teva gestió d'events.
+            Descobreix les principals funcions de la nostra aplicació i com pot transformar la teva gestió d'esdeveniments.
           </p>
         </div>
 
