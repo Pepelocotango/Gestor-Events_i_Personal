@@ -101,14 +101,31 @@ Oferim dues versions per a Windows:
 
 Per a macOS, la distribució es fa a través d'un fitxer `.dmg`:
 
-> **Nota IMPORTANT per a macOS:** Com que l'aplicació no està signada ni notariada per Apple, el sistema de seguretat (Gatekeeper) la bloquejarà per defecte. Aquest és un comportament esperat. Per obrir-la per primera vegada, segueix aquests passos amb atenció:
+> **Nota IMPORTANT per a macOS:** Com que l'aplicació no està signada ni notariada per Apple, el sistema de seguretat (Gatekeeper) la bloquejarà per defecte. Aquest és un comportament esperat. Les següents instruccions et mostren com obrir l'aplicació en diferents situacions:
 >
-> 1.  **Intent d'Obertura Inicial:** Després de copiar l'aplicació a la teva carpeta d'Aplicacions, fes **clic-dret** (o **Ctrl+clic**) sobre la seva icona i selecciona **"Obrir"**.
-> 2.  **Primer Avís:** És molt probable que macOS mostri un avís dient que no pot verificar el desenvolupador i només et doni l'opció de "Cancel·lar" o "Moure a la Paperera". Simplement, fes clic a **"Cancel·lar"**.
-> 3.  **Segon Intent (Confirmació):** Torna a fer **clic-dret** (o **Ctrl+clic**) sobre la icona de l'aplicació i selecciona **"Obrir"** un altre cop.
-> 4.  **Obertura Final:** Ara, l'avís que apareixerà serà diferent i inclourà un botó per **"Obrir"** l'aplicació. Fes clic en aquest botó per executar-la.
+> ### Mètode Estàndard (funciona en la majoria de casos):
+> 1.  **Obertura Inicial:** Després de copiar l'aplicació a la teva carpeta d'Aplicacions, fes **clic-dret** (o **Ctrl+clic**) sobre la seva icona i selecciona **"Obrir"**.
+> 2.  **Primer Avís:** Si macOS mostra un avís dient que no pot verificar el desenvolupador, fes clic a **"Cancel·lar"**.
+> 3.  **Segon Intent:** Torna a fer **clic-dret** i selecciona **"Obrir"** un altre cop.
+> 4.  **Confirmació Final:** Ara hauries de veure un botó per **"Obrir"** l'aplicació. Fes-hi clic per executar-la.
 >
-> Aquest procés només és necessari la primera vegada. Després d'això, podràs obrir l'aplicació amb un doble clic normal.
+> ### Si el mètode anterior no funciona (macOS Sequoia 15+ o error "Està malmesa"):
+>
+> **Opció A - Mitjançant Configuració del Sistema:**
+> 1. Ves a **Configuració del Sistema** > **Privadesa i Seguretat**
+> 2. Desplaça't cap avall fins a la secció "Seguretat"
+> 3. Busca el missatge que diu "[Nom de l'aplicació] va ser bloquejada perquè no prové d'un desenvolupador identificat"
+> 4. Fes clic a **"Obrir de totes maneres"** i confirma l'acció
+>
+> **Opció B - Mitjançant Terminal (per a l'error "Està malmesa" en Apple Silicon):**
+> 1. Obre l'aplicació **Terminal** (la trobaràs a Aplicacions > Utilitats)
+> 2. Copia i enganxa la següent línia i prem Retorn:
+>    ```sh
+>    xattr -cr /Applications/GestorEsdevenimentsPersonal.app
+>    ```
+> 3. Tanca la finestra de Terminal i torna a intentar obrir l'aplicació
+>
+> Aquests passos només són necessaris la primera vegada que obris l'aplicació. Un cop hagis confirmat que vols obrir l'aplicació, podràs obrir-la normalment amb un doble clic.
 
 *   Descarrega el fitxer `...-macOS-10.15+.dmg`.
 *   Fes-hi doble clic per obrir-lo. S'obrirà una finestra del Finder.
