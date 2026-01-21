@@ -31,9 +31,9 @@ export const tourSections: TourSection[] = [
     title: 'Vista de Calendari',
     description: 'Visualitza tots els teus esdeveniments en un calendari integrat, amb sincronització amb Google Calendar.',
     features: [
-      'Calendari multivista (Mes, Setmana, Agenda, 6 Mesos)',
-      'Sincronització automàtica amb Google Calendar',
-      'Crear événements amb un simple clic',
+      'Calendari multivista (Mes, Setmana, Agenda, 2, 4 o 6 Mesos)',
+      'Sincronització amb Google Calendar (beta)',
+      'Crear esdeveniments amb un simple clic',
       'Navegar ràpidament entre dates',
     ],
     icon: 'CalendarIcon',
@@ -42,7 +42,7 @@ export const tourSections: TourSection[] = [
   {
     id: 'events-list',
     title: 'Llista d\'Esdeveniments',
-    description: 'Gestiona tots els teus frames en una vista completa amb controls avançats de filtratge i ordenació.',
+    description: 'Gestiona tots els teus bolos en una vista completa amb controls avançats de filtratge i ordenació.',
     features: [
       'Filtres avançats (lloc, persona, estat, data)',
       'Ordenació dinàmica i cerca global',
@@ -55,9 +55,9 @@ export const tourSections: TourSection[] = [
   {
     id: 'summaries',
     title: 'Resums i Informes',
-    description: 'Genera informes intel·ligents basats en les dades filades actual, gràfics i estadístiques.',
+    description: 'Genera informes intel·ligents basats en les dades entrades.',
     features: [
-      'Informes per événement, data o persona',
+      'Informes per esdeveniment, data o persona',
       'Opcions d\'ordenació flexible',
       'Exportació a CSV i PDF',
       'Análisi instantani de dades',
@@ -68,10 +68,10 @@ export const tourSections: TourSection[] = [
   {
     id: 'technical-sheets',
     title: 'Fitxes de Bolo',
-    description: 'Crea fitxes tècniques automàtiques amb horaris, contactes, material i necessitats específiques.',
+    description: 'Crea fitxes tècniques amb horaris, contactes, material, necessitats específiques, entre altres.',
     features: [
       'Generació automàtica de fitxes de bolo',
-      'Detalls d\'horaris i contacts en temps real',
+      'Detalls d\'horaris i Personal Tècnic',
       'Visualització d\'estoc disponible',
       'Exportació directa a PDF',
     ],
@@ -86,7 +86,7 @@ export const tourSections: TourSection[] = [
       'Afegir, editar i eliminar contactes',
       'Associar rols especialitzats (tècnic, artístic, etc)',
       'Cerques i filtres per rol',
-      'Exporta la teva xarxa de contactes',
+      'Importa / Exporta la teva xarxa de contactes',
     ],
     icon: 'UsersIcon',
     image: '31_persones_fosc.png',
@@ -99,7 +99,7 @@ export const tourSections: TourSection[] = [
       'Inventari per categories o per nom',
       'Estoc en temps real i detecció de demanda',
       'Centre de control avançat',
-      'Exporta informes d\'inventari',
+      'Importa / Exporta l\'inventari i exporta informes',
     ],
     icon: 'BoxIcon',
     image: '41_material_fosc.png',
@@ -109,10 +109,10 @@ export const tourSections: TourSection[] = [
     title: 'Barra de Menú Superior',
     description: 'Accés complet a totes les funcions de l\'aplicació amb accions ràpides i integrades.',
     features: [
-      'Menú Arxiu: Guardar, Importar, Exportar, Google Calendar',
+      'Menú Arxiu: Guardar, Importar, Exportar, Configuració de Google Calendar',
       'Menú Edita: Desfer, Refer, Tallar, Copiar, Enganxar',
       'Accions ràpides: Zoom, Pantalla completa, Temes',
-      'Integració completa del workflow',
+      'Accés a còpies de seguretat i registres de l\’aplicació.',
     ],
     icon: 'MenuIcon',
     image: 'desktop-dashboard.png',
