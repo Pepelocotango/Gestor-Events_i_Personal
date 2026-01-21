@@ -84,13 +84,43 @@
               <div class="flex-1"></div>
             </div>
             
-            {/* App preview */}
+            {/* App preview with animated splash screen */}
             <div class="p-1 bg-gradient-to-br from-dark-800 to-dark-900">
-              <div class="relative aspect-video bg-cover bg-center flex items-center justify-center rounded-lg overflow-hidden" style="background-image: url('/images/desktop-dashboard.png');">
-                {/* Overlay per millorar la visibilitat del text */}
+              <div class="relative aspect-video bg-cover bg-center flex items-center justify-center rounded-lg overflow-hidden">
+                <!-- Background image -->
+                <div 
+                  class="absolute inset-0 bg-cover bg-center" 
+                  style="background-image: url('/images/01_PantallaInici_clar.png');"
+                ></div>
+                
+                <!-- Animation container -->
+                <div class="relative w-full h-full">
+                  <div id="splash-container" class="absolute inset-0">
+                    <!-- El component React es muntarà aquí -->
+                  </div>
+                </div>
+                
+                <!-- Overlay per millorar la visibilitat del text -->
                 <div class="absolute inset-0 bg-black/20"></div>
               </div>
             </div>
+            
+            <!-- Script per a la integració de React -->
+            <script>
+              // Carreguem el component React dinàmicament per a millor rendiment
+              (async () => {
+                const { default: React } = await import('react');
+                const { createRoot } = await import('react-dom/client');
+                const AnimatedSplash = (await import('./AnimatedSplash')).default;
+                
+                // Creem l'arrel de React al contenidor
+                const container = document.getElementById('splash-container');
+                const root = createRoot(container);
+                
+                // Renderitzem el component
+                root.render(React.createElement(AnimatedSplash));
+              })();
+            </script>
           </div>
           
           {/* Floating elements */}
