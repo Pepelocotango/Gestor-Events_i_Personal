@@ -42,7 +42,11 @@ log.transports.file.archiveLogFn = (oldLogFile) => {
   }
 };
 
-log.level = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
+// Canviar això:
+// log.level = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
+
+// Per això (per forçar logs detallats en producció durant la beta):
+log.level = 'debug';
 console.log = log.info.bind(log);
 console.error = log.error.bind(log);
 console.warn = log.warn.bind(log);
@@ -482,48 +486,73 @@ let googleServiceAccountClient;
 function loadGoogleCredentials() {
   try {
     const credentialsPath = path.join(__dirname, 'google-credentials.json');
-    if (!fs.existsSync(credentialsPath)) return false;
+    console.debug('[DEBUG_GOOGLE] loadGoogleCredentials: Checking if file exists at:', credentialsPath);
+    if (!fs.existsSync(credentialsPath)) {
+      console.debug('[DEBUG_GOOGLE] loadGoogleCredentials: File does not exist');
+      return false;
+    }
 
+    console.debug('[DEBUG_GOOGLE] loadGoogleCredentials: File exists, reading content');
     const content = fs.readFileSync(credentialsPath);
     googleCredentials = JSON.parse(content).installed;
     googleAuthClient = new google.auth.OAuth2(googleCredentials.client_id, googleCredentials.client_secret);
+    console.debug('[DEBUG_GOOGLE] loadGoogleCredentials: OAuth2 client initialized successfully');
     
     if (fs.existsSync(GOOGLE_TOKENS_PATH)) {
+      console.debug('[DEBUG_GOOGLE] loadGoogleCredentials: Tokens file exists, loading tokens');
       const tokens = JSON.parse(fs.readFileSync(GOOGLE_TOKENS_PATH));
+      console.debug('[DEBUG_GOOGLE] loadGoogleCredentials: Setting credentials with access_token (first 5 chars):', tokens.access_token?.substring(0, 5) || 'MISSING');
       googleAuthClient.setCredentials(tokens);
+    } else {
+      console.debug('[DEBUG_GOOGLE] loadGoogleCredentials: No tokens file found');
     }
   } catch (err) {
-    console.error('Error carregant credencials de Google:', err);
+    console.error('[DEBUG_GOOGLE] loadGoogleCredentials: Error loading credentials:', err);
     return false;
   }
+  console.debug('[DEBUG_GOOGLE] loadGoogleCredentials: Completed successfully');
   return true;
 }
 
 async function loadServiceAccountCredentials() {
   try {
     const serviceAccountPath = path.join(__dirname, 'service-account.json');
+    console.debug('[DEBUG_GOOGLE] loadServiceAccountCredentials: Looking for service-account.json at:', serviceAccountPath);
     if (!fs.existsSync(serviceAccountPath)) {
-      console.warn('El fitxer service-account.json no es troba.');
+      console.warn('[DEBUG_GOOGLE] loadServiceAccountCredentials: service-account.json file not found');
       return false;
     }
+    console.debug('[DEBUG_GOOGLE] loadServiceAccountCredentials: File found, reading content');
     const keys = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    console.debug('[DEBUG_GOOGLE] loadServiceAccountCredentials: client_email found:', keys.client_email ? 'PRESENT' : 'MISSING');
+    console.debug('[DEBUG_GOOGLE] loadServiceAccountCredentials: private_key found:', keys.private_key ? 'PRESENT' : 'MISSING');
     googleServiceAccountClient = await new google.auth.GoogleAuth({
         credentials: { client_email: keys.client_email, private_key: keys.private_key },
         scopes: ['https://www.googleapis.com/auth/calendar'],
     }).getClient();
+    console.debug('[DEBUG_GOOGLE] loadServiceAccountCredentials: Service account client initialized successfully');
     console.info("Client del Compte de Servei de Google inicialitzat.");
     return true;
   } catch (err) {
-    console.error('Error carregant les credencials del Compte de Servei de Google:', err);
+    console.error('[DEBUG_GOOGLE] loadServiceAccountCredentials: Error loading service account credentials:', err);
     return false;
   }
 }
 
 function loadGoogleConfigFromFile() {
-    if (!fs.existsSync(GOOGLE_CONFIG_PATH)) return null;
+    console.debug('[DEBUG_GOOGLE] loadGoogleConfigFromFile: GOOGLE_CONFIG_PATH:', GOOGLE_CONFIG_PATH);
+    if (!fs.existsSync(GOOGLE_CONFIG_PATH)) {
+        console.debug('[DEBUG_GOOGLE] loadGoogleConfigFromFile: Config file does not exist');
+        return null;
+    }
     try {
-        return JSON.parse(fs.readFileSync(GOOGLE_CONFIG_PATH, 'utf8'));
+        const rawContent = fs.readFileSync(GOOGLE_CONFIG_PATH, 'utf8');
+        console.debug('[DEBUG_GOOGLE] loadGoogleConfigFromFile: Raw content read from file:', rawContent || 'EMPTY_FILE');
+        const config = JSON.parse(rawContent);
+        console.debug('[DEBUG_GOOGLE] loadGoogleConfigFromFile: userEmail is', config?.userEmail || 'MISSING');
+        return config;
     } catch(err) {
+        console.error('[DEBUG_GOOGLE] loadGoogleConfigFromFile: Error parsing config file:', err);
         return null;
     }
 }
@@ -966,10 +995,18 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
 // --- Altres Handlers Google ---
 
 ipcMain.handle('google-auth-start', async () => {
-  if (isAuthenticating) return { success: false, message: "Autenticació en curs." };
-  if (!googleAuthClient) return { success: false, message: "Client no inicialitzat." };
+  console.debug('[DEBUG_GOOGLE] google-auth-start: Starting authentication flow');
+  if (isAuthenticating) {
+    console.debug('[DEBUG_GOOGLE] google-auth-start: Authentication already in progress');
+    return { success: false, message: "Autenticació en curs." };
+  }
+  if (!googleAuthClient) {
+    console.debug('[DEBUG_GOOGLE] google-auth-start: Google auth client not initialized');
+    return { success: false, message: "Client no inicialitzat." };
+  }
 
   isAuthenticating = true;
+  console.debug('[DEBUG_GOOGLE] google-auth-start: isAuthenticating set to true');
   return new Promise((resolve) => {
     const server = http.createServer();
     let state;
@@ -977,27 +1014,35 @@ ipcMain.handle('google-auth-start', async () => {
     const closeServerAndResolve = (result) => {
       if (server.listening) server.close();
       isAuthenticating = false;
+      console.debug('[DEBUG_GOOGLE] google-auth-start: Server closed and isAuthenticating reset');
       resolve(result);
     };
 
     server.listen(0, '127.0.0.1', () => {
       const { port } = server.address();
+      console.debug('[DEBUG_GOOGLE] google-auth-start: Server listening on port:', port);
       googleAuthClient.redirectUri = `http://localhost:${port}`;
       state = generateId();
+      console.debug('[DEBUG_GOOGLE] google-auth-start: Generated state:', state);
       const authUrl = googleAuthClient.generateAuthUrl({
         access_type: 'offline', prompt: 'consent',
         scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/calendar.readonly'],        
         state: state,
       });
+      console.debug('[DEBUG_GOOGLE] google-auth-start: Opening auth URL in external browser');
       require('electron').shell.openExternal(authUrl);
     });
 
     server.on('request', async (req, res) => {
+      console.debug('[DEBUG_GOOGLE] google-auth-start: Received callback request');
       const qs = new url.URL(req.url, 'http://localhost').searchParams;
       const code = qs.get('code');
       const receivedState = qs.get('state');
+      console.debug('[DEBUG_GOOGLE] google-auth-start: Received code:', code ? 'PRESENT' : 'MISSING');
+      console.debug('[DEBUG_GOOGLE] google-auth-start: Received state:', receivedState);
 
       if (receivedState !== state) {
+        console.error('[DEBUG_GOOGLE] google-auth-start: CSRF state mismatch');
         res.end('<h1>Error CSRF</h1>');
         req.socket.destroy();
         closeServerAndResolve({ success: false });
@@ -1005,24 +1050,34 @@ ipcMain.handle('google-auth-start', async () => {
       }
       
       try {
+        console.debug('[DEBUG_GOOGLE] google-auth-start: Exchanging code for tokens');
         const { tokens } = await googleAuthClient.getToken(code);
+        console.debug('[DEBUG_GOOGLE] google-auth-start: Successfully obtained tokens');
+        console.debug('[DEBUG_GOOGLE] google-auth-start: access_token (first 5 chars):', tokens.access_token?.substring(0, 5) || 'MISSING');
+        console.debug('[DEBUG_GOOGLE] google-auth-start: refresh_token (first 5 chars):', tokens.refresh_token?.substring(0, 5) || 'MISSING');
         googleAuthClient.setCredentials(tokens);
         fs.writeFileSync(GOOGLE_TOKENS_PATH, JSON.stringify(tokens));
+        console.debug('[DEBUG_GOOGLE] google-auth-start: Tokens saved to file');
 
+        console.debug('[DEBUG_GOOGLE] google-auth-start: Getting user profile from People API');
         const people = google.people({ version: 'v1', auth: googleAuthClient });
         const profile = await people.people.get({ resourceName: 'people/me', personFields: 'emailAddresses' });
         const primaryEmail = profile.data.emailAddresses?.find(e => e.metadata?.primary)?.value;
+        console.debug('[DEBUG_GOOGLE] google-auth-start: Retrieved primary email from People API:', primaryEmail || 'MISSING');
 
         let config = loadGoogleConfigFromFile() || {};
         config.userEmail = primaryEmail;
+        console.debug('[DEBUG_GOOGLE] google-auth-start: Saving userEmail to config:', primaryEmail);
         if (!config.managedAppCalendars) config.managedAppCalendars = [];
         fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+        console.debug('[DEBUG_GOOGLE] google-auth-start: Config file updated with user email');
 
         mainWindow.webContents.send('google-auth-success');
         res.end('<h1>Autenticació completada!</h1>');
         req.socket.destroy();
         closeServerAndResolve({ success: true });
       } catch (e) {
+        console.error('[DEBUG_GOOGLE] google-auth-start: Error during token exchange or profile retrieval:', e);
         mainWindow.webContents.send('google-auth-error', e.message);
         res.end('<h1>Error</h1>');
         req.socket.destroy();
@@ -1133,25 +1188,42 @@ ipcMain.handle('google-disconnect', async () => {
 });
 
 ipcMain.handle('create-new-app-calendar', async (event, suffix) => {
-    if (!googleServiceAccountClient) return { success: false, message: 'Client Service Account no inicialitzat.' };
+    console.debug('[DEBUG_GOOGLE] create-new-app-calendar: Function entered with suffix:', suffix);
+    console.debug('[DEBUG_GOOGLE] create-new-app-calendar: googleServiceAccountClient status:', googleServiceAccountClient ? 'INITIALIZED' : 'NULL');
+    if (!googleServiceAccountClient) {
+        console.debug('[DEBUG_GOOGLE] create-new-app-calendar: FAILED - googleServiceAccountClient is null');
+        return { success: false, message: 'Client Service Account no inicialitzat.' };
+    }
     const config = loadGoogleConfigFromFile();
-    if (!config?.userEmail) return { success: false, message: 'No email usuari.' };
+    console.debug('[DEBUG_GOOGLE] create-new-app-calendar: Config loaded, userEmail value:', config?.userEmail || 'MISSING');
+    if (!config?.userEmail) {
+        console.debug('[DEBUG_GOOGLE] create-new-app-calendar: FAILED - config.userEmail is missing');
+        return { success: false, message: 'No email usuari.' };
+    }
 
     const finalSuffix = suffix.trim();
     const finalCalendarName = `${APP_CALENDAR_BASE_NAME}${finalSuffix ? ` - ${finalSuffix}` : ''}`;
-    if (config.managedAppCalendars?.some(cal => cal.name === finalCalendarName)) return { success: false, message: `El calendari ja existeix.` };
+    console.debug('[DEBUG_GOOGLE] create-new-app-calendar: Final calendar name will be:', finalCalendarName);
+    if (config.managedAppCalendars?.some(cal => cal.name === finalCalendarName)) {
+        console.debug('[DEBUG_GOOGLE] create-new-app-calendar: FAILED - Calendar already exists');
+        return { success: false, message: `El calendari ja existeix.` };
+    }
 
     try {
+        console.debug('[DEBUG_GOOGLE] create-new-app-calendar: Proceeding with calendar creation');
         const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
         const newCalendarId = await findOrCreateAppCalendar(calendar, config.userEmail, finalSuffix);
+        console.debug('[DEBUG_GOOGLE] create-new-app-calendar: Calendar created/retrieved with ID:', newCalendarId);
         const newCalendarObject = { id: newCalendarId, name: finalCalendarName, suffix: finalSuffix };
 
         config.managedAppCalendars = [...(config.managedAppCalendars || []), newCalendarObject];
         config.activeAppCalendarId = newCalendarId;
         fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
+        console.debug('[DEBUG_GOOGLE] create-new-app-calendar: Config updated with new calendar');
 
         return { success: true, data: { managedAppCalendars: config.managedAppCalendars, activeAppCalendarId: config.activeAppCalendarId } };
     } catch (error) {
+        console.error('[DEBUG_GOOGLE] create-new-app-calendar: Error during calendar creation:', error);
         return { success: false, message: error.message };
     }
 });
