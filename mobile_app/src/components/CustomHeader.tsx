@@ -11,7 +11,7 @@ import AboutModal from './AboutModal';
 
 const fileService = new SAFFileService();
 
-type ActiveScreen = 'EventList' | 'PersonList' | 'MaterialList' | 'MaterialControl';
+type ActiveScreen = 'EventList' | 'PersonList' | 'MaterialList' | 'MaterialControl' | 'TechSheetList' | 'Summary' | 'CalendarView';
 
 interface CustomHeaderProps {
   navigation: any;
