@@ -1026,7 +1026,7 @@ ipcMain.handle('google-auth-start', async () => {
       console.debug('[DEBUG_GOOGLE] google-auth-start: Generated state:', state);
       const authUrl = googleAuthClient.generateAuthUrl({
         access_type: 'offline', prompt: 'consent',
-        scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/calendar.readonly'],        
+        scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/calendar.readonly'],        
         state: state,
       });
       console.debug('[DEBUG_GOOGLE] google-auth-start: Opening auth URL in external browser');
