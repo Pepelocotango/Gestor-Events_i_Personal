@@ -114,8 +114,8 @@ const GithubReleases: React.FC = () => {
               };
             }
           }
-          // Android: any .apk file (regardless of name)
-          if (filename.endsWith('.apk')) {
+          // Android: contains "android" AND (.apk or .zip)
+          if (filename.includes('android') && (filename.endsWith('.apk') || filename.endsWith('.zip'))) {
             links.android = {
               url: asset.browser_download_url,
               size: `${sizeInMB} MB`,
@@ -243,7 +243,7 @@ const GithubReleases: React.FC = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              {platformType === 'android' ? 'Descarregar APK' : `Descarregar per a ${platformName}`}
+              {platformType === 'android' ? 'Descarregar APK (ZIP)' : `Descarregar per a ${platformName}`}
             </a>
             <p className="text-xs text-gray-400 mt-3 break-words">{asset.filename} - {asset.size}</p>
           </>
@@ -272,6 +272,9 @@ const GithubReleases: React.FC = () => {
           <>
             <p className="text-xs text-gray-400 mt-3 font-medium">Instal·lació manual (Sideloading)</p>
             <p className="text-xs text-gray-500">No disponible a Play Store</p>
+            {asset && asset.filename.endsWith('.zip') && (
+              <p className="text-xs text-amber-400 mt-2">⚠️ Conté l'APK dins del ZIP</p>
+            )}
           </>
         )}
       </div>
