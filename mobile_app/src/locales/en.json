@@ -1,0 +1,20 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "confirm": "Confirm",
+        "search": "Search",
+        "not_found": "Not found",
+        "error": "Error",
+        "success": "Success"
+    },
+    "menu": {
+        "home": "Home",
+        "events": "Events",
+        "staff": "Staff",
+        "settings": "Settings"
+    }
+}

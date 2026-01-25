@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ExternalLink } from 'lucide-react';
 
 interface AboutModalProps {
@@ -9,6 +10,7 @@ interface AboutModalProps {
 }
 
 const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onClose }) => {
+  const { t } = useTranslation();
   const GITHUB_URL = 'https://github.com/Pepelocotango/Gestor-Events_i_Personal';
 
   const handleLinkClick = (url: string) => {
@@ -21,7 +23,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onC
     <div className="p-6 bg-card text-card-foreground rounded-lg shadow-lg max-w-md w-full">
       <div className="text-center mb-4">
         <h2 className="text-2xl font-bold text-primary">{name}</h2>
-        <p className="text-sm text-muted-foreground">Versió {version}</p>
+        <p className="text-sm text-muted-foreground">{t('modals.about.version', { version })}</p>
       </div>
 
       <div className="my-6 text-center">
@@ -29,7 +31,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onC
       </div>
 
       <div className="my-6">
-        <h3 className="text-lg font-semibold mb-2 text-center">Enllaços d'Interès</h3>
+        <h3 className="text-lg font-semibold mb-2 text-center">{t('modals.about.links_title')}</h3>
         <ul className="space-y-2">
           <li>
             <button
@@ -37,7 +39,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onC
               className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Repositori a GitHub
+              {t('modals.about.github_button')}
             </button>
           </li>
           <li>
@@ -46,7 +48,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onC
               className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Fes una donació a PayPal
+              {t('modals.about.paypal_button')}
             </button>
           </li>
         </ul>
@@ -57,7 +59,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onC
           onClick={onClose}
           className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border"
         >
-          Tancar
+          {t('common.close_button', { defaultValue: t('common.cancel') })}
         </button>
       </div>
     </div>

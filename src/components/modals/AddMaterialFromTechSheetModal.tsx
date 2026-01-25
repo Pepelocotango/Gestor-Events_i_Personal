@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import { MaterialItem } from '../../types';
 import MaterialForm from '../forms/MaterialForm';
 
 const AddMaterialFromTechSheetModal: React.FC = () => {
+  const { t } = useTranslation();
   const { addMaterialItem } = useEventDataStore.getState();
   const materialItems = useEventDataStore(state => state.materialItems);
   const { closeModal, data: modalData } = useModalStore();
@@ -51,7 +53,7 @@ const AddMaterialFromTechSheetModal: React.FC = () => {
         initialData={{ name }}
         onSubmit={handleSubmit}
         onCancel={closeModal}
-        submitButtonText="Afegir Material"
+        submitButtonText={t('modals.add_material_form.submit_button')}
         categories={categories}
       />
     </div>

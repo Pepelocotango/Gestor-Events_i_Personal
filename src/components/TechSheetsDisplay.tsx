@@ -1,4 +1,5 @@
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEventDataStore, selectMaterialControlData } from '../stores/eventDataStore';
 import { EventFrame, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
@@ -11,6 +12,7 @@ interface TechSheetsDisplayProps {
 }
 
 const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
+  const { t } = useTranslation();
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const fullEventDataStore = useEventDataStore(state => state);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
@@ -73,14 +75,14 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
 
   return (
     <CollapsibleSection
-      title="Gestor de Fitxes de Bolo"
+      title={t('tech_sheets.manager_title')}
       defaultOpen={true}
     >
       <div className="space-y-4">
         <div className="max-w-md space-y-2">
           <div className="flex items-center justify-between">
             <label htmlFor="event-selector" className="block text-sm font-medium text-muted-foreground">
-              Selecciona un esdeveniment:
+              {t('tech_sheets.select_event_label')}
             </label>
             <div className="flex items-center">
               <input
@@ -91,18 +93,18 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
                 className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-ring"
               />
               <label htmlFor="includeArchivedTechSheets" className="ml-2 text-sm font-medium text-foreground">
-                Incloure arxivats
+                {t('tech_sheets.include_archived')}
               </label>
             </div>
           </div>
-          <Tooltip text={includeArchived ? "Mostrant tots els esdeveniments, incloent arxivats" : "Mostrant només esdeveniments actius"}>
+          <Tooltip text={includeArchived ? t('tech_sheets.archived_tooltip_on') : t('tech_sheets.archived_tooltip_off')}>
             <select
               id="event-selector"
               value={selectedEventFrameId}
               onChange={(e) => setSelectedEventFrameId(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-background text-foreground border-border border focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm rounded-md"
             >
-              <option value="" disabled>-- Tria un esdeveniment --</option>
+              <option value="" disabled>-- {t('tech_sheets.select_placeholder')} --</option>
               {sortedEventFrames.map((event) => (
                 <option key={event.id} value={event.id}>
                   {new Date(event.startDate).toLocaleDateString('ca-ES')} - {event.name}
@@ -113,7 +115,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
         </div>
 
         {selectedEventFrame && selectedEventFrame.techSheet ? (
-          <Suspense fallback={<div className="text-center p-8">Carregant formulari...</div>}>
+          <Suspense fallback={<div className="text-center p-8">{t('tech_sheets.loading_form')}</div>}>
             <TechSheetForm
               key={selectedEventFrame.id}
               eventFrame={selectedEventFrame}
@@ -124,7 +126,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
         ) : (
           selectedEventFrameId && (
             <div className="p-4 text-center text-warning-foreground bg-warning/10 rounded-lg">
-              <p>Aquest esdeveniment no té una fitxa tècnica associada. Pot ser de dades antigues. Desa l'esdeveniment per generar-ne una.</p>
+              <p>{t('tech_sheets.no_sheet_warning')}</p>
             </div>
           )
         )}

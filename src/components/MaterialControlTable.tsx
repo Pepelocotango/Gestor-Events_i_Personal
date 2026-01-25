@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MaterialControlRow } from '../types';
 import { ChevronDownIcon, ChevronRightIcon } from '../constants';
 import { formatDateRangeDMY } from '../utils/dateFormat';
@@ -9,6 +10,7 @@ interface MaterialControlTableProps {
 }
 
 const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => {
+  const { t } = useTranslation();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const toggleRow = (itemId: string) => {
@@ -24,7 +26,7 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
   };
 
   if (data.length === 0) {
-    return <div className="text-center p-8 text-muted-foreground bg-card rounded-lg border border-border">No s'han trobat resultats amb els filtres aplicats.</div>;
+    return <div className="text-center p-8 text-muted-foreground bg-card rounded-lg border border-border">{t('mcc.no_results')}</div>;
   }
 
   return (
@@ -34,33 +36,33 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
           <tr>
             <th scope="col" className="w-8 px-1 py-3"></th>
             <th scope="col" className="px-2 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Tooltip text="Quantitat inicial de material disponible.">
-                <span>Estoc</span>
+              <Tooltip text={t('mcc.tooltip_stock')}>
+                <span>{t('mcc.header_stock')}</span>
               </Tooltip>
             </th>
             <th scope="col" className="px-2 pl-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Tooltip text="Nom del material">
-                <span>Nom</span>
+              <Tooltip text={t('mcc.tooltip_name')}>
+                <span>{t('mcc.header_name')}</span>
               </Tooltip>
             </th>
             <th scope="col" className="px-2 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Tooltip text="Categoria del material">
-                <span>Categoria</span>
+              <Tooltip text={t('mcc.tooltip_category')}>
+                <span>{t('mcc.header_category')}</span>
               </Tooltip>
             </th>
             <th scope="col" className="px-2 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Tooltip text="Origen o magatzem del material">
-                <span>Origen</span>
+              <Tooltip text={t('mcc.tooltip_origin')}>
+                <span>{t('mcc.header_origin')}</span>
               </Tooltip>
             </th>
             <th scope="col" className="px-2 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Tooltip text="Quantitat total de material assignada als esdeveniments filtrats.">
-                <span>Demanada</span>
+              <Tooltip text={t('mcc.tooltip_demanded')}>
+                <span>{t('mcc.header_demanded')}</span>
               </Tooltip>
             </th>
             <th scope="col" className="px-2 pr-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Tooltip text="Balanç final del material (Estoc - Demanada).">
-                <span>Balanç</span>
+              <Tooltip text={t('mcc.tooltip_balance')}>
+                <span>{t('mcc.header_balance')}</span>
               </Tooltip>
             </th>
           </tr>
@@ -97,12 +99,12 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
                   <tr>
                     <td colSpan={7} className="p-0">
                       <div className="p-4 bg-muted/50">
-                        <h4 className="font-semibold text-sm mb-2">Desglossament per Esdeveniment:</h4>
+                        <h4 className="font-semibold text-sm mb-2">{t('mcc.breakdown_title')}</h4>
                         <ul className="list-disc pl-5 space-y-1">
                           {row.breakdown.map(bd => (
                             <li key={bd.eventFrameId} className="text-sm text-muted-foreground">
                               <span className="font-medium">{bd.eventName} ({formatDateRangeDMY(bd.startDate, bd.endDate)}):</span>
-                              <span className="ml-2">{bd.quantity} unitat(s)</span>
+                              <span className="ml-2">{bd.quantity} {t('mcc.units_suffix')}</span>
                             </li>
                           ))}
                         </ul>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { selectMaterialControlData, selectAvailableOrigins, MaterialControlFilters as FiltersState } from '../stores/eventDataStore';
 import { ShowToastFunction } from '../types';
@@ -13,6 +14,7 @@ interface MaterialControlCenterProps {
 }
 
 const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast }) => {
+  const { t } = useTranslation();
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const materialItems = useEventDataStore(state => state.materialItems);
   const isUpdatingMaterial = useEventDataStore(state => state.isUpdatingMaterial);
@@ -58,15 +60,15 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
 
   const handleExportSummaryPdf = () => {
     if (filteredData.length === 0) {
-        showToast('No hi ha dades per exportar.', 'warning');
-        return;
+      showToast(t('mcc.no_data_toast'), 'warning');
+      return;
     }
     exportMaterialControlSummaryPdf(filteredData, showToast);
   };
 
   const handleExportDetailedPdf = () => {
     if (filteredData.length === 0) {
-      showToast('No hi ha dades per exportar.', 'warning');
+      showToast(t('mcc.no_data_toast'), 'warning');
       return;
     }
 
@@ -79,7 +81,7 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
     });
 
     if (relevantEventIds.size === 0) {
-      showToast('No hi ha cap esdeveniment associat a les dades filtrades per exportar.', 'warning');
+      showToast(t('mcc.no_events_toast'), 'warning');
       return;
     }
 
@@ -89,9 +91,9 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
   };
 
   const handleExportCsv = () => {
-     if (filteredData.length === 0) {
-        showToast('No hi ha dades per exportar.', 'warning');
-        return;
+    if (filteredData.length === 0) {
+      showToast(t('mcc.no_data_toast'), 'warning');
+      return;
     }
     exportMaterialControlCsv(filteredData, showToast);
   };
@@ -112,41 +114,41 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
       />
 
       <div className="flex justify-end space-x-2">
-        <Tooltip text="Exporta un resum del control de material en format PDF.">
+        <Tooltip text={t('mcc.summary_pdf_tooltip')}>
           <button
             onClick={handleExportSummaryPdf}
             className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50"
             disabled={filteredData.length === 0}
           >
-            PDF Resum
+            {t('mcc.summary_pdf_button')}
           </button>
         </Tooltip>
-        <Tooltip text="Exporta un informe detallat del control de material, incloent el desglossament per esdeveniment, en format PDF.">
+        <Tooltip text={t('mcc.detailed_pdf_tooltip')}>
           <button
             onClick={handleExportDetailedPdf}
             className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50"
             disabled={filteredData.length === 0}
           >
-            PDF Detallat
+            {t('mcc.detailed_pdf_button')}
           </button>
         </Tooltip>
-        <Tooltip text="Exporta les dades del control de material en format CSV, compatible amb fulls de càlcul.">
+        <Tooltip text={t('mcc.csv_tooltip')}>
           <button
             onClick={handleExportCsv}
             className="px-3 py-1 text-sm rounded-md bg-success/10 text-success hover:bg-success/20 disabled:opacity-50"
             disabled={filteredData.length === 0}
           >
-            CSV
+            {t('mcc.csv_button')}
           </button>
         </Tooltip>
       </div>
 
       {isUpdatingMaterial ? (
-          <div className="text-center p-8 text-muted-foreground">Actualitzant dades de material...</div>
+        <div className="text-center p-8 text-muted-foreground">{t('mcc.updating_data')}</div>
       ) : (
-          <MaterialControlTable
-            data={filteredData}
-          />
+        <MaterialControlTable
+          data={filteredData}
+        />
       )}
     </div>
   );

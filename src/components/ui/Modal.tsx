@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '../../constants';
 
 interface ModalProps {
@@ -10,6 +11,7 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'xl' }) => {
+  const { t } = useTranslation();
   if (!isOpen) {
     return null;
   }
@@ -50,7 +52,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
           <button
             onClick={onClose} // Aquest onClose és per al botó X
             className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Tancar modal"
+            aria-label={t('common.close_modal')}
           >
             <XMarkIcon className="w-6 h-6" />
           </button>

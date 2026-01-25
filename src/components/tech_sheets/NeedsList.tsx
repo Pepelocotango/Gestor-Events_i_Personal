@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import TechSheetField from './TechSheetField';
 import { MaterialItem } from '../../types';
 import Tooltip from '../ui/Tooltip';
@@ -37,38 +38,39 @@ const NeedsList: React.FC<NeedsListProps> = ({
   originSuggestions,
   availabilityMap,
 }) => {
+  const { t } = useTranslation();
   const { openModal } = useModalStore();
   const materialSuggestions = React.useMemo(() => {
     return materialItems.map(item => {
       const availability = availabilityMap.get(item.id);
       if (availability) {
-        return `${item.name} [Disp: ${availability.available} / Estoc: ${availability.total}]`;
+        return `${item.name} [${t('tech_sheets.needs.availability_prefix')}: ${availability.available} / ${t('tech_sheets.needs.stock_prefix')}: ${availability.total}]`;
       }
-      return `${item.name} [Estoc: ${item.stock}]`;
+      return `${item.name} [${t('tech_sheets.needs.stock_prefix')}: ${item.stock}]`;
     });
-  }, [materialItems, availabilityMap]);
+  }, [materialItems, availabilityMap, t]);
 
   return (
     <>
       <div className="col-span-full flex justify-between items-center mt-3 -mb-2">
         <h4 className="text-md font-semibold text-foreground">{title}:</h4>
         {needs.length > 1 && (
-          <Tooltip text="Ordena la llista de necessitats alfabèticament per origen.">
+          <Tooltip text={t('tech_sheets.needs.sort_origin_tooltip')}>
             <button
               onClick={() => onSortByOrigin(listName)}
               className="text-xs px-2 py-1 rounded-md no-print bg-secondary text-secondary-foreground hover:bg-secondary/80"
             >
-              Ordenar per Origen
+              {t('tech_sheets.needs.sort_origin')}
             </button>
           </Tooltip>
         )}
       </div>
       {needs.length > 0 && (
         <div className="col-span-full flex items-center gap-4 w-full text-xs font-semibold text-muted-foreground mt-2 -mb-2">
-          <div className="w-1/6">Quant.</div>
-          <div className="flex-grow">Descripció</div>
-          <div className="w-1/4">Origen</div>
-          <div className="w-24 flex-shrink-0 text-center">Accions</div>
+          <div className="w-1/6">{t('tech_sheets.needs.header_qty')}</div>
+          <div className="flex-grow">{t('tech_sheets.needs.header_desc')}</div>
+          <div className="w-1/4">{t('tech_sheets.needs.header_origin')}</div>
+          <div className="w-24 flex-shrink-0 text-center">{t('tech_sheets.needs.header_actions')}</div>
         </div>
       )}
       {needs.map((need, index) => {
@@ -77,7 +79,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
         let quantityError = false;
         if (selectedMaterial) {
           const availability = getMaterialAvailability(selectedMaterial.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, need.id);
-          availabilityInfo = `(Disp: ${availability.available} / ${availability.total})`;
+          availabilityInfo = `(${t('tech_sheets.needs.availability_prefix')}: ${availability.available} / ${availability.total})`;
           if (Number(need.quantity) > availability.available) {
             quantityError = true;
           }
@@ -108,13 +110,13 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 />
                 {selectedMaterial && selectedMaterial.notes && (
                   <p className="no-print text-xs italic text-muted-foreground mt-1">
-                    <strong>Nota:</strong> {selectedMaterial.notes}
+                    <strong>{t('common.note')}:</strong> {selectedMaterial.notes}
                   </p>
                 )}
               </div>
               {need.description && !selectedMaterial && (
                 <div className="pt-2">
-                  <Tooltip text="Crear nou ítem a l'inventari amb aquest nom">
+                  <Tooltip text={t('tech_sheets.needs.add_to_inventory_tooltip')}>
                     <button
                       type="button"
                       onClick={() => openModal('addMaterialFromTechSheet', {
@@ -139,13 +141,13 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 label=""
                 value={need.origin}
                 onChange={e => onListChange(listName, index, 'origin', e.target.value)}
-                placeholder="Propi/Teatre/CIA/lloguer...."
+                placeholder={t('tech_sheets.needs.origin_placeholder')}
                 readOnly={!!selectedMaterial}
                 suggestions={originSuggestions}
               />
             </div>
             <div className="w-24 flex-shrink-0 pt-2 flex items-center justify-center">
-              <Tooltip text="Moure amunt">
+              <Tooltip text={t('common.move_up')}>
                 <button
                   type="button"
                   onClick={() => onMoveItemUp(listName, index)}
@@ -155,7 +157,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                   &#x25B2;
                 </button>
               </Tooltip>
-              <Tooltip text="Moure avall">
+              <Tooltip text={t('common.move_down')}>
                 <button
                   type="button"
                   onClick={() => onMoveItemDown(listName, index)}
@@ -165,7 +167,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                   &#x25BC;
                 </button>
               </Tooltip>
-              <Tooltip text="Eliminar aquesta necessitat">
+              <Tooltip text={t('tech_sheets.needs.remove_tooltip')}>
                 <button
                   type="button"
                   onClick={() => onRemoveListItem(listName, index)}
@@ -179,13 +181,13 @@ const NeedsList: React.FC<NeedsListProps> = ({
         )
       })}
       <div className="col-span-full mt-2 no-print">
-        <Tooltip text={`Afegir una nova línia de necessitat de ${title.toLowerCase()}`}>
+        <Tooltip text={t('tech_sheets.needs.add_item_tooltip', { title: title.toLowerCase() })}>
           <button
             type="button"
             onClick={() => onAddListItem(listName)}
             className="add-item-button px-4 py-2 rounded-md text-sm bg-success text-success-foreground hover:bg-success/90"
           >
-            + Afegir Necessitat {title}
+            {t('tech_sheets.needs.add_item', { title: title })}
           </button>
         </Tooltip>
       </div>
@@ -194,3 +196,4 @@ const NeedsList: React.FC<NeedsListProps> = ({
 };
 
 export default memo(NeedsList);
+

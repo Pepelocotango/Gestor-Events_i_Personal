@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EventFrame } from '../types';
 import { MaterialControlFilters as FiltersState } from '../stores/eventDataStore';
 import CollapsibleSection from './ui/CollapsibleSection';
@@ -32,6 +33,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
   availableCategories,
   eventFrames,
 }) => {
+  const { t } = useTranslation();
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -71,12 +73,12 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
       const filterEnd = end ? new Date(end) : null;
 
       if (filterStart && !isNaN(filterStart.getTime())) {
-          if (eventEnd < filterStart) return false;
+        if (eventEnd < filterStart) return false;
       }
       if (filterEnd && !isNaN(filterEnd.getTime())) {
-          const inclusiveFilterEnd = new Date(filterEnd);
-          inclusiveFilterEnd.setDate(inclusiveFilterEnd.getDate() + 1);
-          if (eventStart >= inclusiveFilterEnd) return false;
+        const inclusiveFilterEnd = new Date(filterEnd);
+        inclusiveFilterEnd.setDate(inclusiveFilterEnd.getDate() + 1);
+        if (eventStart >= inclusiveFilterEnd) return false;
       }
 
       return true;
@@ -87,11 +89,11 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
     <div>
       <label className="block text-sm font-medium text-muted-foreground">{title}</label>
       <div className="flex items-center gap-2 mt-1">
-        <Tooltip text={`Selecciona tots els ${title.toLowerCase()}.`}>
-            <button onClick={() => handleSelectAll(field, items)} className="text-xs text-primary hover:underline">Tots</button>
+        <Tooltip text={t('mcc.select_all_tooltip', { title: title.toLowerCase() })}>
+          <button onClick={() => handleSelectAll(field, items)} className="text-xs text-primary hover:underline">{t('mcc.select_all')}</button>
         </Tooltip>
-        <Tooltip text={`Deselecciona tots els ${title.toLowerCase()}.`}>
-            <button onClick={() => handleSelectNone(field)} className="text-xs text-primary hover:underline">Cap</button>
+        <Tooltip text={t('mcc.select_none_tooltip', { title: title.toLowerCase() })}>
+          <button onClick={() => handleSelectNone(field)} className="text-xs text-primary hover:underline">{t('mcc.select_none')}</button>
         </Tooltip>
       </div>
       <div className={commonCheckboxContainerClass}>
@@ -112,87 +114,87 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
 
 
   return (
-    <CollapsibleSection title="Filtres" defaultOpen={true}>
-        <div className="p-4 bg-card text-card-foreground rounded-b-lg border-t border-border space-y-4">
-            {/* Fila 1: Cerca i Rang de dates */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Text Search */}
-                <div>
-                    <label htmlFor="search" className="block text-sm font-medium text-muted-foreground">Cerca per text</label>
-                    <Tooltip text="Filtra la taula per qualsevol text present a les files (nom, categoria, origen, etc.).">
-                        <input
-                            type="text"
-                            id="search"
-                            value={filters.searchText || ''}
-                            onChange={(e) => setFilters(prev => ({ ...prev, searchText: e.target.value }))}
-                            placeholder="Nom, categoria, origen..."
-                            className={commonInputClass}
-                        />
-                    </Tooltip>
-                </div>
-                {/* Date Range */}
-                <div>
-                    <label className="block text-sm font-medium text-muted-foreground">Rang de Dates</label>
-                    <div className="flex items-center space-x-2 mt-1">
-                        <Tooltip text="Filtra els esdeveniments per data d'inici.">
-                            <input
-                                type="date"
-                                name="start"
-                                value={filters.dateRange?.start || ''}
-                                onChange={handleDateChange}
-                                className={commonInputClass + " mt-0"}
-                            />
-                        </Tooltip>
-                        <span>-</span>
-                        <Tooltip text="Filtra els esdeveniments per data de finalització.">
-                            <input
-                                type="date"
-                                name="end"
-                                value={filters.dateRange?.end || ''}
-                                onChange={handleDateChange}
-                                className={commonInputClass + " mt-0"}
-                            />
-                        </Tooltip>
-                    </div>
-                </div>
+    <CollapsibleSection title={t('mcc.filters_title')} defaultOpen={true}>
+      <div className="p-4 bg-card text-card-foreground rounded-b-lg border-t border-border space-y-4">
+        {/* Fila 1: Cerca i Rang de dates */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Text Search */}
+          <div>
+            <label htmlFor="search" className="block text-sm font-medium text-muted-foreground">{t('mcc.search_label')}</label>
+            <Tooltip text={t('mcc.search_tooltip')}>
+              <input
+                type="text"
+                id="search"
+                value={filters.searchText || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, searchText: e.target.value }))}
+                placeholder={t('mcc.search_placeholder')}
+                className={commonInputClass}
+              />
+            </Tooltip>
+          </div>
+          {/* Date Range */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground">{t('mcc.date_range_label')}</label>
+            <div className="flex items-center space-x-2 mt-1">
+              <Tooltip text={t('mcc.start_date_tooltip')}>
+                <input
+                  type="date"
+                  name="start"
+                  value={filters.dateRange?.start || ''}
+                  onChange={handleDateChange}
+                  className={commonInputClass + " mt-0"}
+                />
+              </Tooltip>
+              <span>-</span>
+              <Tooltip text={t('mcc.end_date_tooltip')}>
+                <input
+                  type="date"
+                  name="end"
+                  value={filters.dateRange?.end || ''}
+                  onChange={handleDateChange}
+                  className={commonInputClass + " mt-0"}
+                />
+              </Tooltip>
             </div>
-
-            {/* Fila 2: Checkboxes */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Events */}
-                <div>
-                    <CheckboxList
-                        title="Esdeveniments"
-                        field="selectedEventIds"
-                        items={visibleEvents}
-                        displayProp="name"
-                        idProp="id"
-                    />
-                </div>
-
-                {/* Origins */}
-                <div>
-                    <CheckboxList
-                        title="Orígens"
-                        field="selectedOrigins"
-                        items={availableOrigins.map(o => ({ id: o, name: o }))}
-                        displayProp="name"
-                        idProp="id"
-                    />
-                </div>
-
-                {/* Categories */}
-                <div>
-                    <CheckboxList
-                        title="Categories"
-                        field="selectedCategories"
-                        items={availableCategories.map(c => ({ id: c, name: c }))}
-                        displayProp="name"
-                        idProp="id"
-                    />
-                </div>
-            </div>
+          </div>
         </div>
+
+        {/* Fila 2: Checkboxes */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Events */}
+          <div>
+            <CheckboxList
+              title={t('mcc.events_label')}
+              field="selectedEventIds"
+              items={visibleEvents}
+              displayProp="name"
+              idProp="id"
+            />
+          </div>
+
+          {/* Origins */}
+          <div>
+            <CheckboxList
+              title={t('mcc.origins_label')}
+              field="selectedOrigins"
+              items={availableOrigins.map(o => ({ id: o, name: o }))}
+              displayProp="name"
+              idProp="id"
+            />
+          </div>
+
+          {/* Categories */}
+          <div>
+            <CheckboxList
+              title={t('mcc.categories_label')}
+              field="selectedCategories"
+              items={availableCategories.map(c => ({ id: c, name: c }))}
+              displayProp="name"
+              idProp="id"
+            />
+          </div>
+        </div>
+      </div>
     </CollapsibleSection>
   );
 };

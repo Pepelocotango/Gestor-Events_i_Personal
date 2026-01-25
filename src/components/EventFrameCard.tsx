@@ -1,4 +1,5 @@
 import { forwardRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import logger from '@/utils/logger';
 import { useModalStore } from '@/stores/modalStore';
 import { useEventDataStore } from '@/stores/eventDataStore';
@@ -33,6 +34,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
   isArchived = false, isFocused = false, onFocus,
 }, ref) => {
+  const { t } = useTranslation();
   logger.info(`[EventFrameCard] Render for ${eventFrame.name}. isExpanded: ${isExpanded}`);
   const { peopleGroups, restoreEventFrame } = useEventDataStore.getState();
   const peopleMap = useMemo(() => {
@@ -43,25 +45,22 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   const { openModal } = useModalStore.getState();
 
   const filteredAssignments = eventFrame.assignments
-    .filter(assign => 
-      (!filters.person || assign.personGroupId === filters.person) && 
+    .filter(assign =>
+      (!filters.person || assign.personGroupId === filters.person) &&
       (!filters.status || assign.status === filters.status || (assign.status === AssignmentStatus.Mixed && assign.dailyStatuses && Object.values(assign.dailyStatuses).includes(filters.status)))
     )
-  .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
+    .sort((a, b) => (peopleMap.get(a.personGroupId) || '').localeCompare(peopleMap.get(b.personGroupId) || ''));
 
   return (
-    <div 
-      ref={ref} 
-      id={`event-card-${eventFrame.id}`} 
-      className={`mb-2 rounded-xl overflow-hidden bg-card text-card-foreground transition-all duration-200 ${
-        isFocused 
-          ? 'border-4 border-primary ring-4 ring-primary/20' 
+    <div
+      ref={ref}
+      id={`event-card-${eventFrame.id}`}
+      className={`mb-2 rounded-xl overflow-hidden bg-card text-card-foreground transition-all duration-200 ${isFocused
+          ? 'border-4 border-primary ring-4 ring-primary/20'
           : 'border-2 border-border hover:border-muted-foreground/30'
-      } ${isArchived ? 'opacity-70' : ''}`} 
+        } ${isArchived ? 'opacity-70' : ''}`}
       aria-labelledby={`event-frame-title-${eventFrame.id}`}
       onClick={(e) => {
-        // Only toggle expand if the click is not on an interactive element like a button.
-        // Those elements have their own onClick handlers with e.stopPropagation().
         if ((e.target as HTMLElement).closest('button, input, select, a')) {
           return;
         }
@@ -80,12 +79,12 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
         <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
           <div className="flex-grow">
             <div className="flex items-center gap-2">
-              <Tooltip text={eventFrame.personnelComplete ? 'Marcar com a incomplet' : 'Marcar com a complet'}>
+              <Tooltip text={eventFrame.personnelComplete ? t('event.mark_incomplete_tooltip') : t('event.mark_complete_tooltip')}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onUpdateEventFrame({ ...eventFrame, personnelComplete: !eventFrame.personnelComplete });
-                    setToastMessage(eventFrame.personnelComplete ? 'Marc marcat com a incomplet.' : 'Marc marcat com a complet.', 'success');
+                    setToastMessage(eventFrame.personnelComplete ? t('event.marked_incomplete') : t('event.marked_complete'), 'success');
                   }}
                   className="focus:outline-none p-1 -ml-1"
                 >
@@ -101,7 +100,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                 }}
               >
                 {eventFrame.googleEventId && (
-                  <Tooltip text="Aquest esdeveniment està sincronitzat amb Google Calendar">
+                  <Tooltip text={t('event.google_sync_tooltip')}>
                     <span>
                       <GoogleIcon className="w-6 h-6" />
                     </span>
@@ -121,53 +120,51 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
           </div>
           <div className="flex items-center gap-2 flex-wrap mt-2 sm:mt-0">
             {isArchived ? (
-              <Tooltip text="Restaurar l'esdeveniment">
+              <Tooltip text={t('event.restore_tooltip')}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     restoreEventFrame(eventFrame.id);
-                    setToastMessage(`Esdeveniment "${eventFrame.name}" restaurat.`, 'success');
+                    setToastMessage(t('event.restored_toast', { name: eventFrame.name }), 'success');
                   }}
                   className="flex items-center gap-2 p-2.5 text-success hover:text-success/90 rounded-md hover:bg-accent/50 text-base font-medium"
                 >
                   <RestoreIcon className="w-6 h-6" />
-                  Restaurar
+                  {t('event.restore_button')}
                 </button>
               </Tooltip>
             ) : (
               <>
-                <Tooltip text="Editar els detalls de l'esdeveniment">
-                  <Tooltip text="Editar esdeveniment">
-                  <button 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      openModal('editEventFrame', { eventFrameToEdit: eventFrame }); 
-                    }} 
+                <Tooltip text={t('event.edit_tooltip')}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openModal('editEventFrame', { eventFrameToEdit: eventFrame });
+                    }}
                     className="p-2.5 text-primary hover:text-primary/90 rounded-md hover:bg-accent/50 transition-colors"
-                    aria-label="Editar esdeveniment"
+                    aria-label={t('event.edit_tooltip')}
                   >
                     <EditIcon className="w-5 h-5" />
                   </button>
                 </Tooltip>
-                </Tooltip>
-                <Tooltip text="Eliminar l'esdeveniment">
-                  <button 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      openModal('confirmDeleteEventFrame', { 
-                        itemType: "Marc d'Esdeveniment", 
-                        itemName: eventFrame.name, 
-                        itemId: eventFrame.id 
-                      }); 
-                    }} 
+                <Tooltip text={t('event.delete_tooltip')}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openModal('confirmDeleteEventFrame', {
+                        itemType: t('event.item_type'),
+                        itemName: eventFrame.name,
+                        itemId: eventFrame.id
+                      });
+                    }}
                     className="p-2.5 text-destructive hover:text-destructive/90 rounded-md hover:bg-accent/50 transition-colors"
-                    aria-label="Eliminar esdeveniment"
+                    aria-label={t('event.delete_tooltip')}
                   >
                     <TrashIcon className="w-5 h-5" />
                   </button>
                 </Tooltip>
-                <Tooltip text="Afegir una nova assignació de personal">
-                  <button 
+                <Tooltip text={t('event.add_assignment_tooltip')}>
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       const defaultPersonGroupId = peopleGroups.length > 0 ? peopleGroups[0].id : '';
@@ -179,24 +176,24 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                         status: AssignmentStatus.Pending,
                         notes: '',
                       });
-                    }} 
+                    }}
                     className="p-2.5 text-primary hover:text-primary/90 rounded-md hover:bg-accent/50 transition-colors"
-                    aria-label="Afegir assignació"
+                    aria-label={t('event.add_assignment_tooltip')}
                   >
                     <PersonAddIcon className="w-5 h-5" />
                   </button>
                 </Tooltip>
               </>
             )}
-            <Tooltip text={isExpanded ? "Col·lapsar secció" : "Expandir secció"}>
-              <button 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`); 
-                  onToggleExpand(eventFrame.id); 
-                }} 
+            <Tooltip text={isExpanded ? t('event.collapse_tooltip') : t('event.expand_tooltip')}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`);
+                  onToggleExpand(eventFrame.id);
+                }}
                 className="p-2.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent/50 transition-colors"
-                aria-label={isExpanded ? "Contraure" : "Expandir"}
+                aria-label={isExpanded ? t('event.collapse_tooltip') : t('event.expand_tooltip')}
               >
                 {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
               </button>
@@ -209,13 +206,13 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
         <div className="px-4 py-3 bg-card">
           {eventFrame.generalNotes && (
             <div className="mb-4">
-              <h5 className="font-medium text-lg mb-1">Notes Generals</h5>
+              <h5 className="font-medium text-lg mb-1">{t('event.general_notes_title')}</h5>
               <p className="text-base text-muted-foreground whitespace-pre-wrap">{eventFrame.generalNotes}</p>
             </div>
           )}
-          <h5 className="font-medium text-lg mb-3">Assignacions</h5>
+          <h5 className="font-medium text-lg mb-3">{t('event.assignments_title')}</h5>
           {filteredAssignments.length === 0 ? (
-            <p className="text-base text-muted-foreground">No hi ha assignacions que coincideixin amb els filtres.</p>
+            <p className="text-base text-muted-foreground">{t('event.no_assignments')}</p>
           ) : (
             <ul className="space-y-2">
               {filteredAssignments.map(assign => (

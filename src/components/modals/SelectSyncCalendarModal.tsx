@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ManagedAppCalendar } from '@/types';
 import Tooltip from '../ui/Tooltip';
 
@@ -15,6 +16,7 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
   managedCalendars,
   activeCalendarId,
 }) => {
+  const { t } = useTranslation();
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(activeCalendarId);
 
   useEffect(() => {
@@ -39,9 +41,9 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium text-foreground">Selecciona el Calendari de Destinació</h3>
+        <h3 className="text-lg font-medium text-foreground">{t('modals.select_sync.title')}</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Tria a quin calendari de l'aplicació vols pujar les dades actuals. Aquesta acció sobreescriurà tot el contingut del calendari de destinació.
+          {t('modals.select_sync.description')}
         </p>
       </div>
 
@@ -49,7 +51,7 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
         <div className="space-y-2 max-h-60 overflow-y-auto p-1">
           {managedCalendars.map(cal => (
             <div key={cal.id} className="flex items-center p-2 rounded-md border border-transparent has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-              <Tooltip text={`Seleccionar el calendari '${cal.name}' com a destinació per a la sincronització`}>
+              <Tooltip text={t('modals.select_sync.radio_tooltip', { name: cal.name })}>
                 <input
                   type="radio"
                   id={`sync-cal-${cal.id}`}
@@ -68,27 +70,27 @@ const SelectSyncCalendarModal: React.FC<SelectSyncCalendarModalProps> = ({
         </div>
       ) : (
         <div className="text-center text-sm text-muted-foreground py-6 bg-muted/50 rounded-md">
-          <p>No s'ha trobat cap calendari gestionat per l'aplicació.</p>
-          <p className="mt-1">Si us plau, ves a "Configuració Google Calendar" per crear-ne un primer.</p>
+          <p>{t('modals.select_sync.no_calendars_found')}</p>
+          <p className="mt-1">{t('modals.select_sync.go_to_settings')}</p>
         </div>
       )}
 
       <div className="flex justify-end items-center pt-4 border-t border-border space-x-2">
-        <Tooltip text="Tancar sense sincronitzar">
+        <Tooltip text={t('modals.select_sync.cancel_tooltip')}>
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium rounded-md border bg-secondary text-secondary-foreground hover:bg-secondary/80"
           >
-            Cancel·lar
+            {t('common.cancel')}
           </button>
         </Tooltip>
-        <Tooltip text={!selectedCalendarId ? 'Has de seleccionar un calendari per poder sincronitzar' : `Sobreescriurà les dades de '${selectedCalendar?.name}' amb les dades actuals de l'app`}>
+        <Tooltip text={!selectedCalendarId ? t('modals.select_sync.no_calendar_selected_tooltip') : t('modals.select_sync.sync_tooltip', { name: selectedCalendar?.name })}>
           <button
             onClick={handleSync}
             disabled={!selectedCalendarId}
             className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {selectedCalendar ? `Sincronitzar amb "${selectedCalendar.name}"` : 'Selecciona un calendari'}
+            {selectedCalendar ? t('modals.select_sync.sync_button', { name: selectedCalendar.name }) : t('modals.select_sync.select_placeholder')}
           </button>
         </Tooltip>
       </div>

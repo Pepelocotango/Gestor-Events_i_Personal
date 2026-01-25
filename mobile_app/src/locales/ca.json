@@ -1,0 +1,20 @@
+{
+    "common": {
+        "loading": "Carregant...",
+        "save": "Desar",
+        "cancel": "Cancel·lar",
+        "delete": "Eliminar",
+        "edit": "Editar",
+        "confirm": "Confirmar",
+        "search": "Cercar",
+        "not_found": "No s'ha trobat",
+        "error": "Error",
+        "success": "Èxit"
+    },
+    "menu": {
+        "home": "Inici",
+        "events": "Esdeveniments",
+        "staff": "Personal",
+        "settings": "Configuració"
+    }
+}

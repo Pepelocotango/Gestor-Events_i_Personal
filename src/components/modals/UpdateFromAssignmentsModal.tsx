@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TechSheetRoleItem, Assignment, PersonGroup } from '../../types';
 import Tooltip from '../ui/Tooltip';
 
@@ -27,30 +28,31 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
   toUpdate,
   getPersonGroupById,
 }) => {
+  const { t } = useTranslation();
   const allChanges = useMemo(() => {
     const addItems: ChangeItem[] = toAdd.map(a => ({
       id: a.id,
-      label: `Afegir: ${getPersonGroupById(a.personGroupId)?.name || 'Desconegut'}`,
-      details: `(Nova assignació)`,
+      label: t('modals.update_assignments.type_add', { name: getPersonGroupById(a.personGroupId)?.name || t('modals.update_assignments.unknown_person') }),
+      details: t('modals.update_assignments.details_new'),
       type: 'add',
       data: a,
     }));
     const removeItems: ChangeItem[] = toRemove.map((r: any) => ({
       id: r.id,
-      label: `Eliminar: Rol de ${getPersonGroupById(r.personGroupId)?.name || 'Desconegut'}`,
-      details: `(Rol actual: ${r.role || 'Sense especificar'})`,
+      label: t('modals.update_assignments.type_remove', { name: getPersonGroupById(r.personGroupId)?.name || t('modals.update_assignments.unknown_person') }),
+      details: t('modals.update_assignments.details_current_role', { role: r.role || t('tech_sheets.personnel.unknown') }),
       type: 'remove',
       data: r,
     }));
     const updateItems: ChangeItem[] = toUpdate.map(u => ({
       id: u.assignment.id,
-      label: `Actualitzar: ${getPersonGroupById(u.assignment.personGroupId)?.name || 'Desconegut'}`,
-      details: `(Notes actualitzades)`,
+      label: t('modals.update_assignments.type_update', { name: getPersonGroupById(u.assignment.personGroupId)?.name || t('modals.update_assignments.unknown_person') }),
+      details: t('modals.update_assignments.details_notes'),
       type: 'update',
       data: u,
     }));
     return [...addItems, ...updateItems, ...removeItems];
-  }, [toAdd, toRemove, toUpdate, getPersonGroupById]);
+  }, [toAdd, toRemove, toUpdate, getPersonGroupById, t]);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(allChanges.map(c => c.id)));
 
@@ -83,54 +85,53 @@ export const UpdateFromAssignmentsModal: React.FC<UpdateFromAssignmentsModalProp
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground">
-        S'han detectat canvis entre les assignacions confirmades i la llista de personal tècnic.
-        Selecciona els canvis que vols aplicar.
+        {t('modals.update_assignments.description')}
       </p>
 
       {allChanges.length > 0 ? (
         <>
           <div className="flex justify-end space-x-2">
-            <button onClick={handleSelectAll} className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90">Seleccionar Tot</button>
-            <button onClick={handleDeselectAll} className="px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-accent">Deseleccionar Tot</button>
+            <button onClick={handleSelectAll} className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90">{t('modals.update_assignments.select_all')}</button>
+            <button onClick={handleDeselectAll} className="px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-accent">{t('modals.update_assignments.deselect_all')}</button>
           </div>
           <div className="max-h-60 overflow-y-auto space-y-2 p-2 border rounded-md bg-muted/50">
             {allChanges.map(change => {
               const bgColor = change.type === 'add'
                 ? 'bg-success/10'
                 : change.type === 'remove'
-                ? 'bg-destructive/10'
-                : 'bg-warning/10';
+                  ? 'bg-destructive/10'
+                  : 'bg-warning/10';
 
               return (
-              <div key={change.id} className={`p-2 rounded flex items-center ${bgColor}`}>
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(change.id)}
-                  onChange={() => handleToggle(change.id)}
-                  className="h-5 w-5 rounded border-border text-primary focus:ring-ring mr-3"
-                />
-                <div>
-                  <span className="font-semibold text-foreground">{change.label}</span>
-                  <span className="text-sm text-muted-foreground ml-2">{change.details}</span>
+                <div key={change.id} className={`p-2 rounded flex items-center ${bgColor}`}>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(change.id)}
+                    onChange={() => handleToggle(change.id)}
+                    className="h-5 w-5 rounded border-border text-primary focus:ring-ring mr-3"
+                  />
+                  <div>
+                    <span className="font-semibold text-foreground">{change.label}</span>
+                    <span className="text-sm text-muted-foreground ml-2">{change.details}</span>
+                  </div>
                 </div>
-              </div>
               )
             })}
           </div>
         </>
       ) : (
-        <p className="text-center text-muted-foreground py-4">No hi ha canvis per aplicar.</p>
+        <p className="text-center text-muted-foreground py-4">{t('modals.update_assignments.no_changes')}</p>
       )}
 
       <div className="flex justify-end space-x-3 mt-6">
-        <Tooltip text="Tancar sense aplicar cap canvi">
+        <Tooltip text={t('modals.update_assignments.cancel_tooltip')}>
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border">
-            Cancel·lar
+            {t('common.cancel')}
           </button>
         </Tooltip>
-        <Tooltip text="Aplicar els canvis seleccionats a la fitxa tècnica">
+        <Tooltip text={t('modals.update_assignments.confirm_tooltip')}>
           <button onClick={handleConfirm} className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md">
-            Confirmar Canvis ({selectedIds.size})
+            {t('modals.update_assignments.confirm_button', { count: selectedIds.size })}
           </button>
         </Tooltip>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon, ChevronUpIcon } from '../../constants';
 import Tooltip from '../ui/Tooltip';
 
@@ -24,6 +25,7 @@ const TechSheetSection: React.FC<TechSheetSectionProps> = ({
   isOpen: controlledIsOpen,
   onToggle
 }) => {
+  const { t } = useTranslation();
   const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
 
   const isControlled = controlledIsOpen !== undefined;
@@ -60,7 +62,7 @@ const TechSheetSection: React.FC<TechSheetSectionProps> = ({
   return (
     <div className={containerClasses}>
       <div className="flex items-center justify-between bg-muted/50 rounded-t-lg">
-        <Tooltip text={isOpen ? `Replegar secció ${title}` : `Expandir secció ${title}`}>
+        <Tooltip text={isOpen ? t('common.collapse_section', { name: title }) : t('common.expand_section', { name: title })}>
           <button
             type="button"
             onClick={handleToggle}

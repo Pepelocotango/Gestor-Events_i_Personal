@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PdfPreviewModalProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface PdfPreviewModalProps {
 }
 
 const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({ onClose, pdfUrl, onSave }) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
 
   const handleIframeLoad = () => {
@@ -21,30 +23,29 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({ onClose, pdfUrl, onSa
     // Alçada reduïda a 65vh per evitar que el Modal pare (que sol tenir max-h-70vh o similar)
     // generi una doble barra de scroll.
     <div className="flex flex-col h-[65vh] w-full">
-      
+
       {/* COS: Visor PDF */}
       {/* Eliminada la capçalera interna per evitar duplicitat amb el Modal pare */}
       <div className="flex-grow relative bg-white dark:bg-gray-800 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700">
         {isLoading && (
           <div className="absolute inset-0 z-50 flex flex-col justify-center items-center bg-white dark:bg-gray-800">
-            <svg 
-              className="animate-spin h-8 w-8 text-primary mb-4" 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
+            <svg
+              className="animate-spin h-8 w-8 text-primary mb-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
               viewBox="0 0 24 24"
             >
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">Generant vista prèvia, espereu uns segons si surt una pantalla negra ...</p>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">{t('modals.pdf_preview.loading')}</p>
           </div>
         )}
         <iframe
           src={pdfUrl}
-          className={`w-full h-full border-none bg-white transition-opacity duration-500 ${
-            isLoading ? 'opacity-0' : 'opacity-100'
-          }`}
-          title="Vista Prèvia PDF"
+          className={`w-full h-full border-none bg-white transition-opacity duration-500 ${isLoading ? 'opacity-0' : 'opacity-100'
+            }`}
+          title={t('modals.pdf_preview.iframe_title')}
           onLoad={handleIframeLoad}
         />
       </div>
@@ -55,14 +56,14 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({ onClose, pdfUrl, onSa
           onClick={onClose}
           className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md border border-border"
         >
-          Tancar
+          {t('modals.event_details.close_button')}
         </button>
         {onSave && (
           <button
             onClick={onSave}
             className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md"
           >
-            Desar PDF
+            {t('modals.pdf_preview.save_button')}
           </button>
         )}
       </div>

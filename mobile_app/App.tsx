@@ -34,6 +34,7 @@ import {
   CalendarStackParamList,
 } from './src/navigation';
 import { lightTheme, darkTheme } from './src/utils/themes';
+import './src/i18n'; // Import i18n configuration
 
 SplashScreen.preventAutoHideAsync();
 
@@ -94,9 +95,9 @@ const SummaryStackNavigator = () => (
 );
 
 const CalendarStackNavigator = () => (
-    <CalendarStack.Navigator screenOptions={commonScreenOptions}>
-        <CalendarStack.Screen name="CalendarView" component={CalendarScreen} />
-    </CalendarStack.Navigator>
+  <CalendarStack.Navigator screenOptions={commonScreenOptions}>
+    <CalendarStack.Screen name="CalendarView" component={CalendarScreen} />
+  </CalendarStack.Navigator>
 );
 
 export default function App() {
@@ -157,44 +158,44 @@ export default function App() {
             let iconName: string;
 
             switch (route.name) {
-                case 'Events':
-                  iconName = focused ? 'list' : 'list-outline';
-                  break;
-                case 'Calendar':
-                    iconName = focused ? 'calendar' : 'calendar-outline';
-                    break;
-                case 'TechSheets':
-                  iconName = focused ? 'document-text' : 'document-text-outline';
-                  break;
-                case 'People':
-                  iconName = focused ? 'people' : 'people-outline';
-                  break;
-                case 'Material':
-                  iconName = focused ? 'cube' : 'cube-outline';
-                  break;
-                case 'ControlCenter':
-                  iconName = focused ? 'server' : 'server-outline';
-                  break;
-                case 'Summaries':
-                  iconName = focused ? 'analytics' : 'analytics-outline';
-                  break;
-                default:
-                  iconName = 'alert-circle-outline';
-                  break;
-              }
+              case 'Events':
+                iconName = focused ? 'list' : 'list-outline';
+                break;
+              case 'Calendar':
+                iconName = focused ? 'calendar' : 'calendar-outline';
+                break;
+              case 'TechSheets':
+                iconName = focused ? 'document-text' : 'document-text-outline';
+                break;
+              case 'People':
+                iconName = focused ? 'people' : 'people-outline';
+                break;
+              case 'Material':
+                iconName = focused ? 'cube' : 'cube-outline';
+                break;
+              case 'ControlCenter':
+                iconName = focused ? 'server' : 'server-outline';
+                break;
+              case 'Summaries':
+                iconName = focused ? 'analytics' : 'analytics-outline';
+                break;
+              default:
+                iconName = 'alert-circle-outline';
+                break;
+            }
 
-              return <Ionicons name={iconName} size={size} color={color} />;
-            },
-          })}
-        >
-          <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: 'Esdeveniments' }} />
-          <Tab.Screen name="Calendar" component={CalendarStackNavigator} options={{ title: 'Calendari' }} />
-          <Tab.Screen name="TechSheets" component={TechSheetsStackNavigator} options={{ title: 'Fitxes de Bolo' }} />
-          <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: 'Persones' }} />
-          <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: 'Material' }} />
-          <Tab.Screen name="ControlCenter" component={ControlCenterStackNavigator} options={{ title: 'Centre de Control' }} />
-          <Tab.Screen name="Summaries" component={SummaryStackNavigator} options={{ title: 'Resums' }} />
-        </Tab.Navigator>
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })}
+      >
+        <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: 'Esdeveniments' }} />
+        <Tab.Screen name="Calendar" component={CalendarStackNavigator} options={{ title: 'Calendari' }} />
+        <Tab.Screen name="TechSheets" component={TechSheetsStackNavigator} options={{ title: 'Fitxes de Bolo' }} />
+        <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: 'Persones' }} />
+        <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: 'Material' }} />
+        <Tab.Screen name="ControlCenter" component={ControlCenterStackNavigator} options={{ title: 'Centre de Control' }} />
+        <Tab.Screen name="Summaries" component={SummaryStackNavigator} options={{ title: 'Resums' }} />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CalendarIcon, BoxIcon, UsersIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 
@@ -10,44 +11,44 @@ const DocumentTextIcon = ({ className = "w-5 h-5" }) => (
 );
 
 const Navigation: React.FC = () => {
+  const { t } = useTranslation();
   const getLinkClassName = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-1 px-1.5 text-xs font-medium rounded-md transition-colors ${
-      isActive
-        ? 'bg-primary text-primary-foreground'
-        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+    `flex items-center gap-1 px-1.5 text-xs font-medium rounded-md transition-colors ${isActive
+      ? 'bg-primary text-primary-foreground'
+      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
     }`;
 
   return (
     <nav className="flex justify-center">
       <div className="flex space-x-2 bg-muted p-1 rounded-lg border border-border">
-        <Tooltip text="Anar a la vista principal del calendari i llista d'esdeveniments">
+        <Tooltip text={t('main.nav_calendar_list_tooltip')}>
           <NavLink to="/" className={getLinkClassName}>
             <CalendarIcon className="h-5 w-5" />
-            <span>Calendari i Llista</span>
+            <span>{t('main.nav_calendar_list')}</span>
           </NavLink>
         </Tooltip>
-        
-        <Tooltip text="Anar a la gestió de fitxes tècniques (bolos)">
+
+        <Tooltip text={t('main.nav_tech_sheets_tooltip')}>
           <NavLink to="/tech-sheets" className={getLinkClassName}>
             <DocumentTextIcon className="h-5 w-5" />
-            <span>Fitxes de Bolo</span>
+            <span>{t('main.nav_tech_sheets')}</span>
           </NavLink>
         </Tooltip>
 
-        <Tooltip text="Anar a la gestió de persones i grups">
+        <Tooltip text={t('main.nav_people_tooltip')}>
           <NavLink to="/people" className={getLinkClassName}>
             <UsersIcon className="h-5 w-5" />
-            <span>Persones</span>
+            <span>{t('main.nav_people')}</span>
           </NavLink>
         </Tooltip>
 
-        <Tooltip text="Anar a la gestió d'inventari de material">
+        <Tooltip text={t('main.nav_material_tooltip')}>
           <NavLink to="/material" className={getLinkClassName}>
             <BoxIcon className="h-5 w-5" />
-            <span>Material</span>
+            <span>{t('main.nav_material')}</span>
           </NavLink>
         </Tooltip>
-      
+
       </div>
     </nav>
   );
