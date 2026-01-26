@@ -1,0 +1,10 @@
+---
+// Redirect to default language (Catalan)
+import { Astro } from 'astro';
+
+// Get the requested path
+const path = Astro.url.pathname;
+
+// Redirect to Catalan version
+Astro.response.redirect(new URL('/ca/', Astro.url));
+---
