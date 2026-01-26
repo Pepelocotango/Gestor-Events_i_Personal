@@ -2,7 +2,9 @@
   "navigation": {
     "home": "Inici",
     "features": "Funcionalitats",
-    "download": "Descàrregues",
+    "product_tour": "Descobreix la interfície",
+    "gallery": "Galeria",
+    "download": "Descarregues",
     "contact": "Contacte"
   },
   "hero": {
@@ -55,6 +57,10 @@
     "ios": "iOS 13.0 o superior"
   },
   "footer": {
+    "title": "Gestor d'Esdeveniments i Personal",
+    "version": "Versió 1.5.0 - Sota llicència GPL v3.0",
+    "source_code": "Codi Font",
+    "documentation": "Documentació",
     "collaborate_title": "Vols col·laborar en el projecte?",
     "collaborate_description": "Aquest és un projecte de codi obert sota llicència GPL v3.0. T'animem a contribuir-hi o fer-nos arribar les teves suggerències.",
     "view_github": "Veure a GitHub",
