@@ -2,6 +2,8 @@
   "navigation": {
     "home": "Inicio",
     "features": "Funcionalidades",
+    "product_tour": "Descubre la interfaz",
+    "gallery": "Galería",
     "download": "Descargas",
     "contact": "Contacto"
   },
@@ -55,10 +57,166 @@
     "ios": "iOS 13.0 o superior"
   },
   "footer": {
+    "title": "Gestor de Eventos y Personal",
+    "version": "Versión 1.5.0 - Bajo licencia GPL v3.0",
+    "source_code": "Código Fuente",
+    "documentation": "Documentación",
     "collaborate_title": "¿Quieres colaborar en el proyecto?",
     "collaborate_description": "Este es un proyecto de código abierto bajo licencia GPL v3.0. Te animamos a contribuir o enviarnos tus sugerencias.",
     "view_github": "Ver en GitHub",
     "view_features": "Ver funcionalidades",
     "copyright": "© 2024 Gestor de Eventos y Personal. Todos los derechos reservados."
+  },
+  "tour_sections": [
+    {
+      "id": "welcome-screen",
+      "title": "Pantalla de Bienvenida",
+      "description": "Comienza tu proyecto desde cero o abre un documento existente con solo un clic.",
+      "features": [
+        "Crear nuevos documentos vacíos",
+        "Abrir archivos .gep o .json existentes",
+        "Acceso rápido a archivos recientes",
+        "Interfaz intuitiva y simple"
+      ],
+      "icon": "HomeIcon",
+      "image": "01_PantallaInici_fosc.png"
+    },
+    {
+      "id": "calendar-view",
+      "title": "Vista de Calendario",
+      "description": "Visualiza todos tus eventos en un calendario integrado, con sincronización con Google Calendar.",
+      "features": [
+        "Calendario multivista (Mes, Semana, Agenda, 2, 4 o 6 Meses)",
+        "Sincronización con Google Calendar (beta)",
+        "Crear eventos con un simple clic",
+        "Navegar rápidamente entre fechas"
+      ],
+      "icon": "CalendarIcon",
+      "image": "02_vistaCalendari_fosc.png"
+    },
+    {
+      "id": "events-list",
+      "title": "Lista de Eventos",
+      "description": "Gestiona todos tus bolos en una vista completa con controles avanzados de filtrado y ordenación.",
+      "features": [
+        "Filtros avanzados (lugar, persona, estado, fecha)",
+        "Ordenación dinámica y búsqueda global",
+        "Tarjetas de asignaciones con estado visual",
+        "Exporta a PDF y CSV instantáneamente"
+      ],
+      "icon": "ListIcon",
+      "image": "03_llistaEvents_fosc.png"
+    },
+    {
+      "id": "summaries",
+      "title": "Resúmenes e Informes",
+      "description": "Genera informes inteligentes basados en los datos ingresados.",
+      "features": [
+        "Informes por evento, fecha o persona",
+        "Opciones de ordenación flexible",
+        "Exportación a CSV y PDF",
+        "Análisis instantáneo de datos"
+      ],
+      "icon": "ChartIcon",
+      "image": "04_resums_fosc.png"
+    },
+    {
+      "id": "technical-sheets",
+      "title": "Fichas de Bolo",
+      "description": "Crea fichas técnicas con horarios, contactos, material, necesidades específicas, entre otros.",
+      "features": [
+        "Generación automática de fichas de bolo",
+        "Detalles de horarios y Personal Técnico",
+        "Visualización de stock disponible",
+        "Exportación directa a PDF"
+      ],
+      "icon": "DocumentIcon",
+      "image": "21_fitxesdebolo_fosc.png"
+    },
+    {
+      "id": "people-management",
+      "title": "Gestión de Personal",
+      "description": "Mantén una base de datos de personal con toda la información de contacto y especializaciones.",
+      "features": [
+        "Añadir, editar y eliminar contactos",
+        "Asociar roles especializados (técnico, artístico, etc)",
+        "Búsquedas y filtros por rol",
+        "Importa / Exporta tu red de contactos"
+      ],
+      "icon": "UsersIcon",
+      "image": "31_persones_fosc.png"
+    },
+    {
+      "id": "material-management",
+      "title": "Gestor de Material",
+      "description": "Controla el inventario y la demanda de material para cada evento con precisión.",
+      "features": [
+        "Inventario por categorías o por nombre",
+        "Stock en tiempo real y detección de demanda",
+        "Centro de control avanzado",
+        "Importa / Exporta el inventario y exporta informes"
+      ],
+      "icon": "BoxIcon",
+      "image": "41_material_fosc.png"
+    },
+    {
+      "id": "menu-bar",
+      "title": "Barra de Menú Superior",
+      "description": "Acceso completo a todas las funciones de la aplicación con acciones rápidas e integradas.",
+      "features": [
+        "Menú Archivo: Guardar, Importar, Exportar, Configuración de Google Calendar",
+        "Menú Edita: Deshacer, Rehacer, Cortar, Copiar, Pegar",
+        "Acciones rápidas: Zoom, Pantalla completa, Temas",
+        "Acceso a copias de seguridad y registros de la aplicación."
+      ],
+      "icon": "MenuIcon",
+      "image": "desktop-dashboard.png"
+    }
+  ],
+  "gallery": {
+    "label": "Galería de imágenes",
+    "title": "Descubre la aplicación",
+    "subtitle": "Explora las diferentes pantallas y funcionalidades"
+  },
+  "carousel": {
+    "light_mode": "Tema claro",
+    "dark_mode": "Tema oscuro",
+    "previous_image": "Imagen anterior",
+    "next_image": "Siguiente imagen",
+    "go_to_image": "Ir a la imagen {{index}}"
+  },
+  "tour": {
+    "title": "Tour Interactivo de Funcionalidades",
+    "description": "Descubre las funciones principales de nuestra aplicación y cómo puede transformar tu gestión de eventos.",
+    "features": "Funcionalidades principales",
+    "loading": "Cargando...",
+    "loading_description": "Por favor, espera..."
+  },
+  "features_section": {
+    "label": "Funcionalidades principales",
+    "title": "Todo lo que necesitas para gestionar tus eventos",
+    "description": "Descubre cómo nuestro software puede simplificar tu gestión diaria y mejorar la productividad de tu equipo.",
+    "privacy_title": "Privacidad Total (Local-First)",
+    "privacy_description": "Los datos son tuyos. Todo se guarda localmente en archivos .gep. Trabaja sin conexión a internet y sin depender de servidores en la nube.",
+    "team_management_title": "Gestión de Equipos sin Conflictos",
+    "team_management_description": "Asigna personal técnico y artístico con seguridad. El sistema te alerta automáticamente si intentas asignar a alguien que ya está ocupado en otro evento.",
+    "tech_sheets_title": "Fichas de Bolo Automáticas",
+    "tech_sheets_description": "Genera documentación técnica profesional (PDF) en segundos. Incluye horarios, necesidades técnicas (sonido, luces), logística y contactes automáticamente.",
+    "inventory_title": "Control de Stock y Demanda",
+    "inventory_description": "Analiza la disponibilidad real de tu material. El sistema calcula el pico de demanda diario para garantizar que tienes suficiente stock para todos los eventos simultáneos.",
+    "google_integration_title": "Integración Híbrida con Google",
+    "google_integration_description": "Gestiona calendarios dedicados para la app y visualiza tu agenda personal. Nota: Esta función requiere autorización manual. Contacta con el desarrollador para habilitar tu cuenta de Google.",
+    "beta_tag": "BETA"
+  },
+  "download_section": {
+    "label": "Descargar ahora",
+    "title": "Disponible en todas las plataformas",
+    "description": "Elige tu plataforma y comienza a gestionar tus eventos hoy mismo. Rápido, seguro y fácil de usar.",
+    "version_info_title": "Información importante sobre las versiones",
+    "version_info_description": "La versión para dispositivos Android es una versión reducida de la aplicación de escritorio, diseñada para la consulta rápida y la gestión básica de eventos.",
+    "limitations_title": "Principales limitaciones de la versión Android:",
+    "limitation_1": "No incluye todas las funciones avanzadas de la versión de escritorio",
+    "limitation_2": "Optimizada para uso móvil con una interfaz simplificada",
+    "recommendation": "Para el uso profesional con todas las funciones, recomendamos usar la versión de escritorio (Windows, macOS o Linux)."
   }
 }

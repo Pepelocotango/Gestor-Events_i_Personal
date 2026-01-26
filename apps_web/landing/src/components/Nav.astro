@@ -1,13 +1,14 @@
 ---
 // Nav.astro
-const { currentPath } = Astro.props;
+const { currentPath, translations } = Astro.props;
 
+// Navigation links configuration
 const navLinks = [
-  { name: 'Inici', path: '#home' },
-  { name: 'Característiques', path: '#features' },
-  { name: 'Tour del Producte', path: '#product-tour' },
-  { name: 'Galeria', path: '#gallery' },
-  { name: 'Descàrregues', path: '#download' },
+  { key: 'home', path: '#home' },
+  { key: 'features', path: '#features' },
+  { key: 'product_tour', path: '#product-tour' },
+  { key: 'gallery', path: '#gallery' },
+  { key: 'download', path: '#download' },
 ];
 ---
 
@@ -38,7 +39,7 @@ const navLinks = [
               : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
             aria-current={currentPath === link.path ? 'page' : undefined}
           >
-            {link.name}
+            {translations[link.key] || link.key}
           </a>
         ))}
         <a 
@@ -78,7 +79,7 @@ const navLinks = [
             : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
           aria-current={currentPath === link.path ? 'page' : undefined}
         >
-          {link.name}
+          {translations[link.key] || link.key}
         </a>
       ))}
       <a 

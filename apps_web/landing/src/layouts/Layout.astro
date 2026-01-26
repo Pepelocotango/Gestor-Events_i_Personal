@@ -1,14 +1,35 @@
 ---
 import '../styles/global.css';
+import LanguageSelector from '../components/LanguageSelector.astro';
 
 interface Props {
   title: string;
+  description?: string;
+  currentLocale?: string;
+  currentPath?: string;
+  translations?: {
+    navigation?: {
+      home?: string;
+      features?: string;
+      product_tour?: string;
+      gallery?: string;
+      download?: string;
+      contact?: string;
+    };
+    footer?: {
+      title?: string;
+      version?: string;
+      source_code?: string;
+      documentation?: string;
+      copyright?: string;
+    };
+  };
 }
 
-const { title } = Astro.props;
+const { title, description, currentLocale = 'ca', currentPath = '/', translations = {} } = Astro.props;
 
-const siteTitle = 'Gestor d\'Esdeveniments i Personal';
-const siteDescription = 'L\'eina definitiva per a la gestió professional d\'esdeveniments i personal';
+const siteTitle = translations.footer?.title || 'Gestor d\'Esdeveniments i Personal';
+const siteDescription = description || 'L\'eina definitiva per a la gestió professional d\'esdeveniments i personal';
 const url = 'https://gestor-events.vercel.app';
 
 // Preload fonts
@@ -126,12 +147,14 @@ const fontLink3 = {
           </a>
           <nav>
             <ul class="flex space-x-8">
-              <li><a href="#features" class="text-gray-300 hover:text-white transition-colors font-medium">Funcionalitats</a></li>
-              <li><a href="#product-tour" class="text-gray-300 hover:text-white transition-colors font-medium">Descobreix la interfície</a></li>
-              <li><a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-medium">Galeria</a></li>
-              <li><a href="#download" class="text-gray-300 hover:text-white transition-colors font-medium">Descarrega</a></li>
+              <li><a href="#home" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.home || 'Inici'}</a></li>
+              <li><a href="#features" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.features || 'Funcionalitats'}</a></li>
+              <li><a href="#product-tour" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.product_tour || 'Descobreix la interfície'}</a></li>
+              <li><a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.gallery || 'Galeria'}</a></li>
+              <li><a href="#download" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.download || 'Descarrega'}</a></li>
             </ul>
           </nav>
+          <LanguageSelector currentLocale={currentLocale} currentPath={currentPath} />
         </div>
       </header>
 
@@ -143,26 +166,26 @@ const fontLink3 = {
         <div class="container mx-auto px-4">
           <div class="flex flex-col md:flex-row justify-between items-center">
             <div class="mb-6 md:mb-0 text-center md:text-left">
-              <h3 class="text-lg font-semibold mb-2 text-white">Gestor d'Esdeveniments i Personal</h3>
-              <p class="text-gray-400">Versió 1.5.0 - Sota llicència GPL v3.0</p>
+              <h3 class="text-lg font-semibold mb-2 text-white">{siteTitle}</h3>
+              <p class="text-gray-400">{translations.footer?.version || 'Versió 1.5.0 - Sota llicència GPL v3.0'}</p>
             </div>
             <div class="flex space-x-6">
               <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
                  target="_blank" 
                  rel="noopener noreferrer" 
                  class="text-gray-400 hover:text-white transition-colors">
-                Codi Font
+                {translations.footer?.source_code || 'Codi Font'}
               </a>
               <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/blob/main/README.md" 
                  target="_blank"
                  rel="noopener noreferrer"
                  class="text-gray-400 hover:text-white transition-colors">
-                Documentació
+                {translations.footer?.documentation || 'Documentació'}
               </a>
             </div>
           </div>
           <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
-            <p>© {new Date().getFullYear()} Gestor d'Esdeveniments i Personal. Tots els drets reservats.</p>
+            <p>{translations.footer?.copyright || `© ${new Date().getFullYear()} Gestor d'Esdeveniments i Personal. Tots els drets reservats.`}</p>
           </div>
         </div>
       </footer>

@@ -8,15 +8,18 @@ import Download from '../../components/Download.astro';
 import LanguageSelector from '../../components/LanguageSelector.astro';
 import { getTranslations } from '../../i18n';
 
-// Get translations for current locale
-const t = await getTranslations(Astro);
+// Get translations for Catalan
+const t = await getTranslations({ ...Astro, locale: 'ca' });
 
 // Page metadata
 const title = t.hero.title;
 const description = t.hero.subtitle;
 ---
 
-<Layout title={title} description={description}>
+<Layout title={title} description={description} translations={{
+  navigation: t.navigation,
+  footer: t.footer
+}}>
   <div class="relative">
     <!-- Language Selector -->
     <div class="absolute top-4 right-4 z-50">
