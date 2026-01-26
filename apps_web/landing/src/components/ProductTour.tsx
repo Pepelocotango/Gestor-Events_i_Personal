@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
-import { tourSections } from '../data/tourSections';
+import { useTranslation } from 'react-i18next';
+
+export interface TourSection {
+  id: string;
+  title: string;
+  description: string;
+  features: string[];
+  icon: string;
+  image: string;
+}
+
+interface ProductTourProps {
+  sections: TourSection[];
+}
 
 // Icon mapping for tour sections
 const iconMap: Record<string, React.ReactNode> = {
@@ -45,9 +58,20 @@ const iconMap: Record<string, React.ReactNode> = {
   ),
 };
 
-export default function ProductTour() {
+export default function ProductTour({ sections }: ProductTourProps) {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState(0);
-  const currentSection = tourSections[activeSection];
+  
+  // Fallback to empty array if sections is not available
+  const tourSections = Array.isArray(sections) ? sections : [];
+  const currentSection = tourSections[activeSection] || (tourSections[0] || {
+    id: 'fallback',
+    title: t('tour.loading', 'Carregant...'),
+    description: t('tour.loading_description', 'Si us plau, espera...'),
+    features: [],
+    icon: 'HomeIcon',
+    image: 'desktop-dashboard.png'
+  });
 
   return (
     <section id="product-tour" className="py-20 bg-dark-900 relative overflow-hidden">
@@ -58,11 +82,11 @@ export default function ProductTour() {
         {/* Section header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="inline-block px-4 py-1.5 text-sm font-medium text-cyan-400 bg-cyan-900/30 rounded-full mb-4">
-            Explora la interfície
+            {t('navigation.product_tour')}
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Tour Interactiu de Funcionalitats</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{t('tour.title', 'Tour Interactiu de Funcionalitats')}</h2>
           <p className="text-lg text-gray-400">
-            Descobreix les principals funcions de la nostra aplicació i com pot transformar la teva gestió d'esdeveniments.
+            {t('tour.description', 'Descobreix les principals funcions de la nostra aplicació i com pot transformar la teva gestió d\'esdeveniments.')}
           </p>
         </div>
 
@@ -120,7 +144,7 @@ export default function ProductTour() {
 
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-cyan-400 mb-3 uppercase tracking-wider">
-                    Funcionalitats principals
+                    {t('tour.features', 'Funcionalitats principals')}
                   </h4>
                   <ul className="space-y-2">
                     {currentSection.features.map((feature, idx) => (
@@ -204,7 +228,7 @@ export default function ProductTour() {
                     <p className="text-gray-300 text-sm">{section.description}</p>
                     <div>
                       <h4 className="text-xs font-semibold text-cyan-400 mb-2 uppercase tracking-wider">
-                        Funcionalitats principals
+                        {t('tour.features', 'Funcionalitats principals')}
                       </h4>
                       <ul className="space-y-1.5">
                         {section.features.map((feature, idx) => (

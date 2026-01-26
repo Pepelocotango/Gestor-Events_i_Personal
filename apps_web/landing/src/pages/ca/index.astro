@@ -8,8 +8,8 @@ import Download from '../../components/Download.astro';
 import LanguageSelector from '../../components/LanguageSelector.astro';
 import { getTranslations } from '../../i18n';
 
-// Get translations for current locale
-const t = await getTranslations(Astro);
+// Get translations for Catalan
+const t = await getTranslations({ ...Astro, locale: 'ca' });
 
 // Page metadata
 const title = t.hero.title;

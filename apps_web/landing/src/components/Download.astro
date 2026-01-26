@@ -1,17 +1,41 @@
 ---
 // Download component with dynamic platform-specific download buttons
 import GithubReleases from './GithubReleases';
+
+interface DownloadProps {
+  label?: string;
+  title?: string;
+  description?: string;
+  versionInfoTitle?: string;
+  versionInfoDescription?: string;
+  limitationsTitle?: string;
+  limitation1?: string;
+  limitation2?: string;
+  recommendation?: string;
+}
+
+const {
+  label,
+  title,
+  description,
+  versionInfoTitle,
+  versionInfoDescription,
+  limitationsTitle,
+  limitation1,
+  limitation2,
+  recommendation
+}: DownloadProps = Astro.props;
 ---
 
 <section id="download" class="py-20 bg-gray-900 border-t border-gray-800">
   <div class="container mx-auto px-4">
     <div class="max-w-4xl mx-auto text-center">
       <span class="inline-block bg-blue-500/10 text-blue-400 text-sm font-medium px-4 py-1.5 rounded-full mb-4 border border-blue-500/20">
-        Descarrega ara
+        {label || 'Descarrega ara'}
       </span>
-      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">Disponible a totes les plataformes</h2>
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">{title || 'Disponible a totes les plataformes'}</h2>
       <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-6">
-        Tria la teva plataforma i comença a gestionar els teus esdeveniments avui mateix. Ràpid, segur i fàcil d'utilitzar.
+        {description || 'Tria la teva plataforma i comença a gestionar els teus esdeveniments avui mateix. Ràpid, segur i fàcil d\'utilitzar.'}
       </p>
 
       <!-- Avis sobre versions -->
@@ -23,16 +47,15 @@ import GithubReleases from './GithubReleases';
             </svg>
           </div>
           <div class="ml-3">
-            <h3 class="text-sm font-medium text-blue-100">Informació important sobre les versions</h3>
+            <h3 class="text-sm font-medium text-blue-100">{versionInfoTitle || 'Informació important sobre les versions'}</h3>
             <div class="mt-2 text-sm text-blue-200 space-y-2">
-              <p>La versió per a dispositius Android és una versió reduïda de l'aplicació d'escriptori, dissenyada per a la consulta ràpida i la gestió bàsica d'esdeveniments.</p>
-              <p class="font-medium">Principals limitacions de la versió Android:</p>
+              <p>{versionInfoDescription || 'La versió per a dispositius Android és una versió reduïda de l\'aplicació d\'escriptori, dissenyada per a la consulta ràpida i la gestió bàsica d\'esdeveniments.'}</p>
+              <p class="font-medium">{limitationsTitle || 'Principals limitacions de la versió Android:'}</p>
               <ul class="list-disc pl-5 space-y-1">
-                <li>No inclou totes les funcions avançades de la versió d'escriptori</li>
-                <li>Optimitzada per a ús mòbil amb una interfície simplificada</li>
-                
+                <li>{limitation1 || 'No inclou totes les funcions avançades de la versió d\'escriptori'}</li>
+                <li>{limitation2 || 'Optimitzada per a ús mòbil amb una interfície simplificada'}</li>
               </ul>
-              <p>Per a l'ús professional amb totes les funcions, recomanem utilitzar la versió d'escriptori (Windows, macOS o Linux).</p>
+              <p>{recommendation || 'Per a l\'ús professional amb totes les funcions, recomanem utilitzar la versió d\'escriptori (Windows, macOS o Linux).'}</p>
             </div>
           </div>
         </div>

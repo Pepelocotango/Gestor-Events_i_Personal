@@ -66,5 +66,157 @@
     "view_github": "View on GitHub",
     "view_features": "View Features",
     "copyright": "© 2024 Event and Personnel Manager. All rights reserved."
+  },
+  "tour_sections": [
+    {
+      "id": "welcome-screen",
+      "title": "Welcome Screen",
+      "description": "Start your project from scratch or open an existing document with just one click.",
+      "features": [
+        "Create new blank documents",
+        "Open existing .gep or .json files",
+        "Quick access to recent files",
+        "Intuitive and simple interface"
+      ],
+      "icon": "HomeIcon",
+      "image": "01_PantallaInici_fosc.png"
+    },
+    {
+      "id": "calendar-view",
+      "title": "Calendar View",
+      "description": "View all your events in an integrated calendar, with Google Calendar synchronization.",
+      "features": [
+        "Multi-view calendar (Month, Week, Agenda, 2, 4 or 6 Months)",
+        "Google Calendar synchronization (beta)",
+        "Create events with a simple click",
+        "Navigate quickly between dates"
+      ],
+      "icon": "CalendarIcon",
+      "image": "02_vistaCalendari_fosc.png"
+    },
+    {
+      "id": "events-list",
+      "title": "Events List",
+      "description": "Manage all your gigs in a comprehensive view with advanced filtering and sorting controls.",
+      "features": [
+        "Advanced filters (place, person, status, date)",
+        "Dynamic sorting and global search",
+        "Assignment cards with visual status",
+        "Instantly export to PDF and CSV"
+      ],
+      "icon": "ListIcon",
+      "image": "03_llistaEvents_fosc.png"
+    },
+    {
+      "id": "summaries",
+      "title": "Summaries and Reports",
+      "description": "Generate intelligent reports based on entered data.",
+      "features": [
+        "Reports by event, date or person",
+        "Flexible sorting options",
+        "Export to CSV and PDF",
+        "Instant data analysis"
+      ],
+      "icon": "ChartIcon",
+      "image": "04_resums_fosc.png"
+    },
+    {
+      "id": "technical-sheets",
+      "title": "Technical Sheets",
+      "description": "Create technical sheets with schedules, contacts, materials, specific needs, among others.",
+      "features": [
+        "Automatic generation of technical sheets",
+        "Schedule and Technical Personnel details",
+        "Available stock visualization",
+        "Direct export to PDF"
+      ],
+      "icon": "DocumentIcon",
+      "image": "21_fitxesdebolo_fosc.png"
+    },
+    {
+      "id": "people-management",
+      "title": "Personnel Management",
+      "description": "Maintain a personnel database with all contact information and specializations.",
+      "features": [
+        "Add, edit and delete contacts",
+        "Associate specialized roles (technical, artistic, etc)",
+        "Searches and filters by role",
+        "Import / Export your contact network"
+      ],
+      "icon": "UsersIcon",
+      "image": "31_persones_fosc.png"
+    },
+    {
+      "id": "material-management",
+      "title": "Material Manager",
+      "description": "Control inventory and material demand for each event with precision.",
+      "features": [
+        "Inventory by categories or by name",
+        "Real-time stock and demand detection",
+        "Advanced control center",
+        "Import / Export inventory and export reports"
+      ],
+      "icon": "BoxIcon",
+      "image": "41_material_fosc.png"
+    },
+    {
+      "id": "menu-bar",
+      "title": "Top Menu Bar",
+      "description": "Complete access to all application functions with quick and integrated actions.",
+      "features": [
+        "File Menu: Save, Import, Export, Google Calendar Configuration",
+        "Edit Menu: Undo, Redo, Cut, Copy, Paste",
+        "Quick actions: Zoom, Full screen, Themes",
+        "Access to backups and application logs."
+      ],
+      "icon": "MenuIcon",
+      "image": "desktop-dashboard.png"
+    }
+  ],
+  "gallery": {
+    "label": "Image gallery",
+    "title": "Discover the application",
+    "subtitle": "Explore the different screens and functionalities"
+  },
+  "carousel": {
+    "light_mode": "Light theme",
+    "dark_mode": "Dark theme",
+    "previous_image": "Previous image",
+    "next_image": "Next image",
+    "go_to_image": "Go to image {{index}}"
+  },
+  "tour": {
+    "title": "Interactive Feature Tour",
+    "description": "Discover the main functions of our application and how it can transform your event management.",
+    "features": "Key features",
+    "loading": "Loading...",
+    "loading_description": "Please wait..."
+  },
+  "features_section": {
+    "label": "Key features",
+    "title": "Everything you need to manage your events",
+    "description": "Discover how our software can simplify your daily management and improve your team's productivity.",
+    "privacy_title": "Total Privacy (Local-First)",
+    "privacy_description": "Your data is yours. Everything is stored locally in .gep files. Work without internet connection and without relying on cloud servers.",
+    "team_management_title": "Conflict-Free Team Management",
+    "team_management_description": "Assign technical and artistic staff safely. The system automatically alerts you if you try to assign someone who is already busy at another event.",
+    "tech_sheets_title": "Automatic Technical Sheets",
+    "tech_sheets_description": "Generate professional technical documentation (PDF) in seconds. Includes schedules, technical needs (sound, lights), logistics and contacts automatically.",
+    "inventory_title": "Stock and Demand Control",
+    "inventory_description": "Analyze the real availability of your material. The system calculates the daily demand peak to ensure you have enough stock for all simultaneous events.",
+    "google_integration_title": "Hybrid Integration with Google",
+    "google_integration_description": "Manage dedicated calendars for the app and view your personal agenda. Note: This feature requires manual authorization. Contact the developer to enable your Google account.",
+    "beta_tag": "BETA"
+  },
+  "download_section": {
+    "label": "Download now",
+    "title": "Available on all platforms",
+    "description": "Choose your platform and start managing your events today. Fast, secure and easy to use.",
+    "version_info_title": "Important information about versions",
+    "version_info_description": "The Android version is a reduced version of the desktop application, designed for quick consultation and basic event management.",
+    "limitations_title": "Main limitations of the Android version:",
+    "limitation_1": "Does not include all advanced features of the desktop version",
+    "limitation_2": "Optimized for mobile use with a simplified interface",
+    "recommendation": "For professional use with all features, we recommend using the desktop version (Windows, macOS or Linux)."
   }
 }

@@ -1,15 +1,20 @@
 ---
 import '../styles/global.css';
+import LanguageSelector from '../components/LanguageSelector.astro';
 
 interface Props {
   title: string;
   description?: string;
+  currentLocale?: string;
+  currentPath?: string;
   translations?: {
     navigation?: {
+      home?: string;
       features?: string;
       product_tour?: string;
       gallery?: string;
       download?: string;
+      contact?: string;
     };
     footer?: {
       title?: string;
@@ -21,7 +26,7 @@ interface Props {
   };
 }
 
-const { title, description, translations = {} } = Astro.props;
+const { title, description, currentLocale = 'ca', currentPath = '/', translations = {} } = Astro.props;
 
 const siteTitle = translations.footer?.title || 'Gestor d\'Esdeveniments i Personal';
 const siteDescription = description || 'L\'eina definitiva per a la gestió professional d\'esdeveniments i personal';
@@ -142,12 +147,14 @@ const fontLink3 = {
           </a>
           <nav>
             <ul class="flex space-x-8">
+              <li><a href="#home" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.home || 'Inici'}</a></li>
               <li><a href="#features" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.features || 'Funcionalitats'}</a></li>
               <li><a href="#product-tour" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.product_tour || 'Descobreix la interfície'}</a></li>
               <li><a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.gallery || 'Galeria'}</a></li>
               <li><a href="#download" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.download || 'Descarrega'}</a></li>
             </ul>
           </nav>
+          <LanguageSelector currentLocale={currentLocale} currentPath={currentPath} />
         </div>
       </header>
 

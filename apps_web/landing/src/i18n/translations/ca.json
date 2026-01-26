@@ -66,5 +66,157 @@
     "view_github": "Veure a GitHub",
     "view_features": "Veure funcionalitats",
     "copyright": "© 2024 Gestor d'Esdeveniments i Personal. Tots els drets reservats."
+  },
+  "tour_sections": [
+    {
+      "id": "welcome-screen",
+      "title": "Pantalla de Benvinguda",
+      "description": "Comença el teu projecte des de zero o obre un document existent en tan sols un clic.",
+      "features": [
+        "Crear nous documents buits",
+        "Obrir fitxers .gep o .json existents",
+        "Accés ràpid a fitxers recents",
+        "Interfície intuïtiva i simple"
+      ],
+      "icon": "HomeIcon",
+      "image": "01_PantallaInici_fosc.png"
+    },
+    {
+      "id": "calendar-view",
+      "title": "Vista de Calendari",
+      "description": "Visualitza tots els teus esdeveniments en un calendari integrat, amb sincronització amb Google Calendar.",
+      "features": [
+        "Calendari multivista (Mes, Setmana, Agenda, 2, 4 o 6 Mesos)",
+        "Sincronització amb Google Calendar (beta)",
+        "Crear esdeveniments amb un simple clic",
+        "Navegar ràpidament entre dates"
+      ],
+      "icon": "CalendarIcon",
+      "image": "02_vistaCalendari_fosc.png"
+    },
+    {
+      "id": "events-list",
+      "title": "Llista d'Esdeveniments",
+      "description": "Gestiona tots els teus bolos en una vista completa amb controls avançats de filtratge i ordenació.",
+      "features": [
+        "Filtres avançats (lloc, persona, estat, data)",
+        "Ordenació dinàmica i cerca global",
+        "Targetes d'assignacions amb estat visual",
+        "Exporta a PDF i CSV instantàniament"
+      ],
+      "icon": "ListIcon",
+      "image": "03_llistaEvents_fosc.png"
+    },
+    {
+      "id": "summaries",
+      "title": "Resums i Informes",
+      "description": "Genera informes intel·ligents basats en les dades entrades.",
+      "features": [
+        "Informes per esdeveniment, data o persona",
+        "Opcions d'ordenació flexible",
+        "Exportació a CSV i PDF",
+        "Anàlisi instantània de dades"
+      ],
+      "icon": "ChartIcon",
+      "image": "04_resums_fosc.png"
+    },
+    {
+      "id": "technical-sheets",
+      "title": "Fitxes de Bolo",
+      "description": "Crea fitxes tècniques amb horaris, contactes, material, necessitats específiques, entre altres.",
+      "features": [
+        "Generació automàtica de fitxes de bolo",
+        "Detalls d'horaris i Personal Tècnic",
+        "Visualització d'estoc disponible",
+        "Exportació directa a PDF"
+      ],
+      "icon": "DocumentIcon",
+      "image": "21_fitxesdebolo_fosc.png"
+    },
+    {
+      "id": "people-management",
+      "title": "Gestió de Personal",
+      "description": "Mantén una base de dades de personal amb tota la informació de contacte i especialitzacions.",
+      "features": [
+        "Afegir, editar i eliminar contactes",
+        "Associar rols especialitzats (tècnic, artístic, etc)",
+        "Cerques i filtres per rol",
+        "Importa / Exporta la teva xarxa de contactes"
+      ],
+      "icon": "UsersIcon",
+      "image": "31_persones_fosc.png"
+    },
+    {
+      "id": "material-management",
+      "title": "Gestor de Material",
+      "description": "Controla l'inventari i la demanda de material per a cada esdeveniment amb precisió.",
+      "features": [
+        "Inventari per categories o per nom",
+        "Estoc en temps real i detecció de demanda",
+        "Centre de control avançat",
+        "Importa / Exporta l'inventari i exporta informes"
+      ],
+      "icon": "BoxIcon",
+      "image": "41_material_fosc.png"
+    },
+    {
+      "id": "menu-bar",
+      "title": "Barra de Menú Superior",
+      "description": "Accés complet a totes les funcions de l'aplicació amb accions ràpides i integrades.",
+      "features": [
+        "Menú Arxiu: Guardar, Importar, Exportar, Configuració de Google Calendar",
+        "Menú Edita: Desfer, Refer, Tallar, Copiar, Enganxar",
+        "Accions ràpides: Zoom, Pantalla completa, Temes",
+        "Accés a còpies de seguretat i registres de l'aplicació."
+      ],
+      "icon": "MenuIcon",
+      "image": "desktop-dashboard.png"
+    }
+  ],
+  "gallery": {
+    "label": "Galeria d'imatges",
+    "title": "Descobreix l'aplicació",
+    "subtitle": "Explora les diferents pantalles i funcionalitats"
+  },
+  "carousel": {
+    "light_mode": "Tema clar",
+    "dark_mode": "Tema fosc",
+    "previous_image": "Imatge anterior",
+    "next_image": "Següent imatge",
+    "go_to_image": "Anar a la imatge {{index}}"
+  },
+  "tour": {
+    "title": "Tour Interactiu de Funcionalitats",
+    "description": "Descobreix les principals funcions de la nostra aplicació i com pot transformar la teva gestió d'esdeveniments.",
+    "features": "Funcionalitats principals",
+    "loading": "Carregant...",
+    "loading_description": "Si us plau, espera..."
+  },
+  "features_section": {
+    "label": "Funcionalitats principals",
+    "title": "Tot el que necessites per gestionar els teus esdeveniments",
+    "description": "Descobreix com el nostre programari pot simplificar la teva gestió diària i millorar la productivitat del teu equip.",
+    "privacy_title": "Privadesa Total (Local-First)",
+    "privacy_description": "Les dades són teves. Tot es guarda localment en fitxers .gep. Treballa sense connexió a internet i sense dependre de servidors al núvol.",
+    "team_management_title": "Gestió d'Equips sense Conflictes",
+    "team_management_description": "Assigna personal tècnic i artístic amb seguretat. El sistema t'alerta automàticament si intentes assignar algú que ja està ocupat en un altre esdeveniment.",
+    "tech_sheets_title": "Fitxes de Bolo Automàtiques",
+    "tech_sheets_description": "Genera documentació tècnica professional (PDF) en segons. Inclou horaris, necessitats tècniques (so, llums), logística i contactes automàticament.",
+    "inventory_title": "Control d'Estoc i Demanda",
+    "inventory_description": "Analitza la disponibilitat real del teu material. El sistema calcula el pic de demanda diari per garantir que tens prou estoc per a tots els esdeveniments simultanis.",
+    "google_integration_title": "Integració Híbrida amb Google",
+    "google_integration_description": "Gestiona calendaris dedicats per a l'app i visualitza la teva agenda personal. Nota: Aquesta funció requereix autorització manual. Contacta amb el desenvolupador per habilitar el teu compte de Google.",
+    "beta_tag": "BETA"
+  },
+  "download_section": {
+    "label": "Descarrega ara",
+    "title": "Disponible a totes les plataformes",
+    "description": "Tria la teva plataforma i comença a gestionar els teus esdeveniments avui mateix. Ràpid, segur i fàcil d'utilitzar.",
+    "version_info_title": "Informació important sobre les versions",
+    "version_info_description": "La versió per a dispositius Android és una versió reduïda de l'aplicació d'escriptori, dissenyada per a la consulta ràpida i la gestió bàsica d'esdeveniments.",
+    "limitations_title": "Principals limitacions de la versió Android:",
+    "limitation_1": "No inclou totes les funcions avançades de la versió d'escriptori",
+    "limitation_2": "Optimitzada per a ús mòbil amb una interfície simplificada",
+    "recommendation": "Per a l'ús professional amb totes les funcions, recomanem utilitzar la versió d'escriptori (Windows, macOS o Linux)."
   }
 }

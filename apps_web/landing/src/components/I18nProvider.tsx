@@ -44,7 +44,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode; initialLang?: s
           escapeValue: false
         }
       });
-  }, []);
+  }, [language]);
 
   const changeLanguage = (lang: string) => {
     i18n.changeLanguage(lang);
@@ -57,3 +57,5 @@ export const I18nProvider: React.FC<{ children: React.ReactNode; initialLang?: s
     </I18nContext.Provider>
   );
 };
+
+export default I18nProvider;

@@ -6,26 +6,22 @@ import ProductTour from '../../components/ProductTour';
 import Gallery from '../../components/Gallery.astro';
 import Download from '../../components/Download.astro';
 import LanguageSelector from '../../components/LanguageSelector.astro';
+import I18nProvider from '../../components/I18nProvider.tsx';
 import { getTranslations } from '../../i18n';
 
-// Get translations for current locale
-const t = await getTranslations(Astro);
+// Get translations for English
+const t = await getTranslations({ ...Astro, locale: 'en' });
 
 // Page metadata
 const title = t.hero.title;
 const description = t.hero.subtitle;
 ---
 
-<Layout title={title} description={description} translations={{
+<Layout title={title} description={description} currentLocale="en" currentPath="/en/" translations={{
   navigation: t.navigation,
   footer: t.footer
 }}>
   <div class="relative">
-    <!-- Language Selector -->
-    <div class="absolute top-4 right-4 z-50">
-      <LanguageSelector currentLocale="en" currentPath={Astro.url.pathname} />
-    </div>
-    
     <!-- Hero Section -->
     <Hero 
       title={t.hero.title}
@@ -37,24 +33,45 @@ const description = t.hero.subtitle;
     
     <!-- Features Section -->
     <Features 
-      title={t.features.title}
-      calendarManagement={t.features.calendar_management}
-      personnelManagement={t.features.personnel_management}
-      materialInventory={t.features.material_inventory}
-      technicalSheets={t.features.technical_sheets}
-      exportImport={t.features.export_import}
-      googleSync={t.features.google_sync}
+      label={t.features_section.label}
+      title={t.features_section.title}
+      description={t.features_section.description}
+      privacyTitle={t.features_section.privacy_title}
+      privacyDescription={t.features_section.privacy_description}
+      teamManagementTitle={t.features_section.team_management_title}
+      teamManagementDescription={t.features_section.team_management_description}
+      techSheetsTitle={t.features_section.tech_sheets_title}
+      techSheetsDescription={t.features_section.tech_sheets_description}
+      inventoryTitle={t.features_section.inventory_title}
+      inventoryDescription={t.features_section.inventory_description}
+      googleIntegrationTitle={t.features_section.google_integration_title}
+      googleIntegrationDescription={t.features_section.google_integration_description}
+      betaTag={t.features_section.beta_tag}
     />
     
     <!-- Product Tour -->
-    <ProductTour client:visible />
+    <I18nProvider client:load initialLang="en">
+      <ProductTour client:visible sections={t.tour_sections} />
+    </I18nProvider>
     
     <!-- Gallery -->
-    <Gallery />
+    <Gallery 
+      label={t.gallery.label}
+      title={t.gallery.title}
+      subtitle={t.gallery.subtitle}
+    />
     
     <!-- Download Section -->
     <Download 
-      title={t.download.title}
+      label={t.download_section.label}
+      title={t.download_section.title}
+      description={t.download_section.description}
+      versionInfoTitle={t.download_section.version_info_title}
+      versionInfoDescription={t.download_section.version_info_description}
+      limitationsTitle={t.download_section.limitations_title}
+      limitation1={t.download_section.limitation_1}
+      limitation2={t.download_section.limitation_2}
+      recommendation={t.download_section.recommendation}
       desktopTitle={t.download.desktop_title}
       desktopDescription={t.download.desktop_description}
       mobileTitle={t.download.mobile_title}
