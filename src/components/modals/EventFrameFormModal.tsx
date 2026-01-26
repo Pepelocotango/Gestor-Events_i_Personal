@@ -126,7 +126,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
         <div>
           <label htmlFor="ef-startDate" className="block text-sm font-medium text-foreground">{t('modals.event_form.start_date_label')}</label>
           <Tooltip text={t('modals.event_form.start_date_tooltip')}>
-            <input type="date" id="ef-startDate" value={formData.startDate || ''} onChange={e => handleFieldChange('startDate', e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
+            <input type="date" id="ef-startDate" value={formData.startDate || ''} onChange={e => handleFieldChange('startDate', e.target.value)} className={commonInputClass} required aria-required="true" placeholder={t('common.date_format_placeholder')} />
           </Tooltip>
           {formData.startDate && <p className="text-xs text-muted-foreground mt-1"><span className="font-semibold">{t('modals.event_form.date_selected')}</span> {formatDateDMY(formData.startDate)}</p>}
           {errors.startDate && <p className="text-destructive text-xs mt-1" role="alert">{errors.startDate}</p>}
@@ -134,7 +134,7 @@ export const EventFrameFormModal: React.FC<EventFrameFormModalProps> = ({ onClos
         <div>
           <label htmlFor="ef-endDate" className="block text-sm font-medium text-foreground">{t('modals.event_form.end_date_label')}</label>
           <Tooltip text={t('modals.event_form.end_date_tooltip')}>
-            <input type="date" id="ef-endDate" value={formData.endDate || ''} onChange={e => handleFieldChange('endDate', e.target.value)} className={commonInputClass} required aria-required="true" placeholder="dd/mm/yyyy" />
+            <input type="date" id="ef-endDate" value={formData.endDate || ''} onChange={e => handleFieldChange('endDate', e.target.value)} className={commonInputClass} required aria-required="true" placeholder={t('common.date_format_placeholder')} />
           </Tooltip>
           {formData.endDate && <p className="text-xs text-muted-foreground mt-1"><span className="font-semibold">{t('modals.event_form.date_selected')}</span> {formatDateDMY(formData.endDate)}</p>}
           {errors.endDate && <p className="text-destructive text-xs mt-1" role="alert">{errors.endDate}</p>}

@@ -18,12 +18,4 @@ export default defineConfig({
   },
   // Build output directory for Vercel
   output: 'static',
-  // Internationalization configuration
-  i18n: {
-    defaultLocale: 'ca',
-    locales: ['ca', 'es', 'en'],
-    routing: {
-      prefixDefaultLocale: false,
-    },
-  },
 });

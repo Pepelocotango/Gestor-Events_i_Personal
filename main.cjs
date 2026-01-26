@@ -7,6 +7,35 @@ const url = require('url');
 const http = require('http');
 const log = require('electron-log');
 
+// --- CONSTANTS PER A CODIS D'ERROR ---
+const ERROR_CODES = {
+  // Errors generals
+  SAVE_DATA_FAILED: 'SAVE_DATA_FAILED',
+  NO_ACTIVE_WINDOW: 'NO_ACTIVE_WINDOW',
+  EMPTY_FILEPATH: 'EMPTY_FILEPATH',
+  EMPTY_KEY: 'EMPTY_KEY',
+  NO_USER_EMAIL: 'NO_USER_EMAIL',
+  SERVICE_ACCOUNT_NOT_INITIALIZED: 'SERVICE_ACCOUNT_NOT_INITIALIZED',
+  CALENDAR_NOT_FOUND: 'CALENDAR_NOT_FOUND',
+  CALENDAR_NOT_MANAGED: 'CALENDAR_NOT_MANAGED',
+  DIALOG_ERROR: 'DIALOG_ERROR',
+  CANCELLED: 'CANCELLED',
+  FILE_READ_ERROR: 'FILE_READ_ERROR',
+  FILE_WRITE_ERROR: 'FILE_WRITE_ERROR',
+  
+  // Errors de sincronització
+  SYNC_CANCELLED: 'SYNC_CANCELLED',
+  SYNC_COMPLETED: 'SYNC_COMPLETED',
+  AUTH_IN_PROGRESS: 'AUTH_IN_PROGRESS',
+  CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
+  DISCONNECTED: 'DISCONNECTED',
+  
+  // Accions de l'aplicació
+  OPEN_DOCUMENT: 'OPEN_DOCUMENT',
+  CLOSE_APP: 'CLOSE_APP',
+  CALENDAR_DELETED: 'CALENDAR_DELETED'
+};
+
 // --- CONFIGURACIÓ DE LOGS AMB ELECTRON-LOG ---
 log.transports.file.fileName = 'main.log';
 log.transports.file.maxSize = 1048576; // 1 MB
@@ -156,7 +185,11 @@ async function saveDataWithErrorHandling(filePath, data) {
     return true;
   } catch (error) {
     console.error(`Error guardant a ${filePath}:`, error);
-    dialog.showMessageBoxSync({ type: 'error', title: 'Error guardant dades', message: `No s'han pogut guardar les dades a ${filePath}\\nError: ${error.message}` });
+    dialog.showMessageBoxSync({ 
+      type: 'error', 
+      title: ERROR_CODES.SAVE_DATA_FAILED, 
+      message: `No s'han pogut guardar les dades a ${filePath}\nError: ${error.message}` 
+    });
     throw error;
   }
 }
@@ -238,49 +271,44 @@ async function cleanupOldBackups(sourceFilePath) {
 
 // --- Handlers IPC Genèrics ---
 
-ipcMain.handle('open-file-dialog', async (event, options) => {
+ipcMain.handle('open-file-dialog', async (event) => {
   console.debug("[IPC_IN] Rebut 'open-file-dialog'.");
-  if (!mainWindow) return { success: false, message: 'No hi ha cap finestra activa.' };
-
+  if (!mainWindow) return { success: false, code: ERROR_CODES.NO_ACTIVE_WINDOW };
   try {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openFile'],
-      filters: options?.filters || [
-        { name: 'Arxiu GEP', extensions: ['gep'] },
-        { name: 'Arxiu JSON', extensions: ['json'] },
-        { name: 'Tots els fitxers', extensions: ['*'] }
-      ],
-      title: 'Obrir document',
+      filters: [
+        { name: 'Gestor Events Files', extensions: ['gep'] },
+        { name: 'JSON Files', extensions: ['json'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
     });
-
-    if (result.canceled || !result.filePaths.length) {
-      return { success: false, canceled: true };
+    if (!result.canceled && result.filePaths.length > 0) {
+      const filePath = result.filePaths[0];
+      return { success: true, code: ERROR_CODES.OPEN_DOCUMENT, filePath };
     }
-
-    const filePath = result.filePaths[0];
-    console.debug(`Fitxer seleccionat per obrir: ${filePath}`);
-    return { success: true, filePath };
+    return { success: false, code: ERROR_CODES.CANCELLED };
   } catch (error) {
     console.error('Error en el diàleg per obrir fitxer:', error);
-    return { success: false, message: error.message };
+    return { success: false, code: ERROR_CODES.DIALOG_ERROR, details: error.message };
   }
 });
 
 ipcMain.handle('read-file', async (event, filePath) => {
   console.debug(`[IPC_IN] Rebut 'read-file' per a: ${filePath}`);
-  if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
+  if (!filePath) return { success: false, code: ERROR_CODES.EMPTY_FILEPATH };
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     return { success: true, content };
   } catch (error) {
     console.error(`Error llegint el fitxer ${filePath}:`, error);
-    return { success: false, message: `No s'ha pogut llegir el fitxer: ${error.message}` };
+    return { success: false, code: ERROR_CODES.FILE_READ_ERROR, details: error.message };
   }
 });
 
 ipcMain.handle('save-file', async (event, { filePath, data }) => {
   console.debug(`[IPC_IN] Rebut 'save-file' per a: ${filePath}`);
-  if (!filePath) return { success: false, message: 'filePath no pot ser buit.' };
+  if (!filePath) return { success: false, code: ERROR_CODES.EMPTY_FILEPATH };
   try {
     fs.writeFileSync(filePath, data, 'utf8');
     console.info(`Fitxer desat correctament a: ${filePath}`);
@@ -290,7 +318,7 @@ ipcMain.handle('save-file', async (event, { filePath, data }) => {
     return { success: true };
   } catch (error) {
     console.error(`Error desant el fitxer a ${filePath}:`, error);
-    return { success: false, message: `No s'ha pogut desar el fitxer: ${error.message}` };
+    return { success: false, code: ERROR_CODES.FILE_WRITE_ERROR, details: error.message };
   }
 });
 

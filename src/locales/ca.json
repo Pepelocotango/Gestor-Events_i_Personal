@@ -21,7 +21,14 @@
             "error_event_not_found": "L'assignació '{{id}}' fa referència a un esdeveniment que no existeix ({{targetId}}).",
             "error_person_not_found": "L'assignació '{{id}}' fa referència a una persona/grup que no existeix ({{targetId}}).",
             "fix_removed_assignment": "S'ha eliminat una assignació trencada (ID: {{id}})."
-        }
+        },
+        "change_language_tooltip": "Canviar idioma / Change language",
+        "date_format_placeholder": "dd/mm/yyyy",
+        "theme_light": "Tema Clar",
+        "theme_dark": "Tema Fosc",
+        "history_tooltip": "Historial",
+        "close_modal": "Tancar modal",
+        "splash_alt": "Pantalla d'inici"
     },
     "menu": {
         "file": {
@@ -187,6 +194,7 @@
         "web_label": "Pàgina Web (Opcional)",
         "web_invalid": "El format de la pàgina web no és vàlid.",
         "web_tooltip": "Pàgina web del contacte",
+        "web_url_placeholder": "https://exemple.com",
         "notes_label": "Notes (Opcional)",
         "notes_tooltip": "Qualsevol informació addicional rellevant",
         "cancel_edit": "Cancel·lar Edició",
@@ -217,6 +225,33 @@
         "csv_header_email": "Email",
         "csv_header_web": "Web",
         "csv_header_notes": "Notes"
+    },
+    "backend": {
+        "errors": {
+            "save_data": "Error guardant dades",
+            "no_active_window": "No hi ha cap finestra activa",
+            "empty_filepath": "filePath no pot ser buit",
+            "empty_key": "La clau no pot ser buida",
+            "no_user_email": "No email usuari",
+            "service_account_not_initialized": "Client Service Account no inicialitzat",
+            "calendar_not_managed": "Calendari no gestionat"
+        },
+        "sync": {
+            "confirm_title": "Confirmar Sincronització",
+            "irreversible_detail": "Aquesta acció és irreversible. Vols continuar?",
+            "cancelled": "Cancel·lat",
+            "completed": "Sincronització completada amb èxit",
+            "auth_in_progress": "Autenticació en curs",
+            "client_not_initialized": "Client no inicialitzat",
+            "disconnected": "Desconnexió completada"
+        },
+        "app": {
+            "close_title": "Tancar aplicació",
+            "open_document": "Obrir document"
+        },
+        "calendar": {
+            "deleted": "Calendari eliminat"
+        }
     },
     "material": {
         "manager_title": "Gestor de Material",
@@ -465,7 +500,9 @@
             "field_labels": {
                 "details_prefix": "Detalls generals de {{title}}:",
                 "material_prefix": "Material de {{title}}"
-            }
+            },
+            "quantity_placeholder": "XX",
+            "provider_reorder_tooltip": "Reordenar proveïdor"
         }
     },
     "mcc": {
@@ -506,7 +543,9 @@
         "tooltip_demanded": "Quantitat total de material assignada als esdeveniments filtrats.",
         "tooltip_balance": "Balanç final del material (Estoc - Demanada).",
         "breakdown_title": "Desglossament per Esdeveniment:",
-        "units_suffix": "unitat(s)"
+        "units_suffix": "unitat(s)",
+        "export_csv_tooltip": "Exportar tot el resum {{title}} a CSV",
+        "export_pdf_tooltip": "Exportar tot el resum {{title}} a PDF"
     },
     "modals": {
         "confirm_delete": {

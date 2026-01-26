@@ -7,10 +7,12 @@ import { lightTheme, darkTheme } from '../utils/themes';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootTabParamList } from '../navigation';
+import { useTranslation } from 'react-i18next';
 
 type CalendarScreenNavigationProp = StackNavigationProp<RootTabParamList>;
 
 const CalendarScreen = () => {
+  const { t } = useTranslation();
   const { eventFrames, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const navigation = useNavigation<CalendarScreenNavigationProp>();
@@ -148,7 +150,7 @@ const CalendarScreen = () => {
             />
         ) : (
             <View style={dynamicStyles.placeholderContainer}>
-                <Text style={dynamicStyles.placeholderText}>Seleccioneu un dia per veure els esdeveniments.</Text>
+                <Text style={dynamicStyles.placeholderText}>{t('mobile.placeholders.select_day')}</Text>
             </View>
         )}
       </View>

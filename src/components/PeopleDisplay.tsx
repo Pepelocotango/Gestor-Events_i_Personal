@@ -272,7 +272,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
                 <div>
                   <label htmlFor="pg-web" className="block text-sm font-medium text-muted-foreground">{t('people.web_label')}</label>
                   <Tooltip text={t('people.web_tooltip')}>
-                    <input type="url" id="pg-web" value={web} onChange={e => setWeb(e.target.value)} className={commonInputClass} placeholder="https://exemple.com" />
+                    <input type="url" id="pg-web" value={web} onChange={e => setWeb(e.target.value)} className={commonInputClass} placeholder={t('people.web_url_placeholder')} />
                   </Tooltip>
                   {errors.web && <p className="text-destructive text-xs mt-1" role="alert">{errors.web}</p>}
                 </div>
@@ -318,18 +318,6 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
             <div className="mb-2 flex items-center gap-2">
               <span className="text-muted-foreground">
                 <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline align-middle"><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" /></svg>
-              </span>
-              <Tooltip text={t('people.search_tooltip')}>
-                <input
-                  type="search"
-                  className="block w-full px-2 py-1 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
-                  placeholder={t('people.search_placeholder')}
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  aria-label={t('people.search_tooltip')}
-                />
-              </Tooltip>
-            </div>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium">{t('people.sort_by')}</span>
               <Tooltip text={t('people.sort_name_tooltip')}>

@@ -10,7 +10,14 @@
         "not_found": "Not found",
         "error": "Error",
         "success": "Success",
-        "contact": "Contact"
+        "contact": "Contact",
+        "change_language_tooltip": "Change language / Cambiar idioma",
+        "date_format_placeholder": "dd/mm/yyyy",
+        "theme_light": "Light Theme",
+        "theme_dark": "Dark Theme",
+        "history_tooltip": "History",
+        "close_modal": "Close modal",
+        "splash_alt": "Splash screen"
     },
     "status": {
         "yes": "Yes",
@@ -525,22 +532,6 @@
             "notes_label": "Notes (Optional)",
             "cancel_tooltip": "Close form without saving changes",
             "save_edit_tooltip": "Save assignment changes",
-            "create_new_tooltip": "Create new assignment",
-            "updated_toast": "Assignment updated.",
-            "added_toast": "Assignment added.",
-            "error_prefix": "Error: "
-        },
-        "event_details": {
-            "general_notes_label": "General Notes:",
-            "assignments_label": "Assignments ({{count}}):",
-            "no_assignments": "No assignments for this event.",
-            "show_in_list_tooltip": "Highlight this frame in the main list",
-            "show_in_list_button": "Show in List",
-            "edit_frame_tooltip": "Open form to edit this frame details",
-            "edit_frame_button": "Edit Frame",
-            "delete_frame_tooltip": "Delete this event frame and all its assignments",
-            "delete_frame_button": "Delete Frame",
-            "close_tooltip": "Close this details window",
             "close_button": "Close",
             "assignment_note": "Note: "
         },

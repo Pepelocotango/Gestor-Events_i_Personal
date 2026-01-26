@@ -9,6 +9,7 @@ import CustomSelect from '../components/CustomSelect';
 import { formatDateDMY } from '../utils/dateFormat';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type AssignmentFormScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'AssignmentForm'>;
 type AssignmentFormScreenRouteProp = RouteProp<EventsStackParamList, 'AssignmentForm'>;
@@ -19,6 +20,7 @@ type Props = {
 };
 
 const AssignmentFormScreen = ({ navigation, route }: Props) => {
+  const { t } = useTranslation();
   const { eventFrameId, assignmentId } = route.params;
   const { eventFrames, peopleGroups, addAssignment, updateAssignment, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
@@ -209,7 +211,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
           value={personGroupId}
           onValueChange={handlePersonChange}
           options={peopleOptions}
-          placeholder="-- Seleccioneu --"
+          placeholder={t('mobile.placeholders.select_option')}
           containerStyle={{}}
         />
       </View>
@@ -220,7 +222,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         style={dynamicStyles.input}
         value={role}
         onChangeText={setRole}
-        placeholder="Especifica el rol..."
+        placeholder={t('mobile.placeholders.specify_role')}
         placeholderTextColor={colors.placeholder}
       />
 
@@ -253,14 +255,14 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
             value={status}
             onValueChange={(val) => setStatus(val as AssignmentStatus)}
             options={statusOptions}
-            placeholder="-- Seleccioneu --"
+            placeholder={t('mobile.placeholders.select_option')}
           />
       </View>
 
       <Text style={dynamicStyles.label}>Notes</Text>
       <TextInput style={dynamicStyles.inputMulti} value={notes} onChangeText={setNotes} multiline placeholderTextColor={colors.placeholder} />
 
-      <Button title={assignmentId ? "Desar Canvis" : "Crear Assignació"} onPress={() => performSave(false)} color={colors.primary} />
+      <Button title={assignmentId ? t('mobile.buttons.save_changes') : t('mobile.buttons.create_assignment')} onPress={() => performSave(false)} color={colors.primary} />
     </ScrollView>
   );
 };

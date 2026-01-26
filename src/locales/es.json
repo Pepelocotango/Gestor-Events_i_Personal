@@ -21,7 +21,14 @@
             "error_event_not_found": "La asignación '{{id}}' hace referencia a un evento que no existe ({{targetId}}).",
             "error_person_not_found": "La asignación '{{id}}' hace referencia a una persona/grupo que no existe ({{targetId}}).",
             "fix_removed_assignment": "Se ha eliminado una asignación rota (ID: {{id}})."
-        }
+        },
+        "change_language_tooltip": "Cambiar idioma / Change language",
+        "date_format_placeholder": "dd/mm/yyyy",
+        "theme_light": "Tema Claro",
+        "theme_dark": "Tema Oscuro",
+        "history_tooltip": "Historial",
+        "close_modal": "Cerrar modal",
+        "splash_alt": "Pantalla de inicio"
     },
     "menu": {
         "file": {
@@ -187,6 +194,7 @@
         "web_label": "Pàgina Web (Opcional)",
         "web_invalid": "El format de la pàgina web no és vàlid.",
         "web_tooltip": "Página web del contacto",
+        "web_url_placeholder": "https://ejemplo.com",
         "notes_label": "Notes (Opcional)",
         "notes_tooltip": "Cualquier información adicional relevante",
         "cancel_edit": "Cancelar Edición",
@@ -217,6 +225,33 @@
         "csv_header_email": "Email",
         "csv_header_web": "Web",
         "csv_header_notes": "Notas"
+    },
+    "backend": {
+        "errors": {
+            "save_data": "Error guardando datos",
+            "no_active_window": "No hay ninguna ventana activa",
+            "empty_filepath": "filePath no puede estar vacío",
+            "empty_key": "La clave no puede estar vacía",
+            "no_user_email": "No email usuario",
+            "service_account_not_initialized": "Client Service Account no inicializado",
+            "calendar_not_managed": "Calendario no gestionado"
+        },
+        "sync": {
+            "confirm_title": "Confirmar Sincronización",
+            "irreversible_detail": "Esta acción es irreversible. ¿Quieres continuar?",
+            "cancelled": "Cancelado",
+            "completed": "Sincronización completada con éxito",
+            "auth_in_progress": "Autenticación en curso",
+            "client_not_initialized": "Cliente no inicializado",
+            "disconnected": "Desconexión completada"
+        },
+        "app": {
+            "close_title": "Cerrar aplicación",
+            "open_document": "Abrir documento"
+        },
+        "calendar": {
+            "deleted": "Calendario eliminado"
+        }
     },
     "material": {
         "manager_title": "Gestor de Material",
@@ -465,7 +500,9 @@
             "field_labels": {
                 "details_prefix": "Detalles generales de {{title}}:",
                 "material_prefix": "Material de {{title}}"
-            }
+            },
+            "quantity_placeholder": "XX",
+            "provider_reorder_tooltip": "Reordenar proveedor"
         }
     },
     "mcc": {
@@ -506,7 +543,9 @@
         "tooltip_demanded": "Cantidad total de material asignada a los eventos filtrados.",
         "tooltip_balance": "Balance final del material (Stock - Demandada).",
         "breakdown_title": "Desglose por Evento:",
-        "units_suffix": "unidad(es)"
+        "units_suffix": "unidad(es)",
+        "export_csv_tooltip": "Exportar todo el resumen {{title}} a CSV",
+        "export_pdf_tooltip": "Exportar todo el resumen {{title}} a PDF"
     },
     "modals": {
         "confirm_delete": {

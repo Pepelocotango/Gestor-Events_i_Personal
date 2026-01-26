@@ -20,71 +20,50 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
     setIsClient(true);
   }, []);
   
-  // Filtrar imatges segons el mode (clar/fosc)
-  const filteredImages = images.filter((image) => {
-    if (viewMode === 'light') {
-      return image.includes('_clar') || (!image.includes('_clar') && !image.includes('_fosc'));
-    } else {
-      return image.includes('_fosc') || (!image.includes('_clar') && !image.includes('_fosc'));
-    }
+  // Filter images based on view mode
+  const filteredImages = images.filter(img => {
+    const isDark = img.includes('dark') || img.includes('theme-dark');
+    return viewMode === 'dark' ? isDark : !isDark;
   });
-  
-  // Funció per obtenir el títol de la imatge
-  const getImageTitle = (filename: string): string => {
-    if (!filename) return '';
-    let title = filename.replace(/\.[^/.]+$/, '');
-    title = title.replace(/_/g, ' ');
-    return title
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
 
-  // Autoplay del carrusel
-  useEffect(() => {
-    if (isPaused || !isClient || !filteredImages.length) return;
-    
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 1500);
-    
-    return () => clearInterval(interval);
-  }, [isPaused, isClient, currentIndex, filteredImages.length]);
-
-  // Reset currentIndex quan canvia el viewMode
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [viewMode]);
-
-  // Funció per anar a la següent imatge
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredImages.length);
+    setCurrentIndex((prev) => (prev + 1) % filteredImages.length);
   };
 
-  // Funció per anar a la imatge anterior
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + filteredImages.length) % filteredImages.length);
+    setCurrentIndex((prev) => (prev - 1 + filteredImages.length) % filteredImages.length);
   };
 
-  // Funció per anar a una imatge específica
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
   };
 
-  if (!isClient || !filteredImages.length) {
-    return <div className="h-96 bg-gray-100 rounded-xl flex items-center justify-center">
-      <p>Carregant imatges...</p>
-    </div>;
+  // Auto-play functionality
+  useEffect(() => {
+    if (isPaused || !isClient || filteredImages.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isPaused, isClient, filteredImages.length, currentIndex]);
+
+  if (!isClient || filteredImages.length === 0) {
+    return (
+      <div className="w-full h-96 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400">Carregant imatges...</div>
+      </div>
+    );
   }
 
   const currentImage = filteredImages[currentIndex];
+  const filename = currentImage.split('/').pop() || '';
+  let title = filename.replace(/\.[^/.]+$/, '');
+  title = title.replace(/_/g, ' ');
 
   return (
-    <div 
-      className="relative w-full max-w-7xl mx-auto px-4"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
+    <div className="w-full max-w-4xl mx-auto">
       {/* Controls del tema (Clar/Fosc) */}
       <div className="flex justify-center mb-8 gap-2">
         <button
@@ -120,11 +99,11 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
       </div>
 
       {/* Contenidor de la imatge principal - SIMPLE I GRAN */}
-      <div className="relative rounded-2xl bg-white shadow-2xl overflow-hidden mb-6">
-        <div className="aspect-video flex items-center justify-center bg-gray-100">
-          <img
-            src={`/images/${currentImage}`}
-            alt={getImageTitle(currentImage)}
+      <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden group">
+        <div className="aspect-video flex items-center justify-center p-8">
+          <img 
+            src={currentImage} 
+            alt={title}
             className="w-full h-full object-contain max-w-full max-h-full"
             loading="eager"
           />

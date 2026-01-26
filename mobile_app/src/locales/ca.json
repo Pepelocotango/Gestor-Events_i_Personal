@@ -262,31 +262,62 @@
     },
     "mobile": {
         "navigation": {
-            "events": "Esdeveniments",
-            "calendar": "Calendari",
-            "people": "Persones",
+            "events": "Events",
+            "calendar": "Calendar",
+            "people": "People",
             "material": "Material",
-            "settings": "Configuració"
+            "settings": "Settings"
         },
         "tabs": {
-            "list": "Llista",
-            "calendar": "Calendari",
-            "archived": "Arxivats"
+            "list": "List",
+            "calendar": "Calendar",
+            "archived": "Archived"
         },
         "actions": {
-            "add_event": "Afegir Esdeveniment",
-            "add_person": "Afegir Persona",
-            "add_material": "Afegir Material",
-            "filter": "Filtrar",
-            "sort": "Ordenar",
-            "refresh": "Actualitzar"
+            "add_event": "Add Event",
+            "add_person": "Add Person",
+            "add_material": "Add Material",
+            "filter": "Filter",
+            "sort": "Sort",
+            "refresh": "Refresh"
         },
         "status": {
-            "loading": "Carregant...",
+            "loading": "Loading...",
             "error": "Error",
-            "success": "Èxit",
-            "no_data": "Sense dades",
-            "offline": "Fora de línia"
+            "success": "Success",
+            "no_data": "No data",
+            "offline": "Offline"
+        },
+        "placeholders": {
+            "select_day": "Select a day to see events",
+            "select_option": "-- Select --",
+            "specify_role": "Specify role...",
+            "search_material": "Search material...",
+            "search_text": "Search by text...",
+            "all_events": "-- All Events --",
+            "all_origins": "-- All Origins --",
+            "all_categories": "-- All Categories --",
+            "search_people": "Search people...",
+            "global_search": "Global search...",
+            "all_people": "All people",
+            "all_events_mobile": "All events"
+        },
+        "buttons": {
+            "save_changes": "Save Changes",
+            "create_assignment": "Create Assignment",
+            "clear_filters": "Clear Filters"
+        },
+        "tech_sheet": {
+            "general_info": "General Information",
+            "general_notes": "General Notes",
+            "pre_assembly": "Pre-assembly",
+            "logistics": "Logistics",
+            "schedule": "Schedule",
+            "personnel": "Technical Personnel",
+            "technical_needs_notes": "Technical Needs Notes",
+            "other_details": "Other Details",
+            "contacts": "Contacts",
+            "observations": "Observations"
         }
     }
 }

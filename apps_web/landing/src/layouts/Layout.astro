@@ -1,8 +1,14 @@
 ---
 import '../styles/global.css';
 
-const title = 'Gestor d\'Esdeveniments i Personal';
-const description = 'L\'eina definitiva per a la gestió professional d\'esdeveniments i personal';
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+
+const siteTitle = 'Gestor d\'Esdeveniments i Personal';
+const siteDescription = 'L\'eina definitiva per a la gestió professional d\'esdeveniments i personal';
 const url = 'https://gestor-events.vercel.app';
 
 // Preload fonts
@@ -26,7 +32,7 @@ const fontLink3 = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
+    <meta name="description" content={siteDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     
     <!-- Preload Fonts -->
@@ -34,19 +40,29 @@ const fontLink3 = {
     <link {...fontLink2} />
     <link {...fontLink3} />
     
-    <title>Gestor d'Esdeveniments | {title}</title>
+    <!-- React i18n -->
+    <script>
+      // Initialize i18n for client-side components
+      window.siteTranslations = {
+        ca: { title: 'Gestor d\'Esdeveniments i Personal', description: 'L\'eina definitiva per a la gestió professional d\'esdeveniments i personal' },
+        es: { title: 'Gestor de Eventos y Personal', description: 'La herramienta definitiva para la gestión profesional de eventos y personal' },
+        en: { title: 'Event and Personnel Manager', description: 'The definitive tool for professional event and personnel management' }
+      };
+    </script>
+    
+    <title>{title} | {siteTitle}</title>
     
     <!-- Open Graph / Social Media -->
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={`${title} | ${siteTitle}`} />
+    <meta property="og:description" content={siteDescription} />
     <meta property="og:url" content={url} />
     <meta property="og:image" content={`${url}/images/desktop-dashboard.png`} />
     <meta property="og:type" content="website" />
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:title" content={`${title} | ${siteTitle}`} />
+    <meta name="twitter:description" content={siteDescription} />
     <meta name="twitter:image" content={`${url}/images/desktop-dashboard.png`} />
     
     <!-- Theme Color for Mobile Browsers -->

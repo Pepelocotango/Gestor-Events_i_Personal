@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
 
 const LanguageSelector: React.FC = () => {
-    const { i18n } = useTranslation();
+    const { i18n, t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
     const changeLanguage = (lng: string) => {
@@ -26,7 +26,7 @@ const LanguageSelector: React.FC = () => {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center space-x-2 px-2 py-1 rounded-md hover:bg-accent transition-colors"
-                title="Canviar idioma / Change language"
+                title={t('common.change_language_tooltip')}
             >
                 <Globe size={16} className="text-secondary-foreground" />
                 <span className="text-xs font-medium text-secondary-foreground uppercase">{currentLang.code}</span>

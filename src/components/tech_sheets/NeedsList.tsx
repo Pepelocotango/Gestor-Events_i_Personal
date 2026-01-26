@@ -93,7 +93,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
                 type="number"
                 value={need.quantity}
                 onChange={e => onListChange(listName, index, 'quantity', e.target.value)}
-                placeholder="XX"
+                placeholder={t('tech_sheets.needs.quantity_placeholder')}
                 className={quantityError ? 'border-destructive ring-2 ring-destructive/30' : ''}
               />
             </div>

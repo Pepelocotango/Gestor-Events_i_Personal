@@ -3,6 +3,7 @@ import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-nativ
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type MaterialToolbarProps = {
   searchQuery: string;
@@ -21,6 +22,7 @@ const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
   toggleAllCategories,
   areAllExpanded,
 }) => {
+  const { t } = useTranslation();
   const theme = useDataStore((state: any) => state.theme);
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
@@ -73,7 +75,7 @@ const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
       <View style={styles.toolbar}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Cerca material..."
+          placeholder={t('mobile.placeholders.search_material')}
           placeholderTextColor={colors.placeholder}
           value={searchQuery}
           onChangeText={onSearchChange}

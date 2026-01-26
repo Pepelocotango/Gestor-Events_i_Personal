@@ -2,6 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SortableProviderProps {
   id: string;
@@ -9,6 +10,7 @@ interface SortableProviderProps {
 }
 
 const SortableProvider: React.FC<SortableProviderProps> = ({ id, children }) => {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -36,7 +38,7 @@ const SortableProvider: React.FC<SortableProviderProps> = ({ id, children }) => 
             {...attributes}
             {...listeners}
             className="absolute top-1/2 -left-6 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md cursor-grab focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Reordenar proveïdor"
+            aria-label={t('tech_sheets.needs.provider_reorder_tooltip')}
           >
             <GripVertical size={24} />
           </button>
