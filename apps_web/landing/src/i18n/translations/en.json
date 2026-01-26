@@ -1,0 +1,64 @@
+{
+  "navigation": {
+    "home": "Home",
+    "features": "Features",
+    "download": "Downloads",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "Event and Personnel Manager",
+    "subtitle": "Comprehensive tool for personnel and material management in events",
+    "description": "Organize your events, assign personnel, manage materials and control everything from a single application.",
+    "cta_primary": "Download for Desktop",
+    "cta_secondary": "Download for Mobile"
+  },
+  "features": {
+    "title": "Key Features",
+    "calendar_management": {
+      "title": "Calendar Management",
+      "description": "Interactive calendar view with complete event and assignment management."
+    },
+    "personnel_management": {
+      "title": "Personnel Management",
+      "description": "Contact database with roles, phone numbers and contact information."
+    },
+    "material_inventory": {
+      "title": "Material Inventory",
+      "description": "Complete inventory control with categories, locations and stock management."
+    },
+    "technical_sheets": {
+      "title": "Technical Sheets",
+      "description": "Detailed technical sheets for each event with all necessary information."
+    },
+    "export_import": {
+      "title": "Import/Export",
+      "description": "Import and export data in multiple formats (JSON, PDF, CSV)."
+    },
+    "google_sync": {
+      "title": "Google Sync",
+      "description": "Automatic synchronization with Google Calendar for integrated management."
+    }
+  },
+  "download": {
+    "title": "Downloads",
+    "desktop_title": "Desktop Application",
+    "desktop_description": "Full version with all features for Windows, macOS and Linux.",
+    "mobile_title": "Mobile Application",
+    "mobile_description": "Mobile version for Android and iOS with basic event management.",
+    "download_desktop": "Download for Desktop",
+    "download_mobile": "Download for Mobile",
+    "requirements": "Requirements",
+    "windows": "Windows 10 or higher",
+    "macos": "macOS 10.14 or higher",
+    "linux": "Linux (Ubuntu 18.04 or higher)",
+    "android": "Android 8.0 or higher",
+    "ios": "iOS 13.0 or higher"
+  },
+  "footer": {
+    "collaborate_title": "Want to collaborate on the project?",
+    "collaborate_description": "This is an open source project under GPL v3.0 license. We encourage you to contribute or send us your suggestions.",
+    "view_github": "View on GitHub",
+    "view_features": "View Features",
+    "copyright": "© 2024 Event and Personnel Manager. All rights reserved."
+  }
+}

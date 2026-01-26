@@ -1,6 +1,6 @@
 import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
-import 'uuid';
+import uuid;
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
@@ -9,6 +9,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDataStore } from './src/stores/dataStore';
+import { useTranslation } from 'react-i18next';
 import EventsScreen from './src/screens/EventsScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import TechSheetDetailScreen from './src/screens/TechSheetDetailScreen';
@@ -104,6 +105,7 @@ export default function App() {
   const init = useDataStore((state) => state.init);
   const isThemeLoading = useDataStore((state) => state.isThemeLoading);
   const theme = useDataStore((state) => state.theme);
+  const { t } = useTranslation();
 
   const [isSplashTimeFinished, setIsSplashTimeFinished] = useState(false);
 
@@ -188,13 +190,13 @@ export default function App() {
           },
         })}
       >
-        <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: 'Esdeveniments' }} />
-        <Tab.Screen name="Calendar" component={CalendarStackNavigator} options={{ title: 'Calendari' }} />
-        <Tab.Screen name="TechSheets" component={TechSheetsStackNavigator} options={{ title: 'Fitxes de Bolo' }} />
-        <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: 'Persones' }} />
-        <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: 'Material' }} />
-        <Tab.Screen name="ControlCenter" component={ControlCenterStackNavigator} options={{ title: 'Centre de Control' }} />
-        <Tab.Screen name="Summaries" component={SummaryStackNavigator} options={{ title: 'Resums' }} />
+        <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: t('mobile.navigation.events') }} />
+        <Tab.Screen name="Calendar" component={CalendarStackNavigator} options={{ title: t('mobile.navigation.calendar') }} />
+        <Tab.Screen name="TechSheets" component={TechSheetsStackNavigator} options={{ title: t('nav_tech_sheets') }} />
+        <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: t('mobile.navigation.people') }} />
+        <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: t('mobile.navigation.material') }} />
+        <Tab.Screen name="ControlCenter" component={ControlCenterStackNavigator} options={{ title: t('material.control_center_title') }} />
+        <Tab.Screen name="Summaries" component={SummaryStackNavigator} options={{ title: t('main.summaries') }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

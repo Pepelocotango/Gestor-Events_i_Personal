@@ -183,14 +183,14 @@ const GithubReleases: React.FC = () => {
 
   const renderPlatformCard = (
     platformName: string,
-    platformType: 'windows' | 'macos' | 'linux' | 'android',
+    platformType: 'windows' | 'macos' | 'linux' | 'android' | 'unknown',
     icon: React.ReactNode,
     bgColor: string,
     hoverBg: string,
     requirements: string,
     fallbackUrl: string
   ) => {
-    const asset = downloadLinks[platformType];
+    const asset = platformType === 'unknown' ? null : downloadLinks[platformType];
     const isRecommended = detectedOS.type === platformType && platformType !== 'unknown';
 
     return (
@@ -233,7 +233,7 @@ const GithubReleases: React.FC = () => {
         {asset ? (
           <>
             <a
-              href={asset.url}
+              href={asset?.url}
               className={`inline-flex items-center justify-center w-full px-6 py-3 ${
                 platformType === 'android'
                   ? 'bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600'
@@ -245,7 +245,7 @@ const GithubReleases: React.FC = () => {
               </svg>
               {platformType === 'android' ? 'Descarregar APK (ZIP)' : `Descarregar per a ${platformName}`}
             </a>
-            <p className="text-xs text-gray-400 mt-3 break-words">{asset.filename} - {asset.size}</p>
+            <p className="text-xs text-gray-400 mt-3 break-words">{asset?.filename} - {asset?.size}</p>
           </>
         ) : (
           <>
@@ -272,7 +272,7 @@ const GithubReleases: React.FC = () => {
           <>
             <p className="text-xs text-gray-400 mt-3 font-medium">Instal·lació manual (Sideloading)</p>
             <p className="text-xs text-gray-500">No disponible a Play Store</p>
-            {asset && asset.filename.endsWith('.zip') && (
+            {asset?.filename.endsWith('.zip') && (
               <p className="text-xs text-amber-400 mt-2">⚠️ Conté l'APK dins del ZIP</p>
             )}
           </>

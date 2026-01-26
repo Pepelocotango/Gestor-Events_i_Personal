@@ -4,6 +4,7 @@ import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { MaterialStackParamList } from '../navigation';
 import { MaterialItem } from '../types';
 import { lightTheme, darkTheme } from '../utils/themes';
@@ -19,6 +20,7 @@ type Props = {
 const MaterialFormScreen = ({ navigation, route }: Props) => {
   const { materialId } = route.params;
   const { materialItems, addMaterialItem, updateMaterialItem, theme } = useDataStore();
+  const { t } = useTranslation();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const insets = useSafeAreaInsets();
 
@@ -41,11 +43,11 @@ const MaterialFormScreen = ({ navigation, route }: Props) => {
 
   const handleSave = () => {
     if (!item.name.trim()) {
-      Alert.alert("Error", "El camp 'Nom' és obligatori.");
+      Alert.alert(t('common.error'), t('people.name_required'));
       return;
     }
     if (!item.category.trim()) {
-      Alert.alert("Error", "El camp 'Categoria' és obligatori.");
+      Alert.alert(t('common.error'), t('material.name_required'));
       return;
     }
 
@@ -55,7 +57,7 @@ const MaterialFormScreen = ({ navigation, route }: Props) => {
     );
 
     if (isDuplicate) {
-        Alert.alert("Error", "Ja existeix un ítem de material amb aquest nom.");
+        Alert.alert(t('common.error'), t('material.name_duplicate'));
         return;
     }
 
@@ -111,22 +113,22 @@ const MaterialFormScreen = ({ navigation, route }: Props) => {
   return (
     <View style={dynamicStyles.outerContainer}>
       <ScrollView contentContainerStyle={dynamicStyles.container}>
-        <Text style={dynamicStyles.label}>Nom</Text>
+        <Text style={dynamicStyles.label}>{t('people.name_label')}</Text>
         <TextInput style={dynamicStyles.input} value={item.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Categoria</Text>
+        <Text style={dynamicStyles.label}>{t('material.category_label')}</Text>
         <TextInput style={dynamicStyles.input} value={item.category} onChangeText={(val) => handleChange('category', val)} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Stock</Text>
+        <Text style={dynamicStyles.label}>{t('material.stock_label')}</Text>
         <TextInput style={dynamicStyles.input} value={String(item.stock)} onChangeText={(val) => handleChange('stock', parseInt(val) || 0)} keyboardType="numeric" placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Ubicació</Text>
+        <Text style={dynamicStyles.label}>{t('material.location_label')}</Text>
         <TextInput style={dynamicStyles.input} value={item.location} onChangeText={(val) => handleChange('location', val)} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Notes</Text>
+        <Text style={dynamicStyles.label}>{t('material.notes_label')}</Text>
         <TextInput style={dynamicStyles.inputMulti} value={item.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
 
-        <Button title="Desar" onPress={handleSave} color={colors.primary} />
+        <Button title={t('common.save')} onPress={handleSave} color={colors.primary} />
       </ScrollView>
     </View>
   );

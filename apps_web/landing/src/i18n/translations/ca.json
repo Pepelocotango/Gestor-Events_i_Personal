@@ -1,0 +1,64 @@
+{
+  "navigation": {
+    "home": "Inici",
+    "features": "Funcionalitats",
+    "download": "Descàrregues",
+    "contact": "Contacte"
+  },
+  "hero": {
+    "title": "Gestor d'Esdeveniments i Personal",
+    "subtitle": "Eina integral per a la gestió de personal i material en esdeveniments",
+    "description": "Organitza els teus esdeveniments, assigna personal, gestiona material i controla tot des d'una única aplicació.",
+    "cta_primary": "Descarregar per a Escriptori",
+    "cta_secondary": "Descarregar per a Mòbil"
+  },
+  "features": {
+    "title": "Funcionalitats Principals",
+    "calendar_management": {
+      "title": "Gestió de Calendari",
+      "description": "Vista de calendari interactiva amb gestió completa d'esdeveniments i assignacions."
+    },
+    "personnel_management": {
+      "title": "Gestió de Personal",
+      "description": "Base de dades de contactes amb rols, telèfons i informació de contacte."
+    },
+    "material_inventory": {
+      "title": "Inventari de Material",
+      "description": "Control complet d'inventari amb categories, ubicacions i gestió d'estoc."
+    },
+    "technical_sheets": {
+      "title": "Fitxes Tècniques",
+      "description": "Fitxes tècniques detallades per a cada esdeveniment amb tota la informació necessària."
+    },
+    "export_import": {
+      "title": "Importar/Exportar",
+      "description": "Importació i exportació de dades en múltiples formats (JSON, PDF, CSV)."
+    },
+    "google_sync": {
+      "title": "Sincronització Google",
+      "description": "Sincronització automàtica amb Google Calendar per a una gestió integrada."
+    }
+  },
+  "download": {
+    "title": "Descarregues",
+    "desktop_title": "Aplicació d'Escriptori",
+    "desktop_description": "Versió completa amb totes les funcionalitats per a Windows, macOS i Linux.",
+    "mobile_title": "Aplicació Mòbil",
+    "mobile_description": "Versió mòbil per a Android i iOS amb gestió bàsica d'esdeveniments.",
+    "download_desktop": "Descarregar per a Escriptori",
+    "download_mobile": "Descarregar per a Mòbil",
+    "requirements": "Requisits",
+    "windows": "Windows 10 o superior",
+    "macos": "macOS 10.14 o superior",
+    "linux": "Linux (Ubuntu 18.04 o superior)",
+    "android": "Android 8.0 o superior",
+    "ios": "iOS 13.0 o superior"
+  },
+  "footer": {
+    "collaborate_title": "Vols col·laborar en el projecte?",
+    "collaborate_description": "Aquest és un projecte de codi obert sota llicència GPL v3.0. T'animem a contribuir-hi o fer-nos arribar les teves suggerències.",
+    "view_github": "Veure a GitHub",
+    "view_features": "Veure funcionalitats",
+    "copyright": "© 2024 Gestor d'Esdeveniments i Personal. Tots els drets reservats."
+  }
+}

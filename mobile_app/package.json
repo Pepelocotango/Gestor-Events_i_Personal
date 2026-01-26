@@ -9,6 +9,7 @@
     "build:android": "cross-env APP_VERSION=$npm_package_version eas build -p android"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "8.0.1",
     "@react-native-picker/picker": "2.7.5",
     "@react-navigation/bottom-tabs": "^6.5.20",

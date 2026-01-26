@@ -1,0 +1,124 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Hero from '../../components/Hero.astro';
+import Features from '../../components/Features.astro';
+import ProductTour from '../../components/ProductTour';
+import Gallery from '../../components/Gallery.astro';
+import Download from '../../components/Download.astro';
+import LanguageSelector from '../../components/LanguageSelector.astro';
+import { getTranslations } from '../../i18n';
+
+// Get translations for current locale
+const t = await getTranslations(Astro);
+
+// Page metadata
+const title = t.hero.title;
+const description = t.hero.subtitle;
+---
+
+<Layout title={title} description={description}>
+  <div class="relative">
+    <!-- Language Selector -->
+    <div class="absolute top-4 right-4 z-50">
+      <LanguageSelector currentLocale="ca" currentPath={Astro.url.pathname} />
+    </div>
+    
+    <!-- Hero Section -->
+    <Hero 
+      title={t.hero.title}
+      subtitle={t.hero.subtitle}
+      description={t.hero.description}
+      ctaPrimary={t.hero.cta_primary}
+      ctaSecondary={t.hero.cta_secondary}
+    />
+    
+    <!-- Features Section -->
+    <Features 
+      title={t.features.title}
+      calendarManagement={t.features.calendar_management}
+      personnelManagement={t.features.personnel_management}
+      materialInventory={t.features.material_inventory}
+      technicalSheets={t.features.technical_sheets}
+      exportImport={t.features.export_import}
+      googleSync={t.features.google_sync}
+    />
+    
+    <!-- Product Tour -->
+    <ProductTour client:visible />
+    
+    <!-- Gallery -->
+    <Gallery />
+    
+    <!-- Download Section -->
+    <Download 
+      title={t.download.title}
+      desktopTitle={t.download.desktop_title}
+      desktopDescription={t.download.desktop_description}
+      mobileTitle={t.download.mobile_title}
+      mobileDescription={t.download.mobile_description}
+      downloadDesktop={t.download.download_desktop}
+      downloadMobile={t.download.download_mobile}
+      requirements={t.download.requirements}
+      windows={t.download.windows}
+      macos={t.download.macos}
+      linux={t.download.linux}
+      android={t.download.android}
+      ios={t.download.ios}
+    />
+    
+    <!-- Call to Action -->
+    <section class="py-20 bg-gradient-to-b from-gray-800 to-gray-900">
+      <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-6">{t.footer.collaborate_title}</h2>
+        <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          {t.footer.collaborate_description}
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <a 
+            href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
+            {t.footer.view_github}
+          </a>
+          <a 
+            href="#features" 
+            class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+          >
+            {t.footer.view_features}
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  /* Smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+</style>
