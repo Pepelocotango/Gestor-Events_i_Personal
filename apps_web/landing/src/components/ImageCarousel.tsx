@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { JSX } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ImageCarouselProps {
   images: string[];
@@ -8,6 +9,7 @@ interface ImageCarouselProps {
 type ViewMode = 'light' | 'dark';
 
 const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -92,7 +94,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
               ? 'bg-yellow-400 text-yellow-900 shadow-md focus:ring-yellow-500'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-yellow-300'
           }`}
-          aria-label="Canviar a mode clar"
+          aria-label={t('carousel.light_mode')}
           aria-pressed={viewMode === 'light'}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -107,7 +109,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
               ? 'bg-slate-700 text-white shadow-md focus:ring-slate-500'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-slate-400'
           }`}
-          aria-label="Canviar a mode fosc"
+          aria-label={t('carousel.dark_mode')}
           aria-pressed={viewMode === 'dark'}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -133,7 +135,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
       <button 
         onClick={prevSlide}
         className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full shadow-lg text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-        aria-label="Imatge anterior"
+        aria-label={t('carousel.previous_image')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -143,7 +145,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
       <button 
         onClick={nextSlide}
         className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full shadow-lg text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-        aria-label="Següent imatge"
+        aria-label={t('carousel.next_image')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -161,7 +163,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
                 ? 'bg-blue-600 w-8 h-2' 
                 : 'bg-gray-300 dark:bg-gray-600 w-2 h-2 hover:bg-gray-400 dark:hover:bg-gray-500'
             }`}
-            aria-label={`Anar a la imatge ${index + 1}`}
+            aria-label={t('carousel.go_to_image', { index: index + 1 })}
             aria-current={index === currentIndex}
           />
         ))}

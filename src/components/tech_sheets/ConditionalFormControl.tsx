@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ConditionalStatus } from '../../types';
 import Tooltip from '../ui/Tooltip';
 
@@ -19,26 +20,17 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
   className = '',
   tooltipText,
 }) => {
-  const valueMap = {
-    'unset': '--',
-    'yes': 'SI',
-    'no': 'NO',
-  };
-
-  const statusToDisplay = (s: ConditionalStatus): string => valueMap[s] || '--';
-  const displayToStatus = (d: string): ConditionalStatus => {
-    return (Object.keys(valueMap) as ConditionalStatus[]).find(key => valueMap[key] === d) || 'unset';
-  }
+  const { t } = useTranslation();
 
   const selectElement = (
     <select
-      value={statusToDisplay(status)}
-      onChange={(e) => onStatusChange(displayToStatus(e.target.value))}
+      value={status}
+      onChange={(e) => onStatusChange(e.target.value as ConditionalStatus)}
       className="block w-28 pl-3 pr-10 py-1 text-base bg-input border-border focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm rounded-md"
     >
-      <option>--</option>
-      <option>SI</option>
-      <option>NO</option>
+      <option value="unset">{t('common.status.pending')}</option>
+      <option value="yes">{t('common.status.yes')}</option>
+      <option value="no">{t('common.status.no')}</option>
     </select>
   );
 
@@ -64,3 +56,4 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
 };
 
 export default ConditionalFormControl;
+

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface WelcomeScreenProps {
   recentFiles: string[];
@@ -13,31 +14,32 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onOpenDocument,
   onOpenRecent,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center h-full bg-background text-foreground">
       <div className="text-center p-8 max-w-2xl">
-        <h1 className="text-4xl font-bold mb-4">Gestor d'Esdeveniments</h1>
+        <h1 className="text-4xl font-bold mb-4">{t('welcome.title')}</h1>
         <p className="text-lg mb-8 text-muted-foreground">
-          Benvingut/da. Si us plau, obre un document existent o crea'n un de nou per començar.
+          {t('welcome.description')}
         </p>
         <div className="flex justify-center space-x-4 mb-12">
           <button
             onClick={onNewDocument}
             className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-lg shadow-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-75"
           >
-            Nou Document
+            {t('menu.file.new')}
           </button>
           <button
             onClick={onOpenDocument}
             className="px-6 py-3 bg-secondary text-secondary-foreground font-semibold rounded-lg shadow-md hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-75"
           >
-            Obrir...
+            {t('menu.file.open')}
           </button>
         </div>
 
         {recentFiles.length > 0 && (
           <div>
-            <h2 className="text-2xl font-semibold mb-4">Documents Recents</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('menu.file.open_recent')}</h2>
             <ul className="space-y-2 text-left">
               {recentFiles.map((filePath, index) => (
                 <li key={index} className="bg-card p-3 rounded-lg shadow-sm hover:bg-accent transition-colors">

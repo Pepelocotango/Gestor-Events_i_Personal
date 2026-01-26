@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ShowToastFunction } from '../../types';
 import Tooltip from '../ui/Tooltip';
 
@@ -26,18 +27,22 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
   itemName,
   onConfirm,
   showToast,
-  confirmButtonText = "Eliminar",
-  cancelButtonText = "Cancel·lar",
+  confirmButtonText,
+  cancelButtonText,
   onCloseModal,
   requiresInput = false,
   suppressSuccessToast = false,
   intent,
 }) => {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
+
+  const finalConfirmButtonText = confirmButtonText || t('modals.confirm_delete.default_confirm');
+  const finalCancelButtonText = cancelButtonText || t('modals.confirm_delete.default_cancel');
 
   const handleConfirm = () => {
     if (requiresInput && !inputValue.trim()) {
-      showToast('El camp no pot estar buit.', 'warning');
+      showToast(t('modals.confirm_delete.empty_input_warning'), 'warning');
       return;
     }
     if (onConfirm) {
@@ -45,7 +50,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
     }
 
     if (!suppressSuccessToast) {
-        showToast(`${itemType} eliminat/da correctament.`, 'success');
+      showToast(t('modals.confirm_delete.success_toast', { itemType }), 'success');
     }
 
     onClose();
@@ -64,7 +69,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
 
       {requiresInput && (
         <div className="mt-4">
-          <Tooltip text="Introdueix el text de confirmació requerit">
+          <Tooltip text={t('modals.confirm_delete.input_tooltip')}>
             <input
               type="text"
               value={inputValue}
@@ -83,24 +88,23 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({
       )}
 
       <div className="flex justify-end space-x-3 mt-6">
-        <Tooltip text="Tancar aquest diàleg i cancel·lar l'acció">
+        <Tooltip text={t('modals.confirm_delete.cancel_tooltip')}>
           <button
             onClick={handleCancelClick}
             className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border"
           >
-            {cancelButtonText}
+            {finalCancelButtonText}
           </button>
         </Tooltip>
-        <Tooltip text="Confirmar i executar l'acció">
+        <Tooltip text={t('modals.confirm_delete.confirm_tooltip')}>
           <button
             onClick={handleConfirm}
-            className={`px-4 py-2 text-sm font-medium rounded-md ${
-              intent === 'destructive'
+            className={`px-4 py-2 text-sm font-medium rounded-md ${intent === 'destructive'
                 ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 : "bg-primary text-primary-foreground hover:bg-primary/90"
-            }`}
+              }`}
           >
-            {confirmButtonText}
+            {finalConfirmButtonText}
           </button>
         </Tooltip>
       </div>

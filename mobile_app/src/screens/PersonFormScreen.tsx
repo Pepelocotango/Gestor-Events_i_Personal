@@ -4,6 +4,7 @@ import { useDataStore } from '../stores/dataStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { PeopleStackParamList } from '../navigation';
 import { PersonGroup } from '../types';
 import { lightTheme, darkTheme } from '../utils/themes';
@@ -19,6 +20,7 @@ type Props = {
 const PersonFormScreen = ({ navigation, route }: Props) => {
   const { personId } = route.params;
   const { peopleGroups, addPersonGroup, updatePersonGroup, theme } = useDataStore();
+  const { t } = useTranslation();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const insets = useSafeAreaInsets();
 
@@ -43,7 +45,7 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
 
   const handleSave = () => {
     if (!person.name.trim()) {
-      Alert.alert("Error", "El camp 'Nom' és obligatori.");
+      Alert.alert(t('common.error'), t('people.name_required'));
       return;
     }
 
@@ -53,7 +55,7 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
     );
 
     if (isDuplicate) {
-        Alert.alert("Error", "Ja existeix un contacte amb aquest nom.");
+        Alert.alert(t('common.error'), t('people.name_duplicate'));
         return;
     }
 
@@ -109,28 +111,28 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
   return (
     <View style={dynamicStyles.outerContainer}>
       <ScrollView contentContainerStyle={dynamicStyles.container}>
-        <Text style={dynamicStyles.label}>Nom</Text>
+        <Text style={dynamicStyles.label}>{t('people.name_label')}</Text>
         <TextInput style={dynamicStyles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Rol</Text>
+        <Text style={dynamicStyles.label}>{t('people.role_label')}</Text>
         <TextInput style={dynamicStyles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Telèfon 1</Text>
+        <Text style={dynamicStyles.label}>{t('people.tel1_label')}</Text>
         <TextInput style={dynamicStyles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Telèfon 2</Text>
+        <Text style={dynamicStyles.label}>{t('people.tel2_label')}</Text>
         <TextInput style={dynamicStyles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Email</Text>
+        <Text style={dynamicStyles.label}>{t('people.email_label')}</Text>
         <TextInput style={dynamicStyles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Web</Text>
+        <Text style={dynamicStyles.label}>{t('people.web_label')}</Text>
         <TextInput style={dynamicStyles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>Notes</Text>
+        <Text style={dynamicStyles.label}>{t('people.notes_label')}</Text>
         <TextInput style={dynamicStyles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
 
-        <Button title="Desar" onPress={handleSave} color={colors.primary} />
+        <Button title={t('common.save')} onPress={handleSave} color={colors.primary} />
       </ScrollView>
     </View>
   );

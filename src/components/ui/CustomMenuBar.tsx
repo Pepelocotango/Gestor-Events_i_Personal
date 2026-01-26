@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SunIcon, MoonIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ClockIcon } from '../../constants';
+
+import LanguageSelector from '../LanguageSelector';
 
 // Define the structure of menu items
 interface MenuItem {
@@ -44,6 +47,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   onOpenHistory,
   modifierKey,
 }) => {
+  const { t } = useTranslation();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -106,91 +110,91 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
 
   const menuData: { label: string; items: MenuItem[] }[] = [
     {
-      label: 'Arxiu',
+      label: t('menu.file.label'),
       items: [
-        { label: 'Nou Document', action: 'new-document' },
-        { label: 'Obrir...', action: 'open-document' },
+        { label: t('menu.file.new'), action: 'new-document' },
+        { label: t('menu.file.open'), action: 'open-document' },
         {
-            label: 'Obrir Recents',
-            submenu: recentFiles.length > 0
-                ? recentFiles.map(f => ({ label: f, action: `open-recent:${f}` }))
-                : [{ label: 'No hi ha fitxers recents', disabled: true }],
+          label: t('menu.file.open_recent'),
+          submenu: recentFiles.length > 0
+            ? recentFiles.map(f => ({ label: f, action: `open-recent:${f}` }))
+            : [{ label: t('menu.file.no_recent'), disabled: true }],
         },
         { separator: true },
-        { label: 'Guardar', action: 'save-document', disabled: !isDocumentOpen || !hasUnsavedChanges },
-        { label: 'Guardar com...', action: 'save-as-document', disabled: !isDocumentOpen },
+        { label: t('menu.file.save'), action: 'save-document', disabled: !isDocumentOpen || !hasUnsavedChanges },
+        { label: t('menu.file.save_as'), action: 'save-as-document', disabled: !isDocumentOpen },
         { separator: true },
         {
-          label: 'Importar / Exportar',
+          label: t('menu.file.import_export'),
           submenu: [
-            { label: 'Importar Persones...', action: 'import-people' },
-            { label: 'Exportar Persones...', action: 'export-people' },
+            { label: t('menu.file.import_people'), action: 'import-people' },
+            { label: t('menu.file.export_people'), action: 'export-people' },
             { separator: true },
-            { label: 'Importar Material...', action: 'import-material' },
-            { label: 'Exportar Material...', action: 'export-material' },
+            { label: t('menu.file.import_material'), action: 'import-material' },
+            { label: t('menu.file.export_material'), action: 'export-material' },
           ]
         },
         { separator: true },
         {
-          label: 'Configuració Google Calendar',
+          label: t('menu.file.google_calendar'),
           submenu: [
-            { label: 'Sincronitzar', action: 'sync-google' },
-            { label: 'Configurar', action: 'config-google' },
-            { label: 'Connectar amb Google', action: 'connect-google' },
+            { label: t('menu.file.sync'), action: 'sync-google' },
+            { label: t('menu.file.config'), action: 'config-google' },
+            { label: t('menu.file.connect_google'), action: 'connect-google' },
           ],
         },
         { separator: true },
         {
-          label: 'Avançat',
+          label: t('menu.file.advanced'),
           submenu: [
-            { label: 'Restaurar Configuració de Fàbrica...', action: 'factory-reset' },
+            { label: t('menu.file.factory_reset'), action: 'factory-reset' },
           ]
         },
-        {separator: true},
-        {label: 'Sortir', action: 'quit', accelerator: 'CmdOrCtrl+Q'},
+        { separator: true },
+        { label: t('menu.file.exit'), action: 'quit', accelerator: 'CmdOrCtrl+Q' },
       ],
     },
     {
-      label: 'Edita',
+      label: t('menu.edit.label'),
       items: [
-        { label: 'Desfer', action: 'undo', accelerator: 'CmdOrCtrl+Z', disabled: !canUndo },
-        { label: 'Refer', action: 'redo', accelerator: 'CmdOrCtrl+Y', disabled: !canRedo },
+        { label: t('menu.edit.undo'), action: 'undo', accelerator: 'CmdOrCtrl+Z', disabled: !canUndo },
+        { label: t('menu.edit.redo'), action: 'redo', accelerator: 'CmdOrCtrl+Y', disabled: !canRedo },
         { separator: true },
-        { label: 'Tallar', role: 'cut', accelerator: 'CmdOrCtrl+X' },
-        { label: 'Copiar', role: 'copy', accelerator: 'CmdOrCtrl+C' },
-        { label: 'Enganxar', role: 'paste', accelerator: 'CmdOrCtrl+V' },
+        { label: t('menu.edit.cut'), role: 'cut', accelerator: 'CmdOrCtrl+X' },
+        { label: t('menu.edit.copy'), role: 'copy', accelerator: 'CmdOrCtrl+C' },
+        { label: t('menu.edit.paste'), role: 'paste', accelerator: 'CmdOrCtrl+V' },
         { separator: true },
-        { label: 'Seleccionar tot', role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
+        { label: t('menu.edit.select_all'), role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
       ],
     },
     {
-      label: 'Veure',
+      label: t('menu.view.label'),
       items: [
-        { label: 'Recarregar', role: 'reload', accelerator: 'CmdOrCtrl+R' },
-        { label: 'Forçar Recàrrega', role: 'forceReload', accelerator: 'CmdOrCtrl+Shift+R' },
-  // Use tokenized accelerator so we can format it consistently for each platform
-  { label: 'Eines de Desenvolupament', role: 'toggleDevTools', accelerator: 'CmdOrCtrl+Alt+I' },
+        { label: t('menu.view.reload'), role: 'reload', accelerator: 'CmdOrCtrl+R' },
+        { label: t('menu.view.force_reload'), role: 'forceReload', accelerator: 'CmdOrCtrl+Shift+R' },
+        // Use tokenized accelerator so we can format it consistently for each platform
+        { label: t('menu.view.dev_tools'), role: 'toggleDevTools', accelerator: 'CmdOrCtrl+Alt+I' },
         { separator: true },
-        { label: 'Restablir Zoom', role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
-        { label: 'Apropar Zoom', role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
-        { label: 'Allunyar Zoom', role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
+        { label: t('menu.view.reset_zoom'), role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
+        { label: t('menu.view.zoom_in'), role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
+        { label: t('menu.view.zoom_out'), role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
         { separator: true },
-  { label: 'Pantalla Completa', role: 'togglefullscreen', accelerator: modifierKey === '⌘' ? 'Ctrl+CmdOrCtrl+F' : 'F11' },
+        { label: t('menu.view.fullscreen'), role: 'togglefullscreen', accelerator: modifierKey === '⌘' ? 'Ctrl+CmdOrCtrl+F' : 'F11' },
         { separator: true },
         {
-          label: "Mostrar Animació d'Inici",
+          label: t('menu.view.toggle_splash'),
           action: 'toggle-splash',
           checked: splashScreenEnabled,
         },
       ],
     },
     {
-      label: 'Ajuda',
+      label: t('menu.help.label'),
       items: [
-        { label: "Sobre l'aplicació...", action: 'open-about-modal' },
+        { label: t('menu.help.about'), action: 'open-about-modal' },
         { separator: true },
-        { label: 'Obrir Carpeta de Còpies de Seguretat', action: 'open-backups-folder' },
-        { label: 'Obrir Carpeta de Logs', action: 'open-logs-folder' },
+        { label: t('menu.help.open_backups'), action: 'open-backups-folder' },
+        { label: t('menu.help.open_logs'), action: 'open-logs-folder' },
       ],
     },
   ];
@@ -210,15 +214,15 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
               </div>
               <div className="absolute left-full -top-1 mt-0 py-1 bg-popover border border-border rounded-md hidden group-hover:block min-w-max">
                 {item.submenu.map(subItem => (
-                   <button
-                      key={subItem.label}
-                      onClick={() => handleAction(subItem.action, subItem.role)}
-                      disabled={subItem.disabled}
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
-                    >
-                      <span>{subItem.label}</span>
-                      {subItem.accelerator && <span className="text-xs text-muted-foreground">{subItem.accelerator}</span>}
-                    </button>
+                  <button
+                    key={subItem.label}
+                    onClick={() => handleAction(subItem.action, subItem.role)}
+                    disabled={subItem.disabled}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
+                  >
+                    <span>{subItem.label}</span>
+                    {subItem.accelerator && <span className="text-xs text-muted-foreground">{subItem.accelerator}</span>}
+                  </button>
                 ))}
               </div>
             </div>
@@ -267,14 +271,15 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
           </div>
         ))}
       </div>
-      
+
       {/* Icones de desfer/refer/historial i tema a la dreta */}
       <div className="flex items-center gap-1 px-2">
+        <LanguageSelector />
         <button
           onClick={onUndo}
           disabled={!canUndo}
           className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Desfer (Ctrl+Z)"
+          title={`${t('menu.edit.undo')} (${modifierKey}+Z)`}
         >
           <ArrowUturnLeftIcon className="w-5 h-5" />
         </button>
@@ -282,7 +287,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
           onClick={onRedo}
           disabled={!canRedo}
           className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Refer (Ctrl+Y)"
+          title={`${t('menu.edit.redo')} (${modifierKey}+Y)`}
         >
           <ArrowUturnRightIcon className="w-5 h-5" />
         </button>
@@ -290,14 +295,14 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
           onClick={onOpenHistory}
           disabled={!canUndo && !canRedo}
           className="p-1 rounded hover:bg-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Historial de canvis"
+          title={t('common.history_tooltip')}
         >
           <ClockIcon className="w-5 h-5" />
         </button>
         <button
           onClick={onToggleTheme}
           className="p-1 rounded hover:bg-accent focus:outline-none"
-          title={theme === 'dark' ? 'Canviar a tema clar' : 'Canviar a tema fosc'}
+          title={theme === 'dark' ? t('common.theme_light') : t('common.theme_dark')}
         >
           {theme === 'dark' ? <SunIcon className="w-5 h-5 text-warning" /> : <MoonIcon className="w-5 h-5" />}
         </button>

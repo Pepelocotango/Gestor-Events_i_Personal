@@ -1,4 +1,5 @@
 import React, { useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
@@ -40,6 +41,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const { t } = useTranslation();
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -50,6 +52,17 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   if (!personName) {
     console.error(`PersonGroup not found for ID: ${assignment.personGroupId}`);
   }
+
+  // Helper to translate status enum
+  const translateStatus = (status: AssignmentStatus) => {
+    switch (status) {
+      case AssignmentStatus.Yes: return t('status.yes');
+      case AssignmentStatus.No: return t('status.no');
+      case AssignmentStatus.Pending: return t('status.pending');
+      case AssignmentStatus.Mixed: return t('status.mixed');
+      default: return status;
+    }
+  };
 
   // Ensure assignment and eventFrame are valid
   if (!assignment || !eventFrame) {
@@ -81,7 +94,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const liClasses = useMemo(() => {
     const base = 'rounded-lg';
     // La vora per 'Mixt' utilitzarà el color 'primary' per defecte
-    const borderClassForMixed = 'border-l-primary'; 
+    const borderClassForMixed = 'border-l-primary';
     const borderClasses = `border-l-4 ${borderClass}`;
 
     switch (assignment.status) {
@@ -92,13 +105,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       case AssignmentStatus.No:
         return `${base} bg-destructive/15 ${borderClasses}`;
       case AssignmentStatus.Mixed:
-        // Només apliquem la classe del degradat. La transparència la definirem al CSS.
-        // Afegim la vora per consistència visual.
-        return `${base} bg-gradient-mixed border-l-4 ${borderClassForMixed}`; 
+        return `${base} bg-gradient-mixed border-l-4 ${borderClassForMixed}`;
       default:
         return `${base} bg-card ${borderClasses}`;
     }
-}, [assignment.status, borderClass]);
+  }, [assignment.status, borderClass]);
 
   return (
     <li className={`${liClasses} mb-3`}>
@@ -119,7 +130,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <div className="flex-grow">
           <div className="space-y-1.5">
             <p className="text-lg font-bold text-foreground">
-              {personName || 'Persona Desconeguda'}
+              {personName || t('assignment.person_unknown')}
               {assignment.role && (
                 <span className="ml-2 text-base font-medium italic text-muted-foreground">
                   - {assignment.role}
@@ -131,7 +142,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                 {formatDateRangeDMY(assignment.startDate, assignment.endDate)}
               </p>
               <span className="text-base font-semibold text-foreground/90">
-                {getStatusSummaryText(assignment)}
+                {getStatusSummaryText(assignment, t)}
               </span>
             </div>
             {assignment.notes && (
@@ -144,63 +155,61 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <div className="flex flex-col items-end gap-2 sm:items-center sm:flex-row sm:gap-3 self-start sm:self-center flex-shrink-0">
           <div className="flex flex-wrap items-center gap-2">
             {isMultiDay && (
-              <Tooltip text={isDailyViewExpanded ? "Ocultar vista diària" : "Mostrar vista diària"}>
+              <Tooltip text={isDailyViewExpanded ? t('assignment.hide_daily_tooltip') : t('assignment.show_daily_tooltip')}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleDailyView();
                   }}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    isDailyViewExpanded 
-                      ? 'bg-primary text-primary-foreground shadow-md' 
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${isDailyViewExpanded
+                      ? 'bg-primary text-primary-foreground shadow-md'
                       : 'bg-secondary text-secondary-foreground hover:bg-accent/50 hover:shadow-sm'
-                  }`}
+                    }`}
                 >
-                  {isDailyViewExpanded ? "Ocultar" : "Mostrar dies"}
+                  {isDailyViewExpanded ? t('assignment.hide_button') : t('assignment.show_button')}
                 </button>
               </Tooltip>
             )}
             <div className="flex flex-wrap items-center gap-2">
               {[AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No].map(status => (
-                <Tooltip key={status} text={`Marcar tot com a '${status}'`}>
+                <Tooltip key={status} text={t(`assignment.mark_all_${status === AssignmentStatus.Yes ? 'yes' : status === AssignmentStatus.Pending ? 'pending' : 'no'}_tooltip`)}>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onGeneralStatusChange(eventFrame.id, assignment.id, status);
                     }}
-                    className={`font-semibold px-4 py-2 text-sm rounded-md transition-all ${
-                      assignment.status === status && assignment.status !== AssignmentStatus.Mixed
+                    className={`font-semibold px-4 py-2 text-sm rounded-md transition-all ${assignment.status === status && assignment.status !== AssignmentStatus.Mixed
                         ? 'opacity-100 ring-2 ring-offset-1 ring-offset-card ring-ring/50 scale-105 shadow-md'
                         : 'opacity-90 hover:opacity-100 hover:scale-105 hover:shadow-sm'
-                    } ${statusButtonClasses[status]}`}
+                      } ${statusButtonClasses[status]}`}
                   >
-                    {status}
+                    {translateStatus(status)}
                   </button>
                 </Tooltip>
               ))}
             </div>
           </div>
           <div className="flex items-center justify-end gap-2 mt-2 sm:mt-0">
-            <Tooltip text="Editar assignació">
-              <button 
+            <Tooltip text={t('assignment.edit_tooltip')}>
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(eventFrame.id, assignment.id);
-                }} 
+                }}
                 className="p-2.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
-                aria-label="Editar assignació"
+                aria-label={t('assignment.edit_tooltip')}
               >
                 <EditIcon className="w-5 h-5" />
               </button>
             </Tooltip>
-            <Tooltip text="Eliminar assignació">
-              <button 
+            <Tooltip text={t('assignment.delete_tooltip')}>
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(eventFrame.id, assignment.id);
-                }} 
+                }}
                 className="p-2.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-accent/50 transition-colors"
-                aria-label="Eliminar assignació"
+                aria-label={t('assignment.delete_tooltip')}
               >
                 <TrashIcon className="w-5 h-5" />
               </button>
@@ -210,11 +219,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       </div>
       {isMultiDay && isDailyViewExpanded && (
         <div className="mt-3 pt-3 border-t-2 border-border/50 bg-muted/20 p-4 rounded-b-lg">
-          <h6 className="text-base font-semibold mb-3 text-foreground/90">Estat per dia:</h6>
+          <h6 className="text-base font-semibold mb-3 text-foreground/90">{t('assignment.daily_status_title')}</h6>
           <div className="space-y-2.5">
             {getDaysInRange(assignment.startDate, assignment.endDate).map(date => {
               const currentDailyStatus = assignment.dailyStatuses?.[date] || (assignment.status !== AssignmentStatus.Mixed ? assignment.status : AssignmentStatus.Pending);
-              
+
               const statusRowClasses: { [key in AssignmentStatus]?: string } = {
                 [AssignmentStatus.Yes]: 'bg-success/20',
                 [AssignmentStatus.Pending]: 'bg-warning/20',
@@ -222,8 +231,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               };
 
               return (
-                <div 
-                  key={date} 
+                <div
+                  key={date}
                   className={`
                     flex items-center justify-between p-3 rounded-lg 
                     ${statusRowClasses[currentDailyStatus] || 'bg-muted/30'}
@@ -243,15 +252,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                         }}
                         className={`
                           px-3 py-1.5 text-sm rounded-md transition-all
-                          ${
-                            currentDailyStatus === status
-                              ? 'font-semibold text-foreground bg-background/90 shadow-md scale-105'
-                              : 'opacity-90 hover:opacity-100 bg-background/70 hover:bg-background/90 hover:scale-105 hover:shadow-sm'
+                          ${currentDailyStatus === status
+                            ? 'font-semibold text-foreground bg-background/90 shadow-md scale-105'
+                            : 'opacity-90 hover:opacity-100 bg-background/70 hover:bg-background/90 hover:scale-105 hover:shadow-sm'
                           }
                           ${statusButtonClasses[status]}
                         `}
                       >
-                        {status}
+                        {translateStatus(status)}
                       </button>
                     ))}
                   </div>

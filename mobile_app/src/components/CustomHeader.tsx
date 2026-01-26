@@ -8,6 +8,7 @@ import Constants from 'expo-constants';
 import ThemeSwitcher from './ui/ThemeSwitcher';
 import { lightTheme, darkTheme } from '../utils/themes';
 import AboutModal from './AboutModal';
+import LanguageSelector from './LanguageSelector';
 
 const fileService = new SAFFileService();
 
@@ -177,6 +178,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
             <ThemeSwitcher />
           </View>
         </View>
+        <LanguageSelector />
       </View>
       
       <AboutModal 

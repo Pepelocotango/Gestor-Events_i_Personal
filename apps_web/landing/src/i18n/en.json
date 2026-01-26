@@ -1,0 +1,24 @@
+{
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "product_tour": "Product Tour",
+    "gallery": "Gallery",
+    "download": "Downloads",
+    "menu": "Menu"
+  },
+  "hero": {
+    "scroll_down": "Scroll down"
+  },
+  "carousel": {
+    "light_mode": "Switch to light mode",
+    "dark_mode": "Switch to dark mode",
+    "previous_image": "Previous image",
+    "next_image": "Next image",
+    "go_to_image": "Go to image {{index}}"
+  },
+  "site": {
+    "title": "Event and Personnel Manager",
+    "description": "The definitive tool for professional event and personnel management"
+  }
+}

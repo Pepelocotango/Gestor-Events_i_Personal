@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useImperativeHandle } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../types';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
@@ -32,9 +33,14 @@ const MainDisplay = React.forwardRef<
   const calendarRef = useRef<FullCalendar>(null);
   const openModal = useModalStore(state => state.openModal);
 
+  const { t } = useTranslation();
+
   useImperativeHandle(ref, () => ({
     resize: () => {
       if (calendarRef.current) {
+        // ... (rest of the file content until we hit the return, I need to be smarter with chunks)
+        // I will split this into chunks to be safe.
+
         calendarRef.current.getApi().updateSize();
       }
     },
@@ -51,7 +57,7 @@ const MainDisplay = React.forwardRef<
     peopleGroups.forEach(p => m.set(p.id, p.name));
     return m;
   }, [peopleGroups]);
-  
+
   // Filtres centralitzats de l'store
   const filterText = useEventDataStore(state => state.filterText);
   const filterStatus = useEventDataStore(state => state.filterStatus);
@@ -93,7 +99,7 @@ const MainDisplay = React.forwardRef<
   // Removed noisy render logs to avoid spamming console and potential perf issues
 
   const validationResult = useMemo(() => {
-  // Validació iniciada
+    // Validació iniciada
 
     if (!eventFrames || !Array.isArray(eventFrames)) {
       console.error('[MainDisplay] Error: eventFrames no és vàlid');
@@ -110,7 +116,7 @@ const MainDisplay = React.forwardRef<
       return { isValid: false, error: 'peopleGroups no és vàlid.' };
     }
 
-  // Dades carregades correctament
+    // Dades carregades correctament
     return { isValid: true, error: null };
   }, [eventFrames, googleEvents, peopleGroups]);
 
@@ -241,13 +247,13 @@ const MainDisplay = React.forwardRef<
   };
 
   const calendarEvents = useMemo(() => {
-  // Actualitzant esdeveniments del calendari
+    // Actualitzant esdeveniments del calendari
     try {
       const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
       const localEventsForCalendar = eventFrames.map(ef => ({
         id: ef.id, title: ef.name, start: ef.startDate, end: addDaysISO(ef.endDate, 1), allDay: true,
         className: ef.personnelComplete ? 'event-complete' : 'event-incomplete',
-        extendedProps: { type: 'local', googleEventId: ef.googleEventId } 
+        extendedProps: { type: 'local', googleEventId: ef.googleEventId }
       }));
       const filteredGoogleEventsForCalendar = googleEvents
         .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
@@ -256,7 +262,7 @@ const MainDisplay = React.forwardRef<
           extendedProps: { ...gEvent.extendedProps, type: 'google' }
         }));
       const events = [...localEventsForCalendar, ...filteredGoogleEventsForCalendar];
-  // Calendari actualitzat
+      // Calendari actualitzat
       return events;
     } catch (error) {
       console.error('[MainDisplay] Error actualitzant esdeveniments del calendari:', error);
@@ -269,62 +275,62 @@ const MainDisplay = React.forwardRef<
     if (!assignment) return;
 
     const performUpdate = (force = false) => {
-        const result = updateAssignment({ ...assignment, status: newStatus, dailyStatuses: undefined }, force);
-        if (result.success) {
-            if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
-                openModal('confirmDuplicate', {
-                    message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
-                    onConfirm: () => performUpdate(true),
-                });
-            } else {
-                setToastMessage(`Estat general de l'assignació actualitzat a ${newStatus}`, 'success');
-                setManualExpandedDailyView(prev => {
-                    const newSet = new Set(prev);
-                    newSet.delete(assignmentId);
-                    return newSet;
-                });
-            }
-        } else if (result.message) {
-            setToastMessage(result.message, 'error');
+      const result = updateAssignment({ ...assignment, status: newStatus, dailyStatuses: undefined }, force);
+      if (result.success) {
+        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+          openModal('confirmDuplicate', {
+            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            onConfirm: () => performUpdate(true),
+          });
+        } else {
+          setToastMessage(`Estat general de l'assignació actualitzat a ${newStatus}`, 'success');
+          setManualExpandedDailyView(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(assignmentId);
+            return newSet;
+          });
         }
+      } else if (result.message) {
+        setToastMessage(result.message, 'error');
+      }
     };
 
     if (assignment.status === AssignmentStatus.Mixed) {
-        openModal('confirmDeleteEventFrame', {
-            itemType: "Actualització massiva",
-            itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${peopleMap.get(assignment.personGroupId) || ''}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
-            onConfirmSpecial: () => performUpdate(false),
-            titleOverride: "Confirmar Canvi General",
-            confirmButtonText: "Sí, canviar tot",
-            cancelButtonText: "No, mantenir estats diaris"
-        });
+      openModal('confirmDeleteEventFrame', {
+        itemType: "Actualització massiva",
+        itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${peopleMap.get(assignment.personGroupId) || ''}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
+        onConfirmSpecial: () => performUpdate(false),
+        titleOverride: "Confirmar Canvi General",
+        confirmButtonText: "Sí, canviar tot",
+        cancelButtonText: "No, mantenir estats diaris"
+      });
     } else {
-        performUpdate(false);
+      performUpdate(false);
     }
   };
-  
+
   const handleDailyStatusChange = (_efId: string, assign: Assignment, dateYYYYMMDD: string, newDailyStatus: AssignmentStatus) => {
     const performUpdate = (force = false) => {
-        const newDailyStatuses = assign.dailyStatuses ? { ...assign.dailyStatuses } :
-            Array.from({ length: (new Date(assign.endDate).getTime() - new Date(assign.startDate).getTime()) / (1000 * 3600 * 24) + 1 }, (_, i) => addDaysISO(assign.startDate, i))
-           .reduce((acc, date) => { acc[date] = assign.status; return acc; }, {} as { [date: string]: AssignmentStatus });
+      const newDailyStatuses = assign.dailyStatuses ? { ...assign.dailyStatuses } :
+        Array.from({ length: (new Date(assign.endDate).getTime() - new Date(assign.startDate).getTime()) / (1000 * 3600 * 24) + 1 }, (_, i) => addDaysISO(assign.startDate, i))
+          .reduce((acc, date) => { acc[date] = assign.status; return acc; }, {} as { [date: string]: AssignmentStatus });
 
-        newDailyStatuses[dateYYYYMMDD] = newDailyStatus;
-        const newAssignmentData = { ...assign, status: AssignmentStatus.Mixed, dailyStatuses: newDailyStatuses };
-        const result = updateAssignment(newAssignmentData, force, { changedDate: dateYYYYMMDD });
+      newDailyStatuses[dateYYYYMMDD] = newDailyStatus;
+      const newAssignmentData = { ...assign, status: AssignmentStatus.Mixed, dailyStatuses: newDailyStatuses };
+      const result = updateAssignment(newAssignmentData, force, { changedDate: dateYYYYMMDD });
 
-        if (result.success) {
-            if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
-                openModal('confirmDuplicate', {
-                    message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
-                    onConfirm: () => performUpdate(true),
-                });
-            } else {
-                setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
-            }
-        } else if (result.message) {
-          setToastMessage(result.message, 'error');
+      if (result.success) {
+        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+          openModal('confirmDuplicate', {
+            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            onConfirm: () => performUpdate(true),
+          });
+        } else {
+          setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
         }
+      } else if (result.message) {
+        setToastMessage(result.message, 'error');
+      }
     };
     performUpdate(false);
   };
@@ -349,27 +355,27 @@ const MainDisplay = React.forwardRef<
     }
   };
 
-    return (
+  return (
     <div className="space-y-2"> {/* Contenidor simple en lloc de CollapsibleSection */}
-      
+
       {/* SECCIÓ 1: CALENDARI */}
-      <CollapsibleSection title="Vista de Calendari" icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
+      <CollapsibleSection title={t('main.calendar_view')} icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
         <div className="calendar-wrapper border border-border rounded-lg" style={{ padding: '0.25rem' }}>
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
             initialView="dayGridMonth"
             views={{
-              dayGridMonth: { buttonText: 'Mes' },
-              timeGridWeek: { buttonText: 'Setmana' },
-              listWeek: { buttonText: 'Agenda' },
-              multiMonth2: { type: 'multiMonth', duration: { months: 2 }, buttonText: '2 Mesos', multiMonthMaxColumns: 2 },
-              multiMonth4: { type: 'multiMonth', duration: { months: 4 }, buttonText: '4 Mesos', multiMonthMaxColumns: 2 },
-              multiMonth6: { type: 'multiMonth', duration: { months: 6 }, buttonText: '6 Mesos', multiMonthMaxColumns: 2 }
+              dayGridMonth: { buttonText: t('calendar.month') },
+              timeGridWeek: { buttonText: t('calendar.week') },
+              listWeek: { buttonText: t('calendar.agenda') },
+              multiMonth2: { type: 'multiMonth', duration: { months: 2 }, buttonText: t('calendar.2_months'), multiMonthMaxColumns: 2 },
+              multiMonth4: { type: 'multiMonth', duration: { months: 4 }, buttonText: t('calendar.4_months'), multiMonthMaxColumns: 2 },
+              multiMonth6: { type: 'multiMonth', duration: { months: 6 }, buttonText: t('calendar.6_months'), multiMonthMaxColumns: 2 }
             }}
             headerToolbar={{ left: 'prev,next today', center: 'title', right: 'multiMonth6,multiMonth4,multiMonth2,dayGridMonth,timeGridWeek,listWeek' }}
             locale={caLocale}
-            buttonText={{ today: 'Avui' }}
+            buttonText={{ today: t('calendar.today') }}
             height="auto"
             contentHeight="auto"
             aspectRatio={1.5}
@@ -409,7 +415,7 @@ const MainDisplay = React.forwardRef<
 
       {/* SECCIÓ 2: LLISTA D'ESDEVENIMENTS */}
       <CollapsibleSection
-        title={showArchived ? `Esdeveniments Arxivats (${filteredAndSortedEventFrames.length})` : `Llista d'Esdeveniments (${filteredAndSortedEventFrames.length})`}
+        title={showArchived ? `${t('main.archived_events')} (${filteredAndSortedEventFrames.length})` : `${t('main.event_list')} (${filteredAndSortedEventFrames.length})`}
         icon={<ListIcon />}
         isExpanded={isEventListExpanded}
         onToggle={() => useEventDataStore.getState().toggleEventListExpanded()}
@@ -427,7 +433,7 @@ const MainDisplay = React.forwardRef<
                 generalNotes: '',
               });
             }} className="px-2 py-1 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-semibold flex items-center gap-1">
-              <PlusIcon className="w-4 h-4"/> Afegir Nou Marc
+              <PlusIcon className="w-4 h-4" /> {t('main.add_event_frame')}
             </button>
           </Tooltip>
           <Tooltip text={`Ordena per data ${sortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
@@ -435,7 +441,7 @@ const MainDisplay = React.forwardRef<
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
             >
-              {sortOrder === 'asc' ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />} Ordena
+              {sortOrder === 'asc' ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />} {t('main.sort')}
             </button>
           </Tooltip>
           <div className="border-l border-border h-6 mx-1"></div>
@@ -449,7 +455,7 @@ const MainDisplay = React.forwardRef<
                 className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-ring"
               />
               <label htmlFor="showArchived" className="ml-2 text-sm font-medium text-foreground">
-                Mostrar arxivats
+                {t('main.show_archived')}
               </label>
             </div>
           </Tooltip>
@@ -459,7 +465,7 @@ const MainDisplay = React.forwardRef<
               className="px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
               disabled={isAnyFilterActive || filteredAndSortedEventFrames.length === 0}
             >
-              {areAllVisibleExpanded ? "Col·lapsar Tot" : "Expandir Tot"}
+              {areAllVisibleExpanded ? t('main.collapse_all') : t('main.expand_all')}
             </button>
           </Tooltip>
           <div className="flex-grow"></div>
@@ -491,7 +497,7 @@ const MainDisplay = React.forwardRef<
               }}
               className="flex items-center justify-center gap-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
             >
-              <ArchiveIcon className="w-4 h-4" /> Arxivar Antics
+              <ArchiveIcon className="w-4 h-4" /> {t('main.archive_old')}
             </button>
           </Tooltip>
           <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
@@ -504,7 +510,7 @@ const MainDisplay = React.forwardRef<
               )}
               className="flex items-center justify-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
             >
-              <DocumentArrowDownIcon className="w-4 h-4" /> PDF
+              <DocumentArrowDownIcon className="w-4 h-4" /> {t('main.pdf_export')}
             </button>
           </Tooltip>
           <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
@@ -517,32 +523,32 @@ const MainDisplay = React.forwardRef<
               )}
               className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
             >
-              <DocumentArrowDownIcon className="w-4 h-4" /> CSV
+              <DocumentArrowDownIcon className="w-4 h-4" /> {t('main.csv_export')}
             </button>
           </Tooltip>
         </div>
-        
+
         <div className="mb-1 p-1 bg-muted rounded-lg flex flex-wrap items-end gap-1 border border-border">
-          <div className="flex-grow min-w-[180px]"><label htmlFor="filterText" className="block text-xs font-medium text-muted-foreground">Cerca general</label><Tooltip text="Cerca per nom d'esdeveniment, lloc, notes o nom de persona assignada"><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm" placeholder="Nom, lloc, persona..."/></Tooltip></div>
-          <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIEventFrame" className="block text-xs font-medium text-muted-foreground">Marc</label><Tooltip text="Filtrar per un marc d'esdeveniment específic"><select id="filterUIEventFrame" value={filterUIEventFrame || ''} onChange={e => setFilterUIEventFrame(e.target.value || null)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></Tooltip></div>
-          <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIPerson" className="block text-xs font-medium text-muted-foreground">Persona</label><Tooltip text="Filtrar per persona o grup assignat"><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Totes --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Tooltip></div>
-          <div className="flex-grow min-w-[110px]"><label htmlFor="filterStatus" className="block text-xs font-medium text-muted-foreground">Estat</label><Tooltip text="Filtrar per estat de l'assignació"><select id="filterStatus" value={filterStatus} onChange={e => setFilterStatus(e.target.value as AssignmentStatus | '')} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{Object.values(AssignmentStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></Tooltip></div>
-          
-          <div className="flex-grow min-w-[140px]"><label htmlFor="filterDate" className="block text-xs font-medium text-muted-foreground">Conté Data</label>
-            <Tooltip text="Mostrar només esdeveniments que estiguin actius en aquesta data">
+          <div className="flex-grow min-w-[180px]"><label htmlFor="filterText" className="block text-xs font-medium text-muted-foreground">{t('main.search_general')}</label><Tooltip text={t('main.tooltip_search')}><input type="text" id="filterText" value={filterText} onChange={e => setFilterText(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm" placeholder={t('main.search_placeholder')} /></Tooltip></div>
+          <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIEventFrame" className="block text-xs font-medium text-muted-foreground">{t('main.frame')}</label><Tooltip text={t('main.tooltip_frame')}><select id="filterUIEventFrame" value={filterUIEventFrame || ''} onChange={e => setFilterUIEventFrame(e.target.value || null)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- {t('main.clean_filters')} --</option>{eventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}</select></Tooltip></div>
+          <div className="flex-grow min-w-[140px]"><label htmlFor="filterUIPerson" className="block text-xs font-medium text-muted-foreground">{t('main.person')}</label><Tooltip text={t('main.tooltip_person')}><select id="filterUIPerson" value={localFilterUIPerson} onChange={e => setLocalFilterUIPerson(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- {t('main.clean_filters')} --</option>{peopleGroups.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Tooltip></div>
+          <div className="flex-grow min-w-[110px]"><label htmlFor="filterStatus" className="block text-xs font-medium text-muted-foreground">{t('main.status')}</label><Tooltip text={t('main.tooltip_status')}><select id="filterStatus" value={filterStatus} onChange={e => setFilterStatus(e.target.value as AssignmentStatus | '')} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- {t('main.clean_filters')} --</option>{Object.values(AssignmentStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></Tooltip></div>
+
+          <div className="flex-grow min-w-[140px]"><label htmlFor="filterDate" className="block text-xs font-medium text-muted-foreground">{t('main.contains_date')}</label>
+            <Tooltip text={t('main.tooltip_date')}>
               <input type="date" id="filterDate" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm" />
             </Tooltip>
-            {filterDate && <p className="text-xs text-primary mt-0.5"><span className="font-semibold">Filtre:</span> {formatDateDMY(filterDate)}</p>}
+            {filterDate && <p className="text-xs text-primary mt-0.5"><span className="font-semibold">{t('main.filter_date_label')}</span> {formatDateDMY(filterDate)}</p>}
           </div>
-          <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-muted-foreground">Lloc</label><Tooltip text="Filtrar per lloc de l'esdeveniment"><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- Tots --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></Tooltip></div>
+          <div className="flex-grow min-w-[140px]"><label htmlFor="filterPlace" className="block text-xs font-medium text-muted-foreground">{t('main.place')}</label><Tooltip text={t('main.tooltip_place')}><select id="filterPlace" value={filterPlace} onChange={e => setFilterPlace(e.target.value)} className="mt-1 block w-full px-1.5 py-0.5 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"><option value="">-- {t('main.clean_filters')} --</option>{Array.from(new Set(eventFrames.map(ef => ef.place).filter(Boolean))).sort().map(place => (<option key={place} value={place!}>{place}</option>))}</select></Tooltip></div>
           <div className="flex items-center gap-1">
-            <Tooltip text="Netejar tots els filtres">
-              <button onClick={clearAllFilters} className="px-2 py-1 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border">Netejar</button>
+            <Tooltip text={t('main.tooltip_clean')}>
+              <button onClick={clearAllFilters} className="px-2 py-1 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border">{t('main.clean_filters')}</button>
             </Tooltip>
           </div>
         </div>
 
-        {filteredAndSortedEventFrames.length === 0 && <p className="text-center text-muted-foreground py-4">No s'han trobat marcs d'esdeveniment.</p>}
+        {filteredAndSortedEventFrames.length === 0 && <p className="text-center text-muted-foreground py-4">{t('main.no_events_found')}</p>}
         {filteredAndSortedEventFrames.map((ef: EventFrame) => (
           <EventFrameCard
             key={ef.id}
@@ -566,7 +572,7 @@ const MainDisplay = React.forwardRef<
       </CollapsibleSection>
 
       {/* SECCIÓ 3: RESUMS */}
-      <CollapsibleSection title="Resums" icon={<ChartBarIcon />} defaultOpen={false} id="summary-section">
+      <CollapsibleSection title={t('main.summaries')} icon={<ChartBarIcon />} defaultOpen={false} id="summary-section">
         <SummaryReports
           setToastMessage={setToastMessage}
           filteredEventFrames={filteredAndSortedEventFrames}

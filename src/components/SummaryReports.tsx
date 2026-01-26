@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { AssignmentStatus, SummaryRow, ShowToastFunction, EventFrame } from '../types';
 import { CsvIcon, ChevronUpIcon, ChevronDownIcon, PdfIcon } from '../constants';
@@ -25,6 +26,7 @@ interface SummaryReportsProps {
 }
 
 const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filteredEventFrames, activeFilters }) => {
+  const { t } = useTranslation();
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -216,7 +218,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
               <button
                   onClick={() => handleExportCsv(dataType)}
                   className="p-1.5 rounded-full bg-success/10 text-success hover:bg-success/20"
-                  aria-label={`Exportar tot el resum ${title} a CSV`}
+                  aria-label={t('mcc.export_csv_tooltip', { title })}
               > <CsvIcon className="w-4 h-4" />
               </button>
             </Tooltip>
@@ -224,7 +226,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
               <button
                   onClick={() => handleExportPdf(title, data, dataType)}
                   className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
-                  aria-label={`Exportar tot el resum ${title} a PDF`}
+                  aria-label={t('mcc.export_pdf_tooltip', { title })}
               > <PdfIcon className="w-4 h-4" />
               </button>
             </Tooltip>

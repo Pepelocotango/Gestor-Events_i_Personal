@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import { AppData } from '../types';
 
 export interface ValidationResult {
@@ -22,7 +23,7 @@ export const validateData = (data: AppData): ValidationResult => {
     if (!eventFrameIds.has(assignment.eventFrameId)) {
       errors.push({
         type: 'broken_assignment_reference',
-        message: `L'assignació '${assignment.id}' fa referència a un esdeveniment que no existeix (${assignment.eventFrameId}).`,
+        message: i18next.t('common.data_integrity.error_event_not_found', { id: assignment.id, targetId: assignment.eventFrameId }),
         assignmentId: assignment.id,
         eventFrameId: assignment.eventFrameId,
         personGroupId: assignment.personGroupId,
@@ -31,7 +32,7 @@ export const validateData = (data: AppData): ValidationResult => {
     if (!personGroupIds.has(assignment.personGroupId)) {
       errors.push({
         type: 'broken_assignment_reference',
-        message: `L'assignació '${assignment.id}' fa referència a una persona/grup que no existeix (${assignment.personGroupId}).`,
+        message: i18next.t('common.data_integrity.error_person_not_found', { id: assignment.id, targetId: assignment.personGroupId }),
         assignmentId: assignment.id,
         eventFrameId: assignment.eventFrameId,
         personGroupId: assignment.personGroupId,
@@ -59,7 +60,7 @@ export const repairData = (data: AppData, errors: ValidationError[]): RepairResu
     if (error.type === 'broken_assignment_reference') {
       if (!assignmentsToRemove.has(error.assignmentId)) {
         assignmentsToRemove.add(error.assignmentId);
-        fixes.push(`S'ha eliminat una assignació trencada (ID: ${error.assignmentId}).`);
+        fixes.push(i18next.t('common.data_integrity.fix_removed_assignment', { id: error.assignmentId }));
       }
     }
   });

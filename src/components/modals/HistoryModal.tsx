@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTemporalStore, useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import { XMarkIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '@heroicons/react/24/solid';
 
 const HistoryModal: React.FC = () => {
+  const { t } = useTranslation();
   const pastStates = useTemporalStore(state => state.pastStates);
   const futureStates = useTemporalStore(state => state.futureStates);
   const { undo, redo } = useEventDataStore.temporal.getState();
@@ -28,7 +30,7 @@ const HistoryModal: React.FC = () => {
   return (
     <div className="bg-card text-card-foreground rounded-lg shadow-xl p-6 w-full max-w-md mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-foreground">Historial de Canvis</h2>
+        <h2 className="text-xl font-bold text-foreground">{t('modals.history.title')}</h2>
         <button
           onClick={closeModal}
           className="p-1 rounded-full hover:bg-accent"
@@ -46,14 +48,14 @@ const HistoryModal: React.FC = () => {
               >
                 <ArrowUturnRightIcon className="w-5 h-5 text-muted-foreground" />
                 <span className="text-muted-foreground italic">
-                  {state.lastActionDescription || 'Acció sense nom'}
+                  {state.lastActionDescription || t('modals.history.no_name_action')}
                 </span>
               </button>
             </li>
           ))}
           <li>
             <div className="w-full text-left p-2 rounded-md bg-primary/10 flex items-center gap-2">
-              <span className="font-bold text-primary">Estat Actual</span>
+              <span className="font-bold text-primary">{t('modals.history.current_state')}</span>
             </div>
           </li>
           {reversedPastStates.map((_, index) => {
@@ -69,7 +71,7 @@ const HistoryModal: React.FC = () => {
                 >
                   <ArrowUturnLeftIcon className="w-5 h-5 text-muted-foreground" />
                   <span className="text-foreground">
-                    {description || 'Acció inicial'}
+                    {description || t('modals.history.initial_action')}
                   </span>
                 </button>
               </li>

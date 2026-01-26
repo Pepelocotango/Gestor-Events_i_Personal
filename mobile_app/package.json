@@ -9,6 +9,7 @@
     "build:android": "cross-env APP_VERSION=$npm_package_version eas build -p android"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "8.0.1",
     "@react-native-picker/picker": "2.7.5",
     "@react-navigation/bottom-tabs": "^6.5.20",
@@ -21,12 +22,15 @@
     "expo-constants": "16.0.2",
     "expo-document-picker": "^12.0.2",
     "expo-file-system": "17.0.1",
+    "expo-localization": "^17.0.8",
     "expo-secure-store": "^13.0.2",
     "expo-sharing": "~12.0.1",
     "expo-splash-screen": "~0.27.7",
     "expo-web-browser": "13.0.3",
+    "i18next": "^25.8.0",
     "immer": "^10.2.0",
     "react": "18.2.0",
+    "react-i18next": "^16.5.3",
     "react-native": "0.74.5",
     "react-native-calendars": "^1.1313.0",
     "react-native-gesture-handler": "2.16.1",

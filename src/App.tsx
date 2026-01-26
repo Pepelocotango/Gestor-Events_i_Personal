@@ -1,6 +1,7 @@
 import { generateDefaultFileName } from './utils/dateFormat';
 import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import logger from './utils/logger';
 import { THEME_STORAGE_KEY } from './constants';
@@ -49,11 +50,12 @@ import { useRef } from 'react';
 let globalInitialLoadAttempted = false;
 
 const App: React.FC = () => {
+  const { t } = useTranslation();
   const mainDisplayRef = useRef<{ resize: () => void }>(null);
   // Determina la tecla modificadora de la plataforma de forma síncrona a l'inici.
   // Això evita el parpelleig de la UI que passava amb l'enfocament asíncron anterior.
   const platformModifierKey = window.electronAPI?.getPlatformSync() === 'darwin' ? '⌘' : 'Ctrl';
-  
+
   const [showSplash, setShowSplash] = useState(true);
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
@@ -140,19 +142,19 @@ const App: React.FC = () => {
   useEffect(() => {
     const { undoWithToast, redoWithToast } = useEventDataStore.getState();
     const handleKeyDown = (event: KeyboardEvent) => {
-        const target = event.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-            return;
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key.toLowerCase() === 'z' && !event.shiftKey) {
+          event.preventDefault();
+          undoWithToast();
+        } else if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
+          event.preventDefault();
+          redoWithToast();
         }
-        if (event.ctrlKey || event.metaKey) {
-            if (event.key.toLowerCase() === 'z' && !event.shiftKey) {
-                event.preventDefault();
-                undoWithToast();
-            } else if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
-                event.preventDefault();
-                redoWithToast();
-            }
-        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -185,7 +187,7 @@ const App: React.FC = () => {
       body.style.overflow = 'auto';
     };
   }, [isOpen]);
-  
+
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
@@ -204,107 +206,107 @@ const App: React.FC = () => {
 
   const handleSaveAsDocument = async (): Promise<boolean> => {
     if (!window.electronAPI) {
-      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      showToast(t('app.desktop_only_warning'), 'warning');
       return false;
     }
     try {
-        const dataToSave = await exportDataFromManager();
-        const jsonString = JSON.stringify(dataToSave, null, 2);
-        const fileName = (currentFilePath ? currentFilePath.split(/[/\\]/).pop() : undefined) || generateDefaultFileName();
+      const dataToSave = await exportDataFromManager();
+      const jsonString = JSON.stringify(dataToSave, null, 2);
+      const fileName = (currentFilePath ? currentFilePath.split(/[/\\]/).pop() : undefined) || generateDefaultFileName();
 
-        const result = await window.electronAPI.showSaveDialog({
-            title: 'Guardar com...',
-            defaultPath: fileName,
-            filters: [
-              { name: 'Arxiu GEP', extensions: ['gep'] },
-              { name: 'Arxiu JSON', extensions: ['json'] }
-            ],
-            data: jsonString,
-            isDocumentSave: true, // Indica al backend que això és un desat de document principal
-        });
+      const result = await window.electronAPI.showSaveDialog({
+        title: t('menu.file.save_as'),
+        defaultPath: fileName,
+        filters: [
+          { name: 'Arxiu GEP', extensions: ['gep'] },
+          { name: 'Arxiu JSON', extensions: ['json'] }
+        ],
+        data: jsonString,
+        isDocumentSave: true, // Indica al backend que això és un desat de document principal
+      });
 
-        if (result.success && result.filePath) {
-            setHasUnsavedChanges(false);
-            setCurrentFilePath(result.filePath);
-            const recentFilesResult = await window.electronAPI.addRecentFile(result.filePath);
-            if(recentFilesResult.success) {
-                setRecentFiles(recentFilesResult.recentFiles);
-            }
-            showToast('Document desat correctament.', 'success');
-            return true;
-        } else if (!result.canceled) {
-            showToast(`Error en desar: ${result.message}`, 'error');
+      if (result.success && result.filePath) {
+        setHasUnsavedChanges(false);
+        setCurrentFilePath(result.filePath);
+        const recentFilesResult = await window.electronAPI.addRecentFile(result.filePath);
+        if (recentFilesResult.success) {
+          setRecentFiles(recentFilesResult.recentFiles);
         }
+        showToast(t('app.save.success'), 'success');
+        return true;
+      } else if (!result.canceled) {
+        showToast(`${t('app.save.error_prefix')}${result.message}`, 'error');
+      }
     } catch (error) {
-        showToast(`Error en desar: ${(error as Error).message}`, 'error');
+      showToast(`${t('app.save.error_prefix')}${(error as Error).message}`, 'error');
     }
     return false;
-};
+  };
 
-const handleSaveDocument = async (): Promise<boolean> => {
+  const handleSaveDocument = async (): Promise<boolean> => {
     if (!currentFilePath) {
-        return handleSaveAsDocument();
+      return handleSaveAsDocument();
     }
     if (!window.electronAPI) {
-      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      showToast(t('app.desktop_only_warning'), 'warning');
       return false;
     }
     try {
-        const dataToSave = await exportDataFromManager();
-        const jsonString = JSON.stringify(dataToSave, null, 2);
-        const result = await window.electronAPI.saveFile({
-            filePath: currentFilePath,
-            data: jsonString,
-        });
+      const dataToSave = await exportDataFromManager();
+      const jsonString = JSON.stringify(dataToSave, null, 2);
+      const result = await window.electronAPI.saveFile({
+        filePath: currentFilePath,
+        data: jsonString,
+      });
 
-        if (result.success) {
-            setHasUnsavedChanges(false);
-            showToast('Document desat.', 'success');
-            return true;
-        } else {
-            showToast(`Error en desar: ${result.message}`, 'error');
-        }
+      if (result.success) {
+        setHasUnsavedChanges(false);
+        showToast(t('app.save.success'), 'success');
+        return true;
+      } else {
+        showToast(`${t('app.save.error_prefix')}${result.message}`, 'error');
+      }
     } catch (error) {
-        showToast(`Error en desar: ${(error as Error).message}`, 'error');
+      showToast(`${t('app.save.error_prefix')}${(error as Error).message}`, 'error');
     }
     return false;
-};
+  };
 
   const confirmContinueWithUnsavedChanges = async (): Promise<boolean> => {
     if (!hasUnsavedChangesRef.current) {
-        return true; // No unsaved changes, can continue
+      return true; // No unsaved changes, can continue
     }
 
     if (window.electronAPI?.showUnsavedChangesDialog) {
-        const message = 'Teniu canvis sense desar. Voleu desar-los abans de continuar?';
-        const buttons = ['Desa', 'No desis', 'Cancel·la'];
+      const message = t('app.unsaved_changes.message');
+      const buttons = [t('app.unsaved_changes.save'), t('app.unsaved_changes.dont_save'), t('app.unsaved_changes.cancel')];
 
-        const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
-        // 0: Desa, 1: No desis, 2: Cancel·la
-        switch (response) {
-            case 0: // Desa
-                const saved = await handleSaveDocument();
-                return saved;
-            case 1: // No desis
-                return true;
-            case 2: // Cancel·la
-            default:
-                return false;
-        }
+      const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
+      // 0: Desa, 1: No desis, 2: Cancel·la
+      switch (response) {
+        case 0: // Desa
+          const saved = await handleSaveDocument();
+          return saved;
+        case 1: // No desis
+          return true;
+        case 2: // Cancel·la
+        default:
+          return false;
+      }
     }
     // Fallback for web or if API is not available
-    return confirm('You have unsaved changes. Are you sure you want to continue?');
+    return confirm(t('app.unsaved_changes.fallback_confirm'));
   };
 
   const handleNewDocument = async () => {
-      const canContinue = await confirmContinueWithUnsavedChanges();
-      if (!canContinue) return;
+    const canContinue = await confirmContinueWithUnsavedChanges();
+    if (!canContinue) return;
 
-      loadDataFromManager(null);
-      setCurrentFilePath(null);
-      setIsDocumentOpen(true);
-      setHasUnsavedChanges(false);
-      showToast('Nou espai de treball creat.', 'success');
+    loadDataFromManager(null);
+    setCurrentFilePath(null);
+    setIsDocumentOpen(true);
+    setHasUnsavedChanges(false);
+    showToast(t('app.new_document_success'), 'success');
   };
 
   const handleOpenDocument = async (filePathToOpen?: string) => {
@@ -313,58 +315,58 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
     let filePath = filePathToOpen;
     if (!filePath && window.electronAPI) {
-        const dialogResult = await window.electronAPI.openFileDialog({
-            filters: [
-                { name: 'Arxiu GEP', extensions: ['gep'] },
-                { name: 'Arxiu JSON', extensions: ['json'] },
-                { name: 'Tots els fitxers', extensions: ['*'] }
-            ]
-        });
-        if (!dialogResult.success || !dialogResult.filePath) {
-            return; // User cancelled or error
-        }
-        filePath = dialogResult.filePath;
+      const dialogResult = await window.electronAPI.openFileDialog({
+        filters: [
+          { name: 'Arxiu GEP', extensions: ['gep'] },
+          { name: 'Arxiu JSON', extensions: ['json'] },
+          { name: 'Tots els fitxers', extensions: ['*'] }
+        ]
+      });
+      if (!dialogResult.success || !dialogResult.filePath) {
+        return; // User cancelled or error
+      }
+      filePath = dialogResult.filePath;
     }
 
     if (!filePath) {
-        showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
-        return;
+      showToast(t('app.desktop_only_warning'), 'warning');
+      return;
     }
 
     try {
-        if (window.electronAPI) {
-            const fileReadResult = await window.electronAPI.readFile(filePath);
-            if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
-                showToast(`Error en llegir el fitxer: ${fileReadResult.message}`, 'error');
-                return;
-            }
-
-
-            const data = JSON.parse(fileReadResult.content);
-            const loadResult = await loadDataFromManager(data);
-
-            if (loadResult.status === 'error') {
-                showToast(loadResult.message || 'Hi ha hagut un error en carregar les dades.', 'error');
-                return;
-            }
-
-            if (data.googleConfig) {
-                logger.info("Trobada configuració de Google al fitxer, restaurant-la...");
-                await loadGoogleConfigFromDataFile(data);
-            }
-
-            setCurrentFilePath(filePath);
-            setIsDocumentOpen(true);
-            const recentFilesResult = await window.electronAPI.addRecentFile(filePath);
-            if(recentFilesResult.success) {
-                setRecentFiles(recentFilesResult.recentFiles);
-            }
-
-            const fileName = filePath.split(/[/\\]/).pop() || filePath;
-            showToast(`Document "${fileName}" carregat.`, 'success');
+      if (window.electronAPI) {
+        const fileReadResult = await window.electronAPI.readFile(filePath);
+        if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
+          showToast(`${t('app.open.read_error_prefix')}${fileReadResult.message}`, 'error');
+          return;
         }
+
+
+        const data = JSON.parse(fileReadResult.content);
+        const loadResult = await loadDataFromManager(data);
+
+        if (loadResult.status === 'error') {
+          showToast(loadResult.message || t('app.open.load_error_fallback'), 'error');
+          return;
+        }
+
+        if (data.googleConfig) {
+          logger.info("Trobada configuració de Google al fitxer, restaurant-la...");
+          await loadGoogleConfigFromDataFile(data);
+        }
+
+        setCurrentFilePath(filePath);
+        setIsDocumentOpen(true);
+        const recentFilesResult = await window.electronAPI.addRecentFile(filePath);
+        if (recentFilesResult.success) {
+          setRecentFiles(recentFilesResult.recentFiles);
+        }
+
+        const fileName = filePath.split(/[/\\]/).pop() || filePath;
+        showToast(t('app.open.success_msg', { name: fileName }), 'success');
+      }
     } catch (error) {
-        showToast(`Error en processar el fitxer: ${(error as Error).message}`, 'error');
+      showToast(`${t('app.open.process_error_prefix')}${(error as Error).message}`, 'error');
     }
   };
 
@@ -392,7 +394,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
       if (window.electronAPI?.showSaveDialog) {
         const result = await window.electronAPI.showSaveDialog({
-          title: `Exportar dades de ${type}`,
+          title: `${t('app.export.title_prefix')}${type === 'people' ? t('app.import.item_type_people') : t('app.import.item_type_material')}`,
           defaultPath: filename,
           filters: [
             { name: 'Arxiu GEP', extensions: ['gep'] },
@@ -402,19 +404,19 @@ const handleSaveDocument = async (): Promise<boolean> => {
           isDocumentSave: false, // Indica al backend que això NO és un desat de document
         });
         if (result.success) {
-          showToast(`Dades de ${type} exportades correctament.`, 'success');
+          showToast(t('app.export.success_msg', { type: type === 'people' ? t('app.import.item_type_people') : t('app.import.item_type_material') }), 'success');
         } else if (!result.canceled) {
-          showToast(`Error en exportar les dades: ${result.message}`, 'error');
+          showToast(`${t('app.export.error_prefix')}${result.message}`, 'error');
         }
       }
     } catch (error) {
-      showToast(`Error en exportar les dades: ${(error as Error).message}`, 'error');
+      showToast(`${t('app.export.error_prefix')}${(error as Error).message}`, 'error');
     }
   };
 
   const handleImportPeople = async () => {
     if (!window.electronAPI) {
-      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      showToast(t('app.desktop_only_warning'), 'warning');
       return;
     }
     const dialogResult = await window.electronAPI.openFileDialog();
@@ -422,28 +424,28 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
     const fileReadResult = await window.electronAPI.readFile(dialogResult.filePath);
     if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
-        showToast(`Error en llegir el fitxer: ${fileReadResult.message}`, 'error');
-        return;
+      showToast(`${t('app.open.read_error_prefix')}${fileReadResult.message}`, 'error');
+      return;
     }
 
     try {
-        const jsonData = JSON.parse(fileReadResult.content);
-        let newPeople: PersonGroup[] = [];
-        if (Array.isArray(jsonData.peopleGroups)) {
-            newPeople = jsonData.peopleGroups;
-        } else {
-            showToast("Error: El format del fitxer JSON de persones no és vàlid.", 'error');
-            return;
-        }
-        openModalFromStore('mergeOrReplace', { itemType: 'persones', newData: newPeople });
+      const jsonData = JSON.parse(fileReadResult.content);
+      let newPeople: PersonGroup[] = [];
+      if (Array.isArray(jsonData.peopleGroups)) {
+        newPeople = jsonData.peopleGroups;
+      } else {
+        showToast(t('app.import.people_error'), 'error');
+        return;
+      }
+      openModalFromStore('mergeOrReplace', { itemType: t('app.import.item_type_people'), newData: newPeople });
     } catch (error) {
-        showToast(`Error en processar el fitxer de persones: ${(error as Error).message}`, 'error');
+      showToast(`${t('app.import.people_process_error')}${(error as Error).message}`, 'error');
     }
   };
 
   const handleImportMaterial = async () => {
     if (!window.electronAPI) {
-      showToast('Aquesta funció només està disponible a l\'aplicació d\'escriptori.', 'warning');
+      showToast(t('app.desktop_only_warning'), 'warning');
       return;
     }
     const dialogResult = await window.electronAPI.openFileDialog();
@@ -451,46 +453,46 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
     const fileReadResult = await window.electronAPI.readFile(dialogResult.filePath);
     if (!fileReadResult.success || typeof fileReadResult.content !== 'string') {
-        showToast(`Error en llegir el fitxer: ${fileReadResult.message}`, 'error');
-        return;
+      showToast(`${t('app.open.read_error_prefix')}${fileReadResult.message}`, 'error');
+      return;
     }
 
     try {
       const jsonData = JSON.parse(fileReadResult.content);
       if (Array.isArray(jsonData.materialItems)) {
         openModalFromStore('mergeOrReplace', {
-          itemType: 'material',
+          itemType: t('app.import.item_type_material'),
           newData: jsonData.materialItems,
         });
       } else {
-        showToast("Error: El fitxer JSON de material ha de contenir un array anomenat 'materialItems'.", 'error');
+        showToast(t('app.import.material_error'), 'error');
       }
     } catch (error) {
-      showToast(`Error en processar el fitxer de material: ${(error as Error).message}`, 'error');
+      showToast(`${t('app.import.material_process_error')}${(error as Error).message}`, 'error');
     }
   };
 
   const handleFactoryReset = () => {
     openModalFromStore('confirmHardReset', {
-      titleOverride: "Restaurar Configuració de Fàbrica",
-      itemName: "Estàs segur que vols restaurar la configuració de fàbrica? Aquesta acció esborrarà la teva connexió amb Google i la llista de fitxers recents. Els teus documents desats no seran afectats. Aquesta acció és irreversible.",
-      confirmButtonText: "Sí, Restaurar",
-      cancelButtonText: "Cancel·lar",
+      titleOverride: t('app.factory_reset.title'),
+      itemName: t('app.factory_reset.message'),
+      confirmButtonText: t('app.factory_reset.confirm'),
+      cancelButtonText: t('common.cancel'),
       onConfirmSpecial: async () => {
         if (window.electronAPI?.factoryReset) {
           try {
             const result = await window.electronAPI.factoryReset();
-              if (result.success) {
-                showToast("Configuració restaurada. L'aplicació es reiniciarà.", 'success');
-                setTimeout(() => window.location.reload(), 2000);
-              } else {
-                showToast(result.message || "Error durant la restauració.", 'error');
-              }
+            if (result.success) {
+              showToast(t('app.factory_reset.success'), 'success');
+              setTimeout(() => window.location.reload(), 2000);
+            } else {
+              showToast(result.message || t('app.factory_reset.error_fallback'), 'error');
+            }
           } catch (error) {
-            showToast(`Error greu durant la restauració: ${(error as Error).message}`, 'error');
+            showToast(`${t('app.factory_reset.critical_error_prefix')}${(error as Error).message}`, 'error');
           }
         } else {
-          showToast("La funcionalitat de restauració no està disponible.", 'error');
+          showToast(t('app.factory_reset.not_available'), 'error');
         }
       },
     });
@@ -511,27 +513,27 @@ const handleSaveDocument = async (): Promise<boolean> => {
 
   useEffect(() => {
     const initializeApp = async () => {
-        logger.info('[Startup] App.tsx: Iniciant la càrrega de la sessió.');
-        if (window.electronAPI) {
-            if (window.electronAPI.getRecentFiles) {
-                const files = await window.electronAPI.getRecentFiles();
-                setRecentFiles(files);
-                logger.info('[Startup] Fitxers recents carregats:', files);
-            }
-            if (window.electronAPI.getSessionData) {
-                const sessionData = await window.electronAPI.getSessionData();
-                setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
-                logger.info('[Startup] Configuració del splash screen carregada.');
-            }
+      logger.info('[Startup] App.tsx: Iniciant la càrrega de la sessió.');
+      if (window.electronAPI) {
+        if (window.electronAPI.getRecentFiles) {
+          const files = await window.electronAPI.getRecentFiles();
+          setRecentFiles(files);
+          logger.info('[Startup] Fitxers recents carregats:', files);
         }
-        setSplashConfigLoaded(true);
-        globalInitialLoadAttempted = true;
-        logger.info('[Startup] App.tsx: Marcat initialLoadAttempted com a true.');
+        if (window.electronAPI.getSessionData) {
+          const sessionData = await window.electronAPI.getSessionData();
+          setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
+          logger.info('[Startup] Configuració del splash screen carregada.');
+        }
+      }
+      setSplashConfigLoaded(true);
+      globalInitialLoadAttempted = true;
+      logger.info('[Startup] App.tsx: Marcat initialLoadAttempted com a true.');
     };
 
     if (!globalInitialLoadAttempted) {
-        logger.info('[Startup] App.tsx: Primer render, cridant a initializeApp.');
-        initializeApp();
+      logger.info('[Startup] App.tsx: Primer render, cridant a initializeApp.');
+      initializeApp();
     }
   }, []);
 
@@ -700,9 +702,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
         logger.info(`[Menu] Acció rebuda: ${action}`);
 
         if (action.startsWith('open-recent:')) {
-            const filePath = action.substring('open-recent:'.length);
-            handleOpenDocument(filePath);
-            return;
+          const filePath = action.substring('open-recent:'.length);
+          handleOpenDocument(filePath);
+          return;
         }
 
         switch (action) {
@@ -792,71 +794,71 @@ const handleSaveDocument = async (): Promise<boolean> => {
         return <AssignmentFormModal onClose={closeModal} showToast={showToast} />;
       case 'addMaterialFromTechSheet':
         return <AddMaterialFromTechSheetModal />;
-      
+
       case 'eventFrameDetails':
         return <EventFrameDetailsModal onClose={closeModal} eventFrame={data!.eventFrame!} showToast={showToast} />;
       case 'confirmHardReset':
         return <ConfirmDeleteModal
-                  onClose={closeModal}
-                  itemType={data!.itemType!}
-                  itemName={data!.itemName!}
-                  onConfirm={data!.onConfirmSpecial!}
-                  showToast={showToast}
-                  titleOverride={data!.titleOverride}
-                  confirmButtonText={data!.confirmButtonText}
-                  cancelButtonText={data!.cancelButtonText}
-                  requiresInput={data!.requiresInput}
-                  suppressSuccessToast={data?.titleOverride?.includes('Google') || data?.titleOverride?.includes('Calendari')}
-                />;
+          onClose={closeModal}
+          itemType={data!.itemType!}
+          itemName={data!.itemName!}
+          onConfirm={data!.onConfirmSpecial!}
+          showToast={showToast}
+          titleOverride={data!.titleOverride}
+          confirmButtonText={data!.confirmButtonText}
+          cancelButtonText={data!.cancelButtonText}
+          requiresInput={data!.requiresInput}
+          suppressSuccessToast={data?.titleOverride?.includes('Google') || data?.titleOverride?.includes('Calendari')}
+        />;
       case 'confirmDataRepair':
-          return <ConfirmRepairModal
-                    isOpen={true}
-                    onClose={data!.onCancel!}
-                    onConfirm={data!.onConfirm!}
-                    fixes={data!.fixes!}
-                  />;
+        return <ConfirmRepairModal
+          isOpen={true}
+          onClose={data!.onCancel!}
+          onConfirm={data!.onConfirm!}
+          fixes={data!.fixes!}
+        />;
       case 'confirmDeleteEventFrame':
         return <ConfirmDeleteModal
-                  onClose={closeModal}
-                  itemType="Marc d'Esdeveniment"
-                  itemName={data!.itemName!}
-                  onConfirm={() => {
-                    if (data?.itemId) deleteEventFrame(data.itemId);
-                  }}
-                  showToast={showToast}
-                />;
+          onClose={closeModal}
+          itemType="Marc d'Esdeveniment"
+          itemName={data!.itemName!}
+          onConfirm={() => {
+            if (data?.itemId) deleteEventFrame(data.itemId);
+          }}
+          showToast={showToast}
+        />;
 
       case 'confirmDelete':
         return <ConfirmDeleteModal
-                  onClose={closeModal}
-                  itemType={data!.itemType!}
-                  itemName={data!.itemName!}
-                  onConfirm={data!.onConfirm!}
-                  showToast={showToast}
-                />;
-                
+          onClose={closeModal}
+          itemType={data!.itemType!}
+          itemName={data!.itemName!}
+          onConfirm={data!.onConfirm!}
+          showToast={showToast}
+        />;
+
       case 'confirmDeleteAssignment':
         return <ConfirmDeleteModal
-                  onClose={closeModal}
-                  itemType="Assignació"
-                  itemName={data!.itemName!}
-                  onConfirm={() => {
-                    if (data?.eventFrameId && data?.assignmentId) deleteAssignment(data.eventFrameId, data.assignmentId);
-                  }}
-                  showToast={showToast}
-                />;
-      
+          onClose={closeModal}
+          itemType="Assignació"
+          itemName={data!.itemName!}
+          onConfirm={() => {
+            if (data?.eventFrameId && data?.assignmentId) deleteAssignment(data.eventFrameId, data.assignmentId);
+          }}
+          showToast={showToast}
+        />;
+
       case 'googleSettings':
         return <GoogleSettingsModal onClose={closeModal} showToast={showToast} />;
       case 'createAppCalendar':
         return <CreateCalendarModal onClose={closeModal} showToast={showToast} />;
       case 'selectSyncCalendar':
         return <SelectSyncCalendarModal
-                  onClose={closeModal}
-                  onConfirm={data!.onConfirmSync!}
-                  managedCalendars={data!.managedCalendars!}
-                  activeCalendarId={data!.activeCalendarId!}
-                />;
+          onClose={closeModal}
+          onConfirm={data!.onConfirmSync!}
+          managedCalendars={data!.managedCalendars!}
+          activeCalendarId={data!.activeCalendarId!}
+        />;
       case 'mergeOrReplace':
         return (
           <MergeOrReplaceModal
@@ -889,24 +891,24 @@ const handleSaveDocument = async (): Promise<boolean> => {
         );
       case 'updateFromAssignments':
         return <UpdateFromAssignmentsModal
-                  onClose={closeModal}
-                  onConfirm={data!.onConfirm!}
-                  toAdd={data!.toAdd || []}
-                  toRemove={data!.toRemove || []}
-                  toUpdate={data!.toUpdate || []}
-                  getPersonGroupById={getPersonGroupById}
-                />;
+          onClose={closeModal}
+          onConfirm={data!.onConfirm!}
+          toAdd={data!.toAdd || []}
+          toRemove={data!.toRemove || []}
+          toUpdate={data!.toUpdate || []}
+          getPersonGroupById={getPersonGroupById}
+        />;
       case 'confirmDuplicate':
         return <ConfirmDuplicateModal
-                  onClose={closeModal}
-                  onConfirm={() => {
-                    if (data?.onConfirm) {
-                      (data.onConfirm as () => void)();
-                    }
-                    closeModal();
-                  }}
-                  message={data?.message || ''}
-                />;
+          onClose={closeModal}
+          onConfirm={() => {
+            if (data?.onConfirm) {
+              (data.onConfirm as () => void)();
+            }
+            closeModal();
+          }}
+          message={data?.message || ''}
+        />;
       case 'history':
         return <HistoryModal />;
       case 'googleEventDetails':
@@ -938,26 +940,26 @@ const handleSaveDocument = async (): Promise<boolean> => {
       return data.titleOverride;
     }
     switch (type) {
-      case 'googleEventDetails': return "Detalls de l'Esdeveniment de Google";
-      case 'addEventFrame': return "Afegir Nou Marc d'Esdeveniment";
-      case 'editEventFrame': return "Editar Marc d'Esdeveniment";
-      case 'addAssignment': return `Nova Assignació per a: ${data?.eventFrame?.name || ''}`;
-      case 'editAssignment': return `Editar Assignació per a: ${data?.eventFrame?.name || ''}`;
-      case 'addMaterialFromTechSheet': return "Afegir Material a l'Inventari";
-      case 'selectSyncCalendar': return "Seleccionar Calendari per Sincronitzar";
-      case 'createAppCalendar': return "Crear Nou Calendari de l'App";
-      case 'confirmDuplicate': return "Conflicte d'Assignació Detectat";
-      case 'confirmDataRepair': return "Reparació de Dades";
-      
-      case 'eventFrameDetails': return `Detalls de: ${data?.eventFrame?.name || ''}`;
+      case 'googleEventDetails': return t('modals.google_details.untitled_event');
+      case 'addEventFrame': return t('modals.event_form.title_new');
+      case 'editEventFrame': return t('modals.event_form.title_edit');
+      case 'addAssignment': return t('modals.assignment_form.title_new_with_name', { name: data?.eventFrame?.name || '' });
+      case 'editAssignment': return t('modals.assignment_form.title_edit_with_name', { name: data?.eventFrame?.name || '' });
+      case 'addMaterialFromTechSheet': return t('material.add_item_title');
+      case 'selectSyncCalendar': return t('modals.select_sync.title');
+      case 'createAppCalendar': return t('modals.create_calendar.title');
+      case 'confirmDuplicate': return t('modals.confirm_duplicate.confirm_button');
+      case 'confirmDataRepair': return t('common.confirm');
+
+      case 'eventFrameDetails': return t('main.frame');
       case 'confirmHardReset':
       case 'confirmDeleteEventFrame':
       case 'confirmDeleteAssignment':
       case 'confirmDelete':
-        return "Confirmar Eliminació";
-      case 'updateFromAssignments': return "Actualitzar Personal des d'Assignacions";
-      case 'about': return `Sobre ${appMetadata?.name || 'l\'Aplicació'}`;
-      default: return "Diàleg";
+        return t('common.confirm');
+      case 'updateFromAssignments': return t('tech_sheets.personnel.title');
+      case 'about': return t('about.title');
+      default: return t('common.dialog');
     }
   };
 
@@ -983,7 +985,7 @@ const handleSaveDocument = async (): Promise<boolean> => {
         return '2xl';
       case 'selectSyncCalendar':
       case 'createAppCalendar':
-          return 'xl';
+        return 'xl';
       case 'mergeOrReplace':
         return 'lg';
       default: return 'xl';
@@ -999,11 +1001,11 @@ const handleSaveDocument = async (): Promise<boolean> => {
   };
 
   return (
-      <HashRouter>
-        <ErrorBoundary>
-          <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
-            {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
-            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
+    <HashRouter>
+      <ErrorBoundary>
+        <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
+          {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
+          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
             <CustomMenuBar
               modifierKey={platformModifierKey}
               canUndo={canUndo}
@@ -1116,9 +1118,9 @@ const handleSaveDocument = async (): Promise<boolean> => {
               <p className="text-foreground text-lg">Actualitzant material a tota l'aplicació...</p>
             </div>
           )}
-          </div>
-        </ErrorBoundary>
-      </HashRouter>
+        </div>
+      </ErrorBoundary>
+    </HashRouter>
   );
 };
 

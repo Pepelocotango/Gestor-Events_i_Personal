@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   DndContext,
   closestCenter,
@@ -58,6 +59,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onConfirmUpdate,
   onDragEnd,
 }) => {
+  const { t } = useTranslation();
   const openModal = useModalStore(state => state.openModal);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -83,10 +85,10 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   );
 
   return (
-    <TechSheetSection title="Personal Tècnic"
+    <TechSheetSection title={t('tech_sheets.personnel.title')}
       layout="single-column"
       headerActions={
-        <Tooltip text="Afegeix personal confirmat de les assignacions a aquesta llista">
+        <Tooltip text={t('tech_sheets.personnel.update_tooltip')}>
           <button
             type="button"
             onClick={() => {
@@ -97,7 +99,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                     .filter(([, status]) => status === AssignmentStatus.Yes)
                     .map(([date]) => formatDateDMY(date));
                   if (confirmedDays.length > 0) {
-                    const daysString = `Dies: ${confirmedDays.join(', ')}`;
+                    const daysString = `${t('common.days')}: ${confirmedDays.join(', ')}`;
                     notes = notes ? `${notes}\n${daysString}` : daysString;
                   }
                 }
@@ -129,7 +131,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                 .filter((item: { newNotes: string; currentRole: { notes?: string } }) => item.newNotes !== item.currentRole.notes);
 
               if (toAdd.length === 0 && toRemove.length === 0 && toUpdate.length === 0) {
-                showToast('No hi ha canvis per aplicar des de les assignacions.', 'info');
+                showToast(t('tech_sheets.personnel.no_changes_toast'), 'info');
                 return;
               }
 
@@ -137,45 +139,45 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                 toAdd,
                 toRemove,
                 toUpdate,
-                getPersonGroupById: (id: string) => ({ id, name: peopleMap.get(id) || 'Desconegut' }),
+                getPersonGroupById: (id: string) => ({ id, name: peopleMap.get(id) || t('tech_sheets.personnel.unknown') }),
                 onConfirm: onConfirmUpdate,
               });
             }}
             className="ml-2 px-2 py-1 rounded text-xs font-medium shadow no-print bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            <span className="font-bold">⟳</span> <span className="hidden sm:inline">Actualitza des d'assignacions</span>
+            <span className="font-bold">⟳</span> <span className="hidden sm:inline">{t('tech_sheets.personnel.update_from_assignments')}</span>
           </button>
         </Tooltip>
       }
     >
-        <div className="col-span-full">
-            <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-muted-foreground">Notes Generals del Personal Tècnic</label>
-                <Tooltip text="Marca aquesta casella per incloure aquestes notes en exportar la fitxa a PDF.">
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="showTechnicalPersonnelNotesInPdf"
-                            name="showTechnicalPersonnelNotesInPdf"
-                            checked={formData.showTechnicalPersonnelNotesInPdf ?? true}
-                            onChange={(e) => onFieldChange('showTechnicalPersonnelNotesInPdf', e.target.checked)}
-                            className="h-4 w-4 rounded border-border accent-primary focus:ring-ring"
-                        />
-                        <label htmlFor="showTechnicalPersonnelNotesInPdf" className="text-sm font-medium text-muted-foreground">Imprimir al PDF</label>
-                    </div>
-                </Tooltip>
+      <div className="col-span-full">
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-sm font-medium text-muted-foreground">{t('tech_sheets.personnel.notes_label')}</label>
+          <Tooltip text={t('tech_sheets.personnel.print_tooltip')}>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="showTechnicalPersonnelNotesInPdf"
+                name="showTechnicalPersonnelNotesInPdf"
+                checked={formData.showTechnicalPersonnelNotesInPdf ?? true}
+                onChange={(e) => onFieldChange('showTechnicalPersonnelNotesInPdf', e.target.checked)}
+                className="h-4 w-4 rounded border-border accent-primary focus:ring-ring"
+              />
+              <label htmlFor="showTechnicalPersonnelNotesInPdf" className="text-sm font-medium text-muted-foreground">{t('tech_sheets.form.general.print_in_pdf')}</label>
             </div>
-            <TechSheetField
-                id="technicalPersonnelNotes"
-                label=""
-                value={formData.technicalPersonnelNotes || ''}
-                onChange={(e) => onFieldChange('technicalPersonnelNotes', e.target.value)}
-                as="textarea"
-                rows={3}
-                placeholder="Afegeix notes addicionals sobre el personal tècnic..."
-                tooltipText="Afegeix aquí qualsevol nota general o comentari rellevant per a tot el personal tècnic."
-            />
+          </Tooltip>
         </div>
+        <TechSheetField
+          id="technicalPersonnelNotes"
+          label=""
+          value={formData.technicalPersonnelNotes || ''}
+          onChange={(e) => onFieldChange('technicalPersonnelNotes', e.target.value)}
+          as="textarea"
+          rows={3}
+          placeholder={t('tech_sheets.personnel.notes_placeholder')}
+          tooltipText={t('tech_sheets.personnel.notes_tooltip')}
+        />
+      </div>
 
       <div className="col-span-full space-y-6 mt-6">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -201,8 +203,8 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
         </DndContext>
       </div>
       <div className="col-span-full mt-4 no-print">
-        <Tooltip text="Afegir un nou proveïdor de personal manualment">
-          <button type="button" onClick={onAddProvider} className="px-4 py-2 rounded-md text-sm font-semibold bg-success text-success-foreground hover:bg-success/90">+ Afegir Proveïdor de Personal</button>
+        <Tooltip text={t('tech_sheets.personnel.add_provider_tooltip')}>
+          <button type="button" onClick={onAddProvider} className="px-4 py-2 rounded-md text-sm font-semibold bg-success text-success-foreground hover:bg-success/90">{t('tech_sheets.personnel.add_provider')}</button>
         </Tooltip>
       </div>
     </TechSheetSection>
@@ -210,135 +212,137 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
 };
 
 interface ProviderCardProps {
-    provider: TechSheetProvider;
-    providerIndex: number;
-    peopleGroups: PersonGroup[];
-    assignmentsMap: Map<string, Assignment>;
-    onProviderChange: (providerIndex: number, personGroupId: string) => void;
-    onRoleChange: (providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => void;
-    onAddRole: (providerIndex: number) => void;
-    onRemoveRole: (providerIndex: number, roleIndex: number) => void;
-    onRemoveProvider: (providerIndex: number) => void;
-    dragHandle?: React.ReactNode;
+  provider: TechSheetProvider;
+  providerIndex: number;
+  peopleGroups: PersonGroup[];
+  assignmentsMap: Map<string, Assignment>;
+  onProviderChange: (providerIndex: number, personGroupId: string) => void;
+  onRoleChange: (providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => void;
+  onAddRole: (providerIndex: number) => void;
+  onRemoveRole: (providerIndex: number, roleIndex: number) => void;
+  onRemoveProvider: (providerIndex: number) => void;
+  dragHandle?: React.ReactNode;
 }
 
 const ProviderCard: React.FC<ProviderCardProps> = ({
-    provider,
-    providerIndex,
-    peopleGroups,
-    assignmentsMap,
-    onProviderChange,
-    onRoleChange,
-    onAddRole,
-    onRemoveRole,
-    onRemoveProvider,
-    dragHandle,
+  provider,
+  providerIndex,
+  peopleGroups,
+  assignmentsMap,
+  onProviderChange,
+  onRoleChange,
+  onAddRole,
+  onRemoveRole,
+  onRemoveProvider,
+  dragHandle,
 }) => {
-    const selectedPerson = peopleGroups.find(pg => pg.id === provider.personGroupId);
-    const { updateAssignment } = useEventDataStore.getState();
+  const { t } = useTranslation();
+  const selectedPerson = peopleGroups.find(pg => pg.id === provider.personGroupId);
+  const { updateAssignment } = useEventDataStore.getState();
 
-    const handleRoleChange = (roleIndex: number, newRole: string) => {
-        const roleItem = provider.roles[roleIndex];
-        // 1. Update local form state for immediate UI feedback
-        onRoleChange(providerIndex, roleIndex, 'role', newRole);
+  const handleRoleChange = (roleIndex: number, newRole: string) => {
+    const roleItem = provider.roles[roleIndex];
+    // 1. Update local form state for immediate UI feedback
+    onRoleChange(providerIndex, roleIndex, 'role', newRole);
 
-        // 2. If linked to an assignment, update the central store
-        if (roleItem.assignmentId) {
-            const assignment = assignmentsMap.get(roleItem.assignmentId);
-            if (assignment && assignment.role !== newRole) {
-                updateAssignment({ ...assignment, role: newRole });
-            }
-        }
-    };
+    // 2. If linked to an assignment, update the central store
+    if (roleItem.assignmentId) {
+      const assignment = assignmentsMap.get(roleItem.assignmentId);
+      if (assignment && assignment.role !== newRole) {
+        updateAssignment({ ...assignment, role: newRole });
+      }
+    }
+  };
 
-    return (
-        <div className="p-4 border border-border rounded-lg bg-muted/50 relative pl-8">
-            {dragHandle}
-            <div className="flex justify-between items-start mb-4">
-                <div className="flex-1 flex items-start gap-4">
-                    <div className="w-2/3">
-                        <label className="block text-sm font-medium text-muted-foreground">Proveïdor de Personal {providerIndex + 1}</label>
-                        <select
-                            value={provider.personGroupId}
-                            onChange={(e) => onProviderChange(providerIndex, e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        >
-                            <option value="" disabled>-- Selecciona un proveïdor --</option>
-                            {peopleGroups.map(pg => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
-                        </select>
-                    </div>
-                    <div className="w-1/3">
-                        <TechSheetField
-                            id={`provider-role-${providerIndex}`}
-                            label="Rol Base (Agenda)"
-                            value={selectedPerson?.role || '--'}
-                            onChange={() => {}}
-                            disabled
-                        />
-                    </div>
-                </div>
-                <Tooltip text="Eliminar aquest proveïdor i tots els seus rols associats">
-                    <button type="button" onClick={() => onRemoveProvider(providerIndex)} className="ml-4 text-destructive hover:text-destructive/80 font-bold">Eliminar Proveïdor</button>
-                </Tooltip>
-            </div>
-
-            <div className="space-y-3 pl-4 border-l-2 border-primary">
-                {provider.roles.length > 0 && (
-                    <div className="flex items-center gap-4 w-full text-xs font-semibold text-muted-foreground -mb-2">
-                        <div className="w-1/12">Quant.</div>
-                        <div className="w-4/12">Rol</div>
-                        <div className="w-5/12">Notes assignació</div>
-                        <div className="w-1/12 text-center">PDF</div>
-                        <div className="w-1/12 flex-shrink-0"></div>
-                    </div>
-                )}
-
-                {provider.roles.map((roleItem, roleIndex) => {
-                    const assignment = roleItem.assignmentId ? assignmentsMap.get(roleItem.assignmentId) : undefined;
-                    const displayRole = assignment?.role ?? roleItem.role;
-
-                    return (
-                        <div key={roleItem.id} className="flex items-start gap-4 w-full">
-                            <div className="w-1/12">
-                                <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="" type="number" value={roleItem.quantity} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} />
-                            </div>
-                            <div className="w-4/12">
-                                <TechSheetField
-                                    id={`role-${providerIndex}-${roleIndex}`}
-                                    label=""
-                                    value={displayRole}
-                                    onChange={(e) => handleRoleChange(roleIndex, e.target.value)}
-                                    suggestions={TECH_SHEET_ROLE_SUGGESTIONS}
-                                    tooltipText="Defineix el rol tècnic específic per a aquesta tasca. ⚠️ ATENCIÓ: Aquest camp està vinculat. Si el modifiques aquí, s'actualitzarà automàticament a l'assignació principal de la llista d'esdeveniments."
-                                />
-                            </div>
-                            <div className="w-5/12">
-                                <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="" value={roleItem.notes || ''} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} as="textarea" rows={1} />
-                            </div>
-                            <div className="w-1/12 flex flex-col items-center pt-2">
-                                <Tooltip text="Incloure aquestes notes al PDF">
-                                    <input
-                                        type="checkbox"
-                                        checked={roleItem.printNotes ?? true}
-                                        onChange={(e) => onRoleChange(providerIndex, roleIndex, 'printNotes', e.target.checked)}
-                                        className="h-5 w-5 rounded border-border accent-primary focus:ring-ring"
-                                    />
-                                </Tooltip>
-                            </div>
-                            <div className="w-1/12 flex-shrink-0 pt-2">
-                                <Tooltip text="Eliminar aquest rol">
-                                    <button type="button" onClick={() => onRemoveRole(providerIndex, roleIndex)} className="text-destructive hover:bg-destructive/10 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
-                                </Tooltip>
-                            </div>
-                        </div>
-                    );
-                })}
-                <Tooltip text="Afegir un nou rol per a aquest proveïdor">
-                    <button type="button" onClick={() => onAddRole(providerIndex)} className="px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90">+ Afegir Rol</button>
-                </Tooltip>
-            </div>
+  return (
+    <div className="p-4 border border-border rounded-lg bg-muted/50 relative pl-8">
+      {dragHandle}
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex-1 flex items-start gap-4">
+          <div className="w-2/3">
+            <label className="block text-sm font-medium text-muted-foreground">{t('tech_sheets.personnel.provider_label', { index: providerIndex + 1 })}</label>
+            <select
+              value={provider.personGroupId}
+              onChange={(e) => onProviderChange(providerIndex, e.target.value)}
+              className="mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="" disabled>{t('tech_sheets.personnel.select_placeholder')}</option>
+              {peopleGroups.map(pg => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
+            </select>
+          </div>
+          <div className="w-1/3">
+            <TechSheetField
+              id={`provider-role-${providerIndex}`}
+              label={t('tech_sheets.personnel.base_role_label')}
+              value={selectedPerson?.role || '--'}
+              onChange={() => { }}
+              disabled
+            />
+          </div>
         </div>
-    );
+        <Tooltip text={t('tech_sheets.personnel.delete_provider_tooltip')}>
+          <button type="button" onClick={() => onRemoveProvider(providerIndex)} className="ml-4 text-destructive hover:text-destructive/80 font-bold">{t('tech_sheets.personnel.delete_provider')}</button>
+        </Tooltip>
+      </div>
+
+      <div className="space-y-3 pl-4 border-l-2 border-primary">
+        {provider.roles.length > 0 && (
+          <div className="flex items-center gap-4 w-full text-xs font-semibold text-muted-foreground -mb-2">
+            <div className="w-1/12">{t('tech_sheets.personnel.header_qty')}</div>
+            <div className="w-4/12">{t('tech_sheets.personnel.header_role')}</div>
+            <div className="w-5/12">{t('tech_sheets.personnel.header_notes')}</div>
+            <div className="w-1/12 text-center">{t('tech_sheets.personnel.header_pdf')}</div>
+            <div className="w-1/12 flex-shrink-0"></div>
+          </div>
+        )}
+
+        {provider.roles.map((roleItem, roleIndex) => {
+          const assignment = roleItem.assignmentId ? assignmentsMap.get(roleItem.assignmentId) : undefined;
+          const displayRole = assignment?.role ?? roleItem.role;
+
+          return (
+            <div key={roleItem.id} className="flex items-start gap-4 w-full">
+              <div className="w-1/12">
+                <TechSheetField id={`quantity-${providerIndex}-${roleIndex}`} label="" type="number" value={roleItem.quantity} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'quantity', e.target.value)} />
+              </div>
+              <div className="w-4/12">
+                <TechSheetField
+                  id={`role-${providerIndex}-${roleIndex}`}
+                  label=""
+                  value={displayRole}
+                  onChange={(e) => handleRoleChange(roleIndex, e.target.value)}
+                  suggestions={TECH_SHEET_ROLE_SUGGESTIONS}
+                  tooltipText={t('tech_sheets.personnel.role_tooltip')}
+                />
+              </div>
+              <div className="w-5/12">
+                <TechSheetField id={`notes-${providerIndex}-${roleIndex}`} label="" value={roleItem.notes || ''} onChange={(e) => onRoleChange(providerIndex, roleIndex, 'notes', e.target.value)} as="textarea" rows={1} />
+              </div>
+              <div className="w-1/12 flex flex-col items-center pt-2">
+                <Tooltip text={t('tech_sheets.personnel.print_role_tooltip')}>
+                  <input
+                    type="checkbox"
+                    checked={roleItem.printNotes ?? true}
+                    onChange={(e) => onRoleChange(providerIndex, roleIndex, 'printNotes', e.target.checked)}
+                    className="h-5 w-5 rounded border-border accent-primary focus:ring-ring"
+                  />
+                </Tooltip>
+              </div>
+              <div className="w-1/12 flex-shrink-0 pt-2">
+                <Tooltip text={t('tech_sheets.personnel.remove_role_tooltip')}>
+                  <button type="button" onClick={() => onRemoveRole(providerIndex, roleIndex)} className="text-destructive hover:bg-destructive/10 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold no-print">×</button>
+                </Tooltip>
+              </div>
+            </div>
+          );
+        })}
+        <Tooltip text={t('tech_sheets.personnel.add_role_tooltip')}>
+          <button type="button" onClick={() => onAddRole(providerIndex)} className="px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90">{t('tech_sheets.personnel.add_role')}</button>
+        </Tooltip>
+      </div>
+    </div>
+  );
 };
 
 export default TechnicalPersonnelSection;
+

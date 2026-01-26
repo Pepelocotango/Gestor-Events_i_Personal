@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import logger from '../../utils/logger';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
@@ -17,12 +18,13 @@ interface EventFrameDetailsModalProps extends CommonFormProps {
 }
 
 export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ onClose, eventFrame }) => {
+  const { t } = useTranslation();
   const { peopleGroups } = useEventDataStore.getState();
   const { openModal } = useModalStore.getState();
 
   const handleDeleteClick = () => {
     openModal('confirmDeleteEventFrame', {
-      itemType: "Marc d'Esdeveniment",
+      itemType: t('event.item_type'),
       itemName: eventFrame.name,
       itemId: eventFrame.id,
     });
@@ -43,7 +45,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
   const getGroupedDatesByStatus = (assignment: Assignment) => {
     if (!assignment.dailyStatuses) return {};
     const grouped: Record<string, string[]> = {};
-    
+
     Object.entries(assignment.dailyStatuses).forEach(([date, status]) => {
       if (!grouped[status]) grouped[status] = [];
       grouped[status].push(date);
@@ -64,13 +66,13 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
       </div>
       {eventFrame.generalNotes && (
         <div>
-          <h5 className="font-semibold text-foreground">Notes Generals:</h5>
+          <h5 className="font-semibold text-foreground">{t('modals.event_details.general_notes_label')}</h5>
           <p className="text-sm text-foreground whitespace-pre-wrap p-2 bg-muted rounded">{eventFrame.generalNotes}</p>
         </div>
       )}
 
       <div>
-        <h5 className="font-semibold text-foreground">Assignacions ({eventFrame.assignments.length}):</h5>
+        <h5 className="font-semibold text-foreground">{t('modals.event_details.assignments_label', { count: eventFrame.assignments.length })}</h5>
         {eventFrame.assignments.length > 0 ? (
           <ul className="space-y-2 pl-1 text-sm max-h-60 overflow-y-auto">
             {[...eventFrame.assignments]
@@ -78,8 +80,8 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
               .map(assign => {
                 const person = peopleGroups.find(p => p.id === assign.personGroupId);
                 const personName = person?.name || 'N/A';
-                const dateRange = assign.startDate === assign.endDate 
-                  ? formatDateDMY(assign.startDate) 
+                const dateRange = assign.startDate === assign.endDate
+                  ? formatDateDMY(assign.startDate)
                   : formatDateRangeDMY(assign.startDate, assign.endDate);
 
                 // Lògica de renderitzat segons si és Mixt o no
@@ -92,7 +94,7 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
                     <li key={assign.id} className="text-muted-foreground border-b border-border/50 pb-2 last:border-0">
                       <div className="font-medium text-foreground">
                         {personName}
-                        {assign.role && <span className="italic text-muted-foreground font-normal"> - {assign.role}</span>}: <span className="text-xs font-normal text-muted-foreground">{dateRange}</span> <span className={`${getStatusColorClass(AssignmentStatus.Mixed)} font-bold`}>Mixt:</span>
+                        {assign.role && <span className="italic text-muted-foreground font-normal"> - {assign.role}</span>}: <span className="text-xs font-normal text-muted-foreground">{dateRange}</span> <span className={`${getStatusColorClass(AssignmentStatus.Mixed)} font-bold`}>{t('common.status.mixed')}:</span>
                       </div>
                       <ul className="pl-4 mt-1 space-y-0.5">
                         {statusOrder.map(status => {
@@ -100,34 +102,34 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
                           if (dates && dates.length > 0) {
                             return (
                               <li key={status} className="text-xs">
-                                <span className="text-muted-foreground">[{formatDateRanges(dates)}]</span> <span className={`${getStatusColorClass(status)} font-bold uppercase`}>{status}</span>
+                                <span className="text-muted-foreground">[{formatDateRanges(dates)}]</span> <span className={`${getStatusColorClass(status)} font-bold uppercase`}>{t(`common.status.${status.toLowerCase()}` as any)}</span>
                               </li>
                             );
                           }
                           return null;
                         })}
                       </ul>
-                      {assign.notes && <div className="text-xs italic pl-4 text-muted-foreground mt-1">Nota: {assign.notes}</div>}
+                      {assign.notes && <div className="text-xs italic pl-4 text-muted-foreground mt-1">{t('modals.event_details.assignment_note')}{assign.notes}</div>}
                     </li>
                   );
                 } else {
                   // Cas estàndard (Sí, No, Pendent)
                   return (
                     <li key={assign.id} className="text-muted-foreground py-1 border-b border-border/50 last:border-0">
-                      <span className="font-medium text-foreground">{personName}{assign.role && <span className="italic text-muted-foreground font-normal"> - {assign.role}</span>}</span>: <span className="text-xs text-muted-foreground">{dateRange}</span> <span className={`${getStatusColorClass(assign.status)} font-bold`}>{assign.status}</span>
-                      {assign.notes && <div className="text-xs italic pl-4 text-muted-foreground mt-0.5">Nota: {assign.notes}</div>}
+                      <span className="font-medium text-foreground">{personName}{assign.role && <span className="italic text-muted-foreground font-normal"> - {assign.role}</span>}</span>: <span className="text-xs text-muted-foreground">{dateRange}</span> <span className={`${getStatusColorClass(assign.status)} font-bold`}>{t(`common.status.${assign.status.toLowerCase()}` as any)}</span>
+                      {assign.notes && <div className="text-xs italic pl-4 text-muted-foreground mt-0.5">{t('modals.event_details.assignment_note')}{assign.notes}</div>}
                     </li>
                   );
                 }
-            })}
+              })}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">No hi ha assignacions per aquest esdeveniment.</p>
+          <p className="text-sm text-muted-foreground">{t('modals.event_details.no_assignments')}</p>
         )}
       </div>
-      
+
       <div className="flex justify-between items-center pt-4 mt-4 border-t border-border">
-        <Tooltip text="Ressaltar aquest marc a la llista principal">
+        <Tooltip text={t('modals.event_details.show_in_list_tooltip')}>
           <button
             onClick={() => {
               logger.info(`[EventFrameDetailsModal] "Mostrar a la Llista" clicked for EventFrame ID: ${eventFrame.id}. Calling showAndHighlightEvent...`);
@@ -135,32 +137,32 @@ export const EventFrameDetailsModal: React.FC<EventFrameDetailsModalProps> = ({ 
             }}
             className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-50"
           >
-            Mostrar a la Llista
+            {t('modals.event_details.show_in_list_button')}
           </button>
         </Tooltip>
         <div className="space-x-2">
-          <Tooltip text="Obrir el formulari per editar els detalls d'aquest marc">
+          <Tooltip text={t('modals.event_details.edit_frame_tooltip')}>
             <button
-                onClick={() => openModal('editEventFrame', { eventFrameToEdit: eventFrame })}
+              onClick={() => openModal('editEventFrame', { eventFrameToEdit: eventFrame })}
               className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-50"
             >
-              Editar Marc
+              {t('modals.event_details.edit_frame_button')}
             </button>
           </Tooltip>
-          <Tooltip text="Eliminar aquest marc d'esdeveniment i totes les seves assignacions">
+          <Tooltip text={t('modals.event_details.delete_frame_tooltip')}>
             <button
               onClick={handleDeleteClick}
               className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-50"
             >
-              Eliminar Marc
+              {t('modals.event_details.delete_frame_button')}
             </button>
           </Tooltip>
-          <Tooltip text="Tancar aquesta finestra de detalls">
+          <Tooltip text={t('modals.event_details.close_tooltip')}>
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-50"
             >
-              Tancar
+              {t('modals.event_details.close_button')}
             </button>
           </Tooltip>
         </div>

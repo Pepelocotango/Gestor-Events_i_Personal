@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import { startGoogleAuthFlow } from '../stores/googleConfigStore';
@@ -12,6 +13,7 @@ interface ControlsProps {
 }
 
 const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
+  const { t } = useTranslation();
   const { syncWithGoogle } = useEventDataStore.getState();
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const { openModal } = useModalStore.getState();
@@ -22,7 +24,7 @@ const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
 
   return (
     <div className="bg-card text-card-foreground rounded-lg w-full p-2">
-      <Tooltip text={isExpanded ? "Col·lapsar controls" : "Expandir controls"}>
+      <Tooltip text={isExpanded ? t('controls.collapse_tooltip') : t('controls.expand_tooltip')}>
         <div
           onClick={toggleExpansion}
           onKeyDown={(e) => {
@@ -37,9 +39,9 @@ const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
         >
           {/* Aquest div atura la propagació de l'esdeveniment onMouseEnter per evitar que es mostrin dos tooltips alhora */}
           <div onMouseEnter={(e) => e.stopPropagation()}>
-            <Tooltip text={currentFilePath || 'Cap fitxer carregat'}>
+            <Tooltip text={currentFilePath || t('controls.no_file_loaded')}>
               <div className="text-xs text-muted-foreground truncate">
-                Fitxer de dades: <strong>{currentFilePath || 'Document nou sense desar'}</strong>
+                {t('controls.data_file_label')} <strong>{currentFilePath || t('controls.new_document_unsaved')}</strong>
               </div>
             </Tooltip>
           </div>
@@ -54,7 +56,7 @@ const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
         <div className="pt-2 mt-2 border-t border-border flex flex-col gap-1">
           <div className="flex items-center justify-end w-full">
             <div className="border border-border rounded-lg p-1 flex items-center gap-0.5">
-              <Tooltip text="Sincronitzar manualment amb Google Calendar">
+              <Tooltip text={t('controls.sync_google_tooltip')}>
                 <button
                   onClick={syncWithGoogle}
                   disabled={isSyncing}
@@ -66,28 +68,28 @@ const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span>Sincronitzant...</span>
+                      <span>{t('controls.syncing')}</span>
                     </>
                   ) : (
                     <>
                       <CloudArrowUpIcon />
-                      <span>Sincronitzar</span>
+                      <span>{t('controls.sync_button')}</span>
                     </>
                   )}
                 </button>
               </Tooltip>
-              <Tooltip text="Configurar la connexió amb Google">
+              <Tooltip text={t('controls.config_google_tooltip')}>
                 <button onClick={() => openModal('googleSettings')} className="flex items-center justify-center gap-1 bg-secondary hover:bg-accent text-secondary-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm">
-                    <GoogleIcon /> Configurar
+                  <GoogleIcon /> {t('controls.config_button')}
                 </button>
               </Tooltip>
-              <Tooltip text="Connectar amb Google Calendar">
+              <Tooltip text={t('controls.connect_google_tooltip')}>
                 <button
-                    onClick={startGoogleAuthFlow}
-                    className="flex items-center justify-center gap-1 bg-background hover:bg-accent text-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm border border-border"
+                  onClick={startGoogleAuthFlow}
+                  className="flex items-center justify-center gap-1 bg-background hover:bg-accent text-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm border border-border"
                 >
-                    <GoogleIcon />
-                    <span>Connectar Google</span>
+                  <GoogleIcon />
+                  <span>{t('controls.connect_google_button')}</span>
                 </button>
               </Tooltip>
             </div>

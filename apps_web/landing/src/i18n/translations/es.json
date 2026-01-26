@@ -1,0 +1,64 @@
+{
+  "navigation": {
+    "home": "Inicio",
+    "features": "Funcionalidades",
+    "download": "Descargas",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "title": "Gestor de Eventos y Personal",
+    "subtitle": "Herramienta integral para la gestión de personal y material en eventos",
+    "description": "Organiza tus eventos, asigna personal, gestiona material y controla todo desde una única aplicación.",
+    "cta_primary": "Descargar para Escritorio",
+    "cta_secondary": "Descargar para Móvil"
+  },
+  "features": {
+    "title": "Funcionalidades Principales",
+    "calendar_management": {
+      "title": "Gestión de Calendario",
+      "description": "Vista de calendario interactiva con gestión completa de eventos y asignaciones."
+    },
+    "personnel_management": {
+      "title": "Gestión de Personal",
+      "description": "Base de datos de contactos con roles, teléfonos e información de contacto."
+    },
+    "material_inventory": {
+      "title": "Inventario de Material",
+      "description": "Control completo de inventario con categorías, ubicaciones y gestión de stock."
+    },
+    "technical_sheets": {
+      "title": "Fichas Técnicas",
+      "description": "Fichas técnicas detalladas para cada evento con toda la información necesaria."
+    },
+    "export_import": {
+      "title": "Importar/Exportar",
+      "description": "Importación y exportación de datos en múltiples formatos (JSON, PDF, CSV)."
+    },
+    "google_sync": {
+      "title": "Sincronización Google",
+      "description": "Sincronización automática con Google Calendar para una gestión integrada."
+    }
+  },
+  "download": {
+    "title": "Descargas",
+    "desktop_title": "Aplicación de Escritorio",
+    "desktop_description": "Versión completa con todas las funcionalidades para Windows, macOS y Linux.",
+    "mobile_title": "Aplicación Móvil",
+    "mobile_description": "Versión móvil para Android y iOS con gestión básica de eventos.",
+    "download_desktop": "Descargar para Escritorio",
+    "download_mobile": "Descargar para Móvil",
+    "requirements": "Requisitos",
+    "windows": "Windows 10 o superior",
+    "macos": "macOS 10.14 o superior",
+    "linux": "Linux (Ubuntu 18.04 o superior)",
+    "android": "Android 8.0 o superior",
+    "ios": "iOS 13.0 o superior"
+  },
+  "footer": {
+    "collaborate_title": "¿Quieres colaborar en el proyecto?",
+    "collaborate_description": "Este es un proyecto de código abierto bajo licencia GPL v3.0. Te animamos a contribuir o enviarnos tus sugerencias.",
+    "view_github": "Ver en GitHub",
+    "view_features": "Ver funcionalidades",
+    "copyright": "© 2024 Gestor de Eventos y Personal. Todos los derechos reservados."
+  }
+}
