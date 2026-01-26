@@ -318,6 +318,15 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
             <div className="mb-2 flex items-center gap-2">
               <span className="text-muted-foreground">
                 <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline align-middle"><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" /></svg>
+              </span>
+              <input
+                type="text"
+                placeholder={t('people.search_placeholder')}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="ml-2 px-2 py-1 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium">{t('people.sort_by')}</span>
               <Tooltip text={t('people.sort_name_tooltip')}>
