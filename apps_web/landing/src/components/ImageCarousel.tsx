@@ -73,7 +73,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
 
   if (!isClient || !filteredImages.length) {
     return <div className="h-96 bg-gray-100 rounded-xl flex items-center justify-center">
-      <p>Carregant imatges...</p>
+      <p>{t('carousel.loading_images')}</p>
     </div>;
   }
 
@@ -100,7 +100,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 18a6 6 0 100-12 6 6 0 000 12zM12 1v6m0 6v6m4.22-15.22l-4.24 4.24m-5.96 5.96l-4.24 4.24M1 12h6m6 0h6m-15.22 4.22l4.24-4.24m5.96-5.96l4.24-4.24" />
           </svg>
-          Tema clar
+          {t('carousel.light_mode')}
         </button>
         <button
           onClick={() => setViewMode('dark')}
@@ -115,7 +115,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M21.64 15.95a.75.75 0 00-1.08-.02A7.041 7.041 0 0112 20.25a7.04 7.04 0 01-8.36-10.635.75.75 0 00-1.088.088A8.461 8.461 0 1021.64 15.95z" />
           </svg>
-          Tema fosc
+          {t('carousel.dark_mode')}
         </button>
       </div>
 

@@ -66,8 +66,8 @@ export default function ProductTour({ sections }: ProductTourProps) {
   const tourSections = Array.isArray(sections) ? sections : [];
   const currentSection = tourSections[activeSection] || (tourSections[0] || {
     id: 'fallback',
-    title: t('tour.loading', 'Carregant...'),
-    description: t('tour.loading_description', 'Si us plau, espera...'),
+    title: t('tour.loading'),
+    description: t('tour.loading_description'),
     features: [],
     icon: 'HomeIcon',
     image: 'desktop-dashboard.png'
@@ -84,9 +84,9 @@ export default function ProductTour({ sections }: ProductTourProps) {
           <span className="inline-block px-4 py-1.5 text-sm font-medium text-cyan-400 bg-cyan-900/30 rounded-full mb-4">
             {t('navigation.product_tour')}
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{t('tour.title', 'Tour Interactiu de Funcionalitats')}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{t('tour.title')}</h2>
           <p className="text-lg text-gray-400">
-            {t('tour.description', 'Descobreix les principals funcions de la nostra aplicació i com pot transformar la teva gestió d\'esdeveniments.')}
+            {t('tour.description')}
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export default function ProductTour({ sections }: ProductTourProps) {
 
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-cyan-400 mb-3 uppercase tracking-wider">
-                    {t('tour.features', 'Funcionalitats principals')}
+                    {t('tour.features')}
                   </h4>
                   <ul className="space-y-2">
                     {currentSection.features.map((feature, idx) => (
@@ -228,7 +228,7 @@ export default function ProductTour({ sections }: ProductTourProps) {
                     <p className="text-gray-300 text-sm">{section.description}</p>
                     <div>
                       <h4 className="text-xs font-semibold text-cyan-400 mb-2 uppercase tracking-wider">
-                        {t('tour.features', 'Funcionalitats principals')}
+                        {t('tour.features')}
                       </h4>
                       <ul className="space-y-1.5">
                         {section.features.map((feature, idx) => (

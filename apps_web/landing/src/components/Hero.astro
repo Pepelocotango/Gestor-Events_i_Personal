@@ -1,5 +1,32 @@
 ---
 // Hero.astro - Modern Hero Section with Gradient Text and App Preview
+interface Props {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  ctaPrimary?: string;
+  ctaSecondary?: string;
+  freeDownload?: string;
+  moreInfo?: string;
+  openSourceFree?: string;
+  platformSupport?: string;
+  discoverMore?: string;
+  scrollDownAriaLabel?: string;
+  loadingAnimation?: string;
+}
+
+const {
+  title,
+  subtitle,
+  description,
+  ctaPrimary,
+  ctaSecondary,
+  openSourceFree,
+  platformSupport,
+  discoverMore,
+  scrollDownAriaLabel,
+  loadingAnimation
+} = Astro.props;
 ---
 
 <section id="home" class="relative pt-8 pb-12 md:pt-12 md:pb-20">
@@ -14,7 +41,7 @@
     <div class="w-full text-center mb-12 lg:mb-16">
       <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
         <span class="bg-gradient-to-r from-white to-gray-100 bg-clip-text text-transparent">
-          Gestor d'Esdeveniments
+          {title}
         </span>
       </h1>
     </div>
@@ -25,7 +52,7 @@
         
         {/* Description */}
         <p class="text-lg md:text-xl text-gray-300 mb-8 max-w-xl mx-auto lg:mx-0">
-          L'eina definitiva per a la gestió professional d'esdeveniments, personal i material. Gestiona tots els teus bolos des d'una interfície intuïtiva i potent.
+          {description}
         </p>
         
         {/* CTA Buttons */}
@@ -37,7 +64,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Descarrega gratuïta
+            {ctaPrimary}
           </a>
           <a 
             href="#features" 
@@ -46,7 +73,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Més informació
+            {ctaSecondary}
           </a>
         </div>
         
@@ -56,14 +83,14 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            Codi obert i gratuït
+            {openSourceFree}
           </div>
           <div class="hidden sm:block w-px h-5 bg-gray-700"></div>
           <div class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            Per a Windows, macOS i Linux. Versió adaptada per a Android.
+            {platformSupport}
           </div>
         </div>
       </div>
@@ -95,7 +122,7 @@
                 
                 <!-- Animation container -->
                 <div class="relative w-full h-full">
-                  <div id="splash-container" class="absolute inset-0">
+                  <div id="splash-container" class="absolute inset-0" data-alt-text={loadingAnimation}>
                     <!-- El component React es muntarà aquí -->
                   </div>
                 </div>
@@ -118,7 +145,8 @@
                 const root = createRoot(container);
                 
                 // Renderitzem el component
-                root.render(React.createElement(AnimatedSplash));
+                const altText = container.dataset.altText;
+                root.render(React.createElement(AnimatedSplash, { altText }));
               })();
             </script>
           </div>
@@ -131,6 +159,10 @@
         {/* Floating elements */}
         <div class="hidden lg:block absolute -top-16 -right-16 w-64 h-64 bg-brand-500/10 rounded-full filter blur-3xl -z-10"></div>
         <div class="hidden lg:block absolute bottom-0 right-0 w-80 h-80 bg-cyan-500/10 rounded-full filter blur-3xl -z-10"></div>
+
+        {/* Blob background elements from original */}
+        <div class="absolute -bottom-4 -right-4 w-32 h-32 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div class="absolute -top-4 -left-4 w-40 h-40 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
       </div>
     </div>
   </div>
@@ -140,9 +172,9 @@
     <a 
       href="#features" 
       class="flex flex-col items-center text-gray-400 hover:text-white transition-colors group"
-      aria-label="Desplaça't cap avall"
+      aria-label={scrollDownAriaLabel}
     >
-      <span class="text-sm mb-2">Descobreix més</span>
+      <span class="text-sm mb-2">{discoverMore}</span>
       <svg class="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
       </svg>
@@ -203,11 +235,3 @@
     background: #475569;
   }
 </style>
-          </div>
-        </div>
-        <div class="absolute -bottom-4 -right-4 w-32 h-32 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div class="absolute -top-4 -left-4 w-40 h-40 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-      </div>
-    </div>
-  </div>
-</section>

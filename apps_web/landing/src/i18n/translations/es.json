@@ -5,14 +5,25 @@
     "product_tour": "Descubre la interfaz",
     "gallery": "Galería",
     "download": "Descargas",
-    "contact": "Contacto"
+    "contact": "Contacto",
+    "menu": "Menú",
+    "logo_text": "Gestor de Eventos"
   },
   "hero": {
     "title": "Gestor de Eventos y Personal",
     "subtitle": "Herramienta integral para la gestión de personal y material en eventos",
-    "description": "Organiza tus eventos, asigna personal, gestiona material y controla todo desde una única aplicación.",
-    "cta_primary": "Descargar para Escritorio",
-    "cta_secondary": "Descargar para Móvil"
+    "description": "La herramienta definitiva para la gestión profesional de eventos, personal y material. Gestiona todos tus bolos desde una interfaz intuitiva y potente.",
+    "cta_primary": "Descarga gratuita",
+    "cta_secondary": "Más información",
+    "scroll_down": "Desplazarse hacia abajo",
+    "open_source_free": "Código abierto y gratuito",
+    "platform_support": "Para Windows, macOS y Linux. Versión adaptada para Android.",
+    "discover_more": "Descubre más",
+    "loading_animation": "Animación de carga"
+  },
+  "site": {
+    "title": "Gestor de Eventos y Personal",
+    "description": "La herramienta definitiva para la gestión profesional de eventos y personal"
   },
   "features": {
     "title": "Funcionalidades Principales",
@@ -39,6 +50,16 @@
     "google_sync": {
       "title": "Sincronización Google",
       "description": "Sincronización automática con Google Calendar para una gestión integrada."
+    },
+    "open_source": {
+      "title": "Código Abierto y Gratuito",
+      "description": "Licencia GPLv3. Sin suscripciones, sin anuncios y sin costes ocultos. Incluye aplicación de escritorio y versión móvil complementaria."
+    },
+    "cta": {
+      "title": "¿Preparado para mejorar tu gestión de eventos?",
+      "description": "Descubre cómo el Gestor de Eventos y Personal puede simplificar tu flujo de trabajo y ahorrarte horas de trabajo.",
+      "button_start": "Empezar ahora",
+      "button_github": "Ver en GitHub"
     }
   },
   "download": {
@@ -46,7 +67,7 @@
     "desktop_title": "Aplicación de Escritorio",
     "desktop_description": "Versión completa con todas las funcionalidades para Windows, macOS y Linux.",
     "mobile_title": "Aplicación Móvil",
-    "mobile_description": "Versión móvil para Android y iOS con gestión básica de eventos.",
+    "mobile_description": "Versión móvil para Android e iOS con gestión básica de eventos.",
     "download_desktop": "Descargar para Escritorio",
     "download_mobile": "Descargar para Móvil",
     "requirements": "Requisitos",
@@ -54,7 +75,61 @@
     "macos": "macOS 10.14 o superior",
     "linux": "Linux (Ubuntu 18.04 o superior)",
     "android": "Android 8.0 o superior",
-    "ios": "iOS 13.0 o superior"
+    "installation_instructions": "Instrucciones de instalación",
+    "windows_setup": {
+      "title": "Windows",
+      "available_versions": "Disponible en dos versiones:",
+      "installer_title": "Instalador (.exe):",
+      "installer_desc": "Recomendado para la mayoría de usuarios. Ejecuta el archivo de instalación y sigue las instrucciones.",
+      "portable_title": "Portable (.exe):",
+      "portable_desc": "No requiere instalación. Ejecuta directamente desde un USB o carpeta.",
+      "security_note": "Nota: La aplicación no está firmada digitalmente. Si Windows muestra un aviso, haz clic en \"Más información\" y después en \"Ejecutar de todas formas\"."
+    },
+    "macos_setup": {
+      "title": "macOS",
+      "available_versions": "Disponible en formato .dmg para versiones modernas de macOS:",
+      "step_1": "Descarga el archivo .dmg de la última versión",
+      "step_2": "Haz doble clic en el archivo descargado para montar la imagen de disco",
+      "step_3": "Arrastra la aplicación a la carpeta de Aplicaciones",
+      "step_4": "Para abrir la aplicación por primera vez, haz clic derecho sobre la aplicación y selecciona \"Abrir\" en el menú contextual",
+      "step_5": "Confirma que quieres abrir la aplicación cuando aparezca la ventana de advertencia",
+      "security_title": "Importante sobre seguridad en macOS:",
+      "security_description": "Como la aplicación no está firmada con un certificado de desarrollador de Apple, podrías ver un mensaje diciendo que no se puede abrir. Aquí tienes cómo resolverlo:",
+      "standard_method": "Método estándar (funciona en la mayoría de casos):",
+      "standard_step_1": "Haz clic derecho (o Control+clic) en la aplicación",
+      "standard_step_2": "Selecciona \"Abrir\" en el menú contextual",
+      "standard_step_3": "En el cuadro de diálogo, haz clic en \"Abrir\"",
+      "advanced_method": "Si el método anterior no funciona (macOS Sequoia 15+ o error \"Está dañada\"):",
+      "option_a": "Opción A (Configuración): Ve a Configuración del Sistema > Privacidad y Seguridad, baja hasta el final y pulsa \"Abrir de todas formas\".",
+      "option_b": "Opción B (Terminal): Si dice que la app está dañada, abre la Terminal y ejecuta:",
+      "terminal_command_desc": "xattr -cr /Applications/GestorEsdevenimentsPersonal.app",
+      "first_time_only": "Solo tendrás que hacer esto la primera vez que abras la aplicación. A partir de entonces, podrás abrirla normalmente con un doble clic."
+    },
+    "linux_setup": {
+      "title": "Linux",
+      "step_1": "Descarga el archivo .AppImage",
+      "step_2": "Hazlo ejecutable con: chmod +x GestorEsdeveniments-*.AppImage",
+      "step_3": "Ejecútalo haciendo doble clic o desde la terminal",
+      "fuse_note_prefix": "Nota: En sistemas como Ubuntu 22.04+ puede ser necesario instalar antes: ",
+      "fuse_note_command": "sudo apt-get install libfuse2"
+    },
+    "other_versions": {
+      "title": "¿Necesitas otra versión?",
+      "description": "Visita nuestra página de versiones para descargar versiones anteriores u otras variantes de la plataforma.",
+      "button": "Ver todas las versiones"
+    },
+    "requirements_section": {
+      "title": "Requisitos del sistema",
+      "minimum": "Mínimos",
+      "recommended": "Recomendados",
+      "cpu_min": "Procesador de doble núcleo a 2 GHz o superior",
+      "ram_min": "4 GB de RAM",
+      "disk_min": "200 MB de espacio libre en disco",
+      "cpu_rec": "Procesador de 4 núcleos a 2,5 GHz o superior",
+      "ram_rec": "8 GB de RAM o más",
+      "disk_rec": "SSD con 500 MB de espacio libre"
+    },
+    "source_code_github": "Código fuente en GitHub"
   },
   "footer": {
     "title": "Gestor de Eventos y Personal",
@@ -183,7 +258,8 @@
     "dark_mode": "Tema oscuro",
     "previous_image": "Imagen anterior",
     "next_image": "Siguiente imagen",
-    "go_to_image": "Ir a la imagen {{index}}"
+    "go_to_image": "Ir a la imagen {{index}}",
+    "loading_images": "Cargando imágenes..."
   },
   "tour": {
     "title": "Tour Interactivo de Funcionalidades",
@@ -197,11 +273,11 @@
     "title": "Todo lo que necesitas para gestionar tus eventos",
     "description": "Descubre cómo nuestro software puede simplificar tu gestión diaria y mejorar la productividad de tu equipo.",
     "privacy_title": "Privacidad Total (Local-First)",
-    "privacy_description": "Los datos son tuyos. Todo se guarda localmente en archivos .gep. Trabaja sin conexión a internet y sin depender de servidores en la nube.",
+    "privacy_description": "Tus datos son tuyos. Todo se guarda localmente en archivos .gep. Trabaja sin conexión a internet y sin depender de servidores en la nube.",
     "team_management_title": "Gestión de Equipos sin Conflictos",
     "team_management_description": "Asigna personal técnico y artístico con seguridad. El sistema te alerta automáticamente si intentas asignar a alguien que ya está ocupado en otro evento.",
     "tech_sheets_title": "Fichas de Bolo Automáticas",
-    "tech_sheets_description": "Genera documentación técnica profesional (PDF) en segundos. Incluye horarios, necesidades técnicas (sonido, luces), logística y contactes automáticamente.",
+    "tech_sheets_description": "Genera documentación técnica profesional (PDF) en segundos. Incluye horarios, necesidades técnicas (sonido, luces), logística y contactos automáticamente.",
     "inventory_title": "Control de Stock y Demanda",
     "inventory_description": "Analiza la disponibilidad real de tu material. El sistema calcula el pico de demanda diario para garantizar que tienes suficiente stock para todos los eventos simultáneos.",
     "google_integration_title": "Integración Híbrida con Google",
@@ -209,7 +285,7 @@
     "beta_tag": "BETA"
   },
   "download_section": {
-    "label": "Descargar ahora",
+    "label": "Descarga ahora",
     "title": "Disponible en todas las plataformas",
     "description": "Elige tu plataforma y comienza a gestionar tus eventos hoy mismo. Rápido, seguro y fácil de usar.",
     "version_info_title": "Información importante sobre las versiones",
@@ -218,5 +294,18 @@
     "limitation_1": "No incluye todas las funciones avanzadas de la versión de escritorio",
     "limitation_2": "Optimizada para uso móvil con una interfaz simplificada",
     "recommendation": "Para el uso profesional con todas las funciones, recomendamos usar la versión de escritorio (Windows, macOS o Linux)."
+  },
+  "releases": {
+    "error_title": "No hemos podido obtener las últimas versiones",
+    "error_description": "Ha habido un problema consultando la API de GitHub. Accede a la página de versiones para descargar.",
+    "go_to_github": "Ir a GitHub Releases",
+    "recommended": "Recomendado para ti",
+    "download_apk": "Descargar APK (ZIP)",
+    "download_for": "Descargar para {{platform}}",
+    "view_releases": "Ver versiones",
+    "at_github": "En GitHub Releases",
+    "manual_installation": "Instalación manual (Sideloading)",
+    "not_on_play_store": "No disponible en Play Store",
+    "contains_apk": "⚠️ Contiene el APK dentro del ZIP"
   }
 }

@@ -3,9 +3,9 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 // Import translations
-import caTranslations from '../i18n/ca.json';
-import esTranslations from '../i18n/es.json';
-import enTranslations from '../i18n/en.json';
+import caTranslations from '../i18n/translations/ca.json';
+import esTranslations from '../i18n/translations/es.json';
+import enTranslations from '../i18n/translations/en.json';
 
 interface I18nContextType {
   language: string;
