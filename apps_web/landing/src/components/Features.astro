@@ -1,20 +1,26 @@
 ---
 // Features component to showcase the main features
 interface FeaturesProps {
-  label?: string;
-  title?: string;
-  description?: string;
-  privacyTitle?: string;
-  privacyDescription?: string;
-  teamManagementTitle?: string;
-  teamManagementDescription?: string;
-  techSheetsTitle?: string;
-  techSheetsDescription?: string;
-  inventoryTitle?: string;
-  inventoryDescription?: string;
-  googleIntegrationTitle?: string;
-  googleIntegrationDescription?: string;
-  betaTag?: string;
+  label: string;
+  title: string;
+  description: string;
+  privacyTitle: string;
+  privacyDescription: string;
+  teamManagementTitle: string;
+  teamManagementDescription: string;
+  techSheetsTitle: string;
+  techSheetsDescription: string;
+  inventoryTitle: string;
+  inventoryDescription: string;
+  googleIntegrationTitle: string;
+  googleIntegrationDescription: string;
+  betaTag: string;
+  openSourceTitle: string;
+  openSourceDescription: string;
+  ctaTitle: string;
+  ctaDescription: string;
+  ctaButtonStart: string;
+  ctaButtonGithub: string;
 }
 
 const {
@@ -31,7 +37,13 @@ const {
   inventoryDescription,
   googleIntegrationTitle,
   googleIntegrationDescription,
-  betaTag
+  betaTag,
+  openSourceTitle,
+  openSourceDescription,
+  ctaTitle,
+  ctaDescription,
+  ctaButtonStart,
+  ctaButtonGithub
 }: FeaturesProps = Astro.props;
 ---
 
@@ -39,11 +51,11 @@ const {
   <div class="container mx-auto px-4">
     <div class="text-center max-w-3xl mx-auto mb-16">
       <span class="inline-block px-4 py-1.5 text-sm font-medium text-cyan-400 bg-cyan-900/30 rounded-full mb-4">
-        {label || 'Funcionalitats principals'}
+        {label}
       </span>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">{title || 'Tot el que necessites per gestionar els teus esdeveniments'}</h2>
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">{title}</h2>
       <p class="text-lg text-gray-400">
-        {description || 'Descobreix com el nostre programari pot simplificar la teva gestió diària i millorar la productivitat del teu equip.'}
+        {description}
       </p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -54,9 +66,9 @@ const {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
-        <h3 class="text-xl font-semibold mb-3 text-white">{privacyTitle || 'Privadesa Total (Local-First)'}</h3>
+        <h3 class="text-xl font-semibold mb-3 text-white">{privacyTitle}</h3>
         <p class="text-gray-400 leading-relaxed">
-          {privacyDescription || 'Les dades són teves. Tot es guarda localment en fitxers .gep. Treballa sense connexió a internet i sense dependre de servidors al núvol.'}
+          {privacyDescription}
         </p>
       </div>
 
@@ -67,9 +79,9 @@ const {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
         </div>
-        <h3 class="text-xl font-semibold mb-3 text-white">{teamManagementTitle || 'Gestió d\'Equips sense Conflictes'}</h3>
+        <h3 class="text-xl font-semibold mb-3 text-white">{teamManagementTitle}</h3>
         <p class="text-gray-400 leading-relaxed">
-          {teamManagementDescription || 'Assigna personal tècnic i artístic amb seguretat. El sistema t\'alerta automàticament si intentes assignar algú que ja està ocupat en un altre esdeveniment.'}
+          {teamManagementDescription}
         </p>
       </div>
 
@@ -80,9 +92,9 @@ const {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
         </div>
-        <h3 class="text-xl font-semibold mb-3 text-white">{techSheetsTitle || 'Fitxes de Bolo Automàtiques'}</h3>
+        <h3 class="text-xl font-semibold mb-3 text-white">{techSheetsTitle}</h3>
         <p class="text-gray-400 leading-relaxed">
-          {techSheetsDescription || 'Genera documentació tècnica professional (PDF) en segons. Inclou horaris, necessitats tècniques (so, llums), logística i contactes automàticament.'}
+          {techSheetsDescription}
         </p>
       </div>
 
@@ -93,9 +105,9 @@ const {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10" />
           </svg>
         </div>
-        <h3 class="text-xl font-semibold mb-3 text-white">{inventoryTitle || 'Control d\'Estoc i Demanda'}</h3>
+        <h3 class="text-xl font-semibold mb-3 text-white">{inventoryTitle}</h3>
         <p class="text-gray-400 leading-relaxed">
-          {inventoryDescription || 'Analitza la disponibilitat real del teu material. El sistema calcula el pic de demanda diari per garantir que tens prou estoc per a tots els esdeveniments simultanis.'}
+          {inventoryDescription}
         </p>
       </div>
 
@@ -107,11 +119,11 @@ const {
           </svg>
         </div>
         <div class="flex items-center gap-2 mb-3">
-          <h3 class="text-xl font-semibold text-white">{googleIntegrationTitle || 'Integració Híbrida amb Google'}</h3>
-          <span class="inline-block px-2 py-1 text-xs font-bold bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/30">{betaTag || 'BETA'}</span>
+          <h3 class="text-xl font-semibold text-white">{googleIntegrationTitle}</h3>
+          <span class="inline-block px-2 py-1 text-xs font-bold bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/30">{betaTag}</span>
         </div>
         <p class="text-gray-400 leading-relaxed">
-          {googleIntegrationDescription || 'Gestiona calendaris dedicats per a l\'app i visualitza la teva agenda personal. Nota: Aquesta funció requereix autorització manual. Contacta amb el desenvolupador per habilitar el teu compte de Google.'}
+          {googleIntegrationDescription}
         </p>
       </div>
 
@@ -122,9 +134,9 @@ const {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </div>
-        <h3 class="text-xl font-semibold mb-3 text-white">Codi Obert i Gratuït</h3>
+        <h3 class="text-xl font-semibold mb-3 text-white">{openSourceTitle}</h3>
         <p class="text-gray-400 leading-relaxed">
-          Llicència GPLv3. Sense subscripcions, sense anuncis i sense costos ocults. Inclou aplicació d'escriptori i versió mòbil complementària.
+          {openSourceDescription}
         </p>
       </div>
     </div>
@@ -133,19 +145,19 @@ const {
     <div class="mt-20 bg-gradient-to-r from-brand-600 to-cyan-500 rounded-2xl p-8 md:p-12 text-center text-white relative overflow-hidden">
       <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
       <div class="relative z-10">
-        <h3 class="text-2xl md:text-3xl font-bold mb-4">Preparat per millorar la teva gestió d'esdeveniments?</h3>
+        <h3 class="text-2xl md:text-3xl font-bold mb-4">{ctaTitle}</h3>
         <p class="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-          Descobreix com el Gestor d'Esdeveniments i Personal pot simplificar el teu flux de treball i estalviar-te hores de feina.
+          {ctaDescription}
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4">
           <a href="#download" class="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-500/20">
-            Començar ara
+            {ctaButtonStart}
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
           </a>
           <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 hover:border-white/30 transition-all duration-300">
-            Veure a GitHub
+            {ctaButtonGithub}
           </a>
         </div>
       </div>

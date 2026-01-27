@@ -1,5 +1,18 @@
 ---
 // Nav.astro
+interface Props {
+  currentPath: string;
+  translations: {
+    home: string;
+    features: string;
+    product_tour: string;
+    gallery: string;
+    download: string;
+    menu: string;
+    logo_text: string;
+  };
+}
+
 const { currentPath, translations } = Astro.props;
 
 // Navigation links configuration
@@ -19,13 +32,13 @@ const navLinks = [
       <a 
         href="/" 
         class="flex items-center space-x-2 group"
-        aria-label="Inici"
+        aria-label={translations.home}
       >
         <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
           GE
         </div>
         <span class="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-          Gestor d'Esdeveniments
+          {translations.logo_text}
         </span>
       </a>
 
@@ -39,7 +52,7 @@ const navLinks = [
               : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
             aria-current={currentPath === link.path ? 'page' : undefined}
           >
-            {translations[link.key] || link.key}
+            {translations[link.key as keyof typeof translations] || link.key}
           </a>
         ))}
         <a 
@@ -59,7 +72,7 @@ const navLinks = [
       <button 
         id="mobile-menu-button" 
         class="md:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 focus:outline-none"
-        aria-label="Menú"
+        aria-label={translations.menu}
       >
         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -79,7 +92,7 @@ const navLinks = [
             : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
           aria-current={currentPath === link.path ? 'page' : undefined}
         >
-          {translations[link.key] || link.key}
+          {translations[link.key as keyof typeof translations] || link.key}
         </a>
       ))}
       <a 

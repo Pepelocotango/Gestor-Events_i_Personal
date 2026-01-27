@@ -28,7 +28,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLang, onLang
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all border border-gray-200 dark:border-gray-700"
-        aria-label={t('nav.menu')}
+        aria-label={t('navigation.menu')}
       >
         <span className="text-lg">{currentLanguage.flag}</span>
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
