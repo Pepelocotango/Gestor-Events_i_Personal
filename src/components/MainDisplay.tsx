@@ -519,7 +519,8 @@ const MainDisplay = React.forwardRef<
                 filteredAndSortedEventFrames,
                 peopleGroups,
                 setToastMessage,
-                { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
+                { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame },
+                t
               )}
               className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
             >

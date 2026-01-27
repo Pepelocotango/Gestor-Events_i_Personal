@@ -28,7 +28,15 @@
         "theme_dark": "Tema Fosc",
         "history_tooltip": "Historial",
         "close_modal": "Tancar modal",
-        "splash_alt": "Pantalla d'inici"
+        "splash_alt": "Pantalla d'inici",
+        "undo_action": "Desfeta l'acció",
+        "redo_action": "Refeta l'acció",
+        "action_undone": "Acció desfeta.",
+        "action_redone": "Acció refeta.",
+        "google_connected": "Connectat a Google Calendar amb èxit!",
+        "google_opening_browser": "Obrint el navegador per autenticar-se amb Google...",
+        "google_desktop_only": "Aquesta funcionalitat només està disponible a l'aplicació d'escriptori.",
+        "google_disconnected": "Compte de Google desconnectat correctament."
     },
     "menu": {
         "file": {
@@ -536,6 +544,7 @@
         "header_origin": "Origen",
         "header_demanded": "Demanada",
         "header_balance": "Balanç",
+        "header_notes": "Notes",
         "tooltip_stock": "Quantitat inicial de material disponible.",
         "tooltip_name": "Nom del material",
         "tooltip_category": "Categoria del material",
@@ -899,5 +908,95 @@
         "incomplete_status": "Incomplet",
         "yes": "SI",
         "no": "NO"
+    },
+    "actions": {
+        "create_event": "Has creat l'esdeveniment «{{name}}»",
+        "update_event": "Has modificat l'esdeveniment «{{name}}»",
+        "delete_event": "Has suprimit l'esdeveniment «{{name}}»",
+        "mark_complete": "Has marcat l'esdeveniment «{{name}}» com a complet",
+        "mark_incomplete": "Has marcat l'esdeveniment «{{name}}» com a incomplet",
+        "update_tech_sheet": "Has actualitzat la fitxa tècnica de «{{name}}»",
+        "reorder_personnel": "Has reordenat el personal tècnic de «{{name}}»",
+        "assign_person": "Has assignat «{{person}}» a l'esdeveniment «{{event}}»",
+        "update_assignment": "Has modificat l'assignació de «{{person}}» a «{{event}}»",
+        "delete_assignment": "Has eliminat l'assignació de «{{person}}» a «{{event}}»",
+        "data_loaded": "Dades carregades des d'un arxiu",
+        "project_cleared": "Projecte netejat"
+    },
+    "errors": {
+        "assignment": {
+            "date_range": "Les dates han d'estar dins del rang del marc",
+            "duplicate_conflict": "Conflicte detectat: Aquest contacte ja té una assignació a {{details}}"
+        }
+    },
+    "roles": {
+        "direction": {
+            "chief": "Direcció: Cap Tècnic/a",
+            "floor_manager": "Direcció: Cap de Sala",
+            "council": "Direcció: Regidoria",
+            "council_assistant": "Direcció: Assistent/a de Regidoria"
+        },
+        "production": {
+            "producer": "Producció: Producció",
+            "assistant": "Producció: Auxiliar de Producció"
+        },
+        "technician": {
+            "sound": "Tècnic/a: So",
+            "lighting": "Tècnic/a: Il·luminació",
+            "video": "Tècnic/a: Vídeo",
+            "camera": "Tècnic/a: Operació de Càmera",
+            "pa": "Tècnic/a: So (PA)",
+            "monitors": "Tècnic/a: Monitors",
+            "machinery": "Tècnic/a: Maquineria",
+            "microphone": "Tècnic: Microfonísta"
+        },
+        "assembly": {
+            "machinery": "Muntatge: Maqui",
+            "rigger": "Muntatge: Maquinista / Rigger",
+            "helper": "Muntatge: Auxiliar de Càrrega i Descàrrega",
+            "crew": "Muntatge: Personal de Muntatge (Crew)",
+            "driver": "Muntatge: Conductor/a"
+        },
+        "audience": {
+            "floor_staff": "Públic: Personal de Sala / Acomodació",
+            "box_office": "Públic: Personal de Taquilles",
+            "security": "Públic: Personal de Seguretat"
+        },
+        "support": {
+            "rider": "Suport: Rider / Road Manager",
+            "personal": "Suport: Assistent/a Personal"
+        }
+    },
+    "csv": {
+        "header_event_name": "Nom Esdeveniment",
+        "header_place": "Lloc",
+        "header_event_start_date": "Data Inici Esdeveniment",
+        "header_event_end_date": "Data Fi Esdeveniment",
+        "header_assigned_person": "Personal Assignat",
+        "header_assignment_start_date": "Data Inici Assignació",
+        "header_assignment_end_date": "Data Fi Assignació",
+        "header_assignment_status": "Estat Assignació",
+        "header_assignment_notes": "Notes Assignació",
+        "header_event_notes": "Notes Generals Esdeveniment"
+    },
+    "sync": {
+        "step_verifying_calendar": "Verificant accés al calendari...",
+        "step_calendar_connected": "Connexió amb el calendari establerta correctament.",
+        "step_requesting_confirmation": "Sol·licitant confirmació per iniciar la sincronització...",
+        "step_sync_cancelled": "Sincronització cancel·lada per l'usuari.",
+        "step_starting_sync": "Iniciant procés de sincronització...",
+        "step_getting_threshold_date": "Sincronització parcial des de: {{date}}",
+        "step_getting_events": "Obtenint llista d'esdeveniments del calendari...",
+        "step_sync_stats": "Estadístiques de sincronització:",
+        "step_events_to_delete": "Esdeveniments a eliminar: {{count}}",
+        "step_events_to_upload": "Esdeveniments a pujar/actualitzar: {{count}} (de {{total}} totals)",
+        "step_starting_deletion": "Iniciant eliminació de {{count}} esdeveniments antics...",
+        "step_deleting_event": "Eliminant esdeveniment {{index}}/{{total}}: {{name}}",
+        "step_deletion_complete": "S'han eliminat tots els esdeveniments antics.",
+        "step_no_events_to_delete": "No hi ha esdeveniments antics per eliminar.",
+        "step_starting_upload": "Iniciant pujada de {{count}} esdeveniments nous/actualitzats...",
+        "step_processing_event": "Processant esdeveniment {{index}}/{{total}}: {{name}}",
+        "step_upload_complete": "Pujada completada.",
+        "step_initializing_sync": "Iniciant procés de sincronització amb Google Calendar..."
     }
 }

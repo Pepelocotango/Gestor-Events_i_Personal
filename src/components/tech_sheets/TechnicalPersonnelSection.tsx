@@ -17,7 +17,7 @@ import {
 import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment, TechSheetData } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
-import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
+import { useRoleSuggestions } from '../../constants';
 import Tooltip from '../ui/Tooltip';
 import { useModalStore } from '../../stores/modalStore';
 import { useEventDataStore } from '../../stores/eventDataStore';
@@ -60,6 +60,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onDragEnd,
 }) => {
   const { t } = useTranslation();
+  const roleSuggestions = useRoleSuggestions();
   const openModal = useModalStore(state => state.openModal);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -195,6 +196,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                     onAddRole={onAddRole}
                     onRemoveRole={onRemoveRole}
                     onRemoveProvider={onRemoveProvider}
+                    roleSuggestions={roleSuggestions}
                   />
                 </SortableProvider>
               );
@@ -222,6 +224,7 @@ interface ProviderCardProps {
   onRemoveRole: (providerIndex: number, roleIndex: number) => void;
   onRemoveProvider: (providerIndex: number) => void;
   dragHandle?: React.ReactNode;
+  roleSuggestions: string[];
 }
 
 const ProviderCard: React.FC<ProviderCardProps> = ({
@@ -235,6 +238,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   onRemoveRole,
   onRemoveProvider,
   dragHandle,
+  roleSuggestions,
 }) => {
   const { t } = useTranslation();
   const selectedPerson = peopleGroups.find(pg => pg.id === provider.personGroupId);
@@ -311,7 +315,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   label=""
                   value={displayRole}
                   onChange={(e) => handleRoleChange(roleIndex, e.target.value)}
-                  suggestions={TECH_SHEET_ROLE_SUGGESTIONS}
+                  suggestions={roleSuggestions}
                   tooltipText={t('tech_sheets.personnel.role_tooltip')}
                 />
               </div>

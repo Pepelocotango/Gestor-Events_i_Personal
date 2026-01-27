@@ -95,7 +95,7 @@ const MaterialControlCenter: React.FC<MaterialControlCenterProps> = ({ showToast
       showToast(t('mcc.no_data_toast'), 'warning');
       return;
     }
-    exportMaterialControlCsv(filteredData, showToast);
+    exportMaterialControlCsv(filteredData, showToast, t);
   };
 
   const activeEventFrames = useMemo(() => {

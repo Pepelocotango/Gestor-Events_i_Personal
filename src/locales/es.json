@@ -28,7 +28,15 @@
         "theme_dark": "Tema Oscuro",
         "history_tooltip": "Historial",
         "close_modal": "Cerrar modal",
-        "splash_alt": "Pantalla de inicio"
+        "splash_alt": "Pantalla de inicio",
+        "undo_action": "Acción deshecha",
+        "redo_action": "Acción rehecha",
+        "action_undone": "Acción deshecha.",
+        "action_redone": "Acción rehecha.",
+        "google_connected": "¡Conectado a Google Calendar con éxito!",
+        "google_opening_browser": "Abriendo navegador para autenticarse con Google...",
+        "google_desktop_only": "Esta funcionalidad solo está disponible en la aplicación de escritorio.",
+        "google_disconnected": "Cuenta de Google desconectada correctamente."
     },
     "menu": {
         "file": {
@@ -536,6 +544,7 @@
         "header_origin": "Origen",
         "header_demanded": "Demandada",
         "header_balance": "Balance",
+        "header_notes": "Notas",
         "tooltip_stock": "Cantidad inicial de material disponible.",
         "tooltip_name": "Nombre del material",
         "tooltip_category": "Categoría del material",
@@ -899,5 +908,95 @@
         "incomplete_status": "Incompleto",
         "yes": "SÍ",
         "no": "NO"
+    },
+    "actions": {
+        "create_event": "Has creado el evento «{{name}}»",
+        "update_event": "Has modificado el evento «{{name}}»",
+        "delete_event": "Has eliminado el evento «{{name}}»",
+        "mark_complete": "Has marcado el evento «{{name}}» como completo",
+        "mark_incomplete": "Has marcado el evento «{{name}}» como incompleto",
+        "update_tech_sheet": "Has actualizado la ficha técnica de «{{name}}»",
+        "reorder_personnel": "Has reordenado el personal técnico de «{{name}}»",
+        "assign_person": "Has asignado «{{person}}» al evento «{{event}}»",
+        "update_assignment": "Has modificado la asignación de «{{person}}» a «{{event}}»",
+        "delete_assignment": "Has eliminado la asignación de «{{person}}» a «{{event}}»",
+        "data_loaded": "Datos cargados desde un archivo",
+        "project_cleared": "Proyecto limpiado"
+    },
+    "errors": {
+        "assignment": {
+            "date_range": "Las fechas deben estar dentro del rango del marco",
+            "duplicate_conflict": "Conflicto detectado: Este contacto ya tiene una asignación en {{details}}"
+        }
+    },
+    "roles": {
+        "direction": {
+            "chief": "Dirección: Jefe/a Técnico/a",
+            "floor_manager": "Dirección: Jefe de Sala",
+            "council": "Dirección: Regidoría",
+            "council_assistant": "Dirección: Asistente de Regidoría"
+        },
+        "production": {
+            "producer": "Producción: Producción",
+            "assistant": "Producción: Auxiliar de Producción"
+        },
+        "technician": {
+            "sound": "Técnico/a: Sonido",
+            "lighting": "Técnico/a: Iluminación",
+            "video": "Técnico/a: Vídeo",
+            "camera": "Técnico/a: Operación de Cámara",
+            "pa": "Técnico/a: Sonido (PA)",
+            "monitors": "Técnico/a: Monitores",
+            "machinery": "Técnico/a: Maquineria",
+            "microphone": "Técnico: Microfonista"
+        },
+        "assembly": {
+            "machinery": "Montaje: Maquinaria",
+            "rigger": "Montaje: Maquinista / Rigger",
+            "helper": "Montaje: Auxiliar de Carga y Descarga",
+            "crew": "Montaje: Personal de Montaje (Crew)",
+            "driver": "Montaje: Conductor/a"
+        },
+        "audience": {
+            "floor_staff": "Público: Personal de Sala / Acomodación",
+            "box_office": "Público: Personal de Taquillas",
+            "security": "Público: Personal de Seguridad"
+        },
+        "support": {
+            "rider": "Soporte: Rider / Road Manager",
+            "personal": "Soporte: Asistente Personal"
+        }
+    },
+    "csv": {
+        "header_event_name": "Nombre Evento",
+        "header_place": "Lugar",
+        "header_event_start_date": "Fecha Inicio Evento",
+        "header_event_end_date": "Fecha Fin Evento",
+        "header_assigned_person": "Personal Asignado",
+        "header_assignment_start_date": "Fecha Inicio Asignación",
+        "header_assignment_end_date": "Fecha Fin Asignación",
+        "header_assignment_status": "Estado Asignación",
+        "header_assignment_notes": "Notas Asignación",
+        "header_event_notes": "Notas Generales Evento"
+    },
+    "sync": {
+        "step_verifying_calendar": "Verificando acceso al calendario...",
+        "step_calendar_connected": "Conexión con el calendario establecida correctamente.",
+        "step_requesting_confirmation": "Solicitando confirmación para iniciar la sincronización...",
+        "step_sync_cancelled": "Sincronización cancelada por el usuario.",
+        "step_starting_sync": "Iniciando proceso de sincronización...",
+        "step_getting_threshold_date": "Sincronización parcial desde: {{date}}",
+        "step_getting_events": "Obteniendo lista de eventos del calendario...",
+        "step_sync_stats": "Estadísticas de sincronización:",
+        "step_events_to_delete": "Eventos a eliminar: {{count}}",
+        "step_events_to_upload": "Eventos a subir/actualizar: {{count}} (de {{total}} totales)",
+        "step_starting_deletion": "Iniciando eliminación de {{count}} eventos antiguos...",
+        "step_deleting_event": "Eliminando evento {{index}}/{{total}}: {{name}}",
+        "step_deletion_complete": "Se han eliminado todos los eventos antiguos.",
+        "step_no_events_to_delete": "No hay eventos antiguos para eliminar.",
+        "step_starting_upload": "Iniciando subida de {{count}} eventos nuevos/actualizados...",
+        "step_processing_event": "Procesando evento {{index}}/{{total}}: {{name}}",
+        "step_upload_complete": "Subida completada.",
+        "step_initializing_sync": "Iniciando proceso de sincronización con Google Calendar..."
     }
 }

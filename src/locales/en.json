@@ -17,7 +17,26 @@
         "theme_dark": "Dark Theme",
         "history_tooltip": "History",
         "close_modal": "Close modal",
-        "splash_alt": "Splash screen"
+        "splash_alt": "Splash screen",
+        "undo_action": "Action undone",
+        "redo_action": "Action redone",
+        "action_undone": "Action undone.",
+        "action_redone": "Action redone.",
+        "google_connected": "Connected to Google Calendar successfully!",
+        "google_opening_browser": "Opening browser to authenticate with Google...",
+        "google_desktop_only": "This functionality is only available on the desktop application.",
+        "google_disconnected": "Google account disconnected successfully.",
+        "status": {
+            "yes": "Yes",
+            "no": "No",
+            "pending": "Pending",
+            "mixed": "Mixed"
+        },
+        "data_integrity": {
+            "error_event_not_found": "Assignment '{{id}}' references an event that does not exist ({{targetId}}).",
+            "error_person_not_found": "Assignment '{{id}}' references a person/group that does not exist ({{targetId}}).",
+            "fix_removed_assignment": "A broken assignment has been removed (ID: {{id}})."
+        }
     },
     "status": {
         "yes": "Yes",
@@ -29,7 +48,54 @@
         "home": "Home",
         "events": "Events",
         "staff": "Staff",
-        "settings": "Settings"
+        "settings": "Settings",
+        "file": {
+            "label": "File",
+            "new": "New Document",
+            "open": "Open...",
+            "open_recent": "Open Recent",
+            "no_recent": "No recent files",
+            "save": "Save",
+            "save_as": "Save As...",
+            "import_export": "Import / Export",
+            "import_people": "Import People (JSON)",
+            "export_people": "Export People (JSON)",
+            "import_material": "Import Material (JSON)",
+            "export_material": "Export Material (JSON)",
+            "google_calendar": "Google Calendar",
+            "sync": "Sync Now",
+            "config": "Settings",
+            "connect_google": "Connect Account",
+            "advanced": "Advanced",
+            "factory_reset": "Factory Reset",
+            "exit": "Exit"
+        },
+        "edit": {
+            "label": "Edit",
+            "undo": "Undo",
+            "redo": "Redo",
+            "cut": "Cut",
+            "copy": "Copy",
+            "paste": "Paste",
+            "select_all": "Select All"
+        },
+        "view": {
+            "label": "View",
+            "reload": "Reload",
+            "force_reload": "Force Reload",
+            "dev_tools": "Developer Tools",
+            "reset_zoom": "Reset Zoom",
+            "zoom_in": "Zoom In",
+            "zoom_out": "Zoom Out",
+            "fullscreen": "Full Screen",
+            "toggle_splash": "Show Splash Screen on Open"
+        },
+        "help": {
+            "label": "Help",
+            "about": "About App",
+            "open_backups": "Open Backups Folder",
+            "open_logs": "Open Logs Folder"
+        }
     },
     "main": {
         "calendar_view": "Calendar View",
@@ -175,7 +241,8 @@
         "csv_header_tel2": "Phone 2",
         "csv_header_email": "Email",
         "csv_header_web": "Web",
-        "csv_header_notes": "Notes"
+        "csv_header_notes": "Notes",
+        "web_url_placeholder": "https://example.com"
     },
     "material": {
         "manager_title": "Material Manager",
@@ -270,7 +337,10 @@
                 "parking_tooltip": "Indicates if a reserved parking area is needed.",
                 "parking_details": "Parking zone details:",
                 "parking_details_placeholder": "Where, how many spaces, linear meters, contact...",
-                "parking_details_tooltip": "Specify location, number of spaces needed, and who to contact for parking management."
+                "parking_details_tooltip": "Specify location, number of spaces needed, and who to contact for parking management.",
+                "dressing_rooms_placeholder": "Specify dressing room needs: quantity, type (individual, collective), and any special requirements.",
+                "actors_placeholder": "Details, notes, names...",
+                "technicians_placeholder": "Details, notes, names..."
             },
             "pre_assembly": {
                 "label": "PRE-ASSEMBLY:",
@@ -424,7 +494,9 @@
             "field_labels": {
                 "details_prefix": "General {{title}} details:",
                 "material_prefix": "{{title}} material"
-            }
+            },
+            "quantity_placeholder": "XX",
+            "provider_reorder_tooltip": "Reorder provider"
         }
     },
     "mcc": {
@@ -458,6 +530,7 @@
         "header_origin": "Origin",
         "header_demanded": "Demanded",
         "header_balance": "Balance",
+        "header_notes": "Notes",
         "tooltip_stock": "Initial quantity of material available.",
         "tooltip_name": "Material name",
         "tooltip_category": "Material category",
@@ -465,7 +538,9 @@
         "tooltip_demanded": "Total quantity of material assigned to filtered events.",
         "tooltip_balance": "Final material balance (Stock - Demanded).",
         "breakdown_title": "Breakdown by Event:",
-        "units_suffix": "unit(s)"
+        "units_suffix": "unit(s)",
+        "export_csv_tooltip": "Exportar todo el resumen {{title}} a CSV",
+        "export_pdf_tooltip": "Exportar todo el resumen {{title}} a PDF"
     },
     "modals": {
         "confirm_delete": {
@@ -533,7 +608,11 @@
             "cancel_tooltip": "Close form without saving changes",
             "save_edit_tooltip": "Save assignment changes",
             "close_button": "Close",
-            "assignment_note": "Note: "
+            "assignment_note": "Note: ",
+            "create_new_tooltip": "Create the new assignment",
+            "updated_toast": "Assignment updated.",
+            "added_toast": "Assignment added.",
+            "error_prefix": "Error: "
         },
         "history": {
             "title": "Change History",
@@ -665,6 +744,274 @@
             "replace_tooltip": "Delete all current data of this type and load only the new data.",
             "replace_button": "Replace",
             "cancel_tooltip": "Cancel data load."
+        },
+        "event_details": {
+            "general_notes_label": "General Notes:",
+            "assignments_label": "Assignments ({{count}}):",
+            "no_assignments": "No assignments for this event.",
+            "show_in_list_tooltip": "Highlight this frame in the main list",
+            "show_in_list_button": "Show in List",
+            "edit_frame_tooltip": "Open form to edit this frame details",
+            "edit_frame_button": "Edit Frame",
+            "delete_frame_tooltip": "Delete this event frame and all its assignments",
+            "delete_frame_button": "Delete Frame",
+            "close_tooltip": "Close this details window",
+            "close_button": "Close",
+            "assignment_note": "Note: "
+        },
+        "confirm_repair": {
+            "title": "Data errors detected and repaired",
+            "description": "Some inconsistencies were found in the data file and have been automatically corrected. Please review the changes. Do you want to load the repaired version?",
+            "corrections_title": "Applied corrections:",
+            "submit_button": "Load Repaired Version"
         }
+    },
+    "backend": {
+        "errors": {
+            "save_data": "Error saving data",
+            "no_active_window": "No active window",
+            "empty_filepath": "filePath cannot be empty",
+            "empty_key": "Key cannot be empty",
+            "no_user_email": "No user email",
+            "service_account_not_initialized": "Service Account client not initialized",
+            "calendar_not_managed": "Calendar not managed"
+        },
+        "sync": {
+            "confirm_title": "Confirm Sync",
+            "irreversible_detail": "This action is irreversible. Do you want to continue?",
+            "cancelled": "Cancelled",
+            "completed": "Sync completed successfully",
+            "auth_in_progress": "Authentication in progress",
+            "client_not_initialized": "Client not initialized",
+            "disconnected": "Disconnection completed"
+        },
+        "app": {
+            "close_title": "Close App",
+            "open_document": "Open Document"
+        },
+        "calendar": {
+            "deleted": "Calendar deleted"
+        }
+    },
+    "welcome": {
+        "title": "Event Manager",
+        "description": "Welcome. Please open an existing document or create a new one to get started."
+    },
+    "app": {
+        "desktop_only_warning": "This feature is only available in the desktop application.",
+        "save": {
+            "success": "Document saved successfully.",
+            "error_prefix": "Error saving: "
+        },
+        "unsaved_changes": {
+            "message": "You have unsaved changes. Do you want to save them before continuing?",
+            "save": "Save",
+            "dont_save": "Don't Save",
+            "cancel": "Cancel",
+            "fallback_confirm": "You have unsaved changes. Are you sure you want to continue?"
+        },
+        "new_document_success": "New workspace created.",
+        "open": {
+            "read_error_prefix": "Error reading file: ",
+            "load_error_fallback": "There was an error loading the data.",
+            "success_msg": "Document \"{{name}}\" loaded.",
+            "process_error_prefix": "Error processing file: "
+        },
+        "export": {
+            "title_prefix": "Export data from ",
+            "success_msg": "{{type}} data exported successfully.",
+            "error_prefix": "Error exporting data: "
+        },
+        "import": {
+            "people_error": "Error: The JSON file format for people is invalid.",
+            "material_error": "Error: The JSON file must contain an array called 'materialItems'.",
+            "people_process_error": "Error processing people file: ",
+            "material_process_error": "Error processing material file: ",
+            "item_type_people": "people",
+            "item_type_material": "material"
+        },
+        "factory_reset": {
+            "title": "Factory Reset",
+            "message": "Are you sure you want to factory reset? This will delete your Google connection and recent files list. Your saved documents will not be affected. This action is irreversible.",
+            "confirm": "Yes, Reset",
+            "success": "Settings reset. The app will restart.",
+            "error_fallback": "Error during reset.",
+            "not_available": "Reset functionality is not available.",
+            "critical_error_prefix": "Critical error during reset: "
+        }
+    },
+    "pdf": {
+        "export_date": "Export date: {{date}}",
+        "save_dialog_title": "Save PDF",
+        "save_dialog_filter_name": "PDF Documents",
+        "save_success_toast": "PDF saved successfully!",
+        "save_error_toast": "Error saving PDF: {{message}}",
+        "summary_export_success": "Summary exported to PDF successfully!",
+        "summary_title_prefix": "Summary: ",
+        "no_data_message": "No data to display in this summary.",
+        "table_headers": {
+            "event_person": "Event/Person",
+            "dates": "Dates",
+            "status": "Status",
+            "notes": "Notes",
+            "name": "Name",
+            "stock": "Stock",
+            "location": "Location",
+            "origin": "Origin",
+            "balance": "Balance",
+            "demand": "Demanded",
+            "quantity": "Quantity",
+            "category": "Category",
+            "rol": "Role",
+            "contact": "Contact",
+            "event_name": "Event Name",
+            "personnel_notes": "Assigned Personnel and Notes",
+            "general_notes": "General Notes"
+        },
+        "summary_types": {
+            "event": "Event",
+            "date": "Date",
+            "person": "Person"
+        },
+        "material_list_title": "Material List",
+        "no_category": "No Category",
+        "material_control_summary": "Material Control Summary",
+        "material_control_detailed": "Detailed Material Control",
+        "origin_prefix": "Origin: ",
+        "note_prefix": "Note: ",
+        "address_book_title": "Address Book",
+        "tech_sheet": {
+            "main_title": "GIG SHEET",
+            "event_name": "GIG NAME:",
+            "location": "LOCATION:",
+            "date": "DATE:",
+            "hour": "TIME:",
+            "duration": "DURATION:",
+            "general_notes": "GENERAL NOTES OF THE SHEET",
+            "parking": "PARKING",
+            "technical_personnel": "TECHNICAL PERSONNEL",
+            "pre_assembly": "PRE-ASSEMBLY",
+            "schedules": "SCHEDULES",
+            "no_date": "No date",
+            "date_prefix": "Date: ",
+            "logistics": "LOGISTICS",
+            "dressing_rooms": "Dressing Rooms",
+            "actors": "Performers",
+            "tech_cia": "Tech/Prod. Company",
+            "technical_needs": "TECHNICAL NEEDS",
+            "lighting": "Lighting",
+            "sound": "Sound",
+            "video": "Video",
+            "machinery": "Machinery",
+            "rentals": "Rentals",
+            "other_equipment": "Other Equipment Material",
+            "electrical": "Electrical Infrastructure",
+            "structures": "Structures",
+            "platforms": "Platforms",
+            "consumables": "Consumables",
+            "curtains": "Drapes",
+            "transport": "Transport",
+            "other_details": "OTHER DETAILS",
+            "control_at": "Control at:",
+            "blueprints": "Plans:",
+            "company_contacts": "COMPANY CONTACTS",
+            "observations": "OBSERVATIONS"
+        },
+        "event_list_title": "Event List",
+        "no_assignments": "No assignments",
+        "complete_status": "Complete",
+        "incomplete_status": "Incomplete",
+        "yes": "YES",
+        "no": "NO"
+    },
+    "actions": {
+        "create_event": "You created event «{{name}}»",
+        "update_event": "You updated event «{{name}}»",
+        "delete_event": "You deleted event «{{name}}»",
+        "mark_complete": "You marked event «{{name}}» as complete",
+        "mark_incomplete": "You marked event «{{name}}» as incomplete",
+        "update_tech_sheet": "You updated technical sheet for «{{name}}»",
+        "reorder_personnel": "You reordered technical staff for «{{name}}»",
+        "assign_person": "You assigned «{{person}}» to event «{{event}}»",
+        "update_assignment": "You updated assignment of «{{person}}» to event «{{event}}»",
+        "delete_assignment": "You deleted assignment of «{{person}}» from event «{{event}}»",
+        "data_loaded": "Data loaded from file",
+        "project_cleared": "Project cleared"
+    },
+    "errors": {
+        "assignment": {
+            "date_range": "Dates must be within frame range",
+            "duplicate_conflict": "Conflict detected: This contact already has an assignment at {{details}}"
+        }
+    },
+    "roles": {
+        "direction": {
+            "chief": "Direction: Chief Technician",
+            "floor_manager": "Direction: Floor Manager",
+            "council": "Direction: Council",
+            "council_assistant": "Direction: Council Assistant"
+        },
+        "production": {
+            "producer": "Production: Producer",
+            "assistant": "Production: Assistant"
+        },
+        "technician": {
+            "sound": "Technician: Sound",
+            "lighting": "Technician: Lighting",
+            "video": "Technician: Video",
+            "camera": "Technician: Camera Operator",
+            "pa": "Technician: Sound (PA)",
+            "monitors": "Technician: Monitors",
+            "machinery": "Technician: Machinery",
+            "microphone": "Technician: Microphone Operator"
+        },
+        "assembly": {
+            "machinery": "Assembly: Machinery",
+            "rigger": "Assembly: Rigger",
+            "helper": "Assembly: Load/Unload Helper",
+            "crew": "Assembly: Assembly Crew",
+            "driver": "Assembly: Driver"
+        },
+        "audience": {
+            "floor_staff": "Audience: Floor Staff",
+            "box_office": "Audience: Box Office",
+            "security": "Audience: Security"
+        },
+        "support": {
+            "rider": "Support: Rider / Road Manager",
+            "personal": "Support: Personal Assistant"
+        }
+    },
+    "csv": {
+        "header_event_name": "Event Name",
+        "header_place": "Place",
+        "header_event_start_date": "Event Start Date",
+        "header_event_end_date": "Event End Date",
+        "header_assigned_person": "Assigned Person",
+        "header_assignment_start_date": "Assignment Start Date",
+        "header_assignment_end_date": "Assignment End Date",
+        "header_assignment_status": "Assignment Status",
+        "header_assignment_notes": "Assignment Notes",
+        "header_event_notes": "Event General Notes"
+    },
+    "sync": {
+        "step_verifying_calendar": "Verifying calendar access...",
+        "step_calendar_connected": "Calendar connection established.",
+        "step_requesting_confirmation": "Requesting confirmation to start sync...",
+        "step_sync_cancelled": "Sync cancelled by user.",
+        "step_starting_sync": "Starting synchronization...",
+        "step_getting_threshold_date": "Partial sync from: {{date}}",
+        "step_getting_events": "Getting events from calendar...",
+        "step_sync_stats": "Sync statistics:",
+        "step_events_to_delete": "Events to delete: {{count}}",
+        "step_events_to_upload": "Events to upload/update: {{count}} (of {{total}} total)",
+        "step_starting_deletion": "Starting deletion of {{count}} old events...",
+        "step_deleting_event": "Deleting event {{index}}/{{total}}: {{name}}",
+        "step_deletion_complete": "All old events deleted.",
+        "step_no_events_to_delete": "No old events to delete.",
+        "step_starting_upload": "Starting upload of {{count}} new/updated events...",
+        "step_processing_event": "Processing event {{index}}/{{total}}: {{name}}",
+        "step_upload_complete": "Upload complete.",
+        "step_initializing_sync": "Starting Google Calendar sync..."
     }
 }

@@ -316,6 +316,8 @@ export interface SyncProgressState {
   current: number;
   total: number;
   message: string;
+  messageKey?: string;
+  messageParams?: Record<string, any>;
   visible: boolean;
   logs: string[];
 }

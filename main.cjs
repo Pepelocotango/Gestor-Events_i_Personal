@@ -725,7 +725,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
   let currentProgressStep = 0;
   let totalProgressSteps = 1; // 1 per defecte per evitar divisions per zero a la UI
   
-  const logAndSendProgress = (msg, isError = false) => {
+  const logAndSendProgress = (msg, isError = false, messageKey = null, messageParams = {}) => {
     const timestamp = getCurrentTime();
     const logMessage = isError 
       ? `[ERROR] ${msg}`
@@ -736,6 +736,8 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
       current: currentProgressStep || 0, 
       total: totalProgressSteps || 1, 
       message: msg,
+      messageKey: messageKey,
+      messageParams: messageParams,
       logs: [...logMessages]
     };
     
@@ -753,7 +755,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
   };
 
   try {
-    logAndSendProgress('🔵 Iniciant procés de sincronització amb Google Calendar...');
+    logAndSendProgress('🔵 Iniciant procés de sincronització amb Google Calendar...', false, 'sync.step_initializing_sync', {});
     
     if (!googleServiceAccountClient) {
       throw new Error('Client Service Account no inicialitzat. Verifica la configuració de Google.');
@@ -768,10 +770,10 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     // --- Verificació del calendari ---
-    logAndSendProgress(`🔍 Verificant accés al calendari ${targetCalendarId}...`);
+    logAndSendProgress(`🔍 Verificant accés al calendari ${targetCalendarId}...`, false, 'sync.step_verifying_calendar', {});
     try {
       await calendar.calendars.get({ calendarId: targetCalendarId });
-      logAndSendProgress('✅ Connexió amb el calendari establerta correctament.');
+      logAndSendProgress('✅ Connexió amb el calendari establerta correctament.', false, 'sync.step_calendar_connected', {});
     } catch (err) {
       if (err.code === 404) {
         config.managedAppCalendars = config.managedAppCalendars.filter(c => c.id !== targetCalendarId);
@@ -784,7 +786,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
     }
 
     // --- Diàleg de confirmació ---
-    logAndSendProgress('⏳ Sol·licitant confirmació per iniciar la sincronització...');
+    logAndSendProgress('⏳ Sol·licitant confirmació per iniciar la sincronització...', false, 'sync.step_requesting_confirmation', {});
     const choice = await dialog.showMessageBox(mainWindow, {
       type: 'question',
       buttons: ['Sí, sincronitzar', 'Cancel·lar'],
@@ -796,11 +798,11 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
     });
     
     if (choice.response !== 0) {
-      logAndSendProgress('❌ Sincronització cancel·lada per l\'usuari.');
+      logAndSendProgress('❌ Sincronització cancel·lada per l\'usuari.', false, 'sync.step_sync_cancelled', {});
       return { success: false, message: 'Cancel·lat.' };
     }
 
-    logAndSendProgress('🚀 Iniciant procés de sincronització...');
+    logAndSendProgress('🚀 Iniciant procés de sincronització...', false, 'sync.step_starting_sync', {});
     
     try {
       // 1. Definir data de tall (7 dies enrere)
@@ -808,10 +810,10 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
       thresholdDate.setDate(thresholdDate.getDate() - 7);
       const timeMin = thresholdDate.toISOString();
       
-      logAndSendProgress(`📅 Sincronització parcial des de: ${new Date(timeMin).toLocaleDateString('ca-ES')}`);
+      logAndSendProgress(`📅 Sincronització parcial des de: ${new Date(timeMin).toLocaleDateString('ca-ES')}`, false, 'sync.step_getting_threshold_date', { date: new Date(timeMin).toLocaleDateString('ca-ES') });
 
       // 2. Obtenir llista per esborrar (només esdeveniments nous o modificats)
-      logAndSendProgress('🔍 Obtenint llista d\'esdeveniments del calendari...');
+      logAndSendProgress('🔍 Obtenint llista d\'esdeveniments del calendari...', false, 'sync.step_getting_events', {});
       const eventsListRes = await calendar.events.list({ 
         calendarId: targetCalendarId, 
         maxResults: 2500,
@@ -824,9 +826,9 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
         new Date(frame.endDate) >= thresholdDate
       );
       
-      logAndSendProgress(`📊 Estadístiques de sincronització:`);
-      logAndSendProgress(`   • Esdeveniments a eliminar: ${eventsToDelete.length}`);
-      logAndSendProgress(`   • Esdeveniments a pujar/actualitzar: ${localFramesToUpload.length} (de ${(localData.eventFrames || []).length} totals)`);
+      logAndSendProgress(`📊 Estadístiques de sincronització:`, false, 'sync.step_sync_stats', {});
+      logAndSendProgress(`   • Esdeveniments a eliminar: ${eventsToDelete.length}`, false, 'sync.step_events_to_delete', { count: eventsToDelete.length });
+      logAndSendProgress(`   • Esdeveniments a pujar/actualitzar: ${localFramesToUpload.length} (de ${(localData.eventFrames || []).length} totals)`, false, 'sync.step_events_to_upload', { count: localFramesToUpload.length, total: (localData.eventFrames || []).length });
 
       // Actualitzar total de passos de progrés
       totalProgressSteps = eventsToDelete.length + localFramesToUpload.length;
@@ -834,12 +836,12 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
 
       // FASE 1: BUIDAR (només esdeveniments recents)
       if (eventsToDelete.length > 0) {
-        logAndSendProgress(`🗑️  Iniciant eliminació de ${eventsToDelete.length} esdeveniments antics...`);
+        logAndSendProgress(`🗑️  Iniciant eliminació de ${eventsToDelete.length} esdeveniments antics...`, false, 'sync.step_starting_deletion', { count: eventsToDelete.length });
           
         for (const [index, event] of eventsToDelete.entries()) {
           currentProgressStep++;
           const progressMsg = `Eliminant esdeveniment ${index + 1}/${eventsToDelete.length}: ${event.summary || 'Sense títol'}`;
-          logAndSendProgress(progressMsg);
+          logAndSendProgress(progressMsg, false, 'sync.step_deleting_event', { index: index + 1, total: eventsToDelete.length, name: event.summary || 'Sense títol' });
           
           try {
             await calendar.events.delete({ 
@@ -851,19 +853,19 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
             logAndSendProgress(`⚠️ No s'ha pogut eliminar l'esdeveniment ${event.id}: ${error.message}`, true);
           }
         }
-        logAndSendProgress('✅ S\'han eliminat tots els esdeveniments antics.');
+        logAndSendProgress('✅ S\'han eliminat tots els esdeveniments antics.', false, 'sync.step_deletion_complete', {});
       } else {
-        logAndSendProgress('ℹ️ No hi ha esdeveniments antics per eliminar.');
+        logAndSendProgress('ℹ️ No hi ha esdeveniments antics per eliminar.', false, 'sync.step_no_events_to_delete', {});
       }
 
       // FASE 2: PUJAR (només esdeveniments nous o modificats)
       if (localFramesToUpload.length > 0) {
-        logAndSendProgress(`🔼 Iniciant pujada de ${localFramesToUpload.length} esdeveniments nous/actualitzats...`);
+        logAndSendProgress(`🔼 Iniciant pujada de ${localFramesToUpload.length} esdeveniments nous/actualitzats...`, false, 'sync.step_starting_upload', { count: localFramesToUpload.length });
         
         for (const [index, localFrame] of localFramesToUpload.entries()) {
           currentProgressStep = eventsToDelete.length + index + 1;
           const progressMsg = `📤 Processant esdeveniment ${index + 1}/${localFramesToUpload.length}: ${localFrame.name || 'Sense títol'}`;
-          logAndSendProgress(progressMsg);
+          logAndSendProgress(progressMsg, false, 'sync.step_processing_event', { index: index + 1, total: localFramesToUpload.length, name: localFrame.name || 'Sense títol' });
           
           try {
             // 1. Preparar dades de l'esdeveniment (FORMAT RIC + MIXT DETALLAT)

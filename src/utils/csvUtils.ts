@@ -1,4 +1,5 @@
 import { EventFrame, PersonGroup, Assignment, ShowToastFunction, MaterialControlRow } from '../types';
+import { TFunction } from 'i18next';
 import { getStatusSummaryText } from './statusUtils';
 import { generateFileName } from './fileNameUtils';
 
@@ -25,20 +26,21 @@ export const exportEventListToCsv = async (
   eventFrames: EventFrame[],
   peopleGroups: PersonGroup[],
   showToast: ShowToastFunction,
-  activeFilters: ActiveFilters
+  activeFilters: ActiveFilters,
+  t: TFunction
 ) => {
   try {
     const headers = [
-      'Nom Esdeveniment',
-      'Lloc',
-      'Data Inici Esdeveniment',
-      'Data Fi Esdeveniment',
-      'Personal Assignat',
-      'Data Inici Assignació',
-      'Data Fi Assignació',
-      'Estat Assignació',
-      'Notes Assignació',
-      'Notes Generals Esdeveniment'
+      t('csv.header_event_name'),
+      t('csv.header_place'),
+      t('csv.header_event_start_date'),
+      t('csv.header_event_end_date'),
+      t('csv.header_assigned_person'),
+      t('csv.header_assignment_start_date'),
+      t('csv.header_assignment_end_date'),
+      t('csv.header_assignment_status'),
+      t('csv.header_assignment_notes'),
+      t('csv.header_event_notes')
     ];
 
     const rows = eventFrames.flatMap(ef => {
@@ -112,10 +114,19 @@ export const exportEventListToCsv = async (
 
 export const exportMaterialControlCsv = async (
   data: MaterialControlRow[],
-  showToast: ShowToastFunction
+  showToast: ShowToastFunction,
+  t: TFunction
 ) => {
   try {
-    const headers = ['Nom', 'Categoria', 'Origen', 'Demanada', 'Estoc', 'Balanç', 'Notes'];
+    const headers = [
+      t('mcc.header_name'),
+      t('mcc.header_category'),
+      t('mcc.header_origin'),
+      t('mcc.header_demanded'),
+      t('mcc.header_stock'),
+      t('mcc.header_balance'),
+      t('mcc.header_notes')
+    ];
 
     const rows = data.map(row => [
       escapeCsvCell(row.item.name),
