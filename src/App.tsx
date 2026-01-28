@@ -1079,7 +1079,7 @@ const App: React.FC = () => {
 
 
           <footer className="bg-secondary p-4 text-center text-sm text-muted-foreground border-t border-border">
-            <span>{t('footer.copyright', { year: new Date().getFullYear(), version: 'V1.5.0' })} </span>
+            <span>{t('footer.copyright', { year: new Date().getFullYear(), version: 'V1.6.0' })} </span>
             <span>{t('footer.collaboration_text', { 
               githubLink: <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">{t('footer.github_project')}</a>,
               paypalLink: <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>

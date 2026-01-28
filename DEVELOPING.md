@@ -4,14 +4,14 @@ web de la app a Vercel a la branca main O 0DEV_TRANSLATE:
 https://gestor-events-i-personal-landingpag.vercel.app/
 
 
-## DEVELOPING.md V1.5.0
+## DEVELOPING.md V1.6.0
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
-# NOVETATS V1.5.0 (Novembre 2025)
+# NOVETATS V1.6.0 (GENER 2026)
 
 **Resum de canvis tècnics recents:**
 - Refactorització completa de la gestió d'estat amb Zustand i zundo: stores independents, historial desfer/refer, partialize memoitzada per evitar bucles infinits.
@@ -32,6 +32,13 @@ import { useStore } from 'zustand';
 const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 0);
 ```
 - **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Això optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
+
+- **Sistema d'Internacionalització Complet (i18n):**
+  - **3 Idiomes Suportats:** Implementació completa de internacionalització per a Català, Castellà i English a totes les plataformes.
+  - **Aplicació d'Escriptori:** Selector `LanguageSelector.tsx` amb react-i18next, persistència localStorage i detecció automàtica d'idioma.
+  - **Aplicació Mòbil:** Selector visual amb banderes i AsyncStorage per a persistència, integrat amb react-i18next.
+  - **Aplicació Web:** Sistema de rutes multillingüe (/ca/, /es/, /en/) amb selector `LanguageSelector.astro` i navegació transparent.
+  - **Fitxers de Traducció:** Estructura organitzada de fitxers JSON per a cada plataforma amb totes les cadenes traduïdes.
 
 **Shortcuts de teclat segons plataforma:** La UI ara mostra els shortcuts adequats segons la plataforma (Windows/Linux vs macOS). La detecció de la plataforma s'ha centralitzat a `App.tsx` per a una major fiabilitat, passant la tecla modificadora ("Ctrl" o "⌘") com a `prop` als components fills com el menú personalitzat.
 

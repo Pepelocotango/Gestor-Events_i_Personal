@@ -16,7 +16,7 @@ L'aplicació ha estat dissenyada amb un enfocament **100% local**. Això signifi
 
 Quan utilitzes l'aplicació, totes les teves dades de treball (esdeveniments, contactes) s'emmagatzemen en un fitxer amb format `.gep` per defecte. L'aplicació també manté compatibilitat amb l'obertura i desat de fitxers en format `.json`.
 
-*   **Format Predeterminat (.gep):** A partir de la versió 1.5.0, l'aplicació utilitza el format natiu `.gep` per desar les teves dades. Aquest format és idèntic en contingut al format `.json` però amb una extensió específica que facilita la identificació dels fitxers de l'aplicació.
+*   **Format Predeterminat (.gep):** A partir de la versió 1.6.0, l'aplicació utilitza el format natiu `.gep` per desar les teves dades. Aquest format és idèntic en contingut al format `.json` però amb una extensió específica que facilita la identificació dels fitxers de l'aplicació.
 *   **Compatibilitat amb .json:** L'aplicació pot obrir i desar fitxers en format `.json` per mantenir la compatibilitat amb versions anteriors o amb altres eines.
 *   **Ubicació:** Tu, com a usuari, tries on desar aquests fitxers. Poden estar a qualsevol carpeta del teu ordinador.
 *   **Format de dades:** Aquests fitxers s'emmagatzemen en **text pla**. Això vol dir que no estan xifrats. Qualsevol persona amb accés a aquests fitxers podria llegir-ne el contingut.
@@ -83,7 +83,7 @@ The application has been designed with a **100% local-first** approach. This mea
 
 When you use the application, all your work data (events, contacts) is stored by default in a file with a `.gep` format. The application also maintains compatibility with opening and saving files in `.json` format.
 
-*   **Default Format (.gep):** Starting from version 1.5.0, the application uses the native `.gep` format to save your data. This format is identical in content to the `.json` format but with a specific extension that makes it easier to identify the application's data files.
+*   **Default Format (.gep):** Starting from version 1.6.0, the application uses the native `.gep` format to save your data. This format is identical in content to the `.json` format but with a specific extension that makes it easier to identify the application's data files.
 *   **JSON Compatibility:** The application can open and save files in `.json` format to maintain compatibility with previous versions or other tools.
 *   **Location:** You, as the user, choose where to save these files. They can be in any folder on your computer.
 *   **Data Format:** These files are stored in **plain text**. This means they are not encrypted. Anyone with access to these files could read their contents.
