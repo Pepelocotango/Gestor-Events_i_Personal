@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { ca } from 'date-fns/locale';
 import { darkTheme, lightTheme } from '../utils/themes';
 import { formatDateRanges } from '../utils/dateRangeFormatter';
+import { useTranslation } from 'react-i18next';
 
 type EventFrameCardProps = {
   eventFrame: EventFrame;
@@ -29,6 +30,7 @@ type EventFrameCardProps = {
 const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
   const updateEventFrame = useDataStore((state) => state.updateEventFrame);
   const themeName = useDataStore((state) => state.theme);
+  const { t } = useTranslation();
   const theme = themeName === 'dark' ? darkTheme : lightTheme;
   const isComplete = eventFrame.personnelComplete || false;
   const color = isComplete ? theme['status-yes'] : theme['status-pending'];
@@ -39,11 +41,11 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
     const eventName = eventFrame.name;
 
     Alert.alert(
-      `Confirmar canvi d'estat`,
-      `L'esdeveniment '${eventName}' es marcarà ${action}. Esteu segur?`,
+      t('mobile.alerts.confirm_status_change'),
+      t('mobile.alerts.confirm_status_message', { name: eventName, status: action }),
       [
         {
-          text: 'Cancel·lar',
+          text: t('mobile.alerts.cancel'),
           style: 'cancel',
         },
         {
@@ -94,6 +96,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
   navigation,
 }) => {
   const themeName = useDataStore((state) => state.theme);
+  const { t } = useTranslation();
   const theme = themeName === 'dark' ? darkTheme : lightTheme;
   const setAllDaysAssignmentStatus = useDataStore((state) => state.setAllDaysAssignmentStatus);
 
@@ -273,7 +276,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
             </TouchableOpacity>
             <View>
               <Text style={styles.assignmentPerson}>
-                {peopleMap.get(assignment.personGroupId) || 'Persona desconeguda'}
+                {peopleMap.get(assignment.personGroupId) || t('assignment.person_unknown')}
                 {assignment.role ? (
                   <Text style={styles.assignmentRole}> - {assignment.role}</Text>
                 ) : null}
@@ -282,10 +285,10 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
                 {assignment.status === 'Mixt' && assignment.dailyStatuses ? (
                   (() => {
                     const yesDates = Object.entries(assignment.dailyStatuses)
-                      .filter(([, s]) => s === 'Sí')
+                      .filter(([, s]) => s === t('common.status.yes'))
                       .map(([d]) => d);
                     const noDates = Object.entries(assignment.dailyStatuses)
-                      .filter(([, s]) => s === 'No')
+                      .filter(([, s]) => s === t('common.status.no'))
                       .map(([d]) => d);
                     
                     const parts = [];

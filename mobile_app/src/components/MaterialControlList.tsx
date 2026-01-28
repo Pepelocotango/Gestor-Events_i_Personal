@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import { MaterialControlRow } from '../types';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 interface MaterialControlListProps {
   data: MaterialControlRow[];
@@ -10,6 +11,7 @@ interface MaterialControlListProps {
 
 const MaterialControlList: React.FC<MaterialControlListProps> = ({ data }) => {
   const { theme } = useDataStore();
+  const { t } = useTranslation();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
@@ -87,18 +89,18 @@ const MaterialControlList: React.FC<MaterialControlListProps> = ({ data }) => {
           <View style={dynamicStyles.mainRow}>
             <Text style={dynamicStyles.itemName}>{item.item.name}</Text>
             <Text style={balanceIsNegative ? dynamicStyles.negativeBalance : dynamicStyles.positiveBalance}>
-              Balanç: {item.balance}
+              {t('mobile.material.balance')}: {item.balance}
             </Text>
           </View>
-          <Text style={{color: colors.text}}>Estoc: {item.item.stock} / Demanda: {item.totalDemand}</Text>
-          <Text style={dynamicStyles.details}>Categoria: {item.item.category} / Origen: {item.item.location}</Text>
+          <Text style={{color: colors.text}}>{t('mobile.material.stock')}: {item.item.stock} / {t('mobile.material.demand')}: {item.totalDemand}</Text>
+          <Text style={dynamicStyles.details}>Categoria: {item.item.category} / {t('mobile.material.location')}: {item.item.location}</Text>
         </TouchableOpacity>
         {isExpanded && (
           <View style={dynamicStyles.breakdownContainer}>
-            <Text style={dynamicStyles.breakdownTitle}>Desglossament:</Text>
+            <Text style={dynamicStyles.breakdownTitle}>{t('mcc.breakdown_title')}:</Text>
             {item.breakdown.map(bd => (
               <Text key={bd.eventFrameId} style={dynamicStyles.breakdownItem}>
-                - {bd.eventName}: {bd.quantity} unitat(s)
+                - {bd.eventName}: {bd.quantity} {t('mcc.units_suffix')}
               </Text>
             ))}
           </View>

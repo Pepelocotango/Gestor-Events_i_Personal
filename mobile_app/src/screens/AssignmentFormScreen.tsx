@@ -61,9 +61,9 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
-    if (!personGroupId) newErrors.personGroupId = "Cal seleccionar una persona o grup.";
-    if (!startDate) newErrors.startDate = "La data d'inici és obligatòria.";
-    if (!endDate) newErrors.endDate = "La data de fi és obligatòria.";
+    if (!personGroupId) newErrors.personGroupId = t('mobile.validation.select_person');
+    if (!startDate) newErrors.startDate = t('mobile.validation.start_date_required');
+    if (!endDate) newErrors.endDate = t('mobile.validation.end_date_required');
 
     if (startDate && endDate) {
         if (startDate > endDate) {
@@ -83,7 +83,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
   const performSave = async (force: boolean = false) => {
     if (!validate()) {
-      Alert.alert("Errors de Validació", "Si us plau, corregeix els errors abans de desar.");
+      Alert.alert(t('mobile.alerts.validation_errors'), t('mobile.alerts.validation_message'));
       return;
     }
 
@@ -106,10 +106,10 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
     if (conflictMessage) {
       Alert.alert(
-        "Conflicte d'Assignació",
+        t('mobile.alerts.assignment_conflict'),
         conflictMessage,
         [
-          { text: "Cancel·lar", style: "cancel" },
+          { text: t('mobile.alerts.cancel'), style: "cancel" },
           { text: "Desar Igualment", onPress: () => performSave(true) }
         ]
       );

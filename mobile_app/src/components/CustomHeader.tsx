@@ -9,6 +9,7 @@ import ThemeSwitcher from './ui/ThemeSwitcher';
 import { lightTheme, darkTheme } from '../utils/themes';
 import AboutModal from './AboutModal';
 import LanguageSelector from './LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 const fileService = new SAFFileService();
 
@@ -29,6 +30,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     shareFile,
     theme,
   } = useDataStore();
+  const { t } = useTranslation();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const canGoBack = navigation.canGoBack();
   const [isAboutModalVisible, setAboutModalVisible] = useState(false);
@@ -41,17 +43,17 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
           setData(result.content, result.name, result.uri);
         }
       } catch (error) {
-        Alert.alert("Error", "El fitxer seleccionat no és vàlid o està malmès.");
+        Alert.alert("Error", t('mobile.alerts.invalid_file'));
       }
     };
 
     if (hasUnsavedChanges) {
       Alert.alert(
-        "Descartar canvis?",
-        "Teniu canvis no desats. Esteu segur que voleu tancar el fitxer actual i descartar els canvis?",
+        t('mobile.alerts.discard_changes'),
+        t('mobile.alerts.discard_changes_message'),
         [
-          { text: "Cancel·lar", style: "cancel" },
-          { text: "Descartar", style: "destructive", onPress: openAndSetData },
+          { text: t('mobile.alerts.cancel'), style: "cancel" },
+          { text: t('mobile.alerts.discard'), style: "destructive", onPress: openAndSetData },
         ]
       );
     } else {
@@ -70,10 +72,10 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   const handleShareFile = async () => {
     Alert.alert(
       "A punt per compartir",
-      "Per reemplaçar i sobreescriure un fitxer existent a Dropbox o Drive, marqueu el fitxer com 'Available offline'. Per Dropbox utilitzeu el gestor natiu de Dropbox i marqueu 'Upload here' -> 'Replace' -> 'show in folder' per assegurar la sincronització. Per Drive utilitzeu un gestor de fitxers (com FileExplorer) connectat a Drive, obriu Drive i actualitzeu.Sense aquests passos Drive crearà un fitxer duplicat.S'obrirà el diàleg per compartir. Si deseu a Google Drive o a un altre servei al núvol, recordeu de sobreescriure el fitxer existent si voleu actualitzar-lo.",
+      t('mobile.alerts.share_instructions'),
        [
         {
-          text: "D'acord",
+          text: t('mobile.alerts.ok'),
           onPress: async () => {
             try {
               await shareFile();
@@ -89,11 +91,11 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   const handleCloseFile = () => {
     if (hasUnsavedChanges) {
       Alert.alert(
-        "Descartar canvis?",
-        "Teniu canvis no desats. Esteu segur que voleu tancar el fitxer i descartar els canvis?",
+        t('mobile.alerts.discard_changes'),
+        t('mobile.alerts.discard_changes_message'),
         [
-          { text: "Cancel·lar", style: "cancel" },
-          { text: "Descartar", style: "destructive", onPress: clearData },
+          { text: t('mobile.alerts.cancel'), style: "cancel" },
+          { text: t('mobile.alerts.discard'), style: "destructive", onPress: clearData },
         ]
       );
     } else {
@@ -169,7 +171,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
             ) : (
               <TouchableOpacity onPress={handleOpenFile} style={styles.openButton}>
                 <Icon name="folder-open-outline" size={28} style={dynamicStyles.accentIconColor} />
-                <Text style={dynamicStyles.openButtonText}>Obrir</Text>
+                <Text style={dynamicStyles.openButtonText}>{t('common.open')}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity onPress={() => setAboutModalVisible(true)}>

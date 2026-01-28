@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
 import Constants from 'expo-constants';
+import { useTranslation } from 'react-i18next';
 
 interface AboutModalProps {
   visible: boolean;
@@ -15,11 +16,12 @@ const PAYPAL_URL = 'https://paypal.me/RosePep';
 
 const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
   const theme = useDataStore((state) => state.theme);
+  const { t } = useTranslation();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   
   const appName = Constants.expoConfig?.name || "Gestor d'Esdeveniments";
   const appVersion = Constants.expoConfig?.version ? `v${Constants.expoConfig.version}` : '';
-  const appDescription = "Aplicació mòbil per visualitzar i gestionar esdeveniments, personal i material. Permet consultar i editar la informació bàsica dels esdeveniments, gestionar el personal assignat i revisar l'inventari de material. Sincronitza amb l'aplicació d'escriptori per a una gestió completa.";
+  const appDescription = t('mobile.about.app_description');
 
   const handleLinkPress = async (url: string) => {
     const supported = await Linking.canOpenURL(url);
@@ -113,13 +115,13 @@ const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
         <View style={dynamicStyles.modalContent}>
           <View style={dynamicStyles.titleContainer}>
             <Text style={dynamicStyles.title}>{appName}</Text>
-            <Text style={dynamicStyles.version}>Versió {appVersion}</Text>
+            <Text style={dynamicStyles.version}>{t('mobile.about.version')} {appVersion}</Text>
             <Text style={dynamicStyles.description}>
               {appDescription}
             </Text>
           </View>
 
-          <Text style={dynamicStyles.sectionTitle}>Enllaços d'Interès</Text>
+          <Text style={dynamicStyles.sectionTitle}>{t('mobile.about.links')}</Text>
           
           <TouchableOpacity 
             style={dynamicStyles.linkButton}
@@ -133,7 +135,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
             style={dynamicStyles.linkButton}
             onPress={() => handleLinkPress(PAYPAL_URL)}
           >
-            <Text style={dynamicStyles.linkText}>Fes una donació</Text>
+            <Text style={dynamicStyles.linkText}>{t('mobile.about.donate')}</Text>
             <Icon name="open-in-new" size={20} color={colors.background} style={{ marginLeft: 8 }} />
           </TouchableOpacity>
 
@@ -141,7 +143,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
             style={dynamicStyles.closeButton}
             onPress={onClose}
           >
-            <Text style={dynamicStyles.closeButtonText}>Tancar</Text>
+            <Text style={dynamicStyles.closeButtonText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>

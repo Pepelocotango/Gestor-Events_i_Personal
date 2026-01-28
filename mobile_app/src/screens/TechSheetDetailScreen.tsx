@@ -13,6 +13,7 @@ import ReadOnlyField from '../components/tech_sheet/ReadOnlyField';
 import { formatDate } from '../utils/dateFormat';
 import CollapsibleSection from '../components/CollapsibleSection';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 import { lightTheme, darkTheme } from '../utils/themes';
 
 type TechSheetDetailScreenRouteProp = RouteProp<
@@ -27,6 +28,7 @@ type Props = {
 export default function TechSheetDetailScreen({ route }: Props) {
   const eventId = route.params?.eventId;
   const { eventFrames, peopleGroups, materialItems, theme } = useDataStore();
+  const { t } = useTranslation();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const event = eventFrames.find((e) => e.id === eventId);
@@ -105,13 +107,13 @@ export default function TechSheetDetailScreen({ route }: Props) {
   }), [colors]);
 
   if (!event) {
-    return <View style={dynamicStyles.centerContainer}><Text style={dynamicStyles.text}>No s'ha trobat l'esdeveniment.</Text></View>;
+    return <View style={dynamicStyles.centerContainer}><Text style={dynamicStyles.text}>{t('mobile.tech_sheet.event_not_found')}</Text></View>;
   }
   if (!techSheet) {
-    return <View style={dynamicStyles.centerContainer}><Text style={dynamicStyles.text}>Aquest esdeveniment no té fitxa de bolo associada.</Text></View>;
+    return <View style={dynamicStyles.centerContainer}><Text style={dynamicStyles.text}>{t('mobile.tech_sheet.no_tech_sheet')}</Text></View>;
   }
 
-  const getPersonName = (personGroupId: string) => peopleGroups.find((p) => p.id === personGroupId)?.name || 'Desconegut';
+  const getPersonName = (personGroupId: string) => peopleGroups.find((p) => p.id === personGroupId)?.name || t('mobile.tech_sheet.unknown');
   const getMaterialName = (materialId: string | null | undefined) => !materialId ? 'N/A' : (materialItems.find(i => i.id === materialId)?.name || 'Material desconegut');
 
   const renderNeedsSection = (
@@ -141,11 +143,11 @@ export default function TechSheetDetailScreen({ route }: Props) {
     if (!section || section.status !== 'yes') return null;
     let value = '';
     if (section.data) {
-      value = `Número: ${section.data.number || 'N/A'}`;
-      if (section.data.names) value += `, Noms: ${section.data.names}`;
+      value = `${t('mobile.tech_sheet.number')}: ${section.data.number || 'N/A'}`;
+      if (section.data.names) value += `, ${t('mobile.tech_sheet.names')}: ${section.data.names}`;
     }
-    if (section.details) value += `\nDetalls: ${section.details}`;
-    return <ReadOnlyField label={label} value={value || 'Sí'} />;
+    if (section.details) value += `\n${t('mobile.tech_sheet.details')}: ${section.details}`;
+    return <ReadOnlyField label={label} value={value || t('mobile.tech_sheet.yes')} />;
   };
 
   return (
@@ -157,22 +159,22 @@ export default function TechSheetDetailScreen({ route }: Props) {
         </TouchableOpacity>
       </View>
 
-      <CollapsibleSection title="Informació General" isExpanded={!!expandedSections.general} onToggle={() => handleToggleSection('general')}>
-        <ReadOnlyField label="Esdeveniment" value={techSheet.eventName} />
-        <ReadOnlyField label="Lloc" value={techSheet.location} />
-        <ReadOnlyField label="Data" value={formatDate(techSheet.date)} />
-        {techSheet.showTimes && techSheet.showTimes.length > 0 && <ReadOnlyField label="Hora Funció" value={techSheet.showTimes.map(st => st.time).join(', ')} />}
-        <ReadOnlyField label="Durada Espectacle" value={techSheet.showDuration} />
+      <CollapsibleSection title={t('mobile.tech_sheet.general_info')} isExpanded={!!expandedSections.general} onToggle={() => handleToggleSection('general')}>
+        <ReadOnlyField label={t('mobile.tech_sheet.event')} value={techSheet.eventName} />
+        <ReadOnlyField label={t('mobile.tech_sheet.place')} value={techSheet.location} />
+        <ReadOnlyField label={t('mobile.tech_sheet.date')} value={formatDate(techSheet.date)} />
+        {techSheet.showTimes && techSheet.showTimes.length > 0 && <ReadOnlyField label={t('mobile.tech_sheet.show_time')} value={techSheet.showTimes.map(st => st.time).join(', ')} />}
+        <ReadOnlyField label={t('mobile.tech_sheet.duration')} value={techSheet.showDuration} />
       </CollapsibleSection>
 
-      {techSheet.generalNotes && <CollapsibleSection title="Notes Generals" isExpanded={!!expandedSections.generalNotes} onToggle={() => handleToggleSection('generalNotes')}><Text style={dynamicStyles.text}>{techSheet.generalNotes}</Text></CollapsibleSection>}
-      {techSheet.preAssembly?.status === 'yes' && <CollapsibleSection title="Premuntatge" isExpanded={!!expandedSections.preAssembly} onToggle={() => handleToggleSection('preAssembly')}><Text style={dynamicStyles.text}>{techSheet.preAssembly.details || 'Sí'}</Text></CollapsibleSection>}
+      {techSheet.generalNotes && <CollapsibleSection title={t('mobile.tech_sheet.general_notes')} isExpanded={!!expandedSections.generalNotes} onToggle={() => handleToggleSection('generalNotes')}><Text style={dynamicStyles.text}>{techSheet.generalNotes}</Text></CollapsibleSection>}
+      {techSheet.preAssembly?.status === 'yes' && <CollapsibleSection title={t('mobile.tech_sheet.preassembly')} isExpanded={!!expandedSections.preAssembly} onToggle={() => handleToggleSection('preAssembly')}><Text style={dynamicStyles.text}>{techSheet.preAssembly.details || t('mobile.tech_sheet.yes')}</Text></CollapsibleSection>}
 
       {sectionKeys.includes('logistics') &&
-        <CollapsibleSection title="Logística" isExpanded={!!expandedSections.logistics} onToggle={() => handleToggleSection('logistics')}>
-            {techSheet.parking?.status === 'yes' && <ReadOnlyField label="Pàrquing" value={techSheet.parking.details || 'Sí'} />}
-            {techSheet.dressingRooms?.status === 'yes' && <ReadOnlyField label="Camerinos" value={techSheet.dressingRooms.details || 'Sí'} />}
-            {renderPersonnelInfoSection('Intèrprets / Ponents', techSheet.actorsInfo as any)}
+        <CollapsibleSection title={t('mobile.tech_sheet.logistics')} isExpanded={!!expandedSections.logistics} onToggle={() => handleToggleSection('logistics')}>
+            {techSheet.parking?.status === 'yes' && <ReadOnlyField label={t('mobile.tech_sheet.parking')} value={techSheet.parking.details || t('mobile.tech_sheet.yes')} />}
+            {techSheet.dressingRooms?.status === 'yes' && <ReadOnlyField label={t('mobile.tech_sheet.dressing_rooms')} value={techSheet.dressingRooms.details || t('mobile.tech_sheet.yes')} />}
+            {renderPersonnelInfoSection(t('mobile.tech_sheet.interpreters'), techSheet.actorsInfo as any)}
             {renderPersonnelInfoSection('Personal Tècnic (Client)', techSheet.techniciansInfo as any)}
         </CollapsibleSection>
       }
