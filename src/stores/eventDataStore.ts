@@ -453,9 +453,9 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 if (conflictingAssignments.length > 0) {
                     const conflictDetails = conflictingAssignments.map(conflict => {
                         const conflictingEvent = get().eventFrames.find(ef => ef.id === conflict.eventFrameId);
-                        return `"${conflictingEvent?.name}" el ${formatDateDMY(currentDateStr)}`;
-                    }).join(", ");
-                    return { success: true, warningMessage: `DUPLICATE_CONFLICT:Conflicte detectat: Aquest contacte ja té una assignació a ${conflictDetails}.` };
+                        return { eventName: conflictingEvent?.name || 'desconegut', date: formatDateDMY(currentDateStr) };
+                    });
+                    return { success: true, conflict: { type: 'DUPLICATE', details: conflictDetails } };
                 }
             }
         }
@@ -492,7 +492,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             finalAssignment.dailyStatuses = undefined;
         }
 
-        let warningMessage: string | undefined = undefined;
+        let warningMessage: { type: string; details: any } | undefined = undefined;
 
         if (!force) {
             const allOtherAssignments = get().eventFrames.flatMap(ef =>
@@ -524,24 +524,27 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                     });
 
                     if (conflictingAssignments.length > 0) {
-                        const conflictDetails = conflictingAssignments.map(conflict => `"${get().eventFrames.find(ef => ef.id === conflict.eventFrameId)?.name}" el ${formatDateDMY(currentDateStr)}`).join(", ");
-                        return `Conflicte detectat: Aquest contacte ja té una assignació a ${conflictDetails}.`;
+                        const conflictDetails = conflictingAssignments.map(conflict => {
+                            const conflictingEvent = get().eventFrames.find(ef => ef.id === conflict.eventFrameId);
+                            return { eventName: conflictingEvent?.name || 'desconegut', date: formatDateDMY(currentDateStr) };
+                        });
+                        return { type: 'DUPLICATE', details: conflictDetails };
                     }
                 }
                 return null;
             };
 
-            let conflictMessage: string | null = null;
+            let conflictObject: { type: string; details: any } | null = null;
             if (finalAssignment.status !== AssignmentStatus.No) {
                 if (context?.changedDate) {
                     const specificDate = new Date(context.changedDate);
-                    conflictMessage = checkDateRange(specificDate, specificDate, finalAssignment.dailyStatuses || finalAssignment.status);
+                    conflictObject = checkDateRange(specificDate, specificDate, finalAssignment.dailyStatuses || finalAssignment.status);
                 } else {
-                    conflictMessage = checkDateRange(new Date(finalAssignment.startDate), new Date(finalAssignment.endDate), finalAssignment.dailyStatuses || finalAssignment.status);
+                    conflictObject = checkDateRange(new Date(finalAssignment.startDate), new Date(finalAssignment.endDate), finalAssignment.dailyStatuses || finalAssignment.status);
                 }
             }
-            if (conflictMessage) {
-              warningMessage = `DUPLICATE_CONFLICT:${conflictMessage}`;
+            if (conflictObject) {
+              warningMessage = conflictObject;
             }
         }
 

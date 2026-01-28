@@ -126,9 +126,17 @@ const App: React.FC = () => {
     initializeGoogleAuthListeners();
 
     const fetchMetadata = async () => {
-      if (window.electronAPI?.getAppMetadata) {
-        const metadata = await window.electronAPI.getAppMetadata();
-        setAppMetadata(metadata);
+      try {
+        if (window.electronAPI?.getAppMetadata) {
+          console.log('[App] Fetching app metadata...');
+          const metadata = await window.electronAPI.getAppMetadata();
+          console.log('[App] Received app metadata:', metadata);
+          setAppMetadata(metadata);
+        } else {
+          console.warn('[App] electronAPI or getAppMetadata not available');
+        }
+      } catch (error) {
+        console.error('[App] Error fetching app metadata:', error);
       }
     };
     fetchMetadata();
@@ -695,9 +703,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
+    console.log('[App] window.electronAPI available at listener setup:', !!window.electronAPI);
     const { undoWithToast, redoWithToast } = useEventDataStore.getState();
 
     if (window.electronAPI) {
+      console.log('[App] Setting up menu action listener...');
       const cleanup = window.electronAPI.onMenuAction((action) => {
         logger.info(`[Menu] Acció rebuda: ${action}`);
 
@@ -745,6 +755,7 @@ const App: React.FC = () => {
             useEventDataStore.getState().syncWithGoogle();
             break;
           case 'config-google':
+            console.log('[App] Opening googleSettings modal from menu');
             openModalFromStore('googleSettings');
             break;
           case 'connect-google':
@@ -760,6 +771,7 @@ const App: React.FC = () => {
             window.electronAPI?.openBackupsFolder();
             break;
           case 'open-about-modal':
+            console.log('[App] Opening about modal from menu');
             openModalFromStore('about');
             break;
           default:
@@ -768,6 +780,8 @@ const App: React.FC = () => {
       });
 
       return cleanup;
+    } else {
+      console.warn('[App] window.electronAPI not available, menu actions will not work');
     }
   }, [
     openModalFromStore,
@@ -914,14 +928,14 @@ const App: React.FC = () => {
       case 'googleEventDetails':
         return <GoogleEventDetailsModal />;
       case 'about':
-        return appMetadata ? (
+        return (
           <AboutModal
-            name={appMetadata.name}
-            version={appMetadata.version}
-            description={appMetadata.description}
+            name={appMetadata?.name || 'Gestor d\'Esdeveniments'}
+            version={appMetadata?.version || '1.0.0'}
+            description={appMetadata?.description || 'Aplicació per a la gestió d\'esdeveniments'}
             onClose={closeModal}
           />
-        ) : null;
+        );
       case 'pdfPreview':
         return <PdfPreviewModal
           onClose={closeModal}

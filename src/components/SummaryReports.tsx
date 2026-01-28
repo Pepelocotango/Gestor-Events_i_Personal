@@ -158,8 +158,8 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
 
     const csvRows: string[][] = [];
     const headers = [
-        'Agrupació Principal', 'Esdeveniment Marc', 'Dates Marc', 'Lloc Marc', 
-        'Persona/Grup Assignat', 'Dates Assignació', 'Estat General', 'Detall Estats (si mixt)', 'Notes Assignació'
+        t('csv.header_grouping'), t('csv.header_event_frame'), t('csv.header_event_dates'), t('csv.header_event_place'), 
+        t('csv.header_assigned_person'), t('csv.header_assignment_dates'), t('csv.header_general_status'), t('csv.header_status_detail'), t('csv.header_assignment_notes')
     ];
     csvRows.push(headers);
 
@@ -190,7 +190,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
     const csvContent = generateDetailedCsv(dataType, groupKey);
 
     // Utilitza la nova lògica per generar el nom del fitxer
-    const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
+    const prefix = t('csv.filename_prefix', { type: dataType === 'event-name' ? t('csv.type_event') : (dataType === 'start-date' ? t('csv.type_date') : t('csv.type_person')) });
     const filename = generateFileName(prefix, activeFilters, filteredEventFrames, 'csv');
 
     await downloadCsv(csvContent, filename);

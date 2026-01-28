@@ -277,13 +277,28 @@ const MainDisplay = React.forwardRef<
     const performUpdate = (force = false) => {
       const result = updateAssignment({ ...assignment, status: newStatus, dailyStatuses: undefined }, force);
       if (result.success) {
-        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+        if (result.conflict && result.conflict.type === 'DUPLICATE') {
+          const conflictDetails = result.conflict.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
           openModal('confirmDuplicate', {
-            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
+            onConfirm: () => performUpdate(true),
+          });
+        } else if (result.warningMessage && typeof result.warningMessage === 'object' && result.warningMessage.type === 'DUPLICATE') {
+          const conflictDetails = result.warningMessage.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
+          openModal('confirmDuplicate', {
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
             onConfirm: () => performUpdate(true),
           });
         } else {
-          setToastMessage(`Estat general de l'assignació actualitzat a ${newStatus}`, 'success');
+          if (result.warningMessage && typeof result.warningMessage === 'string') {
+            setToastMessage(result.warningMessage, 'warning');
+          } else {
+            setToastMessage(t('main_display.assignment_status_updated', { status: newStatus }), 'success');
+          }
           setManualExpandedDailyView(prev => {
             const newSet = new Set(prev);
             newSet.delete(assignmentId);
@@ -320,13 +335,28 @@ const MainDisplay = React.forwardRef<
       const result = updateAssignment(newAssignmentData, force, { changedDate: dateYYYYMMDD });
 
       if (result.success) {
-        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+        if (result.conflict && result.conflict.type === 'DUPLICATE') {
+          const conflictDetails = result.conflict.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
           openModal('confirmDuplicate', {
-            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
+            onConfirm: () => performUpdate(true),
+          });
+        } else if (result.warningMessage && typeof result.warningMessage === 'object' && result.warningMessage.type === 'DUPLICATE') {
+          const conflictDetails = result.warningMessage.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
+          openModal('confirmDuplicate', {
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
             onConfirm: () => performUpdate(true),
           });
         } else {
-          setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
+          if (result.warningMessage && typeof result.warningMessage === 'string') {
+            setToastMessage(result.warningMessage, 'warning');
+          } else {
+            setToastMessage(t('main_display.daily_status_updated', { status: newDailyStatus }), 'success');
+          }
         }
       } else if (result.message) {
         setToastMessage(result.message, 'error');

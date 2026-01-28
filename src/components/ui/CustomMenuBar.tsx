@@ -52,9 +52,13 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleAction = (action?: string, role?: string) => {
+    console.log(`[CustomMenuBar] handleAction called: ${action || role}`);
+    console.log(`[CustomMenuBar] window.electronAPI available:`, !!window.electronAPI);
+    
     if (window.electronAPI) {
       const actionToSend = action || role;
       if (actionToSend) {
+        console.log(`[CustomMenuBar] Sending action: ${actionToSend}`);
         window.electronAPI.triggerMenuAction(actionToSend);
       }
     } else {

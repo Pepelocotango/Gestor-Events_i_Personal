@@ -309,7 +309,8 @@ export interface ModalState {
 export type AssignmentOperationResult = {
   success: boolean;
   message?: string;
-  warningMessage?: string;
+  warningMessage?: string | { type: string; details: any };
+  conflict?: { type: string; details: any };
 };
 
 export interface SyncProgressState {
@@ -365,7 +366,6 @@ export interface EventDataConteImplicits {
   canRedo: boolean;
 }
 
-export type EventDataManagerReturn = Omit<EventDataConteImplicits, 'openModal' | 'showToast'>;
 
 export interface SummaryRow {
   id: string;
@@ -386,17 +386,7 @@ export interface SummaryRow {
   [key: string]: any;
 }
 
-
-export interface Person {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  notes?: string;
-}
-
-interface BaseCalendarEvent {
-  id: string;
+export interface BaseCalendarEvent {
   title: string;
   start: string;
   end: string;

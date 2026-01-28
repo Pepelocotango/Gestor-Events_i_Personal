@@ -91,6 +91,8 @@ const appMetadata = {
   description: metadataJson.description,
 };
 
+console.log('[Main] App metadata loaded:', appMetadata);
+
 app.disableHardwareAcceleration();
 
 console.log('**************************************************');
@@ -497,6 +499,7 @@ ipcMain.handle('open-backups-folder', async () => {
 });
 
 ipcMain.handle('get-app-metadata', async () => {
+  console.log('[Main] getAppMetadata called, returning:', appMetadata);
   return appMetadata;
 });
 
@@ -778,10 +781,10 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
       if (err.code === 404) {
         config.managedAppCalendars = config.managedAppCalendars.filter(c => c.id !== targetCalendarId);
         fs.writeFileSync(GOOGLE_CONFIG_PATH, JSON.stringify(config, null, 2));
-        logAndSendProgress(`❌ El calendari no existeix. S'ha eliminat de la llista de calendaris gestionats.`, true);
+        logAndSendProgress(`❌ El calendari no existeix. S'ha eliminat de la llista de calendaris gestionats.`, true, 'sync.error_calendar_not_found', {});
         return { success: false, code: 'CALENDAR_NOT_FOUND', message: `El calendari no existeix.` };
       }
-      logAndSendProgress(`❌ Error de connexió amb el calendari: ${err.message}`, true);
+      logAndSendProgress(`❌ Error de connexió amb el calendari: ${err.message}`, true, 'sync.error_calendar_connection', { error: err.message });
       return { success: false, message: `Error de connexió: ${err.message}` };
     }
 
@@ -850,7 +853,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
             });
             await delay(150); // Petita pausa per evitar sobrecàrrega
           } catch (error) {
-            logAndSendProgress(`⚠️ No s'ha pogut eliminar l'esdeveniment ${event.id}: ${error.message}`, true);
+            logAndSendProgress(`⚠️ No s'ha pogut eliminar l'esdeveniment ${event.id}: ${error.message}`, true, 'sync.error_deleting_event', { eventId: event.id, error: error.message });
           }
         }
         logAndSendProgress('✅ S\'han eliminat tots els esdeveniments antics.', false, 'sync.step_deletion_complete', {});
@@ -942,10 +945,10 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
                   eventId: localFrame.googleEventId,
                   requestBody: eventData
                 });
-                logAndSendProgress(`   ✅ Actualitzat a Google Calendar: ${localFrame.name}`);
+                logAndSendProgress(`   ✅ Actualitzat a Google Calendar: ${localFrame.name}`, false, 'sync.success_event_updated', { name: localFrame.name });
               } catch (error) {
                 if (error.code === 404) {
-                  logAndSendProgress(`   ℹ️ L'esdeveniment no existeix a Google, es crearà de nou.`);
+                  logAndSendProgress(`   ℹ️ L'esdeveniment no existeix a Google, es crearà de nou.`, false, 'sync.info_event_not_found', {});
                   localFrame.googleEventId = null; // Forçar creació de nou
                 } else {
                   throw error;
@@ -961,9 +964,9 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
                   requestBody: eventData
                 });
                 localFrame.googleEventId = createdEvent.data.id;
-                logAndSendProgress(`   ✅ Creat a Google Calendar amb ID: ${localFrame.googleEventId}`);
+                logAndSendProgress(`   ✅ Creat a Google Calendar amb ID: ${localFrame.googleEventId}`, false, 'sync.success_event_created', { eventId: localFrame.googleEventId });
               } catch (error) {
-                logAndSendProgress(`   ❌ Error en crear l'esdeveniment: ${error.message}`, true);
+                logAndSendProgress(`   ❌ Error en crear l'esdeveniment: ${error.message}`, true, 'sync.error_creating_event', { error: error.message });
                 continue;
               }
             }
@@ -979,14 +982,14 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
             await delay(300); // Pausa per evitar sobrecàrrega de l'API
 
           } catch (error) {
-            logAndSendProgress(`   ❌ Error en processar l'esdeveniment "${localFrame.name}": ${error.message}`, true);
+            logAndSendProgress(`   ❌ Error en processar l'esdeveniment "${localFrame.name}": ${error.message}`, true, 'sync.error_processing_event', { name: localFrame.name, error: error.message });
             continue;
           }
         }
         
-        logAndSendProgress('✅ S\'han processat tots els esdeveniments nous/actualitzats.');
+        logAndSendProgress('✅ S\'han processat tots els esdeveniments nous/actualitzats.', false, 'sync.success_upload_complete', {});
       } else {
-        logAndSendProgress('ℹ️ No hi ha esdeveniments nous o actualitzats per pujar.');
+        logAndSendProgress('ℹ️ No hi ha esdeveniments nous o actualitzats per pujar.', false, 'sync.info_no_events_to_upload', {});
       }
 
       // Actualitzar la configuració
@@ -995,7 +998,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
 
       // Finalització amb èxit
       const endTime = getCurrentTime();
-      logAndSendProgress(`🏁 Sincronització completada amb èxit! (${startTime} - ${endTime})`);
+      logAndSendProgress(`🏁 Sincronització completada amb èxit! (${startTime} - ${endTime})`, false, 'sync.success_sync_completed', { startTime, endTime });
 
       return { 
         success: true, 
@@ -1390,8 +1393,12 @@ app.on('activate', () => {
 });
 
 ipcMain.on('trigger-menu-action', (event, action) => {
+  console.log(`[Main] Menu action received: ${action}`);
   const focusedWindow = BrowserWindow.getFocusedWindow();
-  if (!focusedWindow && !['quit', 'load-all', 'load-material', 'load-people'].includes(action)) return;
+  if (!focusedWindow && !['quit', 'load-all', 'load-material', 'load-people'].includes(action)) {
+    console.log(`[Main] No focused window for action: ${action}`);
+    return;
+  }
 
   switch (action) {
     case 'load-all':
@@ -1407,6 +1414,9 @@ ipcMain.on('trigger-menu-action', (event, action) => {
     case 'zoomIn': focusedWindow.webContents.setZoomLevel(focusedWindow.webContents.getZoomLevel() + 0.5); break;
     case 'zoomOut': focusedWindow.webContents.setZoomLevel(focusedWindow.webContents.getZoomLevel() - 0.5); break;
     case 'togglefullscreen': focusedWindow.setFullScreen(!focusedWindow.isFullScreen()); break;
-    default: if (mainWindow) mainWindow.webContents.send('menu-action', action); break;
+    default: 
+      console.log(`[Main] Sending menu-action to frontend: ${action}`);
+      if (mainWindow) mainWindow.webContents.send('menu-action', action); 
+      break;
   }
 });
