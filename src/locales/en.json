@@ -17,7 +17,14 @@
         "theme_dark": "Dark Theme",
         "history_tooltip": "History",
         "close_modal": "Close modal",
+        "toggle_section_tooltip": "Collapse/Expand section {{title}}",
         "splash_alt": "Splash screen",
+        "error_boundary": {
+            "title": "An error occurred in the application",
+            "message": "An unexpected error occurred in the interface. Please restart the application.",
+            "reload_button": "Reload Application",
+            "error_details": "Error Details"
+        },
         "undo_action": "Action undone",
         "redo_action": "Action redone",
         "action_undone": "Action undone.",
@@ -107,6 +114,9 @@
         "collapse_all": "Collapse All",
         "expand_all": "Expand All",
         "archive_old": "Archive Old",
+        "archive_old_tooltip": "Archive old events (finished more than a week ago)",
+        "collapse_all_cards_tooltip": "Collapse all cards",
+        "expand_all_cards_tooltip": "Expand all cards",
         "pdf_export": "PDF",
         "csv_export": "CSV",
         "search_general": "General search",
@@ -271,6 +281,19 @@
         "control_center_title": "Material Control Center",
         "item_updated_toast": "Material updated.",
         "item_added_toast": "New material added.",
+        "save_changes_tooltip": "Save changes made to the item",
+        "add_item_tooltip": "Add the new item to inventory",
+        "stock_tooltip": "Total quantity of this item in inventory",
+        "cancel_tooltip": "Discard changes and clear the form",
+        "name_tooltip": "Name of the material item",
+        "category_tooltip": "Category to which the item belongs",
+        "location_tooltip": "Where this item is stored (optional)",
+        "notes_tooltip": "Additional notes about the item (optional)",
+        "name_label": "Name",
+        "category_label": "Category",
+        "stock_label": "Stock",
+        "location_label": "Location",
+        "notes_label": "Notes",
         "delete_item_confirm_msg": "Are you sure you want to delete <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Update",
@@ -540,7 +563,11 @@
         "breakdown_title": "Breakdown by Event:",
         "units_suffix": "unit(s)",
         "export_csv_tooltip": "Exportar todo el resumen {{title}} a CSV",
-        "export_pdf_tooltip": "Exportar todo el resumen {{title}} a PDF"
+        "export_pdf_tooltip": "Exportar todo el resumen {{title}} a PDF",
+        "sort_date_tooltip": "Sort by date {{order}}",
+        "by_event_name": "By Event Name",
+        "by_start_date": "By Assignment Start Date",
+        "by_person": "By Person/Group"
     },
     "modals": {
         "confirm_delete": {
@@ -995,6 +1022,8 @@
         "header_event_notes": "Event General Notes"
     },
     "sync": {
+        "title": "Google Calendar Synchronization",
+        "step_progress": "Step {{current}} of {{total}}",
         "step_verifying_calendar": "Verifying calendar access...",
         "step_calendar_connected": "Calendar connection established.",
         "step_requesting_confirmation": "Requesting confirmation to start sync...",
@@ -1013,5 +1042,10 @@
         "step_processing_event": "Processing event {{index}}/{{total}}: {{name}}",
         "step_upload_complete": "Upload complete.",
         "step_initializing_sync": "Starting Google Calendar sync..."
+    },
+    "footer": {
+        "copyright": "© {{year}} (Pëp) Events and Personnel Manager {{version}}. License GNU GPL v3.0.",
+        "collaboration_text": "If you want to collaborate, you can do it on the {{githubLink}} or with a contribution to {{paypalLink}}.",
+        "github_project": "GitHub project"
     }
 }

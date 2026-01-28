@@ -204,7 +204,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
         <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
         <div className="flex items-center gap-3">
           {showSortButton && (
-            <Tooltip text={`Ordena per data ${summarySortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
+            <Tooltip text={t('summary.sort_date_tooltip', { order: summarySortOrder === 'asc' ? 'descendent' : 'ascendent' })}>
               <button
                 onClick={() => setSummarySortOrder(summarySortOrder === 'asc' ? 'desc' : 'asc')}
                 className="flex items-center gap-1 px-2 py-1 rounded border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
@@ -214,7 +214,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
             </Tooltip>
           )}
           <div className="flex items-center gap-2">
-            <Tooltip text="Exportar a CSV">
+            <Tooltip text={t('summary.export_csv_tooltip')}>
               <button
                   onClick={() => handleExportCsv(dataType)}
                   className="p-1.5 rounded-full bg-success/10 text-success hover:bg-success/20"
@@ -222,7 +222,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
               > <CsvIcon className="w-4 h-4" />
               </button>
             </Tooltip>
-            <Tooltip text="Exportar a PDF">
+            <Tooltip text={t('summary.export_pdf_tooltip')}>
               <button
                   onClick={() => handleExportPdf(title, data, dataType)}
                   className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
@@ -240,7 +240,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
             <div className="flex justify-between items-center mb-1 sticky top-0 bg-card/80 backdrop-blur-sm py-1 z-10">
               <h4 className="font-medium text-md text-primary flex-grow">{groupKey}</h4>
               <div className="flex items-center">
-                <Tooltip text={`Exportar només "${groupKey}" a CSV`}>
+                <Tooltip text={t('summary.export_csv_tooltip', { title: groupKey })}>
                   <button
                     onClick={() => handleExportCsv(dataType, groupKey)}
                     className="p-1 rounded-full hover:bg-accent flex-shrink-0 ml-2"
@@ -248,7 +248,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
                     <CsvIcon className="w-4 h-4 text-success" />
                   </button>
                 </Tooltip>
-                <Tooltip text={`Exportar només "${groupKey}" a PDF`}>
+                <Tooltip text={t('summary.export_pdf_tooltip', { title: groupKey })}>
                   <button
                     onClick={() => {
                       const singleGroupMap = new Map([[groupKey, assignments]]);
@@ -310,9 +310,9 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
 
   return (
     <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6">
-      {renderSummaryCard("Per Nom d'Esdeveniment", summaryByEventName, "event-name", true)}
-      {renderSummaryCard("Per Data d'Inici d'Assignació", summaryByStartDate, "start-date", true)}
-      {renderSummaryCard("Per Persona/Grup", summaryByPerson, "person", false)}
+      {renderSummaryCard(t('summary.by_event_name'), summaryByEventName, "event-name", true)}
+      {renderSummaryCard(t('summary.by_start_date'), summaryByStartDate, "start-date", true)}
+      {renderSummaryCard(t('summary.by_person'), summaryByPerson, "person", false)}
     </div>
   );
 };

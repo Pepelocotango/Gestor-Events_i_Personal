@@ -28,7 +28,14 @@
         "theme_dark": "Tema Fosc",
         "history_tooltip": "Historial",
         "close_modal": "Tancar modal",
+        "toggle_section_tooltip": "Replegar/Expandir secció {{title}}",
         "splash_alt": "Pantalla d'inici",
+        "error_boundary": {
+            "title": "S'ha produït un error a l'aplicació",
+            "message": "S'ha produït un error inesperat a la interfície. Si us plau, reinicia l'aplicació.",
+            "reload_button": "Recarregar Aplicació",
+            "error_details": "Detalls de l'error"
+        },
         "undo_action": "Desfeta l'acció",
         "redo_action": "Refeta l'acció",
         "action_undone": "Acció desfeta.",
@@ -97,6 +104,9 @@
         "collapse_all": "Col·lapsar Tot",
         "expand_all": "Expandir Tot",
         "archive_old": "Arxivar Antics",
+        "archive_old_tooltip": "Arxivar esdeveniments antics (finalitzats fa més d'una setmana)",
+        "collapse_all_cards_tooltip": "Col·lapsar totes les targetes",
+        "expand_all_cards_tooltip": "Expandir totes les targetes",
         "pdf_export": "PDF",
         "csv_export": "CSV",
         "search_general": "Cerca general",
@@ -288,6 +298,19 @@
         "control_center_title": "Centre de Control de Material",
         "item_updated_toast": "Material actualitzat.",
         "item_added_toast": "Nou material afegit.",
+        "save_changes_tooltip": "Desar els canvis fets a l'ítem",
+        "add_item_tooltip": "Afegir el nou ítem a l'inventari",
+        "stock_tooltip": "Quantitat total d'aquest ítem en inventari",
+        "cancel_tooltip": "Descartar canvis i netejar el formulari",
+        "name_tooltip": "Nom de l'ítem de material",
+        "category_tooltip": "Categoria a la que pertany l'ítem",
+        "location_tooltip": "On es guarda aquest ítem (opcional)",
+        "notes_tooltip": "Anotacions addicionals sobre l'ítem (opcional)",
+        "name_label": "Nom",
+        "category_label": "Categoria",
+        "stock_label": "Estoc",
+        "location_label": "Ubicació",
+        "notes_label": "Notes",
         "delete_item_confirm_msg": "Segur que vols eliminar <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Actualitzar",
@@ -554,7 +577,11 @@
         "breakdown_title": "Desglossament per Esdeveniment:",
         "units_suffix": "unitat(s)",
         "export_csv_tooltip": "Exportar tot el resum {{title}} a CSV",
-        "export_pdf_tooltip": "Exportar tot el resum {{title}} a PDF"
+        "export_pdf_tooltip": "Exportar tot el resum {{title}} a PDF",
+        "sort_date_tooltip": "Ordenar per data {{order}}",
+        "by_event_name": "Per Nom d'Esdeveniment",
+        "by_start_date": "Per Data d'Inici d'Assignació",
+        "by_person": "Per Persona/Grup"
     },
     "modals": {
         "confirm_delete": {
@@ -980,6 +1007,8 @@
         "header_event_notes": "Notes Generals Esdeveniment"
     },
     "sync": {
+        "title": "Sincronització amb Google Calendar",
+        "step_progress": "Pas {{current}} de {{total}}",
         "step_verifying_calendar": "Verificant accés al calendari...",
         "step_calendar_connected": "Connexió amb el calendari establerta correctament.",
         "step_requesting_confirmation": "Sol·licitant confirmació per iniciar la sincronització...",
@@ -998,5 +1027,10 @@
         "step_processing_event": "Processant esdeveniment {{index}}/{{total}}: {{name}}",
         "step_upload_complete": "Pujada completada.",
         "step_initializing_sync": "Iniciant procés de sincronització amb Google Calendar..."
+    },
+    "footer": {
+        "copyright": "© {{year}} (Pëp) Gestor de Esdeveniments i Personal {{version}}. Llicència GNU GPL v3.0.",
+        "collaboration_text": "Si vols col·laborar, pots fer-ho al {{githubLink}} o amb una aportació a {{paypalLink}}.",
+        "github_project": "projecte de GitHub"
     }
 }

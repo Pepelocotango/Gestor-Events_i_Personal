@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MaterialItem } from '../../types';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
@@ -23,6 +24,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   locations = [],
   materialItems = [],
 }) => {
+  const { t } = useTranslation();
   // Estats interns per als camps del formulari
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
@@ -89,8 +91,8 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="mat-name" className="block text-sm font-medium text-muted-foreground">Nom</label>
-        <Tooltip text="Nom de l'ítem de material">
+        <label htmlFor="mat-name" className="block text-sm font-medium text-muted-foreground">{t('material.name_label')}</label>
+        <Tooltip text={t('material.name_tooltip')}>
           <input
             type="text"
             id="mat-name"
@@ -104,8 +106,8 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="mat-category" className="block text-sm font-medium text-muted-foreground">Categoria</label>
-        <Tooltip text="Categoria a la que pertany l'ítem">
+        <label htmlFor="mat-category" className="block text-sm font-medium text-muted-foreground">{t('material.category_label')}</label>
+        <Tooltip text={t('material.category_tooltip')}>
           <input
             type="text"
             id="mat-category"
@@ -124,8 +126,8 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="mat-stock" className="block text-sm font-medium text-muted-foreground">Estoc</label>
-          <Tooltip text="Quantitat total d'aquest ítem en inventari">
+          <label htmlFor="mat-stock" className="block text-sm font-medium text-muted-foreground">{t('material.stock_label')}</label>
+          <Tooltip text={t('material.stock_tooltip')}>
             <input
               type="number"
               id="mat-stock"
@@ -139,8 +141,8 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
           {errors.stock && <p className="text-destructive text-xs mt-1">{errors.stock}</p>}
         </div>
         <div>
-          <label htmlFor="mat-location" className="block text-sm font-medium text-muted-foreground">Ubicació</label>
-          <Tooltip text="On es guarda aquest ítem (opcional)">
+          <label htmlFor="mat-location" className="block text-sm font-medium text-muted-foreground">{t('material.location_label')}</label>
+          <Tooltip text={t('material.location_tooltip')}>
             <input
               type="text"
               id="mat-location"
@@ -157,8 +159,8 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="mat-notes" className="block text-sm font-medium text-muted-foreground">Notes</label>
-        <Tooltip text="Anotacions addicionals sobre l'ítem (opcional)">
+        <label htmlFor="mat-notes" className="block text-sm font-medium text-muted-foreground">{t('material.notes_label')}</label>
+        <Tooltip text={t('material.notes_tooltip')}>
           <AutosizeTextarea
             id="mat-notes"
             value={notes}
@@ -171,7 +173,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
 
       <div className="flex justify-end space-x-2 pt-2">
         {onCancel && (
-          <Tooltip text="Descartar canvis i netejar el formulari">
+          <Tooltip text={t('material.cancel_tooltip')}>
             <button
               type="button"
               onClick={onCancel}
@@ -181,7 +183,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
             </button>
           </Tooltip>
         )}
-        <Tooltip text={submitButtonText === 'Actualitzar' ? 'Desar els canvis fets a l\'ítem' : 'Afegir el nou ítem a l\'inventari'}>
+        <Tooltip text={submitButtonText === 'Actualitzar' ? t('material.save_changes_tooltip') : t('material.add_item_tooltip')}>
           <button
             type="submit"
             className="px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md"

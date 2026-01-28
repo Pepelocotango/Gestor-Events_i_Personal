@@ -1036,14 +1036,14 @@ const App: React.FC = () => {
               onOpenHistory={() => openModalFromStore('history')}
             />
             <div className="px-1 py-1 border-t border-border">
-              <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
+              <Suspense fallback={<div className="text-center p-4">{t('common.loading')}</div>}>
                 <Controls
                   theme={theme}
                   toggleTheme={toggleTheme}
                   currentFilePath={currentFilePath}
                 />
               </Suspense>
-              <Suspense fallback={<div className="text-center p-2">Carregant navegació...</div>}>
+              <Suspense fallback={<div className="text-center p-2">{t('common.loading')}</div>}>
                 <Navigation />
               </Suspense>
             </div>
@@ -1058,7 +1058,7 @@ const App: React.FC = () => {
                 onOpenRecent={handleOpenRecent}
               />
             ) : (
-              <Suspense fallback={<div className="text-center p-8">Carregant vista...</div>}>
+              <Suspense fallback={<div className="text-center p-8">{t('common.loading')}</div>}>
                 <Routes>
                   <Route
                     path="/"
@@ -1079,8 +1079,11 @@ const App: React.FC = () => {
 
 
           <footer className="bg-secondary p-4 text-center text-sm text-muted-foreground border-t border-border">
-            <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.5.0. Llicència GNU GPL v3.0. </span>
-            <span>Si vols col·laborar, pots fer-ho al <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">projecte de GitHub</a> o amb una aportació a <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>.</span>
+            <span>{t('footer.copyright', { year: new Date().getFullYear(), version: 'V1.5.0' })} </span>
+            <span>{t('footer.collaboration_text', { 
+              githubLink: <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">{t('footer.github_project')}</a>,
+              paypalLink: <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>
+            })}</span>
           </footer>
 
           <Modal
@@ -1089,7 +1092,7 @@ const App: React.FC = () => {
             title={getModalTitle()}
             size={getModalSize()}
           >
-            <Suspense fallback={<div className="p-8 text-center">Carregant...</div>}>
+            <Suspense fallback={<div className="p-8 text-center">{t('common.loading')}</div>}>
               {renderModalContent()}
             </Suspense>
           </Modal>

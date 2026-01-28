@@ -489,7 +489,7 @@ const MainDisplay = React.forwardRef<
               </label>
             </div>
           </Tooltip>
-          <Tooltip text={areAllVisibleExpanded ? "Col·lapsar totes les targetes" : "Expandir totes les targetes"}>
+          <Tooltip text={areAllVisibleExpanded ? t('main.collapse_all_cards_tooltip') : t('main.expand_all_cards_tooltip')}>
             <button
               onClick={handleToggleAllCards}
               className="px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
@@ -499,7 +499,7 @@ const MainDisplay = React.forwardRef<
             </button>
           </Tooltip>
           <div className="flex-grow"></div>
-          <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'una setmana)">
+          <Tooltip text={t('main.archive_old_tooltip')}>
             <button
               onClick={() => {
                 const eventsToArchive = archiveOldEventFrames();

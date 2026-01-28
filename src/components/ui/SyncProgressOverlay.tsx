@@ -44,7 +44,7 @@ const SyncProgressOverlay: React.FC<SyncProgressOverlayProps> = ({ progress: pro
   return (
     <div className="fixed inset-0 bg-background/80 flex flex-col justify-center items-center z-[9999]" aria-live="assertive" role="alert">
       <div className="bg-popover text-popover-foreground p-6 rounded-lg shadow-2xl w-full max-w-2xl mx-4">
-        <h2 className="text-xl font-semibold mb-4 text-center">Sincronització amb Google Calendar</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center">{t('sync.title')}</h2>
 
         {/* Progress Bar - Only show when syncing */}
         {isSyncing && (
@@ -52,7 +52,7 @@ const SyncProgressOverlay: React.FC<SyncProgressOverlayProps> = ({ progress: pro
             <div className="flex mb-2 items-center justify-between">
               <div>
                 <span className="text-xs font-semibold inline-block py-1 px-2 rounded-full bg-secondary text-secondary-foreground">
-                  Pas {progress.current} de {progress.total}
+                  {t('sync.step_progress', { current: progress.current, total: progress.total })}
                 </span>
               </div>
               <div className="text-right">

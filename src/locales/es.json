@@ -28,7 +28,14 @@
         "theme_dark": "Tema Oscuro",
         "history_tooltip": "Historial",
         "close_modal": "Cerrar modal",
+        "toggle_section_tooltip": "Contraer/Expandir sección {{title}}",
         "splash_alt": "Pantalla de inicio",
+        "error_boundary": {
+            "title": "Se ha producido un error en la aplicación",
+            "message": "Se ha producido un error inesperado en la interfaz. Por favor, reinicia la aplicación.",
+            "reload_button": "Recargar Aplicación",
+            "error_details": "Detalles del error"
+        },
         "undo_action": "Acción deshecha",
         "redo_action": "Acción rehecha",
         "action_undone": "Acción deshecha.",
@@ -97,6 +104,9 @@
         "collapse_all": "Colapsar Todo",
         "expand_all": "Expandir Todo",
         "archive_old": "Archivar Antiguos",
+        "archive_old_tooltip": "Archivar eventos antiguos (finalizados hace más de una semana)",
+        "collapse_all_cards_tooltip": "Colapsar todas las tarjetas",
+        "expand_all_cards_tooltip": "Expandir todas las tarjetas",
         "pdf_export": "PDF",
         "csv_export": "CSV",
         "search_general": "Búsqueda general",
@@ -288,6 +298,19 @@
         "control_center_title": "Centro de Control de Material",
         "item_updated_toast": "Material actualizado.",
         "item_added_toast": "Nuevo material añadido.",
+        "save_changes_tooltip": "Guardar los cambios hechos al ítem",
+        "add_item_tooltip": "Añadir el nuevo ítem al inventario",
+        "stock_tooltip": "Cantidad total de este ítem en inventario",
+        "cancel_tooltip": "Descartar cambios y limpiar el formulario",
+        "name_tooltip": "Nombre del ítem de material",
+        "category_tooltip": "Categoría a la que pertenece el ítem",
+        "location_tooltip": "Dónde se guarda este ítem (opcional)",
+        "notes_tooltip": "Notas adicionales sobre el ítem (opcional)",
+        "name_label": "Nombre",
+        "category_label": "Categoría",
+        "stock_label": "Stock",
+        "location_label": "Ubicación",
+        "notes_label": "Notas",
         "delete_item_confirm_msg": "Seguro que quieres eliminar <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Actualizar",
@@ -554,7 +577,11 @@
         "breakdown_title": "Desglose por Evento:",
         "units_suffix": "unidad(es)",
         "export_csv_tooltip": "Exportar todo el resumen {{title}} a CSV",
-        "export_pdf_tooltip": "Exportar todo el resumen {{title}} a PDF"
+        "export_pdf_tooltip": "Exportar todo el resumen {{title}} a PDF",
+        "sort_date_tooltip": "Ordenar por fecha {{order}}",
+        "by_event_name": "Por Nombre de Evento",
+        "by_start_date": "Por Fecha de Inicio de Asignación",
+        "by_person": "Por Persona/Grupo"
     },
     "modals": {
         "confirm_delete": {
@@ -980,6 +1007,8 @@
         "header_event_notes": "Notas Generales Evento"
     },
     "sync": {
+        "title": "Sincronización con Google Calendar",
+        "step_progress": "Paso {{current}} de {{total}}",
         "step_verifying_calendar": "Verificando acceso al calendario...",
         "step_calendar_connected": "Conexión con el calendario establecida correctamente.",
         "step_requesting_confirmation": "Solicitando confirmación para iniciar la sincronización...",
@@ -998,5 +1027,10 @@
         "step_processing_event": "Procesando evento {{index}}/{{total}}: {{name}}",
         "step_upload_complete": "Subida completada.",
         "step_initializing_sync": "Iniciando proceso de sincronización con Google Calendar..."
+    },
+    "footer": {
+        "copyright": "© {{year}} (Pëp) Gestor de Eventos y Personal {{version}}. Licencia GNU GPL v3.0.",
+        "collaboration_text": "Si quieres colaborar, puedes hacerlo en el {{githubLink}} o con una aportación a {{paypalLink}}.",
+        "github_project": "proyecto de GitHub"
     }
 }
