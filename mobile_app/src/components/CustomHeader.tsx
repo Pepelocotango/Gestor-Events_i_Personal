@@ -178,9 +178,9 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
               <Icon name="information-outline" size={28} style={dynamicStyles.iconColor} />
             </TouchableOpacity>
             <ThemeSwitcher />
+            <LanguageSelector />
           </View>
         </View>
-        <LanguageSelector />
       </View>
       
       <AboutModal 
