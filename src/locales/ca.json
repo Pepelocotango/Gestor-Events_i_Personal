@@ -43,9 +43,24 @@
         "google_connected": "Connectat a Google Calendar amb èxit!",
         "google_opening_browser": "Obrint el navegador per autenticar-se amb Google...",
         "google_desktop_only": "Aquesta funcionalitat només està disponible a l'aplicació d'escriptori.",
-        "google_disconnected": "Compte de Google desconnectat correctament."
+        "google_disconnected": "Compte de Google desconnectat correctament.",
+        "dialog": "Diàleg",
+        "expand_section": "Expandir secció",
+        "move_up": "Moure amunt",
+        "move_down": "Moure avall",
+        "note": "Nota"
+    },
+    "status": {
+        "yes": "Sí",
+        "no": "No",
+        "pending": "Pendent",
+        "mixed": "Mixt"
     },
     "menu": {
+        "home": "Inici",
+        "events": "Esdeveniments",
+        "staff": "Personal",
+        "settings": "Configuració",
         "file": {
             "label": "Fitxer",
             "new": "Nou Document",
@@ -134,7 +149,22 @@
         "nav_people_tooltip": "Anar a la gestió de persones i grups",
         "nav_people": "Persones",
         "nav_material_tooltip": "Anar a la gestió d'inventari de material",
-        "nav_material": "Material"
+        "nav_material": "Material",
+        "add_event_tooltip": "Crear un nou marc d'esdeveniment",
+        "sort_tooltip": "Ordena per data {{order}}",
+        "sort_ascending": "ascendent",
+        "sort_descending": "descendent",
+        "show_archived_tooltip": "Mostrar o ocultar els esdeveniments arxivats",
+        "archive": {
+            "item_type": "Esdeveniments",
+            "confirm_message": "S'arxivaran <strong>{{count}}</strong> esdeveniments finalitzats abans del <strong>{{date}}</strong>.",
+            "title": "Confirmació Arxivar",
+            "confirm_button": "Arxivar Antics",
+            "success": "{{count}} esdeveniment(s) arxivat(s) correctament.",
+            "no_events": "No hi ha esdeveniments antics per arxivar."
+        },
+        "export_pdf_tooltip": "Exportar la llista d'esdeveniments i assignacions a PDF",
+        "export_csv_tooltip": "Exportar la llista d'esdeveniments i assignacions a CSV"
     },
     "calendar": {
         "month": "Mes",
@@ -314,7 +344,13 @@
         "delete_item_confirm_msg": "Segur que vols eliminar <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Actualitzar",
-        "add_button": "Afegir"
+        "add_button": "Afegir",
+        "validation": {
+            "name_required": "El nom és obligatori.",
+            "name_duplicate": "Ja existeix un material amb aquest nom.",
+            "category_required": "La categoria és obligatòria.",
+            "stock_negative": "L'estoc no pot ser negatiu."
+        }
     },
     "tech_sheets": {
         "manager_title": "Gestor de Fitxes de Bolo",
@@ -377,7 +413,10 @@
                 "parking_tooltip": "Indica si es necessita o no una zona de pàrquing reservada.",
                 "parking_details": "Detalls de la zona de parking:",
                 "parking_details_placeholder": "On, quantes places, metres lineals , contacte...",
-                "parking_details_tooltip": "Especifica la ubicació, el nombre de places necessàries, i a qui contactar per a la gestió del pàrquing."
+                "parking_details_tooltip": "Especifica la ubicació, el nombre de places necessàries, i a qui contactar per a la gestió del pàrquing.",
+                "dressing_rooms_placeholder": "Especifica les necessitats de camerinos: quantitat, tipus (individuals, col·lectius), i qualsevol requeriment especial.",
+                "actors_placeholder": "Detalls, notes, noms...",
+                "technicians_placeholder": "Detalls, notes, noms..."
             },
             "pre_assembly": {
                 "label": "PREMUNTATGE:",
@@ -651,7 +690,13 @@
             "create_new_tooltip": "Crear la nova assignació",
             "updated_toast": "Assignació actualitzada.",
             "added_toast": "Assignació afegida.",
-            "error_prefix": "Error: "
+            "error_prefix": "Error: ",
+            "close_button": "Tancar",
+            "assignment_note": "Nota: ",
+            "conflict_detail": "Aquesta assignació té un conflicte.",
+            "duplicate_conflict": "Ja existeix una assignació duplicada.",
+            "title_edit_with_name": "Editar Assignació per {{name}}",
+            "title_new_with_name": "Nova Assignació per {{name}}"
         },
         "event_details": {
             "general_notes_label": "Notes Generals:",
@@ -781,7 +826,8 @@
         "pdf_preview": {
             "loading": "Generant vista prèvia, espereu uns segons si surt una pantalla negra ...",
             "iframe_title": "Vista Prèvia PDF",
-            "save_button": "Desar PDF"
+            "save_button": "Desar PDF",
+            "title_override": "Vista Prèvia PDF"
         },
         "select_sync": {
             "title": "Selecciona el Calendari de Destinació",

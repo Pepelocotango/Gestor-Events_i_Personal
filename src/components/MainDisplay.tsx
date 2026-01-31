@@ -452,7 +452,7 @@ const MainDisplay = React.forwardRef<
         id="event-list-section"
       >
         <div className="mb-1 flex justify-start items-center gap-1">
-          <Tooltip text="Crear un nou marc d'esdeveniment">
+          <Tooltip text={t('main.add_event_tooltip')}>
             <button data-testid="add-event-frame-button" onClick={() => {
               const today = new Date().toISOString().split('T')[0];
               openModal('addEventFrame', {
@@ -466,7 +466,7 @@ const MainDisplay = React.forwardRef<
               <PlusIcon className="w-4 h-4" /> {t('main.add_event_frame')}
             </button>
           </Tooltip>
-          <Tooltip text={`Ordena per data ${sortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
+          <Tooltip text={t('main.sort_tooltip', { order: sortOrder === 'asc' ? t('main.sort_descending') : t('main.sort_ascending') })}>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
@@ -475,7 +475,7 @@ const MainDisplay = React.forwardRef<
             </button>
           </Tooltip>
           <div className="border-l border-border h-6 mx-1"></div>
-          <Tooltip text="Mostrar o ocultar els esdeveniments arxivats">
+          <Tooltip text={t('main.show_archived_tooltip')}>
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -509,20 +509,20 @@ const MainDisplay = React.forwardRef<
                   const formattedDate = oneWeekAgo.toLocaleDateString('ca-ES');
 
                   openModal('confirmDelete', {
-                    itemType: 'Esdeveniments',
-                    itemName: `S'arxivaran <strong>${eventsToArchive.length}</strong> esdeveniments finalitzats abans del <strong>${formattedDate}</strong>.`,
+                    itemType: t('main.archive.item_type'),
+                    itemName: t('main.archive.confirm_message', { count: eventsToArchive.length, date: formattedDate }),
                     onConfirm: () => {
                       const eventIds = eventsToArchive.map(e => e.id);
                       confirmArchiveEventFrames(eventIds);
-                      setToastMessage(`${eventIds.length} esdeveniment(s) arxivat(s) correctament.`, 'success');
+                      setToastMessage(t('main.archive.success', { count: eventIds.length }), 'success');
                     },
-                    titleOverride: "Confirmació Arxivar",
-                    confirmButtonText: "Arxivar Antics",
+                    titleOverride: t('main.archive.title'),
+                    confirmButtonText: t('main.archive.confirm_button'),
                     suppressSuccessToast: true,
                     intent: 'destructive'
                   });
                 } else {
-                  setToastMessage("No hi ha esdeveniments antics per arxivar.", 'info');
+                  setToastMessage(t('main.archive.no_events'), 'info');
                 }
               }}
               className="flex items-center justify-center gap-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
@@ -530,7 +530,7 @@ const MainDisplay = React.forwardRef<
               <ArchiveIcon className="w-4 h-4" /> {t('main.archive_old')}
             </button>
           </Tooltip>
-          <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
+          <Tooltip text={t('main.export_pdf_tooltip')}>
             <button
               onClick={() => exportEventListToPdf(
                 filteredAndSortedEventFrames,
@@ -543,7 +543,7 @@ const MainDisplay = React.forwardRef<
               <DocumentArrowDownIcon className="w-4 h-4" /> {t('main.pdf_export')}
             </button>
           </Tooltip>
-          <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
+          <Tooltip text={t('main.export_csv_tooltip')}>
             <button
               onClick={() => exportEventListToCsv(
                 filteredAndSortedEventFrames,

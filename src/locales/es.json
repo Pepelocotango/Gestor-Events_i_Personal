@@ -45,7 +45,17 @@
         "google_desktop_only": "Esta funcionalidad solo está disponible en la aplicación de escritorio.",
         "google_disconnected": "Cuenta de Google desconectada correctamente."
     },
+    "status": {
+        "yes": "Sí",
+        "no": "No",
+        "pending": "Pendiente",
+        "mixed": "Mixto"
+    },
     "menu": {
+        "home": "Inicio",
+        "events": "Eventos",
+        "staff": "Personal",
+        "settings": "Configuración",
         "file": {
             "label": "Archivo",
             "new": "Nuevo Documento",
@@ -117,16 +127,16 @@
         "contains_date": "Contiene Fecha",
         "place": "Lugar",
         "clean_filters": "Limpiar",
-        "no_events_found": "No se encontraron marcos de evento.",
+        "no_events_found": "No se han encontrado marcos de eventos.",
         "summaries": "Resúmenes",
         "filter_date_label": "Filtro:",
         "tooltip_search": "Buscar por nombre de evento, lugar, notas o nombre de persona asignada",
         "tooltip_frame": "Filtrar por un marco de evento específico",
         "tooltip_person": "Filtrar por persona o grupo asignado",
-        "tooltip_status": "Filtrar por estado de la asignación",
         "tooltip_date": "Mostrar solo eventos activos en esta fecha",
         "tooltip_place": "Filtrar por lugar del evento",
         "tooltip_clean": "Limpiar todos los filtros",
+        "tooltip_status": "Filtrar por estado del evento",
         "nav_calendar_list_tooltip": "Ir a la vista principal del calendario y lista de eventos",
         "nav_calendar_list": "Calendario y Lista",
         "nav_tech_sheets_tooltip": "Ir a la gestión de fichas técnicas (bolos)",
@@ -134,7 +144,22 @@
         "nav_people_tooltip": "Ir a la gestión de personas y grupos",
         "nav_people": "Personas",
         "nav_material_tooltip": "Ir a la gestión de inventario de material",
-        "nav_material": "Material"
+        "nav_material": "Material",
+        "add_event_tooltip": "Crear un nuevo marco de evento",
+        "sort_tooltip": "Ordenar por fecha {{order}}",
+        "sort_ascending": "ascendente",
+        "sort_descending": "descendente",
+        "show_archived_tooltip": "Mostrar u ocultar los eventos archivados",
+        "archive": {
+            "item_type": "Eventos",
+            "confirm_message": "Se archivarán <strong>{{count}}</strong> eventos finalizados antes del <strong>{{date}}</strong>.",
+            "title": "Confirmación Archivar",
+            "confirm_button": "Archivar Antiguos",
+            "success": "{{count}} evento(s) archivado(s) correctamente.",
+            "no_events": "No hay eventos antiguos para archivar."
+        },
+        "export_pdf_tooltip": "Exportar la lista de eventos y asignaciones a PDF",
+        "export_csv_tooltip": "Exportar la lista de eventos y asignaciones a CSV"
     },
     "calendar": {
         "month": "Mes",
@@ -314,7 +339,13 @@
         "delete_item_confirm_msg": "Seguro que quieres eliminar <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Actualizar",
-        "add_button": "Añadir"
+        "add_button": "Añadir",
+        "validation": {
+            "name_required": "El nombre es obligatorio.",
+            "name_duplicate": "Ya existe un material con este nombre.",
+            "category_required": "La categoría es obligatoria.",
+            "stock_negative": "El stock no puede ser negativo."
+        }
     },
     "tech_sheets": {
         "manager_title": "Gestor de Fichas de Bolo",
@@ -377,7 +408,10 @@
                 "parking_tooltip": "Indica si se necesita o no una zona de parking reservada.",
                 "parking_details": "Detalles de la zona de parking:",
                 "parking_details_placeholder": "Dónde, cuántas plazas, metros lineales, contacto...",
-                "parking_details_tooltip": "Especifica la ubicación, el número de plazas necesarias, y a quién contactar para la gestión del parking."
+                "parking_details_tooltip": "Especifica la ubicación, el número de plazas necesarias, y a quién contactar para la gestión del parking.",
+                "dressing_rooms_placeholder": "Especifica las necesidades de camerinos: cantidad, tipos (individuales, colectivos), y cualquier requerimiento especial.",
+                "actors_placeholder": "Detalles, notas, nombres...",
+                "technicians_placeholder": "Detalles, notas, nombres..."
             },
             "pre_assembly": {
                 "label": "PREMONTAJE:",
@@ -651,7 +685,9 @@
             "create_new_tooltip": "Crear la nueva asignación",
             "updated_toast": "Asignación actualizada.",
             "added_toast": "Asignación añadida.",
-            "error_prefix": "Error: "
+            "error_prefix": "Error: ",
+            "close_button": "Cerrar",
+            "assignment_note": "Nota: "
         },
         "event_details": {
             "general_notes_label": "Notas Generales:",

@@ -130,21 +130,36 @@
         "no_events_found": "No event frames found.",
         "summaries": "Summaries",
         "filter_date_label": "Filter:",
-        "tooltip_search": "Search by event name, place, notes or assigned person",
-        "tooltip_frame": "Filter by specific event frame",
+        "tooltip_search": "Search by event name, place, notes or assigned person name",
+        "tooltip_frame": "Filter by a specific event frame",
         "tooltip_person": "Filter by assigned person or group",
         "tooltip_status": "Filter by assignment status",
         "tooltip_date": "Show only events active on this date",
         "tooltip_place": "Filter by event place",
         "tooltip_clean": "Clear all filters",
-        "nav_calendar_list_tooltip": "Go to the main calendar and event list view",
+        "nav_calendar_list_tooltip": "Go to main calendar and event list view",
         "nav_calendar_list": "Calendar & List",
         "nav_tech_sheets_tooltip": "Go to technical sheet management (gigs)",
         "nav_tech_sheets": "Gig Sheets",
-        "nav_people_tooltip": "Go to people and group management",
+        "nav_people_tooltip": "Go to people and groups management",
         "nav_people": "People",
         "nav_material_tooltip": "Go to material inventory management",
-        "nav_material": "Material"
+        "nav_material": "Material",
+        "add_event_tooltip": "Create a new event frame",
+        "sort_tooltip": "Sort by date {{order}}",
+        "sort_ascending": "ascending",
+        "sort_descending": "descending",
+        "show_archived_tooltip": "Show or hide archived events",
+        "archive": {
+            "item_type": "Events",
+            "confirm_message": "<strong>{{count}}</strong> finished events before <strong>{{date}}</strong> will be archived.",
+            "title": "Confirm Archive",
+            "confirm_button": "Archive Old",
+            "success": "{{count}} event(s) archived successfully.",
+            "no_events": "No old events to archive."
+        },
+        "export_pdf_tooltip": "Export event and assignment list to PDF",
+        "export_csv_tooltip": "Export event and assignment list to CSV"
     },
     "calendar": {
         "month": "Month",
@@ -297,7 +312,13 @@
         "delete_item_confirm_msg": "Are you sure you want to delete <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Update",
-        "add_button": "Add"
+        "add_button": "Add",
+        "validation": {
+            "name_required": "Name is required.",
+            "name_duplicate": "A material with this name already exists.",
+            "category_required": "Category is required.",
+            "stock_negative": "Stock cannot be negative."
+        }
     },
     "tech_sheets": {
         "manager_title": "Gig Sheets Manager",

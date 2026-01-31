@@ -57,18 +57,18 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     if (!name.trim()) {
-        newErrors.name = "El nom és obligatori.";
+        newErrors.name = t('material.validation.name_required');
     } else {
         const isDuplicate = materialItems.some(item =>
             item.name.toLowerCase() === name.trim().toLowerCase() &&
             item.id !== initialData?.id
         );
         if (isDuplicate) {
-            newErrors.name = "Ja existeix un material amb aquest nom.";
+            newErrors.name = t('material.validation.name_duplicate');
         }
     }
-    if (!category.trim()) newErrors.category = "La categoria és obligatòria.";
-    if (stock < 0) newErrors.stock = "L'estoc no pot ser negatiu.";
+    if (!category.trim()) newErrors.category = t('material.validation.category_required');
+    if (stock < 0) newErrors.stock = t('material.validation.stock_negative');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
