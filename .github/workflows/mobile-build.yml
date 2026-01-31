@@ -27,7 +27,7 @@ jobs:
 
       - name: 4. Instal·lació de dependències del projecte mòbil
         working-directory: ./mobile_app
-        run: npm install --legacy-peer-deps
+        run: rm -rf node_modules package-lock.json && npm install --legacy-peer-deps
 
       - name: 5. Generar el projecte natiu Android
         working-directory: ./mobile_app
