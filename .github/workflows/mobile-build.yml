@@ -19,6 +19,7 @@ jobs:
           cache-dependency-path: mobile_app/package-lock.json
 
       - name: 3. Configuració de Java (JDK)
+        id: setup-java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -26,23 +27,36 @@ jobs:
 
       - name: 4. Instal·lació de dependències del projecte mòbil
         working-directory: ./mobile_app
-        run: npm install --legacy-peer-deps
+        run: rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && npx expo install --fix
 
-      - name: 5. Generar el projecte nadiu Android
+      - name: 5. Clean Native Directories
+        working-directory: ./mobile_app
+        run: rm -rf android ios
+
+      - name: 6. Generar el projecte natiu Android
         working-directory: ./mobile_app
         run: npx expo prebuild --platform android --no-install
 
-      - name: 6. Configurar la signatura de Release amb la clau de Debug
+      - name: 7. Fix Gradle Version to 8.6
+        working-directory: ./mobile_app
+        run: |
+          # Fix Gradle wrapper to use version 8.6 instead of 8.8
+          sed -i 's/gradle-8\.8-all\.zip/gradle-8.6-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/gradle-8\.8-bin\.zip/gradle-8.6-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+          # Also update the distributionUrl if it exists
+          sed -i 's/distributionUrl=.*gradle-8\.8.*/distributionUrl=https\\:\/\/services.gradle.org\/distributions\/gradle-8.6-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+
+      - name: 8. Configurar la signatura de Release amb la clau de Debug
         working-directory: ./mobile_app/android/app
         run: |
           echo "" >> build.gradle
           echo "android.buildTypes.release.signingConfig = android.buildTypes.debug.signingConfig" >> build.gradle
 
-      - name: 7. Donar permisos d'execució a gradlew
+      - name: 9. Donar permisos d'execució a gradlew
         working-directory: ./mobile_app/android
         run: chmod +x ./gradlew
 
-      - name: 8. Cau de les dependències de Gradle
+      - name: 10. Cau de les dependències de Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -52,11 +66,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 9. Compilar l'APK de Release amb Gradle
+      - name: 11. Compilar l'APK de Release amb Gradle
         working-directory: ./mobile_app/android
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: ./gradlew assembleRelease
 
-      - name: 10. Pujada de l'APK com a artefacte
+      - name: 12. Pujada de l'APK com a artefacte
         uses: actions/upload-artifact@v4
         with:
           name: GestorEsdevenimentsPersonal-Android-Release.apk

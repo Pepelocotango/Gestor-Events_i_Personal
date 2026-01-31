@@ -1,6 +1,5 @@
 import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
-import uuid;
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';

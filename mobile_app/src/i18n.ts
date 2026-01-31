@@ -14,49 +14,49 @@ const resources = {
 };
 
 const initI18n = async () => {
-    // Try to load saved language preference first
-    let languageCode = 'ca'; // Default to Catalan
-    
+    let languageCode = 'ca'; // Default fallback
+
     try {
+        // 1. Try to get saved language
         const savedLanguage = await AsyncStorage.getItem('app_language');
+        
         if (savedLanguage && ['ca', 'es', 'en'].includes(savedLanguage)) {
             languageCode = savedLanguage;
         } else {
-            // Fallback to device language if no saved preference
+            // 2. Fallback to device locale
             const locales = Localization.getLocales();
-            const languageTag = locales && locales.length > 0 ? locales[0].languageTag : 'ca';
-            const deviceLang = languageTag.split('-')[0]; // 'es-ES' -> 'es'
-            
-            // Map device language to supported languages
-            if (deviceLang === 'ca') languageCode = 'ca';
-            else if (deviceLang === 'es') languageCode = 'es';
-            else if (deviceLang === 'en') languageCode = 'en';
-            else languageCode = 'ca'; // Default to Catalan for unsupported languages
+            if (locales && locales.length > 0) {
+                const deviceLang = locales[0].languageTag.split('-')[0]; // 'es-ES' -> 'es'
+                if (['ca', 'es', 'en'].includes(deviceLang)) {
+                    languageCode = deviceLang;
+                }
+            }
         }
     } catch (error) {
-        console.error('Error loading language preference:', error);
-        // Fallback to device language
-        const locales = Localization.getLocales();
-        const languageTag = locales && locales.length > 0 ? locales[0].languageTag : 'ca';
-        const deviceLang = languageTag.split('-')[0];
-        
-        if (deviceLang === 'ca') languageCode = 'ca';
-        else if (deviceLang === 'es') languageCode = 'es';
-        else if (deviceLang === 'en') languageCode = 'en';
+        console.warn('Failed to load language preference, falling back to default:', error);
     }
 
-    i18n
+    // 3. Initialize i18next
+    // We use .use(initReactI18next) to pass the i18n instance to react-i18next.
+    await i18n
         .use(initReactI18next)
         .init({
+            compatibilityJSON: 'v4', // Important for Android/React Native
             resources: resources as any,
             lng: languageCode,
             fallbackLng: 'ca',
             interpolation: {
-                escapeValue: false,
+                escapeValue: false, // React already safes from xss
             },
+            react: {
+                useSuspense: false // Prevent UI blocking during loading
+            }
         });
 };
 
-initI18n();
+// Execute initialization and catch any critical startup errors
+initI18n().catch(err => {
+    console.error('Critical i18n initialization error:', err);
+});
 
 export default i18n;
