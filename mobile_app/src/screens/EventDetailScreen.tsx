@@ -16,6 +16,7 @@ import { getStatusColor } from '../utils/statusUtils';
 import { formatDateRangeDMY } from '../utils/dateFormat';
 import { formatDateRanges } from '../utils/dateRangeFormatter';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type EventDetailScreenRouteProp = RouteProp<EventsStackParamList, 'EventDetail'>;
 type EventDetailScreenNavigationProp = StackNavigationProp<
@@ -32,6 +33,7 @@ const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleDateString();
 
 export default function EventDetailScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { eventId } = route.params;
 
   const { eventFrames, isLoading, error, peopleGroups, theme } = useDataStore();
@@ -184,18 +186,18 @@ export default function EventDetailScreen({ route, navigation }: Props) {
       <View style={dynamicStyles.card}>
         <Text style={dynamicStyles.title}>{event.name}</Text>
         <Text style={dynamicStyles.detail}>
-          <Text style={dynamicStyles.bold}>Lloc:</Text>{' '}
-          {event.place || 'No especificat'}
+          <Text style={dynamicStyles.bold}>{t('mobile.event_details.place')}</Text>{' '}
+          {event.place || t('mobile.event_details.not_specified')}
         </Text>
         <Text style={dynamicStyles.detail}>
-          <Text style={dynamicStyles.bold}>Inici:</Text> {formatDate(event.startDate)}
+          <Text style={dynamicStyles.bold}>{t('mobile.event_details.start')}</Text> {formatDate(event.startDate)}
         </Text>
         <Text style={dynamicStyles.detail}>
-          <Text style={dynamicStyles.bold}>Fi:</Text> {formatDate(event.endDate)}
+          <Text style={dynamicStyles.bold}>{t('mobile.event_details.end')}</Text> {formatDate(event.endDate)}
         </Text>
-        <Text style={dynamicStyles.notesTitle}>Notes:</Text>
+        <Text style={dynamicStyles.notesTitle}>{t('mobile.event_details.notes')}</Text>
         <Text style={dynamicStyles.notes}>
-          {event.generalNotes || 'No hi ha notes.'}
+          {event.generalNotes || t('mobile.event_details.no_notes')}
         </Text>
         {event.techSheet && (
           <TouchableOpacity

@@ -61,19 +61,19 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
-    if (!personGroupId) newErrors.personGroupId = t('mobile.validation.select_person');
-    if (!startDate) newErrors.startDate = t('mobile.validation.start_date_required');
-    if (!endDate) newErrors.endDate = t('mobile.validation.end_date_required');
+    if (!personGroupId) newErrors.personGroupId = t('mobile.forms.validation.select_person_required');
+    if (!startDate) newErrors.startDate = t('mobile.forms.validation.start_date_required');
+    if (!endDate) newErrors.endDate = t('mobile.forms.validation.end_date_required');
 
     if (startDate && endDate) {
         if (startDate > endDate) {
-            newErrors.endDate = t('mobile.alerts.dates_invalid');
+            newErrors.endDate = t('mobile.forms.validation.date_order_error');
         }
         if (event) {
             const eventStart = new Date(event.startDate);
             const eventEnd = new Date(event.endDate);
             if (startDate < eventStart || endDate > eventEnd) {
-                newErrors.datesRange = t('mobile.alerts.dates_invalid') + ` (${formatDateDMY(event.startDate)} - ${formatDateDMY(event.endDate)}).`;
+                newErrors.datesRange = t('mobile.forms.validation.date_order_error') + ` (${formatDateDMY(event.startDate)} - ${formatDateDMY(event.endDate)}).`;
             }
         }
     }
@@ -106,7 +106,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
     if (conflictMessage) {
       Alert.alert(
-        t('mobile.alerts.assignment_conflict'),
+        t('mobile.forms.alerts.assignment_conflict'),
         conflictMessage,
         [
           { text: t('mobile.alerts.cancel'), style: "cancel" },
@@ -205,31 +205,31 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={dynamicStyles.container} contentContainerStyle={dynamicStyles.contentContainer}>
 
-      <Text style={dynamicStyles.label}>{t('mobile.form_labels.name')}</Text>
+      <Text style={dynamicStyles.label}>{t('mobile.forms.labels.person_group')}</Text>
       <View style={[dynamicStyles.pickerContainer, errors.personGroupId ? dynamicStyles.inputError : null]}>
         <CustomSelect
           value={personGroupId}
           onValueChange={handlePersonChange}
           options={peopleOptions}
-          placeholder={t('mobile.placeholders.select_option')}
+          placeholder={t('mobile.forms.placeholders.select_option')}
           containerStyle={{}}
         />
       </View>
       {errors.personGroupId && <Text style={dynamicStyles.errorText}>{errors.personGroupId}</Text>}
 
-      <Text style={dynamicStyles.label}>{t('mobile.form_labels.role')}</Text>
+      <Text style={dynamicStyles.label}>{t('mobile.forms.labels.role')}</Text>
       <TextInput
         style={dynamicStyles.input}
         value={role}
         onChangeText={setRole}
-        placeholder={t('mobile.placeholders.specify_role')}
+        placeholder={t('mobile.forms.placeholders.specify_role')}
         placeholderTextColor={colors.placeholder}
       />
 
       <View>
-          <Text style={dynamicStyles.label}>{t('mobile.form_labels.start_date')}</Text>
+          <Text style={dynamicStyles.label}>{t('mobile.forms.labels.start_date')}</Text>
           <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[dynamicStyles.input, errors.startDate || errors.datesRange ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : t('mobile.placeholders.start_date')}</Text>
+            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : t('mobile.forms.placeholders.start_date')}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
             <DateTimePicker themeVariant={theme} value={startDate || new Date(event.startDate)} mode="date" display="default" onChange={onStartDateChange} />
@@ -238,9 +238,9 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         </View>
 
         <View>
-          <Text style={dynamicStyles.label}>{t('mobile.form_labels.end_date')}</Text>
+          <Text style={dynamicStyles.label}>{t('mobile.forms.labels.end_date')}</Text>
           <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[dynamicStyles.input, errors.endDate || errors.datesRange ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : t('mobile.placeholders.end_date')}</Text>
+            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : t('mobile.forms.placeholders.end_date')}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
             <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date(event.endDate)} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
@@ -255,14 +255,14 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
             value={status}
             onValueChange={(val) => setStatus(val as AssignmentStatus)}
             options={statusOptions}
-            placeholder={t('mobile.placeholders.select_option')}
+            placeholder={t('mobile.forms.placeholders.select_option')}
           />
       </View>
 
-      <Text style={dynamicStyles.label}>{t('mobile.form_labels.notes')}</Text>
-      <TextInput style={dynamicStyles.inputMulti} value={notes} onChangeText={setNotes} multiline placeholder={t('mobile.placeholders.notes')} placeholderTextColor={colors.placeholder} />
+      <Text style={dynamicStyles.label}>{t('mobile.forms.labels.general_notes')}</Text>
+      <TextInput style={dynamicStyles.inputMulti} value={notes} onChangeText={setNotes} multiline placeholder={t('mobile.forms.placeholders.notes_example')} placeholderTextColor={colors.placeholder} />
 
-      <Button title={assignmentId ? t('mobile.buttons.save_changes') : t('mobile.buttons.create_assignment')} onPress={() => performSave(false)} color={colors.primary} />
+      <Button title={assignmentId ? t('mobile.forms.buttons.save_changes') : t('mobile.forms.buttons.create_assignment')} onPress={() => performSave(false)} color={colors.primary} />
     </ScrollView>
   );
 };

@@ -74,12 +74,12 @@ export default function EventFormScreen({ navigation, route }: Props) {
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!name.trim()) newErrors.name = t('mobile.alerts.name_required');
-    if (!startDate) newErrors.startDate = t('mobile.alerts.start_date_required');
-    if (!endDate) newErrors.endDate = t('mobile.alerts.end_date_required');
+    if (!name.trim()) newErrors.name = t('mobile.forms.validation.name_required');
+    if (!startDate) newErrors.startDate = t('mobile.forms.validation.start_date_required');
+    if (!endDate) newErrors.endDate = t('mobile.forms.validation.end_date_required');
 
     if (startDate && endDate && startDate > endDate) {
-        newErrors.endDate = t('mobile.alerts.dates_invalid');
+        newErrors.endDate = t('mobile.forms.validation.date_order_error');
     }
 
     setErrors(newErrors);
@@ -197,7 +197,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
           style={[dynamicStyles.input, errors.name ? dynamicStyles.inputError : null]}
           value={name}
           onChangeText={handleNameChange}
-          placeholder={t('mobile.placeholders.name')}
+          placeholder={t('mobile.forms.placeholders.event_name_example')}
           placeholderTextColor={colors.placeholder}
           onFocus={() => setPlaceSuggestions([])}
         />
@@ -217,7 +217,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
           style={dynamicStyles.input}
           value={place}
           onChangeText={handlePlaceChange}
-          placeholder={t('mobile.placeholders.place')}
+          placeholder={t('mobile.forms.placeholders.place_example')}
           placeholderTextColor={colors.placeholder}
           onFocus={() => setNameSuggestions([])}
         />
@@ -234,7 +234,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
         <View>
           <Text style={dynamicStyles.label}>{t('mobile.form_labels.start_date')}</Text>
           <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[dynamicStyles.input, errors.startDate ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : t('mobile.placeholders.start_date')}</Text>
+            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : t('mobile.forms.placeholders.start_date')}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
             <DateTimePicker themeVariant={theme} value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
@@ -245,7 +245,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
         <View>
           <Text style={dynamicStyles.label}>{t('mobile.form_labels.end_date')}</Text>
           <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[dynamicStyles.input, errors.endDate ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : t('mobile.placeholders.end_date')}</Text>
+            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : t('mobile.forms.placeholders.end_date')}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
             <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
@@ -258,16 +258,16 @@ export default function EventFormScreen({ navigation, route }: Props) {
             style={dynamicStyles.inputMulti}
             value={generalNotes}
             onChangeText={setGeneralNotes}
-            placeholder={t('mobile.placeholders.notes')}
+            placeholder={t('mobile.forms.placeholders.notes_example')}
             placeholderTextColor={colors.placeholder}
             multiline
-            numberOfLines={4}
-            onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
         />
+
         <View style={dynamicStyles.buttonContainer}>
-            <Button title={isEditMode ? t('common.save') : t('common.save')} onPress={() => handleSave(false)} color={colors.primary} />
-            <View style={{ marginTop: 10 }} />
-            <Button title={isEditMode ? t('common.save') + ' i Assignar' : t('common.save') + ' i Assignar'} onPress={() => handleSave(true)} color={colors.primary} />
+          <Button title={isEditMode ? t('mobile.forms.buttons.update') : t('mobile.forms.buttons.create')} onPress={() => handleSave(false)} color={colors.primary} />
+          {!isEditMode && (
+            <Button title={t('mobile.forms.buttons.create_and_assign')} onPress={() => handleSave(true)} color={colors.primary} />
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

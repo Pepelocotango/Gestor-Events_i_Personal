@@ -114,7 +114,7 @@ export default function TechSheetDetailScreen({ route }: Props) {
   }
 
   const getPersonName = (personGroupId: string) => peopleGroups.find((p) => p.id === personGroupId)?.name || t('mobile.tech_sheet.unknown');
-  const getMaterialName = (materialId: string | null | undefined) => !materialId ? 'N/A' : (materialItems.find(i => i.id === materialId)?.name || 'Material desconegut');
+  const getMaterialName = (materialId: string | null | undefined) => !materialId ? 'N/A' : (materialItems.find(i => i.id === materialId)?.name || t('mobile.tech_sheet_details.material_unknown'));
 
   const renderNeedsSection = (
     title: string,
@@ -126,7 +126,7 @@ export default function TechSheetDetailScreen({ route }: Props) {
     return (
       <CollapsibleSection title={title} isExpanded={!!expandedSections[sectionKey]} onToggle={() => handleToggleSection(sectionKey)}>
         {section.details && <Text style={dynamicStyles.notes}>{section.details}</Text>}
-        {!hasNeeds && !section.details && <Text style={dynamicStyles.text}>Sense especificacions.</Text>}
+        {!hasNeeds && !section.details && <Text style={dynamicStyles.text}>{t('mobile.tech_sheet_details.no_specifications')}</Text>}
         {hasNeeds && section.needs?.map((need) => (
           <View key={need.id} style={dynamicStyles.needItem}>
             <Text style={dynamicStyles.needDescription}>- {need.quantity}x {need.description || getMaterialName(need.materialItemId)} ({need.origin})</Text>
@@ -192,7 +192,7 @@ export default function TechSheetDetailScreen({ route }: Props) {
           {techSheet.technicalProviders.map((provider) => (
             <View key={provider.id} style={{marginTop: 5}}>
               <Text style={dynamicStyles.providerName}>{getPersonName(provider.personGroupId)}</Text>
-              {provider.roles.map(role => <ReadOnlyField key={role.id} label={`    ${role.role}`} value={`${role.quantity} persona/es`} />)}
+              {provider.roles.map(role => <ReadOnlyField key={role.id} label={`    ${role.role}`} value={`${role.quantity} ${t('mobile.tech_sheet_details.person_es')}`} />)}
             </View>
           ))}
         </CollapsibleSection>

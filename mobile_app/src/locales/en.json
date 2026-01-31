@@ -32,10 +32,24 @@
             "all_categories": "-- All Categories --"
         },
         "about": {
-            "app_description": "Mobile application to view and manage events, staff and material. Allows consulting and editing basic event information, managing assigned staff and reviewing material inventory. Synchronizes with the desktop application for complete management.",
+            "app_description": "Mobile application for viewing and managing events, personnel and materials. Allows consulting and editing basic event information, managing assigned personnel and reviewing material inventory. Synchronizes with the desktop application for complete management.",
             "version": "Version",
             "links": "Links of Interest",
-            "donate": "Make a donation"
+            "donate": "Make a donation",
+            "github_repository": "GitHub Repository",
+            "app_name": "Event Manager"
+        },
+        "event_card": {
+            "accept": "Accept",
+            "hide_days": "Hide days",
+            "show_days": "Show days",
+            "assigned_personnel": "Assigned personnel:",
+            "add_person": "Add person"
+        },
+        "filter_controls": {
+            "global_search": "Global search...",
+            "all_people": "All people",
+            "all_events": "All events"
         },
         "material": {
             "balance": "Balance",
@@ -60,7 +74,118 @@
             "location": "Location",
             "email": "Email",
             "phone": "Phone",
-            "web": "Website"
+            "web": "Website",
+            "person_group": "Person/Group",
+            "status": "General Status",
+            "tel1": "Phone 1",
+            "tel2": "Phone 2"
+        },
+        "forms": {
+            "labels": {
+                "name": "Name",
+                "place": "Place",
+                "start_date": "Start Date",
+                "end_date": "End Date",
+                "general_notes": "General Notes",
+                "person_group": "Person/Group",
+                "role": "Role (Optional)",
+                "status": "General Status",
+                "category": "Category",
+                "stock": "Stock",
+                "location": "Location",
+                "tel1": "Phone 1",
+                "tel2": "Phone 2",
+                "email": "Email",
+                "web": "Website"
+            },
+            "placeholders": {
+                "event_name_example": "Ex: Spring Concert",
+                "place_example": "Ex: Main Theater",
+                "notes_example": "Various annotations...",
+                "specify_role": "Specify role...",
+                "select_option": "-- Select --",
+                "name": "Enter name",
+                "role": "Enter role",
+                "start_date": "Select start date",
+                "end_date": "Select end date",
+                "notes": "Add notes...",
+                "place": "Enter place",
+                "stock": "Enter stock",
+                "category": "Enter category",
+                "location": "Enter location",
+                "email": "Enter email",
+                "phone": "Enter phone",
+                "web": "Enter website"
+            },
+            "validation": {
+                "name_required": "Name is required.",
+                "start_date_required": "Start date is required.",
+                "end_date_required": "End date is required.",
+                "date_order_error": "End date must be after or equal to start date.",
+                "category_required": "Category is required.",
+                "select_person_required": "You must select a person or group."
+            },
+            "buttons": {
+                "create": "Create",
+                "update": "Update",
+                "create_and_assign": "Create and Assign",
+                "save_changes": "Save Changes",
+                "create_assignment": "Create Assignment"
+            },
+            "alerts": {
+                "assignment_conflict": "Assignment Conflict"
+            }
+        },
+        "event_details": {
+            "place": "Place:",
+            "start": "Start:",
+            "end": "End:",
+            "notes": "Notes:",
+            "not_specified": "Not specified",
+            "no_notes": "No notes."
+        },
+        "calendar": {
+            "no_events_day": "No events for this day.",
+            "events_for_day": "Events for {{date}}"
+        },
+        "tech_sheet_details": {
+            "no_specifications": "No specifications.",
+            "material_unknown": "Unknown material",
+            "person_es": "person/people"
+        },
+        "summary": {
+            "sort_by_date": "Date",
+            "collapse_all": "Collapse",
+            "expand_all": "Expand"
+        },
+        "material_control": {
+            "no_results": "No results found."
+        },
+        "header": {
+            "ready_to_share": "Ready to share",
+            "error_save_file": "Could not save the file with a new name.",
+            "error_share_file": "Could not share the file."
+        },
+        "action_toolbar": {
+            "sort_by_date": "Date",
+            "show_archived": "View archived",
+            "showing_archived": "Showing archived",
+            "collapse_all": "Collapse",
+            "expand_all": "Expand"
+        },
+        "material_filters": {
+            "search_placeholder": "Search by text...",
+            "filter_by_event": "Filter by event",
+            "filter_by_category": "Filter by category",
+            "filter_by_origin": "Filter by origin",
+            "clear_filters": "Clear filters"
+        },
+        "tech_sheet_list": {
+            "no_tech_sheets": "No tech sheets found.",
+            "ensure_file_open": "Make sure you have opened a data file."
+        },
+        "tech_sheet_components": {
+            "not_specified": "Not specified"
         },
         "placeholders": {
             "name": "Enter name",

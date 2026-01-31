@@ -35,7 +35,21 @@
             "app_description": "Aplicació mòbil per visualitzar i gestionar esdeveniments, personal i material. Permet consultar i editar la informació bàsica dels esdeveniments, gestionar el personal assignat i revisar l'inventari de material. Sincronitza amb l'aplicació d'escriptori per a una gestió completa.",
             "version": "Versió",
             "links": "Enllaços d'Interès",
-            "donate": "Fes una donació"
+            "donate": "Fes una donació",
+            "github_repository": "Repositori a GitHub",
+            "app_name": "Gestor d'Esdeveniments"
+        },
+        "event_card": {
+            "accept": "Acceptar",
+            "hide_days": "Amagar dies",
+            "show_days": "Mostrar dies",
+            "assigned_personnel": "Personal assignat:",
+            "add_person": "Afegir persona"
+        },
+        "filter_controls": {
+            "global_search": "Cerca global...",
+            "all_people": "Totes les persones",
+            "all_events": "Tots els esdeveniments"
         },
         "material": {
             "balance": "Balanç",
@@ -60,7 +74,118 @@
             "location": "Ubicació",
             "email": "Correu electrònic",
             "phone": "Telèfon",
-            "web": "Pàgina web"
+            "web": "Pàgina web",
+            "person_group": "Persona/Grup",
+            "status": "Estat General",
+            "tel1": "Telèfon 1",
+            "tel2": "Telèfon 2"
+        },
+        "forms": {
+            "labels": {
+                "name": "Nom",
+                "place": "Lloc",
+                "start_date": "Data d'Inici",
+                "end_date": "Data de Fi",
+                "general_notes": "Notes Generals",
+                "person_group": "Persona/Grup",
+                "role": "Rol (Opcional)",
+                "status": "Estat General",
+                "category": "Categoria",
+                "stock": "Estoc",
+                "location": "Ubicació",
+                "tel1": "Telèfon 1",
+                "tel2": "Telèfon 2",
+                "email": "Email",
+                "web": "Pàgina Web"
+            },
+            "placeholders": {
+                "event_name_example": "Ex: Concert de Primavera",
+                "place_example": "Ex: Teatre Principal",
+                "notes_example": "Anotacions diverses...",
+                "specify_role": "Especifica el rol...",
+                "select_option": "-- Seleccioneu --",
+                "name": "Introdueix el nom",
+                "role": "Introdueix el rol",
+                "start_date": "Selecciona data d'inici",
+                "end_date": "Selecciona data de fi",
+                "notes": "Afegeix notes...",
+                "place": "Introdueix el lloc",
+                "stock": "Introdueix l'estoc",
+                "category": "Introdueix la categoria",
+                "location": "Introdueix la ubicació",
+                "email": "Introdueix el correu electrònic",
+                "phone": "Introdueix el telèfon",
+                "web": "Introdueix la pàgina web"
+            },
+            "validation": {
+                "name_required": "El nom és obligatori.",
+                "start_date_required": "La data d'inici és obligatòria.",
+                "end_date_required": "La data de fi és obligatòria.",
+                "date_order_error": "La data de fi ha de ser posterior o igual a la d'inici.",
+                "category_required": "La categoria és obligatòria.",
+                "select_person_required": "Cal seleccionar una persona o grup."
+            },
+            "buttons": {
+                "create": "Crear",
+                "update": "Actualitzar",
+                "create_and_assign": "Crear i Assignar",
+                "save_changes": "Desar canvis",
+                "create_assignment": "Crear Assignació"
+            },
+            "alerts": {
+                "assignment_conflict": "Conflicte d'Assignació"
+            }
+        },
+        "event_details": {
+            "place": "Lloc:",
+            "start": "Inici:",
+            "end": "Fi:",
+            "notes": "Notes:",
+            "not_specified": "No especificat",
+            "no_notes": "No hi ha notes."
+        },
+        "calendar": {
+            "no_events_day": "No hi ha esdeveniments per a aquest dia.",
+            "events_for_day": "Esdeveniments per al {{date}}"
+        },
+        "tech_sheet_details": {
+            "no_specifications": "Sense especificacions.",
+            "material_unknown": "Material desconegut",
+            "person_es": "persona/es"
+        },
+        "summary": {
+            "sort_by_date": "Data",
+            "collapse_all": "Replegar",
+            "expand_all": "Expandir"
+        },
+        "material_control": {
+            "no_results": "No s'han trobat resultats."
+        },
+        "header": {
+            "ready_to_share": "A punt per compartir",
+            "error_save_file": "No s'ha pogut desar el fitxer amb un nom nou.",
+            "error_share_file": "No s'ha pogut compartir el fitxer."
+        },
+        "action_toolbar": {
+            "sort_by_date": "Data",
+            "show_archived": "Veure arxivats",
+            "showing_archived": "Mostrant arxivats",
+            "collapse_all": "Replegar",
+            "expand_all": "Expandir"
+        },
+        "material_filters": {
+            "search_placeholder": "Cerca per text...",
+            "filter_by_event": "Filtrar per esdeveniment",
+            "filter_by_category": "Filtrar per categoria",
+            "filter_by_origin": "Filtrar per origen",
+            "clear_filters": "Netejar filtres"
+        },
+        "tech_sheet_list": {
+            "no_tech_sheets": "No s'han trobat fitxes de bolo.",
+            "ensure_file_open": "Assegura't d'haver obert un fitxer de dades."
+        },
+        "tech_sheet_components": {
+            "not_specified": "No especificat"
         },
         "placeholders": {
             "name": "Introdueix el nom",

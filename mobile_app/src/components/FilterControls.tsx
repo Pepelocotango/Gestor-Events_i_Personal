@@ -5,6 +5,7 @@ import { PersonGroup, EventFrame } from '../types';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type FilterControlsProps = {
   filters: { text: string; person: string; status: string; date: string; place: string; eventFrame: string };
@@ -21,6 +22,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   eventFrames,
   clearFilters,
 }) => {
+  const { t } = useTranslation();
   const { theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
@@ -84,7 +86,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
       <View style={dynamicStyles.searchRow}>
         <TextInput
           style={dynamicStyles.searchInput}
-          placeholder="Cerca global..."
+          placeholder={t('mobile.filter_controls.global_search')}
           placeholderTextColor={colors.placeholder}
           value={filters.text}
           onChangeText={(value) => handleFilterChange('text', value)}
@@ -98,16 +100,16 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           <CustomSelect
             value={filters.person}
             onValueChange={(val) => handleFilterChange('person', val)}
-            options={[{ label: 'Totes les persones', value: '' }, ...peopleGroups.map(p => ({ label: p.name, value: p.id }))]}
-            placeholder="Totes les persones"
+            options={[{ label: t('mobile.filter_controls.all_people'), value: '' }, ...peopleGroups.map(p => ({ label: p.name, value: p.id }))]}
+            placeholder={t('mobile.filter_controls.all_people')}
           />
         </View>
         <View style={dynamicStyles.pickerContainer}>
           <CustomSelect
             value={filters.eventFrame}
             onValueChange={(val) => handleFilterChange('eventFrame', val)}
-            options={[{ label: 'Tots els esdeveniments', value: '' }, ...eventFrames.map(ef => ({ label: ef.name, value: ef.id }))]}
-            placeholder="Tots els esdeveniments"
+            options={[{ label: t('mobile.filter_controls.all_events'), value: '' }, ...eventFrames.map(ef => ({ label: ef.name, value: ef.id }))]}
+            placeholder={t('mobile.filter_controls.all_events')}
           />
         </View>
       </View>

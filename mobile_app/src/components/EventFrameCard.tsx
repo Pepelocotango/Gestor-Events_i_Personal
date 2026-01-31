@@ -49,7 +49,7 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
           style: 'cancel',
         },
         {
-          text: 'Acceptar',
+          text: t('mobile.event_card.accept'),
           onPress: () => updateEventFrame(eventFrame.id, { personnelComplete: newStatus }),
         },
       ],
@@ -317,7 +317,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
 
         {isAssignmentMultiDay && (
             <TouchableOpacity style={styles.toggleDaysButton} onPress={() => onToggleAssignmentExpand(assignment.id)}>
-                <Text style={styles.toggleDaysButtonText}>{isAssignmentExpanded ? 'Amagar dies' : 'Mostrar dies'}</Text>
+                <Text style={styles.toggleDaysButtonText}>{isAssignmentExpanded ? t('mobile.event_card.hide_days') : t('mobile.event_card.show_days')}</Text>
             </TouchableOpacity>
         )}
 
@@ -364,14 +364,14 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
             </View>
           ) : null}
 
-          <Text style={styles.assignmentsTitle}>Personal assignat:</Text>
+          <Text style={styles.assignmentsTitle}>{t('mobile.event_card.assigned_personnel')}</Text>
           {eventFrame.assignments.map(renderAssignment)}
           <TouchableOpacity
             style={styles.addPersonButton}
             onPress={() => navigation.navigate('AssignmentForm', { eventFrameId: eventFrame.id })}
           >
             <Icon name="plus-circle-outline" size={20} color={theme.primary} />
-            <Text style={styles.addPersonButtonText}>Afegir persona</Text>
+            <Text style={styles.addPersonButtonText}>{t('mobile.event_card.add_person')}</Text>
           </TouchableOpacity>
 
           <View style={styles.cardActions}>

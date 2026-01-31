@@ -65,13 +65,13 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     try {
       await saveFileAs();
     } catch (e) {
-      Alert.alert("Error", "No s'ha pogut desar el fitxer amb un nom nou.");
+      Alert.alert(t('common.error'), t('mobile.header.error_save_file'));
     }
   };
 
   const handleShareFile = async () => {
     Alert.alert(
-      "A punt per compartir",
+      t('mobile.header.ready_to_share'),
       t('mobile.alerts.share_instructions'),
        [
         {
@@ -80,7 +80,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
             try {
               await shareFile();
             } catch (e) {
-              Alert.alert("Error", "No s'ha pogut compartir el fitxer.");
+              Alert.alert(t('common.error'), t('mobile.header.error_share_file'));
             }
           },
         },
@@ -106,7 +106,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
   const appVersion = Constants.expoConfig?.extra?.version || Constants.expoConfig?.version;
   const headerTitle = fileName
     ? fileName
-    : `Gestor d'Esdeveniments v${appVersion}`;
+    : `${t('mobile.about.app_name')} v${appVersion}`;
 
   const dynamicStyles = useMemo(() => StyleSheet.create({
     container: {

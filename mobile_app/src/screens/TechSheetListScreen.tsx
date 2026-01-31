@@ -12,6 +12,7 @@ import { TechSheetsStackParamList } from '../navigation';
 import { EventFrame } from '../types';
 import TechSheetListItem from '../components/TechSheetListItem';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type TechSheetListScreenNavigationProp = StackNavigationProp<
   TechSheetsStackParamList,
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export default function TechSheetListScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { isLoading, error, eventFrames, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
@@ -75,8 +77,8 @@ export default function TechSheetListScreen({ navigation }: Props) {
   if (techSheets.length === 0) {
     return (
       <View style={dynamicStyles.centerContainer}>
-        <Text style={dynamicStyles.text}>No s'han trobat fitxes de bolo.</Text>
-        <Text style={dynamicStyles.text}>Assegura't d'haver obert un fitxer de dades.</Text>
+        <Text style={dynamicStyles.text}>{t('mobile.tech_sheet_list.no_tech_sheets')}</Text>
+        <Text style={dynamicStyles.text}>{t('mobile.tech_sheet_list.ensure_file_open')}</Text>
       </View>
     );
   }

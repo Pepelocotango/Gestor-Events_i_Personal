@@ -114,7 +114,7 @@ const MaterialControlList: React.FC<MaterialControlListProps> = ({ data }) => {
       data={data}
       renderItem={renderItem}
       keyExtractor={item => item.item.id}
-      ListEmptyComponent={<Text style={dynamicStyles.emptyText}>No s'han trobat resultats.</Text>}
+      ListEmptyComponent={<Text style={dynamicStyles.emptyText}>{t('mobile.material_control.no_results')}</Text>}
       contentContainerStyle={{ paddingBottom: 80 }}
     />
   );

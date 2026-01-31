@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useDataStore } from '../../stores/dataStore';
 import { lightTheme, darkTheme } from '../../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type ReadOnlyFieldProps = {
   label: string;
@@ -9,13 +10,14 @@ type ReadOnlyFieldProps = {
 };
 
 export default function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
+  const { t } = useTranslation();
   const themeName = useDataStore((state) => state.theme);
   const colors = themeName === 'dark' ? darkTheme : lightTheme;
 
   return (
     <View style={[styles.fieldContainer, { alignItems: 'flex-start' }]}>
       <Text style={[styles.label, { color: colors.text }]}>{label}:</Text>
-      <Text style={[styles.value, { color: colors.text }]}>{value || 'No especificat'}</Text>
+      <Text style={[styles.value, { color: colors.text }]}>{value || t('mobile.tech_sheet_components.not_specified')}</Text>
     </View>
   );
 }

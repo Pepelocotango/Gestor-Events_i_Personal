@@ -137,11 +137,11 @@ const SummaryScreen = () => {
       <View style={dynamicStyles.toolbar}>
         <TouchableOpacity style={dynamicStyles.button} onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
             <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color={colors.text} />
-            <Text style={dynamicStyles.buttonText}>Data</Text>
+            <Text style={dynamicStyles.buttonText}>{t('mobile.summary.sort_by_date')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={dynamicStyles.button} onPress={toggleAllSections}>
             <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
-            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
+            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? t('mobile.summary.collapse_all') : t('mobile.summary.expand_all')}</Text>
         </TouchableOpacity>
       </View>
 
