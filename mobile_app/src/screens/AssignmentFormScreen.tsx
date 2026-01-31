@@ -67,13 +67,13 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
     if (startDate && endDate) {
         if (startDate > endDate) {
-            newErrors.endDate = "La data de fi no pot ser anterior a la d'inici.";
+            newErrors.endDate = t('mobile.alerts.dates_invalid');
         }
         if (event) {
             const eventStart = new Date(event.startDate);
             const eventEnd = new Date(event.endDate);
             if (startDate < eventStart || endDate > eventEnd) {
-                newErrors.datesRange = `Les dates han d'estar dins del rang de l'esdeveniment (${formatDateDMY(event.startDate)} - ${formatDateDMY(event.endDate)}).`;
+                newErrors.datesRange = t('mobile.alerts.dates_invalid') + ` (${formatDateDMY(event.startDate)} - ${formatDateDMY(event.endDate)}).`;
             }
         }
     }
@@ -110,7 +110,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         conflictMessage,
         [
           { text: t('mobile.alerts.cancel'), style: "cancel" },
-          { text: "Desar Igualment", onPress: () => performSave(true) }
+          { text: t('common.save'), onPress: () => performSave(true) }
         ]
       );
     } else {
@@ -199,13 +199,13 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
   const statusOptions = Object.values(AssignmentStatus).map(s => ({ label: s, value: s }));
 
   if (!event) {
-    return <View style={dynamicStyles.container}><Text style={dynamicStyles.text}>No s'ha trobat l'esdeveniment pare.</Text></View>;
+    return <View style={dynamicStyles.container}><Text style={dynamicStyles.text}>{t('mobile.tech_sheet.event_not_found')}</Text></View>;
   }
 
   return (
     <ScrollView style={dynamicStyles.container} contentContainerStyle={dynamicStyles.contentContainer}>
 
-      <Text style={dynamicStyles.label}>Persona/Grup</Text>
+      <Text style={dynamicStyles.label}>{t('mobile.form_labels.name')}</Text>
       <View style={[dynamicStyles.pickerContainer, errors.personGroupId ? dynamicStyles.inputError : null]}>
         <CustomSelect
           value={personGroupId}
@@ -217,7 +217,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
       </View>
       {errors.personGroupId && <Text style={dynamicStyles.errorText}>{errors.personGroupId}</Text>}
 
-      <Text style={dynamicStyles.label}>Rol (Opcional)</Text>
+      <Text style={dynamicStyles.label}>{t('mobile.form_labels.role')}</Text>
       <TextInput
         style={dynamicStyles.input}
         value={role}
@@ -227,9 +227,9 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
       />
 
       <View>
-          <Text style={dynamicStyles.label}>Data d'Inici</Text>
+          <Text style={dynamicStyles.label}>{t('mobile.form_labels.start_date')}</Text>
           <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[dynamicStyles.input, errors.startDate || errors.datesRange ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
+            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : t('mobile.placeholders.start_date')}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
             <DateTimePicker themeVariant={theme} value={startDate || new Date(event.startDate)} mode="date" display="default" onChange={onStartDateChange} />
@@ -238,9 +238,9 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         </View>
 
         <View>
-          <Text style={dynamicStyles.label}>Data de Fi</Text>
+          <Text style={dynamicStyles.label}>{t('mobile.form_labels.end_date')}</Text>
           <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[dynamicStyles.input, errors.endDate || errors.datesRange ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
+            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : t('mobile.placeholders.end_date')}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
             <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date(event.endDate)} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
@@ -249,7 +249,7 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
         </View>
         {errors.datesRange && <Text style={dynamicStyles.errorText}>{errors.datesRange}</Text>}
 
-      <Text style={dynamicStyles.label}>Estat General</Text>
+      <Text style={dynamicStyles.label}>{t('common.status')}</Text>
       <View style={dynamicStyles.pickerContainer}>
           <CustomSelect
             value={status}
@@ -259,8 +259,8 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
           />
       </View>
 
-      <Text style={dynamicStyles.label}>Notes</Text>
-      <TextInput style={dynamicStyles.inputMulti} value={notes} onChangeText={setNotes} multiline placeholderTextColor={colors.placeholder} />
+      <Text style={dynamicStyles.label}>{t('mobile.form_labels.notes')}</Text>
+      <TextInput style={dynamicStyles.inputMulti} value={notes} onChangeText={setNotes} multiline placeholder={t('mobile.placeholders.notes')} placeholderTextColor={colors.placeholder} />
 
       <Button title={assignmentId ? t('mobile.buttons.save_changes') : t('mobile.buttons.create_assignment')} onPress={() => performSave(false)} color={colors.primary} />
     </ScrollView>

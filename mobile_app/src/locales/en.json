@@ -18,7 +18,13 @@
             "confirm_status_message": "The event '{{name}}' will be marked {{status}}. Are you sure?",
             "validation_errors": "Validation Errors",
             "validation_message": "Please correct the errors before saving.",
-            "assignment_conflict": "Assignment Conflict"
+            "assignment_conflict": "Assignment Conflict",
+            "name_required": "Name is required",
+            "dates_invalid": "Dates are invalid",
+            "email_invalid": "Email is invalid",
+            "phone_invalid": "Phone is invalid",
+            "stock_required": "Stock is required",
+            "category_required": "Category is required"
         },
         "filters": {
             "all_events": "-- All Events --",
@@ -41,6 +47,34 @@
             "select_person": "You must select a person or group.",
             "start_date_required": "The start date is mandatory.",
             "end_date_required": "The end date is mandatory."
+        },
+        "form_labels": {
+            "name": "Name",
+            "role": "Role",
+            "start_date": "Start Date",
+            "end_date": "End Date",
+            "notes": "Notes",
+            "place": "Place",
+            "stock": "Stock",
+            "category": "Category",
+            "location": "Location",
+            "email": "Email",
+            "phone": "Phone",
+            "web": "Website"
+        },
+        "placeholders": {
+            "name": "Enter name",
+            "role": "Enter role",
+            "start_date": "Select start date",
+            "end_date": "Select end date",
+            "notes": "Add notes...",
+            "place": "Enter place",
+            "stock": "Enter stock",
+            "category": "Enter category",
+            "location": "Enter location",
+            "email": "Enter email",
+            "phone": "Enter phone",
+            "web": "Enter website"
         },
         "tech_sheet": {
             "event_not_found": "Event not found.",

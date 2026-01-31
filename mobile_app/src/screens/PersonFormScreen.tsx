@@ -45,7 +45,7 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
 
   const handleSave = () => {
     if (!person.name.trim()) {
-      Alert.alert(t('common.error'), t('people.name_required'));
+      Alert.alert(t('common.error'), t('mobile.alerts.name_required'));
       return;
     }
 
@@ -111,26 +111,26 @@ const PersonFormScreen = ({ navigation, route }: Props) => {
   return (
     <View style={dynamicStyles.outerContainer}>
       <ScrollView contentContainerStyle={dynamicStyles.container}>
-        <Text style={dynamicStyles.label}>{t('people.name_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.name')}</Text>
+        <TextInput style={dynamicStyles.input} value={person.name} onChangeText={(val) => handleChange('name', val)} placeholder={t('mobile.placeholders.name')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('people.role_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.role')}</Text>
+        <TextInput style={dynamicStyles.input} value={person.role} onChangeText={(val) => handleChange('role', val)} placeholder={t('mobile.placeholders.role')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('people.tel1_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.phone')}</Text>
+        <TextInput style={dynamicStyles.input} value={person.tel1} onChangeText={(val) => handleChange('tel1', val)} keyboardType="phone-pad" placeholder={t('mobile.placeholders.phone')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('people.tel2_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.phone')}</Text>
+        <TextInput style={dynamicStyles.input} value={person.tel2} onChangeText={(val) => handleChange('tel2', val)} keyboardType="phone-pad" placeholder={t('mobile.placeholders.phone')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('people.email_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.email')}</Text>
+        <TextInput style={dynamicStyles.input} value={person.email} onChangeText={(val) => handleChange('email', val)} keyboardType="email-address" placeholder={t('mobile.placeholders.email')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('people.web_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.web')}</Text>
+        <TextInput style={dynamicStyles.input} value={person.web} onChangeText={(val) => handleChange('web', val)} placeholder={t('mobile.placeholders.web')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('people.notes_label')}</Text>
-        <TextInput style={dynamicStyles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.notes')}</Text>
+        <TextInput style={dynamicStyles.inputMulti} value={person.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholder={t('mobile.placeholders.notes')} placeholderTextColor={colors.placeholder} />
 
         <Button title={t('common.save')} onPress={handleSave} color={colors.primary} />
       </ScrollView>

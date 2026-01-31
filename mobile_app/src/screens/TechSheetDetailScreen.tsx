@@ -155,7 +155,7 @@ export default function TechSheetDetailScreen({ route }: Props) {
       <View style={dynamicStyles.toolbar}>
         <TouchableOpacity style={dynamicStyles.button} onPress={toggleAllSections}>
             <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
-            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? 'Replegar Totes' : 'Expandir Totes'}</Text>
+            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? t('mobile.tech_sheet.collapse_all') : t('mobile.tech_sheet.expand_all')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -175,19 +175,19 @@ export default function TechSheetDetailScreen({ route }: Props) {
             {techSheet.parking?.status === 'yes' && <ReadOnlyField label={t('mobile.tech_sheet.parking')} value={techSheet.parking.details || t('mobile.tech_sheet.yes')} />}
             {techSheet.dressingRooms?.status === 'yes' && <ReadOnlyField label={t('mobile.tech_sheet.dressing_rooms')} value={techSheet.dressingRooms.details || t('mobile.tech_sheet.yes')} />}
             {renderPersonnelInfoSection(t('mobile.tech_sheet.interpreters'), techSheet.actorsInfo as any)}
-            {renderPersonnelInfoSection('Personal Tècnic (Client)', techSheet.techniciansInfo as any)}
+            {renderPersonnelInfoSection(t('mobile.tech_sheet.technical_personnel'), techSheet.techniciansInfo as any)}
         </CollapsibleSection>
       }
 
       {techSheet.schedule?.status === 'yes' &&
-        <CollapsibleSection title="Horaris de Muntatge" isExpanded={!!expandedSections.schedule} onToggle={() => handleToggleSection('schedule')}>
+        <CollapsibleSection title={t('mobile.tech_sheet.schedule')} isExpanded={!!expandedSections.schedule} onToggle={() => handleToggleSection('schedule')}>
           {techSheet.schedule.details && <Text style={dynamicStyles.notes}>{techSheet.schedule.details}</Text>}
           {techSheet.schedule.data?.map((item) => <ReadOnlyField key={item.id} label={`${formatDate(item.date)} ${item.time}${item.timeEnd ? ` - ${item.timeEnd}`: ''}`} value={item.description} />)}
         </CollapsibleSection>
       }
 
       {techSheet.technicalProviders && techSheet.technicalProviders.length > 0 &&
-        <CollapsibleSection title="Personal Tècnic" isExpanded={!!expandedSections.personnel} onToggle={() => handleToggleSection('personnel')}>
+        <CollapsibleSection title={t('mobile.tech_sheet.technical_staff')} isExpanded={!!expandedSections.personnel} onToggle={() => handleToggleSection('personnel')}>
           {techSheet.technicalPersonnelNotes && <Text style={dynamicStyles.notes}>{techSheet.technicalPersonnelNotes}</Text>}
           {techSheet.technicalProviders.map((provider) => (
             <View key={provider.id} style={{marginTop: 5}}>
@@ -198,41 +198,41 @@ export default function TechSheetDetailScreen({ route }: Props) {
         </CollapsibleSection>
       }
 
-      {techSheet.technicalNeedsNotes && <CollapsibleSection title="Notes de Necessitats Tècniques" isExpanded={!!expandedSections.technicalNeedsNotes} onToggle={() => handleToggleSection('technicalNeedsNotes')}><Text style={dynamicStyles.text}>{techSheet.technicalNeedsNotes}</Text></CollapsibleSection>}
-      {renderNeedsSection('Il·luminació', 'lighting', techSheet.lighting)}
-      {renderNeedsSection('So', 'sound', techSheet.sound)}
-      {renderNeedsSection('Vídeo', 'video', techSheet.video)}
-      {renderNeedsSection('Maquinària', 'machinery', techSheet.machinery)}
-      {renderNeedsSection('Lloguers', 'rentals', techSheet.rentals)}
-      {renderNeedsSection('Altre Equipament', 'otherEquipment', techSheet.otherEquipment)}
-      {renderNeedsSection('Infraestructures Elèctriques', 'electrical', techSheet.electrical)}
-      {renderNeedsSection('Estructures', 'structures', techSheet.structures)}
-      {renderNeedsSection('Tarimes', 'platforms', techSheet.platforms)}
-      {renderNeedsSection('Consumibles', 'consumables', techSheet.consumables)}
-      {renderNeedsSection('Cortinatges', 'curtains', techSheet.curtains)}
-      {renderNeedsSection('Transport', 'transport', techSheet.transport)}
+      {techSheet.technicalNeedsNotes && <CollapsibleSection title={t('mobile.tech_sheet.technical_needs_notes')} isExpanded={!!expandedSections.technicalNeedsNotes} onToggle={() => handleToggleSection('technicalNeedsNotes')}><Text style={dynamicStyles.text}>{techSheet.technicalNeedsNotes}</Text></CollapsibleSection>}
+      {renderNeedsSection(t('mobile.tech_sheet.lighting'), 'lighting', techSheet.lighting)}
+      {renderNeedsSection(t('mobile.tech_sheet.sound'), 'sound', techSheet.sound)}
+      {renderNeedsSection(t('mobile.tech_sheet.video'), 'video', techSheet.video)}
+      {renderNeedsSection(t('mobile.tech_sheet.machinery'), 'machinery', techSheet.machinery)}
+      {renderNeedsSection(t('mobile.tech_sheet.rentals'), 'rentals', techSheet.rentals)}
+      {renderNeedsSection(t('mobile.tech_sheet.other_equipment'), 'otherEquipment', techSheet.otherEquipment)}
+      {renderNeedsSection(t('mobile.tech_sheet.electrical'), 'electrical', techSheet.electrical)}
+      {renderNeedsSection(t('mobile.tech_sheet.structures'), 'structures', techSheet.structures)}
+      {renderNeedsSection(t('mobile.tech_sheet.platforms'), 'platforms', techSheet.platforms)}
+      {renderNeedsSection(t('mobile.tech_sheet.consumables'), 'consumables', techSheet.consumables)}
+      {renderNeedsSection(t('mobile.tech_sheet.curtains'), 'curtains', techSheet.curtains)}
+      {renderNeedsSection(t('mobile.tech_sheet.transport'), 'transport', techSheet.transport)}
 
       {sectionKeys.includes('otherDetails') &&
-        <CollapsibleSection title="Altres Detalls" isExpanded={!!expandedSections.otherDetails} onToggle={() => handleToggleSection('otherDetails')}>
-          <ReadOnlyField label="Ubicació Control" value={techSheet.controlLocation} />
-          <ReadOnlyField label="Plànols" value={techSheet.blueprints} />
+        <CollapsibleSection title={t('mobile.tech_sheet.other_details')} isExpanded={!!expandedSections.otherDetails} onToggle={() => handleToggleSection('otherDetails')}>
+          <ReadOnlyField label={t('mobile.tech_sheet.control_location')} value={techSheet.controlLocation} />
+          <ReadOnlyField label={t('mobile.tech_sheet.blueprints')} value={techSheet.blueprints} />
         </CollapsibleSection>
       }
 
       {techSheet.contacts && techSheet.contacts.length > 0 &&
-        <CollapsibleSection title="Contactes" isExpanded={!!expandedSections.contacts} onToggle={() => handleToggleSection('contacts')}>
+        <CollapsibleSection title={t('mobile.tech_sheet.contact_name')} isExpanded={!!expandedSections.contacts} onToggle={() => handleToggleSection('contacts')}>
           {techSheet.contacts.map((contact) => (
             <View key={contact.id} style={dynamicStyles.contactContainer}>
-              <ReadOnlyField label="Nom" value={contact.name} />
-              <ReadOnlyField label="Rol" value={contact.role} />
-              <ReadOnlyField label="Telèfon" value={contact.phone} />
-              <ReadOnlyField label="Email" value={contact.email} />
+              <ReadOnlyField label={t('mobile.tech_sheet.contact_name')} value={contact.name} />
+              <ReadOnlyField label={t('mobile.tech_sheet.contact_role')} value={contact.role} />
+              <ReadOnlyField label={t('mobile.tech_sheet.contact_phone')} value={contact.phone} />
+              <ReadOnlyField label={t('mobile.tech_sheet.contact_email')} value={contact.email} />
             </View>
           ))}
         </CollapsibleSection>
       }
 
-      {techSheet.observations && <CollapsibleSection title="Observacions" isExpanded={!!expandedSections.observations} onToggle={() => handleToggleSection('observations')}><Text style={dynamicStyles.text}>{techSheet.observations}</Text></CollapsibleSection>}
+      {techSheet.observations && <CollapsibleSection title={t('mobile.tech_sheet.details')} isExpanded={!!expandedSections.observations} onToggle={() => handleToggleSection('observations')}><Text style={dynamicStyles.text}>{techSheet.observations}</Text></CollapsibleSection>}
     </ScrollView>
   );
 }

@@ -6,10 +6,12 @@ import { formatDateDMY } from '../utils/dateFormat';
 import SummarySection from '../components/SummarySection';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 const SECTION_KEYS = ['event', 'date', 'person'];
 
 const SummaryScreen = () => {
+  const { t } = useTranslation();
   const { eventFrames, peopleGroups, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -144,21 +146,21 @@ const SummaryScreen = () => {
       </View>
 
       <SummarySection
-        title="Per Nom d'Esdeveniment"
+        title={t('main.event')}
         data={summaryByEventName}
         groupingType="event"
         isExpanded={!!expandedSections.event}
         onToggle={() => handleToggleSection('event')}
       />
       <SummarySection
-        title="Per Data d'Inici d'Assignació"
+        title={t('main.start_date')}
         data={summaryByStartDate}
         groupingType="date"
         isExpanded={!!expandedSections.date}
         onToggle={() => handleToggleSection('date')}
       />
       <SummarySection
-        title="Per Persona/Grup"
+        title={t('main.person')}
         data={summaryByPerson}
         groupingType="person"
         isExpanded={!!expandedSections.person}

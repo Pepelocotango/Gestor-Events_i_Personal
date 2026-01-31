@@ -7,6 +7,7 @@ import { EventsStackParamList } from '../navigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { formatDateDMY } from '../utils/dateFormat';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type EventFormScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventForm'>;
 type EventFormScreenRouteProp = RouteProp<EventsStackParamList, 'EventForm'>;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function EventFormScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { eventId } = route.params || {};
   const { eventFrames, addEventFrame, updateEventFrame, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
@@ -72,12 +74,12 @@ export default function EventFormScreen({ navigation, route }: Props) {
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!name.trim()) newErrors.name = "El nom és obligatori.";
-    if (!startDate) newErrors.startDate = "La data d'inici és obligatòria.";
-    if (!endDate) newErrors.endDate = "La data de fi és obligatòria.";
+    if (!name.trim()) newErrors.name = t('mobile.alerts.name_required');
+    if (!startDate) newErrors.startDate = t('mobile.alerts.start_date_required');
+    if (!endDate) newErrors.endDate = t('mobile.alerts.end_date_required');
 
     if (startDate && endDate && startDate > endDate) {
-        newErrors.endDate = "La data de fi ha de ser posterior o igual a la d'inici.";
+        newErrors.endDate = t('mobile.alerts.dates_invalid');
     }
 
     setErrors(newErrors);
@@ -86,7 +88,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
 
   const handleSave = (andAssign = false) => {
     if (!validate()) {
-      Alert.alert("Errors de Validació", "Si us plau, corregeix els errors abans de desar.");
+      Alert.alert(t('mobile.alerts.validation_errors'), t('mobile.alerts.validation_message'));
       return;
     }
 
@@ -190,12 +192,12 @@ export default function EventFormScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={dynamicStyles.container}>
       <ScrollView contentContainerStyle={dynamicStyles.formContainer} keyboardShouldPersistTaps="handled">
-        <Text style={dynamicStyles.label}>Nom de l'Esdeveniment</Text>
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.name')}</Text>
         <TextInput
           style={[dynamicStyles.input, errors.name ? dynamicStyles.inputError : null]}
           value={name}
           onChangeText={handleNameChange}
-          placeholder="Ex: Concert de Primavera"
+          placeholder={t('mobile.placeholders.name')}
           placeholderTextColor={colors.placeholder}
           onFocus={() => setPlaceSuggestions([])}
         />
@@ -210,12 +212,12 @@ export default function EventFormScreen({ navigation, route }: Props) {
         )}
         {errors.name && <Text style={dynamicStyles.errorText}>{errors.name}</Text>}
 
-        <Text style={dynamicStyles.label}>Lloc</Text>
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.place')}</Text>
         <TextInput
           style={dynamicStyles.input}
           value={place}
           onChangeText={handlePlaceChange}
-          placeholder="Ex: Teatre Principal"
+          placeholder={t('mobile.placeholders.place')}
           placeholderTextColor={colors.placeholder}
           onFocus={() => setNameSuggestions([])}
         />
@@ -230,9 +232,9 @@ export default function EventFormScreen({ navigation, route }: Props) {
         )}
 
         <View>
-          <Text style={dynamicStyles.label}>Data d'Inici</Text>
+          <Text style={dynamicStyles.label}>{t('mobile.form_labels.start_date')}</Text>
           <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[dynamicStyles.input, errors.startDate ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : 'Selecciona una data'}</Text>
+            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : t('mobile.placeholders.start_date')}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
             <DateTimePicker themeVariant={theme} value={startDate || new Date()} mode="date" display="default" onChange={onStartDateChange} />
@@ -241,9 +243,9 @@ export default function EventFormScreen({ navigation, route }: Props) {
         </View>
 
         <View>
-          <Text style={dynamicStyles.label}>Data de Fi</Text>
+          <Text style={dynamicStyles.label}>{t('mobile.form_labels.end_date')}</Text>
           <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[dynamicStyles.input, errors.endDate ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : 'Selecciona una data'}</Text>
+            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : t('mobile.placeholders.end_date')}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
             <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date()} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
@@ -251,21 +253,21 @@ export default function EventFormScreen({ navigation, route }: Props) {
           {errors.endDate && <Text style={dynamicStyles.errorText}>{errors.endDate}</Text>}
         </View>
 
-        <Text style={dynamicStyles.label}>Notes Generals</Text>
+        <Text style={dynamicStyles.label}>{t('mobile.form_labels.notes')}</Text>
         <TextInput
             style={dynamicStyles.inputMulti}
             value={generalNotes}
             onChangeText={setGeneralNotes}
-            placeholder="Anotacions diverses..."
+            placeholder={t('mobile.placeholders.notes')}
             placeholderTextColor={colors.placeholder}
             multiline
             numberOfLines={4}
             onFocus={() => { setNameSuggestions([]); setPlaceSuggestions([]); }}
         />
         <View style={dynamicStyles.buttonContainer}>
-            <Button title={isEditMode ? 'Actualitzar' : 'Crear'} onPress={() => handleSave(false)} color={colors.primary} />
+            <Button title={isEditMode ? t('common.save') : t('common.save')} onPress={() => handleSave(false)} color={colors.primary} />
             <View style={{ marginTop: 10 }} />
-            <Button title={isEditMode ? 'Actualitzar i Assignar' : 'Crear i Assignar'} onPress={() => handleSave(true)} color={colors.primary} />
+            <Button title={isEditMode ? t('common.save') + ' i Assignar' : t('common.save') + ' i Assignar'} onPress={() => handleSave(true)} color={colors.primary} />
         </View>
       </ScrollView>
     </SafeAreaView>

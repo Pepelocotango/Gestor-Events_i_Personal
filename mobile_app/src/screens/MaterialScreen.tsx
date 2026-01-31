@@ -8,6 +8,7 @@ import MaterialToolbar from '../components/MaterialToolbar';
 import MaterialListItem from '../components/MaterialListItem';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type MaterialScreenNavigationProp = StackNavigationProp<MaterialStackParamList, 'MaterialList'>;
 
@@ -35,6 +36,7 @@ const SectionHeader = React.memo<SectionHeaderProps>(({ title, isExpanded, sortM
 ));
 
 const MaterialScreen = ({ navigation }: Props) => {
+  const { t } = useTranslation();
   const { materialItems, deleteMaterialItem, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [search, setSearch] = useState('');
@@ -44,11 +46,11 @@ const MaterialScreen = ({ navigation }: Props) => {
 
   const handleDelete = useCallback((id: string) => {
     Alert.alert(
-      "Eliminar Material",
-      "Esteu segur que voleu eliminar aquest ítem?",
+      t('common.delete'),
+      t('common.confirm'),
       [
-        { text: "Cancel·lar", style: "cancel" },
-        { text: "Eliminar", onPress: () => deleteMaterialItem(id), style: 'destructive' }
+        { text: t('common.cancel'), style: "cancel" },
+        { text: t('common.delete'), onPress: () => deleteMaterialItem(id), style: 'destructive' }
       ]
     );
   }, [deleteMaterialItem]);
@@ -65,11 +67,11 @@ const MaterialScreen = ({ navigation }: Props) => {
 
     if (sortMode === 'name') {
       const sortedByName = filtered.sort((a, b) => a.name.localeCompare(b.name, 'ca', { sensitivity: 'base' }));
-      return [{ title: 'Tots els materials per nom', data: sortedByName }];
+      return [{ title: t('material.sort_name'), data: sortedByName }];
     }
 
     const grouped: { [key: string]: MaterialItem[] } = filtered.reduce((acc, item) => {
-      const category = item.category || 'Sense Categoria';
+      const category = item.category || t('material.no_category');
       if (!acc[category]) acc[category] = [];
       acc[category].push(item);
       return acc;
@@ -190,9 +192,9 @@ const MaterialScreen = ({ navigation }: Props) => {
     >
       <TouchableOpacity style={dynamicStyles.modalOverlay} onPress={() => setSortModalVisible(false)}>
         <View style={dynamicStyles.modalContent}>
-          <Text style={dynamicStyles.modalTitle}>Agrupar i ordenar per</Text>
-          <Button title={`Categoria ${sortMode === 'category' ? '✓' : ''}`} onPress={() => { setSortMode('category'); setSortModalVisible(false); }} color={colors.primary} />
-          <Button title={`Nom ${sortMode === 'name' ? '✓' : ''}`} onPress={() => { setSortMode('name'); setSortModalVisible(false); }} color={colors.primary}/>
+          <Text style={dynamicStyles.modalTitle}>{t('material.sort_by')}</Text>
+          <Button title={`${t('mobile.form_labels.category')} ${sortMode === 'category' ? '✓' : ''}`} onPress={() => { setSortMode('category'); setSortModalVisible(false); }} color={colors.primary} />
+          <Button title={`${t('mobile.form_labels.name')} ${sortMode === 'name' ? '✓' : ''}`} onPress={() => { setSortMode('name'); setSortModalVisible(false); }} color={colors.primary}/>
         </View>
       </TouchableOpacity>
     </Modal>
@@ -204,7 +206,7 @@ const MaterialScreen = ({ navigation }: Props) => {
         searchQuery={search}
         onSearchChange={setSearch}
         onSort={() => setSortModalVisible(true)}
-        onFilter={() => Alert.alert("WIP", "Filtres pròximament")}
+        onFilter={() => Alert.alert(t('common.error'), t('main.no_events_found'))}
         toggleAllCategories={toggleAllCategories}
         areAllExpanded={areAllExpanded}
       />
@@ -230,7 +232,7 @@ const MaterialScreen = ({ navigation }: Props) => {
             iconColor={colors.text}
           />
         )}
-        ListEmptyComponent={<Text style={dynamicStyles.emptyList}>No s'ha trobat material.</Text>}
+        ListEmptyComponent={<Text style={dynamicStyles.emptyList}>{t('material.no_items_found')}</Text>}
         contentContainerStyle={{ paddingBottom: 80 }}
       />
       <TouchableOpacity

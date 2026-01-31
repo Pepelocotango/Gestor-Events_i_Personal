@@ -18,7 +18,13 @@
             "confirm_status_message": "El evento '{{name}}' se marcará {{status}}. ¿Está seguro?",
             "validation_errors": "Errores de Validación",
             "validation_message": "Por favor, corrija los errores antes de guardar.",
-            "assignment_conflict": "Conflicto de Asignación"
+            "assignment_conflict": "Conflicto de Asignación",
+            "name_required": "El nombre es obligatorio",
+            "dates_invalid": "Las fechas no son válidas",
+            "email_invalid": "El correo electrónico no es válido",
+            "phone_invalid": "El teléfono no es válido",
+            "stock_required": "El stock es obligatorio",
+            "category_required": "La categoría es obligatoria"
         },
         "filters": {
             "all_events": "-- Todos los Eventos --",
@@ -41,6 +47,34 @@
             "select_person": "Debe seleccionar una persona o grupo.",
             "start_date_required": "La fecha de inicio es obligatoria.",
             "end_date_required": "La fecha de fin es obligatoria."
+        },
+        "form_labels": {
+            "name": "Nombre",
+            "role": "Rol",
+            "start_date": "Fecha de inicio",
+            "end_date": "Fecha de fin",
+            "notes": "Notas",
+            "place": "Lugar",
+            "stock": "Stock",
+            "category": "Categoría",
+            "location": "Ubicación",
+            "email": "Correo electrónico",
+            "phone": "Teléfono",
+            "web": "Página web"
+        },
+        "placeholders": {
+            "name": "Introduce el nombre",
+            "role": "Introduce el rol",
+            "start_date": "Selecciona fecha de inicio",
+            "end_date": "Selecciona fecha de fin",
+            "notes": "Añade notas...",
+            "place": "Introduce el lugar",
+            "stock": "Introduce el stock",
+            "category": "Introduce la categoría",
+            "location": "Introduce la ubicación",
+            "email": "Introduce el correo electrónico",
+            "phone": "Introduce el teléfono",
+            "web": "Introduce la página web"
         },
         "tech_sheet": {
             "event_not_found": "No se ha encontrado el evento.",
