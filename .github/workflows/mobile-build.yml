@@ -27,13 +27,17 @@ jobs:
 
       - name: 4. Instal·lació de dependències del projecte mòbil
         working-directory: ./mobile_app
-        run: rm -rf node_modules package-lock.json && npm install --legacy-peer-deps
+        run: rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && npx expo install --fix
 
-      - name: 5. Generar el projecte natiu Android
+      - name: 5. Clean Native Directories
+        working-directory: ./mobile_app
+        run: rm -rf android ios
+
+      - name: 6. Generar el projecte natiu Android
         working-directory: ./mobile_app
         run: npx expo prebuild --platform android --no-install
 
-      - name: 6. Fix Gradle Version to 8.6
+      - name: 7. Fix Gradle Version to 8.6
         working-directory: ./mobile_app
         run: |
           # Fix Gradle wrapper to use version 8.6 instead of 8.8
@@ -42,17 +46,17 @@ jobs:
           # Also update the distributionUrl if it exists
           sed -i 's/distributionUrl=.*gradle-8\.8.*/distributionUrl=https\\:\/\/services.gradle.org\/distributions\/gradle-8.6-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
 
-      - name: 7. Configurar la signatura de Release amb la clau de Debug
+      - name: 8. Configurar la signatura de Release amb la clau de Debug
         working-directory: ./mobile_app/android/app
         run: |
           echo "" >> build.gradle
           echo "android.buildTypes.release.signingConfig = android.buildTypes.debug.signingConfig" >> build.gradle
 
-      - name: 8. Donar permisos d'execució a gradlew
+      - name: 9. Donar permisos d'execució a gradlew
         working-directory: ./mobile_app/android
         run: chmod +x ./gradlew
 
-      - name: 9. Cau de les dependències de Gradle
+      - name: 10. Cau de les dependències de Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -62,13 +66,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 10. Compilar l'APK de Release amb Gradle
+      - name: 11. Compilar l'APK de Release amb Gradle
         working-directory: ./mobile_app/android
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: ./gradlew assembleRelease
 
-      - name: 11. Pujada de l'APK com a artefacte
+      - name: 12. Pujada de l'APK com a artefacte
         uses: actions/upload-artifact@v4
         with:
           name: GestorEsdevenimentsPersonal-Android-Release.apk
