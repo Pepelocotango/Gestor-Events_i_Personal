@@ -110,7 +110,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
 
   const dynamicStyles = useMemo(() => StyleSheet.create({
     container: {
-      paddingTop: 35,
+      paddingTop: 5,
       paddingBottom: 8,
       paddingHorizontal: 15,
       backgroundColor: colors.background,
