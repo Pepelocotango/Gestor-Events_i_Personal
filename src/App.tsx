@@ -58,6 +58,7 @@ const App: React.FC = () => {
 
   const [showSplash, setShowSplash] = useState(true);
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
+  const [gpuEnabled, setGpuEnabled] = useState(false);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const [isDocumentOpen, setIsDocumentOpen] = useState<boolean>(false);
@@ -531,6 +532,7 @@ const App: React.FC = () => {
         if (window.electronAPI.getSessionData) {
           const sessionData = await window.electronAPI.getSessionData();
           setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
+          setGpuEnabled(sessionData.gpuEnabled === true);
           logger.info('[Startup] Configuració del splash screen carregada.');
         }
       }
@@ -764,6 +766,15 @@ const App: React.FC = () => {
           case 'toggle-theme':
             toggleTheme();
             break;
+          case 'toggle-gpu': {
+            const newGpuState = !gpuEnabled;
+            setGpuEnabled(newGpuState);
+            if (window.electronAPI?.saveSessionData) {
+              window.electronAPI.saveSessionData('gpuEnabled', newGpuState);
+              showToast(t('app.gpu_settings_updated'), 'info');
+            }
+            break;
+          }
           case 'open-logs-folder':
             window.electronAPI?.openLogsFolder();
             break;
@@ -791,7 +802,8 @@ const App: React.FC = () => {
     hasUnsavedChanges,
     currentFilePath, // Added to deps
     isDocumentOpen,  // Added to deps
-    recentFiles      // Added to deps
+    recentFiles,     // Added to deps
+    gpuEnabled       // Added to deps
   ]);
 
 
@@ -1025,6 +1037,7 @@ const App: React.FC = () => {
               canUndo={canUndo}
               canRedo={canRedo}
               splashScreenEnabled={splashScreenEnabled}
+              gpuEnabled={gpuEnabled}
               onToggleSplashScreen={handleToggleSplashScreen}
               isDocumentOpen={isDocumentOpen}
               hasUnsavedChanges={hasUnsavedChanges}

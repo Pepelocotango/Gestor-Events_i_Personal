@@ -105,7 +105,8 @@
             "zoom_in": "Acercar",
             "zoom_out": "Alejar",
             "fullscreen": "Pantalla Completa",
-            "toggle_splash": "Mostrar Pantalla de Inicio al abrir"
+            "toggle_splash": "Mostrar Pantalla de Inicio al abrir",
+            "gpu_acceleration": "Aceleración por Hardware (GPU)"
         },
         "help": {
             "label": "Ayuda",
@@ -873,6 +874,7 @@
             "fallback_confirm": "Tienes cambios sin guardar. ¿Estás seguro de que quieres continuar?"
         },
         "new_document_success": "Nuevo espacio de trabajo creado.",
+        "gpu_settings_updated": "Configuración de GPU actualizada. Reinicia la aplicación para aplicar los cambios.",
         "open": {
             "read_error_prefix": "Error al leer el archivo: ",
             "load_error_fallback": "Ha habido un error al cargar los datos.",

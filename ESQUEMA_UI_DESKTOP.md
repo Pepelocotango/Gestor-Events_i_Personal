@@ -60,6 +60,7 @@ Aquesta barra substitueix el menú natiu. A la dreta, inclou icones d'accés rà
 - **Restablir/Apropar/Allunyar Zoom**
 - **Pantalla Completa** (`F11`)
 - **Mostrar Animació d'Inici**: Activa o desactiva l'animació de benvinguda.
+- **Acceleració per Hardware (GPU)**: Permet activar o desactivar l'acceleració gràfica per hardware. Millora l'estabilitat en equips antics si es desactiva.
 
 ### 3.4. Menú "Ajuda"
 - **Sobre l'aplicació...**: Obre el modal `AboutModal`.

@@ -20,6 +20,7 @@ interface CustomMenuBarProps {
   canUndo: boolean;
   canRedo: boolean;
   splashScreenEnabled: boolean;
+  gpuEnabled: boolean;
   onToggleSplashScreen: () => void;
   isDocumentOpen: boolean;
   hasUnsavedChanges: boolean;
@@ -36,6 +37,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   canUndo,
   canRedo,
   splashScreenEnabled,
+  gpuEnabled,
   onToggleSplashScreen,
   isDocumentOpen,
   hasUnsavedChanges,
@@ -189,6 +191,11 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
           label: t('menu.view.toggle_splash'),
           action: 'toggle-splash',
           checked: splashScreenEnabled,
+        },
+        {
+          label: t('menu.view.gpu_acceleration'),
+          action: 'toggle-gpu',
+          checked: gpuEnabled,
         },
       ],
     },
