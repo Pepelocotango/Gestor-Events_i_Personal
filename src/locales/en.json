@@ -735,10 +735,15 @@
             "select_active_warning": "Please select an active calendar to sync."
         },
         "about": {
+            "title": "About the App",
             "version": "Version {{version}}",
             "links_title": "Interesting Links",
+            "description": "Comprehensive application for managing events, staff, and inventory. Supports event planning, staff assignment with conflict detection, detailed technical sheet generation, and material stock control with availability calculations. Includes calendar visualization, advanced filtering, and PDF/CSV export.",
+            "collaboration_intro": "If you want to collaborate, you can do so at",
             "github_button": "GitHub Repository",
-            "paypal_button": "Make a donation on PayPal"
+            "collaboration_or": "or with a contribution to",
+            "paypal_button": "Donate via PayPal",
+            "copyright": "© {{year}} (Pëp) Event and Personal Manager {{version}}. GNU GPL v3.0 License."
         },
         "add_material_form": {
             "submit_button": "Add Material"
@@ -1095,21 +1100,16 @@
         "step_upload_complete": "Upload complete.",
         "step_initializing_sync": "Starting Google Calendar sync..."
     },
-    "footer": {
-    "copyright": " (Pëp) Event and Staff Manager {{version}}. GNU GPL v3.0 License.",
-    "collaboration_text": "If you want to collaborate, you can do so at {{githubLink}} or with a donation at {{paypalLink}}.",
-    "github_project": "GitHub project"
-},
-"summary": {
-    "by_event_name": "By Event Name",
-    "by_person": "By Person",
-    "by_start_date": "By Start Date",
-    "export_csv_tooltip": "Export summary to CSV",
-    "export_pdf_tooltip": "Export summary to PDF",
-    "sort_date_tooltip": "Sort by date {{order}}"
-},
-"main_display": {
-    "assignment_status_updated": "Assignment status updated to {{status}}",
-    "daily_status_updated": "Daily status updated to {{status}}"
-}
+    "summary": {
+        "by_event_name": "By Event Name",
+        "by_person": "By Person",
+        "by_start_date": "By Start Date",
+        "export_csv_tooltip": "Export summary to CSV",
+        "export_pdf_tooltip": "Export summary to PDF",
+        "sort_date_tooltip": "Sort by date {{order}}"
+    },
+    "main_display": {
+        "assignment_status_updated": "Assignment status updated to {{status}}",
+        "daily_status_updated": "Daily status updated to {{status}}"
+    }
 }

@@ -795,10 +795,15 @@
             "unknown_person": "Desconocido"
         },
         "about": {
+            "title": "Sobre la Aplicación",
             "version": "Versión {{version}}",
             "links_title": "Enlaces de Interés",
+            "description": "Aplicación integral para la gestión de eventos, personal e inventario. Permite planificar eventos, asignar personal con detección de conflictos, generar fichas técnicas detalladas y controlar el stock de material con cálculos de disponibilidad. Incluye visualización en calendario, filtrado avanzado y exportación a PDF/CSV.",
+            "collaboration_intro": "Si quieres colaborar, puedes hacerlo en el",
             "github_button": "Repositorio en GitHub",
-            "paypal_button": "Haz una donación en PayPal"
+            "collaboration_or": "o con una aportación a",
+            "paypal_button": "Haz una donación en PayPal",
+            "copyright": "© {{year}} (Pëp) Gestor de Eventos y Personal {{version}}. Licencia GNU GPL v3.0."
         },
         "add_material_form": {
             "submit_button": "Añadir Material"
@@ -1011,9 +1016,5 @@
         "type_event": "Evento",
         "type_person": "Persona"
     },
-    "footer": {
-        "copyright": "© {{year}} (Pëp) Gestor de Eventos y Personal {{version}}. Licencia GNU GPL v3.0.",
-        "collaboration_text": "Si quieres colaborar, puedes hacerlo en el {{githubLink}} o con una aportación a {{paypalLink}}.",
-        "github_project": "proyecto de GitHub"
-    }
+    "footer": {}
 }

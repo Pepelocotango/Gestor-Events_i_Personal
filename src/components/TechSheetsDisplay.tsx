@@ -76,7 +76,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   return (
     <CollapsibleSection
       title={t('tech_sheets.manager_title')}
-      defaultOpen={false}
+      defaultOpen={true}
     >
       <div className="space-y-4">
         <div className="max-w-md space-y-2">

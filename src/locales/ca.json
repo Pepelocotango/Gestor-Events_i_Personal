@@ -798,10 +798,15 @@
             "unknown_person": "Desconegut"
         },
         "about": {
+            "title": "Sobre l'Aplicació",
             "version": "Versió {{version}}",
             "links_title": "Enllaços d'Interès",
+            "description": "Aplicació integral per a la gestió d'esdeveniments, personal i inventari. Permet la planificació d'esdeveniments, l'assignació de personal amb detecció de conflictes, la generació de fitxes tècniques detallades (fitxes de bolo), i el control d'estoc de material amb càlcul de disponibilitat. Inclou visualització en calendari, filtratge avançat i exportació a PDF/CSV.",
+            "collaboration_intro": "Si vols col·laborar, pots fer-ho al",
             "github_button": "Repositori a GitHub",
-            "paypal_button": "Fes una donació a PayPal"
+            "collaboration_or": "o amb una aportació a",
+            "paypal_button": "Fes una donació a PayPal",
+            "copyright": "© {{year}} (Pëp) Gestor de Esdeveniments i Personal {{version}}. Llicència GNU GPL v3.0."
         },
         "add_material_form": {
             "submit_button": "Afegir Material"
@@ -1094,11 +1099,6 @@
         "step_processing_event": "Processant esdeveniment {{index}}/{{total}}: {{name}}",
         "step_upload_complete": "Pujada completada.",
         "step_initializing_sync": "Iniciant procés de sincronització amb Google Calendar..."
-    },
-    "footer": {
-        "copyright": "© {{year}} (Pëp) Gestor de Esdeveniments i Personal {{version}}. Llicència GNU GPL v3.0.",
-        "collaboration_text": "Si vols col·laborar, pots fer-ho al {{githubLink}} o amb una aportació a {{paypalLink}}.",
-        "github_project": "projecte de GitHub"
     },
     "summary": {
         "by_event_name": "Per Nom d'Esdeveniment",

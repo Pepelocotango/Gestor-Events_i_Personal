@@ -188,14 +188,14 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
     <div className="space-y-4">
       <CollapsibleSection
         title={t('material.manager_title')}
-        defaultOpen={false}
+        defaultOpen={true}
       >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Columna del formulari (25%) */}
           <div className="lg:col-span-1">
             <CollapsibleSection
               title={editingItem ? t('material.edit_item_title') : t('material.add_item_title')}
-              defaultOpen={false}
+              defaultOpen={true}
             >
               <MaterialForm
                 key={editingItem ? editingItem.id : 'new'}
