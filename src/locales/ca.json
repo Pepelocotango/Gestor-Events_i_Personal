@@ -150,6 +150,8 @@
         "tooltip_clean": "Netejar tots els filtres",
         "nav_calendar_list_tooltip": "Anar a la vista principal del calendari i llista d'esdeveniments",
         "nav_calendar_list": "Calendari i Llista",
+        "nav_summaries_tooltip": "Anar als resums i informes",
+        "nav_summaries": "Resums",
         "nav_tech_sheets_tooltip": "Anar a la gestió de fitxes tècniques (bolos)",
         "nav_tech_sheets": "Fitxes de Bolo",
         "nav_people_tooltip": "Anar a la gestió de persones i grups",
@@ -157,7 +159,7 @@
         "nav_material_tooltip": "Anar a la gestió d'inventari de material",
         "nav_material": "Material",
         "add_event_tooltip": "Crear un nou marc d'esdeveniment",
-        "sort_tooltip": "Ordena per data {{order}}",
+        "sort_tooltip": "Ordenar per data {{order}}",
         "sort_ascending": "ascendent",
         "sort_descending": "descendent",
         "show_archived_tooltip": "Mostrar o ocultar els esdeveniments arxivats",
@@ -1106,7 +1108,8 @@
         "by_start_date": "Per Data d'Inici",
         "export_csv_tooltip": "Exportar resum a CSV",
         "export_pdf_tooltip": "Exportar resum a PDF",
-        "sort_date_tooltip": "Ordenar per data {{order}}"
+        "sort_date_tooltip": "Ordenar per data {{order}}",
+        "sort_button_label": "Ordena"
     },
     "main_display": {
         "assignment_status_updated": "Estat de l'assignació actualitzat a {{status}}",

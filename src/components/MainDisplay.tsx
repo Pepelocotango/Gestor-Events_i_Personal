@@ -4,7 +4,7 @@ import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon } from '../constants';
+import { PlusIcon, CalendarIcon, ListIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -14,7 +14,6 @@ import multiMonthPlugin from '@fullcalendar/multimonth';
 import caLocale from '@fullcalendar/core/locales/ca';
 import enLocale from '@fullcalendar/core/locales/en-gb';
 import esLocale from '@fullcalendar/core/locales/es';
-import SummaryReports from './SummaryReports';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
 import { exportEventListToPdf } from '../utils/pdfGenerator';
 import { exportEventListToCsv } from '../utils/csvUtils';
@@ -88,7 +87,7 @@ const MainDisplay = React.forwardRef<
     confirmArchiveEventFrames,
   } = useEventDataStore.getState();
 
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showArchived, setShowArchived] = useState(false);
 
   // Estats d'expansió centralitzats
@@ -611,14 +610,6 @@ const MainDisplay = React.forwardRef<
         ))}
       </CollapsibleSection>
 
-      {/* SECCIÓ 3: RESUMS */}
-      <CollapsibleSection title={t('main.summaries')} icon={<ChartBarIcon />} defaultOpen={false} id="summary-section">
-        <SummaryReports
-          setToastMessage={setToastMessage}
-          filteredEventFrames={filteredAndSortedEventFrames}
-          activeFilters={{ filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }}
-        />
-      </CollapsibleSection>
     </div>
   );
 });

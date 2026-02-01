@@ -150,6 +150,8 @@
         "tooltip_clean": "Clear all filters",
         "nav_calendar_list_tooltip": "Go to main calendar and event list view",
         "nav_calendar_list": "Calendar & List",
+        "nav_summaries_tooltip": "Go to summaries and reports",
+        "nav_summaries": "Summaries",
         "nav_tech_sheets_tooltip": "Go to technical sheet management (gigs)",
         "nav_tech_sheets": "Gig Sheets",
         "nav_people_tooltip": "Go to people and groups management",
@@ -1106,7 +1108,8 @@
         "by_start_date": "By Start Date",
         "export_csv_tooltip": "Export summary to CSV",
         "export_pdf_tooltip": "Export summary to PDF",
-        "sort_date_tooltip": "Sort by date {{order}}"
+        "sort_date_tooltip": "Sort by date {{order}}",
+        "sort_button_label": "Sort"
     },
     "main_display": {
         "assignment_status_updated": "Assignment status updated to {{status}}",

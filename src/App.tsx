@@ -15,6 +15,7 @@ import { Toaster } from 'react-hot-toast';
 import { notificationService } from './utils/notificationService';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
+const SummariesDisplay = lazy(() => import('./components/SummariesDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
@@ -1082,6 +1083,7 @@ const App: React.FC = () => {
                       />
                     }
                   />
+                  <Route path="/summaries" element={<SummariesDisplay showToast={showToast} />} />
                   <Route path="/tech-sheets" element={<TechSheetsDisplay showToast={showToast} />} />
                   <Route path="/people" element={<PeopleDisplay showToast={showToast} />} />
                   <Route path="/material" element={<MaterialDisplay showToast={showToast} />} />

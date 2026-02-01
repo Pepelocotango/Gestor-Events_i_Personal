@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CalendarIcon, BoxIcon, UsersIcon } from '../constants';
+import { CalendarIcon, BoxIcon, UsersIcon, ChartBarIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 
 const DocumentTextIcon = ({ className = "w-5 h-5" }) => (
@@ -25,6 +25,13 @@ const Navigation: React.FC = () => {
           <NavLink to="/" className={getLinkClassName}>
             <CalendarIcon className="h-5 w-5" />
             <span>{t('main.nav_calendar_list')}</span>
+          </NavLink>
+        </Tooltip>
+
+        <Tooltip text={t('main.nav_summaries_tooltip')}>
+          <NavLink to="/summaries" className={getLinkClassName}>
+            <ChartBarIcon className="h-5 w-5" />
+            <span>{t('main.nav_summaries')}</span>
           </NavLink>
         </Tooltip>
 

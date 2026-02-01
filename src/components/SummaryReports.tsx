@@ -68,7 +68,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
   }, [filteredEventFrames, peopleMap]);
 
   // Estat d'ordre per als resums
-  const [summarySortOrder, setSummarySortOrder] = React.useState<'asc' | 'desc'>('desc');
+  const [summarySortOrder, setSummarySortOrder] = React.useState<'asc' | 'desc'>('asc');
 
   const summaryByEventName = useMemo((): Map<string, SummaryRow[]> => {
     const map = new Map<string, SummaryRow[]>();
@@ -209,7 +209,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
                 onClick={() => setSummarySortOrder(summarySortOrder === 'asc' ? 'desc' : 'asc')}
                 className="flex items-center gap-1 px-2 py-1 rounded border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
               >
-                {summarySortOrder === 'asc' ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />} Ordena
+                {summarySortOrder === 'asc' ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />} {t('summary.sort_button_label')}
               </button>
             </Tooltip>
           )}
