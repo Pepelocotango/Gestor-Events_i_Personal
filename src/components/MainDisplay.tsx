@@ -12,6 +12,8 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import multiMonthPlugin from '@fullcalendar/multimonth';
 import caLocale from '@fullcalendar/core/locales/ca';
+import enLocale from '@fullcalendar/core/locales/en-gb';
+import esLocale from '@fullcalendar/core/locales/es';
 import SummaryReports from './SummaryReports';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
 import { exportEventListToPdf } from '../utils/pdfGenerator';
@@ -33,7 +35,7 @@ const MainDisplay = React.forwardRef<
   const calendarRef = useRef<FullCalendar>(null);
   const openModal = useModalStore(state => state.openModal);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useImperativeHandle(ref, () => ({
     resize: () => {
@@ -96,7 +98,13 @@ const MainDisplay = React.forwardRef<
 
   const highlightedEventId = useEventDataStore(state => state.highlightedEventId);
 
-  // Removed noisy render logs to avoid spamming console and potential perf issues
+  // Mapeig d'idiomes de i18next a locales de FullCalendar
+  const calendarLocales: { [key: string]: any } = {
+    ca: caLocale,
+    en: enLocale,
+    es: esLocale,
+  };
+  const currentCalendarLocale = calendarLocales[i18n.language] || caLocale;
 
   const validationResult = useMemo(() => {
     // Validació iniciada
@@ -404,7 +412,7 @@ const MainDisplay = React.forwardRef<
               multiMonth6: { type: 'multiMonth', duration: { months: 6 }, buttonText: t('calendar.6_months'), multiMonthMaxColumns: 2 }
             }}
             headerToolbar={{ left: 'prev,next today', center: 'title', right: 'multiMonth6,multiMonth4,multiMonth2,dayGridMonth,timeGridWeek,listWeek' }}
-            locale={caLocale}
+            locale={currentCalendarLocale}
             buttonText={{ today: t('calendar.today') }}
             height="auto"
             contentHeight="auto"

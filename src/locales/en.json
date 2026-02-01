@@ -33,6 +33,16 @@
         "google_opening_browser": "Opening browser to authenticate with Google...",
         "google_desktop_only": "This functionality is only available on the desktop application.",
         "google_disconnected": "Google account disconnected successfully.",
+        "ascending": "Ascending",
+        "descending": "Descending",
+        "collapse_section": "Collapse section",
+        "close_button": "Close",
+        "days": "Days",
+        "dialog": "Dialog",
+        "expand_section": "Expand section",
+        "move_up": "Move up",
+        "move_down": "Move down",
+        "note": "Note",
         "status": {
             "yes": "Yes",
             "no": "No",
@@ -540,7 +550,10 @@
                 "material_prefix": "{{title}} material"
             },
             "quantity_placeholder": "XX",
-            "provider_reorder_tooltip": "Reorder provider"
+            "provider_reorder_tooltip": "Reorder provider",
+            "add_to_inventory_tooltip": "Add to inventory",
+            "availability_prefix": "Availability: ",
+            "stock_prefix": "Stock: "
         }
     },
     "mcc": {
@@ -660,7 +673,11 @@
             "create_new_tooltip": "Create the new assignment",
             "updated_toast": "Assignment updated.",
             "added_toast": "Assignment added.",
-            "error_prefix": "Error: "
+            "error_prefix": "Error: ",
+            "conflict_detail": "This assignment has a conflict.",
+            "duplicate_conflict": "A duplicate assignment already exists.",
+            "title_edit_with_name": "Edit Assignment for {{name}}",
+            "title_new_with_name": "New Assignment for {{name}}"
         },
         "history": {
             "title": "Change History",
@@ -754,7 +771,8 @@
         "pdf_preview": {
             "loading": "Generating preview, please wait a few seconds if a black screen appears ...",
             "iframe_title": "PDF Preview",
-            "save_button": "Save PDF"
+            "save_button": "Save PDF",
+            "title_override": "PDF Preview"
         },
         "select_sync": {
             "title": "Select Destination Calendar",
@@ -1040,7 +1058,18 @@
         "header_assignment_end_date": "Assignment End Date",
         "header_assignment_status": "Assignment Status",
         "header_assignment_notes": "Assignment Notes",
-        "header_event_notes": "Event General Notes"
+        "header_event_notes": "Event General Notes",
+        "filename_prefix": "Event_List",
+        "header_assignment_dates": "Assignment Dates",
+        "header_event_dates": "Event Dates",
+        "header_event_frame": "Event Frame",
+        "header_event_place": "Event Place",
+        "header_general_status": "General Status",
+        "header_grouping": "Grouping",
+        "header_status_detail": "Status Detail",
+        "type_date": "Date",
+        "type_event": "Event",
+        "type_person": "Person"
     },
     "sync": {
         "title": "Google Calendar Synchronization",
@@ -1065,8 +1094,20 @@
         "step_initializing_sync": "Starting Google Calendar sync..."
     },
     "footer": {
-        "copyright": "© {{year}} (Pëp) Events and Personnel Manager {{version}}. License GNU GPL v3.0.",
-        "collaboration_text": "If you want to collaborate, you can do it on the {{githubLink}} or with a contribution to {{paypalLink}}.",
-        "github_project": "GitHub project"
-    }
+    "copyright": " (Pëp) Event and Staff Manager {{version}}. GNU GPL v3.0 License.",
+    "collaboration_text": "If you want to collaborate, you can do so at {{githubLink}} or with a donation at {{paypalLink}}.",
+    "github_project": "GitHub project"
+},
+"summary": {
+    "by_event_name": "By Event Name",
+    "by_person": "By Person",
+    "by_start_date": "By Start Date",
+    "export_csv_tooltip": "Export summary to CSV",
+    "export_pdf_tooltip": "Export summary to PDF",
+    "sort_date_tooltip": "Sort by date {{order}}"
+},
+"main_display": {
+    "assignment_status_updated": "Assignment status updated to {{status}}",
+    "daily_status_updated": "Daily status updated to {{status}}"
+}
 }

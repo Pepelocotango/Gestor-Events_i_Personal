@@ -48,7 +48,12 @@
         "expand_section": "Expandir secció",
         "move_up": "Moure amunt",
         "move_down": "Moure avall",
-        "note": "Nota"
+        "note": "Nota",
+        "ascending": "Ascendent",
+        "descending": "Descendent",
+        "collapse_section": "Col·lapsar secció",
+        "close_button": "Tancar",
+        "days": "Dies"
     },
     "status": {
         "yes": "Sí",
@@ -572,7 +577,10 @@
                 "material_prefix": "Material de {{title}}"
             },
             "quantity_placeholder": "XX",
-            "provider_reorder_tooltip": "Reordenar proveïdor"
+            "provider_reorder_tooltip": "Reordenar proveïdor",
+            "add_to_inventory_tooltip": "Afegir a l'inventari",
+            "availability_prefix": "Disponibilitat: ",
+            "stock_prefix": "Estoc: "
         }
     },
     "mcc": {
@@ -1050,7 +1058,18 @@
         "header_assignment_end_date": "Data Fi Assignació",
         "header_assignment_status": "Estat Assignació",
         "header_assignment_notes": "Notes Assignació",
-        "header_event_notes": "Notes Generals Esdeveniment"
+        "header_event_notes": "Notes Generals Esdeveniment",
+        "filename_prefix": "Llista_Esdeveniments",
+        "header_assignment_dates": "Dates Assignació",
+        "header_event_dates": "Dates Esdeveniment",
+        "header_event_frame": "Marc Esdeveniment",
+        "header_event_place": "Lloc Esdeveniment",
+        "header_general_status": "Estat General",
+        "header_grouping": "Agrupació",
+        "header_status_detail": "Detall Estat",
+        "type_date": "Data",
+        "type_event": "Esdeveniment",
+        "type_person": "Persona"
     },
     "sync": {
         "title": "Sincronització amb Google Calendar",
@@ -1078,5 +1097,17 @@
         "copyright": "© {{year}} (Pëp) Gestor de Esdeveniments i Personal {{version}}. Llicència GNU GPL v3.0.",
         "collaboration_text": "Si vols col·laborar, pots fer-ho al {{githubLink}} o amb una aportació a {{paypalLink}}.",
         "github_project": "projecte de GitHub"
+    },
+    "summary": {
+        "by_event_name": "Per Nom d'Esdeveniment",
+        "by_person": "Per Persona",
+        "by_start_date": "Per Data d'Inici",
+        "export_csv_tooltip": "Exportar resum a CSV",
+        "export_pdf_tooltip": "Exportar resum a PDF",
+        "sort_date_tooltip": "Ordenar per data {{order}}"
+    },
+    "main_display": {
+        "assignment_status_updated": "Estat de l'assignació actualitzat a {{status}}",
+        "daily_status_updated": "Estat diari actualitzat a {{status}}"
     }
 }
