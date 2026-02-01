@@ -4,7 +4,7 @@ import { Assignment, AssignmentStatus, EventFrame } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
-import { getStatusColor } from '../utils/statusUtils';
+import { getStatusColor, getTranslatedStatus } from '../utils/statusUtils';
 import { isMultiDay } from '../utils/dates';
 import DailyStatusEditor from './DailyStatusEditor';
 import { format } from 'date-fns';
@@ -37,7 +37,7 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
 
   const handlePress = () => {
     const newStatus = !isComplete;
-    const action = newStatus ? 'com a complet' : 'com a incomplet';
+    const action = newStatus ? t('mobile.status_actions.complete') : t('mobile.status_actions.incomplete');
     const eventName = eventFrame.name;
 
     Alert.alert(
@@ -74,12 +74,12 @@ const StatusIndicator = ({ eventFrame }: { eventFrame: EventFrame }) => {
 };
 
 const getNextStatus = (currentStatus: AssignmentStatus): AssignmentStatus => {
-    const statuses = [AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No];
-    const currentIndex = statuses.indexOf(currentStatus);
-    if (currentIndex === -1) {
-        return statuses[0];
-    }
-    return statuses[(currentIndex + 1) % statuses.length];
+  const statuses = [AssignmentStatus.Yes, AssignmentStatus.Pending, AssignmentStatus.No];
+  const currentIndex = statuses.indexOf(currentStatus);
+  if (currentIndex === -1) {
+    return statuses[0];
+  }
+  return statuses[(currentIndex + 1) % statuses.length];
 };
 
 const EventFrameCard: React.FC<EventFrameCardProps> = ({
@@ -110,150 +110,150 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
   const formatDateRange = (start: string, end: string) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const formattedStart = format(startDate, 'dd/MM/yyyy', { locale: ca });
+    const formattedStart = format(startDate, 'dd/MM/yyyy');
     if (!isMultiDay(start, end)) {
       return formattedStart;
     }
-    const formattedEnd = format(endDate, 'dd/MM/yyyy', { locale: ca });
+    const formattedEnd = format(endDate, 'dd/MM/yyyy');
     return `${formattedStart} - ${formattedEnd}`;
   };
 
   const styles = useMemo(() => StyleSheet.create({
     card: {
-        backgroundColor: theme.card,
-        borderRadius: 8,
-        padding: 15,
-        marginVertical: 8,
-        marginHorizontal: 16,
-        elevation: 2,
-        shadowColor: theme.shadow,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.41,
-      },
-      header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      },
-      headerTextContainer: {
-        flex: 1,
-      },
-      eventName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: theme.text,
-      },
-      eventDate: {
-        fontSize: 14,
-        color: theme.placeholder,
-        marginTop: 4,
-      },
-      details: {
-        marginTop: 15,
-        paddingTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: theme.border,
-      },
-      detailRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-      },
-      detailText: {
-        fontSize: 14,
-        marginLeft: 8,
-        color: theme.text,
-      },
-      assignmentsTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 5,
-        color: theme.text,
-      },
-      assignmentContainer: {
-        borderTopWidth: 1,
-        borderTopColor: theme.border,
-        paddingVertical: 8,
-      },
-      assignmentRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 4,
-      },
-      assignmentPersonContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-      },
-      lockIcon: {
-        marginRight: 8,
-      },
-      assignmentPerson: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: theme.text,
-      },
-      assignmentRole: {
-        fontSize: 14,
-        fontWeight: 'normal',
-        color: theme.placeholder,
-        fontStyle: 'italic',
-      },
-      assignmentDate: {
-        fontSize: 12,
-        color: theme.placeholder,
-      },
-      assignmentActions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-      },
-      assignmentStatus: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-      },
-      actionIcon: {
-        padding: 5,
-        marginLeft: 10,
-      },
-      toggleDaysButton: {
-        backgroundColor: theme.border,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        marginTop: 8,
-        alignItems: 'center',
-      },
-      toggleDaysButtonText: {
-        fontWeight: '500',
-        color: theme.text,
-      },
-      addPersonButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 10,
-        padding: 5,
-        alignSelf: 'flex-start',
-      },
-      addPersonButtonText: {
-        marginLeft: 8,
-        color: theme.primary,
-        fontSize: 14,
-        fontWeight: 'bold',
-      },
-      cardActions: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: 15,
-        gap: 20,
-      },
-      actionButton: {
-        padding: 5,
-      },
+      backgroundColor: theme.card,
+      borderRadius: 8,
+      padding: 15,
+      marginVertical: 8,
+      marginHorizontal: 16,
+      elevation: 2,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    headerTextContainer: {
+      flex: 1,
+    },
+    eventName: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
+    eventDate: {
+      fontSize: 14,
+      color: theme.placeholder,
+      marginTop: 4,
+    },
+    details: {
+      marginTop: 15,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    detailText: {
+      fontSize: 14,
+      marginLeft: 8,
+      color: theme.text,
+    },
+    assignmentsTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginTop: 10,
+      marginBottom: 5,
+      color: theme.text,
+    },
+    assignmentContainer: {
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      paddingVertical: 8,
+    },
+    assignmentRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 4,
+    },
+    assignmentPersonContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    lockIcon: {
+      marginRight: 8,
+    },
+    assignmentPerson: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.text,
+    },
+    assignmentRole: {
+      fontSize: 14,
+      fontWeight: 'normal',
+      color: theme.placeholder,
+      fontStyle: 'italic',
+    },
+    assignmentDate: {
+      fontSize: 12,
+      color: theme.placeholder,
+    },
+    assignmentActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    assignmentStatus: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+    },
+    actionIcon: {
+      padding: 5,
+      marginLeft: 10,
+    },
+    toggleDaysButton: {
+      backgroundColor: theme.border,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      marginTop: 8,
+      alignItems: 'center',
+    },
+    toggleDaysButtonText: {
+      fontWeight: '500',
+      color: theme.text,
+    },
+    addPersonButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 10,
+      padding: 5,
+      alignSelf: 'flex-start',
+    },
+    addPersonButtonText: {
+      marginLeft: 8,
+      color: theme.primary,
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    cardActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginTop: 15,
+      gap: 20,
+    },
+    actionButton: {
+      padding: 5,
+    },
   }), [theme]);
 
   const renderAssignment = (assignment: Assignment) => {
@@ -262,9 +262,9 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
     const isUnlocked = unlockedAssignmentIds.has(assignment.id);
 
     const handleStatusPress = () => {
-        if (!isUnlocked) return;
-        const nextStatus = getNextStatus(assignment.status);
-        setAllDaysAssignmentStatus(eventFrame.id, assignment.id, nextStatus);
+      if (!isUnlocked) return;
+      const nextStatus = getNextStatus(assignment.status);
+      setAllDaysAssignmentStatus(eventFrame.id, assignment.id, nextStatus);
     };
 
     return (
@@ -285,16 +285,16 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
                 {assignment.status === 'Mixt' && assignment.dailyStatuses ? (
                   (() => {
                     const yesDates = Object.entries(assignment.dailyStatuses)
-                      .filter(([, s]) => s === t('common.status.yes'))
+                      .filter(([, s]) => s === AssignmentStatus.Yes)
                       .map(([d]) => d);
                     const noDates = Object.entries(assignment.dailyStatuses)
-                      .filter(([, s]) => s === t('common.status.no'))
+                      .filter(([, s]) => s === AssignmentStatus.No)
                       .map(([d]) => d);
-                    
+
                     const parts = [];
                     if (yesDates.length) parts.push(`✅ ${formatDateRanges(yesDates)}`);
                     if (noDates.length) parts.push(`❌ ${formatDateRanges(noDates)}`);
-                    
+
                     return parts.length ? parts.join('  ') : formatDateRange(assignment.startDate, assignment.endDate);
                   })()
                 ) : (
@@ -304,10 +304,10 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
             </View>
           </View>
           <View style={styles.assignmentActions}>
-             <TouchableOpacity onPress={handleStatusPress} disabled={!isUnlocked}>
-                <Text style={[styles.assignmentStatus, { color: getStatusColor(assignment.status), opacity: isUnlocked ? 1 : 0.5 }]}>
-                {assignment.status}
-                </Text>
+            <TouchableOpacity onPress={handleStatusPress} disabled={!isUnlocked}>
+              <Text style={[styles.assignmentStatus, { color: getStatusColor(assignment.status), opacity: isUnlocked ? 1 : 0.5 }]}>
+                {getTranslatedStatus(assignment.status, t)}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => handleEditAssignment(assignment.id)} style={styles.actionIcon}>
               <Icon name="pencil" size={20} color={theme.primary} />
@@ -316,9 +316,9 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
         </View>
 
         {isAssignmentMultiDay && (
-            <TouchableOpacity style={styles.toggleDaysButton} onPress={() => onToggleAssignmentExpand(assignment.id)}>
-                <Text style={styles.toggleDaysButtonText}>{isAssignmentExpanded ? t('mobile.event_card.hide_days') : t('mobile.event_card.show_days')}</Text>
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.toggleDaysButton} onPress={() => onToggleAssignmentExpand(assignment.id)}>
+            <Text style={styles.toggleDaysButtonText}>{isAssignmentExpanded ? t('mobile.event_card.hide_days') : t('mobile.event_card.show_days')}</Text>
+          </TouchableOpacity>
         )}
 
         {isAssignmentExpanded && isAssignmentMultiDay && (
@@ -340,11 +340,7 @@ const EventFrameCard: React.FC<EventFrameCardProps> = ({
         <View style={styles.headerTextContainer}>
           <Text style={styles.eventName}>{eventFrame.name}</Text>
           <Text style={styles.eventDate}>
-            {new Date(eventFrame.startDate).toLocaleDateString('ca-ES', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
+            {new Date(eventFrame.startDate).toLocaleDateString()}
           </Text>
         </View>
         <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={theme.text} />

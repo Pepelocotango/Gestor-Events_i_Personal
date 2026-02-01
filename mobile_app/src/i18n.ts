@@ -13,13 +13,38 @@ const resources = {
     en: { translation: en },
 };
 
+import { LocaleConfig } from 'react-native-calendars';
+
+// Configure React Native Calendars Locales
+LocaleConfig.locales['ca'] = {
+    monthNames: [
+        'Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny',
+        'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'
+    ],
+    monthNamesShort: ['Gen', 'Feb', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Des'],
+    dayNames: ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'],
+    dayNamesShort: ['Diu', 'Dil', 'Dim', 'Dmc', 'Dij', 'Div', 'Dis']
+};
+
+LocaleConfig.locales['es'] = {
+    monthNames: [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ],
+    monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+    dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+    dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+};
+
+LocaleConfig.locales['en'] = LocaleConfig.locales['']; // English is default
+
 const initI18n = async () => {
     let languageCode = 'ca'; // Default fallback
 
     try {
         // 1. Try to get saved language
         const savedLanguage = await AsyncStorage.getItem('app_language');
-        
+
         if (savedLanguage && ['ca', 'es', 'en'].includes(savedLanguage)) {
             languageCode = savedLanguage;
         } else {
@@ -35,6 +60,9 @@ const initI18n = async () => {
     } catch (error) {
         console.warn('Failed to load language preference, falling back to default:', error);
     }
+
+    // Set LocaleConfig for Calendar
+    LocaleConfig.defaultLocale = languageCode;
 
     // 3. Initialize i18next
     // We use .use(initReactI18next) to pass the i18n instance to react-i18next.
@@ -52,6 +80,11 @@ const initI18n = async () => {
                 useSuspense: false // Prevent UI blocking during loading
             }
         });
+
+    // Listen for language changes to update calendar
+    i18n.on('languageChanged', (lng) => {
+        LocaleConfig.defaultLocale = lng;
+    });
 };
 
 // Execute initialization and catch any critical startup errors

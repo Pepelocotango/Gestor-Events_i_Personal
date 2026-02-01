@@ -27,6 +27,10 @@
             "stock_required": "El stock es obligatorio",
             "category_required": "La categoría es obligatoria"
         },
+        "status_actions": {
+            "complete": "como completo",
+            "incomplete": "como incompleto"
+        },
         "filters": {
             "all_events": "-- Todos los Eventos --",
             "all_origins": "-- Todos los Orígenes --",
@@ -157,10 +161,13 @@
         "summary": {
             "sort_by_date": "Fecha",
             "collapse_all": "Contraer",
-            "expand_all": "Expandir"
+            "expand_all": "Expandir",
+            "no_data": "No hay datos para este resumen."
         },
         "material_control": {
-            "no_results": "No se han encontrado resultados."
+            "no_results": "No se han encontrado resultados.",
+            "breakdown_title": "Desglose",
+            "units_suffix": "u."
         },
         "header": {
             "ready_to_share": "A punto para compartir",
@@ -190,6 +197,7 @@
             "not_specified": "No especificado"
         },
         "placeholders": {
+            "select_day": "Selecciona un día para ver los eventos.",
             "name": "Introduce el nombre",
             "role": "Introduce el rol",
             "start_date": "Selecciona fecha de inicio",

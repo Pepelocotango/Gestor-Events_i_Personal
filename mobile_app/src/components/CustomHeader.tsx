@@ -43,7 +43,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
           setData(result.content, result.name, result.uri);
         }
       } catch (error) {
-        Alert.alert("Error", t('mobile.alerts.invalid_file'));
+        Alert.alert(t('common.error'), t('mobile.alerts.invalid_file'));
       }
     };
 
@@ -73,7 +73,7 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
     Alert.alert(
       t('mobile.header.ready_to_share'),
       t('mobile.alerts.share_instructions'),
-       [
+      [
         {
           text: t('mobile.alerts.ok'),
           onPress: async () => {
@@ -182,8 +182,8 @@ const CustomHeader = ({ navigation, route }: CustomHeaderProps) => {
           </View>
         </View>
       </View>
-      
-      <AboutModal 
+
+      <AboutModal
         visible={isAboutModalVisible}
         onClose={() => setAboutModalVisible(false)}
       />

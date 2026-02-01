@@ -27,6 +27,10 @@
             "stock_required": "L'estoc és obligatori",
             "category_required": "La categoria és obligatòria"
         },
+        "status_actions": {
+            "complete": "com a complet",
+            "incomplete": "com a incomplet"
+        },
         "filters": {
             "all_events": "-- Tots els Esdeveniments --",
             "all_origins": "-- Tots els Orígens --",
@@ -157,10 +161,13 @@
         "summary": {
             "sort_by_date": "Data",
             "collapse_all": "Replegar",
-            "expand_all": "Expandir"
+            "expand_all": "Expandir",
+            "no_data": "No hi ha dades per aquest resum."
         },
         "material_control": {
-            "no_results": "No s'han trobat resultats."
+            "no_results": "No s'han trobat resultats.",
+            "breakdown_title": "Desglossament",
+            "units_suffix": "u."
         },
         "header": {
             "ready_to_share": "A punt per compartir",
@@ -190,6 +197,7 @@
             "not_specified": "No especificat"
         },
         "placeholders": {
+            "select_day": "Selecciona un dia per veure els esdeveniments.",
             "name": "Introdueix el nom",
             "role": "Introdueix el rol",
             "start_date": "Selecciona data d'inici",
