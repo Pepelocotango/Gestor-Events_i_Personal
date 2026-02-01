@@ -12,7 +12,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useDataStore } from '../stores/dataStore';
 import { EventsStackParamList } from '../navigation';
 import { Assignment, AssignmentStatus } from '../types';
-import { getStatusColor } from '../utils/statusUtils';
+import { getStatusColor, getTranslatedStatus } from '../utils/statusUtils';
 import { formatDateRangeDMY } from '../utils/dateFormat';
 import { formatDateRanges } from '../utils/dateRangeFormatter';
 import { lightTheme, darkTheme } from '../utils/themes';
@@ -148,19 +148,19 @@ export default function EventDetailScreen({ route, navigation }: Props) {
   if (!event) {
     return (
       <View style={dynamicStyles.centerContainer}>
-        <Text style={dynamicStyles.text}>No s'ha trobat l'esdeveniment.</Text>
+        <Text style={dynamicStyles.text}>{t('mobile.tech_sheet.event_not_found')}</Text>
       </View>
     );
   }
 
   const getPersonName = (personGroupId: string) => {
     const person = peopleGroups.find((p) => p.id === personGroupId);
-    return person ? person.name : 'Desconegut';
+    return person ? person.name : t('mobile.tech_sheet.unknown');
   };
 
   const renderMixedDetails = (assignment: Assignment) => {
     if (!assignment.dailyStatuses) return null;
-    
+
     const grouped: Record<string, string[]> = {};
     Object.entries(assignment.dailyStatuses).forEach(([date, status]) => {
       if (!grouped[status]) grouped[status] = [];
@@ -172,7 +172,7 @@ export default function EventDetailScreen({ route, navigation }: Props) {
         {Object.entries(grouped).map(([status, dates]) => (
           <Text key={status} style={{ fontSize: 12, color: colors.text }}>
             <Text style={{ color: getStatusColor(status as AssignmentStatus), fontWeight: 'bold' }}>
-              {status}:{' '}
+              {getTranslatedStatus(status as AssignmentStatus, t)}:{' '}
             </Text>
             {formatDateRanges(dates)}
           </Text>
@@ -206,20 +206,20 @@ export default function EventDetailScreen({ route, navigation }: Props) {
               navigation.navigate('TechSheetDetail', { eventId: event.id })
             }
           >
-            <Text style={dynamicStyles.buttonText}>Veure Fitxa de Bolo</Text>
+            <Text style={dynamicStyles.buttonText}>{t('mobile.tech_sheet.view_tech_sheet')}</Text>
           </TouchableOpacity>
         )}
       </View>
 
       <View style={dynamicStyles.card}>
-        <Text style={dynamicStyles.subtitle}>Assignacions</Text>
+        <Text style={dynamicStyles.subtitle}>{t('event.assignments_title')}</Text>
         {event.assignments.map((assignment: Assignment) => (
           <View key={assignment.id} style={[dynamicStyles.assignmentContainer, { marginBottom: 12 }]}>
             {/* FILA 1: NOM I ROL */}
             <View style={{ marginBottom: 4 }}>
               <Text>
                 <Text style={[dynamicStyles.text, dynamicStyles.bold, { fontSize: 16 }]}>
-                  {getPersonName(assignment.personGroupId) || 'No assignat'}
+                  {getPersonName(assignment.personGroupId) || t('assignment.person_unknown')}
                 </Text>
                 {assignment.role && (
                   <Text style={dynamicStyles.roleText}> - {assignment.role}</Text>
@@ -232,12 +232,12 @@ export default function EventDetailScreen({ route, navigation }: Props) {
               <Text style={{ fontSize: 13, color: colors.text, opacity: 0.8 }}>
                 {formatDateRangeDMY(assignment.startDate, assignment.endDate)}
               </Text>
-              <Text style={{ 
-                fontWeight: 'bold', 
+              <Text style={{
+                fontWeight: 'bold',
                 color: getStatusColor(assignment.status),
-                fontSize: 14 
+                fontSize: 14
               }}>
-                {assignment.status}
+                {getTranslatedStatus(assignment.status, t)}
               </Text>
             </View>
 

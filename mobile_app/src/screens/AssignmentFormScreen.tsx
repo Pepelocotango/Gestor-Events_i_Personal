@@ -7,6 +7,7 @@ import { EventsStackParamList } from '../navigation';
 import { Assignment, AssignmentStatus } from '../types';
 import CustomSelect from '../components/CustomSelect';
 import { formatDateDMY } from '../utils/dateFormat';
+import { getTranslatedStatus } from '../utils/statusUtils';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { lightTheme, darkTheme } from '../utils/themes';
 import { useTranslation } from 'react-i18next';
@@ -66,16 +67,16 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
     if (!endDate) newErrors.endDate = t('mobile.forms.validation.end_date_required');
 
     if (startDate && endDate) {
-        if (startDate > endDate) {
-            newErrors.endDate = t('mobile.forms.validation.date_order_error');
+      if (startDate > endDate) {
+        newErrors.endDate = t('mobile.forms.validation.date_order_error');
+      }
+      if (event) {
+        const eventStart = new Date(event.startDate);
+        const eventEnd = new Date(event.endDate);
+        if (startDate < eventStart || endDate > eventEnd) {
+          newErrors.datesRange = t('mobile.forms.validation.date_order_error') + ` (${formatDateDMY(event.startDate)} - ${formatDateDMY(event.endDate)}).`;
         }
-        if (event) {
-            const eventStart = new Date(event.startDate);
-            const eventEnd = new Date(event.endDate);
-            if (startDate < eventStart || endDate > eventEnd) {
-                newErrors.datesRange = t('mobile.forms.validation.date_order_error') + ` (${formatDateDMY(event.startDate)} - ${formatDateDMY(event.endDate)}).`;
-            }
-        }
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -88,13 +89,13 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
     }
 
     const assignmentData = {
-        personGroupId,
-        eventFrameId,
-        startDate: startDate!.toISOString().split('T')[0],
-        endDate: endDate!.toISOString().split('T')[0],
-        status,
-        notes,
-        role,
+      personGroupId,
+      eventFrameId,
+      startDate: startDate!.toISOString().split('T')[0],
+      endDate: endDate!.toISOString().split('T')[0],
+      status,
+      notes,
+      role,
     };
 
     let conflictMessage: string | null = null;
@@ -130,12 +131,12 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
 
   const dynamicStyles = useMemo(() => StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: colors.background,
+      flex: 1,
+      backgroundColor: colors.background,
     },
     contentContainer: {
-        padding: 20,
-        paddingBottom: 60,
+      padding: 20,
+      paddingBottom: 60,
     },
     label: {
       fontSize: 16,
@@ -195,8 +196,8 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
     }
   }), [colors]);
 
-  const peopleOptions = [{ label: '-- Seleccioneu --', value: '' }, ...peopleGroups.map(pg => ({ label: pg.name, value: pg.id }))];
-  const statusOptions = Object.values(AssignmentStatus).map(s => ({ label: s, value: s }));
+  const peopleOptions = [{ label: t('mobile.forms.placeholders.select_option'), value: '' }, ...peopleGroups.map(pg => ({ label: pg.name, value: pg.id }))];
+  const statusOptions = Object.values(AssignmentStatus).map(s => ({ label: getTranslatedStatus(s, t), value: s }));
 
   if (!event) {
     return <View style={dynamicStyles.container}><Text style={dynamicStyles.text}>{t('mobile.tech_sheet.event_not_found')}</Text></View>;
@@ -227,36 +228,36 @@ const AssignmentFormScreen = ({ navigation, route }: Props) => {
       />
 
       <View>
-          <Text style={dynamicStyles.label}>{t('mobile.forms.labels.start_date')}</Text>
-          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[dynamicStyles.input, errors.startDate || errors.datesRange ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : t('mobile.forms.placeholders.start_date')}</Text>
-          </TouchableOpacity>
-          {showStartDatePicker && (
-            <DateTimePicker themeVariant={theme} value={startDate || new Date(event.startDate)} mode="date" display="default" onChange={onStartDateChange} />
-          )}
-          {errors.startDate && <Text style={dynamicStyles.errorText}>{errors.startDate}</Text>}
-        </View>
+        <Text style={dynamicStyles.label}>{t('mobile.forms.labels.start_date')}</Text>
+        <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={[dynamicStyles.input, errors.startDate || errors.datesRange ? dynamicStyles.inputError : null]}>
+          <Text style={dynamicStyles.dateText}>{startDate ? formatDateDMY(startDate.toISOString()) : t('mobile.forms.placeholders.start_date')}</Text>
+        </TouchableOpacity>
+        {showStartDatePicker && (
+          <DateTimePicker themeVariant={theme} value={startDate || new Date(event.startDate)} mode="date" display="default" onChange={onStartDateChange} />
+        )}
+        {errors.startDate && <Text style={dynamicStyles.errorText}>{errors.startDate}</Text>}
+      </View>
 
-        <View>
-          <Text style={dynamicStyles.label}>{t('mobile.forms.labels.end_date')}</Text>
-          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[dynamicStyles.input, errors.endDate || errors.datesRange ? dynamicStyles.inputError : null]}>
-            <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : t('mobile.forms.placeholders.end_date')}</Text>
-          </TouchableOpacity>
-          {showEndDatePicker && (
-            <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date(event.endDate)} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
-          )}
-          {errors.endDate && <Text style={dynamicStyles.errorText}>{errors.endDate}</Text>}
-        </View>
-        {errors.datesRange && <Text style={dynamicStyles.errorText}>{errors.datesRange}</Text>}
+      <View>
+        <Text style={dynamicStyles.label}>{t('mobile.forms.labels.end_date')}</Text>
+        <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={[dynamicStyles.input, errors.endDate || errors.datesRange ? dynamicStyles.inputError : null]}>
+          <Text style={dynamicStyles.dateText}>{endDate ? formatDateDMY(endDate.toISOString()) : t('mobile.forms.placeholders.end_date')}</Text>
+        </TouchableOpacity>
+        {showEndDatePicker && (
+          <DateTimePicker themeVariant={theme} value={endDate || startDate || new Date(event.endDate)} mode="date" display="default" onChange={onEndDateChange} minimumDate={startDate || undefined} />
+        )}
+        {errors.endDate && <Text style={dynamicStyles.errorText}>{errors.endDate}</Text>}
+      </View>
+      {errors.datesRange && <Text style={dynamicStyles.errorText}>{errors.datesRange}</Text>}
 
       <Text style={dynamicStyles.label}>{t('common.status')}</Text>
       <View style={dynamicStyles.pickerContainer}>
-          <CustomSelect
-            value={status}
-            onValueChange={(val) => setStatus(val as AssignmentStatus)}
-            options={statusOptions}
-            placeholder={t('mobile.forms.placeholders.select_option')}
-          />
+        <CustomSelect
+          value={status}
+          onValueChange={(val) => setStatus(val as AssignmentStatus)}
+          options={statusOptions}
+          placeholder={t('mobile.forms.placeholders.select_option')}
+        />
       </View>
 
       <Text style={dynamicStyles.label}>{t('mobile.forms.labels.general_notes')}</Text>

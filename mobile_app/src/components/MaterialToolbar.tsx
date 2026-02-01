@@ -75,7 +75,7 @@ const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
       <View style={styles.toolbar}>
         <TextInput
           style={styles.searchInput}
-          placeholder={t('mobile.placeholders.search_material')}
+          placeholder={t('mobile.material_filters.search_material')}
           placeholderTextColor={colors.placeholder}
           value={searchQuery}
           onChangeText={onSearchChange}
@@ -86,8 +86,8 @@ const MaterialToolbar: React.FC<MaterialToolbarProps> = ({
       </View>
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.toggleButton} onPress={toggleAllCategories}>
-            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
-            <Text style={styles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
+          <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
+          <Text style={styles.buttonText}>{areAllExpanded ? t('mobile.tech_sheet.collapse_all') : t('mobile.tech_sheet.expand_all')}</Text>
         </TouchableOpacity>
       </View>
     </View>

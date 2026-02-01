@@ -4,7 +4,8 @@
             "events": "Events",
             "calendar": "Calendar",
             "people": "People",
-            "material": "Material"
+            "material": "Material",
+            "tech_sheets": "Gig Sheets"
         },
         "alerts": {
             "invalid_file": "The selected file is not valid or is corrupted.",
@@ -175,6 +176,7 @@
         },
         "material_filters": {
             "search_placeholder": "Search by text...",
+            "search_material": "Search material...",
             "filter_by_event": "Filter by event",
             "filter_by_category": "Filter by category",
             "filter_by_origin": "Filter by origin",
@@ -199,7 +201,8 @@
             "location": "Enter location",
             "email": "Enter email",
             "phone": "Enter phone",
-            "web": "Enter website"
+            "web": "Enter website",
+            "search_material": "Search material..."
         },
         "tech_sheet": {
             "event_not_found": "Event not found.",
@@ -208,6 +211,7 @@
             "number": "Number",
             "names": "Names",
             "details": "Details",
+            "view_tech_sheet": "View Gig Sheet",
             "yes": "Yes",
             "general_info": "General Information",
             "event": "Event",
@@ -244,10 +248,12 @@
             "contact_phone": "Phone",
             "contact_email": "Email",
             "expand_all": "Expand All",
-            "collapse_all": "Collapse All"
+            "collapse_all": "Collapse All",
+            "schedule": "Schedule"
         }
     },
     "common": {
+        "open": "Open",
         "loading": "Loading...",
         "save": "Save",
         "cancel": "Cancel",
@@ -370,7 +376,7 @@
         "search_general": "General search",
         "search_placeholder": "Name, place, person...",
         "frame": "Frame",
-        "person": "Person",
+        "person": "Personnel",
         "status": "Status",
         "contains_date": "Contains Date",
         "place": "Place",

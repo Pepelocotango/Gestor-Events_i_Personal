@@ -4,7 +4,8 @@
             "events": "Esdeveniments",
             "calendar": "Calendari",
             "people": "Persones",
-            "material": "Material"
+            "material": "Material",
+            "tech_sheets": "Fitxes de Bolo"
         },
         "alerts": {
             "invalid_file": "El fitxer seleccionat no és vàlid o està malmès.",
@@ -175,6 +176,7 @@
         },
         "material_filters": {
             "search_placeholder": "Cerca per text...",
+            "search_material": "Cerca material...",
             "filter_by_event": "Filtrar per esdeveniment",
             "filter_by_category": "Filtrar per categoria",
             "filter_by_origin": "Filtrar per origen",
@@ -199,7 +201,8 @@
             "location": "Introdueix la ubicació",
             "email": "Introdueix el correu electrònic",
             "phone": "Introdueix el telèfon",
-            "web": "Introdueix la pàgina web"
+            "web": "Introdueix la pàgina web",
+            "search_material": "Cerca material..."
         },
         "tech_sheet": {
             "event_not_found": "No s'ha trobat l'esdeveniment.",
@@ -208,6 +211,7 @@
             "number": "Número",
             "names": "Noms",
             "details": "Detalls",
+            "view_tech_sheet": "Veure Fitxa de Bolo",
             "yes": "Sí",
             "general_info": "Informació General",
             "event": "Esdeveniment",
@@ -244,10 +248,12 @@
             "contact_phone": "Telèfon",
             "contact_email": "Email",
             "expand_all": "Expandir Totes",
-            "collapse_all": "Replegar Totes"
+            "collapse_all": "Replegar Totes",
+            "schedule": "Horaris"
         }
     },
     "common": {
+        "open": "Obrir",
         "loading": "Carregant...",
         "save": "Desar",
         "cancel": "Cancel·lar",
@@ -360,7 +366,7 @@
         "search_general": "Cerca general",
         "search_placeholder": "Nom, lloc, persona...",
         "frame": "Marc",
-        "person": "Persona",
+        "person": "Per personal",
         "status": "Estat",
         "contains_date": "Conté Data",
         "place": "Lloc",

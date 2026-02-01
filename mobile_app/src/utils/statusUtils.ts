@@ -9,3 +9,13 @@ export const getStatusColor = (status: AssignmentStatus) => {
     default: return '#333'; // Default dark grey
   }
 };
+
+export const getTranslatedStatus = (status: AssignmentStatus, t: any) => {
+  switch (status) {
+    case AssignmentStatus.Yes: return t('common.status.yes');
+    case AssignmentStatus.No: return t('common.status.no');
+    case AssignmentStatus.Pending: return t('common.status.pending');
+    case AssignmentStatus.Mixed: return t('common.status.mixed');
+    default: return status;
+  }
+};

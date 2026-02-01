@@ -4,7 +4,8 @@
             "events": "Eventos",
             "calendar": "Calendario",
             "people": "Personas",
-            "material": "Material"
+            "material": "Material",
+            "tech_sheets": "Fichas de Bolo"
         },
         "alerts": {
             "invalid_file": "El archivo seleccionado no es válido o está dañado.",
@@ -175,6 +176,7 @@
         },
         "material_filters": {
             "search_placeholder": "Buscar por texto...",
+            "search_material": "Buscar material...",
             "filter_by_event": "Filtrar por evento",
             "filter_by_category": "Filtrar por categoría",
             "filter_by_origin": "Filtrar por origen",
@@ -199,7 +201,8 @@
             "location": "Introduce la ubicación",
             "email": "Introduce el correo electrónico",
             "phone": "Introduce el teléfono",
-            "web": "Introduce la página web"
+            "web": "Introduce la página web",
+            "search_material": "Buscar material..."
         },
         "tech_sheet": {
             "event_not_found": "No se ha encontrado el evento.",
@@ -208,6 +211,7 @@
             "number": "Número",
             "names": "Nombres",
             "details": "Detalles",
+            "view_tech_sheet": "Ver Ficha de Bolo",
             "yes": "Sí",
             "general_info": "Información General",
             "event": "Evento",
@@ -244,10 +248,12 @@
             "contact_phone": "Teléfono",
             "contact_email": "Email",
             "expand_all": "Expandir Todas",
-            "collapse_all": "Replegar Todas"
+            "collapse_all": "Replegar Todas",
+            "schedule": "Horarios"
         }
     },
     "common": {
+        "open": "Abrir",
         "loading": "Cargando...",
         "save": "Guardar",
         "cancel": "Cancelar",
@@ -360,7 +366,7 @@
         "search_general": "Búsqueda general",
         "search_placeholder": "Nombre, lugar, persona...",
         "frame": "Marco",
-        "person": "Persona",
+        "person": "Por personal",
         "status": "Estado",
         "contains_date": "Contiene Fecha",
         "place": "Lugar",
