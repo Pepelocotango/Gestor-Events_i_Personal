@@ -27,6 +27,20 @@ interface SummaryReportsProps {
 
 const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filteredEventFrames, activeFilters }) => {
   const { t } = useTranslation();
+  const getStatusLabel = (status: AssignmentStatus | ''): string => {
+    switch (status) {
+      case AssignmentStatus.Yes:
+        return t('status.yes');
+      case AssignmentStatus.No:
+        return t('status.no');
+      case AssignmentStatus.Pending:
+        return t('status.pending');
+      case AssignmentStatus.Mixed:
+        return t('status.mixed');
+      default:
+        return status || '';
+    }
+  };
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -164,7 +178,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
     csvRows.push(headers);
 
     assignmentsToProcess.forEach(a => {
-        const statusDetail = a.isMixedStatusAssignment ? getStatusSummaryText(a.assignmentObject) : a.assignmentStatus;
+        const statusDetail = a.isMixedStatusAssignment ? getStatusSummaryText(a.assignmentObject, t) : getStatusLabel(a.assignmentStatus as AssignmentStatus);
         csvRows.push([
             a.primaryGrouping,
             a.eventFrameName,
@@ -172,7 +186,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
             a.eventFramePlace || '',
             a.assignmentPersonName,
             formatDateRangeDMY(a.assignmentStartDate, a.assignmentEndDate),
-            a.assignmentStatus,
+            getStatusLabel(a.assignmentStatus as AssignmentStatus),
             statusDetail,
             a.assignmentNotes || ''
         ]);
@@ -283,20 +297,20 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
                   
                   {a.assignmentStatus === AssignmentStatus.Mixed && a.assignmentObject.dailyStatuses ? (
                     <>
-                      <span className={`font-semibold ${statusColors[AssignmentStatus.Mixed]}`}> (Mixt)</span>
+                      <span className={`font-semibold ${statusColors[AssignmentStatus.Mixed]}`}> ({t('status.mixed')})</span>
                       <ul className="pl-5 mt-1 text-xs list-none">
                         {Object.entries(a.assignmentObject.dailyStatuses)
                           .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
                           .map(([date, status]) => (
-                          <li key={date} className={`font-semibold ${statusColors[status]}`}>
-                            {formatDateDMY(date)} - {status}
+                          <li key={date} className={`font-semibold ${statusColors[status as AssignmentStatus]}`}>
+                            {formatDateDMY(date)} - {getStatusLabel(status as AssignmentStatus)}
                           </li>
                         ))}
                       </ul>
                     </>
                   ) : (
                     <span className={`font-semibold ${statusColors[a.assignmentStatus as AssignmentStatus]}`}>
-                      ({a.assignmentStatus})
+                      ({getStatusLabel(a.assignmentStatus as AssignmentStatus)})
                     </span>
                   )}
                 </li>
