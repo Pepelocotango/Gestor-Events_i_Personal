@@ -56,6 +56,9 @@
             "all_people": "Totes les persones",
             "all_events": "Tots els esdeveniments"
         },
+        "people": {
+            "search_placeholder": "Cerca contactes..."
+        },
         "material": {
             "balance": "Balanç",
             "stock": "Estoc",
@@ -373,7 +376,9 @@
         "csv_export": "CSV",
         "search_general": "Cerca general",
         "search_placeholder": "Nom, lloc, persona...",
+        "event": "Esdeveniment",
         "frame": "Marc",
+        "start_date": "Data d'inici",
         "person": "Per personal",
         "status": "Estat",
         "contains_date": "Conté Data",

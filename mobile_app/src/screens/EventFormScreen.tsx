@@ -168,6 +168,7 @@ export default function EventFormScreen({ navigation, route }: Props) {
     },
     buttonContainer: {
       marginTop: 10,
+      gap: 10,
     },
     suggestionsContainer: {
         backgroundColor: colors.card,

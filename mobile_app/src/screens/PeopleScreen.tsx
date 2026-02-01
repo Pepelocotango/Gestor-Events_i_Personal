@@ -17,7 +17,7 @@ type Props = {
 };
 
 const PeopleScreen = ({ navigation }: Props) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { peopleGroups, deletePersonGroup, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [search, setSearch] = useState('');

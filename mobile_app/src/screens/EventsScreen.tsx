@@ -19,7 +19,7 @@ type Props = {
 };
 
 const EventsScreen = ({ navigation }: Props) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     fileName,
     eventFrames,
@@ -132,8 +132,13 @@ const EventsScreen = ({ navigation }: Props) => {
   const clearFilters = () => setFilters({ text: '', person: '', status: '', date: '', place: '', eventFrame: '' });
 
   const handleDelete = useCallback((id: string) => {
-    Alert.alert(t('common.delete'), t('common.confirm'),
-      [{ text: t('common.cancel'), style: "cancel" }, { text: t('common.delete'), onPress: () => deleteEventFrame(id), style: 'destructive' }]
+    Alert.alert(
+      t('common.delete'),
+      t('common.confirm'),
+      [
+        { text: t('common.cancel'), style: "cancel" },
+        { text: t('common.delete'), onPress: () => deleteEventFrame(id), style: 'destructive' }
+      ]
     );
   }, [deleteEventFrame]);
 

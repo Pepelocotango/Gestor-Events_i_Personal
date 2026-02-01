@@ -56,6 +56,9 @@
             "all_people": "All people",
             "all_events": "All events"
         },
+        "people": {
+            "search_placeholder": "Search contacts..."
+        },
         "material": {
             "balance": "Balance",
             "stock": "Stock",
@@ -383,7 +386,9 @@
         "csv_export": "CSV",
         "search_general": "General search",
         "search_placeholder": "Name, place, person...",
+        "event": "Event",
         "frame": "Frame",
+        "start_date": "Start Date",
         "person": "Personnel",
         "status": "Status",
         "contains_date": "Contains Date",

@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 type CalendarScreenNavigationProp = StackNavigationProp<RootTabParamList>;
 
 const CalendarScreen = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { eventFrames, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const navigation = useNavigation<CalendarScreenNavigationProp>();
@@ -134,7 +134,7 @@ const CalendarScreen = () => {
   return (
     <View style={dynamicStyles.container}>
       <Calendar
-        key={theme}
+        key={`${theme}-${i18n.language}`}
         markedDates={markedDates}
         onDayPress={onDayPress}
         theme={calendarTheme}
