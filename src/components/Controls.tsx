@@ -18,7 +18,7 @@ const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
   const isSyncing = useEventDataStore(state => state.isSyncing);
   const { openModal } = useModalStore.getState();
 
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpansion = () => setIsExpanded(prev => !prev);
 

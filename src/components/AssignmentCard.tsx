@@ -114,36 +114,40 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   return (
     <li className={`${liClasses} mb-3`}>
       <div
-        className={`flex flex-col sm:flex-row justify-between sm:items-start gap-3 p-4 ${isMultiDay ? 'cursor-pointer' : ''}`}
-        onClick={(e) => {
-          if (!isMultiDay) return;
-          if ((e.target as HTMLElement).closest('button, input, select, a')) {
-            skipNextCollapse.current = true;
-            return;
-          }
-          if (!skipNextCollapse.current) {
-            toggleDailyView();
-          }
-          skipNextCollapse.current = false;
-        }}
+        className="flex flex-col sm:flex-row justify-between sm:items-start gap-3 p-4"
       >
         <div className="flex-grow">
           <div className="space-y-1.5">
-            <p className="text-lg font-bold text-foreground">
-              {personName || t('assignment.person_unknown')}
-              {assignment.role && (
-                <span className="ml-2 text-base font-medium italic text-muted-foreground">
-                  - {assignment.role}
-                </span>
-              )}
-            </p>
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-base text-muted-foreground">
-                {formatDateRangeDMY(assignment.startDate, assignment.endDate)}
+            <div
+              className={isMultiDay ? 'cursor-pointer' : ''}
+              onClick={(e) => {
+                if (!isMultiDay) return;
+                if ((e.target as HTMLElement).closest('button, input, select, a')) {
+                  skipNextCollapse.current = true;
+                  return;
+                }
+                if (!skipNextCollapse.current) {
+                  toggleDailyView();
+                }
+                skipNextCollapse.current = false;
+              }}
+            >
+              <p className="text-lg font-bold text-foreground">
+                {personName || t('assignment.person_unknown')}
+                {assignment.role && (
+                  <span className="ml-2 text-base font-medium italic text-muted-foreground">
+                    - {assignment.role}
+                  </span>
+                )}
               </p>
-              <span className="text-base font-semibold text-foreground/90">
-                {getStatusSummaryText(assignment, t)}
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-base text-muted-foreground">
+                  {formatDateRangeDMY(assignment.startDate, assignment.endDate)}
+                </p>
+                <span className="text-base font-semibold text-foreground/90">
+                  {getStatusSummaryText(assignment, t)}
+                </span>
+              </div>
             </div>
             {assignment.notes && (
               <p className="text-sm mt-1.5 text-muted-foreground/90 italic bg-muted/30 p-2 rounded-md">

@@ -60,17 +60,14 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
           : 'border-2 border-border hover:border-muted-foreground/30'
         } ${isArchived ? 'opacity-70' : ''}`}
       aria-labelledby={`event-frame-title-${eventFrame.id}`}
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest('button, input, select, a')) {
-          return;
-        }
-        onToggleExpand(eventFrame.id);
+      onClick={() => {
         onFocus?.();
       }}
     >
       <div
         className="px-3 py-2 bg-muted/50 cursor-pointer border-b-2 border-border"
         onClick={(e) => {
+          if ((e.target as HTMLElement).closest('button, input, select, a')) return;
           e.stopPropagation();
           onToggleExpand(eventFrame.id);
           onFocus?.();
