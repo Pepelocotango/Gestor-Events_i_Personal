@@ -212,14 +212,14 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
   return (
     <CollapsibleSection
       title={t('people.manager_title')}
-      defaultOpen={true}
+      defaultOpen={false}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Columna del formulari (25%) */}
         <div className="lg:col-span-1">
           <CollapsibleSection
             title={editingContact ? t('people.edit_contact_title') : t('people.add_contact_title')}
-            defaultOpen={true}
+            defaultOpen={false}
           >
             <form onSubmit={handleSubmit} className="space-y-3" aria-labelledby="people-group-form-title">
               {editingContact && (
@@ -301,7 +301,7 @@ const PeopleDisplay: React.FC<PeopleDisplayProps> = ({ showToast }) => {
         <div className="lg:col-span-2">
           <CollapsibleSection
             title={t('people.list_title')}
-            defaultOpen={true}
+            defaultOpen={false}
           >
             <div className="flex items-center justify-end mb-2 gap-2">
               <Tooltip text={t('people.export_csv_tooltip')}>

@@ -397,7 +397,7 @@ const MainDisplay = React.forwardRef<
     <div className="space-y-2"> {/* Contenidor simple en lloc de CollapsibleSection */}
 
       {/* SECCIÓ 1: CALENDARI */}
-      <CollapsibleSection title={t('main.calendar_view')} icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
+      <CollapsibleSection title={t('main.calendar_view')} icon={<CalendarIcon />} defaultOpen={false} id="calendar-section">
         <div className="calendar-wrapper border border-border rounded-lg" style={{ padding: '0.25rem' }}>
           <FullCalendar
             ref={calendarRef}
@@ -457,6 +457,7 @@ const MainDisplay = React.forwardRef<
         icon={<ListIcon />}
         isExpanded={isEventListExpanded}
         onToggle={() => useEventDataStore.getState().toggleEventListExpanded()}
+        defaultOpen={false}
         id="event-list-section"
       >
         <div className="mb-1 flex justify-start items-center gap-1">
