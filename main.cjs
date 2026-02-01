@@ -93,19 +93,37 @@ const appMetadata = {
 
 console.log('[Main] App metadata loaded:', appMetadata);
 
-app.disableHardwareAcceleration();
-
-console.log('**************************************************');
-console.log('*** INICIANT PROCÉS PRINCIPAL DE L\'APLICACIÓ ***');
-console.log('**************************************************');
-console.log('Tots els logs d\'aquesta sessió s\'emmagatzemen a:', log.transports.file.getFile().path);
-
 const APP_ID = 'com.gestorevents.app';
 app.setAppUserModelId(APP_ID);
 
 const CONFIG_DIR = app.getPath('userData');
 const DATA_DIR = CONFIG_DIR;
 const SESSION_FILE = path.join(CONFIG_DIR, 'session.json');
+
+// --- GESTIÓ DE GPU (ACCELERACIÓ PER HARDWARE) ---
+let gpuEnabled = false; // Desactivat per defecte per estabilitat en PCs antics
+try {
+  if (fs.existsSync(SESSION_FILE)) {
+    const sessionData = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
+    if (sessionData.gpuEnabled === true) {
+      gpuEnabled = true;
+    }
+  }
+} catch (e) {
+  console.error('[GPU] Error llegint session.json per verificar gpuEnabled:', e);
+}
+
+if (!gpuEnabled) {
+  console.log('[GPU] Acceleració per hardware desactivada.');
+  app.disableHardwareAcceleration();
+} else {
+  console.log('[GPU] Acceleració per hardware activada.');
+}
+
+console.log('**************************************************');
+console.log('*** INICIANT PROCÉS PRINCIPAL DE L\'APLICACIÓ ***');
+console.log('**************************************************');
+console.log('Tots els logs d\'aquesta sessió s\'emmagatzemen a:', log.transports.file.getFile().path);
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const GOOGLE_TOKENS_PATH = path.join(CONFIG_DIR, 'google-tokens.json');
 const GOOGLE_CONFIG_PATH = path.join(CONFIG_DIR, 'google-config.json');

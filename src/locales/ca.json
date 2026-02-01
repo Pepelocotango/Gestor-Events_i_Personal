@@ -105,7 +105,8 @@
             "zoom_in": "Apropar",
             "zoom_out": "Allunyar",
             "fullscreen": "Pantalla Completa",
-            "toggle_splash": "Mostrar Pantalla d'Inici en obrir"
+            "toggle_splash": "Mostrar Pantalla d'Inici en obrir",
+            "gpu_acceleration": "Acceleració per Hardware (GPU)"
         },
         "help": {
             "label": "Ajuda",
@@ -877,6 +878,7 @@
             "fallback_confirm": "Tens canvis sense desar. Estàs segur que vols continuar?"
         },
         "new_document_success": "Nou espai de treball creat.",
+        "gpu_settings_updated": "Configuració de GPU actualitzada. Reinicia l'aplicació per aplicar els canvis.",
         "open": {
             "read_error_prefix": "Error en llegir el fitxer: ",
             "load_error_fallback": "Hi ha hagut un error en carregar les dades.",

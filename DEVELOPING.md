@@ -105,6 +105,7 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
         -   Garantir que el frontend no tingui accés directe a les API de Node.js, una pràctica de seguretat fonamental en Electron.
         -   Definir l'API `window.electronAPI`, que és l'únic punt de contacte entre les dues capes.
         -   Habilitació de la Sandbox: L'aplicació s'executa amb la sandbox d'Electron activada (sandbox: true). Això aïlla completament el procés de renderitzat (frontend), prevenint que pugui executar codi natiu directament. Tota operació que requereixi accés al sistema ha de passar obligatòriament a través dels canals IPC definits aquí.
+- **Configuració de GPU:** L'acceleració per hardware és configurable a través del fitxer `session.json` (`gpuEnabled`). Per defecte està desactivada per garantir l'estabilitat en equips més antics. Aquesta configuració s'aplica durant l'arrencada del procés principal abans de crear la finestra.
 
 3.  **Capa 3: Frontend (Interfície d'Usuari en React - `src/`)**
     -   **Descripció:** És una Single Page Application (SPA) que s'executa dins d'una finestra de Chromium. És responsable de tot el que l'usuari veu i amb què interactua.

@@ -105,7 +105,8 @@
             "zoom_in": "Zoom In",
             "zoom_out": "Zoom Out",
             "fullscreen": "Full Screen",
-            "toggle_splash": "Show Splash Screen on Open"
+            "toggle_splash": "Show Splash Screen on Open",
+            "gpu_acceleration": "Hardware Acceleration (GPU)"
         },
         "help": {
             "label": "Help",
@@ -877,6 +878,7 @@
             "fallback_confirm": "You have unsaved changes. Are you sure you want to continue?"
         },
         "new_document_success": "New workspace created.",
+        "gpu_settings_updated": "GPU settings updated. Restart the application to apply changes.",
         "open": {
             "read_error_prefix": "Error reading file: ",
             "load_error_fallback": "There was an error loading the data.",
