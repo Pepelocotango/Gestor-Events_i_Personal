@@ -43,9 +43,29 @@
         "google_connected": "¡Conectado a Google Calendar con éxito!",
         "google_opening_browser": "Abriendo navegador para autenticarse con Google...",
         "google_desktop_only": "Esta funcionalidad solo está disponible en la aplicación de escritorio.",
-        "google_disconnected": "Cuenta de Google desconectada correctamente."
+        "google_disconnected": "Cuenta de Google desconectada correctamente.",
+        "ascending": "Ascendente",
+        "descending": "Descendente",
+        "collapse_section": "Colapsar sección",
+        "close_button": "Cerrar",
+        "days": "Días",
+        "dialog": "Diálogo",
+        "expand_section": "Expandir sección",
+        "move_up": "Mover arriba",
+        "move_down": "Mover abajo",
+        "note": "Nota"
+    },
+    "status": {
+        "yes": "Sí",
+        "no": "No",
+        "pending": "Pendiente",
+        "mixed": "Mixto"
     },
     "menu": {
+        "home": "Inicio",
+        "events": "Eventos",
+        "staff": "Personal",
+        "settings": "Configuración",
         "file": {
             "label": "Archivo",
             "new": "Nuevo Documento",
@@ -85,7 +105,8 @@
             "zoom_in": "Acercar",
             "zoom_out": "Alejar",
             "fullscreen": "Pantalla Completa",
-            "toggle_splash": "Mostrar Pantalla de Inicio al abrir"
+            "toggle_splash": "Mostrar Pantalla de Inicio al abrir",
+            "gpu_acceleration": "Aceleración por Hardware (GPU)"
         },
         "help": {
             "label": "Ayuda",
@@ -117,16 +138,16 @@
         "contains_date": "Contiene Fecha",
         "place": "Lugar",
         "clean_filters": "Limpiar",
-        "no_events_found": "No se encontraron marcos de evento.",
+        "no_events_found": "No se han encontrado marcos de eventos.",
         "summaries": "Resúmenes",
         "filter_date_label": "Filtro:",
         "tooltip_search": "Buscar por nombre de evento, lugar, notas o nombre de persona asignada",
         "tooltip_frame": "Filtrar por un marco de evento específico",
         "tooltip_person": "Filtrar por persona o grupo asignado",
-        "tooltip_status": "Filtrar por estado de la asignación",
         "tooltip_date": "Mostrar solo eventos activos en esta fecha",
         "tooltip_place": "Filtrar por lugar del evento",
         "tooltip_clean": "Limpiar todos los filtros",
+        "tooltip_status": "Filtrar por estado del evento",
         "nav_calendar_list_tooltip": "Ir a la vista principal del calendario y lista de eventos",
         "nav_calendar_list": "Calendario y Lista",
         "nav_tech_sheets_tooltip": "Ir a la gestión de fichas técnicas (bolos)",
@@ -134,7 +155,22 @@
         "nav_people_tooltip": "Ir a la gestión de personas y grupos",
         "nav_people": "Personas",
         "nav_material_tooltip": "Ir a la gestión de inventario de material",
-        "nav_material": "Material"
+        "nav_material": "Material",
+        "add_event_tooltip": "Crear un nuevo marco de evento",
+        "sort_tooltip": "Ordenar por fecha {{order}}",
+        "sort_ascending": "ascendente",
+        "sort_descending": "descendente",
+        "show_archived_tooltip": "Mostrar u ocultar los eventos archivados",
+        "archive": {
+            "item_type": "Eventos",
+            "confirm_message": "Se archivarán <strong>{{count}}</strong> eventos finalizados antes del <strong>{{date}}</strong>.",
+            "title": "Confirmación Archivar",
+            "confirm_button": "Archivar Antiguos",
+            "success": "{{count}} evento(s) archivado(s) correctamente.",
+            "no_events": "No hay eventos antiguos para archivar."
+        },
+        "export_pdf_tooltip": "Exportar la lista de eventos y asignaciones a PDF",
+        "export_csv_tooltip": "Exportar la lista de eventos y asignaciones a CSV"
     },
     "calendar": {
         "month": "Mes",
@@ -314,7 +350,13 @@
         "delete_item_confirm_msg": "Seguro que quieres eliminar <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Actualizar",
-        "add_button": "Añadir"
+        "add_button": "Añadir",
+        "validation": {
+            "name_required": "El nombre es obligatorio.",
+            "name_duplicate": "Ya existe un material con este nombre.",
+            "category_required": "La categoría es obligatoria.",
+            "stock_negative": "El stock no puede ser negativo."
+        }
     },
     "tech_sheets": {
         "manager_title": "Gestor de Fichas de Bolo",
@@ -377,7 +419,10 @@
                 "parking_tooltip": "Indica si se necesita o no una zona de parking reservada.",
                 "parking_details": "Detalles de la zona de parking:",
                 "parking_details_placeholder": "Dónde, cuántas plazas, metros lineales, contacto...",
-                "parking_details_tooltip": "Especifica la ubicación, el número de plazas necesarias, y a quién contactar para la gestión del parking."
+                "parking_details_tooltip": "Especifica la ubicación, el número de plazas necesarias, y a quién contactar para la gestión del parking.",
+                "dressing_rooms_placeholder": "Especifica las necesidades de camerinos: cantidad, tipos (individuales, colectivos), y cualquier requerimiento especial.",
+                "actors_placeholder": "Detalles, notas, nombres...",
+                "technicians_placeholder": "Detalles, notas, nombres..."
             },
             "pre_assembly": {
                 "label": "PREMONTAJE:",
@@ -530,10 +575,13 @@
             },
             "field_labels": {
                 "details_prefix": "Detalles generales de {{title}}:",
-                "material_prefix": "Material de {{title}}"
+                "material_prefix": "Material de {{title}}",
+                "add_to_inventory_tooltip": "Añadir a inventario",
+                "availability_prefix": "Disponibilidad: ",
+                "stock_prefix": "Stock: "
             },
             "quantity_placeholder": "XX",
-            "provider_reorder_tooltip": "Reordenar proveedor"
+            "provider_reorder_tooltip": "Reordenar proveïdor"
         }
     },
     "mcc": {
@@ -578,10 +626,11 @@
         "units_suffix": "unidad(es)",
         "export_csv_tooltip": "Exportar todo el resumen {{title}} a CSV",
         "export_pdf_tooltip": "Exportar todo el resumen {{title}} a PDF",
-        "sort_date_tooltip": "Ordenar por fecha {{order}}",
-        "by_event_name": "Por Nombre de Evento",
-        "by_start_date": "Por Fecha de Inicio de Asignación",
-        "by_person": "Por Persona/Grupo"
+        "sort_date_tooltip": "Ordenar por fecha {{order}}"
+    },
+    "main_display": {
+        "assignment_status_updated": "Estado de la asignación actualizado a {{status}}",
+        "daily_status_updated": "Estado diario actualizado a {{status}}"
     },
     "modals": {
         "confirm_delete": {
@@ -651,7 +700,9 @@
             "create_new_tooltip": "Crear la nueva asignación",
             "updated_toast": "Asignación actualizada.",
             "added_toast": "Asignación añadida.",
-            "error_prefix": "Error: "
+            "error_prefix": "Error: ",
+            "close_button": "Cerrar",
+            "assignment_note": "Nota: "
         },
         "event_details": {
             "general_notes_label": "Notas Generales:",
@@ -823,6 +874,7 @@
             "fallback_confirm": "Tienes cambios sin guardar. ¿Estás seguro de que quieres continuar?"
         },
         "new_document_success": "Nuevo espacio de trabajo creado.",
+        "gpu_settings_updated": "Configuración de GPU actualizada. Reinicia la aplicación para aplicar los cambios.",
         "open": {
             "read_error_prefix": "Error al leer el archivo: ",
             "load_error_fallback": "Ha habido un error al cargar los datos.",
@@ -936,64 +988,6 @@
         "yes": "SÍ",
         "no": "NO"
     },
-    "actions": {
-        "create_event": "Has creado el evento «{{name}}»",
-        "update_event": "Has modificado el evento «{{name}}»",
-        "delete_event": "Has eliminado el evento «{{name}}»",
-        "mark_complete": "Has marcado el evento «{{name}}» como completo",
-        "mark_incomplete": "Has marcado el evento «{{name}}» como incompleto",
-        "update_tech_sheet": "Has actualizado la ficha técnica de «{{name}}»",
-        "reorder_personnel": "Has reordenado el personal técnico de «{{name}}»",
-        "assign_person": "Has asignado «{{person}}» al evento «{{event}}»",
-        "update_assignment": "Has modificado la asignación de «{{person}}» a «{{event}}»",
-        "delete_assignment": "Has eliminado la asignación de «{{person}}» a «{{event}}»",
-        "data_loaded": "Datos cargados desde un archivo",
-        "project_cleared": "Proyecto limpiado"
-    },
-    "errors": {
-        "assignment": {
-            "date_range": "Las fechas deben estar dentro del rango del marco",
-            "duplicate_conflict": "Conflicto detectado: Este contacto ya tiene una asignación en {{details}}"
-        }
-    },
-    "roles": {
-        "direction": {
-            "chief": "Dirección: Jefe/a Técnico/a",
-            "floor_manager": "Dirección: Jefe de Sala",
-            "council": "Dirección: Regidoría",
-            "council_assistant": "Dirección: Asistente de Regidoría"
-        },
-        "production": {
-            "producer": "Producción: Producción",
-            "assistant": "Producción: Auxiliar de Producción"
-        },
-        "technician": {
-            "sound": "Técnico/a: Sonido",
-            "lighting": "Técnico/a: Iluminación",
-            "video": "Técnico/a: Vídeo",
-            "camera": "Técnico/a: Operación de Cámara",
-            "pa": "Técnico/a: Sonido (PA)",
-            "monitors": "Técnico/a: Monitores",
-            "machinery": "Técnico/a: Maquineria",
-            "microphone": "Técnico: Microfonista"
-        },
-        "assembly": {
-            "machinery": "Montaje: Maquinaria",
-            "rigger": "Montaje: Maquinista / Rigger",
-            "helper": "Montaje: Auxiliar de Carga y Descarga",
-            "crew": "Montaje: Personal de Montaje (Crew)",
-            "driver": "Montaje: Conductor/a"
-        },
-        "audience": {
-            "floor_staff": "Público: Personal de Sala / Acomodación",
-            "box_office": "Público: Personal de Taquillas",
-            "security": "Público: Personal de Seguridad"
-        },
-        "support": {
-            "rider": "Soporte: Rider / Road Manager",
-            "personal": "Soporte: Asistente Personal"
-        }
-    },
     "csv": {
         "header_event_name": "Nombre Evento",
         "header_place": "Lugar",
@@ -1004,29 +998,18 @@
         "header_assignment_end_date": "Fecha Fin Asignación",
         "header_assignment_status": "Estado Asignación",
         "header_assignment_notes": "Notas Asignación",
-        "header_event_notes": "Notas Generales Evento"
-    },
-    "sync": {
-        "title": "Sincronización con Google Calendar",
-        "step_progress": "Paso {{current}} de {{total}}",
-        "step_verifying_calendar": "Verificando acceso al calendario...",
-        "step_calendar_connected": "Conexión con el calendario establecida correctamente.",
-        "step_requesting_confirmation": "Solicitando confirmación para iniciar la sincronización...",
-        "step_sync_cancelled": "Sincronización cancelada por el usuario.",
-        "step_starting_sync": "Iniciando proceso de sincronización...",
-        "step_getting_threshold_date": "Sincronización parcial desde: {{date}}",
-        "step_getting_events": "Obteniendo lista de eventos del calendario...",
-        "step_sync_stats": "Estadísticas de sincronización:",
-        "step_events_to_delete": "Eventos a eliminar: {{count}}",
-        "step_events_to_upload": "Eventos a subir/actualizar: {{count}} (de {{total}} totales)",
-        "step_starting_deletion": "Iniciando eliminación de {{count}} eventos antiguos...",
-        "step_deleting_event": "Eliminando evento {{index}}/{{total}}: {{name}}",
-        "step_deletion_complete": "Se han eliminado todos los eventos antiguos.",
-        "step_no_events_to_delete": "No hay eventos antiguos para eliminar.",
-        "step_starting_upload": "Iniciando subida de {{count}} eventos nuevos/actualizados...",
-        "step_processing_event": "Procesando evento {{index}}/{{total}}: {{name}}",
-        "step_upload_complete": "Subida completada.",
-        "step_initializing_sync": "Iniciando proceso de sincronización con Google Calendar..."
+        "header_event_notes": "Notas Generales Evento",
+        "filename_prefix": "Lista_Eventos",
+        "header_assignment_dates": "Fechas Asignación",
+        "header_event_dates": "Fechas Evento",
+        "header_event_frame": "Marco Evento",
+        "header_event_place": "Lugar Evento",
+        "header_general_status": "Estado General",
+        "header_grouping": "Agrupación",
+        "header_status_detail": "Detalle Estado",
+        "type_date": "Fecha",
+        "type_event": "Evento",
+        "type_person": "Persona"
     },
     "footer": {
         "copyright": "© {{year}} (Pëp) Gestor de Eventos y Personal {{version}}. Licencia GNU GPL v3.0.",

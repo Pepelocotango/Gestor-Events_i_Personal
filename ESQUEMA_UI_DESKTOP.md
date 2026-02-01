@@ -60,6 +60,7 @@ Aquesta barra substitueix el menú natiu. A la dreta, inclou icones d'accés rà
 - **Restablir/Apropar/Allunyar Zoom**
 - **Pantalla Completa** (`F11`)
 - **Mostrar Animació d'Inici**: Activa o desactiva l'animació de benvinguda.
+- **Acceleració per Hardware (GPU)**: Permet activar o desactivar l'acceleració gràfica per hardware. Millora l'estabilitat en equips antics si es desactiva.
 
 ### 3.4. Menú "Ajuda"
 - **Sobre l'aplicació...**: Obre el modal `AboutModal`.
@@ -95,7 +96,8 @@ Aquesta pantalla presenta una estructura plana (sense contenidor mestre plegable
   - **Botó "Netejar"**: Restableix tots els filtres.
 - **Targeta d'Esdeveniment (`EventFrameCard`)**:
   - **Comportament de Focus**: En fer clic, la targeta es marca visualment (vora blava) per indicar que és l'element actiu, diferenciant-la de la resta encara que estiguin obertes.
-  - **Capçalera**: Estat complet (icona gran), Títol, Lloc, Dates i accions ràpides.
+  - **Lògica d'Expansió**: L'expansió i el col·lapse del contingut s'activa exclusivament fent clic a la capçalera de la targeta (àrea XL). El cos de la targeta permet la selecció de text sense tancar-se.
+  - **Capçalera**: Estat complet (icona gran), Títol, Lloc, Dates i accions ràpides. Actua com l'únic actuador per al plegat/expandit.
   - **Cos**: Notes generals i llista d'assignacions.
   - **Targeta d'Assignació (`AssignmentCard`)**:
     - Mostra el nom de la persona i el seu rol específic (`Nom - Rol`) si està definit.

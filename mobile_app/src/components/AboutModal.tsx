@@ -127,7 +127,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
             style={dynamicStyles.linkButton}
             onPress={() => handleLinkPress(GITHUB_URL)}
           >
-            <Text style={dynamicStyles.linkText}>Repositori a GitHub</Text>
+            <Text style={dynamicStyles.linkText}>{t('mobile.about.github_repository')}</Text>
             <Icon name="open-in-new" size={20} color={colors.background} style={{ marginLeft: 8 }} />
           </TouchableOpacity>
 

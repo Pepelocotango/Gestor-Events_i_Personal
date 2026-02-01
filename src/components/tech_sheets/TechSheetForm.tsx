@@ -61,7 +61,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
-    sectionKeys.forEach(key => { initialState[key] = true; });
+    sectionKeys.forEach(key => { initialState[key] = false; });
     return initialState;
   });
 

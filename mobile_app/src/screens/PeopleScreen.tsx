@@ -8,6 +8,7 @@ import PeopleToolbar from '../components/PeopleToolbar';
 import PersonListItem from '../components/PersonListItem';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type PeopleScreenNavigationProp = StackNavigationProp<PeopleStackParamList, 'PersonList'>;
 
@@ -16,6 +17,7 @@ type Props = {
 };
 
 const PeopleScreen = ({ navigation }: Props) => {
+  const { t } = useTranslation();
   const { peopleGroups, deletePersonGroup, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [search, setSearch] = useState('');
@@ -54,11 +56,11 @@ const PeopleScreen = ({ navigation }: Props) => {
 
   const handleDelete = useCallback((id: string) => {
     Alert.alert(
-      "Eliminar Persona",
-      "Esteu segur que voleu eliminar aquesta persona?",
+      t('common.delete'),
+      t('common.confirm'),
       [
-        { text: "Cancel·lar", style: "cancel" },
-        { text: "Eliminar", onPress: () => deletePersonGroup(id), style: 'destructive' }
+        { text: t('common.cancel'), style: "cancel" },
+        { text: t('common.delete'), onPress: () => deletePersonGroup(id), style: 'destructive' }
       ]
     );
   }, [deletePersonGroup]);
@@ -120,9 +122,9 @@ const PeopleScreen = ({ navigation }: Props) => {
     >
       <TouchableOpacity style={dynamicStyles.modalOverlay} onPress={() => setSortModalVisible(false)}>
         <View style={dynamicStyles.modalContent}>
-          <Text style={dynamicStyles.modalTitle}>Ordenar per</Text>
-          <Button title={`Nom ${sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : ''}`} onPress={() => requestSort('name')} color={colors.primary} />
-          <Button title={`Rol ${sortConfig.key === 'role' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : ''}`} onPress={() => requestSort('role')} color={colors.primary}/>
+          <Text style={dynamicStyles.modalTitle}>{t('people.sort_by')}</Text>
+          <Button title={`${t('mobile.form_labels.name')} ${sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : ''}`} onPress={() => requestSort('name')} color={colors.primary} />
+          <Button title={`${t('mobile.form_labels.role')} ${sortConfig.key === 'role' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : ''}`} onPress={() => requestSort('role')} color={colors.primary}/>
         </View>
       </TouchableOpacity>
     </Modal>
@@ -134,7 +136,7 @@ const PeopleScreen = ({ navigation }: Props) => {
         searchQuery={search}
         onSearchChange={setSearch}
         onSort={() => setSortModalVisible(true)}
-        onFilter={() => Alert.alert("WIP", "Filtres pròximament")}
+        onFilter={() => Alert.alert(t('common.error'), t('main.no_events_found'))}
       />
       {renderSortModal()}
       <FlatList
@@ -147,7 +149,7 @@ const PeopleScreen = ({ navigation }: Props) => {
             onDelete={handleDelete}
           />
         )}
-        ListEmptyComponent={<Text style={dynamicStyles.emptyList}>No s'han trobat contactes.</Text>}
+        ListEmptyComponent={<Text style={dynamicStyles.emptyList}>{t('people.no_contacts_found')}</Text>}
         contentContainerStyle={{ paddingBottom: 80 }}
       />
       <TouchableOpacity

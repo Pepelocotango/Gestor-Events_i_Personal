@@ -127,7 +127,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   useEffect(() => {
     if (sortMode === 'category') {
       const initialExpandedState = (sortedItems as [string, MaterialItem[]][]).reduce((acc, [category]) => {
-        acc[category] = true; // Default to all expanded
+        acc[category] = false; // Default to all collapsed
         return acc;
       }, {} as { [key: string]: boolean });
       setExpandedCategories(initialExpandedState);
@@ -188,14 +188,14 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
     <div className="space-y-4">
       <CollapsibleSection
         title={t('material.manager_title')}
-        defaultOpen={true}
+        defaultOpen={false}
       >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Columna del formulari (25%) */}
           <div className="lg:col-span-1">
             <CollapsibleSection
               title={editingItem ? t('material.edit_item_title') : t('material.add_item_title')}
-              defaultOpen={true}
+              defaultOpen={false}
             >
               <MaterialForm
                 key={editingItem ? editingItem.id : 'new'}
@@ -214,7 +214,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
           <div className="lg:col-span-2">
             <CollapsibleSection
               title={t('material.inventory_title')}
-              defaultOpen={true}
+              defaultOpen={false}
             >
               <div className="flex items-center justify-end mb-2 gap-2">
                 <Tooltip text={t('material.search_tooltip')}>

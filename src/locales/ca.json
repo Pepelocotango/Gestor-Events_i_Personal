@@ -43,9 +43,29 @@
         "google_connected": "Connectat a Google Calendar amb èxit!",
         "google_opening_browser": "Obrint el navegador per autenticar-se amb Google...",
         "google_desktop_only": "Aquesta funcionalitat només està disponible a l'aplicació d'escriptori.",
-        "google_disconnected": "Compte de Google desconnectat correctament."
+        "google_disconnected": "Compte de Google desconnectat correctament.",
+        "dialog": "Diàleg",
+        "expand_section": "Expandir secció",
+        "move_up": "Moure amunt",
+        "move_down": "Moure avall",
+        "note": "Nota",
+        "ascending": "Ascendent",
+        "descending": "Descendent",
+        "collapse_section": "Col·lapsar secció",
+        "close_button": "Tancar",
+        "days": "Dies"
+    },
+    "status": {
+        "yes": "Sí",
+        "no": "No",
+        "pending": "Pendent",
+        "mixed": "Mixt"
     },
     "menu": {
+        "home": "Inici",
+        "events": "Esdeveniments",
+        "staff": "Personal",
+        "settings": "Configuració",
         "file": {
             "label": "Fitxer",
             "new": "Nou Document",
@@ -85,7 +105,8 @@
             "zoom_in": "Apropar",
             "zoom_out": "Allunyar",
             "fullscreen": "Pantalla Completa",
-            "toggle_splash": "Mostrar Pantalla d'Inici en obrir"
+            "toggle_splash": "Mostrar Pantalla d'Inici en obrir",
+            "gpu_acceleration": "Acceleració per Hardware (GPU)"
         },
         "help": {
             "label": "Ajuda",
@@ -134,7 +155,22 @@
         "nav_people_tooltip": "Anar a la gestió de persones i grups",
         "nav_people": "Persones",
         "nav_material_tooltip": "Anar a la gestió d'inventari de material",
-        "nav_material": "Material"
+        "nav_material": "Material",
+        "add_event_tooltip": "Crear un nou marc d'esdeveniment",
+        "sort_tooltip": "Ordena per data {{order}}",
+        "sort_ascending": "ascendent",
+        "sort_descending": "descendent",
+        "show_archived_tooltip": "Mostrar o ocultar els esdeveniments arxivats",
+        "archive": {
+            "item_type": "Esdeveniments",
+            "confirm_message": "S'arxivaran <strong>{{count}}</strong> esdeveniments finalitzats abans del <strong>{{date}}</strong>.",
+            "title": "Confirmació Arxivar",
+            "confirm_button": "Arxivar Antics",
+            "success": "{{count}} esdeveniment(s) arxivat(s) correctament.",
+            "no_events": "No hi ha esdeveniments antics per arxivar."
+        },
+        "export_pdf_tooltip": "Exportar la llista d'esdeveniments i assignacions a PDF",
+        "export_csv_tooltip": "Exportar la llista d'esdeveniments i assignacions a CSV"
     },
     "calendar": {
         "month": "Mes",
@@ -314,7 +350,13 @@
         "delete_item_confirm_msg": "Segur que vols eliminar <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Actualitzar",
-        "add_button": "Afegir"
+        "add_button": "Afegir",
+        "validation": {
+            "name_required": "El nom és obligatori.",
+            "name_duplicate": "Ja existeix un material amb aquest nom.",
+            "category_required": "La categoria és obligatòria.",
+            "stock_negative": "L'estoc no pot ser negatiu."
+        }
     },
     "tech_sheets": {
         "manager_title": "Gestor de Fitxes de Bolo",
@@ -377,7 +419,10 @@
                 "parking_tooltip": "Indica si es necessita o no una zona de pàrquing reservada.",
                 "parking_details": "Detalls de la zona de parking:",
                 "parking_details_placeholder": "On, quantes places, metres lineals , contacte...",
-                "parking_details_tooltip": "Especifica la ubicació, el nombre de places necessàries, i a qui contactar per a la gestió del pàrquing."
+                "parking_details_tooltip": "Especifica la ubicació, el nombre de places necessàries, i a qui contactar per a la gestió del pàrquing.",
+                "dressing_rooms_placeholder": "Especifica les necessitats de camerinos: quantitat, tipus (individuals, col·lectius), i qualsevol requeriment especial.",
+                "actors_placeholder": "Detalls, notes, noms...",
+                "technicians_placeholder": "Detalls, notes, noms..."
             },
             "pre_assembly": {
                 "label": "PREMUNTATGE:",
@@ -533,7 +578,10 @@
                 "material_prefix": "Material de {{title}}"
             },
             "quantity_placeholder": "XX",
-            "provider_reorder_tooltip": "Reordenar proveïdor"
+            "provider_reorder_tooltip": "Reordenar proveïdor",
+            "add_to_inventory_tooltip": "Afegir a l'inventari",
+            "availability_prefix": "Disponibilitat: ",
+            "stock_prefix": "Estoc: "
         }
     },
     "mcc": {
@@ -651,7 +699,13 @@
             "create_new_tooltip": "Crear la nova assignació",
             "updated_toast": "Assignació actualitzada.",
             "added_toast": "Assignació afegida.",
-            "error_prefix": "Error: "
+            "error_prefix": "Error: ",
+            "close_button": "Tancar",
+            "assignment_note": "Nota: ",
+            "conflict_detail": "Aquesta assignació té un conflicte.",
+            "duplicate_conflict": "Ja existeix una assignació duplicada.",
+            "title_edit_with_name": "Editar Assignació per {{name}}",
+            "title_new_with_name": "Nova Assignació per {{name}}"
         },
         "event_details": {
             "general_notes_label": "Notes Generals:",
@@ -781,7 +835,8 @@
         "pdf_preview": {
             "loading": "Generant vista prèvia, espereu uns segons si surt una pantalla negra ...",
             "iframe_title": "Vista Prèvia PDF",
-            "save_button": "Desar PDF"
+            "save_button": "Desar PDF",
+            "title_override": "Vista Prèvia PDF"
         },
         "select_sync": {
             "title": "Selecciona el Calendari de Destinació",
@@ -823,6 +878,7 @@
             "fallback_confirm": "Tens canvis sense desar. Estàs segur que vols continuar?"
         },
         "new_document_success": "Nou espai de treball creat.",
+        "gpu_settings_updated": "Configuració de GPU actualitzada. Reinicia l'aplicació per aplicar els canvis.",
         "open": {
             "read_error_prefix": "Error en llegir el fitxer: ",
             "load_error_fallback": "Hi ha hagut un error en carregar les dades.",
@@ -1004,7 +1060,18 @@
         "header_assignment_end_date": "Data Fi Assignació",
         "header_assignment_status": "Estat Assignació",
         "header_assignment_notes": "Notes Assignació",
-        "header_event_notes": "Notes Generals Esdeveniment"
+        "header_event_notes": "Notes Generals Esdeveniment",
+        "filename_prefix": "Llista_Esdeveniments",
+        "header_assignment_dates": "Dates Assignació",
+        "header_event_dates": "Dates Esdeveniment",
+        "header_event_frame": "Marc Esdeveniment",
+        "header_event_place": "Lloc Esdeveniment",
+        "header_general_status": "Estat General",
+        "header_grouping": "Agrupació",
+        "header_status_detail": "Detall Estat",
+        "type_date": "Data",
+        "type_event": "Esdeveniment",
+        "type_person": "Persona"
     },
     "sync": {
         "title": "Sincronització amb Google Calendar",
@@ -1032,5 +1099,17 @@
         "copyright": "© {{year}} (Pëp) Gestor de Esdeveniments i Personal {{version}}. Llicència GNU GPL v3.0.",
         "collaboration_text": "Si vols col·laborar, pots fer-ho al {{githubLink}} o amb una aportació a {{paypalLink}}.",
         "github_project": "projecte de GitHub"
+    },
+    "summary": {
+        "by_event_name": "Per Nom d'Esdeveniment",
+        "by_person": "Per Persona",
+        "by_start_date": "Per Data d'Inici",
+        "export_csv_tooltip": "Exportar resum a CSV",
+        "export_pdf_tooltip": "Exportar resum a PDF",
+        "sort_date_tooltip": "Ordenar per data {{order}}"
+    },
+    "main_display": {
+        "assignment_status_updated": "Estat de l'assignació actualitzat a {{status}}",
+        "daily_status_updated": "Estat diari actualitzat a {{status}}"
     }
 }

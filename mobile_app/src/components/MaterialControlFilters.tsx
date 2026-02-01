@@ -75,7 +75,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
     <View style={styles.container}>
       <TextInput
         style={styles.searchInput}
-        placeholder="Cerca per text..."
+        placeholder={t('mobile.material_filters.search_placeholder')}
         placeholderTextColor={colors.placeholder}
         value={filters.searchText}
         onChangeText={(val) => handleFilterChange('searchText', val)}

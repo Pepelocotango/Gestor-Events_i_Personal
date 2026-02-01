@@ -1,4 +1,4 @@
-branca de desenvolupament * DEV_DESKTOP+MOBILE+WEBS
+branca de desenvolupament * 0DEV_TRANSLATE
 
 web de la app a Vercel a la branca main O 0DEV_TRANSLATE:
 https://gestor-events-i-personal-landingpag.vercel.app/
@@ -105,6 +105,7 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
         -   Garantir que el frontend no tingui accés directe a les API de Node.js, una pràctica de seguretat fonamental en Electron.
         -   Definir l'API `window.electronAPI`, que és l'únic punt de contacte entre les dues capes.
         -   Habilitació de la Sandbox: L'aplicació s'executa amb la sandbox d'Electron activada (sandbox: true). Això aïlla completament el procés de renderitzat (frontend), prevenint que pugui executar codi natiu directament. Tota operació que requereixi accés al sistema ha de passar obligatòriament a través dels canals IPC definits aquí.
+- **Configuració de GPU:** L'acceleració per hardware és configurable a través del fitxer `session.json` (`gpuEnabled`). Per defecte està desactivada per garantir l'estabilitat en equips més antics. Aquesta configuració s'aplica durant l'arrencada del procés principal abans de crear la finestra.
 
 3.  **Capa 3: Frontend (Interfície d'Usuari en React - `src/`)**
     -   **Descripció:** És una Single Page Application (SPA) que s'executa dins d'una finestra de Chromium. És responsable de tot el que l'usuari veu i amb què interactua.
@@ -517,8 +518,8 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
     -   `MaterialForm.tsx`: Un component controlat que encapsula la UI i la lògica de validació per crear i editar ítems de material. Rep `props` com `initialData`, `onSubmit` i `onCancel` per desacoblar-lo de la gestió de l'estat.
 
 -   **Components de Lògica de Negoci:**
-    -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. La seva capçalera està dissenyada per ser totalment clicable per expandir/col·lapsar el contingut. La lògica `onClick` de la capçalera comprova si el clic s'ha fet sobre un element interactiu (com un botó) per evitar l'expansió/col·lapse no desitjat, gestionant les interaccions de l'usuari de manera precisa. Conté la lògica per renderitzar la llista de `AssignmentCard`.
-    -   `AssignmentCard.tsx`: Gestiona la presentació d'una única assignació. S'ha estandarditzat com `EventFrameCard` per permetre expandir/col·lapsar la vista diària fent clic a qualsevol lloc de la capçalera.
+    -   `EventFrameCard.tsx`: Component complex que representa un esdeveniment a la llista. La seva capçalera està dissenyada per actuar com un botó XL per expandir/col·lapsar el contingut, mentre que el cos roman lliure per a la interacció amb el text (copiar/pegar). La lògica `onClick` de la capçalera comprova si el clic s'ha fet sobre un element interactiu (com un botó) per evitar l'expansió/col·lapse no desitjat. Conté la lògica per renderitzar la llista de `AssignmentCard`.
+    -   `AssignmentCard.tsx`: Gestiona la presentació d'una única assignació. Segueix el mateix comportament que `EventFrameCard`: la capçalera (nom, rol i estat) actua com a actuador per expandir/col·lapsar la vista diària, permetent la interacció lliure amb les notes.
     -   `SummaryReports.tsx`: Calcula i renderitza les diferents vistes de resum de dades.
 
 -   **Ecosistema de Fitxes de Bolo (`src/components/tech_sheets/`):**
@@ -1168,9 +1169,9 @@ Després de la migració a Zustand, algunes interaccions de la UI es van haver d
 
 ### 9.1. Gestió d'Expansió de Targetes (Manual i Automàtica)
 
-S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment les targetes d'esdeveniments.
+S'ha restaurat la capacitat de l'usuari per expandir i col·lapsar manualment les targetes d'esdeveniments, millorant l'experiència en permetre la selecció de dades.
 
--   **Gestió d'Esdeveniments de Clic (`EventFrameCard.tsx`):** La capçalera de la targeta gestiona els clics per evitar conflictes. Utilitza `e.stopPropagation()` en els botons interns per assegurar que només el clic a la capçalera activi l'expansió, cridant a la funció `onToggleExpand`.
+-   **Gestió d'Esdeveniments de Clic (`EventFrameCard.tsx`):** El gestor `onClick` s'ha mogut del wrapper principal a la capçalera específica. Aquesta actua com un actuador XL, mentre que el cos de la targeta queda lliure per interactuar amb el text. Utilitza `e.stopPropagation()` en els botons interns per assegurar que només el clic a la zona buida de la capçalera activi l'expansió.
 -   **Estat a l'Store (`eventDataStore.ts`):**
     -   `manualExpandedFrameIds: Set<string>`: Emmagatzema els IDs de les targetes que l'usuari ha expandit manualment.
     -   `setManualExpandedFrameIds()`: L'acció per modificar aquest conjunt.

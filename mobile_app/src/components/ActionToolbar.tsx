@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type ActionToolbarProps = {
   sortOrder: 'asc' | 'desc';
@@ -13,7 +14,7 @@ type ActionToolbarProps = {
   areAllExpanded: boolean;
 };
 
-const ActionToolbar = ({
+const ActionToolbar: React.FC<ActionToolbarProps> = ({
   sortOrder,
   setSortOrder,
   showArchived,
@@ -21,6 +22,7 @@ const ActionToolbar = ({
   toggleAllCards,
   areAllExpanded,
 }: ActionToolbarProps) => {
+  const { t } = useTranslation();
   const theme = useDataStore((state: any) => state.theme);
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
@@ -53,7 +55,7 @@ const ActionToolbar = ({
         onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
       >
         <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color={colors.text} />
-        <Text style={styles.buttonText}>Data</Text>
+        <Text style={styles.buttonText}>{t('mobile.action_toolbar.sort_by_date')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -61,12 +63,12 @@ const ActionToolbar = ({
         onPress={() => setShowArchived(!showArchived)}
       >
         <Icon name={showArchived ? "archive-eye" : "archive-eye-outline"} size={24} color={colors.text} />
-        <Text style={styles.buttonText}>{showArchived ? 'Mostrant arxivats' : 'Veure arxivats'}</Text>
+        <Text style={styles.buttonText}>{showArchived ? t('mobile.action_toolbar.showing_archived') : t('mobile.action_toolbar.show_archived')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={toggleAllCards}>
         <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
-        <Text style={styles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
+        <Text style={styles.buttonText}>{areAllExpanded ? t('mobile.action_toolbar.collapse_all') : t('mobile.action_toolbar.expand_all')}</Text>
       </TouchableOpacity>
     </View>
   );

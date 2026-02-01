@@ -114,7 +114,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
 
 
   return (
-    <CollapsibleSection title={t('mcc.filters_title')} defaultOpen={true}>
+    <CollapsibleSection title={t('mcc.filters_title')} defaultOpen={false}>
       <div className="p-4 bg-card text-card-foreground rounded-b-lg border-t border-border space-y-4">
         {/* Fila 1: Cerca i Rang de dates */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -6,10 +6,12 @@ import { formatDateDMY } from '../utils/dateFormat';
 import SummarySection from '../components/SummarySection';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 const SECTION_KEYS = ['event', 'date', 'person'];
 
 const SummaryScreen = () => {
+  const { t } = useTranslation();
   const { eventFrames, peopleGroups, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -135,30 +137,30 @@ const SummaryScreen = () => {
       <View style={dynamicStyles.toolbar}>
         <TouchableOpacity style={dynamicStyles.button} onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
             <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color={colors.text} />
-            <Text style={dynamicStyles.buttonText}>Data</Text>
+            <Text style={dynamicStyles.buttonText}>{t('mobile.summary.sort_by_date')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={dynamicStyles.button} onPress={toggleAllSections}>
             <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
-            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
+            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? t('mobile.summary.collapse_all') : t('mobile.summary.expand_all')}</Text>
         </TouchableOpacity>
       </View>
 
       <SummarySection
-        title="Per Nom d'Esdeveniment"
+        title={t('main.event')}
         data={summaryByEventName}
         groupingType="event"
         isExpanded={!!expandedSections.event}
         onToggle={() => handleToggleSection('event')}
       />
       <SummarySection
-        title="Per Data d'Inici d'Assignació"
+        title={t('main.start_date')}
         data={summaryByStartDate}
         groupingType="date"
         isExpanded={!!expandedSections.date}
         onToggle={() => handleToggleSection('date')}
       />
       <SummarySection
-        title="Per Persona/Grup"
+        title={t('main.person')}
         data={summaryByPerson}
         groupingType="person"
         isExpanded={!!expandedSections.person}

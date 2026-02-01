@@ -18,7 +18,13 @@
             "confirm_status_message": "El evento '{{name}}' se marcará {{status}}. ¿Está seguro?",
             "validation_errors": "Errores de Validación",
             "validation_message": "Por favor, corrija los errores antes de guardar.",
-            "assignment_conflict": "Conflicto de Asignación"
+            "assignment_conflict": "Conflicto de Asignación",
+            "name_required": "El nombre es obligatorio",
+            "dates_invalid": "Las fechas no son válidas",
+            "email_invalid": "El correo electrónico no es válido",
+            "phone_invalid": "El teléfono no es válido",
+            "stock_required": "El stock es obligatorio",
+            "category_required": "La categoría es obligatoria"
         },
         "filters": {
             "all_events": "-- Todos los Eventos --",
@@ -29,7 +35,21 @@
             "app_description": "Aplicación móvil para visualizar y gestionar eventos, personal y material. Permite consultar y editar la información básica de los eventos, gestionar el personal asignado y revisar el inventario de material. Sincroniza con la aplicación de escritorio para una gestión completa.",
             "version": "Versión",
             "links": "Enlaces de Interés",
-            "donate": "Haz una donación"
+            "donate": "Haz una donación",
+            "github_repository": "Repositorio en GitHub",
+            "app_name": "Gestor de Eventos"
+        },
+        "event_card": {
+            "accept": "Aceptar",
+            "hide_days": "Ocultar días",
+            "show_days": "Mostrar días",
+            "assigned_personnel": "Personal asignado:",
+            "add_person": "Agregar persona"
+        },
+        "filter_controls": {
+            "global_search": "Búsqueda global...",
+            "all_people": "Todas las personas",
+            "all_events": "Todos los eventos"
         },
         "material": {
             "balance": "Balance",
@@ -41,6 +61,145 @@
             "select_person": "Debe seleccionar una persona o grupo.",
             "start_date_required": "La fecha de inicio es obligatoria.",
             "end_date_required": "La fecha de fin es obligatoria."
+        },
+        "form_labels": {
+            "name": "Nombre",
+            "role": "Rol",
+            "start_date": "Fecha de inicio",
+            "end_date": "Fecha de fin",
+            "notes": "Notas",
+            "place": "Lugar",
+            "stock": "Stock",
+            "category": "Categoría",
+            "location": "Ubicación",
+            "email": "Correo electrónico",
+            "phone": "Teléfono",
+            "web": "Página web",
+            "person_group": "Persona/Grupo",
+            "status": "Estado General",
+            "tel1": "Teléfono 1",
+            "tel2": "Teléfono 2"
+        },
+        "forms": {
+            "labels": {
+                "name": "Nombre",
+                "place": "Lugar",
+                "start_date": "Fecha de Inicio",
+                "end_date": "Fecha de Fin",
+                "general_notes": "Notas Generales",
+                "person_group": "Persona/Grupo",
+                "role": "Rol (Opcional)",
+                "status": "Estado General",
+                "category": "Categoría",
+                "stock": "Stock",
+                "location": "Ubicación",
+                "tel1": "Teléfono 1",
+                "tel2": "Teléfono 2",
+                "email": "Email",
+                "web": "Página Web"
+            },
+            "placeholders": {
+                "event_name_example": "Ej: Concierto de Primavera",
+                "place_example": "Ej: Teatro Principal",
+                "notes_example": "Anotaciones diversas...",
+                "specify_role": "Especifica el rol...",
+                "select_option": "-- Seleccione --",
+                "name": "Introduce el nombre",
+                "role": "Introduce el rol",
+                "start_date": "Selecciona fecha de inicio",
+                "end_date": "Selecciona fecha de fin",
+                "notes": "Añade notas...",
+                "place": "Introduce el lugar",
+                "stock": "Introduce el stock",
+                "category": "Introduce la categoría",
+                "location": "Introduce la ubicación",
+                "email": "Introduce el correo electrónico",
+                "phone": "Introduce el teléfono",
+                "web": "Introduce la página web"
+            },
+            "validation": {
+                "name_required": "El nombre es obligatorio.",
+                "start_date_required": "La fecha de inicio es obligatoria.",
+                "end_date_required": "La fecha de fin es obligatoria.",
+                "date_order_error": "La fecha de fin debe ser posterior o igual a la de inicio.",
+                "category_required": "La categoría es obligatoria.",
+                "select_person_required": "Debe seleccionar una persona o grupo."
+            },
+            "buttons": {
+                "create": "Crear",
+                "update": "Actualizar",
+                "create_and_assign": "Crear y Asignar",
+                "save_changes": "Guardar cambios",
+                "create_assignment": "Crear Asignación"
+            },
+            "alerts": {
+                "assignment_conflict": "Conflicto de Asignación"
+            }
+        },
+        "event_details": {
+            "place": "Lugar:",
+            "start": "Inicio:",
+            "end": "Fin:",
+            "notes": "Notas:",
+            "not_specified": "No especificado",
+            "no_notes": "No hay notas."
+        },
+        "calendar": {
+            "no_events_day": "No hay eventos para este día.",
+            "events_for_day": "Eventos para el {{date}}"
+        },
+        "tech_sheet_details": {
+            "no_specifications": "Sin especificaciones.",
+            "material_unknown": "Material desconocido",
+            "person_es": "persona/s"
+        },
+        "summary": {
+            "sort_by_date": "Fecha",
+            "collapse_all": "Contraer",
+            "expand_all": "Expandir"
+        },
+        "material_control": {
+            "no_results": "No se han encontrado resultados."
+        },
+        "header": {
+            "ready_to_share": "A punto para compartir",
+            "error_save_file": "No se ha podido guardar el archivo con un nuevo nombre.",
+            "error_share_file": "No se ha podido compartir el archivo."
+        },
+        "action_toolbar": {
+            "sort_by_date": "Fecha",
+            "show_archived": "Ver archivados",
+            "showing_archived": "Mostrando archivados",
+            "collapse_all": "Contraer",
+            "expand_all": "Expandir"
+        },
+        "material_filters": {
+            "search_placeholder": "Buscar por texto...",
+            "filter_by_event": "Filtrar por evento",
+            "filter_by_category": "Filtrar por categoría",
+            "filter_by_origin": "Filtrar por origen",
+            "clear_filters": "Limpiar filtros"
+        },
+        "tech_sheet_list": {
+            "no_tech_sheets": "No se han encontrado fichas de bolo.",
+            "ensure_file_open": "Asegúrate de haber abierto un archivo de datos."
+        },
+        "tech_sheet_components": {
+            "not_specified": "No especificado"
+        },
+        "placeholders": {
+            "name": "Introduce el nombre",
+            "role": "Introduce el rol",
+            "start_date": "Selecciona fecha de inicio",
+            "end_date": "Selecciona fecha de fin",
+            "notes": "Añade notas...",
+            "place": "Introduce el lugar",
+            "stock": "Introduce el stock",
+            "category": "Introduce la categoría",
+            "location": "Introduce la ubicación",
+            "email": "Introduce el correo electrónico",
+            "phone": "Introduce el teléfono",
+            "web": "Introduce la página web"
         },
         "tech_sheet": {
             "event_not_found": "No se ha encontrado el evento.",
