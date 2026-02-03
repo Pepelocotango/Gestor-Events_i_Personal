@@ -40,7 +40,7 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   const sortedEventFrames = useMemo(() => {
     return eventFrames
       .filter(ef => includeArchived || !ef.isArchived)
-      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
   }, [eventFrames, includeArchived]);
 
   const selectedEventFrame = useMemo((): EventFrame | undefined => {

@@ -84,12 +84,12 @@ const MaterialControlTable: React.FC<MaterialControlTableProps> = ({ data }) => 
                     )}
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">{row.item.stock}</td>
-                  <td className="px-2 pl-4 py-3 whitespace-nowrap">
+                  <td className="px-2 pl-4 py-3 whitespace-normal">
                     <div className="font-medium text-foreground">{row.item.name}</div>
                     {row.item.notes && <div className="text-xs text-muted-foreground">{row.item.notes}</div>}
                   </td>
-                  <td className="px-2 py-3 whitespace-nowrap text-sm text-muted-foreground">{row.item.category}</td>
-                  <td className="px-2 py-3 whitespace-nowrap text-sm text-muted-foreground">{row.item.location}</td>
+                  <td className="px-2 py-3 whitespace-normal text-sm text-muted-foreground">{row.item.category}</td>
+                  <td className="px-2 py-3 whitespace-normal text-sm text-muted-foreground">{row.item.location}</td>
                   <td className="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">{row.totalDemand}</td>
                   <td className={`px-2 pr-4 py-3 whitespace-nowrap text-right text-sm font-bold ${balanceIsNegative ? 'text-destructive' : 'text-success'}`}>
                     {row.balance}
