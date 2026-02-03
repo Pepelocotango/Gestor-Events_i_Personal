@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowUturnLeftIcon as OutlineArrowUturnLeftIcon, ArrowUturnRightIcon as OutlineArrowUturnRightIcon, DocumentArrowDownIcon as OutlineDocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { AssignmentStatus } from './types';
 
-export const APP_TITLE = "Gestor de Esdeveniments i Personal v0.2";
+export const APP_TITLE = "Gestor de Esdeveniments i Personal v1.6.0";
 export const THEME_STORAGE_KEY = 'eventManagementAppTheme';
 
 export const ASSIGNMENT_STATUS_OPTIONS = [
