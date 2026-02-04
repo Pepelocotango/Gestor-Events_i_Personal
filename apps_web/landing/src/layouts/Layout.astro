@@ -5,31 +5,41 @@ import LanguageSelector from '../components/LanguageSelector.astro';
 interface Props {
   title: string;
   description?: string;
-  currentLocale?: string;
-  currentPath?: string;
-  translations?: {
-    navigation?: {
-      home?: string;
-      features?: string;
-      product_tour?: string;
-      gallery?: string;
-      download?: string;
-      contact?: string;
+  currentLocale: string;
+  currentPath: string;
+  translations: {
+    navigation: {
+      home: string;
+      features: string;
+      product_tour: string;
+      gallery: string;
+      download: string;
+      contact: string;
+      menu: string;
+      logo_text: string;
     };
-    footer?: {
-      title?: string;
-      version?: string;
-      source_code?: string;
-      documentation?: string;
-      copyright?: string;
+    footer: {
+      title: string;
+      version: string;
+      source_code: string;
+      documentation: string;
+      collaborate_title: string;
+      collaborate_description: string;
+      view_github: string;
+      view_features: string;
+      copyright: string;
+    };
+    site: {
+      title: string;
+      description: string;
     };
   };
 }
 
-const { title, description, currentLocale = 'ca', currentPath = '/', translations = {} } = Astro.props;
+const { title, description, currentLocale = 'ca', currentPath = '/', translations } = Astro.props;
 
-const siteTitle = translations.footer?.title || 'Gestor d\'Esdeveniments i Personal';
-const siteDescription = description || 'L\'eina definitiva per a la gestió professional d\'esdeveniments i personal';
+const siteTitle = translations.site.title;
+const siteDescription = description || translations.site.description;
 const url = 'https://gestor-events.vercel.app';
 
 // Preload fonts
@@ -49,7 +59,7 @@ const fontLink3 = {
 ---
 
 <!DOCTYPE html>
-<html lang="ca" class="h-full scroll-smooth">
+<html lang={currentLocale} class="h-full scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -62,13 +72,9 @@ const fontLink3 = {
     <link {...fontLink3} />
     
     <!-- React i18n -->
-    <script>
+    <script define:vars={{ translations }}>
       // Initialize i18n for client-side components
-      window.siteTranslations = {
-        ca: { title: 'Gestor d\'Esdeveniments i Personal', description: 'L\'eina definitiva per a la gestió professional d\'esdeveniments i personal' },
-        es: { title: 'Gestor de Eventos y Personal', description: 'La herramienta definitiva para la gestión profesional de eventos y personal' },
-        en: { title: 'Event and Personnel Manager', description: 'The definitive tool for professional event and personnel management' }
-      };
+      window.siteTranslations = translations;
     </script>
     
     <title>{title} | {siteTitle}</title>
@@ -132,7 +138,7 @@ const fontLink3 = {
       
       <header class="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-          <a href="/" class="flex items-center space-x-2">
+          <a href={currentLocale === 'ca' ? '/' : `/${currentLocale}/`} class="flex items-center space-x-2">
             <img 
               src="/images/black_icon-64.png" 
               alt="Logo GEP" 
@@ -142,16 +148,16 @@ const fontLink3 = {
               loading="eager"
             />
             <span class="text-xl font-bold bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
-              GEP
+              {translations.navigation.logo_text}
             </span>
           </a>
-          <nav>
+          <nav class="hidden lg:block">
             <ul class="flex space-x-8">
-              <li><a href="#home" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.home || 'Inici'}</a></li>
-              <li><a href="#features" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.features || 'Funcionalitats'}</a></li>
-              <li><a href="#product-tour" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.product_tour || 'Descobreix la interfície'}</a></li>
-              <li><a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.gallery || 'Galeria'}</a></li>
-              <li><a href="#download" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation?.download || 'Descarrega'}</a></li>
+              <li><a href="#home" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.home}</a></li>
+              <li><a href="#features" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.features}</a></li>
+              <li><a href="#product-tour" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.product_tour}</a></li>
+              <li><a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.gallery}</a></li>
+              <li><a href="#download" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.download}</a></li>
             </ul>
           </nav>
           <LanguageSelector currentLocale={currentLocale} currentPath={currentPath} />
@@ -167,25 +173,25 @@ const fontLink3 = {
           <div class="flex flex-col md:flex-row justify-between items-center">
             <div class="mb-6 md:mb-0 text-center md:text-left">
               <h3 class="text-lg font-semibold mb-2 text-white">{siteTitle}</h3>
-              <p class="text-gray-400">{translations.footer?.version || 'Versió 1.5.0 - Sota llicència GPL v3.0'}</p>
+              <p class="text-gray-400">{translations.footer.version}</p>
             </div>
             <div class="flex space-x-6">
               <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
                  target="_blank" 
                  rel="noopener noreferrer" 
                  class="text-gray-400 hover:text-white transition-colors">
-                {translations.footer?.source_code || 'Codi Font'}
+                {translations.footer.source_code}
               </a>
               <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/blob/main/README.md" 
                  target="_blank"
                  rel="noopener noreferrer"
                  class="text-gray-400 hover:text-white transition-colors">
-                {translations.footer?.documentation || 'Documentació'}
+                {translations.footer.documentation}
               </a>
             </div>
           </div>
           <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
-            <p>{translations.footer?.copyright || `© ${new Date().getFullYear()} Gestor d'Esdeveniments i Personal. Tots els drets reservats.`}</p>
+            <p>{translations.footer.copyright}</p>
           </div>
         </div>
       </footer>

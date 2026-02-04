@@ -12,6 +12,9 @@ interface AboutModalProps {
 const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onClose }) => {
   const { t } = useTranslation();
   const GITHUB_URL = 'https://github.com/Pepelocotango/Gestor-Events_i_Personal';
+  const PAYPAL_URL = 'https://paypal.me/RosePep';
+  const currentYear = new Date().getFullYear();
+  const descriptionText = t('modals.about.description', { defaultValue: description });
 
   const handleLinkClick = (url: string) => {
     // The main process will handle opening external links.
@@ -20,41 +23,41 @@ const AboutModal: React.FC<AboutModalProps> = ({ name, version, description, onC
   };
 
   return (
-    <div className="p-6 bg-card text-card-foreground rounded-lg shadow-lg max-w-md w-full">
-      <div className="text-center mb-4">
+    <div className="p-6 bg-card text-card-foreground rounded-lg shadow-lg max-w-md w-full flex flex-col gap-6">
+      <div className="text-center">
         <h2 className="text-2xl font-bold text-primary">{name}</h2>
         <p className="text-sm text-muted-foreground">{t('modals.about.version', { version })}</p>
       </div>
 
-      <div className="my-6 text-center">
-        <p className="text-base">{description}</p>
+      <div className="text-center">
+        <p className="text-base">{descriptionText}</p>
       </div>
 
-      <div className="my-6">
-        <h3 className="text-lg font-semibold mb-2 text-center">{t('modals.about.links_title')}</h3>
-        <ul className="space-y-2">
-          <li>
-            <button
-              onClick={() => handleLinkClick(GITHUB_URL)}
-              className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              {t('modals.about.github_button')}
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => handleLinkClick('https://paypal.me/RosePep')}
-              className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              {t('modals.about.paypal_button')}
-            </button>
-          </li>
-        </ul>
+      <div className="flex flex-col items-center text-center space-y-3">
+        <h3 className="text-lg font-semibold">{t('modals.about.links_title')}</h3>
+        <p className="text-sm text-muted-foreground">{t('modals.about.collaboration_intro')}</p>
+        <button
+          onClick={() => handleLinkClick(GITHUB_URL)}
+          className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          {t('modals.about.github_button')}
+        </button>
+        <p className="text-sm text-muted-foreground">{t('modals.about.collaboration_or')}</p>
+        <button
+          onClick={() => handleLinkClick(PAYPAL_URL)}
+          className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          {t('modals.about.paypal_button')}
+        </button>
       </div>
 
-      <div className="mt-6 flex justify-end">
+      <p className="mt-2 text-xs text-muted-foreground text-center">
+        {t('modals.about.copyright', { year: currentYear, version })}
+      </p>
+
+      <div className="flex justify-end">
         <button
           onClick={onClose}
           className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border"

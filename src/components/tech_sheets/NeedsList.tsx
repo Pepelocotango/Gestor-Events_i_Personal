@@ -18,6 +18,7 @@ interface NeedsListProps {
   onMoveItemUp: (listName: string, index: number) => void;
   onMoveItemDown: (listName: string, index: number) => void;
   onSortByOrigin: (listName: string) => void;
+  sortDirection: 'asc' | 'desc';
   originSuggestions: string[];
   availabilityMap: Map<string, { available: number; total: number }>;
 }
@@ -35,6 +36,7 @@ const NeedsList: React.FC<NeedsListProps> = ({
   onMoveItemUp,
   onMoveItemDown,
   onSortByOrigin,
+  sortDirection,
   originSuggestions,
   availabilityMap,
 }) => {
@@ -55,12 +57,15 @@ const NeedsList: React.FC<NeedsListProps> = ({
       <div className="col-span-full flex justify-between items-center mt-3 -mb-2">
         <h4 className="text-md font-semibold text-foreground">{title}:</h4>
         {needs.length > 1 && (
-          <Tooltip text={t('tech_sheets.needs.sort_origin_tooltip')}>
+          <Tooltip text={t('tech_sheets.needs.sort_tooltip')}>
             <button
               onClick={() => onSortByOrigin(listName)}
-              className="text-xs px-2 py-1 rounded-md no-print bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              className="text-xs px-2 py-1 rounded-md no-print bg-secondary text-secondary-foreground hover:bg-secondary/80 flex items-center gap-1"
             >
-              {t('tech_sheets.needs.sort_origin')}
+              {t('tech_sheets.needs.sort_by_origin')}
+              <span className="text-xs">
+                {sortDirection === 'asc' ? '↑' : '↓'}
+              </span>
             </button>
           </Tooltip>
         )}

@@ -10,6 +10,7 @@ import FilterControls from '../components/FilterControls';
 import ActionToolbar from '../components/ActionToolbar';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type EventsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventList'>;
 
@@ -18,6 +19,7 @@ type Props = {
 };
 
 const EventsScreen = ({ navigation }: Props) => {
+  const { t, i18n } = useTranslation();
   const {
     fileName,
     eventFrames,
@@ -130,8 +132,13 @@ const EventsScreen = ({ navigation }: Props) => {
   const clearFilters = () => setFilters({ text: '', person: '', status: '', date: '', place: '', eventFrame: '' });
 
   const handleDelete = useCallback((id: string) => {
-    Alert.alert("Eliminar Esdeveniment", "¿Esteu segur?",
-      [{ text: "Cancel·lar", style: "cancel" }, { text: "Eliminar", onPress: () => deleteEventFrame(id), style: 'destructive' }]
+    Alert.alert(
+      t('common.delete'),
+      t('common.confirm'),
+      [
+        { text: t('common.cancel'), style: "cancel" },
+        { text: t('common.delete'), onPress: () => deleteEventFrame(id), style: 'destructive' }
+      ]
     );
   }, [deleteEventFrame]);
 
@@ -186,8 +193,8 @@ const EventsScreen = ({ navigation }: Props) => {
   if (!fileName) {
     return (
       <View style={dynamicStyles.centered}>
-        <Text style={dynamicStyles.title}>No hi ha cap fitxer obert</Text>
-        <Text style={dynamicStyles.message}>Feu servir el botó "Obrir" de la capçalera per carregar un projecte.</Text>
+        <Text style={dynamicStyles.title}>{t('main.no_events_found')}</Text>
+        <Text style={dynamicStyles.message}>{t('main.no_events_found')}</Text>
       </View>
     );
   }
@@ -227,7 +234,7 @@ const EventsScreen = ({ navigation }: Props) => {
             navigation={navigation}
           />
         )}
-        ListEmptyComponent={<Text style={dynamicStyles.emptyList}>No s'han trobat esdeveniments amb aquests filtres.</Text>}
+        ListEmptyComponent={<Text style={dynamicStyles.emptyList}>{t('main.no_events_found')}</Text>}
         contentContainerStyle={{ paddingBottom: 80 }}
       />
       <TouchableOpacity

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface ImageCarouselProps {
@@ -22,15 +21,17 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
   
   // Filter images based on view mode
   const filteredImages = images.filter(img => {
-    const isDark = img.includes('dark') || img.includes('theme-dark');
+    const isDark = img.includes('dark') || img.includes('theme-dark') || img.includes('_fosc');
     return viewMode === 'dark' ? isDark : !isDark;
   });
 
   const nextSlide = () => {
+    if (filteredImages.length === 0) return;
     setCurrentIndex((prev) => (prev + 1) % filteredImages.length);
   };
 
   const prevSlide = () => {
+    if (filteredImages.length === 0) return;
     setCurrentIndex((prev) => (prev - 1 + filteredImages.length) % filteredImages.length);
   };
 
@@ -52,7 +53,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
   if (!isClient || filteredImages.length === 0) {
     return (
       <div className="w-full h-96 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-        <div className="text-gray-500 dark:text-gray-400">Carregant imatges...</div>
+        <div className="text-gray-500 dark:text-gray-400">{t('carousel.loading_images')}</div>
       </div>
     );
   }
@@ -79,7 +80,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 18a6 6 0 100-12 6 6 0 000 12zM12 1v6m0 6v6m4.22-15.22l-4.24 4.24m-5.96 5.96l-4.24 4.24M1 12h6m6 0h6m-15.22 4.22l4.24-4.24m5.96-5.96l4.24-4.24" />
           </svg>
-          Tema clar
+          {t('carousel.light_mode')}
         </button>
         <button
           onClick={() => setViewMode('dark')}
@@ -94,7 +95,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M21.64 15.95a.75.75 0 00-1.08-.02A7.041 7.041 0 0112 20.25a7.04 7.04 0 01-8.36-10.635.75.75 0 00-1.088.088A8.461 8.461 0 1021.64 15.95z" />
           </svg>
-          Tema fosc
+          {t('carousel.dark_mode')}
         </button>
       </div>
 
@@ -102,7 +103,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
       <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden group">
         <div className="aspect-video flex items-center justify-center p-8">
           <img 
-            src={currentImage} 
+            src={currentImage.startsWith('/') ? currentImage : `/images/${currentImage}`}
             alt={title}
             className="w-full h-full object-contain max-w-full max-h-full"
             loading="eager"
@@ -117,7 +118,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
         aria-label={t('carousel.previous_image')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
       
@@ -127,12 +128,12 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
         aria-label={t('carousel.next_image')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
 
       {/* Indicadors de pàgina */}
-      <div className="flex justify-center gap-2 flex-wrap">
+      <div className="flex justify-center gap-2 flex-wrap mt-4">
         {filteredImages.map((_, index) => (
           <button
             key={index}

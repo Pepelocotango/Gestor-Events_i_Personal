@@ -136,7 +136,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │       ├── themeConfig.ts    # Configuració central de colors (semàntica).
 │   │       └── themes.ts         # Defineix els colors per als temes clar i fosc.
 │   ├── App.tsx                   # Punt d'entrada principal que carrega les pantalles.
-│   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil (v1.5.0).
+│   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil (v1.6.0).
 │   ├── package.json              # Dependències i scripts de l'aplicació mòbil.
 │   └── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil.
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.

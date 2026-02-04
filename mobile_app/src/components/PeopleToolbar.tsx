@@ -4,6 +4,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
 
+import { useTranslation } from 'react-i18next';
+
 type PeopleToolbarProps = {
   searchQuery: string;
   onSearchChange: (text: string) => void;
@@ -17,6 +19,7 @@ const PeopleToolbar: React.FC<PeopleToolbarProps> = ({
   onSort,
   onFilter,
 }) => {
+  const { t } = useTranslation();
   const { theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
@@ -50,7 +53,7 @@ const PeopleToolbar: React.FC<PeopleToolbarProps> = ({
     <View style={dynamicStyles.toolbar}>
       <TextInput
         style={dynamicStyles.searchInput}
-        placeholder="Cerca persones..."
+        placeholder={t('mobile.people.search_placeholder')}
         placeholderTextColor={colors.placeholder}
         value={searchQuery}
         onChangeText={onSearchChange}

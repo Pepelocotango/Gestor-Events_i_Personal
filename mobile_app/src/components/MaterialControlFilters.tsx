@@ -4,6 +4,7 @@ import CustomSelect from './CustomSelect';
 import { EventFrame, MaterialItem } from '../types';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 interface MaterialControlFiltersProps {
   filters: any;
@@ -21,6 +22,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
   clearFilters,
 }) => {
   const theme = useDataStore((state: any) => state.theme);
+  const { t } = useTranslation();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const handleFilterChange = (key: string, value: any) => {
@@ -30,9 +32,9 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
   const allOrigins = Array.from(new Set(materialItems.map(item => item.location))).sort();
   const allCategories = Array.from(new Set(materialItems.map(item => item.category))).sort();
 
-  const eventOptions = [{ label: '-- Tots els Esdeveniments --', value: '' }, ...eventFrames.map(ef => ({ label: ef.name, value: ef.id }))];
-  const originOptions = [{ label: '-- Tots els Orígens --', value: '' }, ...allOrigins.map(o => ({ label: o, value: o }))];
-  const categoryOptions = [{ label: '-- Totes les Categories --', value: '' }, ...allCategories.map(c => ({ label: c, value: c }))];
+  const eventOptions = [{ label: t('mobile.filters.all_events'), value: '' }, ...eventFrames.map(ef => ({ label: ef.name, value: ef.id }))];
+  const originOptions = [{ label: t('mobile.filters.all_origins'), value: '' }, ...allOrigins.map(o => ({ label: o, value: o }))];
+  const categoryOptions = [{ label: t('mobile.filters.all_categories'), value: '' }, ...allCategories.map(c => ({ label: c, value: c }))];
 
   const styles = useMemo(() => StyleSheet.create({
     container: {
@@ -73,7 +75,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
     <View style={styles.container}>
       <TextInput
         style={styles.searchInput}
-        placeholder="Cerca per text..."
+        placeholder={t('mobile.material_filters.search_placeholder')}
         placeholderTextColor={colors.placeholder}
         value={filters.searchText}
         onChangeText={(val) => handleFilterChange('searchText', val)}
@@ -83,7 +85,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
           value={filters.selectedEventIds}
           onValueChange={(val) => handleFilterChange('selectedEventIds', val)}
           options={eventOptions}
-          placeholder="-- Tots els Esdeveniments --"
+          placeholder={t('mobile.filters.all_events')}
         />
       </View>
       <View style={styles.pickerContainer}>
@@ -91,7 +93,7 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
           value={filters.selectedOrigins}
           onValueChange={(val) => handleFilterChange('selectedOrigins', val)}
           options={originOptions}
-          placeholder="-- Tots els Orígens --"
+          placeholder={t('mobile.filters.all_origins')}
         />
       </View>
       <View style={styles.pickerContainer}>
@@ -99,10 +101,10 @@ const MaterialControlFilters: React.FC<MaterialControlFiltersProps> = ({
           value={filters.selectedCategories}
           onValueChange={(val) => handleFilterChange('selectedCategories', val)}
           options={categoryOptions}
-          placeholder="-- Totes les Categories --"
+          placeholder={t('mobile.filters.all_categories')}
         />
       </View>
-      <Button title="Netejar Filtres" onPress={clearFilters} color={colors.primary} />
+      <Button title={t('main.clean_filters')} onPress={clearFilters} color={colors.primary} />
     </View>
   );
 };

@@ -20,6 +20,7 @@ interface CustomMenuBarProps {
   canUndo: boolean;
   canRedo: boolean;
   splashScreenEnabled: boolean;
+  gpuEnabled: boolean;
   onToggleSplashScreen: () => void;
   isDocumentOpen: boolean;
   hasUnsavedChanges: boolean;
@@ -36,6 +37,7 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   canUndo,
   canRedo,
   splashScreenEnabled,
+  gpuEnabled,
   onToggleSplashScreen,
   isDocumentOpen,
   hasUnsavedChanges,
@@ -52,9 +54,13 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleAction = (action?: string, role?: string) => {
+    console.log(`[CustomMenuBar] handleAction called: ${action || role}`);
+    console.log(`[CustomMenuBar] window.electronAPI available:`, !!window.electronAPI);
+    
     if (window.electronAPI) {
       const actionToSend = action || role;
       if (actionToSend) {
+        console.log(`[CustomMenuBar] Sending action: ${actionToSend}`);
         window.electronAPI.triggerMenuAction(actionToSend);
       }
     } else {
@@ -185,6 +191,11 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
           label: t('menu.view.toggle_splash'),
           action: 'toggle-splash',
           checked: splashScreenEnabled,
+        },
+        {
+          label: t('menu.view.gpu_acceleration'),
+          action: 'toggle-gpu',
+          checked: gpuEnabled,
         },
       ],
     },

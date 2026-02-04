@@ -5,14 +5,25 @@
     "product_tour": "Descobreix la interfície",
     "gallery": "Galeria",
     "download": "Descarregues",
-    "contact": "Contacte"
+    "contact": "Contacte",
+    "menu": "Menú",
+    "logo_text": "Gestor d'Esdeveniments"
   },
   "hero": {
     "title": "Gestor d'Esdeveniments i Personal",
     "subtitle": "Eina integral per a la gestió de personal i material en esdeveniments",
-    "description": "Organitza els teus esdeveniments, assigna personal, gestiona material i controla tot des d'una única aplicació.",
-    "cta_primary": "Descarregar per a Escriptori",
-    "cta_secondary": "Descarregar per a Mòbil"
+    "description": "L'eina definitiva per a la gestió professional d'esdeveniments, personal i material. Gestiona tots els teus bolos des d'una interfície intuïtiva i potent.",
+    "cta_primary": "Descarrega gratuïta",
+    "cta_secondary": "Més informació",
+    "scroll_down": "Desplaça't cap avall",
+    "open_source_free": "Codi obert i gratuït",
+    "platform_support": "Per a Windows, macOS i Linux. Versió adaptada per a Android.",
+    "discover_more": "Descobreix més",
+    "loading_animation": "Animació de càrrega"
+  },
+  "site": {
+    "title": "Gestor d'Esdeveniments i Personal",
+    "description": "L'eina definitiva per a la gestió professional d'esdeveniments i personal"
   },
   "features": {
     "title": "Funcionalitats Principals",
@@ -39,6 +50,16 @@
     "google_sync": {
       "title": "Sincronització Google",
       "description": "Sincronització automàtica amb Google Calendar per a una gestió integrada."
+    },
+    "open_source": {
+      "title": "Codi Obert i Gratuït",
+      "description": "Llicència GPLv3. Sense subscripcions, sense anuncis i sense costos ocults. Inclou aplicació d'escriptori i versió mòbil complementària."
+    },
+    "cta": {
+      "title": "Preparat per millorar la teva gestió d'esdeveniments?",
+      "description": "Descobreix com el Gestor d'Esdeveniments i Personal pot simplificar el teu flux de treball i estalviar-te hores de feina.",
+      "button_start": "Començar ara",
+      "button_github": "Veure a GitHub"
     }
   },
   "download": {
@@ -54,11 +75,66 @@
     "macos": "macOS 10.14 o superior",
     "linux": "Linux (Ubuntu 18.04 o superior)",
     "android": "Android 8.0 o superior",
-    "ios": "iOS 13.0 o superior"
+    "ios": "iOS 13.0 o superior",
+    "installation_instructions": "Instruccions d'instal·lació",
+    "windows_setup": {
+      "title": "Windows",
+      "available_versions": "Disponible en dues versions:",
+      "installer_title": "Instal·lador (.exe):",
+      "installer_desc": "Recomanat per a la majoria d'usuaris. Executa el fitxer d'instal·lació i segueix les instruccions.",
+      "portable_title": "Portable (.exe):",
+      "portable_desc": "No requereix instal·lació. Executa directament des d'un USB o carpeta.",
+      "security_note": "Nota: L'aplicació no està signada digitalment. Si Windows mostra un avís, fes clic a \"Més informació\" i després a \"Executar de totes maneres\"."
+    },
+    "macos_setup": {
+      "title": "macOS",
+      "available_versions": "Disponible en format .dmg per a versions modernes de macOS:",
+      "step_1": "Descarrega l'arxiu .dmg de la darrera versió",
+      "step_2": "Fes doble clic a l'arxiu descarregat per muntar la imatge de disc",
+      "step_3": "Arrossega l'aplicació a la carpeta d'Aplicacions",
+      "step_4": "Per obrir l'aplicació per primera vegada, fes un clic dret sobre l'aplicació i selecciona \"Obrir\" al menú contextual",
+      "step_5": "Confirma que vols obrir l'aplicació quan aparegui la finestra d'advertència",
+      "security_title": "Important sobre seguretat a macOS:",
+      "security_description": "Com que l'aplicació no està signada amb un certificat de desenvolupador d'Apple, podràs veure un missatge dient que no es pot obrir. Aquí tens com resoldre-ho:",
+      "standard_method": "Mètode estàndard (funciona en la majoria de casos):",
+      "standard_step_1": "Fes clic dret (o Control+clic) a l'aplicació",
+      "standard_step_2": "Selecciona \"Obrir\" al menú contextual",
+      "standard_step_3": "Al quadre de diàleg, fes clic a \"Obrir\"",
+      "advanced_method": "Si el mètode anterior no funciona (macOS Sequoia 15+ o error \"Està malmesa\"):",
+      "option_a": "Opció A (Configuració): Ves a Configuració del Sistema > Privadesa i Seguretat, baixa fins al final i prem \"Obrir de totes maneres\".",
+      "option_b": "Opció B (Terminal): Si diu que l'app està malmesa, obre la Terminal i executa:",
+      "terminal_command_desc": "xattr -cr /Applications/GestorEsdevenimentsPersonal.app",
+      "first_time_only": "Només hauràs de fer això la primera vegada que obris l'aplicació. A partir d'aleshores, podràs obrir-la normalment amb un doble clic."
+    },
+    "linux_setup": {
+      "title": "Linux",
+      "step_1": "Descarrega l'arxiu .AppImage",
+      "step_2": "Fes-lo executable amb: chmod +x GestorEsdeveniments-*.AppImage",
+      "step_3": "Executa'l fent-hi doble clic o des de la terminal",
+      "fuse_note_prefix": "Nota: En sistemes com Ubuntu 22.04+ pot ser necessari instal·lar abans: ",
+      "fuse_note_command": "sudo apt-get install libfuse2"
+    },
+    "other_versions": {
+      "title": "Necessites una altra versió?",
+      "description": "Visita la nostra pàgina de versions per a descarregar versions anteriors o altres variants de la plataforma.",
+      "button": "Veure totes les versions"
+    },
+    "requirements_section": {
+      "title": "Requisits del sistema",
+      "minimum": "Mínims",
+      "recommended": "Recomanats",
+      "cpu_min": "Processador de doble nucli de 2 GHz o superior",
+      "ram_min": "4 GB de RAM",
+      "disk_min": "200 MB d'espai lliure en disc",
+      "cpu_rec": "Processador de 4 nuclis de 2,5 GHz o superior",
+      "ram_rec": "8 GB de RAM o més",
+      "disk_rec": "SSD amb 500 MB d'espai lliure"
+    },
+    "source_code_github": "Codi font a GitHub"
   },
   "footer": {
     "title": "Gestor d'Esdeveniments i Personal",
-    "version": "Versió 1.5.0 - Sota llicència GPL v3.0",
+    "version": "Versió 1.6.0 - Sota llicència GPL v3.0",
     "source_code": "Codi Font",
     "documentation": "Documentació",
     "collaborate_title": "Vols col·laborar en el projecte?",
@@ -183,7 +259,8 @@
     "dark_mode": "Tema fosc",
     "previous_image": "Imatge anterior",
     "next_image": "Següent imatge",
-    "go_to_image": "Anar a la imatge {{index}}"
+    "go_to_image": "Anar a la imatge {{index}}",
+    "loading_images": "Carregant imatges..."
   },
   "tour": {
     "title": "Tour Interactiu de Funcionalitats",
@@ -218,5 +295,18 @@
     "limitation_1": "No inclou totes les funcions avançades de la versió d'escriptori",
     "limitation_2": "Optimitzada per a ús mòbil amb una interfície simplificada",
     "recommendation": "Per a l'ús professional amb totes les funcions, recomanem utilitzar la versió d'escriptori (Windows, macOS o Linux)."
+  },
+  "releases": {
+    "error_title": "No hem pogut obtenir les últimes versions",
+    "error_description": "Hi ha hagut un problema consultant l'API de GitHub. Accedeix a la pàgina de versions per a descarregar.",
+    "go_to_github": "Anar a GitHub Releases",
+    "recommended": "Recomanat per a tu",
+    "download_apk": "Descarregar APK (ZIP)",
+    "download_for": "Descarregar per a {{platform}}",
+    "view_releases": "Veure versions",
+    "at_github": "A GitHub Releases",
+    "manual_installation": "Instal·lació manual (Sideloading)",
+    "not_on_play_store": "No disponible a Play Store",
+    "contains_apk": "⚠️ Conté l'APK dins del ZIP"
   }
 }

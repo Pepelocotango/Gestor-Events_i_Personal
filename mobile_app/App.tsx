@@ -1,6 +1,5 @@
 import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
-import uuid;
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
@@ -192,7 +191,7 @@ export default function App() {
       >
         <Tab.Screen name="Events" component={EventsStackNavigator} options={{ title: t('mobile.navigation.events') }} />
         <Tab.Screen name="Calendar" component={CalendarStackNavigator} options={{ title: t('mobile.navigation.calendar') }} />
-        <Tab.Screen name="TechSheets" component={TechSheetsStackNavigator} options={{ title: t('nav_tech_sheets') }} />
+        <Tab.Screen name="TechSheets" component={TechSheetsStackNavigator} options={{ title: t('mobile.navigation.tech_sheets') }} />
         <Tab.Screen name="People" component={PeopleStackNavigator} options={{ title: t('mobile.navigation.people') }} />
         <Tab.Screen name="Material" component={MaterialStackNavigator} options={{ title: t('mobile.navigation.material') }} />
         <Tab.Screen name="ControlCenter" component={ControlCenterStackNavigator} options={{ title: t('material.control_center_title') }} />

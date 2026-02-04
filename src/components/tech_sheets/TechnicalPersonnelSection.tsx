@@ -17,7 +17,7 @@ import {
 import { TechSheetProvider, TechSheetRoleItem, PersonGroup, AssignmentStatus, Assignment, TechSheetData } from '../../types';
 import TechSheetSection from './TechSheetSection';
 import TechSheetField from './TechSheetField';
-import { TECH_SHEET_ROLE_SUGGESTIONS } from '../../constants';
+import { useRoleSuggestions } from '../../constants';
 import Tooltip from '../ui/Tooltip';
 import { useModalStore } from '../../stores/modalStore';
 import { useEventDataStore } from '../../stores/eventDataStore';
@@ -60,6 +60,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   onDragEnd,
 }) => {
   const { t } = useTranslation();
+  const roleSuggestions = useRoleSuggestions();
   const openModal = useModalStore(state => state.openModal);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -92,6 +93,12 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
           <button
             type="button"
             onClick={() => {
+              // Eliminem l'alerta per veure els logs a la consola correcta
+              console.log('🔥🔥🔥 BOTÓ ACTUALITZA CLICAT!!! 🔥🔥🔥');
+              console.log('[DEBUG_UPDATE] Botó "Actualitza des d\'assignacions" clicat');
+              console.log('[DEBUG_UPDATE] Dades d\'entrada - eventFrame.assignments:', eventFrame.assignments);
+              console.log('[DEBUG_UPDATE] Total assignacions:', eventFrame.assignments?.length || 0);
+              
               const getAssignmentNotes = (assignment: Assignment) => {
                 let notes = assignment.notes || '';
                 if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
@@ -106,35 +113,87 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                 return notes;
               };
 
+              console.log('[DEBUG_UPDATE] Inici filtratge - Estat de les assignacions:');
+              eventFrame.assignments.forEach((a: Assignment, index: number) => {
+                console.log(`  [${index}] ID: ${a.id}, Status: ${a.status}, PersonGroupId: ${a.personGroupId}`);
+              });
+
               const confirmedAssignments = eventFrame.assignments.filter((a: Assignment) =>
                 a.status === AssignmentStatus.Yes || (a.status === AssignmentStatus.Mixed && Object.values(a.dailyStatuses || {}).includes(AssignmentStatus.Yes))
               );
+              
+              console.log('[DEBUG_UPDATE] Resultat filtratge - confirmedAssignments:', confirmedAssignments);
+              console.log('[DEBUG_UPDATE] Total assignacions confirmades:', confirmedAssignments.length);
 
               const confirmedAssignmentsMap = new Map(confirmedAssignments.map((a: Assignment) => [a.id, a]));
               const currentRolesMap = new Map(technicalProviders.flatMap(p => p.roles).filter(r => r.assignmentId).map(r => [r.assignmentId!, r]));
+              
+              console.log('[DEBUG_UPDATE] Estat actual - currentRolesMap:');
+              currentRolesMap.forEach((role, assignmentId) => {
+                console.log(`  AssignmentID: ${assignmentId}, Role: ${role.role}, Notes: "${role.notes}"`);
+              });
+              console.log('[DEBUG_UPDATE] Total rols actuals amb assignmentId:', currentRolesMap.size);
 
-              const toAdd = confirmedAssignments.filter((a: Assignment) => !currentRolesMap.has(a.id));
+              const toAdd = confirmedAssignments.filter((a: Assignment) => {
+                const exists = currentRolesMap.has(a.id);
+                console.log(`[DEBUG_UPDATE] Comparant assignació ${a.id} (${a.personGroupId}) amb mapa actual... existeix? ${exists}`);
+                return !exists;
+              });
+              
+              console.log('[DEBUG_UPDATE] Resultat toAdd:', toAdd);
+              console.log('[DEBUG_UPDATE] Total elements a afegir:', toAdd.length);
 
               const toRemove = technicalProviders.flatMap(p =>
                 p.roles
-                  .filter(r => !r.assignmentId || !confirmedAssignmentsMap.has(r.assignmentId!))
+                  .filter(r => {
+                    const shouldRemove = !r.assignmentId || !confirmedAssignmentsMap.has(r.assignmentId!);
+                    console.log(`[DEBUG_UPDATE] Comprovant rol ${r.id} (assignmentId: ${r.assignmentId})... s\'ha d\'esborrar? ${shouldRemove}`);
+                    return shouldRemove;
+                  })
                   .map(r => ({ ...r, personGroupId: p.personGroupId }))
               );
+              
+              console.log('[DEBUG_UPDATE] Resultat toRemove:', toRemove);
+              console.log('[DEBUG_UPDATE] Total elements a esborrar:', toRemove.length);
 
               const toUpdate = confirmedAssignments
                 .filter((a: Assignment) => currentRolesMap.has(a.id))
-                .map((a: Assignment) => ({
-                  assignment: a,
-                  currentRole: currentRolesMap.get(a.id)!,
-                  newNotes: getAssignmentNotes(a),
-                }))
-                .filter((item: { newNotes: string; currentRole: { notes?: string } }) => item.newNotes !== item.currentRole.notes);
+                .map((a: Assignment) => {
+                  const currentRole = currentRolesMap.get(a.id)!;
+                  const newNotes = getAssignmentNotes(a);
+                  console.log(`[DEBUG_UPDATE] Comprovant actualització per assignació ${a.id}:`);
+                  console.log(`  Notes originals: "${a.notes || ''}"`);
+                  console.log(`  Notes actuals a la fitxa: "${currentRole.notes || ''}"`);
+                  console.log(`  Noves notes calculades: "${newNotes}"`);
+                  console.log(`  Comparació (newNotes !== currentRole.notes): ${newNotes !== currentRole.notes}`);
+                  return {
+                    assignment: a,
+                    currentRole,
+                    newNotes,
+                  };
+                })
+                .filter((item: { newNotes: string; currentRole: { notes?: string } }) => {
+                  const shouldUpdate = item.newNotes !== item.currentRole.notes;
+                  console.log(`[DEBUG_UPDATE] Filtrant actualització - s\'ha d\'actualitzar? ${shouldUpdate}`);
+                  return shouldUpdate;
+                });
+              
+              console.log('[DEBUG_UPDATE] Resultat toUpdate:', toUpdate);
+              console.log('[DEBUG_UPDATE] Total elements a actualitzar:', toUpdate.length);
 
+              console.log('[DEBUG_UPDATE] Arrays finals resultants:');
+              console.log('  toAdd:', toAdd);
+              console.log('  toRemove:', toRemove);
+              console.log('  toUpdate:', toUpdate);
+              console.log(`[DEBUG_UPDATE] Resums: toAdd=${toAdd.length}, toRemove=${toRemove.length}, toUpdate=${toUpdate.length}`);
+              
               if (toAdd.length === 0 && toRemove.length === 0 && toUpdate.length === 0) {
+                console.log('[DEBUG_UPDATE] BLOQUEIG: No s\'han detectat canvis - el modal NO s\'obrirà');
                 showToast(t('tech_sheets.personnel.no_changes_toast'), 'info');
                 return;
               }
-
+              
+              console.log('[DEBUG_UPDATE] Obrint modal amb les dades de canvis...');
               openModal('updateFromAssignments', {
                 toAdd,
                 toRemove,
@@ -195,6 +254,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                     onAddRole={onAddRole}
                     onRemoveRole={onRemoveRole}
                     onRemoveProvider={onRemoveProvider}
+                    roleSuggestions={roleSuggestions}
                   />
                 </SortableProvider>
               );
@@ -222,6 +282,7 @@ interface ProviderCardProps {
   onRemoveRole: (providerIndex: number, roleIndex: number) => void;
   onRemoveProvider: (providerIndex: number) => void;
   dragHandle?: React.ReactNode;
+  roleSuggestions: string[];
 }
 
 const ProviderCard: React.FC<ProviderCardProps> = ({
@@ -235,6 +296,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   onRemoveRole,
   onRemoveProvider,
   dragHandle,
+  roleSuggestions,
 }) => {
   const { t } = useTranslation();
   const selectedPerson = peopleGroups.find(pg => pg.id === provider.personGroupId);
@@ -311,7 +373,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   label=""
                   value={displayRole}
                   onChange={(e) => handleRoleChange(roleIndex, e.target.value)}
-                  suggestions={TECH_SHEET_ROLE_SUGGESTIONS}
+                  suggestions={roleSuggestions}
                   tooltipText={t('tech_sheets.personnel.role_tooltip')}
                 />
               </div>

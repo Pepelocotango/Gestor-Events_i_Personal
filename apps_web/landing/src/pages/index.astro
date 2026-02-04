@@ -20,7 +20,8 @@ const description = t.hero.subtitle;
 
 <Layout title={title} description={description} currentLocale="ca" currentPath="/" translations={{
   navigation: t.navigation,
-  footer: t.footer
+  footer: t.footer,
+  site: t.site
 }}>
   <div class="relative">
     <!-- Hero Section -->
@@ -30,6 +31,11 @@ const description = t.hero.subtitle;
       description={t.hero.description}
       ctaPrimary={t.hero.cta_primary}
       ctaSecondary={t.hero.cta_secondary}
+      openSourceFree={t.hero.open_source_free}
+      platformSupport={t.hero.platform_support}
+      discoverMore={t.hero.discover_more}
+      scrollDownAriaLabel={t.hero.scroll_down}
+      loadingAnimation={t.hero.loading_animation}
     />
     
     <!-- Features Section -->
@@ -48,6 +54,12 @@ const description = t.hero.subtitle;
       googleIntegrationTitle={t.features_section.google_integration_title}
       googleIntegrationDescription={t.features_section.google_integration_description}
       betaTag={t.features_section.beta_tag}
+      openSourceTitle={t.features.open_source.title}
+      openSourceDescription={t.features.open_source.description}
+      ctaTitle={t.features.cta.title}
+      ctaDescription={t.features.cta.description}
+      ctaButtonStart={t.features.cta.button_start}
+      ctaButtonGithub={t.features.cta.button_github}
     />
     
     <!-- Product Tour -->
@@ -73,18 +85,61 @@ const description = t.hero.subtitle;
       limitation1={t.download_section.limitation_1}
       limitation2={t.download_section.limitation_2}
       recommendation={t.download_section.recommendation}
-      desktopTitle={t.download.desktop_title}
-      desktopDescription={t.download.desktop_description}
-      mobileTitle={t.download.mobile_title}
-      mobileDescription={t.download.mobile_description}
-      downloadDesktop={t.download.download_desktop}
-      downloadMobile={t.download.download_mobile}
-      requirements={t.download.requirements}
-      windows={t.download.windows}
-      macos={t.download.macos}
-      linux={t.download.linux}
-      android={t.download.android}
-      ios={t.download.ios}
+      installationInstructions={t.download.installation_instructions}
+      windowsSetup={{
+        title: t.download.windows_setup.title,
+        availableVersions: t.download.windows_setup.available_versions,
+        installerTitle: t.download.windows_setup.installer_title,
+        installerDesc: t.download.windows_setup.installer_desc,
+        portableTitle: t.download.windows_setup.portable_title,
+        portableDesc: t.download.windows_setup.portable_desc,
+        securityNote: t.download.windows_setup.security_note
+      }}
+      macosSetup={{
+        title: t.download.macos_setup.title,
+        availableVersions: t.download.macos_setup.available_versions,
+        step1: t.download.macos_setup.step_1,
+        step2: t.download.macos_setup.step_2,
+        step3: t.download.macos_setup.step_3,
+        step4: t.download.macos_setup.step_4,
+        step5: t.download.macos_setup.step_5,
+        securityTitle: t.download.macos_setup.security_title,
+        securityDescription: t.download.macos_setup.security_description,
+        standardMethod: t.download.macos_setup.standard_method,
+        standardStep1: t.download.macos_setup.standard_step_1,
+        standardStep2: t.download.macos_setup.standard_step_2,
+        standardStep3: t.download.macos_setup.standard_step_3,
+        advancedMethod: t.download.macos_setup.advanced_method,
+        optionA: t.download.macos_setup.option_a,
+        optionB: t.download.macos_setup.option_b,
+        terminalCommandDesc: t.download.macos_setup.terminal_command_desc,
+        firstTimeOnly: t.download.macos_setup.first_time_only
+      }}
+      linuxSetup={{
+        title: t.download.linux_setup.title,
+        step1: t.download.linux_setup.step_1,
+        step2: t.download.linux_setup.step_2,
+        step3: t.download.linux_setup.step_3,
+        fuseNotePrefix: t.download.linux_setup.fuse_note_prefix,
+        fuseNoteCommand: t.download.linux_setup.fuse_note_command
+      }}
+      otherVersions={{
+        title: t.download.other_versions.title,
+        description: t.download.other_versions.description,
+        button: t.download.other_versions.button
+      }}
+      requirementsSection={{
+        title: t.download.requirements_section.title,
+        minimum: t.download.requirements_section.minimum,
+        recommended: t.download.requirements_section.recommended,
+        cpuMin: t.download.requirements_section.cpu_min,
+        ramMin: t.download.requirements_section.ram_min,
+        diskMin: t.download.requirements_section.disk_min,
+        cpuRec: t.download.requirements_section.cpu_rec,
+        ramRec: t.download.requirements_section.ram_rec,
+        diskRec: t.download.requirements_section.disk_rec
+      }}
+      sourceCodeGithub={t.download.source_code_github}
     />
     
     <!-- Call to Action -->

@@ -79,7 +79,7 @@ jobs:
           APPIMAGE_FILE=$(find dist -name "*.AppImage" -type f -printf "%f\n")
           echo "Found AppImage: ${APPIMAGE_FILE}"
 
-          ZIP_NAME="GestorEsdevenimentsPersonal_V1.5.0-Linux.zip"
+          ZIP_NAME="GestorEsdevenimentsPersonal_V1.6.0-Linux.zip"
           echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
 
           cd dist

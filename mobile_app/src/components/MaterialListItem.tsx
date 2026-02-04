@@ -4,6 +4,7 @@ import { MaterialItem } from '../types';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type MaterialListItemProps = {
   item: MaterialItem;
@@ -13,6 +14,7 @@ type MaterialListItemProps = {
 
 const MaterialListItem: React.FC<MaterialListItemProps> = ({ item, onEdit, onDelete }) => {
   const { theme } = useDataStore();
+  const { t } = useTranslation();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const dynamicStyles = useMemo(() => StyleSheet.create({
@@ -51,7 +53,7 @@ const MaterialListItem: React.FC<MaterialListItemProps> = ({ item, onEdit, onDel
     <View style={dynamicStyles.item}>
       <View style={dynamicStyles.itemContent}>
         <Text style={dynamicStyles.itemText}>{item.name}</Text>
-        <Text style={dynamicStyles.itemSubText}>Estoc: {item.stock} | Ubicació: {item.location}</Text>
+        <Text style={dynamicStyles.itemSubText}>{t('mobile.material.stock')}: {item.stock} | {t('mobile.material.location')}: {item.location}</Text>
       </View>
       <View style={dynamicStyles.itemActions}>
         <TouchableOpacity onPress={() => onEdit(item.id)}>

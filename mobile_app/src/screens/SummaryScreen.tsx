@@ -6,10 +6,12 @@ import { formatDateDMY } from '../utils/dateFormat';
 import SummarySection from '../components/SummarySection';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 const SECTION_KEYS = ['event', 'date', 'person'];
 
 const SummaryScreen = () => {
+  const { t } = useTranslation();
   const { eventFrames, peopleGroups, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -51,22 +53,22 @@ const SummaryScreen = () => {
   const summaryByEventName = useMemo(() => {
     const map = new Map<string, SummaryRow[]>();
     allAssignmentsSummary.forEach(row => {
-        if (!map.has(row.eventFrameName)) map.set(row.eventFrameName, []);
-        map.get(row.eventFrameName)!.push(row);
+      if (!map.has(row.eventFrameName)) map.set(row.eventFrameName, []);
+      map.get(row.eventFrameName)!.push(row);
     });
     return [...map.entries()].sort((a, b) => {
-        const dateA = new Date(a[1][0].eventFrameStartDate).getTime();
-        const dateB = new Date(b[1][0].eventFrameStartDate).getTime();
-        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      const dateA = new Date(a[1][0].eventFrameStartDate).getTime();
+      const dateB = new Date(b[1][0].eventFrameStartDate).getTime();
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
   }, [allAssignmentsSummary, sortOrder]);
 
   const summaryByStartDate = useMemo(() => {
     const map = new Map<string, SummaryRow[]>();
     allAssignmentsSummary.forEach(row => {
-        const dateStr = formatDateDMY(row.assignmentStartDate);
-        if (!map.has(dateStr)) map.set(dateStr, []);
-        map.get(dateStr)!.push(row);
+      const dateStr = formatDateDMY(row.assignmentStartDate);
+      if (!map.has(dateStr)) map.set(dateStr, []);
+      map.get(dateStr)!.push(row);
     });
     return [...map.entries()].sort((a, b) => {
       const dateA = new Date(a[0].split('/').reverse().join('-')).getTime();
@@ -78,8 +80,8 @@ const SummaryScreen = () => {
   const summaryByPerson = useMemo(() => {
     const map = new Map<string, SummaryRow[]>();
     allAssignmentsSummary.forEach(row => {
-        if (!map.has(row.assignmentPersonName)) map.set(row.assignmentPersonName, []);
-        map.get(row.assignmentPersonName)!.push(row);
+      if (!map.has(row.assignmentPersonName)) map.set(row.assignmentPersonName, []);
+      map.get(row.assignmentPersonName)!.push(row);
     });
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [allAssignmentsSummary]);
@@ -134,31 +136,31 @@ const SummaryScreen = () => {
     <ScrollView style={dynamicStyles.container}>
       <View style={dynamicStyles.toolbar}>
         <TouchableOpacity style={dynamicStyles.button} onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
-            <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color={colors.text} />
-            <Text style={dynamicStyles.buttonText}>Data</Text>
+          <Icon name={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'} size={24} color={colors.text} />
+          <Text style={dynamicStyles.buttonText}>{t('mobile.summary.sort_by_date')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={dynamicStyles.button} onPress={toggleAllSections}>
-            <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
-            <Text style={dynamicStyles.buttonText}>{areAllExpanded ? 'Replegar' : 'Expandir'}</Text>
+          <Icon name={areAllExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} size={24} color={colors.text} />
+          <Text style={dynamicStyles.buttonText}>{areAllExpanded ? t('mobile.summary.collapse_all') : t('mobile.summary.expand_all')}</Text>
         </TouchableOpacity>
       </View>
 
       <SummarySection
-        title="Per Nom d'Esdeveniment"
+        title={t('main.event')}
         data={summaryByEventName}
         groupingType="event"
         isExpanded={!!expandedSections.event}
         onToggle={() => handleToggleSection('event')}
       />
       <SummarySection
-        title="Per Data d'Inici d'Assignació"
+        title={t('main.start_date')}
         data={summaryByStartDate}
         groupingType="date"
         isExpanded={!!expandedSections.date}
         onToggle={() => handleToggleSection('date')}
       />
       <SummarySection
-        title="Per Persona/Grup"
+        title={t('main.person')}
         data={summaryByPerson}
         groupingType="person"
         isExpanded={!!expandedSections.person}

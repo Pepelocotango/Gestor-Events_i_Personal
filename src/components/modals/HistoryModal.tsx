@@ -24,8 +24,25 @@ const HistoryModal: React.FC = () => {
   const reversedFutureStates = [...futureStates].reverse();
   const reversedPastStates = [...pastStates].reverse();
 
-  // Obtenim la descripció de l'acció de l'estat actual directament des de l'store.
-  const currentActionDescription = useEventDataStore.getState().lastActionDescription;
+  // Obtenim l'acció de l'estat actual directament des de l'store.
+  const currentState = useEventDataStore.getState();
+  const currentLastAction = (currentState as any).lastAction;
+  const currentActionDescription = currentState.lastActionDescription; // Fallback
+
+  // Helper to resolve action to translated string
+  const resolveActionDescription = (lastAction: any): string => {
+    if (!lastAction) {
+      return t('modals.history.no_name_action') as string;
+    }
+    if (lastAction.type) {
+      // New structure: { type: 'actions.create_event', params: {...} }
+      const translated = t(lastAction.type, lastAction.params || {});
+      // Handle case where t() returns an object
+      return typeof translated === 'string' ? translated : lastAction.type;
+    }
+    // Fallback to old string format
+    return (lastAction as string) || (t('modals.history.no_name_action') as string);
+  };
 
   return (
     <div className="bg-card text-card-foreground rounded-lg shadow-xl p-6 w-full max-w-md mx-auto">
@@ -48,7 +65,7 @@ const HistoryModal: React.FC = () => {
               >
                 <ArrowUturnRightIcon className="w-5 h-5 text-muted-foreground" />
                 <span className="text-muted-foreground italic">
-                  {state.lastActionDescription || t('modals.history.no_name_action')}
+                  {resolveActionDescription(state.lastAction || state.lastActionDescription)}
                 </span>
               </button>
             </li>
@@ -58,10 +75,10 @@ const HistoryModal: React.FC = () => {
               <span className="font-bold text-primary">{t('modals.history.current_state')}</span>
             </div>
           </li>
-          {reversedPastStates.map((_, index) => {
+          {reversedPastStates.map((pastState, index) => {
             const description = index === 0
-              ? currentActionDescription
-              : reversedPastStates[index - 1].lastActionDescription;
+              ? resolveActionDescription(currentLastAction || currentActionDescription)
+              : resolveActionDescription((pastState as any)?.lastAction || (pastState as any)?.lastActionDescription);
 
             return (
               <li key={`past-${index}`}>
@@ -71,7 +88,7 @@ const HistoryModal: React.FC = () => {
                 >
                   <ArrowUturnLeftIcon className="w-5 h-5 text-muted-foreground" />
                   <span className="text-foreground">
-                    {description || t('modals.history.initial_action')}
+                    {description || (t('modals.history.initial_action') as string)}
                   </span>
                 </button>
               </li>

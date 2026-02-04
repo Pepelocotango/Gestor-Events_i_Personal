@@ -5,6 +5,8 @@ import { formatDateRangeDMY, formatDateDMY } from '../utils/dateFormat';
 import CollapsibleSection from './CollapsibleSection';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
+import { getTranslatedStatus } from '../utils/statusUtils';
 
 type GroupingType = 'event' | 'date' | 'person';
 
@@ -17,6 +19,7 @@ type Props = {
 };
 
 const SummarySection = ({ title, data, groupingType, isExpanded, onToggle }: Props) => {
+  const { t } = useTranslation();
   const theme = useDataStore((state) => state.theme);
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
@@ -75,7 +78,7 @@ const SummarySection = ({ title, data, groupingType, isExpanded, onToggle }: Pro
   return (
     <CollapsibleSection title={title} isExpanded={isExpanded} onToggle={onToggle}>
       {data.length === 0 ? (
-        <Text style={styles.noDataText}>No hi ha dades per aquest resum.</Text>
+        <Text style={styles.noDataText}>{t('mobile.summary.no_data')}</Text>
       ) : (
         data.map(([groupKey, assignments]) => (
           <View key={groupKey} style={styles.groupContainer}>
@@ -93,7 +96,7 @@ const SummarySection = ({ title, data, groupingType, isExpanded, onToggle }: Pro
                       <>
                         {' - '}
                         <Text style={{ color: getStatusColor(status), fontWeight: 'bold' }}>
-                          ({status})
+                          ({getTranslatedStatus(status, t)})
                         </Text>
                       </>
                     )}
@@ -111,7 +114,7 @@ const SummarySection = ({ title, data, groupingType, isExpanded, onToggle }: Pro
 
                           return (
                             <Text key={date} style={[styles.mixedDetailText, { color: getStatusColor(validDailyStatus) }]}>
-                              {formatDateDMY(date)} - {validDailyStatus}
+                              {formatDateDMY(date)} - {getTranslatedStatus(validDailyStatus, t)}
                             </Text>
                           );
                         })}

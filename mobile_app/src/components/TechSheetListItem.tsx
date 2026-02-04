@@ -4,6 +4,7 @@ import { EventFrame } from '../types';
 import { formatDate } from '../utils/dateFormat';
 import { useDataStore } from '../stores/dataStore';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   item: EventFrame;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 const TechSheetListItem = ({ item, onPress }: Props) => {
+  const { t } = useTranslation();
   const theme = useDataStore((state) => state.theme);
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
@@ -49,10 +51,10 @@ const TechSheetListItem = ({ item, onPress }: Props) => {
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Text style={styles.title}>{item.name}</Text>
       <Text style={styles.detail}>
-        <Text style={styles.bold}>Lloc:</Text> {item.place || 'No especificat'}
+        <Text style={styles.bold}>{t('mobile.tech_sheet.place')}:</Text> {item.place || t('mobile.event_details.not_specified')}
       </Text>
       <Text style={styles.detail}>
-        <Text style={styles.bold}>Data:</Text> {formatDate(item.startDate)}
+        <Text style={styles.bold}>{t('mobile.tech_sheet.date')}:</Text> {formatDate(item.startDate)}
       </Text>
     </TouchableOpacity>
   );

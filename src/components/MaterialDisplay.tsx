@@ -127,7 +127,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
   useEffect(() => {
     if (sortMode === 'category') {
       const initialExpandedState = (sortedItems as [string, MaterialItem[]][]).reduce((acc, [category]) => {
-        acc[category] = true; // Default to all expanded
+        acc[category] = false; // Default to all collapsed
         return acc;
       }, {} as { [key: string]: boolean });
       setExpandedCategories(initialExpandedState);
@@ -214,7 +214,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ showToast }) => {
           <div className="lg:col-span-2">
             <CollapsibleSection
               title={t('material.inventory_title')}
-              defaultOpen={true}
+              defaultOpen={false}
             >
               <div className="flex items-center justify-end mb-2 gap-2">
                 <Tooltip text={t('material.search_tooltip')}>

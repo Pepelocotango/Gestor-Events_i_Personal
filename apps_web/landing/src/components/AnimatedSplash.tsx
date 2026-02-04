@@ -13,9 +13,12 @@ const frames = [
   '/splash/frame_9.png',
 ];
 
-export default function AnimatedSplash() {
+interface AnimatedSplashProps {
+  altText?: string;
+}
+
+export default function AnimatedSplash({ altText = "Loading..." }: AnimatedSplashProps) {
   const [currentFrame, setCurrentFrame] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     // Canvia el fotograma cada 200ms
@@ -37,7 +40,7 @@ export default function AnimatedSplash() {
     }}>
       <img 
         src={frames[currentFrame]} 
-        alt="Animació de càrrega" 
+        alt={altText}
         className="w-full h-full object-contain"
         style={{ 
           mixBlendMode: 'multiply',

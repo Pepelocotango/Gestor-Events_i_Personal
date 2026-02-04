@@ -2,7 +2,7 @@
 
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal V1.5.0
+# Gestor d'Esdeveniments i Personal V1.6.0 (GENER 2026)
 
 Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que permet la **gestió i edició** de dades en mobilitat.
 
@@ -203,6 +203,13 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 *   **Interfície d'Usuari Renovada (Disseny XL):**
     *   **Alta Visibilitat:** Les targetes d'esdeveniments i assignacions s'han redissenyat amb una escala més gran, tipografies clares i botons més accessibles.
     *   **Mode "Focus Únic":** En treballar amb la llista, l'esdeveniment que estàs editant es destaca visualment amb un marc de color, ajudant-te a mantenir el context fins i tot quan tens molts elements oberts alhora.
+
+* **Selector d'Idioma i Internacionalització Completa:**
+    * **3 Idiomes Disponibles:** Totes les aplicacions (escriptori, mòbil i web) inclouen selector d'idioma amb suport complet per a **Català, Castellà i English**.
+    * **Aplicació d'Escriptori:** Selector desplegable amb icona del globus, integrat a la interfície principal amb persistència de preferència.
+    * **Aplicació Mòbil:** Selector visual amb banderes (🏴🇪🇸🇬🇧) i botons intuïtius, amb emmagatzematge local de la preferència d'idioma.
+    * **Aplicació Web:** Sistema de rutes multillingüe (/ca/, /es/, /en/) amb selector desplegable i navegació transparent entre idiomes.
+    * **Traduccions Completes:** Totes les cadenes de text, menús, missatges d'error i documentació estan traduïdes als tres idiomes.
 
 * **Altres millores:**
   * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`npm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).

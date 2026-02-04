@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 type CalendarScreenNavigationProp = StackNavigationProp<RootTabParamList>;
 
 const CalendarScreen = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { eventFrames, theme } = useDataStore();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const navigation = useNavigation<CalendarScreenNavigationProp>();
@@ -134,7 +134,7 @@ const CalendarScreen = () => {
   return (
     <View style={dynamicStyles.container}>
       <Calendar
-        key={theme}
+        key={`${theme}-${i18n.language}`}
         markedDates={markedDates}
         onDayPress={onDayPress}
         theme={calendarTheme}
@@ -145,8 +145,8 @@ const CalendarScreen = () => {
               data={eventsOnSelectedDate}
               renderItem={renderEventItem}
               keyExtractor={(item) => item.id}
-              ListEmptyComponent={<Text style={dynamicStyles.emptyListText}>No hi ha esdeveniments per a aquest dia.</Text>}
-              ListHeaderComponent={<Text style={dynamicStyles.listHeader}>Esdeveniments per al {selectedDate}</Text>}
+              ListEmptyComponent={<Text style={dynamicStyles.emptyListText}>{t('mobile.calendar.no_events_day')}</Text>}
+              ListHeaderComponent={<Text style={dynamicStyles.listHeader}>{t('mobile.calendar.events_for_day', { date: selectedDate })}</Text>}
             />
         ) : (
             <View style={dynamicStyles.placeholderContainer}>

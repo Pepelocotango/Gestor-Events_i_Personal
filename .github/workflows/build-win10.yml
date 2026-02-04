@@ -59,7 +59,7 @@ jobs:
         $filesToZip += @("LICENSE", "README.md", "DEVELOPING.md")
         $filesToZip += Get-ChildItem -Path "examples json" -Recurse | ForEach-Object { $_.FullName }
 
-        $zipName = "GestorEsdevenimentsPersonal_V1.5.0-Windows.zip"
+        $zipName = "GestorEsdevenimentsPersonal_V1.6.0-Windows.zip"
         echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
 
         Compress-Archive -Path $filesToZip -DestinationPath $zipName

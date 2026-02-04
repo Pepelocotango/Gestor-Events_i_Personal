@@ -1,4 +1,4 @@
-# Esquema Visual de la Interfície d'Usuari - App Mòbil (v1.5.0)
+# Esquema Visual de la Interfície d'Usuari - App Mòbil (v1.6.0)
 
 Aquest document descriu l'estructura de l'aplicació mòbil, les seves pantalles i les funcions associades, reflectint la refactorització de la UI cap a un model més visual i interactiu.
 

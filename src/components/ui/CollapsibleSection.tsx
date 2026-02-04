@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronUpIcon, ChevronDownIcon } from '../../constants';
 import Tooltip from './Tooltip';
 
@@ -25,6 +26,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   headerClassName = '',
   contentClassName = ''
 }) => {
+  const { t } = useTranslation();
   const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
 
   // Determina si el component està obert. Prioritza el prop extern si existeix.
@@ -50,7 +52,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
   return (
     <div className="mb-2 bg-card rounded-lg border border-border">
-      <Tooltip text={`Replegar/Expandir secció ${title}`}>
+      <Tooltip text={t('common.toggle_section_tooltip', { title })}>
         <div
           id={buttonId}
           onClick={handleToggle}

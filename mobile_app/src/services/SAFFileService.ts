@@ -33,7 +33,7 @@ export class SAFFileService implements IFileService {
         const content = await FileSystem.readAsStringAsync(uri, {
           encoding: 'utf8',
         });
-        
+
         const data = JSON.parse(content);
 
         return {
@@ -60,7 +60,7 @@ export class SAFFileService implements IFileService {
         permissions.directoryUri,
         fileName,
         'application/json'
-        );
+      );
 
       await FileSystem.writeAsStringAsync(result, jsonString, {
         encoding: 'utf8',
@@ -90,7 +90,7 @@ export class SAFFileService implements IFileService {
 
     } catch (error) {
       console.error('Error al compartir el fitxer:', error);
-      throw new Error('No s’ha pogut compartir el fitxer.');
+      throw error;
     }
   }
 }

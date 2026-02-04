@@ -61,7 +61,14 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
-    sectionKeys.forEach(key => { initialState[key] = true; });
+    sectionKeys.forEach(key => { initialState[key] = false; });
+    return initialState;
+  });
+
+  const [sortDirections, setSortDirections] = useState<Record<string, 'asc' | 'desc'>>(() => {
+    const initialState: Record<string, 'asc' | 'desc'> = {};
+    const needsSections: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
+    needsSections.forEach(section => { initialState[section] = 'asc'; });
     return initialState;
   });
 
@@ -143,13 +150,20 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
 
   // Aquest useEffect és clau per sincronitzar l'estat local amb el global
   useEffect(() => {
+    // Protecció: no sobreescriure si hi ha canvis pendents (evitar race condition)
+    if (isDirtyRef.current) {
+      console.log('[SYNC] Ignorant sincronització - hi ha canvis pendents de desar');
+      return;
+    }
+    
     const newProviders = eventFrame.techSheet?.technicalProviders || [];
     // Comprovem si l'array de proveïdors a l'estat local és diferent del de l'estat global.
     // Això passa després que l'acció de reordenació actualitzi la store.
     if (JSON.stringify(formData.technicalProviders) !== JSON.stringify(newProviders)) {
+      console.log('[SYNC] Sincronitzant proveïdors des de l\'estat global');
       setFormData(prev => ({ ...prev, technicalProviders: newProviders }));
     }
-  }, [eventFrame.techSheet?.technicalProviders, formData.technicalProviders]); // S'executa cada cop que els proveïdors a la store canvien
+  }, [eventFrame.techSheet?.technicalProviders]); // Només s'executa quan canvien les dades globals, no les locals
 
   if (!formData) {
     return <div>{t('tech_sheets.form.loading_data')}</div>;
@@ -179,13 +193,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
   };
 
   const handleSortNeedsByOrigin = (listName: TechSheetNeedsKey) => {
+    const currentDirection = sortDirections[listName] || 'asc';
+    const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+    
+    setSortDirections(prev => ({ ...prev, [listName]: newDirection }));
+    
     setFormData(prev => {
       const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
       if (!section || !section.data || !section.data.needs) return prev;
 
-      const sortedNeeds = [...section.data.needs].sort((a, b) =>
-        a.origin.localeCompare(b.origin, undefined, { sensitivity: 'base' })
-      );
+      const sortedNeeds = [...section.data.needs].sort((a, b) => {
+        const comparison = a.origin.localeCompare(b.origin, undefined, { sensitivity: 'base' });
+        return newDirection === 'asc' ? comparison : -comparison;
+      });
 
       const updatedSection = { ...section, data: { ...section.data, needs: sortedNeeds } };
       return { ...prev, [listName]: updatedSection };
@@ -625,7 +645,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
   };
 
   const handleConfirmUpdateFromAssignments = (selectedChanges?: any[]) => {
+    console.log('[DEBUG_UPDATE] handleConfirmUpdateFromAssignments cridat');
+    console.log('[DEBUG_UPDATE] selectedChanges rebuts:', selectedChanges);
+    
     if (!selectedChanges || selectedChanges.length === 0) {
+      console.log('[DEBUG_UPDATE] No hi ha canvis seleccionats - sortint');
       showToast(t('tech_sheets.personnel.no_changes_toast'), 'info');
       return;
     }
@@ -633,17 +657,33 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     const toAdd = selectedChanges.filter(c => c.type === 'add').map(c => c.data);
     const toUpdate = selectedChanges.filter(c => c.type === 'update').map(c => c.data);
     const toRemoveIds = new Set(selectedChanges.filter(c => c.type === 'remove').map(c => c.data.id));
+    
+    console.log('[DEBUG_UPDATE] Processant canvis:');
+    console.log('  toAdd:', toAdd);
+    console.log('  toUpdate:', toUpdate);
+    console.log('  toRemoveIds:', Array.from(toRemoveIds));
+    console.log('[DEBUG_UPDATE] Aplicant canvis...');
 
     setFormData(prev => {
+      console.log('[DEBUG_UPDATE] Estat anterior dels proveïdors:', prev.technicalProviders);
       const initialProviders = prev.technicalProviders || [];
 
       // 1. Process removals immutably
       const providersAfterRemoval = initialProviders
-        .map(p => ({
-          ...p,
-          roles: p.roles.filter(r => !toRemoveIds.has(r.id)),
-        }))
-        .filter(p => p.roles.length > 0 || p.isManual);
+        .map(p => {
+          const originalRoles = p.roles;
+          const filteredRoles = p.roles.filter(r => !toRemoveIds.has(r.id));
+          console.log(`[DEBUG_UPDATE] Proveïdor ${p.id}: roles originals=${originalRoles.length}, roles després d\'esborrar=${filteredRoles.length}`);
+          return {
+            ...p,
+            roles: filteredRoles,
+          };
+        })
+        .filter(p => {
+          const shouldKeep = p.roles.length > 0 || p.isManual;
+          console.log(`[DEBUG_UPDATE] Proveïdor ${p.id}: es manté? ${shouldKeep} (roles: ${p.roles.length}, isManual: ${p.isManual})`);
+          return shouldKeep;
+        });
 
       // 2. Process updates immutably
       const providersAfterUpdate = providersAfterRemoval.map(p => {
@@ -651,11 +691,16 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         if (updatesForProvider.length === 0) {
           return p;
         }
+        console.log(`[DEBUG_UPDATE] Actualitzant proveïdor ${p.id} amb ${updatesForProvider.length} canvis`);
         return {
           ...p,
           roles: p.roles.map(r => {
             const relevantUpdate = toUpdate.find(u => u.currentRole.id === r.id);
-            return relevantUpdate ? { ...r, notes: relevantUpdate.newNotes } : r;
+            if (relevantUpdate) {
+              console.log(`[DEBUG_UPDATE] Actualitzant rol ${r.id}: "${r.notes}" -> "${relevantUpdate.newNotes}"`);
+              return { ...r, notes: relevantUpdate.newNotes };
+            }
+            return r;
           }),
         };
       });
@@ -666,6 +711,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
 
       toAdd.forEach(assignment => {
         const personGroupId = assignment.personGroupId;
+        console.log(`[DEBUG_UPDATE] Processant assignació a afegir: ${assignment.id} (personGroupId: ${personGroupId})`);
 
         let notes = assignment.notes || '';
         if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
@@ -690,6 +736,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         const existingProviderIndex = providersAfterAddition.findIndex(p => p.personGroupId === personGroupId);
 
         if (existingProviderIndex !== -1) {
+          console.log(`[DEBUG_UPDATE] Afegint rol a proveïdor existent ${personGroupId}`);
           // Update existing provider immutably
           providersAfterAddition = providersAfterAddition.map((p, index) => {
             if (index === existingProviderIndex) {
@@ -698,6 +745,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
             return p;
           });
         } else {
+          console.log(`[DEBUG_UPDATE] Creant nou proveïdor per ${personGroupId}`);
           // Check if it's already staged to be added
           const stagedProviderIndex = newProvidersToAdd.findIndex(p => p.personGroupId === personGroupId);
           if (stagedProviderIndex !== -1) {
@@ -717,12 +765,15 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
       });
 
       const finalProviders = [...providersAfterAddition, ...newProvidersToAdd];
+      console.log('[DEBUG_UPDATE] Estat final dels proveïdors:', finalProviders);
+      console.log(`[DEBUG_UPDATE] Resum: ${finalProviders.length} proveïdors totals`);
 
       return { ...prev, technicalProviders: finalProviders };
     });
 
     markAsDirty();
     showToast(t('tech_sheets.personnel.changes_applied_toast', { count: selectedChanges.length }), 'success');
+    console.log('[DEBUG_UPDATE] Canvis aplicats amb èxit');
   };
 
   const { reorderTechnicalProviders } = useEventDataStore.getState();
@@ -766,6 +817,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         onMoveItemUp={handleMoveNeedItemUp as any}
         onMoveItemDown={handleMoveNeedItemDown as any}
         onSortByOrigin={handleSortNeedsByOrigin as any}
+        sortDirection={sortDirections[fieldName] || 'asc'}
         originSuggestions={originSuggestions}
         materialItems={materialItems}
         eventFrame={eventFrame}

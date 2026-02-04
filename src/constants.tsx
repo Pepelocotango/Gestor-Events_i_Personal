@@ -1,9 +1,10 @@
 // @ts-ignore - React is used in JSX
 import React, { FC } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowUturnLeftIcon as OutlineArrowUturnLeftIcon, ArrowUturnRightIcon as OutlineArrowUturnRightIcon, DocumentArrowDownIcon as OutlineDocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { AssignmentStatus } from './types';
 
-export const APP_TITLE = "Gestor de Esdeveniments i Personal v0.2";
+export const APP_TITLE = "Gestor de Esdeveniments i Personal v1.6.0";
 export const THEME_STORAGE_KEY = 'eventManagementAppTheme';
 
 export const ASSIGNMENT_STATUS_OPTIONS = [
@@ -166,6 +167,44 @@ export const GoogleIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
+// Hook to get translated role suggestions
+export const useRoleSuggestions = (): string[] => {
+  const { t } = useTranslation();
+  
+  return [
+    // Direcció i Coordinació
+    t('roles.direction.chief'),
+    t('roles.direction.floor_manager'),
+    t('roles.direction.council'),
+    t('roles.direction.council_assistant'),
+    t('roles.production.producer'),
+    t('roles.production.assistant'),
+    // Equip Tècnic (Operació)
+    t('roles.technician.sound'),
+    t('roles.technician.lighting'),
+    t('roles.technician.video'),
+    t('roles.technician.camera'),
+    t('roles.technician.pa'),
+    t('roles.technician.monitors'),
+    t('roles.technician.machinery'),
+    t('roles.technician.microphone'),
+    // Equip Tècnic (Muntatge)
+    t('roles.assembly.machinery'),
+    t('roles.assembly.rigger'),
+    t('roles.assembly.helper'),
+    t('roles.assembly.crew'),
+    t('roles.assembly.driver'),
+    // Atenció al Públic
+    t('roles.audience.floor_staff'),
+    t('roles.audience.box_office'),
+    t('roles.audience.security'),
+    // Artístic i Suport
+    t('roles.support.rider'),
+    t('roles.support.personal'),
+  ];
+};
+
+// DEPRECATED: Use useRoleSuggestions() hook instead (for backward compatibility)
 export const TECH_SHEET_ROLE_SUGGESTIONS = [
   // Direcció i Coordinació
   "Direcció: Cap Tècnic/a",

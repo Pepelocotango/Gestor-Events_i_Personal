@@ -43,11 +43,11 @@ const MaterialFormScreen = ({ navigation, route }: Props) => {
 
   const handleSave = () => {
     if (!item.name.trim()) {
-      Alert.alert(t('common.error'), t('people.name_required'));
+      Alert.alert(t('common.error'), t('mobile.alerts.name_required'));
       return;
     }
     if (!item.category.trim()) {
-      Alert.alert(t('common.error'), t('material.name_required'));
+      Alert.alert(t('common.error'), t('mobile.alerts.category_required'));
       return;
     }
 
@@ -113,20 +113,20 @@ const MaterialFormScreen = ({ navigation, route }: Props) => {
   return (
     <View style={dynamicStyles.outerContainer}>
       <ScrollView contentContainerStyle={dynamicStyles.container}>
-        <Text style={dynamicStyles.label}>{t('people.name_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={item.name} onChangeText={(val) => handleChange('name', val)} placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.forms.labels.name')}</Text>
+        <TextInput style={dynamicStyles.input} value={item.name} onChangeText={(val) => handleChange('name', val)} placeholder={t('mobile.forms.placeholders.name')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('material.category_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={item.category} onChangeText={(val) => handleChange('category', val)} placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.forms.labels.category')}</Text>
+        <TextInput style={dynamicStyles.input} value={item.category} onChangeText={(val) => handleChange('category', val)} placeholder={t('mobile.forms.placeholders.category')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('material.stock_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={String(item.stock)} onChangeText={(val) => handleChange('stock', parseInt(val) || 0)} keyboardType="numeric" placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.forms.labels.stock')}</Text>
+        <TextInput style={dynamicStyles.input} value={String(item.stock)} onChangeText={(val) => handleChange('stock', parseInt(val) || 0)} keyboardType="numeric" placeholder={t('mobile.forms.placeholders.stock')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('material.location_label')}</Text>
-        <TextInput style={dynamicStyles.input} value={item.location} onChangeText={(val) => handleChange('location', val)} placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.forms.labels.location')}</Text>
+        <TextInput style={dynamicStyles.input} value={item.location} onChangeText={(val) => handleChange('location', val)} placeholder={t('mobile.forms.placeholders.location')} placeholderTextColor={colors.placeholder} />
 
-        <Text style={dynamicStyles.label}>{t('material.notes_label')}</Text>
-        <TextInput style={dynamicStyles.inputMulti} value={item.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholderTextColor={colors.placeholder} />
+        <Text style={dynamicStyles.label}>{t('mobile.forms.labels.general_notes')}</Text>
+        <TextInput style={dynamicStyles.inputMulti} value={item.notes} onChangeText={(val) => handleChange('notes', val)} multiline placeholder={t('mobile.forms.placeholders.notes_example')} placeholderTextColor={colors.placeholder} />
 
         <Button title={t('common.save')} onPress={handleSave} color={colors.primary} />
       </ScrollView>

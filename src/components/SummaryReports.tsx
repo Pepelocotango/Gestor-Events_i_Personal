@@ -27,6 +27,20 @@ interface SummaryReportsProps {
 
 const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filteredEventFrames, activeFilters }) => {
   const { t } = useTranslation();
+  const getStatusLabel = (status: AssignmentStatus | ''): string => {
+    switch (status) {
+      case AssignmentStatus.Yes:
+        return t('status.yes');
+      case AssignmentStatus.No:
+        return t('status.no');
+      case AssignmentStatus.Pending:
+        return t('status.pending');
+      case AssignmentStatus.Mixed:
+        return t('status.mixed');
+      default:
+        return status || '';
+    }
+  };
   const peopleGroups = useEventDataStore(state => state.peopleGroups);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -68,7 +82,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
   }, [filteredEventFrames, peopleMap]);
 
   // Estat d'ordre per als resums
-  const [summarySortOrder, setSummarySortOrder] = React.useState<'asc' | 'desc'>('desc');
+  const [summarySortOrder, setSummarySortOrder] = React.useState<'asc' | 'desc'>('asc');
 
   const summaryByEventName = useMemo((): Map<string, SummaryRow[]> => {
     const map = new Map<string, SummaryRow[]>();
@@ -158,13 +172,13 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
 
     const csvRows: string[][] = [];
     const headers = [
-        'Agrupació Principal', 'Esdeveniment Marc', 'Dates Marc', 'Lloc Marc', 
-        'Persona/Grup Assignat', 'Dates Assignació', 'Estat General', 'Detall Estats (si mixt)', 'Notes Assignació'
+        t('csv.header_grouping'), t('csv.header_event_frame'), t('csv.header_event_dates'), t('csv.header_event_place'), 
+        t('csv.header_assigned_person'), t('csv.header_assignment_dates'), t('csv.header_general_status'), t('csv.header_status_detail'), t('csv.header_assignment_notes')
     ];
     csvRows.push(headers);
 
     assignmentsToProcess.forEach(a => {
-        const statusDetail = a.isMixedStatusAssignment ? getStatusSummaryText(a.assignmentObject) : a.assignmentStatus;
+        const statusDetail = a.isMixedStatusAssignment ? getStatusSummaryText(a.assignmentObject, t) : getStatusLabel(a.assignmentStatus as AssignmentStatus);
         csvRows.push([
             a.primaryGrouping,
             a.eventFrameName,
@@ -172,7 +186,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
             a.eventFramePlace || '',
             a.assignmentPersonName,
             formatDateRangeDMY(a.assignmentStartDate, a.assignmentEndDate),
-            a.assignmentStatus,
+            getStatusLabel(a.assignmentStatus as AssignmentStatus),
             statusDetail,
             a.assignmentNotes || ''
         ]);
@@ -190,7 +204,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
     const csvContent = generateDetailedCsv(dataType, groupKey);
 
     // Utilitza la nova lògica per generar el nom del fitxer
-    const prefix = `Resum_Per_${dataType === 'event-name' ? 'Esdeveniment' : (dataType === 'start-date' ? 'Data' : 'Persona')}`;
+    const prefix = t('csv.filename_prefix', { type: dataType === 'event-name' ? t('csv.type_event') : (dataType === 'start-date' ? t('csv.type_date') : t('csv.type_person')) });
     const filename = generateFileName(prefix, activeFilters, filteredEventFrames, 'csv');
 
     await downloadCsv(csvContent, filename);
@@ -204,17 +218,17 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
         <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
         <div className="flex items-center gap-3">
           {showSortButton && (
-            <Tooltip text={`Ordena per data ${summarySortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
+            <Tooltip text={t('summary.sort_date_tooltip', { order: summarySortOrder === 'asc' ? 'descendent' : 'ascendent' })}>
               <button
                 onClick={() => setSummarySortOrder(summarySortOrder === 'asc' ? 'desc' : 'asc')}
                 className="flex items-center gap-1 px-2 py-1 rounded border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
               >
-                {summarySortOrder === 'asc' ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />} Ordena
+                {summarySortOrder === 'asc' ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />} {t('summary.sort_button_label')}
               </button>
             </Tooltip>
           )}
           <div className="flex items-center gap-2">
-            <Tooltip text="Exportar a CSV">
+            <Tooltip text={t('summary.export_csv_tooltip')}>
               <button
                   onClick={() => handleExportCsv(dataType)}
                   className="p-1.5 rounded-full bg-success/10 text-success hover:bg-success/20"
@@ -222,7 +236,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
               > <CsvIcon className="w-4 h-4" />
               </button>
             </Tooltip>
-            <Tooltip text="Exportar a PDF">
+            <Tooltip text={t('summary.export_pdf_tooltip')}>
               <button
                   onClick={() => handleExportPdf(title, data, dataType)}
                   className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
@@ -240,7 +254,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
             <div className="flex justify-between items-center mb-1 sticky top-0 bg-card/80 backdrop-blur-sm py-1 z-10">
               <h4 className="font-medium text-md text-primary flex-grow">{groupKey}</h4>
               <div className="flex items-center">
-                <Tooltip text={`Exportar només "${groupKey}" a CSV`}>
+                <Tooltip text={t('summary.export_csv_tooltip', { title: groupKey })}>
                   <button
                     onClick={() => handleExportCsv(dataType, groupKey)}
                     className="p-1 rounded-full hover:bg-accent flex-shrink-0 ml-2"
@@ -248,7 +262,7 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
                     <CsvIcon className="w-4 h-4 text-success" />
                   </button>
                 </Tooltip>
-                <Tooltip text={`Exportar només "${groupKey}" a PDF`}>
+                <Tooltip text={t('summary.export_pdf_tooltip', { title: groupKey })}>
                   <button
                     onClick={() => {
                       const singleGroupMap = new Map([[groupKey, assignments]]);
@@ -283,20 +297,20 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
                   
                   {a.assignmentStatus === AssignmentStatus.Mixed && a.assignmentObject.dailyStatuses ? (
                     <>
-                      <span className={`font-semibold ${statusColors[AssignmentStatus.Mixed]}`}> (Mixt)</span>
+                      <span className={`font-semibold ${statusColors[AssignmentStatus.Mixed]}`}> ({t('status.mixed')})</span>
                       <ul className="pl-5 mt-1 text-xs list-none">
                         {Object.entries(a.assignmentObject.dailyStatuses)
                           .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
                           .map(([date, status]) => (
-                          <li key={date} className={`font-semibold ${statusColors[status]}`}>
-                            {formatDateDMY(date)} - {status}
+                          <li key={date} className={`font-semibold ${statusColors[status as AssignmentStatus]}`}>
+                            {formatDateDMY(date)} - {getStatusLabel(status as AssignmentStatus)}
                           </li>
                         ))}
                       </ul>
                     </>
                   ) : (
                     <span className={`font-semibold ${statusColors[a.assignmentStatus as AssignmentStatus]}`}>
-                      ({a.assignmentStatus})
+                      ({getStatusLabel(a.assignmentStatus as AssignmentStatus)})
                     </span>
                   )}
                 </li>
@@ -310,9 +324,9 @@ const SummaryReports: React.FC<SummaryReportsProps> = ({ setToastMessage, filter
 
   return (
     <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6">
-      {renderSummaryCard("Per Nom d'Esdeveniment", summaryByEventName, "event-name", true)}
-      {renderSummaryCard("Per Data d'Inici d'Assignació", summaryByStartDate, "start-date", true)}
-      {renderSummaryCard("Per Persona/Grup", summaryByPerson, "person", false)}
+      {renderSummaryCard(t('summary.by_event_name'), summaryByEventName, "event-name", true)}
+      {renderSummaryCard(t('summary.by_start_date'), summaryByStartDate, "start-date", true)}
+      {renderSummaryCard(t('summary.by_person'), summaryByPerson, "person", false)}
     </div>
   );
 };

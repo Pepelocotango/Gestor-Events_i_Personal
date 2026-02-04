@@ -95,15 +95,28 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({ onClos
   const performSubmit = (force = false) => {
     if (!validate()) return;
 
-    const handleResult = (result: { success: boolean; message?: string; warningMessage?: string }) => {
+    const handleResult = (result: { success: boolean; message?: string; warningMessage?: string | { type: string; details: any }; conflict?: { type: string; details: any } }) => {
       if (result.success) {
-        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+        if (result.conflict && result.conflict.type === 'DUPLICATE') {
+          const conflictDetails = result.conflict.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
           openModal('confirmDuplicate', {
-            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
+            onConfirm: () => performSubmit(true),
+          });
+        } else if (result.warningMessage && typeof result.warningMessage === 'object' && result.warningMessage.type === 'DUPLICATE') {
+          const conflictDetails = result.warningMessage.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
+          openModal('confirmDuplicate', {
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
             onConfirm: () => performSubmit(true),
           });
         } else {
-          if (result.warningMessage) showToast(result.warningMessage, 'warning');
+          if (result.warningMessage && typeof result.warningMessage === 'string') {
+            showToast(result.warningMessage, 'warning');
+          }
           showToast(isEditing ? t('modals.assignment_form.updated_toast') : t('modals.assignment_form.added_toast'), 'success');
           if (!isEditing && setExpandedEventFrameId) setExpandedEventFrameId(eventFrame.id);
           onClose();

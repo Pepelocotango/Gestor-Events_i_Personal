@@ -15,6 +15,7 @@ import { Toaster } from 'react-hot-toast';
 import { notificationService } from './utils/notificationService';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
+const SummariesDisplay = lazy(() => import('./components/SummariesDisplay'));
 const Controls = lazy(() => import('./components/Controls'));
 const Navigation = lazy(() => import('./components/Navigation'));
 const TechSheetsDisplay = lazy(() => import('./components/TechSheetsDisplay'));
@@ -58,6 +59,7 @@ const App: React.FC = () => {
 
   const [showSplash, setShowSplash] = useState(true);
   const [splashScreenEnabled, setSplashScreenEnabled] = useState(true);
+  const [gpuEnabled, setGpuEnabled] = useState(false);
   const [splashConfigLoaded, setSplashConfigLoaded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
   const [isDocumentOpen, setIsDocumentOpen] = useState<boolean>(false);
@@ -126,9 +128,17 @@ const App: React.FC = () => {
     initializeGoogleAuthListeners();
 
     const fetchMetadata = async () => {
-      if (window.electronAPI?.getAppMetadata) {
-        const metadata = await window.electronAPI.getAppMetadata();
-        setAppMetadata(metadata);
+      try {
+        if (window.electronAPI?.getAppMetadata) {
+          console.log('[App] Fetching app metadata...');
+          const metadata = await window.electronAPI.getAppMetadata();
+          console.log('[App] Received app metadata:', metadata);
+          setAppMetadata(metadata);
+        } else {
+          console.warn('[App] electronAPI or getAppMetadata not available');
+        }
+      } catch (error) {
+        console.error('[App] Error fetching app metadata:', error);
       }
     };
     fetchMetadata();
@@ -523,6 +533,7 @@ const App: React.FC = () => {
         if (window.electronAPI.getSessionData) {
           const sessionData = await window.electronAPI.getSessionData();
           setSplashScreenEnabled(sessionData.splashScreenEnabled !== false);
+          setGpuEnabled(sessionData.gpuEnabled === true);
           logger.info('[Startup] Configuració del splash screen carregada.');
         }
       }
@@ -695,9 +706,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     logger.info('[Startup] App.tsx: Configurant listener per a les accions del menú.');
+    console.log('[App] window.electronAPI available at listener setup:', !!window.electronAPI);
     const { undoWithToast, redoWithToast } = useEventDataStore.getState();
 
     if (window.electronAPI) {
+      console.log('[App] Setting up menu action listener...');
       const cleanup = window.electronAPI.onMenuAction((action) => {
         logger.info(`[Menu] Acció rebuda: ${action}`);
 
@@ -745,6 +758,7 @@ const App: React.FC = () => {
             useEventDataStore.getState().syncWithGoogle();
             break;
           case 'config-google':
+            console.log('[App] Opening googleSettings modal from menu');
             openModalFromStore('googleSettings');
             break;
           case 'connect-google':
@@ -753,6 +767,15 @@ const App: React.FC = () => {
           case 'toggle-theme':
             toggleTheme();
             break;
+          case 'toggle-gpu': {
+            const newGpuState = !gpuEnabled;
+            setGpuEnabled(newGpuState);
+            if (window.electronAPI?.saveSessionData) {
+              window.electronAPI.saveSessionData('gpuEnabled', newGpuState);
+              showToast(t('app.gpu_settings_updated'), 'info');
+            }
+            break;
+          }
           case 'open-logs-folder':
             window.electronAPI?.openLogsFolder();
             break;
@@ -760,6 +783,7 @@ const App: React.FC = () => {
             window.electronAPI?.openBackupsFolder();
             break;
           case 'open-about-modal':
+            console.log('[App] Opening about modal from menu');
             openModalFromStore('about');
             break;
           default:
@@ -768,6 +792,8 @@ const App: React.FC = () => {
       });
 
       return cleanup;
+    } else {
+      console.warn('[App] window.electronAPI not available, menu actions will not work');
     }
   }, [
     openModalFromStore,
@@ -777,7 +803,8 @@ const App: React.FC = () => {
     hasUnsavedChanges,
     currentFilePath, // Added to deps
     isDocumentOpen,  // Added to deps
-    recentFiles      // Added to deps
+    recentFiles,     // Added to deps
+    gpuEnabled       // Added to deps
   ]);
 
 
@@ -914,14 +941,14 @@ const App: React.FC = () => {
       case 'googleEventDetails':
         return <GoogleEventDetailsModal />;
       case 'about':
-        return appMetadata ? (
+        return (
           <AboutModal
-            name={appMetadata.name}
-            version={appMetadata.version}
-            description={appMetadata.description}
+            name={appMetadata?.name || 'Gestor d\'Esdeveniments'}
+            version={appMetadata?.version || '1.0.0'}
+            description={appMetadata?.description || 'Aplicació per a la gestió d\'esdeveniments'}
             onClose={closeModal}
           />
-        ) : null;
+        );
       case 'pdfPreview':
         return <PdfPreviewModal
           onClose={closeModal}
@@ -958,7 +985,7 @@ const App: React.FC = () => {
       case 'confirmDelete':
         return t('common.confirm');
       case 'updateFromAssignments': return t('tech_sheets.personnel.title');
-      case 'about': return t('about.title');
+      case 'about': return t('modals.about.title');
       default: return t('common.dialog');
     }
   };
@@ -1011,6 +1038,7 @@ const App: React.FC = () => {
               canUndo={canUndo}
               canRedo={canRedo}
               splashScreenEnabled={splashScreenEnabled}
+              gpuEnabled={gpuEnabled}
               onToggleSplashScreen={handleToggleSplashScreen}
               isDocumentOpen={isDocumentOpen}
               hasUnsavedChanges={hasUnsavedChanges}
@@ -1022,14 +1050,14 @@ const App: React.FC = () => {
               onOpenHistory={() => openModalFromStore('history')}
             />
             <div className="px-1 py-1 border-t border-border">
-              <Suspense fallback={<div className="text-center p-4">Carregant controls...</div>}>
+              <Suspense fallback={<div className="text-center p-4">{t('common.loading')}</div>}>
                 <Controls
                   theme={theme}
                   toggleTheme={toggleTheme}
                   currentFilePath={currentFilePath}
                 />
               </Suspense>
-              <Suspense fallback={<div className="text-center p-2">Carregant navegació...</div>}>
+              <Suspense fallback={<div className="text-center p-2">{t('common.loading')}</div>}>
                 <Navigation />
               </Suspense>
             </div>
@@ -1044,7 +1072,7 @@ const App: React.FC = () => {
                 onOpenRecent={handleOpenRecent}
               />
             ) : (
-              <Suspense fallback={<div className="text-center p-8">Carregant vista...</div>}>
+              <Suspense fallback={<div className="text-center p-8">{t('common.loading')}</div>}>
                 <Routes>
                   <Route
                     path="/"
@@ -1055,19 +1083,15 @@ const App: React.FC = () => {
                       />
                     }
                   />
+                  <Route path="/summaries" element={<SummariesDisplay showToast={showToast} />} />
                   <Route path="/tech-sheets" element={<TechSheetsDisplay showToast={showToast} />} />
                   <Route path="/people" element={<PeopleDisplay showToast={showToast} />} />
                   <Route path="/material" element={<MaterialDisplay showToast={showToast} />} />
                 </Routes>
               </Suspense>
             )}
+
           </main>
-
-
-          <footer className="bg-secondary p-4 text-center text-sm text-muted-foreground border-t border-border">
-            <span>© {new Date().getFullYear()} (Pëp) Gestor de Esdeveniments i Personal V1.5.0. Llicència GNU GPL v3.0. </span>
-            <span>Si vols col·laborar, pots fer-ho al <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" target="_blank" rel="noopener noreferrer" className="underline">projecte de GitHub</a> o amb una aportació a <a href="https://paypal.me/RosePep" target="_blank" rel="noopener noreferrer" className="underline">PayPal</a>.</span>
-          </footer>
 
           <Modal
             isOpen={isOpen}
@@ -1075,7 +1099,7 @@ const App: React.FC = () => {
             title={getModalTitle()}
             size={getModalSize()}
           >
-            <Suspense fallback={<div className="p-8 text-center">Carregant...</div>}>
+            <Suspense fallback={<div className="p-8 text-center">{t('common.loading')}</div>}>
               {renderModalContent()}
             </Suspense>
           </Modal>

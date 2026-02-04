@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Assignment, AssignmentStatus } from '../types';
 import { getDaysBetween } from '../utils/dates';
 import { useDataStore } from '../stores/dataStore';
-import { getStatusColor } from '../utils/statusUtils';
+import { getStatusColor, getTranslatedStatus } from '../utils/statusUtils';
 import { format } from 'date-fns';
 import { lightTheme, darkTheme } from '../utils/themes';
+import { useTranslation } from 'react-i18next';
 
 interface DailyStatusEditorProps {
   assignment: Assignment;
@@ -14,6 +15,7 @@ interface DailyStatusEditorProps {
 }
 
 const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, eventFrameId, isUnlocked }) => {
+  const { t } = useTranslation();
   const updateDailyAssignmentStatus = useDataStore(state => state.updateDailyAssignmentStatus);
   const theme = useDataStore(state => state.theme);
   const colors = theme === 'dark' ? darkTheme : lightTheme;
@@ -27,9 +29,9 @@ const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, event
 
   const handleStatusChange = (date: Date, currentStatus: AssignmentStatus) => {
     const statuses: AssignmentStatus[] = [
-        AssignmentStatus.Pending,
-        AssignmentStatus.Yes,
-        AssignmentStatus.No
+      AssignmentStatus.Pending,
+      AssignmentStatus.Yes,
+      AssignmentStatus.No
     ];
     const currentIndex = statuses.indexOf(currentStatus);
     const nextIndex = (currentIndex + 1) % statuses.length;
@@ -69,7 +71,7 @@ const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, event
         return (
           <View key={day.toISOString()} style={styles.dayRow}>
             <Text style={styles.dayText}>
-              {day.toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'numeric' })}
+              {format(day, 'dd/MM/yyyy')}
             </Text>
             <TouchableOpacity
               onPress={() => handleStatusChange(day, dayStatus)}
@@ -79,7 +81,7 @@ const DailyStatusEditor: React.FC<DailyStatusEditorProps> = ({ assignment, event
                 styles.statusText,
                 { color: getStatusColor(dayStatus), opacity: isUnlocked ? 1 : 0.4 }
               ]}>
-                {dayStatus}
+                {getTranslatedStatus(dayStatus, t)}
               </Text>
             </TouchableOpacity>
           </View>

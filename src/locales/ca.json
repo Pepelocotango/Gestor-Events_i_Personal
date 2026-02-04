@@ -28,9 +28,44 @@
         "theme_dark": "Tema Fosc",
         "history_tooltip": "Historial",
         "close_modal": "Tancar modal",
-        "splash_alt": "Pantalla d'inici"
+        "toggle_section_tooltip": "Replegar/Expandir secció {{title}}",
+        "splash_alt": "Pantalla d'inici",
+        "error_boundary": {
+            "title": "S'ha produït un error a l'aplicació",
+            "message": "S'ha produït un error inesperat a la interfície. Si us plau, reinicia l'aplicació.",
+            "reload_button": "Recarregar Aplicació",
+            "error_details": "Detalls de l'error"
+        },
+        "undo_action": "Desfeta l'acció",
+        "redo_action": "Refeta l'acció",
+        "action_undone": "Acció desfeta.",
+        "action_redone": "Acció refeta.",
+        "google_connected": "Connectat a Google Calendar amb èxit!",
+        "google_opening_browser": "Obrint el navegador per autenticar-se amb Google...",
+        "google_desktop_only": "Aquesta funcionalitat només està disponible a l'aplicació d'escriptori.",
+        "google_disconnected": "Compte de Google desconnectat correctament.",
+        "dialog": "Diàleg",
+        "expand_section": "Expandir secció",
+        "move_up": "Moure amunt",
+        "move_down": "Moure avall",
+        "note": "Nota",
+        "ascending": "Ascendent",
+        "descending": "Descendent",
+        "collapse_section": "Col·lapsar secció",
+        "close_button": "Tancar",
+        "days": "Dies"
+    },
+    "status": {
+        "yes": "Sí",
+        "no": "No",
+        "pending": "Pendent",
+        "mixed": "Mixt"
     },
     "menu": {
+        "home": "Inici",
+        "events": "Esdeveniments",
+        "staff": "Personal",
+        "settings": "Configuració",
         "file": {
             "label": "Fitxer",
             "new": "Nou Document",
@@ -70,7 +105,8 @@
             "zoom_in": "Apropar",
             "zoom_out": "Allunyar",
             "fullscreen": "Pantalla Completa",
-            "toggle_splash": "Mostrar Pantalla d'Inici en obrir"
+            "toggle_splash": "Mostrar Pantalla d'Inici en obrir",
+            "gpu_acceleration": "Acceleració per Hardware (GPU)"
         },
         "help": {
             "label": "Ajuda",
@@ -89,6 +125,9 @@
         "collapse_all": "Col·lapsar Tot",
         "expand_all": "Expandir Tot",
         "archive_old": "Arxivar Antics",
+        "archive_old_tooltip": "Arxivar esdeveniments antics (finalitzats fa més d'una setmana)",
+        "collapse_all_cards_tooltip": "Col·lapsar totes les targetes",
+        "expand_all_cards_tooltip": "Expandir totes les targetes",
         "pdf_export": "PDF",
         "csv_export": "CSV",
         "search_general": "Cerca general",
@@ -111,12 +150,29 @@
         "tooltip_clean": "Netejar tots els filtres",
         "nav_calendar_list_tooltip": "Anar a la vista principal del calendari i llista d'esdeveniments",
         "nav_calendar_list": "Calendari i Llista",
+        "nav_summaries_tooltip": "Anar als resums i informes",
+        "nav_summaries": "Resums",
         "nav_tech_sheets_tooltip": "Anar a la gestió de fitxes tècniques (bolos)",
         "nav_tech_sheets": "Fitxes de Bolo",
         "nav_people_tooltip": "Anar a la gestió de persones i grups",
         "nav_people": "Persones",
         "nav_material_tooltip": "Anar a la gestió d'inventari de material",
-        "nav_material": "Material"
+        "nav_material": "Material",
+        "add_event_tooltip": "Crear un nou marc d'esdeveniment",
+        "sort_tooltip": "Ordenar per data {{order}}",
+        "sort_ascending": "ascendent",
+        "sort_descending": "descendent",
+        "show_archived_tooltip": "Mostrar o ocultar els esdeveniments arxivats",
+        "archive": {
+            "item_type": "Esdeveniments",
+            "confirm_message": "S'arxivaran <strong>{{count}}</strong> esdeveniments finalitzats abans del <strong>{{date}}</strong>.",
+            "title": "Confirmació Arxivar",
+            "confirm_button": "Arxivar Antics",
+            "success": "{{count}} esdeveniment(s) arxivat(s) correctament.",
+            "no_events": "No hi ha esdeveniments antics per arxivar."
+        },
+        "export_pdf_tooltip": "Exportar la llista d'esdeveniments i assignacions a PDF",
+        "export_csv_tooltip": "Exportar la llista d'esdeveniments i assignacions a CSV"
     },
     "calendar": {
         "month": "Mes",
@@ -280,10 +336,29 @@
         "control_center_title": "Centre de Control de Material",
         "item_updated_toast": "Material actualitzat.",
         "item_added_toast": "Nou material afegit.",
+        "save_changes_tooltip": "Desar els canvis fets a l'ítem",
+        "add_item_tooltip": "Afegir el nou ítem a l'inventari",
+        "stock_tooltip": "Quantitat total d'aquest ítem en inventari",
+        "cancel_tooltip": "Descartar canvis i netejar el formulari",
+        "name_tooltip": "Nom de l'ítem de material",
+        "category_tooltip": "Categoria a la que pertany l'ítem",
+        "location_tooltip": "On es guarda aquest ítem (opcional)",
+        "notes_tooltip": "Anotacions addicionals sobre l'ítem (opcional)",
+        "name_label": "Nom",
+        "category_label": "Categoria",
+        "stock_label": "Estoc",
+        "location_label": "Ubicació",
+        "notes_label": "Notes",
         "delete_item_confirm_msg": "Segur que vols eliminar <strong>{{name}}</strong>?",
         "item_type": "Material",
         "update_button": "Actualitzar",
-        "add_button": "Afegir"
+        "add_button": "Afegir",
+        "validation": {
+            "name_required": "El nom és obligatori.",
+            "name_duplicate": "Ja existeix un material amb aquest nom.",
+            "category_required": "La categoria és obligatòria.",
+            "stock_negative": "L'estoc no pot ser negatiu."
+        }
     },
     "tech_sheets": {
         "manager_title": "Gestor de Fitxes de Bolo",
@@ -346,7 +421,10 @@
                 "parking_tooltip": "Indica si es necessita o no una zona de pàrquing reservada.",
                 "parking_details": "Detalls de la zona de parking:",
                 "parking_details_placeholder": "On, quantes places, metres lineals , contacte...",
-                "parking_details_tooltip": "Especifica la ubicació, el nombre de places necessàries, i a qui contactar per a la gestió del pàrquing."
+                "parking_details_tooltip": "Especifica la ubicació, el nombre de places necessàries, i a qui contactar per a la gestió del pàrquing.",
+                "dressing_rooms_placeholder": "Especifica les necessitats de camerinos: quantitat, tipus (individuals, col·lectius), i qualsevol requeriment especial.",
+                "actors_placeholder": "Detalls, notes, noms...",
+                "technicians_placeholder": "Detalls, notes, noms..."
             },
             "pre_assembly": {
                 "label": "PREMUNTATGE:",
@@ -502,7 +580,10 @@
                 "material_prefix": "Material de {{title}}"
             },
             "quantity_placeholder": "XX",
-            "provider_reorder_tooltip": "Reordenar proveïdor"
+            "provider_reorder_tooltip": "Reordenar proveïdor",
+            "add_to_inventory_tooltip": "Afegir a l'inventari",
+            "availability_prefix": "Disponibilitat: ",
+            "stock_prefix": "Estoc: "
         }
     },
     "mcc": {
@@ -536,6 +617,7 @@
         "header_origin": "Origen",
         "header_demanded": "Demanada",
         "header_balance": "Balanç",
+        "header_notes": "Notes",
         "tooltip_stock": "Quantitat inicial de material disponible.",
         "tooltip_name": "Nom del material",
         "tooltip_category": "Categoria del material",
@@ -545,7 +627,11 @@
         "breakdown_title": "Desglossament per Esdeveniment:",
         "units_suffix": "unitat(s)",
         "export_csv_tooltip": "Exportar tot el resum {{title}} a CSV",
-        "export_pdf_tooltip": "Exportar tot el resum {{title}} a PDF"
+        "export_pdf_tooltip": "Exportar tot el resum {{title}} a PDF",
+        "sort_date_tooltip": "Ordenar per data {{order}}",
+        "by_event_name": "Per Nom d'Esdeveniment",
+        "by_start_date": "Per Data d'Inici d'Assignació",
+        "by_person": "Per Persona/Grup"
     },
     "modals": {
         "confirm_delete": {
@@ -615,7 +701,13 @@
             "create_new_tooltip": "Crear la nova assignació",
             "updated_toast": "Assignació actualitzada.",
             "added_toast": "Assignació afegida.",
-            "error_prefix": "Error: "
+            "error_prefix": "Error: ",
+            "close_button": "Tancar",
+            "assignment_note": "Nota: ",
+            "conflict_detail": "Aquesta assignació té un conflicte.",
+            "duplicate_conflict": "Ja existeix una assignació duplicada.",
+            "title_edit_with_name": "Editar Assignació per {{name}}",
+            "title_new_with_name": "Nova Assignació per {{name}}"
         },
         "event_details": {
             "general_notes_label": "Notes Generals:",
@@ -708,10 +800,15 @@
             "unknown_person": "Desconegut"
         },
         "about": {
+            "title": "Sobre l'Aplicació",
             "version": "Versió {{version}}",
             "links_title": "Enllaços d'Interès",
+            "description": "Aplicació integral per a la gestió d'esdeveniments, personal i inventari. Permet la planificació d'esdeveniments, l'assignació de personal amb detecció de conflictes, la generació de fitxes tècniques detallades (fitxes de bolo), i el control d'estoc de material amb càlcul de disponibilitat. Inclou visualització en calendari, filtratge avançat i exportació a PDF/CSV.",
+            "collaboration_intro": "Si vols col·laborar, pots fer-ho al",
             "github_button": "Repositori a GitHub",
-            "paypal_button": "Fes una donació a PayPal"
+            "collaboration_or": "o amb una aportació a",
+            "paypal_button": "Fes una donació a PayPal",
+            "copyright": "© {{year}} (Pëp) Gestor de Esdeveniments i Personal {{version}}. Llicència GNU GPL v3.0."
         },
         "add_material_form": {
             "submit_button": "Afegir Material"
@@ -745,7 +842,8 @@
         "pdf_preview": {
             "loading": "Generant vista prèvia, espereu uns segons si surt una pantalla negra ...",
             "iframe_title": "Vista Prèvia PDF",
-            "save_button": "Desar PDF"
+            "save_button": "Desar PDF",
+            "title_override": "Vista Prèvia PDF"
         },
         "select_sync": {
             "title": "Selecciona el Calendari de Destinació",
@@ -787,6 +885,7 @@
             "fallback_confirm": "Tens canvis sense desar. Estàs segur que vols continuar?"
         },
         "new_document_success": "Nou espai de treball creat.",
+        "gpu_settings_updated": "Configuració de GPU actualitzada. Reinicia l'aplicació per aplicar els canvis.",
         "open": {
             "read_error_prefix": "Error en llegir el fitxer: ",
             "load_error_fallback": "Hi ha hagut un error en carregar les dades.",
@@ -899,5 +998,121 @@
         "incomplete_status": "Incomplet",
         "yes": "SI",
         "no": "NO"
+    },
+    "actions": {
+        "create_event": "Has creat l'esdeveniment «{{name}}»",
+        "update_event": "Has modificat l'esdeveniment «{{name}}»",
+        "delete_event": "Has suprimit l'esdeveniment «{{name}}»",
+        "mark_complete": "Has marcat l'esdeveniment «{{name}}» com a complet",
+        "mark_incomplete": "Has marcat l'esdeveniment «{{name}}» com a incomplet",
+        "update_tech_sheet": "Has actualitzat la fitxa tècnica de «{{name}}»",
+        "reorder_personnel": "Has reordenat el personal tècnic de «{{name}}»",
+        "assign_person": "Has assignat «{{person}}» a l'esdeveniment «{{event}}»",
+        "update_assignment": "Has modificat l'assignació de «{{person}}» a «{{event}}»",
+        "delete_assignment": "Has eliminat l'assignació de «{{person}}» a «{{event}}»",
+        "data_loaded": "Dades carregades des d'un arxiu",
+        "project_cleared": "Projecte netejat"
+    },
+    "errors": {
+        "assignment": {
+            "date_range": "Les dates han d'estar dins del rang del marc",
+            "duplicate_conflict": "Conflicte detectat: Aquest contacte ja té una assignació a {{details}}"
+        }
+    },
+    "roles": {
+        "direction": {
+            "chief": "Direcció: Cap Tècnic/a",
+            "floor_manager": "Direcció: Cap de Sala",
+            "council": "Direcció: Regidoria",
+            "council_assistant": "Direcció: Assistent/a de Regidoria"
+        },
+        "production": {
+            "producer": "Producció: Producció",
+            "assistant": "Producció: Auxiliar de Producció"
+        },
+        "technician": {
+            "sound": "Tècnic/a: So",
+            "lighting": "Tècnic/a: Il·luminació",
+            "video": "Tècnic/a: Vídeo",
+            "camera": "Tècnic/a: Operació de Càmera",
+            "pa": "Tècnic/a: So (PA)",
+            "monitors": "Tècnic/a: Monitors",
+            "machinery": "Tècnic/a: Maquineria",
+            "microphone": "Tècnic: Microfonísta"
+        },
+        "assembly": {
+            "machinery": "Muntatge: Maqui",
+            "rigger": "Muntatge: Maquinista / Rigger",
+            "helper": "Muntatge: Auxiliar de Càrrega i Descàrrega",
+            "crew": "Muntatge: Personal de Muntatge (Crew)",
+            "driver": "Muntatge: Conductor/a"
+        },
+        "audience": {
+            "floor_staff": "Públic: Personal de Sala / Acomodació",
+            "box_office": "Públic: Personal de Taquilles",
+            "security": "Públic: Personal de Seguretat"
+        },
+        "support": {
+            "rider": "Suport: Rider / Road Manager",
+            "personal": "Suport: Assistent/a Personal"
+        }
+    },
+    "csv": {
+        "header_event_name": "Nom Esdeveniment",
+        "header_place": "Lloc",
+        "header_event_start_date": "Data Inici Esdeveniment",
+        "header_event_end_date": "Data Fi Esdeveniment",
+        "header_assigned_person": "Personal Assignat",
+        "header_assignment_start_date": "Data Inici Assignació",
+        "header_assignment_end_date": "Data Fi Assignació",
+        "header_assignment_status": "Estat Assignació",
+        "header_assignment_notes": "Notes Assignació",
+        "header_event_notes": "Notes Generals Esdeveniment",
+        "filename_prefix": "Llista_Esdeveniments",
+        "header_assignment_dates": "Dates Assignació",
+        "header_event_dates": "Dates Esdeveniment",
+        "header_event_frame": "Marc Esdeveniment",
+        "header_event_place": "Lloc Esdeveniment",
+        "header_general_status": "Estat General",
+        "header_grouping": "Agrupació",
+        "header_status_detail": "Detall Estat",
+        "type_date": "Data",
+        "type_event": "Esdeveniment",
+        "type_person": "Persona"
+    },
+    "sync": {
+        "title": "Sincronització amb Google Calendar",
+        "step_progress": "Pas {{current}} de {{total}}",
+        "step_verifying_calendar": "Verificant accés al calendari...",
+        "step_calendar_connected": "Connexió amb el calendari establerta correctament.",
+        "step_requesting_confirmation": "Sol·licitant confirmació per iniciar la sincronització...",
+        "step_sync_cancelled": "Sincronització cancel·lada per l'usuari.",
+        "step_starting_sync": "Iniciant procés de sincronització...",
+        "step_getting_threshold_date": "Sincronització parcial des de: {{date}}",
+        "step_getting_events": "Obtenint llista d'esdeveniments del calendari...",
+        "step_sync_stats": "Estadístiques de sincronització:",
+        "step_events_to_delete": "Esdeveniments a eliminar: {{count}}",
+        "step_events_to_upload": "Esdeveniments a pujar/actualitzar: {{count}} (de {{total}} totals)",
+        "step_starting_deletion": "Iniciant eliminació de {{count}} esdeveniments antics...",
+        "step_deleting_event": "Eliminant esdeveniment {{index}}/{{total}}: {{name}}",
+        "step_deletion_complete": "S'han eliminat tots els esdeveniments antics.",
+        "step_no_events_to_delete": "No hi ha esdeveniments antics per eliminar.",
+        "step_starting_upload": "Iniciant pujada de {{count}} esdeveniments nous/actualitzats...",
+        "step_processing_event": "Processant esdeveniment {{index}}/{{total}}: {{name}}",
+        "step_upload_complete": "Pujada completada.",
+        "step_initializing_sync": "Iniciant procés de sincronització amb Google Calendar..."
+    },
+    "summary": {
+        "by_event_name": "Per Nom d'Esdeveniment",
+        "by_person": "Per Persona",
+        "by_start_date": "Per Data d'Inici",
+        "export_csv_tooltip": "Exportar resum a CSV",
+        "export_pdf_tooltip": "Exportar resum a PDF",
+        "sort_date_tooltip": "Ordenar per data {{order}}",
+        "sort_button_label": "Ordena"
+    },
+    "main_display": {
+        "assignment_status_updated": "Estat de l'assignació actualitzat a {{status}}",
+        "daily_status_updated": "Estat diari actualitzat a {{status}}"
     }
 }

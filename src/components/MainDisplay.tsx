@@ -4,7 +4,7 @@ import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../
 import { useEventDataStore } from '../stores/eventDataStore';
 import { useModalStore } from '../stores/modalStore';
 import Tooltip from './ui/Tooltip';
-import { PlusIcon, CalendarIcon, ListIcon, ChartBarIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon } from '../constants';
+import { PlusIcon, CalendarIcon, ListIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ArchiveIcon } from '../constants';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -12,7 +12,8 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import multiMonthPlugin from '@fullcalendar/multimonth';
 import caLocale from '@fullcalendar/core/locales/ca';
-import SummaryReports from './SummaryReports';
+import enLocale from '@fullcalendar/core/locales/en-gb';
+import esLocale from '@fullcalendar/core/locales/es';
 import { addDaysISO, formatDateDMY } from '../utils/dateFormat';
 import { exportEventListToPdf } from '../utils/pdfGenerator';
 import { exportEventListToCsv } from '../utils/csvUtils';
@@ -33,7 +34,7 @@ const MainDisplay = React.forwardRef<
   const calendarRef = useRef<FullCalendar>(null);
   const openModal = useModalStore(state => state.openModal);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useImperativeHandle(ref, () => ({
     resize: () => {
@@ -86,7 +87,7 @@ const MainDisplay = React.forwardRef<
     confirmArchiveEventFrames,
   } = useEventDataStore.getState();
 
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showArchived, setShowArchived] = useState(false);
 
   // Estats d'expansió centralitzats
@@ -96,7 +97,13 @@ const MainDisplay = React.forwardRef<
 
   const highlightedEventId = useEventDataStore(state => state.highlightedEventId);
 
-  // Removed noisy render logs to avoid spamming console and potential perf issues
+  // Mapeig d'idiomes de i18next a locales de FullCalendar
+  const calendarLocales: { [key: string]: any } = {
+    ca: caLocale,
+    en: enLocale,
+    es: esLocale,
+  };
+  const currentCalendarLocale = calendarLocales[i18n.language] || caLocale;
 
   const validationResult = useMemo(() => {
     // Validació iniciada
@@ -277,13 +284,28 @@ const MainDisplay = React.forwardRef<
     const performUpdate = (force = false) => {
       const result = updateAssignment({ ...assignment, status: newStatus, dailyStatuses: undefined }, force);
       if (result.success) {
-        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+        if (result.conflict && result.conflict.type === 'DUPLICATE') {
+          const conflictDetails = result.conflict.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
           openModal('confirmDuplicate', {
-            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
+            onConfirm: () => performUpdate(true),
+          });
+        } else if (result.warningMessage && typeof result.warningMessage === 'object' && result.warningMessage.type === 'DUPLICATE') {
+          const conflictDetails = result.warningMessage.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
+          openModal('confirmDuplicate', {
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
             onConfirm: () => performUpdate(true),
           });
         } else {
-          setToastMessage(`Estat general de l'assignació actualitzat a ${newStatus}`, 'success');
+          if (result.warningMessage && typeof result.warningMessage === 'string') {
+            setToastMessage(result.warningMessage, 'warning');
+          } else {
+            setToastMessage(t('main_display.assignment_status_updated', { status: newStatus }), 'success');
+          }
           setManualExpandedDailyView(prev => {
             const newSet = new Set(prev);
             newSet.delete(assignmentId);
@@ -320,13 +342,28 @@ const MainDisplay = React.forwardRef<
       const result = updateAssignment(newAssignmentData, force, { changedDate: dateYYYYMMDD });
 
       if (result.success) {
-        if (result.warningMessage && result.warningMessage.startsWith('DUPLICATE_CONFLICT:')) {
+        if (result.conflict && result.conflict.type === 'DUPLICATE') {
+          const conflictDetails = result.conflict.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
           openModal('confirmDuplicate', {
-            message: result.warningMessage.replace('DUPLICATE_CONFLICT:', ''),
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
+            onConfirm: () => performUpdate(true),
+          });
+        } else if (result.warningMessage && typeof result.warningMessage === 'object' && result.warningMessage.type === 'DUPLICATE') {
+          const conflictDetails = result.warningMessage.details.map((detail: any) => 
+            t('modals.assignment_form.conflict_detail', { eventName: detail.eventName, date: detail.date })
+          ).join(', ');
+          openModal('confirmDuplicate', {
+            message: t('modals.assignment_form.duplicate_conflict', { details: conflictDetails }),
             onConfirm: () => performUpdate(true),
           });
         } else {
-          setToastMessage(`Estat del dia actualitzat a ${newDailyStatus}`, 'success');
+          if (result.warningMessage && typeof result.warningMessage === 'string') {
+            setToastMessage(result.warningMessage, 'warning');
+          } else {
+            setToastMessage(t('main_display.daily_status_updated', { status: newDailyStatus }), 'success');
+          }
         }
       } else if (result.message) {
         setToastMessage(result.message, 'error');
@@ -359,7 +396,7 @@ const MainDisplay = React.forwardRef<
     <div className="space-y-2"> {/* Contenidor simple en lloc de CollapsibleSection */}
 
       {/* SECCIÓ 1: CALENDARI */}
-      <CollapsibleSection title={t('main.calendar_view')} icon={<CalendarIcon />} defaultOpen={true} id="calendar-section">
+      <CollapsibleSection title={t('main.calendar_view')} icon={<CalendarIcon />} defaultOpen={false} id="calendar-section">
         <div className="calendar-wrapper border border-border rounded-lg" style={{ padding: '0.25rem' }}>
           <FullCalendar
             ref={calendarRef}
@@ -374,7 +411,7 @@ const MainDisplay = React.forwardRef<
               multiMonth6: { type: 'multiMonth', duration: { months: 6 }, buttonText: t('calendar.6_months'), multiMonthMaxColumns: 2 }
             }}
             headerToolbar={{ left: 'prev,next today', center: 'title', right: 'multiMonth6,multiMonth4,multiMonth2,dayGridMonth,timeGridWeek,listWeek' }}
-            locale={caLocale}
+            locale={currentCalendarLocale}
             buttonText={{ today: t('calendar.today') }}
             height="auto"
             contentHeight="auto"
@@ -419,10 +456,11 @@ const MainDisplay = React.forwardRef<
         icon={<ListIcon />}
         isExpanded={isEventListExpanded}
         onToggle={() => useEventDataStore.getState().toggleEventListExpanded()}
+        defaultOpen={true}
         id="event-list-section"
       >
         <div className="mb-1 flex justify-start items-center gap-1">
-          <Tooltip text="Crear un nou marc d'esdeveniment">
+          <Tooltip text={t('main.add_event_tooltip')}>
             <button data-testid="add-event-frame-button" onClick={() => {
               const today = new Date().toISOString().split('T')[0];
               openModal('addEventFrame', {
@@ -436,7 +474,7 @@ const MainDisplay = React.forwardRef<
               <PlusIcon className="w-4 h-4" /> {t('main.add_event_frame')}
             </button>
           </Tooltip>
-          <Tooltip text={`Ordena per data ${sortOrder === 'asc' ? 'descendent' : 'ascendent'}`}>
+          <Tooltip text={t('main.sort_tooltip', { order: sortOrder === 'asc' ? t('main.sort_descending') : t('main.sort_ascending') })}>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
@@ -445,7 +483,7 @@ const MainDisplay = React.forwardRef<
             </button>
           </Tooltip>
           <div className="border-l border-border h-6 mx-1"></div>
-          <Tooltip text="Mostrar o ocultar els esdeveniments arxivats">
+          <Tooltip text={t('main.show_archived_tooltip')}>
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -459,7 +497,7 @@ const MainDisplay = React.forwardRef<
               </label>
             </div>
           </Tooltip>
-          <Tooltip text={areAllVisibleExpanded ? "Col·lapsar totes les targetes" : "Expandir totes les targetes"}>
+          <Tooltip text={areAllVisibleExpanded ? t('main.collapse_all_cards_tooltip') : t('main.expand_all_cards_tooltip')}>
             <button
               onClick={handleToggleAllCards}
               className="px-2 py-0.5 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-accent text-xs font-medium"
@@ -469,7 +507,7 @@ const MainDisplay = React.forwardRef<
             </button>
           </Tooltip>
           <div className="flex-grow"></div>
-          <Tooltip text="Arxivar esdeveniments antics (finalitzats fa més d'una setmana)">
+          <Tooltip text={t('main.archive_old_tooltip')}>
             <button
               onClick={() => {
                 const eventsToArchive = archiveOldEventFrames();
@@ -479,20 +517,20 @@ const MainDisplay = React.forwardRef<
                   const formattedDate = oneWeekAgo.toLocaleDateString('ca-ES');
 
                   openModal('confirmDelete', {
-                    itemType: 'Esdeveniments',
-                    itemName: `S'arxivaran <strong>${eventsToArchive.length}</strong> esdeveniments finalitzats abans del <strong>${formattedDate}</strong>.`,
+                    itemType: t('main.archive.item_type'),
+                    itemName: t('main.archive.confirm_message', { count: eventsToArchive.length, date: formattedDate }),
                     onConfirm: () => {
                       const eventIds = eventsToArchive.map(e => e.id);
                       confirmArchiveEventFrames(eventIds);
-                      setToastMessage(`${eventIds.length} esdeveniment(s) arxivat(s) correctament.`, 'success');
+                      setToastMessage(t('main.archive.success', { count: eventIds.length }), 'success');
                     },
-                    titleOverride: "Confirmació Arxivar",
-                    confirmButtonText: "Arxivar Antics",
+                    titleOverride: t('main.archive.title'),
+                    confirmButtonText: t('main.archive.confirm_button'),
                     suppressSuccessToast: true,
                     intent: 'destructive'
                   });
                 } else {
-                  setToastMessage("No hi ha esdeveniments antics per arxivar.", 'info');
+                  setToastMessage(t('main.archive.no_events'), 'info');
                 }
               }}
               className="flex items-center justify-center gap-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
@@ -500,7 +538,7 @@ const MainDisplay = React.forwardRef<
               <ArchiveIcon className="w-4 h-4" /> {t('main.archive_old')}
             </button>
           </Tooltip>
-          <Tooltip text="Exportar la llista d'esdeveniments i assignacions a PDF">
+          <Tooltip text={t('main.export_pdf_tooltip')}>
             <button
               onClick={() => exportEventListToPdf(
                 filteredAndSortedEventFrames,
@@ -513,13 +551,14 @@ const MainDisplay = React.forwardRef<
               <DocumentArrowDownIcon className="w-4 h-4" /> {t('main.pdf_export')}
             </button>
           </Tooltip>
-          <Tooltip text="Exportar la llista d'esdeveniments i assignacions a CSV">
+          <Tooltip text={t('main.export_csv_tooltip')}>
             <button
               onClick={() => exportEventListToCsv(
                 filteredAndSortedEventFrames,
                 peopleGroups,
                 setToastMessage,
-                { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }
+                { filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame },
+                t
               )}
               className="flex items-center justify-center gap-1 bg-success hover:bg-success/90 text-success-foreground font-semibold py-1 px-2 rounded-md transition-colors text-sm"
             >
@@ -571,14 +610,6 @@ const MainDisplay = React.forwardRef<
         ))}
       </CollapsibleSection>
 
-      {/* SECCIÓ 3: RESUMS */}
-      <CollapsibleSection title={t('main.summaries')} icon={<ChartBarIcon />} defaultOpen={false} id="summary-section">
-        <SummaryReports
-          setToastMessage={setToastMessage}
-          filteredEventFrames={filteredAndSortedEventFrames}
-          activeFilters={{ filterText, filterStatus, filterDate, localFilterUIPerson, filterPlace, filterUIEventFrame }}
-        />
-      </CollapsibleSection>
     </div>
   );
 });
