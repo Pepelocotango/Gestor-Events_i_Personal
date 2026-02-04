@@ -170,7 +170,7 @@ const initialState: EventDataState = {
     localFilterUIPerson: '',
     filterPlace: '',
     // Estats per a l'expansió automàtica - valors inicials
-    isEventListExpanded: false,
+    isEventListExpanded: true,
     manualExpandedFrameIds: new Set<string>(),
 };
 

@@ -65,6 +65,13 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     return initialState;
   });
 
+  const [sortDirections, setSortDirections] = useState<Record<string, 'asc' | 'desc'>>(() => {
+    const initialState: Record<string, 'asc' | 'desc'> = {};
+    const needsSections: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
+    needsSections.forEach(section => { initialState[section] = 'asc'; });
+    return initialState;
+  });
+
   const [scheduleSortOrder, setScheduleSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const handleToggleSection = (sectionKey: string) => {
@@ -186,13 +193,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
   };
 
   const handleSortNeedsByOrigin = (listName: TechSheetNeedsKey) => {
+    const currentDirection = sortDirections[listName] || 'asc';
+    const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+    
+    setSortDirections(prev => ({ ...prev, [listName]: newDirection }));
+    
     setFormData(prev => {
       const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
       if (!section || !section.data || !section.data.needs) return prev;
 
-      const sortedNeeds = [...section.data.needs].sort((a, b) =>
-        a.origin.localeCompare(b.origin, undefined, { sensitivity: 'base' })
-      );
+      const sortedNeeds = [...section.data.needs].sort((a, b) => {
+        const comparison = a.origin.localeCompare(b.origin, undefined, { sensitivity: 'base' });
+        return newDirection === 'asc' ? comparison : -comparison;
+      });
 
       const updatedSection = { ...section, data: { ...section.data, needs: sortedNeeds } };
       return { ...prev, [listName]: updatedSection };
@@ -804,6 +817,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         onMoveItemUp={handleMoveNeedItemUp as any}
         onMoveItemDown={handleMoveNeedItemDown as any}
         onSortByOrigin={handleSortNeedsByOrigin as any}
+        sortDirection={sortDirections[fieldName] || 'asc'}
         originSuggestions={originSuggestions}
         materialItems={materialItems}
         eventFrame={eventFrame}
