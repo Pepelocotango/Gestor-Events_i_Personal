@@ -137,8 +137,8 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
 
           {/* Missatge si no hi ha esdeveniment seleccionat */}
           {!selectedEventFrameId && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p className="text-lg">{t('performances.no_event_selected')}</p>
+            <div className="text-center py-12 text-muted-foreground bg-muted/30 border-2 border-dashed border-border rounded-lg">
+              <p className="text-lg font-medium">{t('performances.no_event_selected')}</p>
             </div>
           )}
 
@@ -171,8 +171,8 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
                     />
                   </Suspense>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-border rounded-lg">
-                    <p className="text-lg">{t('performances.no_performance_selected')}</p>
+                  <div className="text-center py-12 text-muted-foreground bg-muted/30 border-2 border-dashed border-border rounded-lg">
+                    <p className="text-lg font-medium">{t('performances.no_performance_selected')}</p>
                     <p className="text-sm mt-2">{t('performances.select_performance_to_edit')}</p>
                   </div>
                 )}

@@ -41,11 +41,22 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-success text-success-foreground';
       case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-destructive text-destructive-foreground';
       default:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-warning text-warning-foreground';
+    }
+  };
+
+  const getStatusBorder = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'border-l-success';
+      case 'cancelled':
+        return 'border-l-destructive';
+      default:
+        return 'border-l-warning';
     }
   };
 
@@ -64,10 +75,10 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
     <div ref={setNodeRef} style={style}>
       <div
         className={`
-          relative p-4 border rounded-lg cursor-pointer transition-all
+          relative p-4 border rounded-lg cursor-pointer transition-all duration-200
           ${isSelected 
             ? 'border-primary bg-primary/5 shadow-sm' 
-            : 'border-border hover:border-primary/50 hover:bg-accent/50'
+            : `border-border hover:border-primary/50 hover:bg-accent/50 ${getStatusBorder(performance.status)} border-l-4`
           }
         `}
         onClick={onSelect}

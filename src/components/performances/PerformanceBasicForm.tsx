@@ -103,7 +103,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               value={formData.name}
               onChange={(e) => handleFieldChange('name', e.target.value)}
               onBlur={handleBlur}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.name_placeholder')}
             />
           </div>
@@ -119,7 +119,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 value={formData.type}
                 onChange={(e) => handleFieldChange('type', e.target.value)}
                 onBlur={handleBlur}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               >
                 <option value="">{t('performances.select_type')}</option>
                 {PERFORMANCE_TYPES.map(type => (
@@ -138,7 +138,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 value={formData.status}
                 onChange={(e) => handleFieldChange('status', e.target.value as 'pending' | 'confirmed' | 'cancelled')}
                 onBlur={handleBlur}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               >
                 <option value="pending">{t('performances.status.pending')}</option>
                 <option value="confirmed">{t('performances.status.confirmed')}</option>
@@ -164,7 +164,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 value={formData.arrivalTime || ''}
                 onChange={(e) => handleFieldChange('arrivalTime', e.target.value)}
                 onBlur={handleBlur}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
             </div>
 
@@ -179,7 +179,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 value={formData.soundCheckTime || ''}
                 onChange={(e) => handleFieldChange('soundCheckTime', e.target.value)}
                 onBlur={handleBlur}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
             </div>
 
@@ -194,7 +194,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 value={formData.showTime || ''}
                 onChange={(e) => handleFieldChange('showTime', e.target.value)}
                 onBlur={handleBlur}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
             </div>
 
@@ -209,7 +209,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 value={formData.departureTime || ''}
                 onChange={(e) => handleFieldChange('departureTime', e.target.value)}
                 onBlur={handleBlur}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
             </div>
           </div>
@@ -225,7 +225,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               value={formData.duration || ''}
               onChange={(e) => handleFieldChange('duration', e.target.value)}
               onBlur={handleBlur}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.duration_placeholder')}
             />
           </div>
@@ -246,7 +246,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               value={formData.contactName}
               onChange={(e) => handleFieldChange('contactName', e.target.value)}
               onBlur={handleBlur}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.contact_name_placeholder')}
             />
           </div>
@@ -263,7 +263,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 value={formData.contactPhone}
                 onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
                 onBlur={handleBlur}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
                 placeholder={t('performances.contact_phone_placeholder')}
               />
             </div>
@@ -279,7 +279,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 value={formData.contactEmail}
                 onChange={(e) => handleFieldChange('contactEmail', e.target.value)}
                 onBlur={handleBlur}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
                 placeholder={t('performances.contact_email_placeholder')}
               />
             </div>

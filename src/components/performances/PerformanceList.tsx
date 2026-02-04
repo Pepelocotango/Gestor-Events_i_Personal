@@ -85,9 +85,9 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
         <Tooltip text={t('performances.add_tooltip')}>
           <button
             onClick={onAddPerformance}
-            className="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            className="w-full px-4 py-2 rounded-md text-sm font-semibold bg-success text-success-foreground hover:bg-success/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
-            <PlusIcon className="w-4 h-4" />
+            <PlusIcon className="w-4 h-4 inline mr-2" />
             {t('performances.add_button')}
           </button>
         </Tooltip>
