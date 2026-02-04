@@ -34,6 +34,16 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
   const isDirtyRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Sincronitzar el formulari quan canvia la performance seleccionada
+  useEffect(() => {
+    setFormData(performance);
+    isDirtyRef.current = false;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+  }, [performance]);
+
   const saveData = (showMessage = false) => {
     if (isDirtyRef.current) {
       updatePerformance(eventFrameId, formData);
@@ -119,9 +129,9 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
             </div>
 
             <div>
-              <Tooltip text={t('performances.status_tooltip')}>
+              <Tooltip text={t('performances.performance_status_tooltip')}>
                 <label className="block text-sm font-medium mb-2">
-                  {t('performances.status')}
+                  {t('performances.performance_status')}
                 </label>
               </Tooltip>
               <select

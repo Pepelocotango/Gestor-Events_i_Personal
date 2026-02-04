@@ -74,7 +74,10 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
       status: 'pending'
     };
 
-    addPerformance(selectedEventFrameId, newPerformance);
+    const newPerformanceId = addPerformance(selectedEventFrameId, newPerformance);
+    if (newPerformanceId) {
+      setSelectedPerformanceId(newPerformanceId);
+    }
   };
 
   const handleDeletePerformance = (performanceId: string) => {

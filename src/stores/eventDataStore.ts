@@ -140,7 +140,7 @@ interface EventDataActions {
     archiveOldEventFrames: () => EventFrame[];
     confirmArchiveEventFrames: (eventFrameIds: string[]) => void;
     restoreEventFrame: (eventFrameId: string) => void;
-    addPerformance: (eventFrameId: string, performance: Omit<Performance, 'id'>) => void;
+    addPerformance: (eventFrameId: string, performance: Omit<Performance, 'id'>) => string | null;
     updatePerformance: (eventFrameId: string, performance: Performance) => void;
     deletePerformance: (eventFrameId: string, performanceId: string) => void;
     reorderPerformances: (eventFrameId: string, newPerformances: Performance[]) => void;
@@ -625,7 +625,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
     addPerformance: (eventFrameId: string, performanceData: Omit<Performance, 'id'>) => {
         const { eventFrames } = get();
         const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
-        if (!eventFrame) return;
+        if (!eventFrame) return null;
 
         const newPerformance: Performance = { ...performanceData, id: generateId() };
         set((state: EventDataState) => {
@@ -640,6 +640,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             state.lastAction = { type: 'actions.add_performance', params: { name: newPerformance.name, event: eventFrame?.name ?? 'desconegut' } };
             state.lastActionDescription = `Has afegit l'actuació «${newPerformance.name}» a l'esdeveniment «${eventFrame?.name ?? 'desconegut'}»`;
         });
+        return newPerformance.id;
     },
     updatePerformance: (eventFrameId: string, updatedPerformance: Performance) => {
         const { eventFrames } = get();
