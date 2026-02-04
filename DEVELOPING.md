@@ -1,4 +1,4 @@
-branca de desenvolupament * 0DEV_TRANSLATE
+branca de desenvolupament * 00DEV_GEP
 
 web de la app a Vercel a la branca main O 0DEV_TRANSLATE:
 https://gestor-events-i-personal-landingpag.vercel.app/
