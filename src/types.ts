@@ -149,6 +149,29 @@ export interface TechSheetData {
 }
 
 
+export interface InputListItem {
+  id: string;
+  channel?: string;
+  label: string;
+  micDi: string;
+  notes: string;
+}
+
+export interface PerformanceTechData {
+  inputList: InputListItem[];
+  lightingNotes: string;
+  videoNotes: string;
+  stageRequirements: string;
+}
+
+export interface PerformanceHospitalityData {
+  dressingRooms: string;
+  cateringNotes: string;
+  dietaryRequirements: string;
+  travelLogistics: string;
+  parkingNotes: string;
+}
+
 export interface Performance {
   id: string;
   name: string; // Nom de l'artista/acte
@@ -163,6 +186,8 @@ export interface Performance {
   showTime?: string; // Hora d'actuació
   departureTime?: string; // Hora de sortida
   duration?: string; // Durada prevista
+  techData?: PerformanceTechData;
+  hospitalityData?: PerformanceHospitalityData;
 }
 
 export interface EventFrame {

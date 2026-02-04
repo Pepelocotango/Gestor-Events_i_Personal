@@ -103,6 +103,11 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
               <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(performance.status)}`}>
                 {getStatusText(performance.status)}
               </span>
+              {performance.techData && performance.techData.inputList.length > 0 && (
+                <Tooltip text={t('performances.has_tech_data')}>
+                  <span className="text-primary">🎛️</span>
+                </Tooltip>
+              )}
             </div>
             
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">

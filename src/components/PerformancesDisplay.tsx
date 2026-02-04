@@ -6,7 +6,7 @@ import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
 
 const PerformanceList = lazy(() => import('./performances/PerformanceList'));
-const PerformanceBasicForm = lazy(() => import('./performances/PerformanceBasicForm'));
+const PerformanceDetailContainer = lazy(() => import('./performances/PerformanceDetailContainer'));
 
 interface PerformancesDisplayProps {
   showToast?: ShowToastFunction;
@@ -71,7 +71,20 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
       contactPhone: '',
       contactEmail: '',
       notes: '',
-      status: 'pending'
+      status: 'pending',
+      techData: {
+        inputList: [],
+        lightingNotes: '',
+        videoNotes: '',
+        stageRequirements: '',
+      },
+      hospitalityData: {
+        dressingRooms: '',
+        cateringNotes: '',
+        dietaryRequirements: '',
+        travelLogistics: '',
+        parkingNotes: '',
+      },
     };
 
     const newPerformanceId = addPerformance(selectedEventFrameId, newPerformance);
@@ -164,7 +177,7 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
               <div className="lg:col-span-2">
                 {selectedPerformance ? (
                   <Suspense fallback={<div className="text-center p-8">{t('common.loading')}</div>}>
-                    <PerformanceBasicForm
+                    <PerformanceDetailContainer
                       eventFrameId={selectedEventFrameId}
                       performance={selectedPerformance}
                       showToast={showToast}
