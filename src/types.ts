@@ -149,6 +149,17 @@ export interface TechSheetData {
 }
 
 
+export interface Performance {
+  id: string;
+  name: string; // Nom de l'artista/acte
+  type: string; // Música, Teatre, etc.
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  notes: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+}
+
 export interface EventFrame {
   id: string;
   name: string;
@@ -164,6 +175,7 @@ export interface EventFrame {
   lastSync?: string;
   techSheet?: TechSheetData;
   isArchived?: boolean;
+  performances?: Performance[];
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;

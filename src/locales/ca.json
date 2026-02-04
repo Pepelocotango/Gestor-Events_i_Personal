@@ -119,6 +119,19 @@
         "calendar_view": "Vista de Calendari",
         "event_list": "Llista d'Esdeveniments",
         "archived_events": "Esdeveniments Arxivats",
+        "nav_calendar_list": "Calendari",
+        "nav_calendar_list_tooltip": "Vista de calendari i llista d'esdeveniments",
+        "nav_summaries": "Resums",
+        "nav_summaries_tooltip": "Resums i estadístiques",
+        "nav_tech_sheets": "Fitxes Tècniques",
+        "nav_tech_sheets_tooltip": "Gestió de fitxes tècniques",
+        "nav_people": "Persones",
+        "nav_people_tooltip": "Gestió de contactes i personal",
+        "nav_material": "Material",
+        "nav_material_tooltip": "Control de material i inventari",
+        "nav_performances_tooltip": "Gestió d'actuacions i riders"
+    },
+    "main_display": {
         "add_event_frame": "Afegir Nou Marc",
         "sort": "Ordena",
         "show_archived": "Mostrar arxivats",
@@ -172,7 +185,9 @@
             "no_events": "No hi ha esdeveniments antics per arxivar."
         },
         "export_pdf_tooltip": "Exportar la llista d'esdeveniments i assignacions a PDF",
-        "export_csv_tooltip": "Exportar la llista d'esdeveniments i assignacions a CSV"
+        "export_csv_tooltip": "Exportar la llista d'esdeveniments i assignacions a CSV",
+        "assignment_status_updated": "Estat de l'assignació actualitzat a {{status}}",
+        "daily_status_updated": "Estat diari actualitzat a {{status}}"
     },
     "calendar": {
         "month": "Mes",
@@ -1111,8 +1126,9 @@
         "sort_date_tooltip": "Ordenar per data {{order}}",
         "sort_button_label": "Ordena"
     },
-    "main_display": {
-        "assignment_status_updated": "Estat de l'assignació actualitzat a {{status}}",
-        "daily_status_updated": "Estat diari actualitzat a {{status}}"
+    "performances": {
+        "nav_title": "Actuacions",
+        "manager_title": "Gestió d'Actuacions i Riders",
+        "no_event_selected": "Selecciona un esdeveniment per gestionar les actuacions."
     }
 }

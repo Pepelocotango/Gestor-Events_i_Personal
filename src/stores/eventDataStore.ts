@@ -4,7 +4,7 @@ import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider, Performance } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
@@ -140,6 +140,9 @@ interface EventDataActions {
     archiveOldEventFrames: () => EventFrame[];
     confirmArchiveEventFrames: (eventFrameIds: string[]) => void;
     restoreEventFrame: (eventFrameId: string) => void;
+    addPerformance: (eventFrameId: string, performance: Omit<Performance, 'id'>) => void;
+    updatePerformance: (eventFrameId: string, performance: Performance) => void;
+    deletePerformance: (eventFrameId: string, performanceId: string) => void;
 }
 
 const initialState: EventDataState = {
@@ -616,6 +619,61 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         });
     },
     getPersonGroupById: (personGroupId: string) => get().peopleGroups.find((pg: PersonGroup) => pg.id === personGroupId),
+
+    // PERFORMANCES
+    addPerformance: (eventFrameId: string, performanceData: Omit<Performance, 'id'>) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
+        if (!eventFrame) return;
+
+        const newPerformance: Performance = { ...performanceData, id: generateId() };
+        set((state: EventDataState) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame) {
+                if (!targetFrame.performances) {
+                    targetFrame.performances = [];
+                }
+                targetFrame.performances.push(newPerformance);
+            }
+            state.hasUnsavedChanges = true;
+            state.lastAction = { type: 'actions.add_performance', params: { name: newPerformance.name, event: eventFrame?.name ?? 'desconegut' } };
+            state.lastActionDescription = `Has afegit l'actuació «${newPerformance.name}» a l'esdeveniment «${eventFrame?.name ?? 'desconegut'}»`;
+        });
+    },
+    updatePerformance: (eventFrameId: string, updatedPerformance: Performance) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
+        if (!eventFrame) return;
+
+        set((state: EventDataState) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame && targetFrame.performances) {
+                const performanceIndex = targetFrame.performances.findIndex(p => p.id === updatedPerformance.id);
+                if (performanceIndex !== -1) {
+                    targetFrame.performances[performanceIndex] = updatedPerformance;
+                }
+            }
+            state.hasUnsavedChanges = true;
+            state.lastAction = { type: 'actions.update_performance', params: { name: updatedPerformance.name, event: eventFrame?.name ?? 'desconegut' } };
+            state.lastActionDescription = `Has modificat l'actuació «${updatedPerformance.name}» de l'esdeveniment «${eventFrame?.name ?? 'desconegut'}»`;
+        });
+    },
+    deletePerformance: (eventFrameId: string, performanceId: string) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
+        const performance = eventFrame?.performances?.find(p => p.id === performanceId);
+        const performanceName = performance?.name || 'desconegut';
+        
+        set((state: EventDataState) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame && targetFrame.performances) {
+                targetFrame.performances = targetFrame.performances.filter((p: Performance) => p.id !== performanceId);
+            }
+            state.hasUnsavedChanges = true;
+            state.lastAction = { type: 'actions.delete_performance', params: { name: performanceName, event: eventFrame?.name ?? 'desconegut' } };
+            state.lastActionDescription = `Has suprimit l'actuació «${performanceName}» de l'esdeveniment «${eventFrame?.name ?? 'desconegut'}»`;
+        });
+    },
     mergePeopleGroups: (newPeople: PersonGroup[]) => {
         const existingNames = new Set(get().peopleGroups.map((p: PersonGroup) => p.name.toLowerCase()));
         const peopleToAdd = newPeople.filter((p: PersonGroup) => !existingNames.has(p.name.toLowerCase()));
