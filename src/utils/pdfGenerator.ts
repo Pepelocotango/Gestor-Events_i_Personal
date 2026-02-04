@@ -1115,3 +1115,171 @@ export const exportEventPerformancesSummaryPdf = async (
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
 };
+
+// --- FULL DE RUTA DEL REGIDOR ---
+
+export const exportRegidoriaSummaryPdf = async (
+  eventFrame: EventFrame,
+  performances: Performance[],
+  techSheetData: TechSheetData | undefined,
+  showToast: ShowToastFunction
+) => {
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = createPdfHeader(pdf, `${i18next.t('pdf.regidoria_summary_title')} - ${eventFrame.name}`);
+
+    const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+    const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+    const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
+
+    // --- Capçalera de l'Esdeveniment ---
+    const headerBody = [
+      [{ content: i18next.t('pdf.event_info'), colSpan: 2, styles: { halign: 'center' as const, fontSize: 14, fontStyle: 'bold' as const } }],
+      [{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],
+      [{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)],
+    ];
+    autoTable(pdf, {
+      body: headerBody,
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 10;
+
+    // --- Escaleta Combinada (Horaris d'Actuacions + Generals) ---
+    const allScheduleItems: any[] = [];
+
+    // Afegir horaris generals de la Fitxa de Bolo
+    if (techSheetData?.schedule?.status === 'yes' && techSheetData.schedule.data) {
+      techSheetData.schedule.data.forEach(item => {
+        allScheduleItems.push({
+          time: sane(item.time),
+          endTime: sane(item.timeEnd),
+          description: sane(item.description),
+          type: i18next.t('pdf.general_schedule'),
+          notes: '',
+          priority: 1
+        });
+      });
+    }
+
+    // Afegir horaris de les actuacions
+    performances.forEach(performance => {
+      if (performance.arrivalTime) {
+        allScheduleItems.push({
+          time: performance.arrivalTime,
+          endTime: performance.soundCheckTime || '',
+          description: `[ARRIBADA] ${sane(performance.name)}`,
+          type: i18next.t('pdf.arrival'),
+          notes: extractRegidoriaNotes(performance),
+          priority: 2
+        });
+      }
+      
+      if (performance.soundCheckTime) {
+        allScheduleItems.push({
+          time: performance.soundCheckTime,
+          endTime: performance.showTime || '',
+          description: `[PROVES] ${sane(performance.name)}`,
+          type: i18next.t('pdf.soundcheck'),
+          notes: extractRegidoriaNotes(performance),
+          priority: 2
+        });
+      }
+      
+      if (performance.showTime) {
+        allScheduleItems.push({
+          time: performance.showTime,
+          endTime: performance.departureTime || '',
+          description: `[SHOW] ${sane(performance.name)}`,
+          type: i18next.t('pdf.show'),
+          notes: extractRegidoriaNotes(performance),
+          priority: 2
+        });
+      }
+    });
+
+    // Ordenar per hora i prioritat
+    allScheduleItems.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority;
+      }
+      const timeA = a.time || '23:59';
+      const timeB = b.time || '23:59';
+      return timeA.localeCompare(timeB);
+    });
+
+    if (allScheduleItems.length > 0) {
+      const combinedScheduleHead = [[
+        i18next.t('pdf.time'),
+        i18next.t('pdf.description'),
+        i18next.t('pdf.type'),
+        i18next.t('pdf.regidoria_notes')
+      ]];
+
+      const combinedScheduleBody = allScheduleItems.map(item => [
+        item.endTime && item.endTime !== item.time 
+          ? `${item.time} - ${item.endTime}`
+          : item.time,
+        item.description,
+        item.type,
+        item.notes
+      ]);
+
+      autoTable(pdf, {
+        head: [[{ content: i18next.t('pdf.combined_schedule'), colSpan: 4, styles: headStyles }]],
+        body: [combinedScheduleHead, ...combinedScheduleBody],
+        startY: y,
+        theme: 'striped',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+        columnStyles: {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 'auto' }
+        },
+        margin: { left: 10, right: 10 }
+      });
+    }
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
+    }
+
+    const fileName = `Full_Ruta_Regidoria_${eventFrame.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
+    await savePdfWithDialog(pdf, fileName, showToast);
+
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
+  }
+};
+
+// Funció d'ajuda per extreure notes crítiques de regidoria
+const extractRegidoriaNotes = (performance: Performance): string => {
+  const notes: string[] = [];
+  
+  // Notes d'escenari crítiques
+  if (performance.techData?.stageRequirements) {
+    notes.push(`Escenari: ${performance.techData.stageRequirements.substring(0, 50)}${performance.techData.stageRequirements.length > 50 ? '...' : ''}`);
+  }
+  
+  // Notes d'hospitalitat crítiques
+  if (performance.hospitalityData?.dietaryRequirements) {
+    notes.push(`Dietes: ${performance.hospitalityData.dietaryRequirements.substring(0, 50)}${performance.hospitalityData.dietaryRequirements.length > 50 ? '...' : ''}`);
+  }
+  
+  if (performance.hospitalityData?.travelLogistics) {
+    notes.push(`Viatge: ${performance.hospitalityData.travelLogistics.substring(0, 50)}${performance.hospitalityData.travelLogistics.length > 50 ? '...' : ''}`);
+  }
+  
+  // Notes generals
+  if (performance.notes) {
+    notes.push(`General: ${performance.notes.substring(0, 50)}${performance.notes.length > 50 ? '...' : ''}`);
+  }
+  
+  return notes.join(' | ');
+};
