@@ -19,7 +19,6 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
   const { addPerformance, deletePerformance } = useEventDataStore();
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
   const [selectedPerformanceId, setSelectedPerformanceId] = useState<string | null>(null);
-  const [includeArchived, setIncludeArchived] = useState(false);
 
   useEffect(() => {
     const loadLastViewed = async () => {
@@ -42,9 +41,9 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
 
   const sortedEventFrames = useMemo(() => {
     return eventFrames
-      .filter(ef => includeArchived || !ef.isArchived)
+      .filter(ef => !ef.isArchived)
       .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-  }, [eventFrames, includeArchived]);
+  }, [eventFrames]);
 
   const selectedEventFrame = useMemo((): EventFrame | undefined => {
     return eventFrames.find((ef: EventFrame) => ef.id === selectedEventFrameId);
@@ -114,7 +113,7 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
     exportEventPerformancesSummaryPdf(eventFrame, eventFrame.performances || [], showToast);
   };
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  const showToast: ShowToastFunction = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     _showToast?.(message, type);
   };
 

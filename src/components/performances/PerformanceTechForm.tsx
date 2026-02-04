@@ -154,7 +154,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {techData.inputList.map((item, index) => (
+                {techData.inputList.map((item) => (
                   <tr key={item.id} className="border-b border-border hover:bg-muted/30">
                     <td className="py-2 px-3">
                       <input
