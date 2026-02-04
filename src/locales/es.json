@@ -1118,9 +1118,24 @@
         "travel_logistics_label": "Logística de Viaje",
         "travel_logistics_tooltip": "Información de transporte y horarios",
         "travel_logistics_placeholder": "Introduce la información de viaje...",
-        "parking_label": "Aparcamiento",
-        "parking_tooltip": "Requerimientos de aparcamiento",
-        "parking_placeholder": "Introduce los requerimientos de aparcamiento..."
+        "advancing": {
+            "title": "Control de Avance",
+            "rider_received": "Rider Recibido",
+            "rider_received_tooltip": "El rider técnico ha sido recibido",
+            "counter_rider_sent": "Contra-rider Enviado",
+            "counter_rider_sent_tooltip": "El contra-rider ha sido enviado",
+            "schedules_confirmed": "Horarios Confirmados",
+            "schedules_confirmed_tooltip": "Los horarios han sido confirmados",
+            "hospitality_closed": "Hospitality Cerrado",
+            "hospitality_closed_tooltip": "Los requerimientos de hospitality están cerrados",
+            "all_complete": "✅ Todos los elementos completados!"
+        },
+        "integration": {
+            "push_to_material": "Enviar necesidad a producción global",
+            "push_to_material_tooltip": "Añade este material a la ficha de bolo global",
+            "import_schedules": "Importar horarios de actuaciones",
+            "import_schedules_tooltip": "Sincroniza los horarios de artistas con la ficha de bolo"
+        }
     },
     "footer": {}
 }

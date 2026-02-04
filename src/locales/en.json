@@ -1210,9 +1210,24 @@
         "travel_logistics_label": "Travel Logistics",
         "travel_logistics_tooltip": "Transport information and schedules",
         "travel_logistics_placeholder": "Enter travel information...",
-        "parking_label": "Parking",
-        "parking_tooltip": "Parking requirements",
-        "parking_placeholder": "Enter parking requirements..."
+        "advancing": {
+            "title": "Advancement Status",
+            "rider_received": "Rider Received",
+            "rider_received_tooltip": "The technical rider has been received",
+            "counter_rider_sent": "Counter-rider Sent",
+            "counter_rider_sent_tooltip": "The counter-rider has been sent",
+            "schedules_confirmed": "Schedules Confirmed",
+            "schedules_confirmed_tooltip": "The schedules have been confirmed",
+            "hospitality_closed": "Hospitality Closed",
+            "hospitality_closed_tooltip": "Hospitality requirements are closed",
+            "all_complete": "✅ All items completed!"
+        },
+        "integration": {
+            "push_to_material": "Push need to global production",
+            "push_to_material_tooltip": "Add this material to the global tech sheet",
+            "import_schedules": "Import performance schedules",
+            "import_schedules_tooltip": "Sync artist schedules with the tech sheet"
+        }
     },
     "main_display": {
         "assignment_status_updated": "Assignment status updated to {{status}}",

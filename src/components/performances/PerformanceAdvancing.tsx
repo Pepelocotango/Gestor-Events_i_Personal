@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Performance, PerformanceAdvancing } from '../../types';
+import { Performance, PerformanceAdvancing as PerformanceAdvancingType } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import Tooltip from '../ui/Tooltip';
 
@@ -16,19 +16,19 @@ const PerformanceAdvancing: React.FC<PerformanceAdvancingProps> = ({
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
-  const getInitialAdvancing = (): PerformanceAdvancing => {
+  const getInitialAdvancing = (): PerformanceAdvancingType => {
     return performance.advancing || {
       riderReceived: false,
-      techConfirmed: false,
-      hospitalityConfirmed: false,
-      finalScheduleConfirmed: false,
+      counterRiderSent: false,
+      schedulesConfirmed: false,
+      hospitalityClosed: false,
     };
   };
 
   const advancing = getInitialAdvancing();
 
-  const toggleAdvancingItem = (field: keyof PerformanceAdvancing) => {
-    const updatedAdvancing: PerformanceAdvancing = {
+  const toggleAdvancingItem = (field: keyof PerformanceAdvancingType) => {
+    const updatedAdvancing: PerformanceAdvancingType = {
       ...advancing,
       [field]: !advancing[field],
     };
@@ -61,28 +61,28 @@ const PerformanceAdvancing: React.FC<PerformanceAdvancingProps> = ({
 
   const advancingItems = [
     {
-      key: 'riderReceived' as keyof PerformanceAdvancing,
+      key: 'riderReceived' as keyof PerformanceAdvancingType,
       label: t('performances.advancing.rider_received'),
       tooltip: t('performances.advancing.rider_received_tooltip'),
       icon: '📄',
     },
     {
-      key: 'techConfirmed' as keyof PerformanceAdvancing,
-      label: t('performances.advancing.tech_confirmed'),
-      tooltip: t('performances.advancing.tech_confirmed_tooltip'),
-      icon: '🎛️',
+      key: 'counterRiderSent' as keyof PerformanceAdvancingType,
+      label: t('performances.advancing.counter_rider_sent'),
+      tooltip: t('performances.advancing.counter_rider_sent_tooltip'),
+      icon: '📤',
     },
     {
-      key: 'hospitalityConfirmed' as keyof PerformanceAdvancing,
-      label: t('performances.advancing.hospitality_confirmed'),
-      tooltip: t('performances.advancing.hospitality_confirmed_tooltip'),
-      icon: '🏨',
-    },
-    {
-      key: 'finalScheduleConfirmed' as keyof PerformanceAdvancing,
-      label: t('performances.advancing.final_schedule_confirmed'),
-      tooltip: t('performances.advancing.final_schedule_confirmed_tooltip'),
+      key: 'schedulesConfirmed' as keyof PerformanceAdvancingType,
+      label: t('performances.advancing.schedules_confirmed'),
+      tooltip: t('performances.advancing.schedules_confirmed_tooltip'),
       icon: '⏰',
+    },
+    {
+      key: 'hospitalityClosed' as keyof PerformanceAdvancingType,
+      label: t('performances.advancing.hospitality_closed'),
+      tooltip: t('performances.advancing.hospitality_closed_tooltip'),
+      icon: '🏨',
     },
   ];
 
@@ -116,7 +116,7 @@ const PerformanceAdvancing: React.FC<PerformanceAdvancingProps> = ({
               onClick={() => toggleAdvancingItem(item.key)}
               className={`
                 flex flex-col items-center p-3 rounded-lg border-2 transition-all duration-200
-                ${advancing[item.key]
+                ${advancing[item.key as keyof PerformanceAdvancingType]
                   ? 'border-success bg-success/10 text-success hover:bg-success/20'
                   : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:border-muted-foreground'
                 }
@@ -125,7 +125,7 @@ const PerformanceAdvancing: React.FC<PerformanceAdvancingProps> = ({
             >
               <span className="text-2xl mb-1">{item.icon}</span>
               <span className="text-xs font-medium text-center">{item.label}</span>
-              {advancing[item.key] && (
+              {advancing[item.key as keyof PerformanceAdvancingType] && (
                 <span className="text-xs mt-1">✓</span>
               )}
             </button>

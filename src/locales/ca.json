@@ -1224,8 +1224,23 @@
         "travel_logistics_label": "Logística de Viatge",
         "travel_logistics_tooltip": "Informació de transport i horaris",
         "travel_logistics_placeholder": "Introdueix la informació de viatge...",
-        "parking_label": "Pàrquing",
-        "parking_tooltip": "Requeriments d'aparcament",
-        "parking_placeholder": "Introdueix els requeriments de pàrquing..."
+        "advancing": {
+            "title": "Control d'Avançament",
+            "rider_received": "Rider Rebut",
+            "rider_received_tooltip": "El rider tècnic ha estat rebut",
+            "counter_rider_sent": "Contra-rider Enviat",
+            "counter_rider_sent_tooltip": "El contra-rider ha estat enviat",
+            "schedules_confirmed": "Horaris Confirmats",
+            "schedules_confirmed_tooltip": "Els horaris han estat confirmats",
+            "hospitality_closed": "Hospitality Tancat",
+            "hospitality_closed_tooltip": "Els requeriments d'hospitalitat estan tancats",
+            "all_complete": "✅ Tots els elements completats!"
+        },
+        "integration": {
+            "push_to_material": "Enviar necessitat a producció global",
+            "push_to_material_tooltip": "Afegeix aquest material a la fitxa de bolo global",
+            "import_schedules": "Importar horaris d'actuacions",
+            "import_schedules_tooltip": "Sincronitza els horaris d'artistes amb la fitxa de bolo"
+        }
     }
 }

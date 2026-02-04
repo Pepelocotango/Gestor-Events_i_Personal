@@ -88,9 +88,9 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
       },
       advancing: {
         riderReceived: false,
-        techConfirmed: false,
-        hospitalityConfirmed: false,
-        finalScheduleConfirmed: false,
+        counterRiderSent: false,
+        schedulesConfirmed: false,
+        hospitalityClosed: false,
       },
     };
 

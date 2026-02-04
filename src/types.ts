@@ -151,9 +151,9 @@ export interface TechSheetData {
 
 export interface PerformanceAdvancing {
   riderReceived: boolean;
-  techConfirmed: boolean;
-  hospitalityConfirmed: boolean;
-  finalScheduleConfirmed: boolean;
+  counterRiderSent: boolean;
+  schedulesConfirmed: boolean;
+  hospitalityClosed: boolean;
 }
 
 export interface InputListItem {
