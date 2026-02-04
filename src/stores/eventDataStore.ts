@@ -143,6 +143,7 @@ interface EventDataActions {
     addPerformance: (eventFrameId: string, performance: Omit<Performance, 'id'>) => void;
     updatePerformance: (eventFrameId: string, performance: Performance) => void;
     deletePerformance: (eventFrameId: string, performanceId: string) => void;
+    reorderPerformances: (eventFrameId: string, newPerformances: Performance[]) => void;
 }
 
 const initialState: EventDataState = {
@@ -672,6 +673,18 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             state.hasUnsavedChanges = true;
             state.lastAction = { type: 'actions.delete_performance', params: { name: performanceName, event: eventFrame?.name ?? 'desconegut' } };
             state.lastActionDescription = `Has suprimit l'actuació «${performanceName}» de l'esdeveniment «${eventFrame?.name ?? 'desconegut'}»`;
+        });
+    },
+    reorderPerformances: (eventFrameId: string, newPerformances: Performance[]) => {
+        const eventFrameName = get().eventFrames.find(ef => ef.id === eventFrameId)?.name || 'desconegut';
+        set((state: EventDataState) => {
+            const frame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (frame && frame.performances) {
+                frame.performances = newPerformances;
+            }
+            state.hasUnsavedChanges = true;
+            state.lastAction = { type: 'actions.reorder_performances', params: { name: eventFrameName } };
+            state.lastActionDescription = `Has reordenat les actuacions de l'esdeveniment «${eventFrameName}»`;
         });
     },
     mergePeopleGroups: (newPeople: PersonGroup[]) => {

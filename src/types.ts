@@ -158,6 +158,11 @@ export interface Performance {
   contactEmail: string;
   notes: string;
   status: 'pending' | 'confirmed' | 'cancelled';
+  arrivalTime?: string; // Hora d'arribada
+  soundCheckTime?: string; // Hora de proves
+  showTime?: string; // Hora d'actuació
+  departureTime?: string; // Hora de sortida
+  duration?: string; // Durada prevista
 }
 
 export interface EventFrame {

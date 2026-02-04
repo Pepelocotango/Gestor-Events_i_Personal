@@ -1,0 +1,302 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Performance } from '../../types';
+import { useEventDataStore } from '../../stores/eventDataStore';
+import Tooltip from '../ui/Tooltip';
+import CollapsibleSection from '../ui/CollapsibleSection';
+
+interface PerformanceBasicFormProps {
+  eventFrameId: string;
+  performance: Performance;
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+}
+
+const PERFORMANCE_TYPES = [
+  'Música',
+  'Teatre',
+  'Dansa',
+  'Ponència',
+  'Presentació',
+  'Workshop',
+  'Altres'
+];
+
+const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
+  eventFrameId,
+  performance,
+  showToast,
+}) => {
+  const { t } = useTranslation();
+  const { updatePerformance } = useEventDataStore();
+
+  const [formData, setFormData] = useState<Performance>(performance);
+  const formDataRef = useRef(formData);
+  const isDirtyRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const saveData = (showMessage = false) => {
+    if (isDirtyRef.current) {
+      updatePerformance(eventFrameId, formData);
+      isDirtyRef.current = false;
+      if (showMessage) {
+        showToast(t('performances.save_success'), 'success');
+      }
+    }
+  };
+
+  useEffect(() => {
+    formDataRef.current = formData;
+    if (isDirtyRef.current) {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
+    }
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [formData]);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (isDirtyRef.current) saveData();
+    };
+  }, []);
+
+  const handleFieldChange = (field: keyof Performance, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    isDirtyRef.current = true;
+  };
+
+  const handleBlur = () => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    if (isDirtyRef.current) {
+      saveData(true);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Secció Identitat */}
+      <CollapsibleSection title={t('performances.identity_title')} defaultOpen={true}>
+        <div className="space-y-4">
+          <div>
+            <Tooltip text={t('performances.name_tooltip')}>
+              <label className="block text-sm font-medium mb-2">
+                {t('performances.name')} *
+              </label>
+            </Tooltip>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleFieldChange('name', e.target.value)}
+              onBlur={handleBlur}
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder={t('performances.name_placeholder')}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Tooltip text={t('performances.type_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.type')}
+                </label>
+              </Tooltip>
+              <select
+                value={formData.type}
+                onChange={(e) => handleFieldChange('type', e.target.value)}
+                onBlur={handleBlur}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">{t('performances.select_type')}</option>
+                {PERFORMANCE_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <Tooltip text={t('performances.status_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.status')}
+                </label>
+              </Tooltip>
+              <select
+                value={formData.status}
+                onChange={(e) => handleFieldChange('status', e.target.value as 'pending' | 'confirmed' | 'cancelled')}
+                onBlur={handleBlur}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="pending">{t('performances.status.pending')}</option>
+                <option value="confirmed">{t('performances.status.confirmed')}</option>
+                <option value="cancelled">{t('performances.status.cancelled')}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      {/* Secció Horaris */}
+      <CollapsibleSection title={t('performances.schedule_title')} defaultOpen={true}>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Tooltip text={t('performances.arrival_time_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.arrival_time')}
+                </label>
+              </Tooltip>
+              <input
+                type="time"
+                value={formData.arrivalTime || ''}
+                onChange={(e) => handleFieldChange('arrivalTime', e.target.value)}
+                onBlur={handleBlur}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <div>
+              <Tooltip text={t('performances.sound_check_time_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.sound_check_time')}
+                </label>
+              </Tooltip>
+              <input
+                type="time"
+                value={formData.soundCheckTime || ''}
+                onChange={(e) => handleFieldChange('soundCheckTime', e.target.value)}
+                onBlur={handleBlur}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <div>
+              <Tooltip text={t('performances.show_time_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.show_time')}
+                </label>
+              </Tooltip>
+              <input
+                type="time"
+                value={formData.showTime || ''}
+                onChange={(e) => handleFieldChange('showTime', e.target.value)}
+                onBlur={handleBlur}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <div>
+              <Tooltip text={t('performances.departure_time_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.departure_time')}
+                </label>
+              </Tooltip>
+              <input
+                type="time"
+                value={formData.departureTime || ''}
+                onChange={(e) => handleFieldChange('departureTime', e.target.value)}
+                onBlur={handleBlur}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Tooltip text={t('performances.duration_tooltip')}>
+              <label className="block text-sm font-medium mb-2">
+                {t('performances.duration')}
+              </label>
+            </Tooltip>
+            <input
+              type="text"
+              value={formData.duration || ''}
+              onChange={(e) => handleFieldChange('duration', e.target.value)}
+              onBlur={handleBlur}
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder={t('performances.duration_placeholder')}
+            />
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      {/* Secció Contacte */}
+      <CollapsibleSection title={t('performances.contact_title')} defaultOpen={true}>
+        <div className="space-y-4">
+          <div>
+            <Tooltip text={t('performances.contact_name_tooltip')}>
+              <label className="block text-sm font-medium mb-2">
+                {t('performances.contact_name')}
+              </label>
+            </Tooltip>
+            <input
+              type="text"
+              value={formData.contactName}
+              onChange={(e) => handleFieldChange('contactName', e.target.value)}
+              onBlur={handleBlur}
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder={t('performances.contact_name_placeholder')}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Tooltip text={t('performances.contact_phone_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.contact_phone')}
+                </label>
+              </Tooltip>
+              <input
+                type="tel"
+                value={formData.contactPhone}
+                onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
+                onBlur={handleBlur}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t('performances.contact_phone_placeholder')}
+              />
+            </div>
+
+            <div>
+              <Tooltip text={t('performances.contact_email_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.contact_email')}
+                </label>
+              </Tooltip>
+              <input
+                type="email"
+                value={formData.contactEmail}
+                onChange={(e) => handleFieldChange('contactEmail', e.target.value)}
+                onBlur={handleBlur}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t('performances.contact_email_placeholder')}
+              />
+            </div>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      {/* Secció Notes */}
+      <CollapsibleSection title={t('performances.notes_title')} defaultOpen={false}>
+        <div>
+          <Tooltip text={t('performances.notes_tooltip')}>
+            <label className="block text-sm font-medium mb-2">
+              {t('performances.notes')}
+            </label>
+          </Tooltip>
+          <textarea
+            value={formData.notes}
+            onChange={(e) => handleFieldChange('notes', e.target.value)}
+            onBlur={handleBlur}
+            rows={4}
+            className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-vertical"
+            placeholder={t('performances.notes_placeholder')}
+          />
+        </div>
+      </CollapsibleSection>
+    </div>
+  );
+};
+
+export default PerformanceBasicForm;
