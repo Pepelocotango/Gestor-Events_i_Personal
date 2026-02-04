@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow } from '../types';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow, Performance } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 import { themeHslColors } from './themeDefinition';
@@ -855,5 +855,263 @@ export const exportEventListToPdf = async (
     await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`${i18next.t('common.error')}: ${(error as Error).message}`, 'error');
+  }
+};
+
+// --- EXPORTACIÓ D'ACTUACIONS ---
+
+export const exportPerformanceToPdf = async (
+  performance: Performance,
+  eventFrame: EventFrame,
+  showToast: ShowToastFunction
+) => {
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = createPdfHeader(pdf, `${i18next.t('pdf.performance_rider_title')} - ${performance.name}`);
+
+    const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+    const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+    const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
+
+    // --- Capçalera de l'Esdeveniment ---
+    const headerBody = [
+      [{ content: i18next.t('pdf.event_info'), colSpan: 2, styles: { halign: 'center' as const, fontSize: 14, fontStyle: 'bold' as const } }],
+      [{ content: i18next.t('pdf.event_name'), styles: labelStyles }, sane(eventFrame.name)],
+      [{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],
+      [{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)],
+    ];
+    autoTable(pdf, {
+      body: headerBody,
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+
+    // --- Info de l'Artista ---
+    const artistBody = [
+      [{ content: i18next.t('pdf.artist_info'), colSpan: 2, styles: headStyles }],
+      [{ content: i18next.t('pdf.artist_name'), styles: labelStyles }, sane(performance.name)],
+      [{ content: i18next.t('pdf.artist_type'), styles: labelStyles }, sane(performance.type)],
+      [{ content: i18next.t('pdf.contact_name'), styles: labelStyles }, sane(performance.contactName)],
+      [{ content: i18next.t('pdf.contact_phone'), styles: labelStyles }, sane(performance.contactPhone)],
+      [{ content: i18next.t('pdf.contact_email'), styles: labelStyles }, sane(performance.contactEmail)],
+      [{ content: i18next.t('pdf.status'), styles: labelStyles }, sane(performance.status)],
+    ];
+    autoTable(pdf, {
+      body: artistBody,
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+
+    // --- Horaris ---
+    const scheduleBody = [
+      [{ content: i18next.t('pdf.schedule'), colSpan: 2, styles: headStyles }],
+      [{ content: i18next.t('pdf.arrival_time'), styles: labelStyles }, sane(performance.arrivalTime)],
+      [{ content: i18next.t('pdf.soundcheck_time'), styles: labelStyles }, sane(performance.soundCheckTime)],
+      [{ content: i18next.t('pdf.show_time'), styles: labelStyles }, sane(performance.showTime)],
+      [{ content: i18next.t('pdf.departure_time'), styles: labelStyles }, sane(performance.departureTime)],
+      [{ content: i18next.t('pdf.duration'), styles: labelStyles }, sane(performance.duration)],
+    ];
+    autoTable(pdf, {
+      body: scheduleBody,
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+
+    // --- Input List ---
+    if (performance.techData?.inputList && performance.techData.inputList.length > 0) {
+      const inputHead = [[
+        i18next.t('pdf.channel'),
+        i18next.t('pdf.label'),
+        i18next.t('pdf.mic_di'),
+        i18next.t('pdf.notes')
+      ]];
+      const inputBody = performance.techData.inputList.map(input => [
+        sane(input.channel),
+        sane(input.label),
+        sane(input.micDi),
+        sane(input.notes)
+      ]);
+
+      autoTable(pdf, {
+        head: [[{ content: i18next.t('pdf.input_list'), colSpan: 4, styles: headStyles }]],
+        body: [inputHead, ...inputBody],
+        startY: y,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+        margin: { left: 10, right: 10 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
+
+    // --- Notes Tècniques ---
+    const techNotes = [];
+    if (performance.techData?.lightingNotes) {
+      techNotes.push([{ content: i18next.t('pdf.lighting_notes'), styles: labelStyles }, sane(performance.techData.lightingNotes)]);
+    }
+    if (performance.techData?.videoNotes) {
+      techNotes.push([{ content: i18next.t('pdf.video_notes'), styles: labelStyles }, sane(performance.techData.videoNotes)]);
+    }
+    if (performance.techData?.stageRequirements) {
+      techNotes.push([{ content: i18next.t('pdf.stage_requirements'), styles: labelStyles }, sane(performance.techData.stageRequirements)]);
+    }
+
+    if (techNotes.length > 0) {
+      techNotes.unshift([{ content: i18next.t('pdf.technical_notes'), colSpan: 2, styles: headStyles }]);
+      autoTable(pdf, {
+        body: techNotes,
+        theme: 'grid',
+        startY: y,
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
+
+    // --- Hospitality ---
+    const hospitalityNotes = [];
+    if (performance.hospitalityData?.dressingRooms) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.dressing_rooms'), styles: labelStyles }, sane(performance.hospitalityData.dressingRooms)]);
+    }
+    if (performance.hospitalityData?.cateringNotes) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.catering'), styles: labelStyles }, sane(performance.hospitalityData.cateringNotes)]);
+    }
+    if (performance.hospitalityData?.dietaryRequirements) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.dietary_requirements'), styles: labelStyles }, sane(performance.hospitalityData.dietaryRequirements)]);
+    }
+    if (performance.hospitalityData?.travelLogistics) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.travel_logistics'), styles: labelStyles }, sane(performance.hospitalityData.travelLogistics)]);
+    }
+    if (performance.hospitalityData?.parkingNotes) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.parking'), styles: labelStyles }, sane(performance.hospitalityData.parkingNotes)]);
+    }
+
+    if (hospitalityNotes.length > 0) {
+      hospitalityNotes.unshift([{ content: i18next.t('pdf.hospitality'), colSpan: 2, styles: headStyles }]);
+      autoTable(pdf, {
+        body: hospitalityNotes,
+        theme: 'grid',
+        startY: y,
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
+
+    // --- Notes Generals ---
+    if (performance.notes) {
+      autoTable(pdf, {
+        head: [[{ content: i18next.t('pdf.general_notes'), styles: headStyles }]],
+        body: [[sane(performance.notes)]],
+        startY: y,
+        theme: 'grid',
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+      });
+    }
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
+    }
+
+    const fileName = `Rider_${performance.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
+    await savePdfWithDialog(pdf, fileName, showToast);
+
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
+  }
+};
+
+export const exportEventPerformancesSummaryPdf = async (
+  eventFrame: EventFrame,
+  performances: Performance[],
+  showToast: ShowToastFunction
+) => {
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = createPdfHeader(pdf, `${i18next.t('pdf.event_runsheet_title')} - ${eventFrame.name}`);
+
+    const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+    const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+
+    // --- Info de l'Esdeveniment ---
+    const eventInfo = [
+      [{ content: i18next.t('pdf.event_info'), colSpan: 2, styles: { halign: 'center' as const, fontSize: 14, fontStyle: 'bold' as const } }],
+      [{ content: i18next.t('pdf.location'), styles: { fillColor: hslToRgb(...themeHslColors.grayMuted), fontStyle: 'bold' as const, cellWidth: 50 } }, sane(eventFrame.place)],
+      [{ content: i18next.t('pdf.date'), styles: { fillColor: hslToRgb(...themeHslColors.grayMuted), fontStyle: 'bold' as const, cellWidth: 50 } }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)],
+    ];
+    autoTable(pdf, {
+      body: eventInfo,
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 10;
+
+    // --- Escaleta Artística ---
+    if (performances.length === 0) {
+      pdf.setFontSize(12);
+      pdf.text(i18next.t('pdf.no_performances'), 14, y);
+    } else {
+      const sortedPerformances = performances
+        .filter(p => p.showTime)
+        .sort((a, b) => {
+          const timeA = a.showTime || '23:59';
+          const timeB = b.showTime || '23:59';
+          return timeA.localeCompare(timeB);
+        });
+
+      const runsheetHead = [[
+        i18next.t('pdf.time'),
+        i18next.t('pdf.artist'),
+        i18next.t('pdf.type'),
+        i18next.t('pdf.status'),
+        i18next.t('pdf.duration'),
+        i18next.t('pdf.notes')
+      ]];
+
+      const runsheetBody = sortedPerformances.map(performance => [
+        sane(performance.showTime),
+        sane(performance.name),
+        sane(performance.type),
+        sane(performance.status),
+        sane(performance.duration),
+        sane(performance.notes)
+      ]);
+
+      autoTable(pdf, {
+        head: [[{ content: i18next.t('pdf.artistic_runsheet'), colSpan: 6, styles: headStyles }]],
+        body: [runsheetHead, ...runsheetBody],
+        startY: y,
+        theme: 'striped',
+        styles: { fontSize: 10, cellPadding: 3 },
+        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+        margin: { left: 10, right: 10 }
+      });
+    }
+
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
+    }
+
+    const fileName = `Escaleta_${eventFrame.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
+    await savePdfWithDialog(pdf, fileName, showToast);
+
+  } catch (error) {
+    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
 };

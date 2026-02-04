@@ -149,6 +149,13 @@ export interface TechSheetData {
 }
 
 
+export interface PerformanceAdvancing {
+  riderReceived: boolean;
+  techConfirmed: boolean;
+  hospitalityConfirmed: boolean;
+  finalScheduleConfirmed: boolean;
+}
+
 export interface InputListItem {
   id: string;
   channel?: string;
@@ -182,12 +189,13 @@ export interface Performance {
   notes: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   arrivalTime?: string; // Hora d'arribada
-  soundCheckTime?: string; // Hora de proves
+  soundCheckTime?: string; // Hora de soundcheck
   showTime?: string; // Hora d'actuació
   departureTime?: string; // Hora de sortida
   duration?: string; // Durada prevista
   techData?: PerformanceTechData;
   hospitalityData?: PerformanceHospitalityData;
+  advancing?: PerformanceAdvancing;
 }
 
 export interface EventFrame {

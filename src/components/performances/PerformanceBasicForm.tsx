@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Performance } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import Tooltip from '../ui/Tooltip';
-import CollapsibleSection from '../ui/CollapsibleSection';
 
 interface PerformanceBasicFormProps {
   eventFrameId: string;
@@ -88,9 +87,12 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Secció Identitat */}
-      <CollapsibleSection title={t('performances.identity_title')} defaultOpen={true}>
+      <div>
+        <h3 className="text-lg font-semibold mb-4 text-foreground border-b border-border pb-2">
+          {t('performances.identity_title')}
+        </h3>
         <div className="space-y-4">
           <div>
             <Tooltip text={t('performances.name_tooltip')}>
@@ -147,10 +149,13 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
             </div>
           </div>
         </div>
-      </CollapsibleSection>
+      </div>
 
       {/* Secció Horaris */}
-      <CollapsibleSection title={t('performances.schedule_title')} defaultOpen={true}>
+      <div>
+        <h3 className="text-lg font-semibold mb-4 text-foreground border-b border-border pb-2">
+          {t('performances.schedule_title')}
+        </h3>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -230,10 +235,13 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
             />
           </div>
         </div>
-      </CollapsibleSection>
+      </div>
 
       {/* Secció Contacte */}
-      <CollapsibleSection title={t('performances.contact_title')} defaultOpen={true}>
+      <div>
+        <h3 className="text-lg font-semibold mb-4 text-foreground border-b border-border pb-2">
+          {t('performances.contact_title')}
+        </h3>
         <div className="space-y-4">
           <div>
             <Tooltip text={t('performances.contact_name_tooltip')}>
@@ -285,10 +293,13 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
             </div>
           </div>
         </div>
-      </CollapsibleSection>
+      </div>
 
       {/* Secció Notes */}
-      <CollapsibleSection title={t('performances.notes_title')} defaultOpen={false}>
+      <div>
+        <h3 className="text-lg font-semibold mb-4 text-foreground border-b border-border pb-2">
+          {t('performances.notes_title')}
+        </h3>
         <div>
           <Tooltip text={t('performances.notes_tooltip')}>
             <label className="block text-sm font-medium mb-2">
@@ -300,11 +311,11 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
             onChange={(e) => handleFieldChange('notes', e.target.value)}
             onBlur={handleBlur}
             rows={4}
-            className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-vertical"
+            className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-vertical"
             placeholder={t('performances.notes_placeholder')}
           />
         </div>
-      </CollapsibleSection>
+      </div>
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, Performance, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
+import { exportEventPerformancesSummaryPdf } from '../utils/pdfGenerator';
 
 const PerformanceList = lazy(() => import('./performances/PerformanceList'));
 const PerformanceDetailContainer = lazy(() => import('./performances/PerformanceDetailContainer'));
@@ -85,6 +86,12 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
         travelLogistics: '',
         parkingNotes: '',
       },
+      advancing: {
+        riderReceived: false,
+        techConfirmed: false,
+        hospitalityConfirmed: false,
+        finalScheduleConfirmed: false,
+      },
     };
 
     const newPerformanceId = addPerformance(selectedEventFrameId, newPerformance);
@@ -96,6 +103,15 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
   const handleDeletePerformance = (performanceId: string) => {
     if (!selectedEventFrameId) return;
     deletePerformance(selectedEventFrameId, performanceId);
+  };
+
+  const handleExportEventSummary = () => {
+    if (!selectedEventFrameId) return;
+    
+    const eventFrame = eventFrames.find(ef => ef.id === selectedEventFrameId);
+    if (!eventFrame) return;
+
+    exportEventPerformancesSummaryPdf(eventFrame, eventFrame.performances || [], showToast);
   };
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -110,42 +126,40 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
       >
         <div className="space-y-6">
           {/* Selector d'Esdeveniment */}
-          <div className="max-w-md space-y-2">
-            <div className="flex items-center justify-between">
-              <label htmlFor="event-selector" className="block text-sm font-medium text-muted-foreground">
-                {t('performances.select_event_label')}
-              </label>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="includeArchivedPerformances"
-                  checked={includeArchived}
-                  onChange={(e) => setIncludeArchived(e.target.checked)}
-                  className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-ring"
-                />
-                <label htmlFor="includeArchivedPerformances" className="ml-2 text-sm font-medium text-foreground">
-                  {t('performances.include_archived')}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Tooltip text={t('performances.event_selector_tooltip')}>
+                <label className="block text-sm font-medium">
+                  {t('performances.select_event')}
                 </label>
-              </div>
-            </div>
-            <Tooltip text={includeArchived ? t('performances.archived_tooltip_on') : t('performances.archived_tooltip_off')}>
+              </Tooltip>
               <select
-                id="event-selector"
                 value={selectedEventFrameId}
-                onChange={(e) => {
-                  setSelectedEventFrameId(e.target.value);
-                  setSelectedPerformanceId(null);
-                }}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-background text-foreground border-border border focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm rounded-md"
+                onChange={(e) => setSelectedEventFrameId(e.target.value)}
+                className="px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
               >
-                <option value="" disabled>-- {t('performances.select_placeholder')} --</option>
-                {sortedEventFrames.map((event) => (
-                  <option key={event.id} value={event.id}>
-                    {new Date(event.startDate).toLocaleDateString('ca-ES')} - {event.name}
-                  </option>
-                ))}
+                <option value="">{t('performances.select_event_placeholder')}</option>
+                {eventFrames
+                  .filter(ef => !ef.isArchived)
+                  .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+                  .map(event => (
+                    <option key={event.id} value={event.id}>
+                      {new Date(event.startDate).toLocaleDateString('ca-ES')} - {event.name}
+                    </option>
+                  ))}
               </select>
-            </Tooltip>
+            </div>
+
+            {selectedEventFrameId && (
+              <Tooltip text={t('performances.export_runsheet_tooltip')}>
+                <button
+                  onClick={handleExportEventSummary}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  📄 {t('performances.export_runsheet')}
+                </button>
+              </Tooltip>
+            )}
           </div>
 
           {/* Missatge si no hi ha esdeveniment seleccionat */}
