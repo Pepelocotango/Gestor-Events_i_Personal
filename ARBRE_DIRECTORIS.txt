@@ -169,6 +169,15 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── PdfPreviewModal.tsx             # Modal per a la vista prèvia (WYSIWYG) d'un PDF generat.
 │   │   │   ├── SelectSyncCalendarModal.tsx     # Permet triar el calendari de destí per a la sincronització.
 │   │   │   └── UpdateFromAssignmentsModal.tsx  # Previsualitza i aplica canvis des d'assignacions a la fitxa.
+│   │   ├── performances/           # !! NOU MÒDUL D'ACTUACIONS !! Components per a la gestió d'actuacions artístiques (FASE 4).
+│   │   │   ├── PerformanceAdvancing.tsx      # Component de control d'avançament (checklist visual amb 4 estats).
+│   │   │   ├── PerformanceBasicForm.tsx       # Formulari bàsic d'actuació (identitat, contacte, horaris, notes).
+│   │   │   ├── PerformanceDetailContainer.tsx # Contenidor principal amb pestanyes (Bàsic, Tècnic, Hospitality).
+│   │   │   ├── PerformanceHospitalityForm.tsx # Formulari d'hospitalitat (camerinos, càtering, dietes, viatge, pàrquing).
+│   │   │   ├── PerformanceList.tsx             # Llista d'actuacions amb indicadors visuals de dades tècniques.
+│   │   │   ├── PerformanceTechForm.tsx         # Formulari tècnic (input list, llums, vídeo, escenari).
+│   │   │   ├── PerformancesDisplay.tsx        # Vista principal del gestor d'actuacions amb exportació PDF.
+│   │   │   └── SortablePerformance.tsx         # Component individual d'actuació amb drag-and-drop.
 │   │   ├── tech_sheets/          # Components específics per a la gestió de les Fitxes de Bolo.
 │   │   │   ├── ConditionalFormControl.tsx      # Component UI per a seccions que es mostren condicionalment (SI/NO).
 │   │   │   ├── NeedsList.tsx                   # Renderitza les llistes de necessitats de material (llum, so, etc.).
@@ -194,8 +203,9 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa MaterialForm]
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. Accedeix a peopleGroups via selector reactiu i usa getState() per a les accions. [REFACTORITZAT: usa eventDataStore]
+│   │   ├── PerformancesDisplay.tsx # !! NOVA VISTA !! Gestor d'actuacions artístiques amb control d'avançament, formularis tècnics/hospitalitat, i exportació PDF (FASE 4).
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades. [REFACTORITZAT: usa eventDataStore]
-│   │   └── TechSheetsDisplay.tsx   # Nova vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
+│   │   └── TechSheetsDisplay.tsx   # Vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
 │   ├── stores/                 # Gestors d'estat global (Zustand).
 │   │   ├── eventDataStore.ts   # !! EL CERVELL DEL FRONTEND !! Store que centralitza tot l'estat i la lògica de negoci. Inclou historial desfer/refer, lògica d'arxivatge d'esdeveniments, i partialize memoitzada per evitar bucles infinits.
 │   │   ├── googleConfigStore.ts# Store per a la configuració i estat de la integració amb Google Calendar.
@@ -210,7 +220,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── dateRangeFormatter.ts # Utilitat per crear rangs de dates compactes (ex: 14/05-16/05).
 │   │   ├── fileNameUtils.ts      # Mòdul centralitzat per a la generació intel·ligent de noms de fitxer per a exportacions.
 │   │   ├── logger.ts             # Client de logging del frontend que envia missatges al backend.
-│   │   ├── pdfGenerator.ts       # Tota la lògica per crear els diferents documents PDF, ara utilitzant colors temàtics.
+│   │   ├── pdfGenerator.ts       # Tota la lògica per crear els diferents documents PDF, ara utilitzant colors temàtics. Inclou funcions d'exportació d'actuacions i Full de Ruta del Regidor (FASE 4).
 │   │   ├── statusUtils.ts        # Funcions per gestionar i mostrar els estats de les assignacions.
 │   │   ├── techSheetMigration.ts   # Lògica específica per migrar l'estructura de les fitxes de bolo. Converteix dades antigues a l'estructura moderna de TechSheetData, assegura compatibilitat i integritat, i gestiona casos especials amb defaults i validació. Utilitzat en la càrrega de documents i migració automàtica.
 │   │   ├── themeDefinition.ts    # [AUTO-GENERAT] Objecte TS amb colors per a la generació de PDFs. No editar manualment.
@@ -222,7 +232,7 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── images.d.ts               # Permet la importació de fitxers d'imatge (.png) a TypeScript.
 │   ├── index.css                 # [AUTO-GENERAT] Fitxer principal d'estils. No editar manualment.
 │   ├── index.tsx                 # Punt d'entrada de React que renderitza l'App al DOM.
-│   └── types.ts                  # Fitxer crític. Defineix totes les interfícies i tipus de dades de l'aplicació (EventFrame amb el flag isArchived, Assignment amb el nou camp `role`, MaterialItem, TechSheetData, AppData, GoogleConfig, ElectronAPI). La font de veritat per la robustesa i mantenibilitat del projecte.
+│   └── types.ts                  # Fitxer crític. Defineix totes les interfícies i tipus de dades de l'aplicació (EventFrame amb el flag isArchived, Assignment amb el nou camp `role`, MaterialItem, TechSheetData, AppData, GoogleConfig, ElectronAPI). Inclou noves interfícies Performance, PerformanceAdvancing, PerformanceTechData, PerformanceHospitalityData (FASE 4). La font de veritat per la robustesa i mantenibilitat del projecte.
 ├── .gitattributes                # Fitxer per definir atributs per a rutes de git.
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
 ├── DEVELOPING.md                 # Documentació tècnica detallada de l'arquitectura i funcionalitats per a desenvolupadors.

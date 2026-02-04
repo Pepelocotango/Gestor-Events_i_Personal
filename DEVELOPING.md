@@ -19,6 +19,10 @@ Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, l
 - Menú d'aplicació personalitzat en React: substitució del menú natiu d'Electron, comunicació frontend-backend via IPC.
 - Gestió d'IPC centralitzada: canals segurs, separació de responsabilitats, API interna documentada.
 - Solució als bucles infinits de renderitzat: selectors Zustand independents, gestió asíncrona de flags d'actualització.
+- **NOU MÒDUL D'ACTUACIONS (FASE 4):** Sistema complet per a la gestió d'actuacions artístiques amb control d'avançament, formularis tècnics/hospitalitat, i exportació PDF.
+- **Full de Ruta del Regidor:** PDF combinat que fusiona horaris generals de la fitxa de bolo amb horaris d'actuacions i notes crítiques de regidoria.
+- **Control d'Avançament Visual:** Checklist interactiu amb 4 estats (Rider Rebut, Contra-rider Enviat, Horaris Confirmats, Hospitality Tancat).
+- **Integració de Dades:** Les actuacions es connecten amb la fitxa de bolo existent per evitar duplicació d'informació.
 - Exemples de selectors correctes amb Zustand:
 ```tsx
 // Selector independent (evita bucles)
@@ -31,7 +35,7 @@ const { updateMaterialItem } = useEventDataStore.getState();
 import { useStore } from 'zustand';
 const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 0);
 ```
-- **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Això optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
+- **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Aixó optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
 
 - **Sistema d'Internacionalització Complet (i18n):**
   - **3 Idiomes Suportats:** Implementació completa de internacionalització per a Català, Castellà i English a totes les plataformes.
@@ -1653,4 +1657,220 @@ const handleToggleAllCards = () => {
 2. **Accessibilitat:** L'estat de focus és important per a usuaris que naveguen amb teclat o lectors de pantalla.
 3. **Rendiment:** La gestió del focus és lleugera i no afecta el rendiment, ja que només canvia una classe CSS.
 4. **Consistència:** El comportament és consistent amb els estàndards d'usabilitat, on un sol element pot estar enfocat en un moment donat.
+
+## 11. MÒDUL D'ACTUACIONS (FASE 4) - GESTIÓ D'ARTISTES
+
+### Visió General del Mòdul
+
+El mòdul d'Actuacions és una nova funcionalitat completa per a la gestió d'actuacions artístiques dins d'esdeveniments. Aquest mòdul permet:
+
+- **Gestió d'Actuacions:** Crear, editar i organitzar actuacions artístiques
+- **Control d'Avançament:** Seguiment visual del progrés de preparació de cada actuació
+- **Formularis Tècnics:** Informació detallada tècnica i d'hospitalitat
+- **Exportació PDF:** Generació de riders tècnics i Full de Ruta del Regidor
+- **Integració:** Connexió amb la fitxa de bolo existent per evitar duplicació
+
+### Estructura de Components
+
+#### Components Principals
+- **`PerformancesDisplay.tsx`** - Vista principal del gestor d'actuacions
+- **`PerformanceDetailContainer.tsx`** - Contenidor amb pestanyes per a detalls
+- **`PerformanceList.tsx`** - Llista d'actuacions amb drag-and-drop
+- **`SortablePerformance.tsx`** - Element individual d'actuació
+
+#### Formularis
+- **`PerformanceBasicForm.tsx`** - Formulari bàsic (identitat, contacte, horaris)
+- **`PerformanceTechForm.tsx`** - Formulari tècnic (input list, llums, vídeo)
+- **`PerformanceHospitalityForm.tsx`** - Formulari d'hospitalitat (camerinos, dietes)
+
+#### Control d'Avançament
+- **`PerformanceAdvancing.tsx`** - Checklist visual interactiu amb 4 estats
+
+### Model de Dades
+
+#### Interfície Principal
+```typescript
+export interface Performance {
+  id: string;
+  name: string;
+  eventFrameId: string;
+  contactPerson?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  arrivalTime?: string;
+  soundCheckTime?: string;
+  showTime?: string;
+  departureTime?: string;
+  notes?: string;
+  techData?: PerformanceTechData;
+  hospitalityData?: PerformanceHospitalityData;
+  advancing?: PerformanceAdvancing;
+}
+```
+
+#### Control d'Avançament
+```typescript
+export interface PerformanceAdvancing {
+  riderReceived: boolean;        // 📄 Rider Rebut
+  counterRiderSent: boolean;     // 📤 Contra-rider Enviat
+  schedulesConfirmed: boolean;   // ⏰ Horaris Confirmats
+  hospitalityClosed: boolean;     // 🏨 Hospitality Tancat
+}
+```
+
+#### Dades Tècniques
+```typescript
+export interface PerformanceTechData {
+  inputList: InputListItem[];
+  lightingNotes: string;
+  videoNotes: string;
+  stageRequirements: string;
+}
+
+export interface InputListItem {
+  id: string;
+  channel?: string;
+  label: string;
+  micDi: string;
+  notes: string;
+}
+```
+
+#### Dades d'Hospitalitat
+```typescript
+export interface PerformanceHospitalityData {
+  dressingRooms: string;
+  cateringNotes: string;
+  dietaryRequirements: string;
+  travelLogistics: string;
+  parkingNotes: string;
+}
+```
+
+### Funcionalitats Clau
+
+#### 1. Control d'Avançament Visual
+
+El component `PerformanceAdvancing.tsx` proporciona:
+- **Barra de progrés** visual amb percentatge de completion
+- **4 Badges interactius** amb icones i tooltips
+- **Colors dinàmics** segons estat (verd=completat, groc=en procés)
+- **Desat automàtic** a l'store global
+
+```typescript
+const advancingItems = [
+  { key: 'riderReceived', label: 'Rider Rebut', icon: '📄' },
+  { key: 'counterRiderSent', label: 'Contra-rider Enviat', icon: '📤' },
+  { key: 'schedulesConfirmed', label: 'Horaris Confirmats', icon: '⏰' },
+  { key: 'hospitalityClosed', label: 'Hospitality Tancat', icon: '🏨' }
+];
+```
+
+#### 2. Formularis amb AutosizeTextarea
+
+Tots els formularis utilitzen `AutosizeTextarea` per a camps de text llargs:
+- **Ajust automàtic** d'alçada segons contingut
+- **Debounce save** per evitar desats excessius
+- **Validació** i placeholders informatius
+
+#### 3. Exportació PDF
+
+##### Rider Individual
+```typescript
+export const exportPerformanceToPdf = async (
+  performance: Performance,
+  eventFrame: EventFrame,
+  showToast: ShowToastFunction
+)
+```
+- Capçalera amb info de l'esdeveniment
+- Seccions: Bàsica, Tècnica, Hospitality
+- Taules formatades amb input list
+- Colors temàtics consistents
+
+##### Full de Ruta del Regidor
+```typescript
+export const exportRegidoriaSummaryPdf = async (
+  eventFrame: EventFrame,
+  performances: Performance[],
+  techSheetData: TechSheetData | undefined,
+  showToast: ShowToastFunction
+)
+```
+- **Escaleta combinada:** Horaris generals + actuacions
+- **Prefixos automàtics:** [ARRIBADA], [PROVES], [SHOW]
+- **Notes de regidoria:** Extreacció automàtica de dades crítiques
+- **Ordenació cronològica:** Per prioritat i hora
+
+#### 4. Integració amb Store
+
+Les actuacions s'integren amb `eventDataStore`:
+```typescript
+// Accions principals
+addPerformance: (eventFrameId: string, performance: Omit<Performance, 'id'>) => string;
+updatePerformance: (eventFrameId: string, performance: Performance) => void;
+deletePerformance: (eventFrameId: string, performanceId: string) => void;
+```
+
+### Patrons de Disseny
+
+#### 1. Lazy Loading
+```typescript
+const PerformanceDetailContainer = lazy(() => import('./performances/PerformanceDetailContainer'));
+const PerformanceTechForm = lazy(() => import('./performances/PerformanceTechForm'));
+```
+
+#### 2. Debounce Save
+```typescript
+const debouncedSave = useMemo(
+  () => debounce((field: string, value: any) => {
+    updatePerformance(eventFrameId, { ...performance, [field]: value });
+  }, 500),
+  [eventFrameId, performance]
+);
+```
+
+#### 3. Internacionalització
+Tots els textos utilitzen claus i18n:
+```typescript
+{t('performances.advancing.rider_received')}
+{t('performances.tech.input_list_header')}
+{t('performances.hospitality.dressing_rooms_label')}
+```
+
+### Flux de Treball Típic
+
+1. **Creació d'Actuació:** Formulari bàsic amb horaris i contacte
+2. **Control d'Avançament:** Marcar progrés amb badges interactius
+3. **Dades Tècniques:** Afegir input list, requisits d'escenari
+4. **Hospitalitat:** Especificar camerinos, dietes, logística
+5. **Exportació:** Generar rider PDF o Full de Ruta del Regidor
+
+### Consideracions Tècniques
+
+#### Backward Compatibility
+- Les actuacions antigues sense `advancing` s'inicialitzen automàticament
+- Els camps opcionals permeten migració gradual
+
+#### Performance
+- Lazy loading de components pesats
+- Debounce en desats de formularis
+- Selectors optimitzats a l'store
+
+#### UX/UI
+- Indicadors visuals de dades tècniques a la llista
+- Colors consistents amb tema de l'aplicació
+- Tooltips informatius a tots els elements interactius
+
+### Extensions Futures (Pendents)
+
+#### Integració amb Material
+- Botons `[+] Afegir a Fitxa Global` a l'input list
+- Sincronització automàtica amb TechSheetData
+
+#### Integració amb Horaris
+- Botó `🪄 Importar hores d'artistes` a la fitxa de bolo
+- Creació automàtica d'AssemblyScheduleItem
+
+Aquest mòdul representa una evolució significativa de l'aplicació, proporcionant eines professionals per a la gestió d'esdeveniments en directe.
 

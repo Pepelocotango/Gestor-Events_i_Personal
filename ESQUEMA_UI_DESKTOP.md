@@ -139,3 +139,127 @@ Aquesta pantalla presenta una estructura plana (sense contenidor mestre plegable
 - **Formulari de Fitxa Tècnica (`TechSheetForm`)**:
   - Mostra tots els camps de la fitxa (horaris, contactes, material, etc.).
   - Mostra l'estoc disponible en temps real en afegir material.
+
+---
+
+## 8. Secció d'Actuacions (`PerformancesDisplay`) - **NOVA FUNCIONALITAT FASE 4**
+
+### 8.1. Vista Principal del Gestor d'Actuacions
+
+- **Selector d'Esdeveniment**: Desplegable per seleccionar l'esdeveniment marc on gestionar les actuacions.
+- **Botó "Exportar Resum d'Actuacions (PDF)"**: Genera un PDF amb la llista completa d'actuacions de l'esdeveniment.
+- **Missatge si no hi ha esdeveniment seleccionat**: Indicador visual quan no s'ha seleccionat cap esdeveniment.
+
+### 8.2. Layout de Dues Columnes
+
+#### Columna 1: Llista d'Actuacions (`PerformanceList`)
+- **Llista ordenable**: Drag-and-drop per reorganitzar l'ordre de les actuacions.
+- **Botó "Afegir Actuació"**: Crea una nova actuació amb dades per defecte.
+- **Indicadors visuals**: Icones especials quan una actuació té dades tècniques (input list).
+- **Element d'actuació (`SortablePerformance`)**:
+  - **Nom de l'actuació** amb horaris principals (show time)
+  - **Botons d'acció**: Editar, Eliminar
+  - **Indicador de dades tècniques**: Icona 📋 si té input list o dades tècniques
+
+#### Columna 2: Detall de l'Actuació (`PerformanceDetailContainer`)
+- **Pestanyes horitzontals**: Bàsic | Tècnic | Hospitality
+- **Contingut condicional**: Només es mostra si hi ha una actuació seleccionada
+
+### 8.3. Control d'Avançament (`PerformanceAdvancing`)
+
+Situat a la part superior del detall de l'actuació, proporciona:
+
+- **Barra de progrés visual**: Percentatge de completion amb colors dinàmics
+- **4 Badges interactius** amb icones i tooltips:
+  - 📄 **Rider Rebut**: El rider tècnic ha estat rebut
+  - 📤 **Contra-rider Enviat**: El contra-rider ha estat enviat
+  - ⏰ **Horaris Confirmats**: Els horaris han estat confirmats
+  - 🏨 **Hospitality Tancat**: Els requeriments d'hospitalitat estan tancats
+- **Colors segons estat**: Verd (completat), Groc (en procés), Gris (pendent)
+- **Desat automàtic**: Cada canvi es desa immediatament a l'store
+
+### 8.4. Pestanya "Bàsic" (`PerformanceBasicForm`)
+
+Formulari amb informació essencial de l'actuació:
+
+#### Secció d'Identitat
+- **Nom de l'Actuació**: Camp de text obligatori
+- **Persona de Contacte**: Nom del contacte principal
+- **Email de Contacte**: Correu electrònic del contacte
+- **Telèfon de Contacte**: Telèfon del contacte
+
+#### Secció d'Horaris
+- **Hora d'Arribada**: Quan arriba l'artista
+- **Hora de Proves (Soundcheck)**: Quan comencen les proves
+- **Hora del Show**: Quan comença l'actuació
+- **Hora de Sortida**: Quan se'n va l'artista
+
+#### Secció d'Notes
+- **Notes Generals**: Camp de text llarg per observacions addicionals
+
+### 8.5. Pestanya "Tècnic" (`PerformanceTechForm`)
+
+#### Input List (Taula Dinàmica)
+- **Columnes**: Canal, Etiqueta, Mic/DI, Notes
+- **Botó "Afegir Fila"**: Afegeix noves línies a la taula
+- **Botó "Eliminar"**: Elimina cada fila individualment
+- **Autosave**: Cada canvi es desa automàticament
+
+#### Notes Tècniques
+- **Notes de Llums**: Requeriments d'il·luminació
+- **Notes de Vídeo**: Requeriments de vídeo
+- **Necessitats d'Escenari**: Requeriments d'escenari i estructura
+
+### 8.6. Pestanya "Hospitality" (`PerformanceHospitalityForm`)
+
+#### Camerinos i Catering
+- **Camerinos**: Descripció dels espais necessaris
+- **Càtering i Dietes**: Requeriments de menjar i begudes
+- **Requeriments Dietètics**: Restriccions i preferències alimentàries
+
+#### Logística
+- **Logística de Viatge**: Informació de transport i horaris
+- **Pàrquing**: Requeriments d'aparcament
+
+### 8.7. Funcionalitats d'Exportació PDF
+
+#### Rider Individual
+- **Botó "Exportar Rider PDF"**: Disponible al detall de cada actuació
+- **Contingut**: Tota la informació de l'actuació (bàsic, tècnic, hospitality)
+- **Format**: PDF professional amb capçaleres i taules formatades
+
+#### Full de Ruta del Regidor
+- **Botó "Exportar Full de Ruta del Regidor"**: Disponible a la vista principal
+- **Contingut**: Escaleta combinada amb horaris generals + actuacions
+- **Característiques**:
+  - Horaris generals de la fitxa de bolo
+  - Horaris d'actuacions amb prefixos [ARRIBADA], [PROVES], [SHOW]
+  - Notes crítiques de regidoria extretes automàticament
+  - Ordenació cronològica per prioritat i hora
+
+### 8.8. Interaccions i UX
+
+#### Estat Visual
+- **Colors consistents**: Utilitza el tema de colors de l'aplicació
+- **Tooltips informatius**: Tots els elements interactius tenen ajuda contextual
+- **Indicadors de progrés**: Feedback visual constant sobre l'estat d'avançament
+
+#### Rendiment
+- **Lazy loading**: Els components pesats es carreguen sota demanda
+- **Debounce save**: Evita desats excessius als formularis
+- **Optimització de renderitzat**: Selectors eficients a l'store
+
+#### Accessibilitat
+- **Navegació per teclat**: Tot l'interfície és accessible via teclat
+- **Contrastes adequats**: Cumpleix amb estàndars d'accessibilitat
+- **Textos descriptius**: Tots els elements tenen etiquetes clares
+
+### 8.9. Flux de Treball Típic
+
+1. **Selecció d'Esdeveniment**: Triar l'esdeveniment marc
+2. **Creació d'Actuacions**: Afegir actuacions amb informació bàsica
+3. **Control d'Avançament**: Marcar progrés amb els badges interactius
+4. **Compleció de Dades**: Omplir formularis tècnics i d'hospitalitat
+5. **Exportació**: Generar riders individuals o Full de Ruta del Regidor
+
+Aquesta nova secció proporciona eines professionals per a la gestió completa d'actuacions artístiques, integrant-se perfectament amb la resta de funcionalitats de l'aplicació.
