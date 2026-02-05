@@ -10,16 +10,6 @@ interface PerformanceBasicFormProps {
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
-const PERFORMANCE_TYPES = [
-  'Música',
-  'Teatre',
-  'Dansa',
-  'Ponència',
-  'Presentació',
-  'Workshop',
-  'Altres'
-];
-
 const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
   eventFrameId,
   performance,
@@ -27,6 +17,16 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
 }) => {
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
+
+  const PERFORMANCE_TYPES: Array<{key: string; label: string}> = [
+    { key: 'music', label: t('performances.types.music') },
+    { key: 'theater', label: t('performances.types.theater') },
+    { key: 'dance', label: t('performances.types.dance') },
+    { key: 'conference', label: t('performances.types.conference') },
+    { key: 'presentation', label: t('performances.types.presentation') },
+    { key: 'workshop', label: t('performances.types.workshop') },
+    { key: 'other', label: t('performances.types.other') }
+  ];
 
   const [formData, setFormData] = useState<Performance>(performance);
   const formDataRef = useRef(formData);
@@ -88,7 +88,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Secció Identitat */}
+      {/* Identity Section */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-foreground border-b border-border pb-2">
           {t('performances.identity_title')}
@@ -125,7 +125,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               >
                 <option value="">{t('performances.select_type')}</option>
                 {PERFORMANCE_TYPES.map(type => (
-                  <option key={type} value={type}>{type}</option>
+                  <option key={type.key} value={type.key}>{type.label}</option>
                 ))}
               </select>
             </div>
@@ -151,7 +151,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
         </div>
       </div>
 
-      {/* Secció Horaris */}
+      {/* Schedule Section */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-foreground border-b border-border pb-2">
           {t('performances.schedule_title')}
@@ -237,7 +237,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
         </div>
       </div>
 
-      {/* Secció Contacte */}
+      {/* Contact Section */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-foreground border-b border-border pb-2">
           {t('performances.contact_title')}
@@ -295,7 +295,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
         </div>
       </div>
 
-      {/* Secció Notes */}
+      {/* Notes Section */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-foreground border-b border-border pb-2">
           {t('performances.notes_title')}

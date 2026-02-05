@@ -1060,6 +1060,15 @@
             "confirmed": "Confirmado",
             "cancelled": "Cancelado"
         },
+        "types": {
+            "music": "Música",
+            "theater": "Teatro",
+            "dance": "Danza",
+            "conference": "Ponencia",
+            "presentation": "Presentación",
+            "workshop": "Workshop",
+            "other": "Otros"
+        },
         "arrival_time": "Hora de llegada",
         "arrival_time_tooltip": "Hora de llegada del artista",
         "sound_check_time": "Hora de pruebas",
@@ -1116,14 +1125,25 @@
         "show": "Show",
         "regidoria_notes": "Notas de Regidoría",
         "combined_schedule": "Escalera Combinada de Producción",
+        "catering_label": "Catering y Dietas",
         "catering_tooltip": "Requerimientos de catering y dietas especiales",
         "catering_placeholder": "Introduce los requerimientos de catering...",
         "dietary_label": "Requerimientos Dietéticos",
         "dietary_tooltip": "Restricciones y preferencias dietéticas",
         "dietary_placeholder": "Introduce los requerimientos dietéticos...",
+        "dietary_requirements_label": "Requerimientos Dietéticos",
+        "dietary_requirements_tooltip": "Restricciones y preferencias dietéticas",
+        "dietary_requirements_placeholder": "Introduce los requerimientos dietéticos...",
         "travel_logistics_label": "Logística de Viaje",
         "travel_logistics_tooltip": "Información de transporte y horarios",
         "travel_logistics_placeholder": "Introduce la información de viaje...",
+        "parking_label": "Aparcamiento",
+        "parking_tooltip": "Requerimientos de aparcamiento",
+        "parking_placeholder": "Introduce los requerimientos de aparcamiento...",
+        "select_event_placeholder": "Selecciona un evento...",
+        "event_selector_tooltip": "Selecciona el evento marco donde gestionar las actuaciones",
+        "export_runsheet": "Exportar Resumen de Actuaciones",
+        "export_runsheet_tooltip": "Genera un PDF con la lista completa de actuaciones del evento",
         "advancing": {
             "title": "Control de Avance",
             "rider_received": "Rider Recibido",
@@ -1134,7 +1154,9 @@
             "schedules_confirmed_tooltip": "Los horarios han sido confirmados",
             "hospitality_closed": "Hospitality Cerrado",
             "hospitality_closed_tooltip": "Los requerimientos de hospitality están cerrados",
-            "all_complete": "✅ Todos los elementos completados!"
+            "all_complete": "✅ Todos los elementos completados!",
+            "partial_complete": "⚠️ Algunos elementos pendientes",
+            "not_started": "⭕ No se ha comenzado"
         },
         "integration": {
             "push_to_material": "Enviar necesidad a producción global",

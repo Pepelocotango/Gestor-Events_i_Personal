@@ -30,12 +30,45 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
     isDragging,
   } = useSortable({ id: performance.id });
 
-  const style: React.CSSProperties = {
+  const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 10 : 'auto',
-    position: 'relative',
+  };
+
+  // Function to calculate advancement status
+  const getAdvancingStatus = () => {
+    if (!performance.advancing) return 'none';
+    
+    const { riderReceived, counterRiderSent, schedulesConfirmed, hospitalityClosed } = performance.advancing;
+    const completedCount = [riderReceived, counterRiderSent, schedulesConfirmed, hospitalityClosed].filter(Boolean).length;
+    
+    if (completedCount === 4) return 'complete';
+    if (completedCount === 0) return 'none';
+    return 'partial';
+  };
+
+  const getAdvancingIcon = () => {
+    const status = getAdvancingStatus();
+    switch (status) {
+      case 'complete':
+        return '✅';
+      case 'partial':
+        return '⚠️';
+      default:
+        return '⭕';
+    }
+  };
+
+  const getAdvancingTooltip = () => {
+    const status = getAdvancingStatus();
+    switch (status) {
+      case 'complete':
+        return t('performances.advancing.all_complete');
+      case 'partial':
+        return t('performances.advancing.partial_complete');
+      default:
+        return t('performances.advancing.not_started');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -76,6 +109,7 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
       <div
         className={`
           relative p-4 border rounded-lg cursor-pointer transition-all duration-200
+          ${isDragging ? 'opacity-50 rotate-2 scale-95' : ''}
           ${isSelected 
             ? 'border-primary bg-primary/5 shadow-sm' 
             : `border-border hover:border-primary/50 hover:bg-accent/50 ${getStatusBorder(performance.status)} border-l-4`
@@ -108,6 +142,9 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
                   <span className="text-primary">🎛️</span>
                 </Tooltip>
               )}
+              <Tooltip text={getAdvancingTooltip()}>
+                <span className="text-sm">{getAdvancingIcon()}</span>
+              </Tooltip>
             </div>
             
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">

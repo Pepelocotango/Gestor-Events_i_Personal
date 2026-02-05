@@ -187,6 +187,7 @@ export interface Performance {
   contactPhone: string;
   contactEmail: string;
   notes: string;
+  color?: string; // Color identificatiu per a l'escaleta (opcional)
   status: 'pending' | 'confirmed' | 'cancelled';
   arrivalTime?: string; // Hora d'arribada
   soundCheckTime?: string; // Hora de soundcheck

@@ -1152,6 +1152,15 @@
             "confirmed": "Confirmed",
             "cancelled": "Cancelled"
         },
+        "types": {
+            "music": "Music",
+            "theater": "Theater",
+            "dance": "Dance",
+            "conference": "Conference",
+            "presentation": "Presentation",
+            "workshop": "Workshop",
+            "other": "Other"
+        },
         "arrival_time": "Arrival time",
         "arrival_time_tooltip": "Artist arrival time",
         "sound_check_time": "Sound check time",
@@ -1208,14 +1217,25 @@
         "show": "Show",
         "regidoria_notes": "Regidor Notes",
         "combined_schedule": "Combined Production Schedule",
+        "catering_label": "Catering & Dietary",
         "catering_tooltip": "Catering and special dietary requirements",
         "catering_placeholder": "Enter catering requirements...",
         "dietary_label": "Dietary Requirements",
         "dietary_tooltip": "Dietary restrictions and preferences",
         "dietary_placeholder": "Enter dietary requirements...",
+        "dietary_requirements_label": "Dietary Requirements",
+        "dietary_requirements_tooltip": "Dietary restrictions and preferences",
+        "dietary_requirements_placeholder": "Enter dietary requirements...",
         "travel_logistics_label": "Travel Logistics",
         "travel_logistics_tooltip": "Transport information and schedules",
         "travel_logistics_placeholder": "Enter travel information...",
+        "parking_label": "Parking",
+        "parking_tooltip": "Parking requirements",
+        "parking_placeholder": "Enter parking requirements...",
+        "select_event_placeholder": "Select an event...",
+        "event_selector_tooltip": "Select the frame event to manage performances",
+        "export_runsheet": "Export Performance Summary",
+        "export_runsheet_tooltip": "Generate a PDF with the complete list of event performances",
         "advancing": {
             "title": "Advancement Status",
             "rider_received": "Rider Received",
@@ -1226,7 +1246,9 @@
             "schedules_confirmed_tooltip": "The schedules have been confirmed",
             "hospitality_closed": "Hospitality Closed",
             "hospitality_closed_tooltip": "Hospitality requirements are closed",
-            "all_complete": "✅ All items completed!"
+            "all_complete": "✅ All items completed!",
+            "partial_complete": "⚠️ Some items pending",
+            "not_started": "⭕ Not started"
         },
         "integration": {
             "push_to_material": "Push need to global production",

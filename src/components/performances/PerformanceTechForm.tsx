@@ -223,7 +223,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
         />
       </div>
 
-      {/* Notes de Vídeo */}
+      {/* Video Notes */}
       <div>
         <Tooltip text={t('performances.video_notes_tooltip')}>
           <label className="block text-sm font-medium mb-2">

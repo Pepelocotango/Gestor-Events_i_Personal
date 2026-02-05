@@ -88,7 +88,7 @@ const PerformanceAdvancing: React.FC<PerformanceAdvancingProps> = ({
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 mb-6">
-      {/* Capçalera amb Progrés */}
+      {/* Header with Progress */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <h3 className="text-lg font-semibold">{t('performances.advancing.title')}</h3>
@@ -97,7 +97,7 @@ const PerformanceAdvancing: React.FC<PerformanceAdvancingProps> = ({
           </span>
         </div>
         
-        {/* Barra de Progrés */}
+        {/* Progress Bar */}
         <div className="flex-1 max-w-xs mx-4">
           <div className="w-full bg-muted rounded-full h-2">
             <div

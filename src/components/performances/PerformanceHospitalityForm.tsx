@@ -82,7 +82,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Camerinos */}
+      {/* Dressing Rooms */}
       <div>
         <Tooltip text={t('performances.dressing_rooms_tooltip')}>
           <label className="block text-sm font-medium mb-2">
@@ -97,7 +97,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         />
       </div>
 
-      {/* Càtering i Dietes */}
+      {/* Catering */}
       <div>
         <Tooltip text={t('performances.catering_tooltip')}>
           <label className="block text-sm font-medium mb-2">
@@ -112,7 +112,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         />
       </div>
 
-      {/* Requeriments Dietètics */}
+      {/* Dietary Requirements */}
       <div>
         <Tooltip text={t('performances.dietary_tooltip')}>
           <label className="block text-sm font-medium mb-2">
@@ -127,7 +127,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         />
       </div>
 
-      {/* Logística de Viatge */}
+      {/* Travel Logistics */}
       <div>
         <Tooltip text={t('performances.travel_logistics_tooltip')}>
           <label className="block text-sm font-medium mb-2">
@@ -142,7 +142,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         />
       </div>
 
-      {/* Pàrquing */}
+      {/* Parking */}
       <div>
         <Tooltip text={t('performances.parking_tooltip')}>
           <label className="block text-sm font-medium mb-2">
