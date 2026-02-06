@@ -1,4 +1,18 @@
 {
+    "actions": {
+        "assign_person": "Has asignado «{{person}}» al evento «{{event}}»",
+        "create_event": "Has creado el evento «{{name}}»",
+        "data_loaded": "Datos cargados desde un archivo",
+        "delete_assignment": "Has eliminado la asignación de «{{person}}» a «{{event}}»",
+        "delete_event": "Has eliminado el evento «{{name}}»",
+        "mark_complete": "Has marcado el evento «{{name}}» como completo",
+        "mark_incomplete": "Has marcado el evento «{{name}}» como incompleto",
+        "project_cleared": "Proyecto limpiado",
+        "reorder_personnel": "Has reordenado el personal técnico de «{{name}}»",
+        "update_assignment": "Has modificado la asignación de «{{person}}» a «{{event}}»",
+        "update_event": "Has modificado el evento «{{name}}»",
+        "update_tech_sheet": "Has actualizado la ficha técnica de «{{name}}»"
+    },
     "app": {
         "desktop_only_warning": "Esta función solo está disponible en la aplicación de escritorio.",
         "export": {
@@ -15,7 +29,6 @@
             "success": "Configuración de fábrica restaurada. La aplicación se reiniciará.",
             "title": "Restaurar Configuración de Fábrica"
         },
-        "gpu_settings_updated": "Configuración de GPU actualizada. Reinicia la aplicación para aplicar los cambios.",
         "import": {
             "item_type_material": "material",
             "item_type_people": "personas",
@@ -49,9 +62,38 @@
         "edit_tooltip": "Editar asignación",
         "hide_button": "Ocultar",
         "hide_daily_tooltip": "Ocultar vista diaria",
-        "person_unknown": "Persona Desconocida",
+        "mark_all_no_tooltip": "Marcar todo como 'NO'",
+        "mark_all_pending_tooltip": "Marcar todo como 'PENDIENTE'",
+        "mark_all_yes_tooltip": "Marcar todo como 'SÍ'",
         "show_button": "Mostrar días",
         "show_daily_tooltip": "Mostrar vista diaria"
+    },
+    "backend": {
+        "app": {
+            "close_title": "Cerrar aplicación",
+            "open_document": "Abrir documento"
+        },
+        "calendar": {
+            "deleted": "Calendario eliminado"
+        },
+        "errors": {
+            "calendar_not_managed": "Calendario no gestionado",
+            "empty_filepath": "filePath no puede estar vacío",
+            "empty_key": "La clave no puede estar vacía",
+            "no_active_window": "No hay ninguna ventana activa",
+            "no_user_email": "No email usuario",
+            "save_data": "Error guardando datos",
+            "service_account_not_initialized": "Client Service Account no inicializado"
+        },
+        "sync": {
+            "auth_in_progress": "Autenticación en curso",
+            "cancelled": "Cancelado",
+            "client_not_initialized": "Cliente no inicializado",
+            "completed": "Sincronización completada con éxito",
+            "confirm_title": "Confirmar Sincronización",
+            "disconnected": "Desconexión completada",
+            "irreversible_detail": "Esta acción es irreversible. ¿Quieres continuar?"
+        }
     },
     "calendar": {
         "2_months": "2 Meses",
@@ -63,12 +105,10 @@
         "week": "Semana"
     },
     "common": {
-        "cancel": "Cancelar",
+        "action_redone": "Acción rehecha.",
+        "action_undone": "Acción deshecha.",
         "change_language_tooltip": "Cambiar idioma / Change language",
-        "close_button": "Cerrar",
         "close_modal": "Cerrar modal",
-        "collapse_section": "Colapsar sección",
-        "confirm": "Confirmar",
         "contact": "Contacto",
         "data_integrity": {
             "error_event_not_found": "La asignación '{{id}}' hace referencia a un evento que no existe ({{targetId}}).",
@@ -76,34 +116,22 @@
             "fix_removed_assignment": "Se ha eliminado una asignación rota (ID: {{id}})."
         },
         "date_format_placeholder": "dd/mm/yyyy",
-        "days": "Días",
-        "delete": "Eliminar",
-        "dialog": "Diálogo",
         "edit": "Editar",
-        "error": "Error",
-        "error_boundary": {
-            "error_details": "Detalles del error",
-            "message": "Se ha producido un error inesperado en la interfaz. Por favor, reinicia la aplicación.",
-            "reload_button": "Recargar Aplicación",
-            "title": "Se ha producido un error en la aplicación"
-        },
-        "expand_section": "Expandir sección",
+        "google_connected": "¡Conectado a Google Calendar con éxito!",
+        "google_desktop_only": "Esta funcionalidad solo está disponible en la aplicación de escritorio.",
+        "google_disconnected": "Cuenta de Google desconectada correctamente.",
+        "google_opening_browser": "Abriendo navegador para autenticarse con Google...",
         "history_tooltip": "Historial",
         "loading": "Cargando...",
-        "move_down": "Mover abajo",
-        "move_up": "Mover arriba",
-        "note": "Nota",
-        "save": "Guardar",
+        "not_found": "No encontrado",
+        "redo_action": "Acción rehecha",
+        "search": "Buscar",
         "splash_alt": "Pantalla de inicio",
-        "status": {
-            "mixed": "Mixto",
-            "no": "No",
-            "pending": "Pendiente",
-            "yes": "Sí"
-        },
+        "success": "Éxito",
         "theme_dark": "Tema Oscuro",
         "theme_light": "Tema Claro",
-        "toggle_section_tooltip": "Contraer/Expandir sección {{title}}"
+        "toggle_section_tooltip": "Contraer/Expandir sección {{title}}",
+        "undo_action": "Acción deshecha"
     },
     "controls": {
         "collapse_tooltip": "Colapsar controles",
@@ -120,34 +148,25 @@
         "syncing": "Sincronizando..."
     },
     "csv": {
-        "filename_prefix": "Lista_Eventos",
         "header_assigned_person": "Personal Asignado",
-        "header_assignment_dates": "Fechas Asignación",
         "header_assignment_end_date": "Fecha Fin Asignación",
         "header_assignment_notes": "Notas Asignación",
         "header_assignment_start_date": "Fecha Inicio Asignación",
         "header_assignment_status": "Estado Asignación",
-        "header_event_dates": "Fechas Evento",
         "header_event_end_date": "Fecha Fin Evento",
-        "header_event_frame": "Marco Evento",
         "header_event_name": "Nombre Evento",
         "header_event_notes": "Notas Generales Evento",
-        "header_event_place": "Lugar Evento",
         "header_event_start_date": "Fecha Inicio Evento",
-        "header_general_status": "Estado General",
-        "header_grouping": "Agrupación",
-        "header_place": "Lugar",
-        "header_status_detail": "Detalle Estado"
+        "header_place": "Lugar"
     },
-    "error_boundary": {
-        "error_details": "",
-        "message": "",
-        "reload_button": "",
-        "title": ""
+    "errors": {
+        "assignment": {
+            "date_range": "Las fechas deben estar dentro del rango del marco",
+            "duplicate_conflict": "Conflicto detectado: Este contacto ya tiene una asignación en {{details}}"
+        }
     },
     "event": {
         "add_assignment_tooltip": "Añadir una nueva asignación de personal",
-        "assignments_title": "Asignaciones",
         "collapse_tooltip": "Colapsar sección",
         "delete_tooltip": "Eliminar el evento",
         "edit_tooltip": "Editar evento",
@@ -164,60 +183,39 @@
         "restore_tooltip": "Restaurar el evento",
         "restored_toast": "Evento \"{{name}}\" restaurado."
     },
+    "footer": {
+        "collaboration_text": "Si quieres colaborar, puedes hacerlo en el {{githubLink}} o con una aportación a {{paypalLink}}.",
+        "copyright": "© {{year}} (Pëp) Gestor de Eventos y Personal {{version}}. Licencia GNU GPL v3.0.",
+        "github_project": "proyecto de GitHub"
+    },
     "main": {
         "add_event_frame": "Añadir Nuevo Marco",
-        "add_event_tooltip": "Crear un nuevo marco de evento",
-        "archive": {
-            "confirm_button": "Archivar Antiguos",
-            "confirm_message_one": "",
-            "confirm_message_many": "",
-            "confirm_message_other": "",
-            "item_type": "Eventos",
-            "no_events": "No hay eventos antiguos para archivar.",
-            "success_one": "",
-            "success_many": "",
-            "success_other": "",
-            "title": "Confirmación Archivar"
-        },
         "archive_old": "Archivar Antiguos",
         "archive_old_tooltip": "Archivar eventos antiguos (finalizados hace más de una semana)",
         "archived_events": "Eventos Archivados",
         "calendar_view": "Vista de Calendario",
-        "clean_filters": "Limpiar",
         "collapse_all": "Colapsar Todo",
         "collapse_all_cards_tooltip": "Colapsar todas las tarjetas",
         "contains_date": "Contiene Fecha",
         "csv_export": "CSV",
-        "event_list": "Lista de Eventos",
         "expand_all": "Expandir Todo",
         "expand_all_cards_tooltip": "Expandir todas las tarjetas",
-        "export_csv_tooltip": "Exportar la lista de eventos y asignaciones a CSV",
-        "export_pdf_tooltip": "Exportar la lista de eventos y asignaciones a PDF",
         "filter_date_label": "Filtro:",
         "frame": "Marco",
         "nav_calendar_list": "Calendario y Lista",
-        "nav_calendar_list_tooltip": "Ir a la vista principal de calendario y lista",
+        "nav_calendar_list_tooltip": "Ir a la vista principal del calendario y lista de eventos",
         "nav_material": "Material",
         "nav_material_tooltip": "Ir a la gestión de inventario de material",
         "nav_people": "Personas",
         "nav_people_tooltip": "Ir a la gestión de personas y grupos",
-        "nav_performances_tooltip": "Gestión de actuaciones y riders",
-        "nav_summaries": "Resúmenes",
-        "nav_summaries_tooltip": "Ir a los resúmenes e informes",
         "nav_tech_sheets": "Fichas de Bolo",
         "nav_tech_sheets_tooltip": "Ir a la gestión de fichas técnicas (bolos)",
-        "no_events_found": "No se han encontrado marcos de eventos.",
         "pdf_export": "PDF",
-        "person": "Persona",
         "place": "Lugar",
         "search_general": "Búsqueda general",
         "search_placeholder": "Nombre, lugar, persona...",
         "show_archived": "Mostrar archivados",
-        "show_archived_tooltip": "Mostrar u ocultar los eventos archivados",
         "sort": "Ordenar",
-        "sort_ascending": "ascendente",
-        "sort_descending": "descendente",
-        "sort_tooltip": "Ordenar por fecha {{order}}",
         "status": "Estado",
         "summaries": "Resúmenes",
         "tooltip_clean": "Limpiar todos los filtros",
@@ -226,11 +224,7 @@
         "tooltip_person": "Filtrar por persona o grupo asignado",
         "tooltip_place": "Filtrar por lugar del evento",
         "tooltip_search": "Buscar por nombre de evento, lugar, notas o nombre de persona asignada",
-        "tooltip_status": "Filtrar por estado del evento"
-    },
-    "main_display": {
-        "assignment_status_updated": "Estado de la asignación actualizado a {{status}}",
-        "daily_status_updated": "Estado diario actualizado a {{status}}"
+        "tooltip_status": "Filtrar por estado de la asignación"
     },
     "material": {
         "add_button": "Añadir",
@@ -258,33 +252,26 @@
         "manager_title": "Gestor de Material",
         "name_label": "Nombre",
         "name_tooltip": "Nombre del ítem de material",
-        "no_items_found": "No se encontró material o el inventario está vacío.",
         "notes_label": "Notas",
         "notes_tooltip": "Notas adicionales sobre el ítem (opcional)",
         "save_changes_tooltip": "Guardar los cambios hechos al ítem",
         "search_placeholder": "Buscar...",
         "search_tooltip": "Buscar por nombre, categoría o ubicación",
-        "sort_by": "Ordenar por:",
         "sort_category": "Categoría",
         "sort_category_tooltip": "Agrupar por categoría y ordenar dentro de cada grupo",
         "sort_location_header_tooltip": "Ordenar por ubicación",
-        "sort_name": "Nombre de Ítem",
         "sort_name_header_tooltip": "Ordenar por nombre",
-        "sort_name_tooltip": "Ordenar toda la lista por nombre de ítem",
         "sort_stock_header_tooltip": "Ordenar por stock",
         "stock_label": "Stock",
         "stock_tooltip": "Cantidad total de este ítem en inventario",
         "toggle_all_tooltip": "Expandir o colapsar todas las categorías",
-        "update_button": "Actualizar",
-        "validation": {
-            "category_required": "La categoría es obligatoria.",
-            "name_duplicate": "Ya existe un material con este nombre.",
-            "name_required": "El nombre es obligatorio.",
-            "stock_negative": "El stock no puede ser negativo."
-        }
+        "update_button": "Actualizar"
     },
     "mcc": {
         "breakdown_title": "Desglose por Evento:",
+        "by_event_name": "Por Nombre de Evento",
+        "by_person": "Por Persona/Grupo",
+        "by_start_date": "Por Fecha de Inicio de Asignación",
         "categories_label": "Categorías",
         "csv_button": "CSV",
         "csv_tooltip": "Exporta los datos del control de material en formato CSV, compatible con hojas de cálculo.",
@@ -314,6 +301,7 @@
         "select_all_tooltip": "Selecciona todos los {{title}}.",
         "select_none": "Ninguno",
         "select_none_tooltip": "Deselecciona todos los {{title}}.",
+        "sort_date_tooltip": "Ordenar por fecha {{order}}",
         "start_date_tooltip": "Filtra los eventos por fecha de inicio.",
         "summary_pdf_button": "Resumen PDF",
         "summary_pdf_tooltip": "Exporta un resumen del control de material en formato PDF.",
@@ -367,7 +355,6 @@
             "dev_tools": "Herramientas de Desarrollador",
             "force_reload": "Forzar Recarga",
             "fullscreen": "Pantalla Completa",
-            "gpu_acceleration": "Aceleración por Hardware (GPU)",
             "label": "Ver",
             "reload": "Recargar",
             "reset_zoom": "Restablecer Zoom",
@@ -376,16 +363,77 @@
             "zoom_out": "Alejar"
         }
     },
+    "mobile": {
+        "alerts": {
+            "assignment_conflict": "Conflicto de Asignación",
+            "dates_invalid": "Las fechas no son válidas",
+            "email_invalid": "El correo electrónico no es válido",
+            "phone_invalid": "El teléfono no es válido",
+            "stock_required": "El stock es obligatorio"
+        },
+        "form_labels": {
+            "email": "Correo electrónico",
+            "location": "Ubicación",
+            "person_group": "Persona/Grupo",
+            "phone": "Teléfono",
+            "status": "Estado General",
+            "stock": "Stock",
+            "tel1": "Teléfono 1",
+            "tel2": "Teléfono 2",
+            "web": "Página web"
+        },
+        "forms": {
+            "labels": {
+                "place": "Lugar",
+                "status": "Estado General"
+            },
+            "placeholders": {
+                "notes": "Añade notas...",
+                "place": "Introduce el lugar"
+            },
+            "validation": {
+                "category_required": "La categoría es obligatoria."
+            }
+        },
+        "material_filters": {
+            "clear_filters": "Limpiar filtros",
+            "filter_by_category": "Filtrar por categoría",
+            "filter_by_event": "Filtrar por evento",
+            "filter_by_origin": "Filtrar por origen"
+        },
+        "navigation": {
+            "calendar": "Calendario",
+            "events": "Eventos",
+            "material": "Material",
+            "people": "Personas",
+            "tech_sheets": "Fichas de Bolo"
+        },
+        "placeholders": {
+            "category": "Introduce la categoría",
+            "email": "Introduce el correo electrónico",
+            "end_date": "Selecciona fecha de fin",
+            "location": "Introduce la ubicación",
+            "name": "Introduce el nombre",
+            "notes": "Añade notas...",
+            "phone": "Introduce el teléfono",
+            "place": "Introduce el lugar",
+            "role": "Introduce el rol",
+            "search_material": "Buscar material...",
+            "start_date": "Selecciona fecha de inicio",
+            "stock": "Introduce el stock",
+            "web": "Introduce la página web"
+        },
+        "validation": {
+            "end_date_required": "La fecha de fin es obligatoria.",
+            "select_person": "Debe seleccionar una persona o grupo.",
+            "start_date_required": "La fecha de inicio es obligatoria."
+        }
+    },
     "modals": {
         "about": {
-            "collaboration_intro": "Si quieres colaborar, puedes hacerlo en el",
-            "collaboration_or": "o con una aportación a",
-            "copyright": "© {{year}} (Pëp) Gestor de Eventos y Personal {{version}}. Licencia GNU GPL v3.0.",
-            "description": "Aplicación integral para la gestión de eventos, personal e inventario. Permite planificar eventos, asignar personal con detección de conflictos, generar fichas técnicas detalladas y controlar el stock de material con cálculos de disponibilidad. Incluye visualización en calendario, filtrado avanzado y exportación a PDF/CSV.",
             "github_button": "Repositorio en GitHub",
             "links_title": "Enlaces de Interés",
             "paypal_button": "Haz una donación en PayPal",
-            "title": "Sobre la Aplicación",
             "version": "Versión {{version}}"
         },
         "add_material_form": {
@@ -394,10 +442,8 @@
         "assignment_form": {
             "added_toast": "Asignación añadida.",
             "cancel_tooltip": "Cerrar el formulario sin guardar cambios",
-            "conflict_detail": "",
             "create_new_tooltip": "Crear la nueva asignación",
             "date_range_error": "Las fechas deben estar dentro del rango del marco ({{start}} - {{end}}).",
-            "duplicate_conflict": "",
             "end_date_label": "Fecha de Fin",
             "end_date_required": "La fecha de fin es obligatoria.",
             "end_date_tooltip": "Fecha de fin de la asignación",
@@ -419,9 +465,7 @@
             "status_label": "Estado",
             "status_tooltip": "Estado general de la asignación",
             "title_edit": "Formulario Edición Asignación",
-            "title_edit_with_name": "",
             "title_new": "Formulario Nueva Asignación",
-            "title_new_with_name": "",
             "title_suffix": "para {{name}}",
             "updated_toast": "Asignación actualizada."
         },
@@ -461,9 +505,7 @@
         },
         "event_details": {
             "assignment_note": "Nota: ",
-            "assignments_label_one": "",
-            "assignments_label_many": "",
-            "assignments_label_other": "",
+            "assignments_label": "Asignaciones ({{count}}):",
             "close_button": "Cerrar",
             "close_tooltip": "Cerrar esta ventana de detalles",
             "delete_frame_button": "Eliminar Marco",
@@ -578,8 +620,7 @@
         "pdf_preview": {
             "iframe_title": "Vista Previa PDF",
             "loading": "Generando vista previa, espera unos segundos si sale una pantalla negra ...",
-            "save_button": "Guardar PDF",
-            "title_override": ""
+            "save_button": "Guardar PDF"
         },
         "select_sync": {
             "cancel_tooltip": "Cerrar sin sincronizar",
@@ -595,9 +636,7 @@
         },
         "update_assignments": {
             "cancel_tooltip": "Cerrar sin aplicar ningún cambio",
-            "confirm_button_one": "",
-            "confirm_button_many": "",
-            "confirm_button_other": "",
+            "confirm_button": "Confirmar Cambios ({{count}})",
             "confirm_tooltip": "Aplicar los cambios seleccionados a la ficha técnica",
             "description": "Se han detectado cambios entre las asignaciones confirmadas y la lista de personal técnico. Selecciona los cambios que quieres aplicar.",
             "deselect_all": "Deseleccionar Todo",
@@ -608,74 +647,29 @@
             "select_all": "Seleccionar Todo",
             "type_add": "Añadir: {{name}}",
             "type_remove": "Eliminar: Rol de {{name}}",
-            "type_update": "Actualizar: {{name}}"
+            "type_update": "Actualizar: {{name}}",
+            "unknown_person": "Desconocido"
         }
     },
     "pdf": {
         "address_book_title": "Libreta de Direcciones",
-        "arrival": "",
-        "arrival_time": "",
-        "artist": "",
-        "artist_info": "",
-        "artist_name": "",
-        "artist_type": "",
-        "artistic_runsheet": "",
-        "catering": "",
-        "channel": "",
-        "combined_schedule": "",
         "complete_status": "Completo",
-        "contact_email": "",
-        "contact_name": "",
-        "contact_phone": "",
-        "date": "",
-        "departure_time": "",
-        "description": "",
-        "dietary_requirements": "",
-        "dressing_rooms": "",
-        "duration": "",
-        "event_info": "",
         "event_list_title": "Lista de Eventos",
-        "event_name": "",
-        "event_runsheet_title": "",
         "export_date": "Fecha de exportación: {{date}}",
-        "general_notes": "",
-        "general_schedule": "",
-        "hospitality": "",
         "incomplete_status": "Incompleto",
-        "input_list": "",
-        "label": "",
-        "lighting_notes": "",
-        "location": "",
         "material_control_detailed": "Detalle de Control de Material",
         "material_control_summary": "Resumen de Control de Material",
         "material_list_title": "Lista de Material",
-        "mic_contra": "",
-        "mic_rider": "",
         "no": "NO",
         "no_assignments": "Sin asignaciones",
         "no_category": "Sin Categoría",
         "no_data_message": "No hay datos para mostrar en este resumen.",
-        "no_performances": "",
         "note_prefix": "Nota: ",
-        "notes": "",
         "origin_prefix": "Origen: ",
-        "parking": "",
-        "patch": "",
-        "performance_rider_title": "",
-        "regidoria_notes": "",
-        "regidoria_summary_title": "",
         "save_dialog_filter_name": "Documentos PDF",
         "save_dialog_title": "Guardar PDF",
         "save_error_toast": "Error al guardar el PDF: {{message}}",
         "save_success_toast": "¡PDF guardado con éxito!",
-        "schedule": "",
-        "show": "",
-        "show_time": "",
-        "soundcheck": "",
-        "soundcheck_time": "",
-        "stage_requirements": "",
-        "stand": "",
-        "status": "",
         "summary_export_success": "¡Resumen exportado a PDF con éxito!",
         "summary_title_prefix": "Resumen: ",
         "summary_types": {
@@ -739,11 +733,6 @@
             "transport": "Transporte",
             "video": "Vídeo"
         },
-        "technical_notes": "",
-        "time": "",
-        "travel_logistics": "",
-        "type": "",
-        "video_notes": "",
         "yes": "SÍ"
     },
     "people": {
@@ -774,18 +763,16 @@
         "export_pdf_tooltip": "Exportar a PDF",
         "list_title": "Lista de Contactos",
         "manager_title": "Gestor de Contactos",
-        "name_duplicate": "Ya existe un contacto con este nombre.",
         "name_label": "Nombre",
         "name_required": "El nombre es obligatorio.",
         "name_tooltip": "Nombre del contacto. Este campo es obligatorio y debe ser único.",
-        "no_contacts_found": "No hay contactos que coincidan con la búsqueda.",
         "notes_label": "Notes (Opcional)",
         "notes_tooltip": "Cualquier información adicional relevante",
         "role_label": "Rol/Tipo (Opcional)",
         "role_tooltip": "Rol o tipo de servicio (p. ej. Técnico de sonido, Proveedor de luces)",
         "save_changes_tooltip": "Guardar los cambios",
         "search_placeholder": "Buscar por nombre, rol, email, tel...",
-        "sort_by": "Ordenar por:",
+        "search_tooltip": "Buscar por nombre, rol, email o teléfono",
         "sort_name_tooltip": "Ordenar por nombre (A-Z / Z-A)",
         "sort_role_tooltip": "Ordenar por rol (A-Z / Z-A)",
         "tel1_label": "Teléfono 1 (Opcional)",
@@ -798,193 +785,65 @@
         "web_tooltip": "Página web del contacto",
         "web_url_placeholder": "https://ejemplo.com"
     },
-    "performances": {
-        "add_button": "Añadir Actuación",
-        "add_input": "Añadir Input",
-        "add_tooltip": "Añadir nueva actuación",
-        "advancing": {
-            "all_complete": "✅ Todos los elementos completados!",
-            "counter_rider_sent": "Contra-rider Enviado",
-            "counter_rider_sent_tooltip": "El contra-rider ha sido enviado",
-            "hospitality_closed": "Hospitality Cerrado",
-            "hospitality_closed_tooltip": "Los requerimientos de hospitality están cerrados",
-            "not_started": "⭕ No se ha comenzado",
-            "partial_complete": "⚠️ Algunos elementos pendientes",
-            "rider_received": "Rider Recibido",
-            "rider_received_tooltip": "El rider técnico ha sido recibido",
-            "schedules_confirmed": "Horarios Confirmados",
-            "schedules_confirmed_tooltip": "Los horarios han sido confirmados",
-            "title": "Control de Avance"
-        },
-        "arrival_time": "Hora de llegada",
-        "arrival_time_tooltip": "Hora de llegada del artista",
-        "catering_label": "Catering y Dietas",
-        "catering_placeholder": "Introduce los requerimientos de catering...",
-        "catering_tooltip": "Requerimientos de catering y dietas especiales",
-        "channel_header": "Ch",
-        "channel_placeholder": "1",
-        "contact": "Contacto",
-        "contact_email": "Email",
-        "contact_email_placeholder": "contacto@ejemplo.com",
-        "contact_email_tooltip": "Email de contacto",
-        "contact_name": "Nombre del contacto",
-        "contact_name_placeholder": "Nombre del contacto",
-        "contact_name_tooltip": "Nombre de la persona de contacto",
-        "contact_phone": "Teléfono",
-        "contact_phone_placeholder": "+34 600 000 000",
-        "contact_phone_tooltip": "Teléfono de contacto",
-        "contact_title": "Contacto",
-        "delete_success": "Actuación \"{{name}}\" eliminada correctamente",
-        "delete_tooltip": "Eliminar actuación",
-        "departure_time": "Hora de salida",
-        "departure_time_tooltip": "Hora de salida prevista",
-        "dietary_label": "Requerimientos Dietéticos",
-        "dietary_placeholder": "Introduce los requerimientos dietéticos...",
-        "dietary_tooltip": "Restricciones y preferencias dietéticas",
-        "drag_tooltip": "Arrastrar para reordenar",
-        "dressing_rooms_label": "Camerinos",
-        "dressing_rooms_placeholder": "Introduce los requerimientos de camerinos...",
-        "dressing_rooms_tooltip": "Requerimientos de camerinos",
-        "duration": "Duración",
-        "duration_placeholder": "Ej: 45 min, 1h 30min",
-        "duration_tooltip": "Duración prevista de la actuación",
-        "event_selector_tooltip": "Selecciona el evento marco donde gestionar las actuaciones",
-        "export_runsheet": "Exportar Resumen de Actuaciones",
-        "export_runsheet_tooltip": "Genera un PDF con la lista completa de actuaciones del evento",
-        "has_tech_data": "",
-        "identity_title": "Identidad",
-        "input_list_title": "Lista de Inputs",
-        "input_list_tooltip": "Configuración de inputs de audio",
-        "label_header": "Label",
-        "label_placeholder": "Voz principal",
-        "lighting_notes": "Notas de Luces",
-        "lighting_notes_placeholder": "Introduce las notas de luces...",
-        "lighting_notes_tooltip": "Requerimientos de iluminación",
-        "list_title": "Lista de Actuaciones",
-        "manager_title": "Gestión de Actuaciones y Riders",
-        "mic_contra_header": "Mic (Contra)",
-        "mic_di_placeholder": "SM58",
-        "mic_rider_header": "Mic (Rider)",
-        "name": "Nombre",
-        "name_placeholder": "Introduce el nombre de la actuación",
-        "name_tooltip": "Nombre del artista o acto",
-        "nav_title": "Actuaciones",
-        "new_performance_name": "Nueva Actuación",
-        "no_event_selected": "Selecciona un evento para gestionar las actuaciones.",
-        "no_inputs": "No hay inputs configurados",
-        "no_performance_selected": "No hay ninguna actuación seleccionada",
-        "no_performances": "No hay actuaciones configuradas",
-        "notes": "Notas",
-        "notes_header": "Notas",
-        "notes_placeholder": "Introduce notas adicionales...",
-        "notes_title": "Notas",
-        "notes_tooltip": "Notas adicionales sobre la actuación",
-        "parking_label": "Aparcamiento",
-        "parking_placeholder": "Introduce los requerimientos de aparcamiento...",
-        "parking_tooltip": "Requerimientos de aparcamiento",
-        "patch_header": "Patch",
-        "performance_status": "Estado",
-        "performance_status_tooltip": "Estado de la actuación",
-        "reorder_success": "Actuaciones reordenadas correctamente",
-        "save_success": "Cambios guardados correctamente",
-        "schedule_title": "Horarios",
-        "select_event": "",
-        "select_event_label": "Seleccionar Evento",
-        "select_event_placeholder": "Selecciona un evento...",
-        "select_performance_to_edit": "Selecciona una actuación para editar sus datos",
-        "select_type": "-- Selecciona tipo --",
-        "show_time": "Hora show",
-        "show_time_tooltip": "Hora de inicio de la actuación",
-        "sound_check_time": "Hora de pruebas",
-        "sound_check_time_tooltip": "Hora prevista para pruebas de sonido",
-        "stage_requirements": "Necesidades de Escenario",
-        "stage_requirements_placeholder": "Introduce las necesidades de escenario...",
-        "stage_requirements_tooltip": "Requerimientos de escenario",
-        "stand_header": "Soporte",
-        "stand_placeholder": "D112",
-        "status": {
-            "cancelled": "Cancelado",
-            "confirmed": "Confirmado",
-            "pending": "Pendiente"
-        },
-        "tab_basic": "Básico",
-        "tab_hospitality": "Hospitalidad",
-        "tab_tech": "Técnico",
-        "travel_logistics_label": "Logística de Viaje",
-        "travel_logistics_placeholder": "Introduce la información de viaje...",
-        "travel_logistics_tooltip": "Información de transporte y horarios",
-        "type": "Tipo",
-        "type_tooltip": "Tipo de actuación",
-        "types": {
-            "conference": "Ponencia",
-            "dance": "Danza",
-            "music": "Música",
-            "other": "Otros",
-            "presentation": "Presentación",
-            "theater": "Teatro",
-            "workshop": "Workshop"
-        },
-        "unnamed": "Sin nombre",
-        "video_notes": "Notas de Vídeo",
-        "video_notes_placeholder": "Introduce las notas de vídeo...",
-        "video_notes_tooltip": "Requerimientos de vídeo"
-    },
     "roles": {
         "assembly": {
-            "crew": "",
-            "driver": "",
-            "helper": "",
-            "machinery": "",
-            "rigger": ""
+            "crew": "Montaje: Personal de Montaje (Crew)",
+            "driver": "Montaje: Conductor/a",
+            "helper": "Montaje: Auxiliar de Carga y Descarga",
+            "machinery": "Montaje: Maquinaria",
+            "rigger": "Montaje: Maquinista / Rigger"
         },
         "audience": {
-            "box_office": "",
-            "floor_staff": "",
-            "security": ""
+            "box_office": "Público: Personal de Taquillas",
+            "floor_staff": "Público: Personal de Sala / Acomodación",
+            "security": "Público: Personal de Seguridad"
         },
         "direction": {
-            "chief": "",
-            "council": "",
-            "council_assistant": "",
-            "floor_manager": ""
+            "chief": "Dirección: Jefe/a Técnico/a",
+            "council": "Dirección: Regidoría",
+            "council_assistant": "Dirección: Asistente de Regidoría",
+            "floor_manager": "Dirección: Jefe de Sala"
         },
         "production": {
-            "assistant": "",
-            "producer": ""
+            "assistant": "Producción: Auxiliar de Producción",
+            "producer": "Producción: Producción"
         },
         "support": {
-            "personal": "",
-            "rider": ""
+            "personal": "Soporte: Asistente Personal",
+            "rider": "Soporte: Rider / Road Manager"
         },
         "technician": {
-            "camera": "",
-            "lighting": "",
-            "machinery": "",
-            "microphone": "",
-            "monitors": "",
-            "pa": "",
-            "sound": "",
-            "video": ""
+            "camera": "Técnico/a: Operación de Cámara",
+            "lighting": "Técnico/a: Iluminación",
+            "machinery": "Técnico/a: Maquineria",
+            "microphone": "Técnico: Microfonista",
+            "monitors": "Técnico/a: Monitores",
+            "pa": "Técnico/a: Sonido (PA)",
+            "sound": "Técnico/a: Sonido",
+            "video": "Técnico/a: Vídeo"
         }
     },
-    "status": {
-        "mixed": "Mixto",
-        "no": "No",
-        "pending": "Pendiente",
-        "yes": "Sí"
-    },
-    "summary": {
-        "by_event_name": "",
-        "by_person": "",
-        "by_start_date": "",
-        "export_csv_tooltip": "",
-        "export_pdf_tooltip": "",
-        "sort_button_label": "",
-        "sort_date_tooltip": ""
-    },
     "sync": {
-        "step_progress": "",
-        "title": ""
+        "step_calendar_connected": "Conexión con el calendario establecida correctamente.",
+        "step_deleting_event": "Eliminando evento {{index}}/{{total}}: {{name}}",
+        "step_deletion_complete": "Se han eliminado todos los eventos antiguos.",
+        "step_events_to_delete": "Eventos a eliminar: {{count}}",
+        "step_events_to_upload": "Eventos a subir/actualizar: {{count}} (de {{total}} totales)",
+        "step_getting_events": "Obteniendo lista de eventos del calendario...",
+        "step_getting_threshold_date": "Sincronización parcial desde: {{date}}",
+        "step_initializing_sync": "Iniciando proceso de sincronización con Google Calendar...",
+        "step_no_events_to_delete": "No hay eventos antiguos para eliminar.",
+        "step_processing_event": "Procesando evento {{index}}/{{total}}: {{name}}",
+        "step_progress": "Paso {{current}} de {{total}}",
+        "step_requesting_confirmation": "Solicitando confirmación para iniciar la sincronización...",
+        "step_starting_deletion": "Iniciando eliminación de {{count}} eventos antiguos...",
+        "step_starting_sync": "Iniciando proceso de sincronización...",
+        "step_starting_upload": "Iniciando subida de {{count}} eventos nuevos/actualizados...",
+        "step_sync_cancelled": "Sincronización cancelada por el usuario.",
+        "step_sync_stats": "Estadísticas de sincronización:",
+        "step_upload_complete": "Subida completada.",
+        "step_verifying_calendar": "Verificando acceso al calendario...",
+        "title": "Sincronización con Google Calendar"
     },
     "tech_sheets": {
         "archived_tooltip_off": "Mostrando solo eventos activos",
@@ -1078,7 +937,6 @@
             },
             "preview": "Vista Previa",
             "save_changes": "Guardar Cambios",
-            "saving_pending_before_export": "",
             "schedule": {
                 "add_item": "+ Añadir Horario",
                 "add_item_tooltip": "Añadir una nueva línea de horario para el {{date}}",
@@ -1139,8 +997,6 @@
         "needs": {
             "add_item": "+ Añadir Necesidad {{title}}",
             "add_item_tooltip": "Añadir una nueva línea de necesidad de {{title}}",
-            "add_to_inventory_tooltip": "",
-            "availability_prefix": "",
             "category_labels": {
                 "consumables": "Consumibles",
                 "curtains": "Telonajes",
@@ -1155,6 +1011,8 @@
                 "transport": "Transporte",
                 "video": "Vídeo"
             },
+            "create_material_tooltip": "Crear nuevo ítem en el inventario con este nombre",
+            "desc_label": "Descripción",
             "field_labels": {
                 "details_prefix": "Detalles generales de {{title}}:",
                 "material_prefix": "Material de {{title}}"
@@ -1163,13 +1021,17 @@
             "header_desc": "Descripción",
             "header_origin": "Origen",
             "header_qty": "Cant.",
+            "move_down_tooltip": "Mover abajo",
+            "move_up_tooltip": "Mover arriba",
+            "origin_label": "Origen",
             "origin_placeholder": "Propio/Teatro/CIA/alquiler....",
-            "provider_reorder_tooltip": "Reordenar proveïdor",
+            "provider_reorder_tooltip": "Reordenar proveedor",
+            "qty_label": "Cantidad",
+            "qty_placeholder": "XX",
             "quantity_placeholder": "XX",
             "remove_tooltip": "Eliminar esta necesidad",
             "sort_by_origin": "Ordenar por Origen",
-            "sort_tooltip": "Ordena la lista de necesidades alfabéticamente por origen.",
-            "stock_prefix": ""
+            "sort_tooltip": "Ordena la lista de necesidades alfabéticamente por origen."
         },
         "no_sheet_warning": "Este evento no tiene una ficha técnica asociada. Puede ser de datos antiguos. Guarda el evento para generar una.",
         "personnel": {
@@ -1178,9 +1040,7 @@
             "add_role": "+ Añadir Rol",
             "add_role_tooltip": "Añadir un nuevo rol para este proveedor",
             "base_role_label": "Rol Base (Agenda)",
-            "changes_applied_toast_one": "",
-            "changes_applied_toast_many": "",
-            "changes_applied_toast_other": "",
+            "changes_applied_toast": "{{count}} cambio(s) aplicado(s) desde las asignaciones.",
             "delete_provider": "Eliminar Proveedor",
             "delete_provider_tooltip": "Eliminar este proveedor y todos sus roles asociados",
             "header_notes": "Notas asignación",

@@ -1,0 +1,176 @@
+{
+    "download": {
+        "android": "Android 8.0 o superior",
+        "desktop_description": "Versió completa amb totes les funcionalitats per a Windows, macOS i Linux.",
+        "desktop_title": "Aplicació d'Escriptori",
+        "download_desktop": "Descarregar per a Escriptori",
+        "download_mobile": "Descarregar per a Mòbil",
+        "installation_instructions": "Instruccions d'instal·lació",
+        "ios": "iOS 13.0 o superior",
+        "linux": "Linux (Ubuntu 18.04 o superior)",
+        "linux_setup": {
+            "fuse_note_command": "sudo apt-get install libfuse2",
+            "fuse_note_prefix": "Nota: En sistemes com Ubuntu 22.04+ pot ser necessari instal·lar abans: ",
+            "step_1": "Descarrega l'arxiu .AppImage",
+            "step_2": "Fes-lo executable amb: chmod +x GestorEsdeveniments-*.AppImage",
+            "step_3": "Executa'l fent-hi doble clic o des de la terminal",
+            "title": "Linux"
+        },
+        "macos": "macOS 10.14 o superior",
+        "macos_setup": {
+            "advanced_method": "Si el mètode anterior no funciona (macOS Sequoia 15+ o error \"Està malmesa\"):",
+            "available_versions": "Disponible en format .dmg per a versions modernes de macOS:",
+            "first_time_only": "Només hauràs de fer això la primera vegada que obris l'aplicació. A partir d'aleshores, podràs obrir-la normalment amb un doble clic.",
+            "option_a": "Opció A (Configuració): Ves a Configuració del Sistema > Privadesa i Seguretat, baixa fins al final i prem \"Obrir de totes maneres\".",
+            "option_b": "Opció B (Terminal): Si diu que l'app està malmesa, obre la Terminal i executa:",
+            "security_description": "Com que l'aplicació no està signada amb un certificat de desenvolupador d'Apple, podràs veure un missatge dient que no es pot obrir. Aquí tens com resoldre-ho:",
+            "security_title": "Important sobre seguretat a macOS:",
+            "standard_method": "Mètode estàndard (funciona en la majoria de casos):",
+            "standard_step_1": "Fes clic dret (o Control+clic) a l'aplicació",
+            "standard_step_2": "Selecciona \"Obrir\" al menú contextual",
+            "standard_step_3": "Al quadre de diàleg, fes clic a \"Obrir\"",
+            "step_1": "Descarrega l'arxiu .dmg de la darrera versió",
+            "step_2": "Fes doble clic a l'arxiu descarregat per muntar la imatge de disc",
+            "step_3": "Arrossega l'aplicació a la carpeta d'Aplicacions",
+            "step_4": "Per obrir l'aplicació per primera vegada, fes un clic dret sobre l'aplicació i selecciona \"Obrir\" al menú contextual",
+            "step_5": "Confirma que vols obrir l'aplicació quan aparegui la finestra d'advertència",
+            "terminal_command_desc": "xattr -cr /Applications/GestorEsdevenimentsPersonal.app",
+            "title": "macOS"
+        },
+        "mobile_description": "Versió mòbil per a Android i iOS amb gestió bàsica d'esdeveniments.",
+        "mobile_title": "Aplicació Mòbil",
+        "other_versions": {
+            "button": "Veure totes les versions",
+            "description": "Visita la nostra pàgina de versions per a descarregar versions anteriors o altres variants de la plataforma.",
+            "title": "Necessites una altra versió?"
+        },
+        "requirements": "Requisits",
+        "requirements_section": {
+            "cpu_min": "Processador de doble nucli de 2 GHz o superior",
+            "cpu_rec": "Processador de 4 nuclis de 2,5 GHz o superior",
+            "disk_min": "200 MB d'espai lliure en disc",
+            "disk_rec": "SSD amb 500 MB d'espai lliure",
+            "minimum": "Mínims",
+            "ram_min": "4 GB de RAM",
+            "ram_rec": "8 GB de RAM o més",
+            "recommended": "Recomanats",
+            "title": "Requisits del sistema"
+        },
+        "source_code_github": "Codi font a GitHub",
+        "title": "Descarregues",
+        "windows": "Windows 10 o superior",
+        "windows_setup": {
+            "available_versions": "Disponible en dues versions:",
+            "installer_desc": "Recomanat per a la majoria d'usuaris. Executa el fitxer d'instal·lació i segueix les instruccions.",
+            "installer_title": "Instal·lador (.exe):",
+            "portable_desc": "No requereix instal·lació. Executa directament des d'un USB o carpeta.",
+            "portable_title": "Portable (.exe):",
+            "security_note": "Nota: L'aplicació no està signada digitalment. Si Windows mostra un avís, fes clic a \"Més informació\" i després a \"Executar de totes maneres\".",
+            "title": "Windows"
+        }
+    },
+    "download_section": {
+        "description": "Tria la teva plataforma i comença a gestionar els teus esdeveniments avui mateix. Ràpid, segur i fàcil d'utilitzar.",
+        "label": "Descarrega ara",
+        "limitation_1": "No inclou totes les funcions avançades de la versió d'escriptori",
+        "limitation_2": "Optimitzada per a ús mòbil amb una interfície simplificada",
+        "limitations_title": "Principals limitacions de la versió Android:",
+        "recommendation": "Per a l'ús professional amb totes les funcions, recomanem utilitzar la versió d'escriptori (Windows, macOS o Linux).",
+        "title": "Disponible a totes les plataformes",
+        "version_info_description": "La versió per a dispositius Android és una versió reduïda de l'aplicació d'escriptori, dissenyada per a la consulta ràpida i la gestió bàsica d'esdeveniments.",
+        "version_info_title": "Informació important sobre les versions"
+    },
+    "features": {
+        "calendar_management": {
+            "description": "Vista de calendari interactiva amb gestió completa d'esdeveniments i assignacions.",
+            "title": "Gestió de Calendari"
+        },
+        "cta": {
+            "button_github": "Veure a GitHub",
+            "button_start": "Començar ara",
+            "description": "Descobreix com el Gestor d'Esdeveniments i Personal pot simplificar el teu flux de treball i estalviar-te hores de feina.",
+            "title": "Preparat per millorar la teva gestió d'esdeveniments?"
+        },
+        "export_import": {
+            "description": "Importació i exportació de dades en múltiples formats (JSON, PDF, CSV).",
+            "title": "Importar/Exportar"
+        },
+        "google_sync": {
+            "description": "Sincronització automàtica amb Google Calendar per a una gestió integrada.",
+            "title": "Sincronització Google"
+        },
+        "material_inventory": {
+            "description": "Control complet d'inventari amb categories, ubicacions i gestió d'estoc.",
+            "title": "Inventari de Material"
+        },
+        "open_source": {
+            "description": "Llicència GPLv3. Sense subscripcions, sense anuncis i sense costos ocults. Inclou aplicació d'escriptori i versió mòbil complementària.",
+            "title": "Codi Obert i Gratuït"
+        },
+        "personnel_management": {
+            "description": "Base de dades de contactes amb rols, telèfons i informació de contacte.",
+            "title": "Gestió de Personal"
+        },
+        "technical_sheets": {
+            "description": "Fitxes tècniques detallades per a cada esdeveniment amb tota la informació necessària.",
+            "title": "Fitxes Tècniques"
+        },
+        "title": "Funcionalitats Principals"
+    },
+    "features_section": {
+        "beta_tag": "BETA",
+        "description": "Descobreix com el nostre programari pot simplificar la teva gestió diària i millorar la productivitat del teu equip.",
+        "google_integration_description": "Gestiona calendaris dedicats per a l'app i visualitza la teva agenda personal. Nota: Aquesta funció requereix autorització manual. Contacta amb el desenvolupador per habilitar el teu compte de Google.",
+        "google_integration_title": "Integració Híbrida amb Google",
+        "inventory_description": "Analitza la disponibilitat real del teu material. El sistema calcula el pic de demanda diari per garantir que tens prou estoc per a tots els esdeveniments simultanis.",
+        "inventory_title": "Control d'Estoc i Demanda",
+        "label": "Funcionalitats principals",
+        "privacy_description": "Les dades són teves. Tot es guarda localment en fitxers .gep. Treballa sense connexió a internet i sense dependre de servidors al núvol.",
+        "privacy_title": "Privadesa Total (Local-First)",
+        "team_management_description": "Assigna personal tècnic i artístic amb seguretat. El sistema t'alerta automàticament si intentes assignar algú que ja està ocupat en un altre esdeveniment.",
+        "team_management_title": "Gestió d'Equips sense Conflictes",
+        "tech_sheets_description": "Genera documentació tècnica professional (PDF) en segons. Inclou horaris, necessitats tècniques (so, llums), logística i contactes automàticament.",
+        "tech_sheets_title": "Fitxes de Bolo Automàtiques",
+        "title": "Tot el que necessites per gestionar els teus esdeveniments"
+    },
+    "footer": {
+        "collaborate_description": "Aquest és un projecte de codi obert sota llicència GPL v3.0. T'animem a contribuir-hi o fer-nos arribar les teves suggerències.",
+        "collaborate_title": "Vols col·laborar en el projecte?",
+        "copyright": "© 2024 Gestor d'Esdeveniments i Personal. Tots els drets reservats.",
+        "documentation": "Documentació",
+        "source_code": "Codi Font",
+        "title": "Gestor d'Esdeveniments i Personal",
+        "version": "Versió 1.6.0 - Sota llicència GPL v3.0",
+        "view_features": "Veure funcionalitats",
+        "view_github": "Veure a GitHub"
+    },
+    "gallery": {
+        "label": "Galeria d'imatges",
+        "subtitle": "Explora les diferents pantalles i funcionalitats",
+        "title": "Descobreix l'aplicació"
+    },
+    "hero": {
+        "cta_primary": "Descarrega gratuïta",
+        "cta_secondary": "Més informació",
+        "description": "L'eina definitiva per a la gestió professional d'esdeveniments, personal i material. Gestiona tots els teus bolos des d'una interfície intuïtiva i potent.",
+        "discover_more": "Descobreix més",
+        "loading_animation": "Animació de càrrega",
+        "open_source_free": "Codi obert i gratuït",
+        "platform_support": "Per a Windows, macOS i Linux. Versió adaptada per a Android.",
+        "scroll_down": "Desplaça't cap avall",
+        "subtitle": "Eina integral per a la gestió de personal i material en esdeveniments",
+        "title": "Gestor d'Esdeveniments i Personal"
+    },
+    "navigation": {
+        "contact": "Contacte",
+        "download": "Descarregues",
+        "features": "Funcionalitats",
+        "gallery": "Galeria",
+        "home": "Inici",
+        "logo_text": "Gestor d'Esdeveniments"
+    },
+    "site": {
+        "description": "L'eina definitiva per a la gestió professional d'esdeveniments i personal",
+        "title": "Gestor d'Esdeveniments i Personal"
+    }
+}

@@ -41,6 +41,7 @@
         "google_disconnected": "Cuenta de Google desconectada correctamente.",
         "google_opening_browser": "Abriendo navegador para autenticarse con Google...",
         "not_found": "No encontrado",
+        "open": "",
         "redo_action": "Acción rehecha",
         "search": "Buscar",
         "success": "Éxito",
@@ -57,7 +58,13 @@
             "confirm_message": "Se archivarán <strong>{{count}}</strong> eventos finalizados antes del <strong>{{date}}</strong>.",
             "success": "{{count}} evento(s) archivado(s) correctamente."
         },
-        "sort_button_label": "Ordenar"
+        "event": "",
+        "sort_button_label": "Ordenar",
+        "start_date": ""
+    },
+    "material": {
+        "name_duplicate": "",
+        "no_category": ""
     },
     "mcc": {
         "sort_date_tooltip": "Ordenar por fecha {{order}}"
@@ -67,6 +74,222 @@
         "home": "Inicio",
         "settings": "Configuración",
         "staff": "Personal"
+    },
+    "mobile": {
+        "about": {
+            "app_description": "",
+            "app_name": "",
+            "donate": "",
+            "github_repository": "",
+            "links": "",
+            "version": ""
+        },
+        "action_toolbar": {
+            "collapse_all": "",
+            "expand_all": "",
+            "show_archived": "",
+            "showing_archived": "",
+            "sort_by_date": ""
+        },
+        "alerts": {
+            "cancel": "",
+            "category_required": "",
+            "confirm_status_change": "",
+            "confirm_status_message": "",
+            "discard": "",
+            "discard_changes": "",
+            "discard_changes_message": "",
+            "invalid_file": "",
+            "name_required": "",
+            "ok": "",
+            "share_instructions": "",
+            "validation_errors": "",
+            "validation_message": ""
+        },
+        "calendar": {
+            "events_for_day": "",
+            "no_events_day": ""
+        },
+        "event_card": {
+            "accept": "",
+            "add_person": "",
+            "assigned_personnel": "",
+            "hide_days": "",
+            "show_days": ""
+        },
+        "event_details": {
+            "end": "",
+            "no_notes": "",
+            "not_specified": "",
+            "notes": "",
+            "place": "",
+            "start": ""
+        },
+        "filter_controls": {
+            "all_events": "",
+            "all_people": "",
+            "global_search": ""
+        },
+        "filters": {
+            "all_categories": "",
+            "all_events": "",
+            "all_origins": ""
+        },
+        "form_labels": {
+            "category": "",
+            "end_date": "",
+            "name": "",
+            "notes": "",
+            "place": "",
+            "role": "",
+            "start_date": ""
+        },
+        "forms": {
+            "alerts": {
+                "assignment_conflict": ""
+            },
+            "buttons": {
+                "create": "",
+                "create_and_assign": "",
+                "create_assignment": "",
+                "save_changes": "",
+                "update": ""
+            },
+            "labels": {
+                "category": "",
+                "email": "",
+                "end_date": "",
+                "general_notes": "",
+                "location": "",
+                "name": "",
+                "person_group": "",
+                "role": "",
+                "start_date": "",
+                "stock": "",
+                "tel1": "",
+                "tel2": "",
+                "web": ""
+            },
+            "placeholders": {
+                "category": "",
+                "email": "",
+                "end_date": "",
+                "event_name_example": "",
+                "location": "",
+                "name": "",
+                "notes_example": "",
+                "phone": "",
+                "place_example": "",
+                "role": "",
+                "select_option": "",
+                "specify_role": "",
+                "start_date": "",
+                "stock": "",
+                "web": ""
+            },
+            "validation": {
+                "date_order_error": "",
+                "end_date_required": "",
+                "name_required": "",
+                "select_person_required": "",
+                "start_date_required": ""
+            }
+        },
+        "header": {
+            "error_save_file": "",
+            "error_share_file": "",
+            "ready_to_share": ""
+        },
+        "material": {
+            "balance": "",
+            "demand": "",
+            "location": "",
+            "stock": ""
+        },
+        "material_control": {
+            "breakdown_title": "",
+            "no_results": "",
+            "units_suffix": ""
+        },
+        "material_filters": {
+            "search_material": "",
+            "search_placeholder": ""
+        },
+        "people": {
+            "search_placeholder": ""
+        },
+        "placeholders": {
+            "select_day": ""
+        },
+        "status_actions": {
+            "complete": "",
+            "incomplete": ""
+        },
+        "summary": {
+            "collapse_all": "",
+            "expand_all": "",
+            "no_data": "",
+            "sort_by_date": ""
+        },
+        "tech_sheet": {
+            "blueprints": "",
+            "collapse_all": "",
+            "consumables": "",
+            "contact_email": "",
+            "contact_name": "",
+            "contact_phone": "",
+            "contact_role": "",
+            "control_location": "",
+            "curtains": "",
+            "date": "",
+            "details": "",
+            "dressing_rooms": "",
+            "duration": "",
+            "electrical": "",
+            "event": "",
+            "event_not_found": "",
+            "expand_all": "",
+            "general_info": "",
+            "general_notes": "",
+            "interpreters": "",
+            "lighting": "",
+            "logistics": "",
+            "machinery": "",
+            "names": "",
+            "no_tech_sheet": "",
+            "number": "",
+            "other_details": "",
+            "other_equipment": "",
+            "parking": "",
+            "place": "",
+            "platforms": "",
+            "preassembly": "",
+            "rentals": "",
+            "schedule": "",
+            "show_time": "",
+            "sound": "",
+            "structures": "",
+            "technical_needs_notes": "",
+            "technical_personnel": "",
+            "technical_staff": "",
+            "transport": "",
+            "unknown": "",
+            "video": "",
+            "view_tech_sheet": "",
+            "yes": ""
+        },
+        "tech_sheet_components": {
+            "not_specified": ""
+        },
+        "tech_sheet_details": {
+            "material_unknown": "",
+            "no_specifications": "",
+            "person_es": ""
+        },
+        "tech_sheet_list": {
+            "ensure_file_open": "",
+            "no_tech_sheets": ""
+        }
     },
     "modals": {
         "assignment_form": {
