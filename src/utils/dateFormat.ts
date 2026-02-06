@@ -39,3 +39,26 @@ export function generateDefaultFileName(): string {
 
   return `dades_GEP_${day}-${month}-${year}_${hours}-${minutes}.gep`;
 }
+
+/**
+ * Formata un string d'hora per garantir que sempre sigui HH:MM.
+ * Accepta formats com "20:00", "20:00:00", "8:00" i sempre retorna "HH:MM".
+ * @param timeStr - String d'hara a formatar
+ * @returns String formatat com "HH:MM"
+ */
+export function formatTimeHHMM(timeStr: string): string {
+  if (!timeStr) return '';
+  
+  // Separar per dos punts
+  const parts = timeStr.split(':');
+  
+  // Agafar només hores i minuts
+  const hours = parts[0] || '00';
+  const minutes = parts[1] || '00';
+  
+  // Assegurar que tinguin 2 dígits
+  const formattedHours = String(hours).padStart(2, '0');
+  const formattedMinutes = String(minutes).padStart(2, '0');
+  
+  return `${formattedHours}:${formattedMinutes}`;
+}

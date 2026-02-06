@@ -929,20 +929,26 @@ export const exportPerformanceToPdf = async (
     // --- Input List ---
     if (performance.techData?.inputList && performance.techData.inputList.length > 0) {
       const inputHead = [[
+        i18next.t('pdf.patch'),
         i18next.t('pdf.channel'),
         i18next.t('pdf.label'),
-        i18next.t('pdf.mic_di'),
+        i18next.t('pdf.mic_rider'),
+        i18next.t('pdf.mic_contra'),
+        i18next.t('pdf.stand'),
         i18next.t('pdf.notes')
       ]];
       const inputBody = performance.techData.inputList.map(input => [
+        sane(input.patchColor && input.patchColor !== 'transparent' ? `${input.patchColor} ${input.patchNumber || ''}` : ''),
         sane(input.channel),
         sane(input.label),
-        sane(input.micDi),
+        sane(input.micRider),
+        sane(input.micContra),
+        sane(input.stand),
         sane(input.notes)
       ]);
 
       autoTable(pdf, {
-        head: [[{ content: i18next.t('pdf.input_list'), colSpan: 4, styles: headStyles }]],
+        head: [[{ content: i18next.t('pdf.input_list'), colSpan: 7, styles: headStyles }]],
         body: [inputHead, ...inputBody],
         startY: y,
         theme: 'grid',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -49,7 +49,7 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -65,9 +65,9 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
         showToast(t('performances.reorder_success'), 'success');
       }
     }
-  };
+  }, [performances, eventFrameId, reorderPerformances, showToast, t]);
 
-  const handleDeletePerformance = (performanceId: string) => {
+  const handleDeletePerformance = useCallback((performanceId: string) => {
     const performance = performances.find(p => p.id === performanceId);
     if (performance) {
       onDeletePerformance(performanceId);
@@ -76,7 +76,7 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
       }
       showToast(t('performances.delete_success', { name: performance.name }), 'success');
     }
-  };
+  }, [performances, selectedPerformanceId, onDeletePerformance, onSelectPerformance, showToast, t]);
 
   return (
     <div className="space-y-4">

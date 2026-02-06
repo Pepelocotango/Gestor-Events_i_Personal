@@ -43,7 +43,6 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
           <PerformanceTechForm
             eventFrameId={eventFrameId}
             performance={performance}
-            showToast={showToast}
           />
         );
       case 'hospitality':
@@ -51,7 +50,6 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
           <PerformanceHospitalityForm
             eventFrameId={eventFrameId}
             performance={performance}
-            showToast={showToast}
           />
         );
       default:

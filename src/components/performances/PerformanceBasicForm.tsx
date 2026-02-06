@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
+import { useDebouncedSave } from '../../hooks/useDebouncedSave';
+import { formatTimeHHMM } from '../../utils/dateFormat';
 import Tooltip from '../ui/Tooltip';
 
 interface PerformanceBasicFormProps {
@@ -18,6 +20,27 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
+  const getInitialPerformanceData = (): Performance => {
+    return performance || {
+      id: '',
+      name: '',
+      type: '',
+      status: 'pending',
+      arrivalTime: '',
+      soundCheckTime: '',
+      showTime: '',
+      departureTime: '',
+      duration: '',
+      contactName: '',
+      contactPhone: '',
+      contactEmail: '',
+      notes: '',
+      techData: undefined,
+      hospitalityData: undefined,
+      advancing: undefined,
+    };
+  };
+
   const PERFORMANCE_TYPES: Array<{key: string; label: string}> = [
     { key: 'music', label: t('performances.types.music') },
     { key: 'theater', label: t('performances.types.theater') },
@@ -28,62 +51,20 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
     { key: 'other', label: t('performances.types.other') }
   ];
 
-  const [formData, setFormData] = useState<Performance>(performance);
-  const formDataRef = useRef(formData);
-  const isDirtyRef = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { data: formData, updateField, saveNow, setData } = useDebouncedSave<Performance>({
+    initialData: getInitialPerformanceData(),
+    onSave: (data) => updatePerformance(eventFrameId, data),
+    delay: 2000,
+  });
 
-  // Sincronitzar el formulari quan canvia la performance seleccionada
-  useEffect(() => {
-    setFormData(performance);
-    isDirtyRef.current = false;
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-  }, [performance]);
-
-  const saveData = (showMessage = false) => {
-    if (isDirtyRef.current) {
-      updatePerformance(eventFrameId, formData);
-      isDirtyRef.current = false;
-      if (showMessage) {
-        showToast(t('performances.save_success'), 'success');
-      }
-    }
-  };
-
-  useEffect(() => {
-    formDataRef.current = formData;
-    if (isDirtyRef.current) {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
-    }
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [formData]);
-
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (isDirtyRef.current) saveData();
-    };
-  }, []);
-
-  const handleFieldChange = (field: keyof Performance, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    isDirtyRef.current = true;
-  };
+  // Sync when performance changes
+  React.useEffect(() => {
+    setData(getInitialPerformanceData());
+  }, [performance, setData]);
 
   const handleBlur = () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-    if (isDirtyRef.current) {
-      saveData(true);
-    }
+    saveNow();
+    showToast(t('performances.save_success'), 'success');
   };
 
   return (
@@ -103,7 +84,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => handleFieldChange('name', e.target.value)}
+              onChange={(e) => updateField('name', e.target.value)}
               onBlur={handleBlur}
               className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.name_placeholder')}
@@ -119,7 +100,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               </Tooltip>
               <select
                 value={formData.type}
-                onChange={(e) => handleFieldChange('type', e.target.value)}
+                onChange={(e) => updateField('type', e.target.value)}
                 onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               >
@@ -138,7 +119,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               </Tooltip>
               <select
                 value={formData.status}
-                onChange={(e) => handleFieldChange('status', e.target.value as 'pending' | 'confirmed' | 'cancelled')}
+                onChange={(e) => updateField('status', e.target.value as 'pending' | 'confirmed' | 'cancelled')}
                 onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               >
@@ -166,8 +147,8 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               </Tooltip>
               <input
                 type="time"
-                value={formData.arrivalTime || ''}
-                onChange={(e) => handleFieldChange('arrivalTime', e.target.value)}
+                value={formatTimeHHMM(formData.arrivalTime || '')}
+                onChange={(e) => updateField('arrivalTime', e.target.value)}
                 onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
@@ -181,8 +162,8 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               </Tooltip>
               <input
                 type="time"
-                value={formData.soundCheckTime || ''}
-                onChange={(e) => handleFieldChange('soundCheckTime', e.target.value)}
+                value={formatTimeHHMM(formData.soundCheckTime || '')}
+                onChange={(e) => updateField('soundCheckTime', e.target.value)}
                 onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
@@ -196,8 +177,8 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               </Tooltip>
               <input
                 type="time"
-                value={formData.showTime || ''}
-                onChange={(e) => handleFieldChange('showTime', e.target.value)}
+                value={formatTimeHHMM(formData.showTime || '')}
+                onChange={(e) => updateField('showTime', e.target.value)}
                 onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
@@ -211,8 +192,8 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               </Tooltip>
               <input
                 type="time"
-                value={formData.departureTime || ''}
-                onChange={(e) => handleFieldChange('departureTime', e.target.value)}
+                value={formatTimeHHMM(formData.departureTime || '')}
+                onChange={(e) => updateField('departureTime', e.target.value)}
                 onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
@@ -228,7 +209,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
             <input
               type="text"
               value={formData.duration || ''}
-              onChange={(e) => handleFieldChange('duration', e.target.value)}
+              onChange={(e) => updateField('duration', e.target.value)}
               onBlur={handleBlur}
               className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.duration_placeholder')}
@@ -252,7 +233,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
             <input
               type="text"
               value={formData.contactName}
-              onChange={(e) => handleFieldChange('contactName', e.target.value)}
+              onChange={(e) => updateField('contactName', e.target.value)}
               onBlur={handleBlur}
               className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.contact_name_placeholder')}
@@ -269,7 +250,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               <input
                 type="tel"
                 value={formData.contactPhone}
-                onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
+                onChange={(e) => updateField('contactPhone', e.target.value)}
                 onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
                 placeholder={t('performances.contact_phone_placeholder')}
@@ -285,7 +266,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               <input
                 type="email"
                 value={formData.contactEmail}
-                onChange={(e) => handleFieldChange('contactEmail', e.target.value)}
+                onChange={(e) => updateField('contactEmail', e.target.value)}
                 onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
                 placeholder={t('performances.contact_email_placeholder')}
@@ -308,7 +289,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
           </Tooltip>
           <textarea
             value={formData.notes}
-            onChange={(e) => handleFieldChange('notes', e.target.value)}
+            onChange={(e) => updateField('notes', e.target.value)}
             onBlur={handleBlur}
             rows={4}
             className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-vertical"

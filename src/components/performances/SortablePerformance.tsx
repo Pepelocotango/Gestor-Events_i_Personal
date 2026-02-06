@@ -179,4 +179,4 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
   );
 };
 
-export default SortablePerformance;
+export default React.memo(SortablePerformance);

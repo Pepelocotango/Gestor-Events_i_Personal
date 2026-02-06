@@ -1,115 +1,144 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
 import { Performance, InputListItem, PerformanceTechData } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
+import { useDebouncedSave } from '../../hooks/useDebouncedSave';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
-import { PlusIcon, TrashIcon } from '../../constants';
+import { PlusIcon } from '../../constants';
+import SortableInputRow from './SortableInputRow';
 
 interface PerformanceTechFormProps {
   eventFrameId: string;
   performance: Performance;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   eventFrameId,
   performance,
-  showToast,
 }) => {
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
   const getInitialTechData = (): PerformanceTechData => {
-    return performance.techData || {
+    const techData = performance.techData || {
       inputList: [],
       lightingNotes: '',
       videoNotes: '',
       stageRequirements: '',
     };
+
+    // Migració de dades: micDi -> micRider
+    const migratedInputList = techData.inputList.map(item => ({
+      ...item,
+      micRider: item.micRider || (item as any).micDi || '',
+      micContra: item.micContra || '',
+      stand: item.stand || '',
+      patchColor: item.patchColor || 'transparent',
+      patchNumber: item.patchNumber || '',
+    }));
+
+    return {
+      ...techData,
+      inputList: migratedInputList,
+    };
   };
 
-  const [techData, setTechData] = useState<PerformanceTechData>(getInitialTechData());
-  const techDataRef = useRef(techData);
-  const isDirtyRef = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { data: techData, updateField, setData } = useDebouncedSave<PerformanceTechData>({
+    initialData: getInitialTechData(),
+    onSave: (data) => updatePerformance(eventFrameId, {
+      ...performance,
+      techData: data,
+    }),
+    delay: 2000,
+  });
 
-  const saveData = (showMessage = false) => {
-    if (isDirtyRef.current) {
-      updatePerformance(eventFrameId, {
-        ...performance,
-        techData,
-      });
-      isDirtyRef.current = false;
-      if (showMessage) {
-        showToast(t('performances.save_success'), 'success');
+  // Sync when performance changes
+  React.useEffect(() => {
+    setData(getInitialTechData());
+  }, [performance, setData]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = techData.inputList.findIndex((item) => item.id === active.id);
+      const newIndex = techData.inputList.findIndex((item) => item.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newInputList = arrayMove(techData.inputList, oldIndex, newIndex);
+        setData(prev => ({
+          ...prev,
+          inputList: newInputList,
+        }));
       }
     }
   };
 
-  useEffect(() => {
-    techDataRef.current = techData;
-    if (isDirtyRef.current) {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
-    }
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [techData]);
-
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (isDirtyRef.current) saveData();
-    };
-  }, []);
-
-  useEffect(() => {
-    const newData = getInitialTechData();
-    setTechData(newData);
-    isDirtyRef.current = false;
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-  }, [performance]);
-
-  const handleFieldChange = (field: keyof PerformanceTechData, value: any) => {
-    setTechData(prev => ({ ...prev, [field]: value }));
-    isDirtyRef.current = true;
-  };
-
   const handleInputChange = (id: string, field: keyof InputListItem, value: any) => {
-    setTechData(prev => ({
+    setData(prev => ({
       ...prev,
       inputList: prev.inputList.map(item =>
         item.id === id ? { ...item, [field]: value } : item
       ),
     }));
-    isDirtyRef.current = true;
   };
 
   const addInputItem = () => {
+    const lastItem = techData.inputList[techData.inputList.length - 1];
+    let newChannel = '';
+    
+    if (lastItem?.channel) {
+      const lastChannel = parseInt(lastItem.channel);
+      if (!isNaN(lastChannel)) {
+        newChannel = (lastChannel + 1).toString();
+      }
+    }
+
     const newItem: InputListItem = {
       id: Date.now().toString(),
+      channel: newChannel,
+      patchColor: 'transparent',
+      patchNumber: '',
       label: '',
-      micDi: '',
+      micRider: '',
+      micContra: '',
+      stand: '',
       notes: '',
     };
-    setTechData(prev => ({
+    
+    setData(prev => ({
       ...prev,
       inputList: [...prev.inputList, newItem],
     }));
-    isDirtyRef.current = true;
   };
 
   const removeInputItem = (id: string) => {
-    setTechData(prev => ({
+    setData(prev => ({
       ...prev,
       inputList: prev.inputList.filter(item => item.id !== id),
     }));
-    isDirtyRef.current = true;
   };
 
   return (
@@ -138,71 +167,53 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-2 px-3 text-sm font-medium text-muted-foreground w-16">
+                  <th className="w-10"></th>
+                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                    {t('performances.patch_header')}
+                  </th>
+                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
                     {t('performances.channel_header')}
                   </th>
-                  <th className="text-left py-2 px-3 text-sm font-medium text-muted-foreground">
+                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
                     {t('performances.label_header')}
                   </th>
-                  <th className="text-left py-2 px-3 text-sm font-medium text-muted-foreground">
-                    {t('performances.mic_di_header')}
+                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                    {t('performances.mic_rider_header')}
                   </th>
-                  <th className="text-left py-2 px-3 text-sm font-medium text-muted-foreground">
+                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                    {t('performances.mic_contra_header')}
+                  </th>
+                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                    {t('performances.stand_header')}
+                  </th>
+                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
                     {t('performances.notes_header')}
                   </th>
                   <th className="w-16"></th>
                 </tr>
               </thead>
-              <tbody>
-                {techData.inputList.map((item) => (
-                  <tr key={item.id} className="border-b border-border hover:bg-muted/30">
-                    <td className="py-2 px-3">
-                      <input
-                        type="text"
-                        value={item.channel || ''}
-                        onChange={(e) => handleInputChange(item.id, 'channel', e.target.value)}
-                        className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        placeholder={t('performances.channel_placeholder')}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={techData.inputList}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <tbody>
+                    {techData.inputList.map((item) => (
+                      <SortableInputRow
+                        key={item.id}
+                        item={item}
+                        onChange={handleInputChange}
+                        onRemove={removeInputItem}
+                        t={t}
                       />
-                    </td>
-                    <td className="py-2 px-3">
-                      <input
-                        type="text"
-                        value={item.label}
-                        onChange={(e) => handleInputChange(item.id, 'label', e.target.value)}
-                        className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        placeholder={t('performances.label_placeholder')}
-                      />
-                    </td>
-                    <td className="py-2 px-3">
-                      <input
-                        type="text"
-                        value={item.micDi}
-                        onChange={(e) => handleInputChange(item.id, 'micDi', e.target.value)}
-                        className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        placeholder={t('performances.mic_di_placeholder')}
-                      />
-                    </td>
-                    <td className="py-2 px-3">
-                      <input
-                        type="text"
-                        value={item.notes}
-                        onChange={(e) => handleInputChange(item.id, 'notes', e.target.value)}
-                        className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        placeholder={t('performances.notes_placeholder')}
-                      />
-                    </td>
-                    <td className="py-2 px-3 text-center">
-                      <button
-                        onClick={() => removeInputItem(item.id)}
-                        className="text-destructive hover:bg-destructive/10 rounded p-1 focus:outline-none focus:ring-2 focus:ring-destructive"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+                    ))}
+                  </tbody>
+                </SortableContext>
+              </DndContext>
             </table>
           </div>
         )}
@@ -217,7 +228,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={techData.lightingNotes}
-          onChange={(e) => handleFieldChange('lightingNotes', e.target.value)}
+          onChange={(e) => updateField('lightingNotes', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.lighting_notes_placeholder')}
         />
@@ -232,7 +243,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={techData.videoNotes}
-          onChange={(e) => handleFieldChange('videoNotes', e.target.value)}
+          onChange={(e) => updateField('videoNotes', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.video_notes_placeholder')}
         />
@@ -247,7 +258,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={techData.stageRequirements}
-          onChange={(e) => handleFieldChange('stageRequirements', e.target.value)}
+          onChange={(e) => updateField('stageRequirements', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.stage_requirements_placeholder')}
         />

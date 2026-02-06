@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance, PerformanceHospitalityData } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
+import { useDebouncedSave } from '../../hooks/useDebouncedSave';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 
 interface PerformanceHospitalityFormProps {
   eventFrameId: string;
   performance: Performance;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
   eventFrameId,
   performance,
-  showToast,
 }) => {
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
@@ -29,56 +28,19 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
     };
   };
 
-  const [hospitalityData, setHospitalityData] = useState<PerformanceHospitalityData>(getInitialHospitalityData());
-  const hospitalityDataRef = useRef(hospitalityData);
-  const isDirtyRef = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { data: hospitalityData, updateField, setData } = useDebouncedSave<PerformanceHospitalityData>({
+    initialData: getInitialHospitalityData(),
+    onSave: (data) => updatePerformance(eventFrameId, {
+      ...performance,
+      hospitalityData: data,
+    }),
+    delay: 2000,
+  });
 
-  const saveData = (showMessage = false) => {
-    if (isDirtyRef.current) {
-      updatePerformance(eventFrameId, {
-        ...performance,
-        hospitalityData,
-      });
-      isDirtyRef.current = false;
-      if (showMessage) {
-        showToast(t('performances.save_success'), 'success');
-      }
-    }
-  };
-
-  useEffect(() => {
-    hospitalityDataRef.current = hospitalityData;
-    if (isDirtyRef.current) {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
-    }
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [hospitalityData]);
-
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (isDirtyRef.current) saveData();
-    };
-  }, []);
-
-  useEffect(() => {
-    const newData = getInitialHospitalityData();
-    setHospitalityData(newData);
-    isDirtyRef.current = false;
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-  }, [performance]);
-
-  const handleFieldChange = (field: keyof PerformanceHospitalityData, value: string) => {
-    setHospitalityData(prev => ({ ...prev, [field]: value }));
-    isDirtyRef.current = true;
-  };
+  // Sync when performance changes
+  React.useEffect(() => {
+    setData(getInitialHospitalityData());
+  }, [performance, setData]);
 
   return (
     <div className="space-y-6">
@@ -91,7 +53,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.dressingRooms}
-          onChange={(e) => handleFieldChange('dressingRooms', e.target.value)}
+          onChange={(e) => updateField('dressingRooms', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.dressing_rooms_placeholder')}
         />
@@ -106,7 +68,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.cateringNotes}
-          onChange={(e) => handleFieldChange('cateringNotes', e.target.value)}
+          onChange={(e) => updateField('cateringNotes', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.catering_placeholder')}
         />
@@ -121,7 +83,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.dietaryRequirements}
-          onChange={(e) => handleFieldChange('dietaryRequirements', e.target.value)}
+          onChange={(e) => updateField('dietaryRequirements', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.dietary_placeholder')}
         />
@@ -136,7 +98,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.travelLogistics}
-          onChange={(e) => handleFieldChange('travelLogistics', e.target.value)}
+          onChange={(e) => updateField('travelLogistics', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.travel_logistics_placeholder')}
         />
@@ -151,7 +113,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.parkingNotes}
-          onChange={(e) => handleFieldChange('parkingNotes', e.target.value)}
+          onChange={(e) => updateField('parkingNotes', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.parking_placeholder')}
         />

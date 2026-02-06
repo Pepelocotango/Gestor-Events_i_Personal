@@ -158,9 +158,13 @@ export interface PerformanceAdvancing {
 
 export interface InputListItem {
   id: string;
-  channel?: string;
-  label: string;
-  micDi: string;
+  channel?: string; // Canal de la taula (1, 2, 3...)
+  patchColor?: string; // Color de la mànega (red, blue, etc.)
+  patchNumber?: string; // Número a la mànega
+  label: string; // Instrument
+  micRider: string; // El que demana l'artista (abans micDi)
+  micContra: string; // El que posem nosaltres (NOU)
+  stand: string; // Tipus de peu (NOU)
   notes: string;
 }
 
