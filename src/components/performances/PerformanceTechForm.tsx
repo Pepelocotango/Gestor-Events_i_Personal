@@ -33,7 +33,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
-  const getInitialTechData = (): PerformanceTechData => {
+  const getInitialTechData = React.useCallback((): PerformanceTechData => {
     const techData = performance.techData || {
       inputList: [],
       lightingNotes: '',
@@ -55,7 +55,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
       ...techData,
       inputList: migratedInputList,
     };
-  };
+  }, [performance.techData]);
 
   const { data: techData, updateField, setData, isDirty } = useDebouncedSave<PerformanceTechData>({
     initialData: getInitialTechData(),

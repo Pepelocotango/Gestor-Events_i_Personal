@@ -18,7 +18,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
-  const getInitialHospitalityData = (): PerformanceHospitalityData => {
+  const getInitialHospitalityData = React.useCallback((): PerformanceHospitalityData => {
     return performance.hospitalityData || {
       dressingRooms: '',
       cateringNotes: '',
@@ -26,7 +26,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
       travelLogistics: '',
       parkingNotes: '',
     };
-  };
+  }, [performance.hospitalityData]);
 
   const { data: hospitalityData, updateField, setData, isDirty } = useDebouncedSave<PerformanceHospitalityData>({
     initialData: getInitialHospitalityData(),

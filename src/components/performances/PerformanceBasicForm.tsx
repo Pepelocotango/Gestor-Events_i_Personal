@@ -20,26 +20,24 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
-  const getInitialPerformanceData = (): Performance => {
-    return performance || {
-      id: '',
-      name: '',
-      type: '',
-      status: 'pending',
-      arrivalTime: '',
-      soundCheckTime: '',
-      showTime: '',
-      departureTime: '',
-      duration: '',
-      contactName: '',
-      contactPhone: '',
-      contactEmail: '',
-      notes: '',
-      techData: undefined,
-      hospitalityData: undefined,
-      advancing: undefined,
+  const getInitialPerformanceData = React.useCallback((): Performance => {
+    return {
+      id: performance.id,
+      name: performance.name || '',
+      type: performance.type || '',
+      contactName: performance.contactName || '',
+      contactPhone: performance.contactPhone || '',
+      contactEmail: performance.contactEmail || '',
+      notes: performance.notes || '',
+      status: performance.status || 'pending',
+      duration: performance.duration || '',
+      color: performance.color,
+      arrivalTime: performance.arrivalTime,
+      soundCheckTime: performance.soundCheckTime,
+      showTime: performance.showTime,
+      departureTime: performance.departureTime,
     };
-  };
+  }, [performance.id, performance.name, performance.type, performance.contactName, performance.contactPhone, performance.contactEmail, performance.notes, performance.status, performance.duration, performance.color, performance.arrivalTime, performance.soundCheckTime, performance.showTime, performance.departureTime]);
 
   const PERFORMANCE_TYPES: Array<{key: string; label: string}> = [
     { key: 'music', label: t('performances.types.music') },

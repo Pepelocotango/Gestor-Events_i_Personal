@@ -36,8 +36,16 @@ export function useDebouncedSave<T>({
 
   // Sync with initialData when it changes
   useEffect(() => {
+    // Comprovació de seguretat: si les dades inicials són iguals a les actuals, no fer res
+    if (JSON.stringify(initialData) === JSON.stringify(dataRef.current)) {
+      return;
+    }
+    
     setDataState(initialData);
     setIsDirty(false);
+    dataRef.current = initialData;
+    isDirtyRef.current = false;
+    
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
