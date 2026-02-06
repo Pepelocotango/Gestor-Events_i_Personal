@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Performance } from '../../types';
+import { Performance, ShowToastFunction } from '../../types';
 import PerformanceBasicForm from './PerformanceBasicForm';
 import PerformanceTechForm from './PerformanceTechForm';
 import PerformanceHospitalityForm from './PerformanceHospitalityForm';
@@ -14,7 +14,8 @@ import {
 interface PerformanceDetailContainerProps {
   eventFrameId: string;
   performance: Performance;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  eventFrame: any; // EventFrame data
+  showToast: ShowToastFunction;
 }
 
 type ActiveTab = 'basic' | 'tech' | 'hospitality';
@@ -22,6 +23,7 @@ type ActiveTab = 'basic' | 'tech' | 'hospitality';
 const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
   eventFrameId,
   performance,
+  eventFrame,
   showToast,
 }) => {
   const { t } = useTranslation();
@@ -48,6 +50,8 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
           <PerformanceTechForm
             eventFrameId={eventFrameId}
             performance={performance}
+            eventFrame={eventFrame}
+            showToast={showToast}
           />
         );
       case 'hospitality':
@@ -55,6 +59,8 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
           <PerformanceHospitalityForm
             eventFrameId={eventFrameId}
             performance={performance}
+            eventFrame={eventFrame}
+            showToast={showToast}
           />
         );
       default:

@@ -13,24 +13,31 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { Performance, InputListItem, PerformanceTechData } from '../../types';
+import { Performance, InputListItem, PerformanceTechData, ShowToastFunction } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
+import { useModalStore } from '../../stores/modalStore';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
-import { PlusIcon } from '../../constants';
+import { PlusIcon, EyeIcon, PdfIcon } from '../../constants';
 import SortableInputRow from './SortableInputRow';
+import { generatePerformanceInputsPdfObject, exportPerformanceInputsToPdf } from '../../utils/pdfGenerator';
 
 interface PerformanceTechFormProps {
   eventFrameId: string;
   performance: Performance;
+  eventFrame: any; // EventFrame data
+  showToast: ShowToastFunction;
 }
 
 const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   eventFrameId,
   performance,
+  eventFrame,
+  showToast,
 }) => {
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
+  const openModal = useModalStore(state => state.openModal);
 
   const getInitialTechData = useCallback((): PerformanceTechData => {
     const techData = performance.techData || {
@@ -201,6 +208,30 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     markAsDirty();
   };
 
+  const handlePreviewInputs = () => {
+    const performanceWithTechData = {
+      ...performance,
+      techData: techDataRef.current
+    };
+    const doc = generatePerformanceInputsPdfObject(performanceWithTechData, eventFrame);
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob) + '#toolbar=0&navpanes=0&view=FitH';
+    
+    openModal('pdfPreview', {
+      pdfUrl,
+      titleOverride: t('modals.pdf_preview.title_override', { name: performance.name }),
+      onSave: () => handleExportInputs()
+    });
+  };
+
+  const handleExportInputs = () => {
+    const performanceWithTechData = {
+      ...performance,
+      techData: techDataRef.current
+    };
+    exportPerformanceInputsToPdf(performanceWithTechData, eventFrame, showToast);
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -214,13 +245,33 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
             <Tooltip text={t('performances.input_list_tooltip')}>
               <h3 className="text-lg font-semibold">{t('performances.input_list_title')}</h3>
             </Tooltip>
-            <button
-              onClick={addInputItem}
-              className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <PlusIcon className="w-4 h-4 inline mr-1" />
-              {t('performances.add_input')}
-            </button>
+            <div className="flex gap-2">
+              <Tooltip text={t('performances.preview_inputs_tooltip')}>
+                <button
+                  onClick={handlePreviewInputs}
+                  className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+                >
+                  <EyeIcon className="w-4 h-4" />
+                  {t('performances.preview_inputs')}
+                </button>
+              </Tooltip>
+              <Tooltip text={t('performances.export_inputs_tooltip')}>
+                <button
+                  onClick={handleExportInputs}
+                  className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+                >
+                  <PdfIcon className="w-4 h-4" />
+                  {t('performances.export_inputs')}
+                </button>
+              </Tooltip>
+              <button
+                onClick={addInputItem}
+                className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <PlusIcon className="w-4 h-4 inline mr-1" />
+                {t('performances.add_input')}
+              </button>
+            </div>
           </div>
 
           {techData.inputList.length === 0 ? (

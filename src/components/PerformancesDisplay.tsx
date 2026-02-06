@@ -1,11 +1,12 @@
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';
+import { useModalStore } from '../stores/modalStore';
 import { EventFrame, Performance, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
-import { exportEventPerformancesSummaryPdf } from '../utils/pdfGenerator';
-import { PdfIcon } from '../constants';
+import { exportEventPerformancesSummaryPdf, generateEventPerformancesPdfObject } from '../utils/pdfGenerator';
+import { PdfIcon, EyeIcon } from '../constants';
 
 const PerformanceList = lazy(() => import('./performances/PerformanceList'));
 const PerformanceDetailContainer = lazy(() => import('./performances/PerformanceDetailContainer'));
@@ -18,6 +19,7 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
   const { t } = useTranslation();
   const eventFrames = useEventDataStore(state => state.eventFrames);
   const { addPerformance, deletePerformance } = useEventDataStore();
+  const openModal = useModalStore(state => state.openModal);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
   const [selectedPerformanceId, setSelectedPerformanceId] = useState<string | null>(null);
 
@@ -114,6 +116,23 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
     exportEventPerformancesSummaryPdf(eventFrame, eventFrame.performances || [], showToast);
   };
 
+  const handlePreview = () => {
+    if (!selectedEventFrameId) return;
+    
+    const eventFrame = eventFrames.find(ef => ef.id === selectedEventFrameId);
+    if (!eventFrame) return;
+
+    const doc = generateEventPerformancesPdfObject(eventFrame, eventFrame.performances || []);
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob) + '#toolbar=0&navpanes=0&view=FitH';
+    
+    openModal('pdfPreview', {
+      pdfUrl,
+      titleOverride: t('modals.pdf_preview.title_override', { name: eventFrame.name }),
+      onSave: () => handleExportEventSummary()
+    });
+  };
+
   const showToast: ShowToastFunction = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     _showToast?.(message, type);
   };
@@ -151,15 +170,26 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
             </div>
 
             {selectedEventFrameId && (
-              <Tooltip text={t('performances.export_runsheet_tooltip')}>
-                <button
-                  onClick={handleExportEventSummary}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <PdfIcon className="w-4 h-4 mr-2" />
-                  {t('performances.export_runsheet')}
-                </button>
-              </Tooltip>
+              <div className="flex gap-2">
+                <Tooltip text={t('performances.preview_runsheet_tooltip')}>
+                  <button
+                    onClick={handlePreview}
+                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+                  >
+                    <EyeIcon className="w-4 h-4" />
+                    {t('performances.preview_runsheet')}
+                  </button>
+                </Tooltip>
+                <Tooltip text={t('performances.export_runsheet_tooltip')}>
+                  <button
+                    onClick={handleExportEventSummary}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+                  >
+                    <PdfIcon className="w-4 h-4" />
+                    {t('performances.export_runsheet')}
+                  </button>
+                </Tooltip>
+              </div>
             )}
           </div>
 
@@ -195,6 +225,7 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
                     <PerformanceDetailContainer
                       eventFrameId={selectedEventFrameId}
                       performance={selectedPerformance}
+                      eventFrame={selectedEventFrame}
                       showToast={showToast}
                     />
                   </Suspense>
