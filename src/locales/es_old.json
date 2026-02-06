@@ -1,0 +1,139 @@
+{
+    "assignment": {
+        "mark_all_no_tooltip": "Marcar todo como 'NO'",
+        "mark_all_pending_tooltip": "Marcar todo como 'PENDIENTE'",
+        "mark_all_yes_tooltip": "Marcar todo como 'SÍ'"
+    },
+    "backend": {
+        "app": {
+            "close_title": "Cerrar aplicación",
+            "open_document": "Abrir documento"
+        },
+        "calendar": {
+            "deleted": "Calendario eliminado"
+        },
+        "errors": {
+            "calendar_not_managed": "Calendario no gestionado",
+            "empty_filepath": "filePath no puede estar vacío",
+            "empty_key": "La clave no puede estar vacía",
+            "no_active_window": "No hay ninguna ventana activa",
+            "no_user_email": "No email usuario",
+            "save_data": "Error guardando datos",
+            "service_account_not_initialized": "Client Service Account no inicializado"
+        },
+        "sync": {
+            "auth_in_progress": "Autenticación en curso",
+            "cancelled": "Cancelado",
+            "client_not_initialized": "Cliente no inicializado",
+            "completed": "Sincronización completada con éxito",
+            "confirm_title": "Confirmar Sincronización",
+            "disconnected": "Desconexión completada",
+            "irreversible_detail": "Esta acción es irreversible. ¿Quieres continuar?"
+        }
+    },
+    "common": {
+        "action_redone": "Acción rehecha.",
+        "action_undone": "Acción deshecha.",
+        "ascending": "Ascendente",
+        "descending": "Descendente",
+        "google_connected": "¡Conectado a Google Calendar con éxito!",
+        "google_desktop_only": "Esta funcionalidad solo está disponible en la aplicación de escritorio.",
+        "google_disconnected": "Cuenta de Google desconectada correctamente.",
+        "google_opening_browser": "Abriendo navegador para autenticarse con Google...",
+        "not_found": "No encontrado",
+        "redo_action": "Acción rehecha",
+        "search": "Buscar",
+        "success": "Éxito",
+        "undo_action": "Acción deshecha"
+    },
+    "csv": {
+        "type_date": "Fecha",
+        "type_event": "Evento",
+        "type_person": "Persona"
+    },
+    "footer": {},
+    "main": {
+        "archive": {
+            "confirm_message": "Se archivarán <strong>{{count}}</strong> eventos finalizados antes del <strong>{{date}}</strong>.",
+            "success": "{{count}} evento(s) archivado(s) correctamente."
+        },
+        "sort_button_label": "Ordenar"
+    },
+    "mcc": {
+        "sort_date_tooltip": "Ordenar por fecha {{order}}"
+    },
+    "menu": {
+        "events": "Eventos",
+        "home": "Inicio",
+        "settings": "Configuración",
+        "staff": "Personal"
+    },
+    "modals": {
+        "assignment_form": {
+            "assignment_note": "Nota: ",
+            "close_button": "Cerrar"
+        },
+        "event_details": {
+            "assignments_label": "Asignaciones ({{count}}):"
+        },
+        "update_assignments": {
+            "confirm_button": "Confirmar Cambios ({{count}})",
+            "unknown_person": "Desconocido"
+        }
+    },
+    "people": {
+        "search_tooltip": "Buscar por nombre, rol, email o teléfono"
+    },
+    "performances": {
+        "archived_tooltip_off": "Solo eventos activos",
+        "archived_tooltip_on": "Mostrando eventos archivados",
+        "arrival": "Llegada",
+        "combined_schedule": "Escalera Combinada de Producción",
+        "dietary_requirements_label": "Requerimientos Dietéticos",
+        "dietary_requirements_placeholder": "Introduce los requerimientos dietéticos...",
+        "dietary_requirements_tooltip": "Restricciones y preferencias dietéticas",
+        "general_schedule": "Horario General",
+        "include_archived": "Incluir archivados",
+        "integration": {
+            "import_schedules": "Importar horarios de actuaciones",
+            "import_schedules_tooltip": "Sincroniza los horarios de artistas con la ficha de bolo",
+            "push_to_material": "Enviar necesidad a producción global",
+            "push_to_material_tooltip": "Añade este material a la ficha de bolo global"
+        },
+        "mic_contra": "Mic (Contra)",
+        "mic_rider": "Mic (Rider)",
+        "patch": "Patch",
+        "regidoria_notes": "Notas de Regidoría",
+        "regidoria_summary_title": "Full de Ruta del Regidor",
+        "select_placeholder": "Selecciona un evento",
+        "show": "Show",
+        "soundcheck": "Pruebas",
+        "stand": "Soporte"
+    },
+    "tech_sheets": {
+        "form": {
+            "general": {
+                "actors_placeholder": "Detalles, notas, nombres...",
+                "dressing_rooms_placeholder": "Especifica las necesidades de camerinos: cantidad, tipos (individuales, colectivos), y cualquier requerimiento especial.",
+                "technicians_placeholder": "Detalles, notas, nombres..."
+            }
+        },
+        "needs": {
+            "create_material_tooltip": "Crear nuevo ítem en el inventario con este nombre",
+            "desc_label": "Descripción",
+            "field_labels": {
+                "add_to_inventory_tooltip": "Añadir a inventario",
+                "availability_prefix": "Disponibilidad: ",
+                "stock_prefix": "Stock: "
+            },
+            "move_down_tooltip": "Mover abajo",
+            "move_up_tooltip": "Mover arriba",
+            "origin_label": "Origen",
+            "qty_label": "Cantidad",
+            "qty_placeholder": "XX"
+        },
+        "personnel": {
+            "changes_applied_toast": "{{count}} cambio(s) aplicado(s) desde las asignaciones."
+        }
+    }
+}

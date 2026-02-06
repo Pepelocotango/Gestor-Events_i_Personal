@@ -1,0 +1,221 @@
+{
+    "actions": {
+        "assign_person": "Has assignat «{{person}}» a l'esdeveniment «{{event}}»",
+        "create_event": "Has creat l'esdeveniment «{{name}}»",
+        "data_loaded": "Dades carregades des d'un arxiu",
+        "delete_assignment": "Has eliminat l'assignació de «{{person}}» a «{{event}}»",
+        "delete_event": "Has suprimit l'esdeveniment «{{name}}»",
+        "mark_complete": "Has marcat l'esdeveniment «{{name}}» com a complet",
+        "mark_incomplete": "Has marcat l'esdeveniment «{{name}}» com a incomplet",
+        "project_cleared": "Projecte netejat",
+        "reorder_personnel": "Has reordenat el personal tècnic de «{{name}}»",
+        "update_assignment": "Has modificat l'assignació de «{{person}}» a «{{event}}»",
+        "update_event": "Has modificat l'esdeveniment «{{name}}»",
+        "update_tech_sheet": "Has actualitzat la fitxa tècnica de «{{name}}»"
+    },
+    "assignment": {
+        "mark_all_no_tooltip": "Marcar tot com a 'NO'",
+        "mark_all_pending_tooltip": "Marcar tot com a 'PENDENT'",
+        "mark_all_yes_tooltip": "Marcar tot com a 'SÍ'"
+    },
+    "backend": {
+        "app": {
+            "close_title": "Tancar aplicació",
+            "open_document": "Obrir document"
+        },
+        "calendar": {
+            "deleted": "Calendari eliminat"
+        },
+        "errors": {
+            "calendar_not_managed": "Calendari no gestionat",
+            "empty_filepath": "filePath no pot ser buit",
+            "empty_key": "La clau no pot ser buida",
+            "no_active_window": "No hi ha cap finestra activa",
+            "no_user_email": "No email usuari",
+            "save_data": "Error guardant dades",
+            "service_account_not_initialized": "Client Service Account no inicialitzat"
+        },
+        "sync": {
+            "auth_in_progress": "Autenticació en curs",
+            "cancelled": "Cancel·lat",
+            "client_not_initialized": "Client no inicialitzat",
+            "completed": "Sincronització completada amb èxit",
+            "confirm_title": "Confirmar Sincronització",
+            "disconnected": "Desconnexió completada",
+            "irreversible_detail": "Aquesta acció és irreversible. Vols continuar?"
+        }
+    },
+    "common": {
+        "action_redone": "Acció refeta.",
+        "action_undone": "Acció desfeta.",
+        "ascending": "Ascendent",
+        "descending": "Descendent",
+        "google_connected": "Connectat a Google Calendar amb èxit!",
+        "google_desktop_only": "Aquesta funcionalitat només està disponible a l'aplicació d'escriptori.",
+        "google_disconnected": "Compte de Google desconnectat correctament.",
+        "google_opening_browser": "Obrint el navegador per autenticar-se amb Google...",
+        "not_found": "No s'ha trobat",
+        "redo_action": "Refeta l'acció",
+        "search": "Cercar",
+        "success": "Èxit",
+        "undo_action": "Desfeta l'acció"
+    },
+    "csv": {
+        "type_date": "Data",
+        "type_event": "Esdeveniment",
+        "type_person": "Persona"
+    },
+    "errors": {
+        "assignment": {
+            "date_range": "Les dates han d'estar dins del rang del marc",
+            "duplicate_conflict": "Conflicte detectat: Aquest contacte ja té una assignació a {{details}}"
+        }
+    },
+    "main_display": {
+        "add_event_frame": "Afegir Nou Marc",
+        "add_event_tooltip": "Crear un nou marc d'esdeveniment",
+        "archive": {
+            "confirm_button": "Arxivar Antics",
+            "confirm_message": "S'arxivaran <strong>{{count}}</strong> esdeveniments finalitzats abans del <strong>{{date}}</strong>.",
+            "item_type": "Esdeveniments",
+            "no_events": "No hi ha esdeveniments antics per arxivar.",
+            "success": "{{count}} esdeveniment(s) arxivat(s) correctament.",
+            "title": "Confirmació Arxivar"
+        },
+        "archive_old": "Arxivar Antics",
+        "archive_old_tooltip": "Arxivar esdeveniments antics (finalitzats fa més d'una setmana)",
+        "clean_filters": "Netejar",
+        "collapse_all": "Col·lapsar Tot",
+        "collapse_all_cards_tooltip": "Col·lapsar totes les targetes",
+        "contains_date": "Conté Data",
+        "csv_export": "CSV",
+        "expand_all": "Expandir Tot",
+        "expand_all_cards_tooltip": "Expandir totes les targetes",
+        "export_csv_tooltip": "Exportar la llista d'esdeveniments i assignacions a CSV",
+        "export_pdf_tooltip": "Exportar la llista d'esdeveniments i assignacions a PDF",
+        "filter_date_label": "Filtre:",
+        "frame": "Marc",
+        "nav_calendar_list": "Calendari i Llista",
+        "nav_calendar_list_tooltip": "Anar a la vista principal del calendari i llista d'esdeveniments",
+        "nav_material": "Material",
+        "nav_material_tooltip": "Anar a la gestió d'inventari de material",
+        "nav_people": "Persones",
+        "nav_people_tooltip": "Anar a la gestió de persones i grups",
+        "nav_summaries": "Resums",
+        "nav_summaries_tooltip": "Anar als resums i informes",
+        "nav_tech_sheets": "Fitxes de Bolo",
+        "nav_tech_sheets_tooltip": "Anar a la gestió de fitxes tècniques (bolos)",
+        "no_events_found": "No s'han trobat marcs d'esdeveniment.",
+        "pdf_export": "PDF",
+        "person": "Persona",
+        "place": "Lloc",
+        "search_general": "Cerca general",
+        "search_placeholder": "Nom, lloc, persona...",
+        "show_archived": "Mostrar arxivats",
+        "show_archived_tooltip": "Mostrar o ocultar els esdeveniments arxivats",
+        "sort": "Ordena",
+        "sort_ascending": "ascendent",
+        "sort_descending": "descendent",
+        "sort_tooltip": "Ordenar per data {{order}}",
+        "status": "Estat",
+        "summaries": "Resums",
+        "tooltip_clean": "Netejar tots els filtres",
+        "tooltip_date": "Mostrar només esdeveniments que estiguin actius en aquesta data",
+        "tooltip_frame": "Filtrar per un marc d'esdeveniment específic",
+        "tooltip_person": "Filtrar per persona o grup assignat",
+        "tooltip_place": "Filtrar per lloc de l'esdeveniment",
+        "tooltip_search": "Cerca per nom d'esdeveniment, lloc, notes o nom de persona assignada",
+        "tooltip_status": "Filtrar per estat de l'assignació"
+    },
+    "mcc": {
+        "by_event_name": "Per Nom d'Esdeveniment",
+        "by_person": "Per Persona/Grup",
+        "by_start_date": "Per Data d'Inici d'Assignació",
+        "sort_date_tooltip": "Ordenar per data {{order}}"
+    },
+    "menu": {
+        "events": "Esdeveniments",
+        "home": "Inici",
+        "settings": "Configuració",
+        "staff": "Personal"
+    },
+    "modals": {
+        "assignment_form": {
+            "assignment_note": "Nota: ",
+            "close_button": "Tancar"
+        },
+        "event_details": {
+            "assignments_label": "Assignacions ({{count}}):"
+        },
+        "update_assignments": {
+            "confirm_button": "Confirmar Canvis ({{count}})",
+            "unknown_person": "Desconegut"
+        }
+    },
+    "people": {
+        "search_tooltip": "Cercar per nom, rol, email o telèfon"
+    },
+    "performances": {
+        "arrival": "Arribada",
+        "combined_schedule": "Escaleta Combinada de Producció",
+        "dietary_requirements_label": "Requeriments Dietètics",
+        "dietary_requirements_placeholder": "Introdueix els requeriments dietètics...",
+        "dietary_requirements_tooltip": "Restriccions i preferències dietètiques",
+        "general_schedule": "Horari General",
+        "integration": {
+            "import_schedules": "Importar horaris d'actuacions",
+            "import_schedules_tooltip": "Sincronitza els horaris d'artistes amb la fitxa de bolo",
+            "push_to_material": "Enviar necessitat a producció global",
+            "push_to_material_tooltip": "Afegeix aquest material a la fitxa de bolo global"
+        },
+        "mic_contra": "Mic (Contra)",
+        "mic_rider": "Mic (Rider)",
+        "patch": "Patch",
+        "regidoria_notes": "Notes de Regidoria",
+        "regidoria_summary_title": "Full de Ruta del Regidor",
+        "show": "Show",
+        "soundcheck": "Proves",
+        "stand": "Peu"
+    },
+    "sync": {
+        "step_calendar_connected": "Connexió amb el calendari establerta correctament.",
+        "step_deleting_event": "Eliminant esdeveniment {{index}}/{{total}}: {{name}}",
+        "step_deletion_complete": "S'han eliminat tots els esdeveniments antics.",
+        "step_events_to_delete": "Esdeveniments a eliminar: {{count}}",
+        "step_events_to_upload": "Esdeveniments a pujar/actualitzar: {{count}} (de {{total}} totals)",
+        "step_getting_events": "Obtenint llista d'esdeveniments del calendari...",
+        "step_getting_threshold_date": "Sincronització parcial des de: {{date}}",
+        "step_initializing_sync": "Iniciant procés de sincronització amb Google Calendar...",
+        "step_no_events_to_delete": "No hi ha esdeveniments antics per eliminar.",
+        "step_processing_event": "Processant esdeveniment {{index}}/{{total}}: {{name}}",
+        "step_requesting_confirmation": "Sol·licitant confirmació per iniciar la sincronització...",
+        "step_starting_deletion": "Iniciant eliminació de {{count}} esdeveniments antics...",
+        "step_starting_sync": "Iniciant procés de sincronització...",
+        "step_starting_upload": "Iniciant pujada de {{count}} esdeveniments nous/actualitzats...",
+        "step_sync_cancelled": "Sincronització cancel·lada per l'usuari.",
+        "step_sync_stats": "Estadístiques de sincronització:",
+        "step_upload_complete": "Pujada completada.",
+        "step_verifying_calendar": "Verificant accés al calendari..."
+    },
+    "tech_sheets": {
+        "form": {
+            "general": {
+                "actors_placeholder": "Detalls, notes, noms...",
+                "dressing_rooms_placeholder": "Especifica les necessitats de camerinos: quantitat, tipus (individuals, col·lectius), i qualsevol requeriment especial.",
+                "technicians_placeholder": "Detalls, notes, noms..."
+            }
+        },
+        "needs": {
+            "create_material_tooltip": "Crear nou ítem a l'inventari amb aquest nom",
+            "desc_label": "Descripció",
+            "move_down_tooltip": "Moure avall",
+            "move_up_tooltip": "Moure amunt",
+            "origin_label": "Origen",
+            "qty_label": "Quantitat",
+            "qty_placeholder": "XX"
+        },
+        "personnel": {
+            "changes_applied_toast": "{{count}} canvi(s) aplicat(s) des de les assignacions."
+        }
+    }
+}

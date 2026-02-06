@@ -1,0 +1,175 @@
+{
+    "actions": {
+        "assign_person": "You assigned «{{person}}» to event «{{event}}»",
+        "create_event": "You created event «{{name}}»",
+        "data_loaded": "Data loaded from file",
+        "delete_assignment": "You deleted assignment of «{{person}}» from event «{{event}}»",
+        "delete_event": "You deleted event «{{name}}»",
+        "mark_complete": "You marked event «{{name}}» as complete",
+        "mark_incomplete": "You marked event «{{name}}» as incomplete",
+        "project_cleared": "Project cleared",
+        "reorder_personnel": "You reordered technical staff for «{{name}}»",
+        "update_assignment": "You updated assignment of «{{person}}» to event «{{event}}»",
+        "update_event": "You updated event «{{name}}»",
+        "update_tech_sheet": "You updated technical sheet for «{{name}}»"
+    },
+    "assignment": {
+        "mark_all_no_tooltip": "Mark all as 'NO'",
+        "mark_all_pending_tooltip": "Mark all as 'PENDING'",
+        "mark_all_yes_tooltip": "Mark all as 'YES'"
+    },
+    "backend": {
+        "app": {
+            "close_title": "Close App",
+            "open_document": "Open Document"
+        },
+        "calendar": {
+            "deleted": "Calendar deleted"
+        },
+        "errors": {
+            "calendar_not_managed": "Calendar not managed",
+            "empty_filepath": "filePath cannot be empty",
+            "empty_key": "Key cannot be empty",
+            "no_active_window": "No active window",
+            "no_user_email": "No user email",
+            "save_data": "Error saving data",
+            "service_account_not_initialized": "Service Account client not initialized"
+        },
+        "sync": {
+            "auth_in_progress": "Authentication in progress",
+            "cancelled": "Cancelled",
+            "client_not_initialized": "Client not initialized",
+            "completed": "Sync completed successfully",
+            "confirm_title": "Confirm Sync",
+            "disconnected": "Disconnection completed",
+            "irreversible_detail": "This action is irreversible. Do you want to continue?"
+        }
+    },
+    "common": {
+        "action_redone": "Action redone.",
+        "action_undone": "Action undone.",
+        "ascending": "Ascending",
+        "descending": "Descending",
+        "google_connected": "Connected to Google Calendar successfully!",
+        "google_desktop_only": "This functionality is only available on the desktop application.",
+        "google_disconnected": "Google account disconnected successfully.",
+        "google_opening_browser": "Opening browser to authenticate with Google...",
+        "not_found": "Not found",
+        "redo_action": "Action redone",
+        "search": "Search",
+        "success": "Success",
+        "undo_action": "Action undone"
+    },
+    "csv": {
+        "type_date": "Date",
+        "type_event": "Event",
+        "type_person": "Person"
+    },
+    "errors": {
+        "assignment": {
+            "date_range": "Dates must be within frame range",
+            "duplicate_conflict": "Conflict detected: This contact already has an assignment at {{details}}"
+        }
+    },
+    "main": {
+        "archive": {
+            "confirm_message": "<strong>{{count}}</strong> finished events before <strong>{{date}}</strong> will be archived.",
+            "success": "{{count}} event(s) archived successfully."
+        }
+    },
+    "mcc": {
+        "by_event_name": "By Event Name",
+        "by_person": "By Person/Group",
+        "by_start_date": "By Assignment Start Date",
+        "sort_date_tooltip": "Sort by date {{order}}"
+    },
+    "menu": {
+        "events": "Events",
+        "home": "Home",
+        "settings": "Settings",
+        "staff": "Staff"
+    },
+    "modals": {
+        "assignment_form": {
+            "assignment_note": "Note: ",
+            "close_button": "Close"
+        },
+        "event_details": {
+            "assignments_label": "Assignments ({{count}}):"
+        },
+        "update_assignments": {
+            "confirm_button": "Confirm Changes ({{count}})",
+            "unknown_person": "Unknown"
+        }
+    },
+    "people": {
+        "search_tooltip": "Search by name, role, email or phone"
+    },
+    "performances": {
+        "archived_tooltip_off": "Active events only",
+        "archived_tooltip_on": "Showing archived events",
+        "arrival": "Arrival",
+        "combined_schedule": "Combined Production Schedule",
+        "dietary_requirements_label": "Dietary Requirements",
+        "dietary_requirements_placeholder": "Enter dietary requirements...",
+        "dietary_requirements_tooltip": "Dietary restrictions and preferences",
+        "general_schedule": "General Schedule",
+        "include_archived": "Include archived",
+        "integration": {
+            "import_schedules": "Import performance schedules",
+            "import_schedules_tooltip": "Sync artist schedules with the tech sheet",
+            "push_to_material": "Push need to global production",
+            "push_to_material_tooltip": "Add this material to the global tech sheet"
+        },
+        "mic_contra": "Mic (Contra)",
+        "mic_rider": "Mic (Rider)",
+        "patch": "Patch",
+        "regidoria_notes": "Regidor Notes",
+        "regidoria_summary_title": "Regidor's Route Summary",
+        "select_placeholder": "Select an event",
+        "show": "Show",
+        "soundcheck": "Soundcheck",
+        "stand": "Stand"
+    },
+    "sync": {
+        "step_calendar_connected": "Calendar connection established.",
+        "step_deleting_event": "Deleting event {{index}}/{{total}}: {{name}}",
+        "step_deletion_complete": "All old events deleted.",
+        "step_events_to_delete": "Events to delete: {{count}}",
+        "step_events_to_upload": "Events to upload/update: {{count}} (of {{total}} total)",
+        "step_getting_events": "Getting events from calendar...",
+        "step_getting_threshold_date": "Partial sync from: {{date}}",
+        "step_initializing_sync": "Starting Google Calendar sync...",
+        "step_no_events_to_delete": "No old events to delete.",
+        "step_processing_event": "Processing event {{index}}/{{total}}: {{name}}",
+        "step_requesting_confirmation": "Requesting confirmation to start sync...",
+        "step_starting_deletion": "Starting deletion of {{count}} old events...",
+        "step_starting_sync": "Starting synchronization...",
+        "step_starting_upload": "Starting upload of {{count}} new/updated events...",
+        "step_sync_cancelled": "Sync cancelled by user.",
+        "step_sync_stats": "Sync statistics:",
+        "step_upload_complete": "Upload complete.",
+        "step_verifying_calendar": "Verifying calendar access..."
+    },
+    "tech_sheets": {
+        "form": {
+            "general": {
+                "actors_placeholder": "Details, notes, names...",
+                "dressing_rooms_placeholder": "Specify dressing room needs: quantity, type (individual, collective), and any special requirements.",
+                "technicians_placeholder": "Details, notes, names..."
+            }
+        },
+        "needs": {
+            "create_material_tooltip": "Create a new item in inventory with this name",
+            "desc_label": "Description",
+            "move_down_tooltip": "Move down",
+            "move_up_tooltip": "Move up",
+            "origin_label": "Origin",
+            "qty_label": "Quantity",
+            "qty_placeholder": "XX"
+        },
+        "personnel": {
+            "changes_applied_toast": "{{count}} change(s) applied."
+        }
+    }
+}
