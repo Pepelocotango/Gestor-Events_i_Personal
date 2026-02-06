@@ -143,11 +143,12 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
       const newIndex = techData.inputList.findIndex((item) => item.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        const newInputList = arrayMove(techDataRef.current.inputList, oldIndex, newIndex);
+        const newInputList = arrayMove(techData.inputList, oldIndex, newIndex);
         setTechData(prev => ({
           ...prev,
           inputList: newInputList,
         }));
+        markAsDirty();
       }
     }
   };
