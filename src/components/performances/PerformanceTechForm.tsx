@@ -57,7 +57,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     };
   };
 
-  const { data: techData, updateField, setData } = useDebouncedSave<PerformanceTechData>({
+  const { data: techData, updateField, setData, isDirty } = useDebouncedSave<PerformanceTechData>({
     initialData: getInitialTechData(),
     onSave: (data) => updatePerformance(eventFrameId, {
       ...performance,
@@ -66,19 +66,28 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     delay: 2000,
   });
 
-  // Ref per guardar l'ID de l'actuació actual
-  const performanceIdRef = React.useRef<string>(performance.id);
+  // Ref per trackejar l'ID
+  const lastIdRef = React.useRef<string>(performance.id);
 
-  // Sync when performance changes
+  // Guarda de seguretat: useEffect de sincronització
   React.useEffect(() => {
-    // Si l'ID ha canviat (usuari ha saltat a un altre artista)
-    if (performanceIdRef.current !== performance.id) {
-      performanceIdRef.current = performance.id;
+    // CAS A: Canvi d'artista
+    if (performance.id !== lastIdRef.current) {
+      lastIdRef.current = performance.id;
+      setData(getInitialTechData());
+      return;
+    }
+
+    // CAS B: Mateix artista, formulari dirty - NO actualitzar
+    if (isDirty) {
+      return;
+    }
+
+    // CAS C: Mateix artista, no dirty, dades diferents - SÍ actualitzar
+    if (JSON.stringify(techData) !== JSON.stringify(getInitialTechData())) {
       setData(getInitialTechData());
     }
-    // Si l'ID és el mateix, NO cridar a setData si isDirty és true
-    // L'estat local ha de manar mentre l'usuari edita
-  }, [performance.id, setData]);
+  }, [performance.id, performance.techData, isDirty, setData]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -151,65 +160,65 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Input List */}
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <Tooltip text={t('performances.input_list_tooltip')}>
-            <h3 className="text-lg font-semibold">{t('performances.input_list_title')}</h3>
-          </Tooltip>
-          <button
-            onClick={addInputItem}
-            className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <PlusIcon className="w-4 h-4 inline mr-1" />
-            {t('performances.add_input')}
-          </button>
-        </div>
-
-        {techData.inputList.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-border rounded-lg">
-            <p className="text-sm">{t('performances.no_inputs')}</p>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="space-y-6">
+        {/* Input List */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <Tooltip text={t('performances.input_list_tooltip')}>
+              <h3 className="text-lg font-semibold">{t('performances.input_list_title')}</h3>
+            </Tooltip>
+            <button
+              onClick={addInputItem}
+              className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <PlusIcon className="w-4 h-4 inline mr-1" />
+              {t('performances.add_input')}
+            </button>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="w-10"></th>
-                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
-                    {t('performances.patch_header')}
-                  </th>
-                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
-                    {t('performances.channel_header')}
-                  </th>
-                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
-                    {t('performances.label_header')}
-                  </th>
-                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
-                    {t('performances.mic_rider_header')}
-                  </th>
-                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
-                    {t('performances.mic_contra_header')}
-                  </th>
-                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
-                    {t('performances.stand_header')}
-                  </th>
-                  <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
-                    {t('performances.notes_header')}
-                  </th>
-                  <th className="w-16"></th>
-                </tr>
-              </thead>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
+
+          {techData.inputList.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+              <p className="text-sm">{t('performances.no_inputs')}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <SortableContext
+                items={techData.inputList}
+                strategy={verticalListSortingStrategy}
               >
-                <SortableContext
-                  items={techData.inputList}
-                  strategy={verticalListSortingStrategy}
-                >
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="w-10"></th>
+                      <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                        {t('performances.patch_header')}
+                      </th>
+                      <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                        {t('performances.channel_header')}
+                      </th>
+                      <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                        {t('performances.label_header')}
+                      </th>
+                      <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                        {t('performances.mic_rider_header')}
+                      </th>
+                      <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                        {t('performances.mic_contra_header')}
+                      </th>
+                      <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                        {t('performances.stand_header')}
+                      </th>
+                      <th className="text-left py-2 px-2 text-sm font-medium text-muted-foreground">
+                        {t('performances.notes_header')}
+                      </th>
+                      <th className="w-16"></th>
+                    </tr>
+                  </thead>
                   <tbody>
                     {techData.inputList.map((item) => (
                       <SortableInputRow
@@ -221,58 +230,58 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
                       />
                     ))}
                   </tbody>
-                </SortableContext>
-              </DndContext>
-            </table>
-          </div>
-        )}
-      </div>
+                </table>
+              </SortableContext>
+            </div>
+          )}
+        </div>
 
-      {/* Notes de Llums */}
-      <div>
-        <Tooltip text={t('performances.lighting_notes_tooltip')}>
-          <label className="block text-sm font-medium mb-2">
-            {t('performances.lighting_notes')}
-          </label>
-        </Tooltip>
-        <AutosizeTextarea
-          value={techData.lightingNotes}
-          onChange={(e) => updateField('lightingNotes', e.target.value)}
-          className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
-          placeholder={t('performances.lighting_notes_placeholder')}
-        />
-      </div>
+        {/* Notes de Llums */}
+        <div>
+          <Tooltip text={t('performances.lighting_notes_tooltip')}>
+            <label className="block text-sm font-medium mb-2">
+              {t('performances.lighting_notes')}
+            </label>
+          </Tooltip>
+          <AutosizeTextarea
+            value={techData.lightingNotes}
+            onChange={(e) => updateField('lightingNotes', e.target.value)}
+            className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
+            placeholder={t('performances.lighting_notes_placeholder')}
+          />
+        </div>
 
-      {/* Video Notes */}
-      <div>
-        <Tooltip text={t('performances.video_notes_tooltip')}>
-          <label className="block text-sm font-medium mb-2">
-            {t('performances.video_notes')}
-          </label>
-        </Tooltip>
-        <AutosizeTextarea
-          value={techData.videoNotes}
-          onChange={(e) => updateField('videoNotes', e.target.value)}
-          className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
-          placeholder={t('performances.video_notes_placeholder')}
-        />
-      </div>
+        {/* Video Notes */}
+        <div>
+          <Tooltip text={t('performances.video_notes_tooltip')}>
+            <label className="block text-sm font-medium mb-2">
+              {t('performances.video_notes')}
+            </label>
+          </Tooltip>
+          <AutosizeTextarea
+            value={techData.videoNotes}
+            onChange={(e) => updateField('videoNotes', e.target.value)}
+            className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
+            placeholder={t('performances.video_notes_placeholder')}
+          />
+        </div>
 
-      {/* Necessitats d'Escenari */}
-      <div>
-        <Tooltip text={t('performances.stage_requirements_tooltip')}>
-          <label className="block text-sm font-medium mb-2">
-            {t('performances.stage_requirements')}
-          </label>
-        </Tooltip>
-        <AutosizeTextarea
-          value={techData.stageRequirements}
-          onChange={(e) => updateField('stageRequirements', e.target.value)}
-          className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
-          placeholder={t('performances.stage_requirements_placeholder')}
-        />
+        {/* Necessitats d'Escenari */}
+        <div>
+          <Tooltip text={t('performances.stage_requirements_tooltip')}>
+            <label className="block text-sm font-medium mb-2">
+              {t('performances.stage_requirements')}
+            </label>
+          </Tooltip>
+          <AutosizeTextarea
+            value={techData.stageRequirements}
+            onChange={(e) => updateField('stageRequirements', e.target.value)}
+            className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
+            placeholder={t('performances.stage_requirements_placeholder')}
+          />
+        </div>
       </div>
-    </div>
+    </DndContext>
   );
 };
 

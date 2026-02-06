@@ -28,7 +28,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
     };
   };
 
-  const { data: hospitalityData, updateField, setData } = useDebouncedSave<PerformanceHospitalityData>({
+  const { data: hospitalityData, updateField, setData, isDirty } = useDebouncedSave<PerformanceHospitalityData>({
     initialData: getInitialHospitalityData(),
     onSave: (data) => updatePerformance(eventFrameId, {
       ...performance,
@@ -37,19 +37,28 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
     delay: 2000,
   });
 
-  // Ref per guardar l'ID de l'actuació actual
-  const performanceIdRef = React.useRef<string>(performance.id);
+  // Ref per trackejar l'ID
+  const lastIdRef = React.useRef<string>(performance.id);
 
-  // Sync when performance changes
+  // Guarda de seguretat: useEffect de sincronització
   React.useEffect(() => {
-    // Si l'ID ha canviat (usuari ha saltat a un altre artista)
-    if (performanceIdRef.current !== performance.id) {
-      performanceIdRef.current = performance.id;
+    // CAS A: Canvi d'artista
+    if (performance.id !== lastIdRef.current) {
+      lastIdRef.current = performance.id;
+      setData(getInitialHospitalityData());
+      return;
+    }
+
+    // CAS B: Mateix artista, formulari dirty - NO actualitzar
+    if (isDirty) {
+      return;
+    }
+
+    // CAS C: Mateix artista, no dirty, dades diferents - SÍ actualitzar
+    if (JSON.stringify(hospitalityData) !== JSON.stringify(getInitialHospitalityData())) {
       setData(getInitialHospitalityData());
     }
-    // Si l'ID és el mateix, NO cridar a setData si isDirty és true
-    // L'estat local ha de manar mentre l'usuari edita
-  }, [performance.id, setData]);
+  }, [performance.id, performance.hospitalityData, isDirty, setData]);
 
   return (
     <div className="space-y-6">

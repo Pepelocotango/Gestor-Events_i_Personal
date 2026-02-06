@@ -51,25 +51,34 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
     { key: 'other', label: t('performances.types.other') }
   ];
 
-  const { data: formData, updateField, saveNow, setData } = useDebouncedSave<Performance>({
+  const { data: formData, updateField, saveNow, setData, isDirty } = useDebouncedSave<Performance>({
     initialData: getInitialPerformanceData(),
     onSave: (data) => updatePerformance(eventFrameId, data),
     delay: 2000,
   });
 
-  // Ref per guardar l'ID de l'actuació actual
-  const performanceIdRef = React.useRef<string>(performance.id);
+  // Ref per trackejar l'ID
+  const lastIdRef = React.useRef<string>(performance.id);
 
-  // Sync when performance changes
+  // Guarda de seguretat: useEffect de sincronització
   React.useEffect(() => {
-    // Si l'ID ha canviat (usuari ha saltat a un altre artista)
-    if (performanceIdRef.current !== performance.id) {
-      performanceIdRef.current = performance.id;
+    // CAS A: Canvi d'artista
+    if (performance.id !== lastIdRef.current) {
+      lastIdRef.current = performance.id;
+      setData(getInitialPerformanceData());
+      return;
+    }
+
+    // CAS B: Mateix artista, formulari dirty - NO actualitzar
+    if (isDirty) {
+      return;
+    }
+
+    // CAS C: Mateix artista, no dirty, dades diferents - SÍ actualitzar
+    if (JSON.stringify(formData) !== JSON.stringify(getInitialPerformanceData())) {
       setData(getInitialPerformanceData());
     }
-    // Si l'ID és el mateix, NO cridar a setData si isDirty és true
-    // L'estat local ha de manar mentre l'usuari edita
-  }, [performance.id, setData]);
+  }, [performance.id, performance, isDirty, setData]);
 
   const handleBlur = () => {
     saveNow();

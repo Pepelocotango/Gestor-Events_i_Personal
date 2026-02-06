@@ -79,6 +79,12 @@ export function useDebouncedSave<T>({
   }, [onSave]);
 
   const updateField = useCallback((field: keyof T, value: any) => {
+    // Guarda: si el nou valor és idèntic al valor actual, no actualitzis l'estat ni marquis isDirty
+    const currentValue = dataRef.current[field];
+    if (JSON.stringify(currentValue) === JSON.stringify(value)) {
+      return;
+    }
+    
     setDataState(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
   }, []);
