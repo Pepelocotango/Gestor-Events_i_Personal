@@ -5,7 +5,7 @@ import { GripVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Performance } from '../../types';
 import Tooltip from '../ui/Tooltip';
-import { TrashIcon } from '../../constants';
+import { TrashIcon, AdjustmentsHorizontalIconComponent, CheckCircleIconComponent, ExclamationCircleIconComponent, MinusCircleIconComponent } from '../../constants';
 
 interface SortablePerformanceProps {
   performance: Performance;
@@ -51,11 +51,11 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
     const status = getAdvancingStatus();
     switch (status) {
       case 'complete':
-        return '✅';
+        return <CheckCircleIconComponent className="w-4 h-4 text-success" />;
       case 'partial':
-        return '⚠️';
+        return <ExclamationCircleIconComponent className="w-4 h-4 text-warning" />;
       default:
-        return '⭕';
+        return <MinusCircleIconComponent className="w-4 h-4 text-muted" />;
     }
   };
 
@@ -139,7 +139,7 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
               </span>
               {performance.techData && performance.techData.inputList.length > 0 && (
                 <Tooltip text={t('performances.has_tech_data')}>
-                  <span className="text-primary">🎛️</span>
+                  <AdjustmentsHorizontalIconComponent className="w-4 h-4 text-primary" />
                 </Tooltip>
               )}
               <Tooltip text={getAdvancingTooltip()}>

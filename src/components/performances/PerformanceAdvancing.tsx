@@ -3,6 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { Performance, PerformanceAdvancing as PerformanceAdvancingType } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import Tooltip from '../ui/Tooltip';
+import { 
+  ArrowDownOnSquareIconComponent, 
+  ArrowUpOnSquareIconComponent, 
+  CheckBadgeIconComponent,
+  ClockIconComponent
+} from '../../constants';
 
 interface PerformanceAdvancingProps {
   eventFrameId: string;
@@ -64,25 +70,25 @@ const PerformanceAdvancing: React.FC<PerformanceAdvancingProps> = ({
       key: 'riderReceived' as keyof PerformanceAdvancingType,
       label: t('performances.advancing.rider_received'),
       tooltip: t('performances.advancing.rider_received_tooltip'),
-      icon: '📄',
+      icon: <ArrowDownOnSquareIconComponent className="w-6 h-6" />,
     },
     {
       key: 'counterRiderSent' as keyof PerformanceAdvancingType,
       label: t('performances.advancing.counter_rider_sent'),
       tooltip: t('performances.advancing.counter_rider_sent_tooltip'),
-      icon: '📤',
+      icon: <ArrowUpOnSquareIconComponent className="w-6 h-6" />,
     },
     {
       key: 'schedulesConfirmed' as keyof PerformanceAdvancingType,
       label: t('performances.advancing.schedules_confirmed'),
       tooltip: t('performances.advancing.schedules_confirmed_tooltip'),
-      icon: '⏰',
+      icon: <ClockIconComponent className="w-6 h-6" />,
     },
     {
       key: 'hospitalityClosed' as keyof PerformanceAdvancingType,
       label: t('performances.advancing.hospitality_closed'),
       tooltip: t('performances.advancing.hospitality_closed_tooltip'),
-      icon: '🏨',
+      icon: <CheckBadgeIconComponent className="w-6 h-6" />,
     },
   ];
 

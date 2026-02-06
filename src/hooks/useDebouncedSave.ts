@@ -19,7 +19,7 @@ export function useDebouncedSave<T>({
   onSave,
   delay = 2000,
 }: UseDebouncedSaveOptions<T>): UseDebouncedSaveReturn<T> {
-  const [data, setData] = useState<T>(initialData);
+  const [data, setDataState] = useState<T>(initialData);
   const [isDirty, setIsDirty] = useState(false);
   const dataRef = useRef(data);
   const isDirtyRef = useRef(isDirty);
@@ -36,7 +36,7 @@ export function useDebouncedSave<T>({
 
   // Sync with initialData when it changes
   useEffect(() => {
-    setData(initialData);
+    setDataState(initialData);
     setIsDirty(false);
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
@@ -79,7 +79,20 @@ export function useDebouncedSave<T>({
   }, [onSave]);
 
   const updateField = useCallback((field: keyof T, value: any) => {
-    setData(prev => ({ ...prev, [field]: value }));
+    setDataState(prev => ({ ...prev, [field]: value }));
+    setIsDirty(true);
+  }, []);
+
+  const setData = useCallback((newData: T | ((prev: T) => T)) => {
+    // Si és una funció, executar-la
+    const resolvedData = typeof newData === 'function' ? (newData as (prev: T) => T)(dataRef.current) : newData;
+    
+    // Comprovació de seguretat: si les dades noves són exactament iguals a les actuals, no fer res
+    if (JSON.stringify(resolvedData) === JSON.stringify(dataRef.current)) {
+      return;
+    }
+    
+    setDataState(resolvedData);
     setIsDirty(true);
   }, []);
 
@@ -90,7 +103,7 @@ export function useDebouncedSave<T>({
     }
     if (isDirtyRef.current) {
       onSave(dataRef.current);
-      setIsDirty(false);
+      setIsDirty(false); // Assegura't que isDirty es posa a false immediatament
     }
   }, [onSave]);
 

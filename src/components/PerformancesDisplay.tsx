@@ -5,6 +5,7 @@ import { EventFrame, Performance, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
 import { exportEventPerformancesSummaryPdf } from '../utils/pdfGenerator';
+import { PdfIcon } from '../constants';
 
 const PerformanceList = lazy(() => import('./performances/PerformanceList'));
 const PerformanceDetailContainer = lazy(() => import('./performances/PerformanceDetailContainer'));
@@ -155,7 +156,8 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
                   onClick={handleExportEventSummary}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  📄 {t('performances.export_runsheet')}
+                  <PdfIcon className="w-4 h-4 mr-2" />
+                  {t('performances.export_runsheet')}
                 </button>
               </Tooltip>
             )}

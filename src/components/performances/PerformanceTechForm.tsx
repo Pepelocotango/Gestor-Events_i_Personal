@@ -66,10 +66,19 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     delay: 2000,
   });
 
+  // Ref per guardar l'ID de l'actuació actual
+  const performanceIdRef = React.useRef<string>(performance.id);
+
   // Sync when performance changes
   React.useEffect(() => {
-    setData(getInitialTechData());
-  }, [performance, setData]);
+    // Si l'ID ha canviat (usuari ha saltat a un altre artista)
+    if (performanceIdRef.current !== performance.id) {
+      performanceIdRef.current = performance.id;
+      setData(getInitialTechData());
+    }
+    // Si l'ID és el mateix, NO cridar a setData si isDirty és true
+    // L'estat local ha de manar mentre l'usuari edita
+  }, [performance.id, setData]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

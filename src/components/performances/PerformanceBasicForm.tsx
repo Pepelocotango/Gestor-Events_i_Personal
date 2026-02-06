@@ -57,10 +57,19 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
     delay: 2000,
   });
 
+  // Ref per guardar l'ID de l'actuació actual
+  const performanceIdRef = React.useRef<string>(performance.id);
+
   // Sync when performance changes
   React.useEffect(() => {
-    setData(getInitialPerformanceData());
-  }, [performance, setData]);
+    // Si l'ID ha canviat (usuari ha saltat a un altre artista)
+    if (performanceIdRef.current !== performance.id) {
+      performanceIdRef.current = performance.id;
+      setData(getInitialPerformanceData());
+    }
+    // Si l'ID és el mateix, NO cridar a setData si isDirty és true
+    // L'estat local ha de manar mentre l'usuari edita
+  }, [performance.id, setData]);
 
   const handleBlur = () => {
     saveNow();

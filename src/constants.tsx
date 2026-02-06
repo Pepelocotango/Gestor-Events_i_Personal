@@ -1,7 +1,22 @@
 // @ts-ignore - React is used in JSX
 import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowUturnLeftIcon as OutlineArrowUturnLeftIcon, ArrowUturnRightIcon as OutlineArrowUturnRightIcon, DocumentArrowDownIcon as OutlineDocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { 
+  ArrowUturnLeftIcon as OutlineArrowUturnLeftIcon, 
+  ArrowUturnRightIcon as OutlineArrowUturnRightIcon, 
+  DocumentArrowDownIcon as OutlineDocumentArrowDownIcon,
+  DocumentTextIcon,
+  AdjustmentsHorizontalIcon,
+  BriefcaseIcon,
+  ArrowDownOnSquareIcon,
+  ArrowUpOnSquareIcon,
+  CheckBadgeIcon,
+  ShieldCheckIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  MinusCircleIcon,
+  ClockIcon as HeroClockIcon
+} from '@heroicons/react/24/outline';
 import { AssignmentStatus } from './types';
 
 export const APP_TITLE = "Gestor de Esdeveniments i Personal v1.6.0";
@@ -278,4 +293,49 @@ export const CloudArrowUpIcon: FC<{ className?: string }> = ({ className = "w-5 
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M17.25 8.25c0 3.105-2.686 5.625-6 5.625S5.25 11.355 5.25 8.25 7.936 2.625 11.25 2.625s6 2.686 6 5.625z" />
   </svg>
+);
+
+export const ClockIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <HeroClockIcon className={className} />
+);
+
+// Noves icones per al mòdul d'actuacions
+export const DocumentTextIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <DocumentTextIcon className={className} />
+);
+
+export const AdjustmentsHorizontalIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <AdjustmentsHorizontalIcon className={className} />
+);
+
+export const BriefcaseIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <BriefcaseIcon className={className} />
+);
+
+export const ArrowDownOnSquareIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <ArrowDownOnSquareIcon className={className} />
+);
+
+export const ArrowUpOnSquareIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <ArrowUpOnSquareIcon className={className} />
+);
+
+export const CheckBadgeIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <CheckBadgeIcon className={className} />
+);
+
+export const ShieldCheckIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <ShieldCheckIcon className={className} />
+);
+
+export const CheckCircleIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <CheckCircleIcon className={className} />
+);
+
+export const ExclamationCircleIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <ExclamationCircleIcon className={className} />
+);
+
+export const MinusCircleIconComponent: FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <MinusCircleIcon className={className} />
 );

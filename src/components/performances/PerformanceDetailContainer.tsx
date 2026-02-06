@@ -5,6 +5,11 @@ import PerformanceBasicForm from './PerformanceBasicForm';
 import PerformanceTechForm from './PerformanceTechForm';
 import PerformanceHospitalityForm from './PerformanceHospitalityForm';
 import PerformanceAdvancing from './PerformanceAdvancing';
+import { 
+  DocumentTextIconComponent, 
+  AdjustmentsHorizontalIconComponent, 
+  BriefcaseIconComponent 
+} from '../../constants';
 
 interface PerformanceDetailContainerProps {
   eventFrameId: string;
@@ -23,9 +28,9 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
 
   const tabs = [
-    { id: 'basic' as ActiveTab, label: t('performances.tab_basic'), icon: '📝' },
-    { id: 'tech' as ActiveTab, label: t('performances.tab_tech'), icon: '🎛️' },
-    { id: 'hospitality' as ActiveTab, label: t('performances.tab_hospitality'), icon: '🏨' },
+    { id: 'basic' as ActiveTab, label: t('performances.tab_basic'), icon: <DocumentTextIconComponent className="w-4 h-4" /> },
+    { id: 'tech' as ActiveTab, label: t('performances.tab_tech'), icon: <AdjustmentsHorizontalIconComponent className="w-4 h-4" /> },
+    { id: 'hospitality' as ActiveTab, label: t('performances.tab_hospitality'), icon: <BriefcaseIconComponent className="w-4 h-4" /> },
   ];
 
   const renderTabContent = () => {
@@ -84,7 +89,7 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
                 `}
                 aria-current={activeTab === tab.id ? 'page' : undefined}
               >
-                <span className="text-base">{tab.icon}</span>
+                {tab.icon}
                 <span>{tab.label}</span>
               </button>
             ))}
