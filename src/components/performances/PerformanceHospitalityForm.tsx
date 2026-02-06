@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance, PerformanceHospitalityData } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { useDebouncedSave } from '../../hooks/useDebouncedSave';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 
@@ -18,7 +17,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
-  const getInitialHospitalityData = React.useCallback((): PerformanceHospitalityData => {
+  const getInitialHospitalityData = useCallback((): PerformanceHospitalityData => {
     return performance.hospitalityData || {
       dressingRooms: '',
       cateringNotes: '',
@@ -28,37 +27,76 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
     };
   }, [performance.hospitalityData]);
 
-  const { data: hospitalityData, updateField, setData, isDirty } = useDebouncedSave<PerformanceHospitalityData>({
-    initialData: getInitialHospitalityData(),
-    onSave: (data) => updatePerformance(eventFrameId, {
-      ...performance,
-      hospitalityData: data,
-    }),
-    delay: 2000,
-  });
+  const [hospitalityData, setHospitalityData] = useState<PerformanceHospitalityData>(getInitialHospitalityData());
+  const hospitalityDataRef = useRef(hospitalityData);
+  const isDirtyRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Ref per trackejar l'ID
-  const lastIdRef = React.useRef<string>(performance.id);
+  const lastIdRef = useRef<string>(performance.id);
+
+  // Sincronitzar hospitalityDataRef amb hospitalityData
+  useEffect(() => {
+    hospitalityDataRef.current = hospitalityData;
+  }, [hospitalityData]);
 
   // Guarda de seguretat: useEffect de sincronització
-  React.useEffect(() => {
+  useEffect(() => {
     // CAS A: Canvi d'artista
     if (performance.id !== lastIdRef.current) {
       lastIdRef.current = performance.id;
-      setData(getInitialHospitalityData());
+      setHospitalityData(getInitialHospitalityData());
       return;
     }
 
     // CAS B: Mateix artista, formulari dirty - NO actualitzar
-    if (isDirty) {
+    if (isDirtyRef.current) {
       return;
     }
 
     // CAS C: Mateix artista, no dirty, dades diferents - SÍ actualitzar
     if (JSON.stringify(hospitalityData) !== JSON.stringify(getInitialHospitalityData())) {
-      setData(getInitialHospitalityData());
+      setHospitalityData(getInitialHospitalityData());
     }
-  }, [performance.id, performance.hospitalityData, isDirty, setData]);
+  }, [performance.id, performance.hospitalityData, getInitialHospitalityData, hospitalityData]);
+
+  const markAsDirty = () => {
+    isDirtyRef.current = true;
+  };
+
+  const saveData = useCallback(() => {
+    if (isDirtyRef.current) {
+      updatePerformance(eventFrameId, {
+        ...performance,
+        hospitalityData: hospitalityDataRef.current,
+      });
+      isDirtyRef.current = false;
+    }
+  }, [updatePerformance, eventFrameId, performance]);
+
+  // Auto-save
+  useEffect(() => {
+    if (isDirtyRef.current) {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
+    }
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [hospitalityData, saveData]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (isDirtyRef.current) saveData();
+    };
+  }, [saveData]);
+
+  const handleFieldChange = (field: keyof PerformanceHospitalityData, value: any) => {
+    setHospitalityData(prev => ({ ...prev, [field]: value }));
+    markAsDirty();
+  };
 
   return (
     <div className="space-y-6">
@@ -71,7 +109,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.dressingRooms}
-          onChange={(e) => updateField('dressingRooms', e.target.value)}
+          onChange={(e) => handleFieldChange('dressingRooms', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.dressing_rooms_placeholder')}
         />
@@ -86,7 +124,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.cateringNotes}
-          onChange={(e) => updateField('cateringNotes', e.target.value)}
+          onChange={(e) => handleFieldChange('cateringNotes', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.catering_placeholder')}
         />
@@ -101,7 +139,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.dietaryRequirements}
-          onChange={(e) => updateField('dietaryRequirements', e.target.value)}
+          onChange={(e) => handleFieldChange('dietaryRequirements', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.dietary_placeholder')}
         />
@@ -116,7 +154,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.travelLogistics}
-          onChange={(e) => updateField('travelLogistics', e.target.value)}
+          onChange={(e) => handleFieldChange('travelLogistics', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.travel_logistics_placeholder')}
         />
@@ -131,7 +169,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
         </Tooltip>
         <AutosizeTextarea
           value={hospitalityData.parkingNotes}
-          onChange={(e) => updateField('parkingNotes', e.target.value)}
+          onChange={(e) => handleFieldChange('parkingNotes', e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.parking_placeholder')}
         />

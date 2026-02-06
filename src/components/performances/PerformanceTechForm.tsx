@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -15,7 +15,6 @@ import {
 } from '@dnd-kit/sortable';
 import { Performance, InputListItem, PerformanceTechData } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { useDebouncedSave } from '../../hooks/useDebouncedSave';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { PlusIcon } from '../../constants';
@@ -33,7 +32,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
-  const getInitialTechData = React.useCallback((): PerformanceTechData => {
+  const getInitialTechData = useCallback((): PerformanceTechData => {
     const techData = performance.techData || {
       inputList: [],
       lightingNotes: '',
@@ -57,37 +56,76 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     };
   }, [performance.techData]);
 
-  const { data: techData, updateField, setData, isDirty } = useDebouncedSave<PerformanceTechData>({
-    initialData: getInitialTechData(),
-    onSave: (data) => updatePerformance(eventFrameId, {
-      ...performance,
-      techData: data,
-    }),
-    delay: 2000,
-  });
+  const [techData, setTechData] = useState<PerformanceTechData>(getInitialTechData());
+  const techDataRef = useRef(techData);
+  const isDirtyRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Ref per trackejar l'ID
-  const lastIdRef = React.useRef<string>(performance.id);
+  const lastIdRef = useRef<string>(performance.id);
+
+  // Sincronitzar techDataRef amb techData
+  useEffect(() => {
+    techDataRef.current = techData;
+  }, [techData]);
 
   // Guarda de seguretat: useEffect de sincronització
-  React.useEffect(() => {
+  useEffect(() => {
     // CAS A: Canvi d'artista
     if (performance.id !== lastIdRef.current) {
       lastIdRef.current = performance.id;
-      setData(getInitialTechData());
+      setTechData(getInitialTechData());
       return;
     }
 
     // CAS B: Mateix artista, formulari dirty - NO actualitzar
-    if (isDirty) {
+    if (isDirtyRef.current) {
       return;
     }
 
     // CAS C: Mateix artista, no dirty, dades diferents - SÍ actualitzar
     if (JSON.stringify(techData) !== JSON.stringify(getInitialTechData())) {
-      setData(getInitialTechData());
+      setTechData(getInitialTechData());
     }
-  }, [performance.id, performance.techData, isDirty, setData]);
+  }, [performance.id, performance.techData, getInitialTechData, techData]);
+
+  const markAsDirty = () => {
+    isDirtyRef.current = true;
+  };
+
+  const saveData = useCallback(() => {
+    if (isDirtyRef.current) {
+      updatePerformance(eventFrameId, {
+        ...performance,
+        techData: techDataRef.current,
+      });
+      isDirtyRef.current = false;
+    }
+  }, [updatePerformance, eventFrameId, performance]);
+
+  // Auto-save
+  useEffect(() => {
+    if (isDirtyRef.current) {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
+    }
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [techData, saveData]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (isDirtyRef.current) saveData();
+    };
+  }, [saveData]);
+
+  const handleFieldChange = (field: keyof PerformanceTechData, value: any) => {
+    setTechData(prev => ({ ...prev, [field]: value }));
+    markAsDirty();
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -105,8 +143,8 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
       const newIndex = techData.inputList.findIndex((item) => item.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        const newInputList = arrayMove(techData.inputList, oldIndex, newIndex);
-        setData(prev => ({
+        const newInputList = arrayMove(techDataRef.current.inputList, oldIndex, newIndex);
+        setTechData(prev => ({
           ...prev,
           inputList: newInputList,
         }));
@@ -115,16 +153,17 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   };
 
   const handleInputChange = (id: string, field: keyof InputListItem, value: any) => {
-    setData(prev => ({
+    setTechData(prev => ({
       ...prev,
       inputList: prev.inputList.map(item =>
         item.id === id ? { ...item, [field]: value } : item
       ),
     }));
+    markAsDirty();
   };
 
   const addInputItem = () => {
-    const lastItem = techData.inputList[techData.inputList.length - 1];
+    const lastItem = techDataRef.current.inputList[techDataRef.current.inputList.length - 1];
     let newChannel = '';
     
     if (lastItem?.channel) {
@@ -146,17 +185,19 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
       notes: '',
     };
     
-    setData(prev => ({
+    setTechData(prev => ({
       ...prev,
       inputList: [...prev.inputList, newItem],
     }));
+    markAsDirty();
   };
 
   const removeInputItem = (id: string) => {
-    setData(prev => ({
+    setTechData(prev => ({
       ...prev,
       inputList: prev.inputList.filter(item => item.id !== id),
     }));
+    markAsDirty();
   };
 
   return (
@@ -245,7 +286,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
           </Tooltip>
           <AutosizeTextarea
             value={techData.lightingNotes}
-            onChange={(e) => updateField('lightingNotes', e.target.value)}
+            onChange={(e) => handleFieldChange('lightingNotes', e.target.value)}
             className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
             placeholder={t('performances.lighting_notes_placeholder')}
           />
@@ -260,7 +301,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
           </Tooltip>
           <AutosizeTextarea
             value={techData.videoNotes}
-            onChange={(e) => updateField('videoNotes', e.target.value)}
+            onChange={(e) => handleFieldChange('videoNotes', e.target.value)}
             className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
             placeholder={t('performances.video_notes_placeholder')}
           />
@@ -275,7 +316,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
           </Tooltip>
           <AutosizeTextarea
             value={techData.stageRequirements}
-            onChange={(e) => updateField('stageRequirements', e.target.value)}
+            onChange={(e) => handleFieldChange('stageRequirements', e.target.value)}
             className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
             placeholder={t('performances.stage_requirements_placeholder')}
           />
