@@ -176,7 +176,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── PerformanceHospitalityForm.tsx # Formulari d'hospitalitat (camerinos, càtering, dietes, viatge, pàrquing).
 │   │   │   ├── PerformanceList.tsx             # Llista d'actuacions amb indicadors visuals de dades tècniques.
 │   │   │   ├── PerformanceTechForm.tsx         # Formulari tècnic (input list, llums, vídeo, escenari).
-│   │   │   ├── PerformancesDisplay.tsx        # Vista principal del gestor d'actuacions amb exportació PDF.
+│   │   │   ├── SortableInputRow.tsx            # Fila ordenable per a l'input list tècnic.
 │   │   │   └── SortablePerformance.tsx         # Component individual d'actuació amb drag-and-drop.
 │   │   ├── tech_sheets/          # Components específics per a la gestió de les Fitxes de Bolo.
 │   │   │   ├── ConditionalFormControl.tsx      # Component UI per a seccions que es mostren condicionalment (SI/NO).
@@ -211,6 +211,8 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── googleConfigStore.ts# Store per a la configuració i estat de la integració amb Google Calendar.
 │   │   ├── loggingMiddleware.ts# Middleware de Zustand per registrar accions i canvis d'estat.
 │   │   └── modalStore.ts       # Store centralitzat per a l'estat i la lògica dels modals.
+│   ├── hooks/                  # Hooks de React reutilitzables.
+│   │   └── useDebouncedSave.ts # Hook per desar amb debounce (p. ex. formularis d'actuacions). Opcions: initialData, onSave, delay.
 │   ├── utils/
 │   │   ├── colorUtils.ts         # Utilitat per convertir colors (ex: HSL a RGB) per a la generació de PDF.
 │   │   ├── csvUtils.ts           # Utilitats per a la generació i escapat de fitxers CSV. Inclou funcions per formatar cel·les, afegir BOM per compatibilitat Excel, i exportar llistes filtrades.
@@ -255,4 +257,7 @@ enllaç a Gestor-Events_i_Personal/
 ├── tailwind.config.cjs           # Fitxer de configuració per al framework de CSS Tailwind.
 ├── theme.config.cjs              # !! FONT ÚNICA DE LA VERITAT PER ALS COLORS !! Defineix tota la paleta de colors per als temes i la generació de PDF.
 ├── tsconfig.json                 # Fitxer de configuració del compilador de TypeScript.
+├── i18next-parser.config.cjs     # Configuració de i18next-parser per a l'app d'escriptori (escaneig de claus i18n a src/).
+├── i18next-parser.mobile.config.cjs  # Configuració de i18next-parser per a l'app mòbil (escaneig de claus i18n a mobile_app/).
+├── i18next-parser.web.config.cjs # Configuració de i18next-parser per a la web/landing (escaneig de claus i18n a apps_web/landing/).
 └── vite.config.ts                # Fitxer de configuració de Vite, l'eina de compilació del frontend.

@@ -1,6 +1,6 @@
 branca de desenvolupament * 00DEV_GEP
 
-web de la app a Vercel a la branca main O 0DEV_TRANSLATE:
+web de la app a Vercel (branca main o la branca de desplegament configurada):
 https://gestor-events-i-personal-landingpag.vercel.app/
 
 
@@ -35,7 +35,7 @@ const { updateMaterialItem } = useEventDataStore.getState();
 import { useStore } from 'zustand';
 const canUndo = useStore(useEventDataStore.temporal, s => s.pastStates.length > 0);
 ```
-- **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Aixó optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
+- **Disseny fluid (Full-Width):** S'ha eliminat el contenidor principal centrat en favor d'un disseny d'amplada completa amb `padding` horitzontal (`px-4 sm:px-6 lg:px-8`). Això optimitza l'ús de l'espai de la pantalla, especialment en monitors grans. La classe `.container` personalitzada ha estat eliminada de `index.css`.
 
 - **Sistema d'Internacionalització Complet (i18n):**
   - **3 Idiomes Suportats:** Implementació completa de internacionalització per a Català, Castellà i English a totes les plataformes.
@@ -96,7 +96,7 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
     -   **Descripció:** És el "cervell" natiu de l'aplicació. S'executa en un entorn Node.js complet i té accés a les API del sistema operatiu.
     -   **Responsabilitats:**
         -   Gestionar el cicle de vida de l'aplicació i les finestres (`BrowserWindow`).
-        -   Crear menús natius.
+        -   Coordinar amb el menú personalitzat en React (el menú visible és el de `CustomMenuBar`; les accions es deleguen via IPC; no s'utilitza el menú natiu d'Electron).
         -   Interactuar directament amb el sistema de fitxers (lectura/escriptura de JSON, gestió de backups i logs).
         -   Gestionar processos complexos com l'autenticació OAuth 2.0 amb Google.
         -   Realitzar totes les comunicacions amb API externes (Google Calendar).
@@ -159,6 +159,7 @@ Les rutes principals es defineixen com a constants a l'inici del fitxer:
     -   Estat de la finestra (mida i posició).
     -   Ruta de l'últim fitxer obert.
     -   Últim directori utilitzat en els diàlegs d'obertura/desat.
+    -   Dades de sessió opcionals (p. ex. `lastViewedPerformanceEventId`) exposades via `getSessionData`/`saveSessionData` (IPC) per a la vista d'actuacions.
 -   `BACKUP_DIR`: (`.../backups/`) Directori on es guarden les còpies de seguretat automàtiques.
 -   Els logs es gestionen automàticament per la llibreria `electron-log`, que engega un fitxer `main.log` al directori de dades de l'aplicació. Es conserven fins a 5 arxius de log rotatius, amb una mida màxima de 1 MB per arxiu.
 -   `GOOGLE_TOKENS_PATH`: (`.../google-tokens.json`) Emmagatzema els tokens d'accés i de refresc d'OAuth 2.0 un cop l'usuari s'ha autenticat.
@@ -1667,8 +1668,8 @@ El mòdul d'Actuacions és una nova funcionalitat completa per a la gestió d'ac
 - **Gestió d'Actuacions:** Crear, editar i organitzar actuacions artístiques
 - **Control d'Avançament:** Seguiment visual del progrés de preparació de cada actuació
 - **Formularis Tècnics:** Informació detallada tècnica i d'hospitalitat
-- **Exportació PDF:** Generació de riders tècnics i Full de Ruta del Regidor
-- **Integració:** Connexió amb la fitxa de bolo existent per evitar duplicació
+- **Exportació PDF (exposada a la UI):** Resum d'actuacions / escaleta artística (`generateEventPerformancesPdfObject`, `exportEventPerformancesSummaryPdf`) i export d'inputs tècnics des del formulari tècnic (`exportPerformanceInputsToPdf`). La funció de rider complet (`exportPerformanceToPdf`) i el Full de Ruta del Regidor (`exportRegidoriaSummaryPdf`, que combina horaris de la fitxa de bolo amb actuacions) existeixen al codi però **no estan enllaçats a cap botó** a la interfície actual.
+- **Integració amb la fitxa de bolo:** **No existeix a la interfície.** La fitxa de bolo i el mòdul d'actuacions són independents; la integració (importar horaris, sincronitzar material) està prevista a "Extensions Futures" més avall.
 
 ### Estructura de Components
 
@@ -1689,19 +1690,23 @@ El mòdul d'Actuacions és una nova funcionalitat completa per a la gestió d'ac
 ### Model de Dades
 
 #### Interfície Principal
+Les actuacions viuen dins de cada `EventFrame` com a `eventFrame.performances`; no duen `eventFrameId` a la interfície (la relació és per contenidor).
 ```typescript
 export interface Performance {
   id: string;
   name: string;
-  eventFrameId: string;
-  contactPerson?: string;
-  contactEmail?: string;
-  contactPhone?: string;
+  type: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  notes: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  color?: string;
   arrivalTime?: string;
   soundCheckTime?: string;
   showTime?: string;
   departureTime?: string;
-  notes?: string;
+  duration?: string;
   techData?: PerformanceTechData;
   hospitalityData?: PerformanceHospitalityData;
   advancing?: PerformanceAdvancing;
@@ -1730,8 +1735,12 @@ export interface PerformanceTechData {
 export interface InputListItem {
   id: string;
   channel?: string;
+  patchColor?: string;
+  patchNumber?: string;
   label: string;
-  micDi: string;
+  micRider: string;   // El que demana l'artista
+  micContra: string;  // El que posem nosaltres
+  stand: string;
   notes: string;
 }
 ```
@@ -1775,32 +1784,13 @@ Tots els formularis utilitzen `AutosizeTextarea` per a camps de text llargs:
 
 #### 3. Exportació PDF
 
-##### Rider Individual
-```typescript
-export const exportPerformanceToPdf = async (
-  performance: Performance,
-  eventFrame: EventFrame,
-  showToast: ShowToastFunction
-)
-```
-- Capçalera amb info de l'esdeveniment
-- Seccions: Bàsica, Tècnica, Hospitality
-- Taules formatades amb input list
-- Colors temàtics consistents
+##### Exposat a la UI
+- **Resum d'actuacions / escaleta artística:** `generateEventPerformancesPdfObject`, `exportEventPerformancesSummaryPdf` — botons "Vista prèvia" i "Exportar" a `PerformancesDisplay`. Només dades d'actuacions (horaris, nom, tipus, estat, durada, notes).
+- **Rider d'inputs tècnics:** `exportPerformanceInputsToPdf` — des del formulari tècnic de cada actuació; genera PDF amb la input list (canal, etiqueta, mic rider/contra, peu, notes).
 
-##### Full de Ruta del Regidor
-```typescript
-export const exportRegidoriaSummaryPdf = async (
-  eventFrame: EventFrame,
-  performances: Performance[],
-  techSheetData: TechSheetData | undefined,
-  showToast: ShowToastFunction
-)
-```
-- **Escaleta combinada:** Horaris generals + actuacions
-- **Prefixos automàtics:** [ARRIBADA], [PROVES], [SHOW]
-- **Notes de regidoria:** Extreacció automàtica de dades crítiques
-- **Ordenació cronològica:** Per prioritat i hora
+##### Disponible al codi però no exposat a la UI
+- **Rider complet (bàsic + tècnic + hospitality):** `exportPerformanceToPdf` — implementat a `pdfGenerator.ts`, cap component el crida.
+- **Full de Ruta del Regidor:** `exportRegidoriaSummaryPdf(eventFrame, performances, techSheetData, showToast)` — combina horaris de la fitxa de bolo (`techSheetData.schedule`) amb els de les actuacions (prefixos [ARRIBADA], [PROVES], [SHOW]) i notes de regidoria. No hi ha cap botó que passi `techSheetData` ni que cridi aquesta funció; fitxa de bolo i mòdul d'actuacions no es connecten a la interfície actual.
 
 #### 4. Integració amb Store
 
@@ -1844,7 +1834,7 @@ Tots els textos utilitzen claus i18n:
 2. **Control d'Avançament:** Marcar progrés amb badges interactius
 3. **Dades Tècniques:** Afegir input list, requisits d'escenari
 4. **Hospitalitat:** Especificar camerinos, dietes, logística
-5. **Exportació:** Generar rider PDF o Full de Ruta del Regidor
+5. **Exportació:** Generar escaleta/resum d'actuacions en PDF (botons a la vista principal) o rider d'inputs tècnics en PDF (des del formulari tècnic). El rider complet i el Full de Ruta del Regidor existeixen al codi però no estan exposats a la UI.
 
 ### Consideracions Tècniques
 

@@ -28,6 +28,12 @@ L'aplicació ofereix les següents eines:
     *   Gestiona el personal per proveïdors i rols, i les necessitats de material (il·luminació, so, vídeo, etc.).
     *   **Reordena els proveïdors de personal amb drag-and-drop** per a una organització visual.
 
+*   **Gestió d'Actuacions Artístiques (Escriptori, FASE 4):**
+    *   **Mòdul d'Actuacions:** Crea i edita actuacions per a cada esdeveniment (contacte, horaris d'arribada/soundcheck/show/sortida, notes tècniques i d'hospitalitat).
+    *   **Control d'Avançament:** Seguiment visual amb 4 estats (Rider Rebut, Contra-rider Enviat, Horaris Confirmats, Hospitality Tancat).
+    *   **Formularis Tècnics i Hospitality:** Input list, notes de llums/vídeo/escenari, camerinos, càtering, dietes, logística i pàrquing.
+    *   **Exportació PDF:** Riders individuals per actuació i resum d'actuacions (escaleta artística amb horaris i dades de les actuacions). La fitxa de bolo i el mòdul d'actuacions són independents; no hi ha export que combini ambdues fonts a la interfície actual.
+
 *   **Inventari de Material (Escriptori):**
     *   Manté una base de dades centralitzada de material amb control d'estoc.
     *   El sistema comprova la disponibilitat de l'estoc en temps real en assignar material a una fitxa de bolo.
@@ -166,6 +172,12 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 
 ---
 ## 🚀 Novetats i Funcionalitats Clau
+
+* **Mòdul d'Actuacions (FASE 4):**
+  * **Gestió d'actuacions artístiques** per esdeveniment: llista ordenable (drag-and-drop), formularis bàsic, tècnic i d'hospitalitat.
+  * **Control d'avançament visual** amb 4 passos (Rider Rebut, Contra-rider Enviat, Horaris Confirmats, Hospitality Tancat).
+  * **Exportació PDF:** riders individuals per actuació i resum d'actuacions (escaleta artística).
+  * L'últim esdeveniment de actuacions visualitzat es recorda entre sessions.
 
 * **Centre de Control de Material (Redissenyat):**
   * **Càlcul de Pic de Demanda Concurrent:** La nova lògica calcula la demanda màxima d'un ítem en un sol dia dins d'un període, oferint una previsió d'estoc molt més realista.
