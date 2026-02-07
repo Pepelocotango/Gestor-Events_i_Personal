@@ -4,7 +4,7 @@ module.exports = {
   input: ['apps_web/landing/src/**/*.{astro,ts,tsx}'], // Només mira la web
   sort: true,
   indentation: 4,
-  keepRemoved: false,
+  keepRemoved: true,
   keySeparator: '.',
   namespaceSeparator: ':',
   defaultValue: "*NO TRAD*"

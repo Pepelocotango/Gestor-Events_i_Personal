@@ -4,7 +4,7 @@ module.exports = {
   input: ['src/**/*.{ts,tsx}'], // Només mira la carpeta de l'ordinador
   sort: true,
   indentation: 4,
-  keepRemoved: false,
+  keepRemoved: true,
   keySeparator: '.',
   namespaceSeparator: ':',
   defaultValue: "*NO TRAD*" // El teu senyal per saber que falta traduir

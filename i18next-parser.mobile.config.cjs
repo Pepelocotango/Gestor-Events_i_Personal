@@ -4,7 +4,7 @@ module.exports = {
   input: ['mobile_app/src/**/*.{ts,tsx}'], // Només mira la carpeta del mòbil
   sort: true,
   indentation: 4,
-  keepRemoved: false,
+  keepRemoved: true,
   keySeparator: '.',
   namespaceSeparator: ':',
   defaultValue: "*NO TRAD*"
