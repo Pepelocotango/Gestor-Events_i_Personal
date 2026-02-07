@@ -1,4 +1,12 @@
 {
+    "carousel": {
+        "dark_mode": "*NO TRAD*",
+        "go_to_image": "*NO TRAD*",
+        "light_mode": "*NO TRAD*",
+        "loading_images": "*NO TRAD*",
+        "next_image": "*NO TRAD*",
+        "previous_image": "*NO TRAD*"
+    },
     "download": {
         "android": "Android 8.0 o superior",
         "desktop_description": "Versió completa amb totes les funcionalitats per a Windows, macOS i Linux.",
@@ -167,10 +175,32 @@
         "features": "Funcionalitats",
         "gallery": "Galeria",
         "home": "Inici",
-        "logo_text": "Gestor d'Esdeveniments"
+        "logo_text": "Gestor d'Esdeveniments",
+        "menu": "*NO TRAD*",
+        "product_tour": "*NO TRAD*"
+    },
+    "releases": {
+        "at_github": "*NO TRAD*",
+        "contains_apk": "*NO TRAD*",
+        "download_apk": "*NO TRAD*",
+        "download_for": "*NO TRAD*",
+        "error_description": "*NO TRAD*",
+        "error_title": "*NO TRAD*",
+        "go_to_github": "*NO TRAD*",
+        "manual_installation": "*NO TRAD*",
+        "not_on_play_store": "*NO TRAD*",
+        "recommended": "*NO TRAD*",
+        "view_releases": "*NO TRAD*"
     },
     "site": {
         "description": "L'eina definitiva per a la gestió professional d'esdeveniments i personal",
         "title": "Gestor d'Esdeveniments i Personal"
+    },
+    "tour": {
+        "description": "*NO TRAD*",
+        "features": "*NO TRAD*",
+        "loading": "*NO TRAD*",
+        "loading_description": "*NO TRAD*",
+        "title": "*NO TRAD*"
     }
 }

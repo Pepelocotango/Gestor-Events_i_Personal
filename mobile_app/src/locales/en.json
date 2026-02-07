@@ -65,6 +65,7 @@
         "mark_all_no_tooltip": "Mark all as 'NO'",
         "mark_all_pending_tooltip": "Mark all as 'PENDING'",
         "mark_all_yes_tooltip": "Mark all as 'YES'",
+        "person_unknown": "*NO TRAD*",
         "show_button": "Show days",
         "show_daily_tooltip": "Show daily view"
     },
@@ -107,8 +108,10 @@
     "common": {
         "action_redone": "Action redone.",
         "action_undone": "Action undone.",
+        "cancel": "*NO TRAD*",
         "change_language_tooltip": "Change language / Cambiar idioma",
         "close_modal": "Close modal",
+        "confirm": "*NO TRAD*",
         "contact": "Contact",
         "data_integrity": {
             "error_event_not_found": "Assignment '{{id}}' references an event that does not exist ({{targetId}}).",
@@ -116,7 +119,9 @@
             "fix_removed_assignment": "A broken assignment has been removed (ID: {{id}})."
         },
         "date_format_placeholder": "dd/mm/yyyy",
+        "delete": "*NO TRAD*",
         "edit": "Edit",
+        "error": "*NO TRAD*",
         "google_connected": "Connected to Google Calendar successfully!",
         "google_desktop_only": "This functionality is only available on the desktop application.",
         "google_disconnected": "Google account disconnected successfully.",
@@ -124,9 +129,17 @@
         "history_tooltip": "History",
         "loading": "Loading...",
         "not_found": "Not found",
+        "open": "*NO TRAD*",
         "redo_action": "Action redone",
+        "save": "*NO TRAD*",
         "search": "Search",
         "splash_alt": "Splash screen",
+        "status": {
+            "mixed": "*NO TRAD*",
+            "no": "*NO TRAD*",
+            "pending": "*NO TRAD*",
+            "yes": "*NO TRAD*"
+        },
         "success": "Success",
         "theme_dark": "Dark Theme",
         "theme_light": "Light Theme",
@@ -167,6 +180,7 @@
     },
     "event": {
         "add_assignment_tooltip": "Add a new staff assignment",
+        "assignments_title": "*NO TRAD*",
         "collapse_tooltip": "Collapse section",
         "delete_tooltip": "Delete event",
         "edit_tooltip": "Edit event",
@@ -194,10 +208,12 @@
         "archive_old_tooltip": "Archive old events (finished more than a week ago)",
         "archived_events": "Archived Events",
         "calendar_view": "Calendar View",
+        "clean_filters": "*NO TRAD*",
         "collapse_all": "Collapse All",
         "collapse_all_cards_tooltip": "Collapse all cards",
         "contains_date": "Contains Date",
         "csv_export": "CSV",
+        "event": "*NO TRAD*",
         "expand_all": "Expand All",
         "expand_all_cards_tooltip": "Expand all cards",
         "filter_date_label": "Filter:",
@@ -210,12 +226,15 @@
         "nav_people_tooltip": "Go to people and group management",
         "nav_tech_sheets": "Gig Sheets",
         "nav_tech_sheets_tooltip": "Go to technical sheet management (gigs)",
+        "no_events_found": "*NO TRAD*",
         "pdf_export": "PDF",
+        "person": "*NO TRAD*",
         "place": "Place",
         "search_general": "General search",
         "search_placeholder": "Name, place, person...",
         "show_archived": "Show archived",
         "sort": "Sort",
+        "start_date": "*NO TRAD*",
         "status": "Status",
         "summaries": "Summaries",
         "tooltip_clean": "Clear all filters",
@@ -250,16 +269,21 @@
         "location_label": "Location",
         "location_tooltip": "Where this item is stored (optional)",
         "manager_title": "Material Manager",
+        "name_duplicate": "*NO TRAD*",
         "name_label": "Name",
         "name_tooltip": "Name of the material item",
+        "no_category": "*NO TRAD*",
+        "no_items_found": "*NO TRAD*",
         "notes_label": "Notes",
         "notes_tooltip": "Additional notes about the item (optional)",
         "save_changes_tooltip": "Save changes made to the item",
         "search_placeholder": "Search...",
         "search_tooltip": "Search by name, category or location",
+        "sort_by": "*NO TRAD*",
         "sort_category": "Category",
         "sort_category_tooltip": "Group by category and sort within each group",
         "sort_location_header_tooltip": "Sort by location",
+        "sort_name": "*NO TRAD*",
         "sort_name_header_tooltip": "Sort by name",
         "sort_stock_header_tooltip": "Sort by stock",
         "stock_label": "Stock",
@@ -368,18 +392,82 @@
         }
     },
     "mobile": {
+        "about": {
+            "app_description": "*NO TRAD*",
+            "app_name": "*NO TRAD*",
+            "donate": "*NO TRAD*",
+            "github_repository": "*NO TRAD*",
+            "links": "*NO TRAD*",
+            "version": "*NO TRAD*"
+        },
+        "action_toolbar": {
+            "collapse_all": "*NO TRAD*",
+            "expand_all": "*NO TRAD*",
+            "show_archived": "*NO TRAD*",
+            "showing_archived": "*NO TRAD*",
+            "sort_by_date": "*NO TRAD*"
+        },
         "alerts": {
             "assignment_conflict": "Assignment Conflict",
+            "cancel": "*NO TRAD*",
+            "category_required": "*NO TRAD*",
+            "confirm_status_change": "*NO TRAD*",
+            "confirm_status_message": "*NO TRAD*",
             "dates_invalid": "Dates are invalid",
+            "discard": "*NO TRAD*",
+            "discard_changes": "*NO TRAD*",
+            "discard_changes_message": "*NO TRAD*",
             "email_invalid": "Email is invalid",
+            "invalid_file": "*NO TRAD*",
+            "name_required": "*NO TRAD*",
+            "ok": "*NO TRAD*",
             "phone_invalid": "Phone is invalid",
-            "stock_required": "Stock is required"
+            "share_instructions": "*NO TRAD*",
+            "stock_required": "Stock is required",
+            "validation_errors": "*NO TRAD*",
+            "validation_message": "*NO TRAD*"
+        },
+        "calendar": {
+            "events_for_day": "*NO TRAD*",
+            "no_events_day": "*NO TRAD*"
+        },
+        "event_card": {
+            "accept": "*NO TRAD*",
+            "add_person": "*NO TRAD*",
+            "assigned_personnel": "*NO TRAD*",
+            "hide_days": "*NO TRAD*",
+            "show_days": "*NO TRAD*"
+        },
+        "event_details": {
+            "end": "*NO TRAD*",
+            "no_notes": "*NO TRAD*",
+            "not_specified": "*NO TRAD*",
+            "notes": "*NO TRAD*",
+            "place": "*NO TRAD*",
+            "start": "*NO TRAD*"
+        },
+        "filter_controls": {
+            "all_events": "*NO TRAD*",
+            "all_people": "*NO TRAD*",
+            "global_search": "*NO TRAD*"
+        },
+        "filters": {
+            "all_categories": "*NO TRAD*",
+            "all_events": "*NO TRAD*",
+            "all_origins": "*NO TRAD*"
         },
         "form_labels": {
+            "category": "*NO TRAD*",
             "email": "Email",
+            "end_date": "*NO TRAD*",
             "location": "Location",
+            "name": "*NO TRAD*",
+            "notes": "*NO TRAD*",
             "person_group": "Person/Group",
             "phone": "Phone",
+            "place": "*NO TRAD*",
+            "role": "*NO TRAD*",
+            "start_date": "*NO TRAD*",
             "status": "General Status",
             "stock": "Stock",
             "tel1": "Phone 1",
@@ -387,23 +475,84 @@
             "web": "Website"
         },
         "forms": {
+            "alerts": {
+                "assignment_conflict": "*NO TRAD*"
+            },
+            "buttons": {
+                "create": "*NO TRAD*",
+                "create_and_assign": "*NO TRAD*",
+                "create_assignment": "*NO TRAD*",
+                "save_changes": "*NO TRAD*",
+                "update": "*NO TRAD*"
+            },
             "labels": {
+                "category": "*NO TRAD*",
+                "email": "*NO TRAD*",
+                "end_date": "*NO TRAD*",
+                "general_notes": "*NO TRAD*",
+                "location": "*NO TRAD*",
+                "name": "*NO TRAD*",
+                "person_group": "*NO TRAD*",
                 "place": "Place",
-                "status": "General Status"
+                "role": "*NO TRAD*",
+                "start_date": "*NO TRAD*",
+                "status": "General Status",
+                "stock": "*NO TRAD*",
+                "tel1": "*NO TRAD*",
+                "tel2": "*NO TRAD*",
+                "web": "*NO TRAD*"
             },
             "placeholders": {
+                "category": "*NO TRAD*",
+                "email": "*NO TRAD*",
+                "end_date": "*NO TRAD*",
+                "event_name_example": "*NO TRAD*",
+                "location": "*NO TRAD*",
+                "name": "*NO TRAD*",
                 "notes": "Add notes...",
-                "place": "Enter place"
+                "notes_example": "*NO TRAD*",
+                "phone": "*NO TRAD*",
+                "place": "Enter place",
+                "place_example": "*NO TRAD*",
+                "role": "*NO TRAD*",
+                "select_option": "*NO TRAD*",
+                "specify_role": "*NO TRAD*",
+                "start_date": "*NO TRAD*",
+                "stock": "*NO TRAD*",
+                "web": "*NO TRAD*"
             },
             "validation": {
-                "category_required": "Category is required."
+                "category_required": "Category is required.",
+                "date_order_error": "*NO TRAD*",
+                "end_date_required": "*NO TRAD*",
+                "name_required": "*NO TRAD*",
+                "select_person_required": "*NO TRAD*",
+                "start_date_required": "*NO TRAD*"
             }
+        },
+        "header": {
+            "error_save_file": "*NO TRAD*",
+            "error_share_file": "*NO TRAD*",
+            "ready_to_share": "*NO TRAD*"
+        },
+        "material": {
+            "balance": "*NO TRAD*",
+            "demand": "*NO TRAD*",
+            "location": "*NO TRAD*",
+            "stock": "*NO TRAD*"
+        },
+        "material_control": {
+            "breakdown_title": "*NO TRAD*",
+            "no_results": "*NO TRAD*",
+            "units_suffix": "*NO TRAD*"
         },
         "material_filters": {
             "clear_filters": "Clear filters",
             "filter_by_category": "Filter by category",
             "filter_by_event": "Filter by event",
-            "filter_by_origin": "Filter by origin"
+            "filter_by_origin": "Filter by origin",
+            "search_material": "*NO TRAD*",
+            "search_placeholder": "*NO TRAD*"
         },
         "navigation": {
             "calendar": "Calendar",
@@ -411,6 +560,9 @@
             "material": "Material",
             "people": "People",
             "tech_sheets": "Gig Sheets"
+        },
+        "people": {
+            "search_placeholder": "*NO TRAD*"
         },
         "placeholders": {
             "category": "Enter category",
@@ -423,9 +575,79 @@
             "place": "Enter place",
             "role": "Enter role",
             "search_material": "Search material...",
+            "select_day": "*NO TRAD*",
             "start_date": "Select start date",
             "stock": "Enter stock",
             "web": "Enter website"
+        },
+        "status_actions": {
+            "complete": "*NO TRAD*",
+            "incomplete": "*NO TRAD*"
+        },
+        "summary": {
+            "collapse_all": "*NO TRAD*",
+            "expand_all": "*NO TRAD*",
+            "no_data": "*NO TRAD*",
+            "sort_by_date": "*NO TRAD*"
+        },
+        "tech_sheet": {
+            "blueprints": "*NO TRAD*",
+            "collapse_all": "*NO TRAD*",
+            "consumables": "*NO TRAD*",
+            "contact_email": "*NO TRAD*",
+            "contact_name": "*NO TRAD*",
+            "contact_phone": "*NO TRAD*",
+            "contact_role": "*NO TRAD*",
+            "control_location": "*NO TRAD*",
+            "curtains": "*NO TRAD*",
+            "date": "*NO TRAD*",
+            "details": "*NO TRAD*",
+            "dressing_rooms": "*NO TRAD*",
+            "duration": "*NO TRAD*",
+            "electrical": "*NO TRAD*",
+            "event": "*NO TRAD*",
+            "event_not_found": "*NO TRAD*",
+            "expand_all": "*NO TRAD*",
+            "general_info": "*NO TRAD*",
+            "general_notes": "*NO TRAD*",
+            "interpreters": "*NO TRAD*",
+            "lighting": "*NO TRAD*",
+            "logistics": "*NO TRAD*",
+            "machinery": "*NO TRAD*",
+            "names": "*NO TRAD*",
+            "no_tech_sheet": "*NO TRAD*",
+            "number": "*NO TRAD*",
+            "other_details": "*NO TRAD*",
+            "other_equipment": "*NO TRAD*",
+            "parking": "*NO TRAD*",
+            "place": "*NO TRAD*",
+            "platforms": "*NO TRAD*",
+            "preassembly": "*NO TRAD*",
+            "rentals": "*NO TRAD*",
+            "schedule": "*NO TRAD*",
+            "show_time": "*NO TRAD*",
+            "sound": "*NO TRAD*",
+            "structures": "*NO TRAD*",
+            "technical_needs_notes": "*NO TRAD*",
+            "technical_personnel": "*NO TRAD*",
+            "technical_staff": "*NO TRAD*",
+            "transport": "*NO TRAD*",
+            "unknown": "*NO TRAD*",
+            "video": "*NO TRAD*",
+            "view_tech_sheet": "*NO TRAD*",
+            "yes": "*NO TRAD*"
+        },
+        "tech_sheet_components": {
+            "not_specified": "*NO TRAD*"
+        },
+        "tech_sheet_details": {
+            "material_unknown": "*NO TRAD*",
+            "no_specifications": "*NO TRAD*",
+            "person_es": "*NO TRAD*"
+        },
+        "tech_sheet_list": {
+            "ensure_file_open": "*NO TRAD*",
+            "no_tech_sheets": "*NO TRAD*"
         },
         "validation": {
             "end_date_required": "The end date is mandatory.",
@@ -769,9 +991,11 @@
         "export_pdf_tooltip": "Export to PDF",
         "list_title": "Contact List",
         "manager_title": "People Manager",
+        "name_duplicate": "*NO TRAD*",
         "name_label": "Name",
         "name_required": "Name is required.",
         "name_tooltip": "Contact name. This field is required and must be unique.",
+        "no_contacts_found": "*NO TRAD*",
         "notes_label": "Notes (Optional)",
         "notes_tooltip": "Any relevant additional information",
         "role_label": "Role/Type (Optional)",
@@ -779,6 +1003,7 @@
         "save_changes_tooltip": "Save changes",
         "search_placeholder": "Search by name, role, email, tel...",
         "search_tooltip": "Search by name, role, email or phone",
+        "sort_by": "*NO TRAD*",
         "sort_name_tooltip": "Sort by name (A-Z / Z-A)",
         "sort_role_tooltip": "Sort by role (A-Z / Z-A)",
         "tel1_label": "Phone 1 (Optional)",
