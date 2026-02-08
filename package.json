@@ -120,14 +120,15 @@
     "linux": {
       "target": "AppImage",
       "category": "Office",
-      "artifactName": "${productName}_v${version}-Linux-Ubuntu18.04+.${ext}"
+      "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-Linux-Ubuntu18.04+.${ext}"
     },
     "win": {
       "target": [
         "nsis",
         "portable"
       ],
-      "icon": "public/icon.ico"
+      "icon": "public/icon.ico",
+      "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-Windows-Setup.${ext}"
     },
     "mac": {
       "target": [
@@ -137,7 +138,7 @@
       "category": "public.app-category.productivity",
       "icon": "public/icon.icns",
       "identity": null,
-      "artifactName": "${productName}_v${version}-macOS-10.15+.${ext}"
+      "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-macOS-10.15+.${ext}"
     }
   }
 }

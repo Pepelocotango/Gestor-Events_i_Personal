@@ -72,8 +72,20 @@ jobs:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: ./gradlew assembleRelease
 
+      - name: 11.5 Renombrar APK amb GEP, branca i build
+        run: |
+          SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '_')
+          
+          # Nou nom GEP
+          NEW_NAME="GEP-Android-Release-${SAFE_BRANCH}-build${{ github.run_number }}.apk"
+          
+          # Renombrar l'arxiu original
+          mv mobile_app/android/app/build/outputs/apk/release/app-release.apk "$NEW_NAME"
+          
+          echo "APK_NAME=$NEW_NAME" >> $GITHUB_ENV
+
       - name: 12. Pujada de l'APK com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdevenimentsPersonal-Android-Release.apk
-          path: mobile_app/android/app/build/outputs/apk/release/app-release.apk
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_NAME }}

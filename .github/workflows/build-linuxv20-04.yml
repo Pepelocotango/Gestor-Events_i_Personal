@@ -70,16 +70,26 @@ jobs:
           fi
         shell: bash
 
+      - name: 4.9 Preparar variables de nom (Branca i Build)
+        run: |
+          # Sanejar el nom de la branca (substituir / per _)
+          SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '_')
+          echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+
       - name: 5. Compilació de l'aplicació per a Linux
+        # Les variables ja estan a l'entorn pel pas anterior
         run: npm run build:electron -- --linux --x64 --publish never
 
       - name: 6. Creació del paquet ZIP per a Linux
         id: zip_creation
         run: |
-          APPIMAGE_FILE=$(find dist -name "*.AppImage" -type f -printf "%f\n")
+          # Busquem l'AppImage generada dinàmicament (que ja tindrà el nom GEP_...)
+          APPIMAGE_FILE=$(find dist -name "*.AppImage" -type f -printf "%f\n" | head -n 1)
           echo "Found AppImage: ${APPIMAGE_FILE}"
 
-          ZIP_NAME="GestorEsdevenimentsPersonal_V1.6.0-Linux.zip"
+          # Construïm el nom del ZIP consistent amb l'AppImage
+          ZIP_NAME="GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Linux.zip"
           echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
 
           cd dist

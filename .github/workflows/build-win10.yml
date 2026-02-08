@@ -44,9 +44,14 @@ jobs:
             echo "El fitxer google-credentials.json està buit o massa petit!" && exit 1
           )
 
-    # 4. PAS CLAU: Executa el teu script "build:electron"
-    # Aquesta única comanda s'encarrega de compilar el teu codi React i empaquetar-lo amb Electron.
-    # Els paràmetres --win --x64 asseguren que es construeixi per a Windows 64-bit.
+    - name: Preparar variables de nom
+      shell: pwsh
+      run: |
+        $safeBranch = "${{ github.ref_name }}" -replace '/', '_'
+        echo "BRANCH_NAME=$safeBranch" >> $env:GITHUB_ENV
+        echo "BUILD_NUMBER=${{ github.run_number }}" >> $env:GITHUB_ENV
+
+    # (El pas 4 de compilació es manté igual, agafarà les variables automàticament)
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
@@ -59,7 +64,8 @@ jobs:
         $filesToZip += @("LICENSE", "README.md", "DEVELOPING.md")
         $filesToZip += Get-ChildItem -Path "examples json" -Recurse | ForEach-Object { $_.FullName }
 
-        $zipName = "GestorEsdevenimentsPersonal_V1.6.0-Windows.zip"
+        # Nom del ZIP amb format GEP
+        $zipName = "GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Windows.zip"
         echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
 
         Compress-Archive -Path $filesToZip -DestinationPath $zipName

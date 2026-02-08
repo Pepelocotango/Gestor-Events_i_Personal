@@ -37,18 +37,32 @@ jobs:
             exit 1
           fi
 
+      - name: 6.5 Preparar variables de nom
+        run: |
+          SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '_')
+          echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+
       - name: 7. Compilació de l'aplicació per a macOS
         run: npm run build:mac
 
       - name: 8. Creació del paquet ZIP per a macOS
         run: |
-          DMG_NAME="GestorEsdevenimentsPersonal_V1.6.0-macOS-10.15+.dmg"
-          ZIP_NAME="GestorEsdevenimentsPersonal_V1.6.0-macOS.zip"
-          mv "dist/${DMG_NAME}" .
+          # Busquem el DMG generat dinàmicament
+          DMG_FILE=$(find dist -name "*.dmg" -type f -maxdepth 1 | head -n 1)
+          DMG_NAME=$(basename "$DMG_FILE")
+          
+          # Nom del ZIP final
+          ZIP_NAME="GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-macOS.zip"
+          
+          mv "$DMG_FILE" .
           zip -r "${ZIP_NAME}" "${DMG_NAME}" LICENSE README.md DEVELOPING.md "examples json"
+          
+          # Exportem el nom per al pas de pujada
+          echo "FINAL_ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
       - name: 9. Pujada del ZIP de macOS com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdevenimentsPersonal_V1.6.0-macOS.zip
-          path: GestorEsdevenimentsPersonal_V1.6.0-macOS.zip
+          name: ${{ env.FINAL_ZIP_NAME }}
+          path: ${{ env.FINAL_ZIP_NAME }}
