@@ -60,14 +60,29 @@ jobs:
       id: zip_windows
       shell: pwsh
       run: |
-        $filesToZip = Get-ChildItem -Path "dist" -Filter "*.exe" | ForEach-Object { $_.FullName }
-        $filesToZip += @("LICENSE", "README.md", "DEVELOPING.md")
-        $filesToZip += Get-ChildItem -Path "examples json" -Recurse | ForEach-Object { $_.FullName }
+        # 1. Inicialitzem l'array buit per evitar concatenació de strings
+        $filesToZip = @()
 
-        # Nom del ZIP amb format GEP
+        # 2. Afegim l'executable generat
+        $exeFiles = Get-ChildItem -Path "dist" -Filter "*.exe" | Select-Object -ExpandProperty FullName
+        $filesToZip += $exeFiles
+
+        # 3. Afegim els fitxers de documentació (rutes relatives)
+        $filesToZip += "LICENSE", "README.md", "DEVELOPING.md"
+
+        # 4. Afegim els exemples (rutes absolutes)
+        $exampleFiles = Get-ChildItem -Path "examples json" -Recurse | Select-Object -ExpandProperty FullName
+        $filesToZip += $exampleFiles
+
+        # Debug: Imprimir llista de fitxers per verificar
+        Write-Host "Fitxers a comprimir: "
+        $filesToZip | ForEach-Object { Write-Host $_ }
+
+        # 5. Definir nom
         $zipName = "GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Windows.zip"
         echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
 
+        # 6. Comprimir
         Compress-Archive -Path $filesToZip -DestinationPath $zipName
 
     # 6. Pujada de l'artefacte ZIP de Windows
