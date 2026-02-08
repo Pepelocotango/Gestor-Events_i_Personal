@@ -1,4 +1,4 @@
-branca de desenvolupament * 00DEV_GEP
+branca de desenvolupament ACTIVA 2026  00DEV_GEP
 
 web de la app a Vercel (branca main o la branca de desplegament configurada):
 https://gestor-events-i-personal-landingpag.vercel.app/
