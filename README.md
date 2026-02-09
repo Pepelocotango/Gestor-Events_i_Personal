@@ -28,7 +28,7 @@ L'aplicació ofereix les següents eines:
     *   Gestiona el personal per proveïdors i rols, i les necessitats de material (il·luminació, so, vídeo, etc.).
     *   **Reordena els proveïdors de personal amb drag-and-drop** per a una organització visual.
 
-*   **Gestió d'Actuacions Artístiques (Escriptori, FASE 4):**
+*   **Gestió d'Actuacions Artístiques (Escriptori, ):**
     *   **Mòdul d'Actuacions:** Crea i edita actuacions per a cada esdeveniment (contacte, horaris d'arribada/soundcheck/show/sortida, notes tècniques i d'hospitalitat).
     *   **Control d'Avançament:** Seguiment visual amb 4 estats (Rider Rebut, Contra-rider Enviat, Horaris Confirmats, Hospitality Tancat).
     *   **Formularis Tècnics i Hospitality:** Input list, notes de llums/vídeo/escenari, camerinos, càtering, dietes, logística i pàrquing.
