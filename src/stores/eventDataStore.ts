@@ -912,6 +912,11 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
           if (result.success && result.data) {
             await loadData(result.data);
+            
+            // CORRECCIÓ CRÍTICA: Després de carregar les dades sincronitzades (amb nous Google IDs),
+            // hem de marcar l'estat com a "brut" perquè aquests IDs nous encara no estan al disc.
+            set({ hasUnsavedChanges: true }); 
+            
             await refreshGoogleEvents();
             finalResult = { success: true, message: result.message || 'Sincronització completada.', type: 'success' };
           } else {

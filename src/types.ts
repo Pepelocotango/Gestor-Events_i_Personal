@@ -542,6 +542,9 @@ export interface ElectronAPI {
   factoryReset: () => Promise<{ success: boolean; message?: string }>;
   openLogsFolder: () => Promise<{ success: boolean; message?: string }>;
   openBackupsFolder: () => Promise<{ success: boolean; message?: string }>;
+  
+  // NOU
+  logToMain: (level: string, ...args: any[]) => void;
   // Obsolete - kept for safety, should be removed later
   loadAppData: () => Promise<any>;
   saveAppData: (data: AppData) => Promise<{ success: boolean; message?: string }>;

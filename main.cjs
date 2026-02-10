@@ -1410,6 +1410,16 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
+// NOU: Pont de logs per rebre missatges del Frontend
+ipcMain.on('log-to-main', (event, level, ...args) => {
+  // Mapejar nivells de log
+  const validLevels = ['error', 'warn', 'info', 'verbose', 'debug', 'silly'];
+  const logLevel = validLevels.includes(level) ? level : 'info';
+  
+  // Escriure al fitxer main.log amb un prefix
+  log[logLevel](`[RENDERER]`, ...args);
+});
+
 ipcMain.on('trigger-menu-action', (event, action) => {
   console.log(`[Main] Menu action received: ${action}`);
   const focusedWindow = BrowserWindow.getFocusedWindow();

@@ -635,8 +635,26 @@ const App: React.FC = () => {
   // Crida a la versió més recent de la lògica de sortida a través de la ref.
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
-      const cleanup = window.electronAPI.onConfirmQuit(() => {
-        quitLogicRef.current?.();
+      const cleanup = window.electronAPI.onConfirmQuit(async () => { // Fer-ho async
+        try {
+          // Executem la lògica
+          if (quitLogicRef.current) {
+            await quitLogicRef.current();
+          }
+        } catch (err) {
+          // Si alguna cosa peta aquí, ho registrem i avisem
+          console.error("CRITICAL ERROR IN QUIT LOGIC:", err);
+          window.electronAPI?.logToMain?.('error', "CRITICAL ERROR IN QUIT LOGIC:", (err as Error).message);
+          
+          // Opcional: Mostrar avís d'emergència
+          window.electronAPI?.showUnsavedChangesDialog({
+             message: `Error crític en tancar: ${(err as Error).message}. Es forçarà la sortida per seguretat.`,
+             buttons: ['OK']
+          });
+          
+          // En cas d'error irrecuperable, permetre sortir per no bloquejar l'usuari eternament
+          window.electronAPI?.quitApplication();
+        }
       });
 
       // Neteja el listener quan el component es desmunta, per higiene.

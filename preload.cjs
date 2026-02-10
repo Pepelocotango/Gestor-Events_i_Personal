@@ -70,6 +70,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPlatformSync: () => process.platform,
   openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
   openBackupsFolder: () => ipcRenderer.invoke('open-backups-folder'),
+  
+  // NOU: Funció per enviar logs al backend
+  logToMain: (level, ...args) => ipcRenderer.send('log-to-main', level, ...args),
 });
 
 // IMPORTANT: electron-log exposure removed due to sandbox mode restrictions
