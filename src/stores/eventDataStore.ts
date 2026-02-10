@@ -342,19 +342,33 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return { success: true, message: 'No hi havia configuració de Google per carregar.', type: 'info' };
     },
     exportData: async () => {
-        const { eventFrames, peopleGroups, materialItems } = get();
-        const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);
-        const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }: EventFrame) => restOfFrame);
-        let googleConfigForExport: AppData['googleConfig'] = undefined;
-        if (window.electronAPI) {
-            const fullConfig = await window.electronAPI.loadGoogleConfig();
-            if (fullConfig) {
-                googleConfigForExport = { userEmail: fullConfig.userEmail, activeAppCalendarId: fullConfig.activeAppCalendarId, managedAppCalendars: fullConfig.managedAppCalendars };
+        try {
+            const { eventFrames, peopleGroups, materialItems } = get();
+            const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);
+            const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }: EventFrame) => restOfFrame);
+            let googleConfigForExport: AppData['googleConfig'] = undefined;
+            if (window.electronAPI) {
+                const fullConfig = await window.electronAPI.loadGoogleConfig();
+                if (fullConfig) {
+                    googleConfigForExport = { userEmail: fullConfig.userEmail, activeAppCalendarId: fullConfig.activeAppCalendarId, managedAppCalendars: fullConfig.managedAppCalendars };
+                }
             }
+            
+            // Log per veure si arriba aquí
+            logger.info('[eventDataStore] exportData: Preparant objecte per exportar...');
+            
+            const dataToExport = { peopleGroups, eventFrames: eventFramesForExport, materialItems, assignments: allAssignmentsList, googleConfig: googleConfigForExport };
+            
+            // Això pot ser lent/pesat
+            logger.info(`[eventDataStore] exportData: Objecte preparat, iniciant serialització...`);
+            const serializedData = JSON.parse(JSON.stringify(dataToExport));
+            logger.info(`[eventDataStore] exportData: Serialització completada. Mida estimada: ${JSON.stringify(serializedData).length} caràcters`);
+            
+            return serializedData;
+        } catch (e) {
+            logger.error('[eventDataStore] exportData: ERROR CRÍTIC preparant dades:', e);
+            throw e;
         }
-        const dataToExport = { peopleGroups, eventFrames: eventFramesForExport, materialItems, assignments: allAssignmentsList, googleConfig: googleConfigForExport };
-        // Assegurem que l'objecte és totalment serialitzable abans de passar-lo per IPC
-        return JSON.parse(JSON.stringify(dataToExport));
     },
 
     // EVENT FRAMES

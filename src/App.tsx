@@ -255,29 +255,48 @@ const App: React.FC = () => {
   };
 
   const handleSaveDocument = async (): Promise<boolean> => {
+    logger.info('[App.tsx] handleSaveDocument: Iniciant procés de desat...');
     if (!currentFilePath) {
+      logger.info('[App.tsx] handleSaveDocument: No hi ha filePath, cridant handleSaveAsDocument');
       return handleSaveAsDocument();
     }
     if (!window.electronAPI) {
+      logger.warn('[App.tsx] handleSaveDocument: electronAPI no disponible');
       showToast(t('app.desktop_only_warning'), 'warning');
       return false;
     }
     try {
+      logger.info('[App.tsx] handleSaveDocument: Exportant dades de la store...');
       const dataToSave = await exportDataFromManager();
+      
+      logger.info('[App.tsx] handleSaveDocument: Serialitzant JSON...');
       const jsonString = JSON.stringify(dataToSave, null, 2);
+      
+      logger.info(`[App.tsx] handleSaveDocument: Enviant al backend (mida: ${jsonString.length} caràcters)...`);
       const result = await window.electronAPI.saveFile({
         filePath: currentFilePath,
         data: jsonString,
       });
 
       if (result.success) {
+        logger.info('[App.tsx] handleSaveDocument: ÈXIT. Fitxer desat correctament.');
         setHasUnsavedChanges(false);
         showToast(t('app.save.success'), 'success');
         return true;
       } else {
+        logger.error(`[App.tsx] handleSaveDocument: ERROR del backend: ${result.message}`);
         showToast(`${t('app.save.error_prefix')}${result.message}`, 'error');
       }
     } catch (error) {
+      logger.error('[App.tsx] handleSaveDocument: EXCEPCIÓ CRÍTICA:', error);
+      
+      // NOU: Diàleg natiu d'error per assegurar que l'usuari ho veu
+      if (window.electronAPI?.showUnsavedChangesDialog) {
+         await window.electronAPI.showUnsavedChangesDialog({
+            message: `ERROR CRÍTIC AL DESAR: ${(error as Error).message}. L'aplicació no es tancarà per protegir les dades.`,
+            buttons: ['D\'acord']
+         });
+      }
       showToast(`${t('app.save.error_prefix')}${(error as Error).message}`, 'error');
     }
     return false;
@@ -572,12 +591,17 @@ const App: React.FC = () => {
           const message = `Vols desar els canvis fets a '${fileName}'?`;
           const buttons = ['Desa', 'Tanca sense desar', 'Cancel·la'];
           const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
+          
+          logger.info(`[App.tsx] quitLogic: Usuari ha triat l'opció ${response}`);
 
           switch (response) {
             case 0: // Desa
+              logger.info('[App.tsx] quitLogic: Intentant desar abans de sortir...');
               if (await handleSaveDocument()) {
+                logger.info('[App.tsx] quitLogic: Desat correcte. Sortint.');
                 quitApp();
               } else {
+                logger.warn('[App.tsx] quitLogic: El desat ha fallat. Cancel·lant sortida.');
                 showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
               }
               break;
