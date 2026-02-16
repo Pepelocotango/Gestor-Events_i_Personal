@@ -264,13 +264,15 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
                   {t('performances.export_inputs')}
                 </button>
               </Tooltip>
-              <button
-                onClick={addInputItem}
-                className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <PlusIcon className="w-4 h-4 inline mr-1" />
-                {t('performances.add_input')}
-              </button>
+              <Tooltip text={t('performances.add_input_tooltip')}>
+                <button
+                  onClick={addInputItem}
+                  className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <PlusIcon className="w-4 h-4 inline mr-1" />
+                  {t('performances.add_input')}
+                </button>
+              </Tooltip>
             </div>
           </div>
 

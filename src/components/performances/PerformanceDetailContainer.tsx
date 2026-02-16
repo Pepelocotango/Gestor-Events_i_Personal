@@ -5,6 +5,7 @@ import PerformanceBasicForm from './PerformanceBasicForm';
 import PerformanceTechForm from './PerformanceTechForm';
 import PerformanceHospitalityForm from './PerformanceHospitalityForm';
 import PerformanceAdvancing from './PerformanceAdvancing';
+import Tooltip from '../ui/Tooltip';
 import { 
   DocumentTextIconComponent, 
   AdjustmentsHorizontalIconComponent, 
@@ -30,9 +31,24 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
 
   const tabs = [
-    { id: 'basic' as ActiveTab, label: t('performances.tab_basic'), icon: <DocumentTextIconComponent className="w-4 h-4" /> },
-    { id: 'tech' as ActiveTab, label: t('performances.tab_tech'), icon: <AdjustmentsHorizontalIconComponent className="w-4 h-4" /> },
-    { id: 'hospitality' as ActiveTab, label: t('performances.tab_hospitality'), icon: <BriefcaseIconComponent className="w-4 h-4" /> },
+    { 
+      id: 'basic' as ActiveTab, 
+      label: t('performances.tab_basic'), 
+      icon: <DocumentTextIconComponent className="w-4 h-4" />,
+      tooltip: t('performances.tab_basic_tooltip')
+    },
+    { 
+      id: 'tech' as ActiveTab, 
+      label: t('performances.tab_tech'), 
+      icon: <AdjustmentsHorizontalIconComponent className="w-4 h-4" />,
+      tooltip: t('performances.tab_tech_tooltip')
+    },
+    { 
+      id: 'hospitality' as ActiveTab, 
+      label: t('performances.tab_hospitality'), 
+      icon: <BriefcaseIconComponent className="w-4 h-4" />,
+      tooltip: t('performances.tab_hospitality_tooltip')
+    },
   ];
 
   const renderTabContent = () => {
@@ -82,22 +98,23 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
         <div className="border-b border-border">
           <nav className="flex space-x-1 p-1" aria-label="Tabs">
             {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
-                  ${activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                  }
-                  focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1
-                `}
-                aria-current={activeTab === tab.id ? 'page' : undefined}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
+              <Tooltip key={tab.id} text={tab.tooltip}>
+                <button
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
+                    ${activeTab === tab.id
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    }
+                    focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1
+                  `}
+                  aria-current={activeTab === tab.id ? 'page' : undefined}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </button>
+              </Tooltip>
             ))}
           </nav>
         </div>

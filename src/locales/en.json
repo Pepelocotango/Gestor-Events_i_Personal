@@ -937,7 +937,11 @@
         "unnamed": "Unnamed",
         "video_notes": "Video Notes",
         "video_notes_placeholder": "Enter video notes...",
-        "video_notes_tooltip": "Video requirements"
+        "video_notes_tooltip": "Video requirements",
+        "add_input_tooltip": "Add new input to the list",
+        "tab_basic_tooltip": "Basic performance information",
+        "tab_tech_tooltip": "Technical configuration of inputs and stage",
+        "tab_hospitality_tooltip": "Hospitality and logistics requirements"
     },
     "roles": {
         "assembly": {

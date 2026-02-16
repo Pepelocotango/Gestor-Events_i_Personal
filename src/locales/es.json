@@ -941,7 +941,11 @@
         "unnamed": "Sin nombre",
         "video_notes": "Notas de Vídeo",
         "video_notes_placeholder": "Introduce las notas de vídeo...",
-        "video_notes_tooltip": "Requerimientos de vídeo"
+        "video_notes_tooltip": "Requerimientos de vídeo",
+        "add_input_tooltip": "Añadir nuevo input a la lista",
+        "tab_basic_tooltip": "Información básica de la actuación",
+        "tab_tech_tooltip": "Configuración técnica de inputs y escenario",
+        "tab_hospitality_tooltip": "Requerimientos de hospitalidad y logística"
     },
     "roles": {
         "assembly": {
