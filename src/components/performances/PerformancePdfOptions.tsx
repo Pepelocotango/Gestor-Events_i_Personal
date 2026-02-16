@@ -10,7 +10,7 @@ interface PerformancePdfOptionsProps {
   disabled?: boolean;
 }
 
-const PerformancePdfOptions: React.FC<PerformancePdfOptionsProps> = ({
+const PerformancePdfOptionsComponent: React.FC<PerformancePdfOptionsProps> = ({
   options,
   onOptionsChange,
   onExport,
@@ -151,4 +151,4 @@ const PerformancePdfOptions: React.FC<PerformancePdfOptionsProps> = ({
   );
 };
 
-export default PerformancePdfOptions;
+export default PerformancePdfOptionsComponent;
