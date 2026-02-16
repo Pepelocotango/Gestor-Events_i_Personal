@@ -17,7 +17,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
   showToast,
 }) => {
   const { t } = useTranslation();
-  const { updatePerformance } = useEventDataStore();
+  const { updatePerformance, peopleGroups } = useEventDataStore();
 
   const getInitialPerformanceData = useCallback((): Performance => {
     return {
@@ -35,8 +35,9 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
       soundCheckTime: performance.soundCheckTime,
       showTime: performance.showTime,
       departureTime: performance.departureTime,
+      linkedPersonGroupId: performance.linkedPersonGroupId,
     };
-  }, [performance.id, performance.name, performance.type, performance.contactName, performance.contactPhone, performance.contactEmail, performance.notes, performance.status, performance.duration, performance.color, performance.arrivalTime, performance.soundCheckTime, performance.showTime, performance.departureTime]);
+  }, [performance.id, performance.name, performance.type, performance.contactName, performance.contactPhone, performance.contactEmail, performance.notes, performance.status, performance.duration, performance.color, performance.arrivalTime, performance.soundCheckTime, performance.showTime, performance.departureTime, performance.linkedPersonGroupId]);
 
   const [formData, setFormData] = useState<Performance>(getInitialPerformanceData());
   const formDataRef = useRef(formData);
@@ -280,6 +281,50 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
           {t('performances.contact_title')}
         </h3>
         <div className="space-y-4">
+          {/* Selector d'importació de l'agenda */}
+          <div>
+            <Tooltip text={t('performances.select_contact_tooltip')}>
+              <label className="block text-sm font-medium mb-2">
+                {t('performances.select_contact')}
+              </label>
+            </Tooltip>
+            <select
+              value={formData.linkedPersonGroupId || ''}
+              onChange={(e) => {
+                const personGroupId = e.target.value;
+                if (personGroupId) {
+                  const selectedPerson = peopleGroups.find(pg => pg.id === personGroupId);
+                  if (selectedPerson) {
+                    // Omplir camps amb dades de l'agenda
+                    setFormData(prev => ({
+                      ...prev,
+                      contactName: selectedPerson.name,
+                      contactPhone: selectedPerson.tel1 || '',
+                      contactEmail: selectedPerson.email || '',
+                      linkedPersonGroupId: personGroupId,
+                    }));
+                    markAsDirty();
+                  }
+                } else {
+                  // Netejar selecció
+                  setFormData(prev => ({
+                    ...prev,
+                    linkedPersonGroupId: undefined,
+                  }));
+                  markAsDirty();
+                }
+              }}
+              className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+            >
+              <option value="">{t('performances.select_contact_placeholder')}</option>
+              {peopleGroups.map(person => (
+                <option key={person.id} value={person.id}>
+                  {person.name} {person.role ? `(${person.role})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <Tooltip text={t('performances.contact_name_tooltip')}>
               <label className="block text-sm font-medium mb-2">

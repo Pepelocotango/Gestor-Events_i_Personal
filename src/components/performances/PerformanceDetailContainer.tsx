@@ -9,8 +9,10 @@ import Tooltip from '../ui/Tooltip';
 import { 
   DocumentTextIconComponent, 
   AdjustmentsHorizontalIconComponent, 
-  BriefcaseIconComponent 
+  BriefcaseIconComponent,
+  PdfIcon
 } from '../../constants';
+import { exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
 
 interface PerformanceDetailContainerProps {
   eventFrameId: string;
@@ -29,6 +31,20 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
 }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
+
+  // Opcions per defecte per exportar rider complet
+  const defaultPdfOptions = {
+    includeBasicInfo: true,
+    includeInputs: true,
+    includeTechnicalNotes: true,
+    includeHospitality: true,
+    includeGeneralNotes: true,
+    showEmptySections: false,
+  };
+
+  const handleExportCompleteRider = () => {
+    exportPerformanceToPdfWithOptions(performance, eventFrame, defaultPdfOptions, showToast);
+  };
 
   const tabs = [
     { 
@@ -94,6 +110,22 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
       
       {/* Contenidor de Pestanyes */}
       <div className="bg-card border border-border rounded-lg shadow-sm">
+        {/* Capçalera amb botó d'exportació */}
+        <div className="flex justify-between items-center border-b border-border px-6 py-3">
+          <div className="text-sm font-medium text-muted-foreground">
+            {t('performances.rider_details', { name: performance.name })}
+          </div>
+          <Tooltip text={t('performances.export_complete_rider_tooltip')}>
+            <button
+              onClick={handleExportCompleteRider}
+              className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+            >
+              <PdfIcon className="w-4 h-4" />
+              {t('performances.export_complete_rider')}
+            </button>
+          </Tooltip>
+        </div>
+        
         {/* Barra de Pestanyes */}
         <div className="border-b border-border">
           <nav className="flex space-x-1 p-1" aria-label="Tabs">

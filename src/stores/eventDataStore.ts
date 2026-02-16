@@ -4,7 +4,7 @@ import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider, Performance } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider, Performance, PackingListItem } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
@@ -144,6 +144,13 @@ interface EventDataActions {
     updatePerformance: (eventFrameId: string, performance: Performance) => void;
     deletePerformance: (eventFrameId: string, performanceId: string) => void;
     reorderPerformances: (eventFrameId: string, newPerformances: Performance[]) => void;
+    
+    // PACKING LIST
+    generatePackingListFromNeeds: (eventFrameId: string) => { success: boolean; message: string; type: 'success' | 'error' | 'info'; count?: number };
+    addPackingItem: (eventFrameId: string, item: Omit<PackingListItem, 'id'>) => string | null;
+    removePackingItem: (eventFrameId: string, itemId: string) => void;
+    updatePackingItem: (eventFrameId: string, itemId: string, changes: Partial<PackingListItem>) => void;
+    togglePackingItemLoaded: (eventFrameId: string, itemId: string) => void;
 }
 
 const initialState: EventDataState = {
@@ -297,7 +304,14 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             return { status: 'ok', message: 'Estat de l\'aplicació netejat.', type: 'info' };
         }
 
-        const migratedData: AppData = { ...data, eventFrames: data.eventFrames.map((ef: EventFrameForExport) => ({ ...ef, techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame) })) };
+        const migratedData: AppData = { 
+          ...data, 
+          eventFrames: data.eventFrames.map((ef: EventFrameForExport) => ({ 
+            ...ef, 
+            techSheet: migrateTechSheetData(ef.techSheet, ef as EventFrame),
+            packingList: ef.packingList || undefined // Assegurar que el camp existeixi (serà undefined per a projectes antics)
+          })) 
+        };
         const validationResult = validateData(migratedData);
 
         if (validationResult.isValid) {
@@ -702,6 +716,185 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             state.lastActionDescription = `Has reordenat les actuacions de l'esdeveniment «${eventFrameName}»`;
         });
     },
+
+    // PACKING LIST
+    generatePackingListFromNeeds: (eventFrameId: string) => {
+        const { eventFrames, materialItems } = get();
+        const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
+        
+        if (!eventFrame) {
+            return { success: false, message: 'Esdeveniment no trobat', type: 'error' };
+        }
+
+        const newItems: PackingListItem[] = [];
+        const processedIds = new Set<string>(); // Evitar duplicats dins la mateixa font
+
+        // PAS 1: Recórrer TechSheet
+        if (eventFrame.techSheet) {
+            const techSheet = eventFrame.techSheet;
+            
+            // Seccions amb materialItemId
+            const sections = [
+                { name: 'Il·luminació', data: techSheet.lighting },
+                { name: 'So', data: techSheet.sound },
+                { name: 'Vídeo', data: techSheet.video },
+                { name: 'Maquinària', data: techSheet.machinery },
+                { name: 'Lloguers', data: techSheet.rentals },
+                { name: 'Altres equipaments', data: techSheet.otherEquipment },
+            ];
+
+            sections.forEach(section => {
+                if (section.data?.data?.needs) {
+                    section.data.data.needs.forEach((need: NeedItem) => {
+                        if (need.materialItemId && !processedIds.has(need.materialItemId)) {
+                            const material = materialItems.find(m => m.id === need.materialItemId);
+                            if (material) {
+                                newItems.push({
+                                    id: generateId(),
+                                    materialItemId: need.materialItemId,
+                                    quantity: typeof need.quantity === 'number' ? need.quantity : parseInt(need.quantity) || 1,
+                                    originSource: `Fitxa: ${section.name}`,
+                                    isLoaded: false,
+                                    notes: '' // NeedItem no té camp notes
+                                });
+                                processedIds.add(need.materialItemId);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // PAS 2: Recórrer Performances
+        if (eventFrame.performances) {
+            eventFrame.performances.forEach(performance => {
+                if (performance.techData?.inputList) {
+                    performance.techData.inputList.forEach((input: any) => {
+                        if (input.materialItemId && !processedIds.has(input.materialItemId)) {
+                            const material = materialItems.find(m => m.id === input.materialItemId);
+                            if (material) {
+                                newItems.push({
+                                    id: generateId(),
+                                    materialItemId: input.materialItemId,
+                                    quantity: 1, // InputListItem no té quantity, usem 1 per defecte
+                                    originSource: `Actuació: ${performance.name}`,
+                                    isLoaded: false,
+                                    notes: input.notes || ''
+                                });
+                                processedIds.add(input.materialItemId);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Actualitzar la packing list
+        set((state) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame) {
+                targetFrame.packingList = {
+                    status: 'draft',
+                    lastUpdated: new Date().toISOString(),
+                    items: newItems
+                };
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Generada llista de càrrega amb ${newItems.length} ítems`;
+        });
+
+        return { 
+            success: true, 
+            message: `Llista de càrrega generada amb ${newItems.length} ítems`, 
+            type: 'success',
+            count: newItems.length 
+        };
+    },
+
+    addPackingItem: (eventFrameId: string, item: Omit<PackingListItem, 'id'>) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
+        
+        if (!eventFrame) return null;
+
+        const newItem: PackingListItem = { ...item, id: generateId() };
+        
+        set((state) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame) {
+                if (!targetFrame.packingList) {
+                    targetFrame.packingList = {
+                        status: 'draft',
+                        lastUpdated: new Date().toISOString(),
+                        items: []
+                    };
+                }
+                targetFrame.packingList.items.push(newItem);
+                targetFrame.packingList.lastUpdated = new Date().toISOString();
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Afegit ítem a la llista de càrrega`;
+        });
+
+        return newItem.id;
+    },
+
+    removePackingItem: (eventFrameId: string, itemId: string) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
+        
+        if (!eventFrame?.packingList) return;
+
+        set((state) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame?.packingList) {
+                targetFrame.packingList.items = targetFrame.packingList.items.filter(item => item.id !== itemId);
+                targetFrame.packingList.lastUpdated = new Date().toISOString();
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Eliminat ítem de la llista de càrrega`;
+        });
+    },
+
+    updatePackingItem: (eventFrameId: string, itemId: string, changes: Partial<PackingListItem>) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
+        
+        if (!eventFrame?.packingList) return;
+
+        set((state) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame?.packingList) {
+                const itemIndex = targetFrame.packingList.items.findIndex(item => item.id === itemId);
+                if (itemIndex !== -1) {
+                    Object.assign(targetFrame.packingList.items[itemIndex], changes);
+                    targetFrame.packingList.lastUpdated = new Date().toISOString();
+                }
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Modificat ítem de la llista de càrrega`;
+        });
+    },
+
+    togglePackingItemLoaded: (eventFrameId: string, itemId: string) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find(ef => ef.id === eventFrameId);
+        
+        if (!eventFrame?.packingList) return;
+
+        set((state) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame?.packingList) {
+                const item = targetFrame.packingList.items.find(item => item.id === itemId);
+                if (item) {
+                    item.isLoaded = !item.isLoaded;
+                    targetFrame.packingList.lastUpdated = new Date().toISOString();
+                }
+            }
+            state.hasUnsavedChanges = true;
+            state.lastActionDescription = `Canviat estat de càrrega d'ítem`;
+        });
+    },
     mergePeopleGroups: (newPeople: PersonGroup[]) => {
         const existingNames = new Set(get().peopleGroups.map((p: PersonGroup) => p.name.toLowerCase()));
         const peopleToAdd = newPeople.filter((p: PersonGroup) => !existingNames.has(p.name.toLowerCase()));
@@ -1065,23 +1258,57 @@ export const selectMaterialControlData = (
   }
 
   // 2. Extreu totes les necessitats de material dels esdeveniments rellevants.
+  // NOVA LÒGICA: Prioritzar PackingList sobre TechSheet
   const allNeeds: ({ itemId: string; quantity: number; event: EventFrame })[] = [];
   relevantEvents.forEach(event => {
-    if (!event.techSheet) return;
-    const needsKeys: (keyof TechSheetData)[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
-    needsKeys.forEach(key => {
-      const section = event.techSheet![key];
-      if (section && section.status === 'yes' && 'data' in section && section.data && Array.isArray((section.data as any).needs)) {
-        (section.data as any).needs.forEach((need: NeedItem) => {
-          if (need.materialItemId && need.quantity) {
-            const numericQuantity = Number(need.quantity);
-            if (!isNaN(numericQuantity) && numericQuantity > 0) {
-              allNeeds.push({ itemId: need.materialItemId, quantity: numericQuantity, event });
+    // PAS 1: Si té PackingList, usar només aquesta (prioritat màxima)
+    if (event.packingList && event.packingList.items.length > 0) {
+      event.packingList.items.forEach(item => {
+        if (item.materialItemId) {
+          allNeeds.push({ 
+            itemId: item.materialItemId, 
+            quantity: item.quantity, 
+            event 
+          });
+        }
+      });
+      return; // No processar TechSheet si té PackingList
+    }
+
+    // PAS 2: Si no té PackingList, usar la lògica tradicional (TechSheet + InputList)
+    if (event.techSheet) {
+      const needsKeys: (keyof TechSheetData)[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
+      needsKeys.forEach(key => {
+        const section = event.techSheet![key];
+        if (section && section.status === 'yes' && 'data' in section && section.data && Array.isArray((section.data as any).needs)) {
+          (section.data as any).needs.forEach((need: NeedItem) => {
+            if (need.materialItemId && need.quantity) {
+              const numericQuantity = typeof need.quantity === 'number' ? need.quantity : parseInt(need.quantity) || 1;
+              if (numericQuantity > 0) {
+                allNeeds.push({ itemId: need.materialItemId, quantity: numericQuantity, event });
+              }
             }
-          }
-        });
-      }
-    });
+          });
+        }
+      });
+    }
+
+    // PAS 3: Afegir necessitats de les InputList de performances (mode compatibilitat)
+    if (event.performances) {
+      event.performances.forEach(performance => {
+        if (performance.techData?.inputList) {
+          performance.techData.inputList.forEach((input: any) => {
+            if (input.materialItemId) {
+              allNeeds.push({ 
+                itemId: input.materialItemId, 
+                quantity: 1, // InputListItem no té quantity, usem 1 per defecte
+                event 
+              });
+            }
+          });
+        }
+      });
+    }
   });
 
   // 3. Construeix les files de resultats per a cada ítem de material.

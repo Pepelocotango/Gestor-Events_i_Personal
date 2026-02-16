@@ -45,6 +45,7 @@ const ConfirmRepairModal = lazy(() => import('./components/modals/ConfirmRepairM
 const HistoryModal = lazy(() => import('./components/modals/HistoryModal'));
 const GoogleEventDetailsModal = lazy(() => import('./components/modals/GoogleEventDetailsModal'));
 const PdfPreviewModal = lazy(() => import('./components/modals/PdfPreviewModal'));
+const LogisticsModal = lazy(() => import('./components/modals/LogisticsModal'));
 
 
 import { useRef } from 'react';
@@ -998,6 +999,11 @@ const App: React.FC = () => {
           pdfUrl={data!.pdfUrl!}
           title={data?.titleOverride || 'Vista Prèvia'}
           onSave={data?.onSave}
+        />;
+      case 'logisticsManagement':
+        return <LogisticsModal 
+          onClose={closeModal} 
+          eventFrame={data!.eventFrame!} 
         />;
       default:
         return null;

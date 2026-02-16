@@ -499,6 +499,8 @@ Aquest fitxer és fonamental per a la robustesa del projecte. Defineix totes les
 -   **`Assignment`**: Defineix una assignació de personal. Enllaça un `personGroupId` amb un `eventFrameId` i gestiona l'estat (`status`) i els estats diaris (`dailyStatuses`). S'ha afegit el camp `role?: string` com a font única de veritat per al rol específic d'aquesta assignació, independentment del rol base de la persona.
 -   **`PersonGroup`**: Representa una entrada a l'agenda (una persona, una empresa, etc.).
 -   **`MaterialItem`**: Defineix un article a l'inventari, amb propietats com `stock` i `category`.
+-   **`InputListItem`**: Element de la llista d'inputs tècnics d'una actuació. Conté camps com `micRider`, `micContra`, i el nou camp `materialItemId?: string` per vincular amb un ítem específic de l'inventari.
+-   **`Performance`**: Representa una actuació artística dins d'un esdeveniment. Inclou informació de contacte, horaris, dades tècniques, i el nou camp `linkedPersonGroupId?: string` per vincular amb un contacte de l'agenda.
 -   **`TechSheetData`**: És una de les interfícies més complexes. Modela tota la informació d'una fitxa de bolo. S'han afegit els camps següents per a les notes generals de personal i necessitats tècniques:
     -   `technicalPersonnelNotes?: string`: Notes generals per a la secció de personal tècnic.
     -   `showTechnicalPersonnelNotesInPdf?: boolean`: Controla la visibilitat d'aquestes notes al PDF.
@@ -1840,18 +1842,232 @@ Tots els textos utilitzen claus i18n:
 
 #### Backward Compatibility
 - Les actuacions antigues sense `advancing` s'inicialitzen automàticament
-- Els camps opcionals permeten migració gradual
 
-#### Performance
-- Lazy loading de components pesats
-- Debounce en desats de formularis
-- Selectors optimitzats a l'store
+#### Integració amb EventFrameCard
+- **Botó d'Accés**: Icona de maleta (BriefcaseIcon) al costat dels botons d'editar/esborrar
+- **Tooltip**: "Gestionar logística i fulla de càrrega"
+
+### Internacionalització
+
+Totes les claus de traducció estan sota el namespace `logistics`:
+```typescript
+t('logistics.packing_list_title')
+t('logistics.generate_list')
+t('logistics.manage_tooltip')
+t('logistics.empty_list_error')
+```
+
+### Consideracions Tècniques
+
+#### Robustesa
+- **Gestió d'Errors**: Si un `materialItemId` no existeix a l'inventari, no es trenc la importació
+- **Validació**: Comprova si la llista està buida abans d'exportar PDF
+- **Tipatge Fort**: Conversió segura de `quantity: number|string` a `number`
+
+#### Rendiment
+- **Immutabilitat**: Utilitza `immer` per a les actualitzacions d'estat
+- **Memoització**: Agrupació d'ítems per categoria optimitza el renderitzat
+- **Lazy Loading**: El modal es carrega només quan s'obre
+
+#### UX
+- **Confirmació de Regeneració**: Demana confirmació si la llista no està buida
+- **Feedback Visual**: Notificacions per totes les accions
+- **Estat Visual**: Badges interactius per l'estat de càrrega
+
+### Impacte en el Sistema
+
+#### Centre de Control
+- **Precisió**: Quan es genera la PackingList, el sistema es torna 100% precís
+- **Flexibilitat**: Si no es genera, el sistema continua estimant com abans
+- **Transparència**: L'usuari pot veure exactament què material es carregarà
+
+#### Flux de Treball
+- **Decision Making**: El cap tècnic pot ajustar les quantitats basant-se en la realitat
+- **Comunicació**: El magatzem rep una llista exacta del que s'ha de carregar
+- **Control Qualitat**: Es pot rastrejar l'origen de cada material (Fitxa vs Actuació vs Manual)
+
+### Futur i Extensions
+
+#### Possibles Millores
+- **Integració amb RFID**: Escaneig automàtic de material carregat
+- **Múltiples Packing Lists**: Diferents llistes per a diferents equips/dies
+- **Plantilles**: Templates de PackingList per tipus d'esdeveniments
+- **Anàlisi de Costos**: Càlcul de costos basat en el material real carregat
+
+#### Integració amb Altres Mòduls
+- **Performances**: Les InputList ja aporten material a la PackingList
+- **Tech Sheets**: Les necessitats de material s'importen automàticament
+- **Material Control**: El sistema d'estoc ara prioritza la PackingList
+
+## 12. MÒDUL DE LOGÍSTICA I FULLA DE CÀRREGA (FASE 4)
+
+### Visió General del Mòdul
+
+El mòdul de logística és l'evolució natural del sistema de control d'estoc, passant de les previsions tècniques a la gestió real del material que es carrega al camió. Aquest mòdul estableix la **Fulla de Càrrega (Packing List)** com a **font de veritat prioritària** sobre les fitxes tècniques.
+
+### Canvi de Paradigma: Switch d'Estoc
+
+#### Lògica de Prioritats
+El sistema de control d'estoc ara opera amb una jerarquia de fonts de dades:
+
+1. **PackingList (Prioritat Màxima)**: Si un esdeveniment té una llista de càrrega, el sistema ignora completament les fitxes tècniques i només calcula la demanda basant-se en la PackingList.
+2. **TechSheet + InputList (Mode Compatibilitat)**: Si no hi ha PackingList, el sistema utilitza la lògica tradicional: suma necessitats de les fitxes tècniques I les InputList de les actuacions.
+
+#### Implementació a `selectMaterialControlData`
+```typescript
+// PAS 1: Si té PackingList, usar només aquesta
+if (event.packingList && event.packingList.items.length > 0) {
+  event.packingList.items.forEach(item => {
+    allNeeds.push({ 
+      itemId: item.materialItemId, 
+      quantity: item.quantity, 
+      event 
+    });
+  });
+  return; // No processar TechSheet
+}
+
+// PAS 2: Si no té PackingList, usar la lògica tradicional
+// (continua amb TechSheet + InputList)
+```
+
+### Arquitectura de Dades
+
+#### Model de Dades
+```typescript
+export interface PackingListItem {
+  id: string;
+  materialItemId: string;
+  quantity: number;
+  originSource: string; // "Fitxa: Il·luminació", "Actuació: Banda X", "Manual"
+  isLoaded: boolean;
+  notes?: string;
+}
+
+export interface PackingList {
+  status: 'draft' | 'active' | 'closed';
+  lastUpdated?: string;
+  items: PackingListItem[];
+}
+
+export interface EventFrame {
+  // ... altres camps
+  packingList?: PackingList; // Opcional per retrocompatibilitat
+}
+```
+
+#### Migració i Compatibilitat
+- **Migració Automàtica**: A `loadData()`, s'inicialitza `packingList` com `undefined` per a projectes antics
+- **Retrocompatibilitat**: Projectes sense PackingList continuen funcionant amb la lògica tradicional
+- **Transició Suau**: El canvi és transparent per a l'usuari
+
+### Funcionalitats Clau
+
+#### 1. Generació Intel·ligent
+```typescript
+generatePackingListFromNeeds(eventFrameId: string) {
+  // Recorre TechSheet (Il·luminació, So, Vídeo, Maquinària, etc.)
+  // Recorre Performances (InputList amb materialItemId)
+  // Evita duplicats dins la mateixa font
+  // Preserva l'origen exacte de cada ítem
+}
+```
+
+#### 2. Gestió Manual
+```typescript
+addPackingItem(eventFrameId, item: Omit<PackingListItem, 'id'>);
+removePackingItem(eventFrameId, itemId);
+updatePackingItem(eventFrameId, itemId, changes);
+togglePackingItemLoaded(eventFrameId, itemId);
+```
+
+#### 3. Exportació PDF
+```typescript
+exportPackingListToPdf(eventFrame, materialItems, showToast) {
+  // Títol: "FULLA DE CÀRREGA / PACKING LIST"
+  // Agrupació per categoria
+  // Taula amb checkboxes (☐) per marcar a mà
+  // Resum final amb total i ítems carregats
+}
+```
+
+### Flux de Treball Típic
+
+1. **Importació Automàtica**: L'usuari fa clic a "⚡ Importar de Requeriments"
+2. **Revisió Manual**: Ajusta quantitats, afegeix ítems addicionals
+3. **Control de Carregat**: Marca ítems com "carregats" durant el muntatge
+4. **Impressió PDF**: Genera fulla de càrrega per al magatzem
+5. **Actualització d'Estoc**: El sistema d'estoc reflecteix exactament les decisions logístiques
+
+### Components Principals
+
+#### LogisticsModal.tsx
+- **Capçalera**: Nom esdeveniment, estat, última actualització
+- **Barra d'Eines**: Importar, afegir manual, imprimir
+- **Llista d'Ítems**: Taula amb checkbox, quantitat, nom, origen, notes, accions
+- **Agrupació**: Organitza ítems per categoria (So, Llums, etc.)
+- **Formulari Manual**: Selector de material, quantitat, notes
+
+#### Integració amb EventFrameCard
+- **Botó d'Accés**: Icona de maleta (BriefcaseIcon) al costat dels botons d'editar/esborrar
+- **Tooltip**: "Gestionar logística i fulla de càrrega"
+
+### Internacionalització
+
+Totes les claus de traducció estan sota el namespace `logistics`:
+```typescript
+t('logistics.packing_list_title')
+t('logistics.generate_list')
+t('logistics.manage_tooltip')
+t('logistics.empty_list_error')
+```
+
+### Consideracions Tècniques
+
+#### Robustesa
+- **Gestió d'Errors**: Si un `materialItemId` no existeix a l'inventari, no es trenc la importació
+- **Validació**: Comprova si la llista està buida abans d'exportar PDF
+- **Tipatge Fort**: Conversió segura de `quantity: number|string` a `number`
+
+#### Rendiment
+- **Immutabilitat**: Utilitza `immer` per a les actualitzacions d'estat
+- **Memoització**: Agrupació d'ítems per categoria optimitza el renderitzat
+- **Lazy Loading**: El modal es carrega només quan s'obre
+
+#### UX
+- **Confirmació de Regeneració**: Demana confirmació si la llista no està buida
+- **Feedback Visual**: Notificacions per totes les accions
+- **Estat Visual**: Badges interactius per l'estat de càrrega
+
+### Impacte en el Sistema
+
+#### Centre de Control
+- **Precisió**: Quan es genera la PackingList, el sistema es torna 100% precís
+- **Flexibilitat**: Si no es genera, el sistema continua estimant com abans
+- **Transparència**: L'usuari pot veure exactament què material es carregarà
+
+#### Flux de Treball
+- **Decision Making**: El cap tècnic pot ajustar les quantitats basant-se en la realitat
+- **Comunicació**: El magatzem rep una llista exacta del que s'ha de carregar
+- **Control Qualitat**: Es pot rastrejar l'origen de cada material (Fitxa vs Actuació vs Manual)
+
+### Futur i Extensions
+
+#### Possibles Millores
+- **Integració amb RFID**: Escaneig automàtic de material carregat
+- **Múltiples Packing Lists**: Diferents llistes per a diferents equips/dies
+- **Plantilles**: Templates de PackingList per tipus d'esdeveniments
+- **Anàlisi de Costos**: Càlcul de costos basat en el material real carregat
+
+#### Integració amb Altres Mòduls
+- **Performances**: Les InputList ja aporten material a la PackingList
+- **Tech Sheets**: Les necessitats de material s'importen automàticament
+- **Material Control**: El sistema d'estoc ara prioritza la PackingList
 
 #### UX/UI
 - Indicadors visuals de dades tècniques a la llista
 - Colors consistents amb tema de l'aplicació
 - Tooltips informatius a tots els elements interactius
-
 ### Extensions Futures (Pendents)
 
 #### Integració amb Material

@@ -2,7 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
-import { InputListItem } from '../../types';
+import { InputListItem, MaterialItem } from '../../types';
 import { TrashIcon } from '../../constants';
 
 interface SortableInputRowProps {
@@ -10,6 +10,7 @@ interface SortableInputRowProps {
   onChange: (id: string, field: keyof InputListItem, value: any) => void;
   onRemove: (id: string) => void;
   t: (key: string) => string;
+  materialItems: MaterialItem[];
 }
 
 const SortableInputRow: React.FC<SortableInputRowProps> = ({
@@ -17,6 +18,7 @@ const SortableInputRow: React.FC<SortableInputRowProps> = ({
   onChange,
   onRemove,
   t,
+  materialItems,
 }) => {
   const {
     attributes,
@@ -130,14 +132,40 @@ const SortableInputRow: React.FC<SortableInputRowProps> = ({
 
       {/* Mic (Contra) */}
       <td className="py-2 px-2">
-        <input
-          type="text"
-          value={item.micContra}
-          onChange={(e) => onChange(item.id, 'micContra', e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          placeholder={t('performances.mic_di_placeholder')}
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={item.micContra}
+            onChange={(e) => {
+              const value = e.target.value;
+              onChange(item.id, 'micContra', value);
+              
+              // Si el valor coincideix amb un ítem de l'inventari, guardar l'ID
+              const matchedItem = materialItems.find(mi => 
+                mi.name.toLowerCase() === value.toLowerCase()
+              );
+              if (matchedItem) {
+                onChange(item.id, 'materialItemId', matchedItem.id);
+              } else {
+                onChange(item.id, 'materialItemId', undefined);
+              }
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            list={`material-suggestions-${item.id}`}
+            className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder={t('performances.mic_di_placeholder')}
+          />
+          <datalist id={`material-suggestions-${item.id}`}>
+            {materialItems.map((materialItem) => (
+              <option key={materialItem.id} value={materialItem.name} />
+            ))}
+          </datalist>
+          {item.materialItemId && (
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+              <div className="w-2 h-2 bg-green-500 rounded-full" title={t('performances.linked_to_inventory')} />
+            </div>
+          )}
+        </div>
       </td>
 
       {/* Stand */}

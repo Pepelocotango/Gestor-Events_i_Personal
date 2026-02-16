@@ -1663,3 +1663,178 @@ export const exportPerformanceToPdfWithOptions = async (
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
 };
+
+// --- EXPORTACIÓ DE FULLA DE CÀRREGA ---
+
+export const exportPackingListToPdf = async (
+  eventFrame: EventFrame,
+  materialItems: MaterialItem[],
+  showToast: ShowToastFunction
+) => {
+  try {
+    if (!eventFrame.packingList || eventFrame.packingList.items.length === 0) {
+      showToast(i18next.t('logistics.empty_list_error'), 'warning');
+      return;
+    }
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    // Configuració d'estils
+    const headStyles: Styles = {
+      fillColor: themeHslColors.primary,
+      textColor: themeHslColors.foregroundWhite,
+      fontStyle: 'bold',
+      fontSize: 12,
+    };
+
+    const labelStyles: Styles = {
+      fontStyle: 'bold',
+      fontSize: 10,
+    };
+
+    const normalStyles: Styles = {
+      fontSize: 10,
+    };
+
+    // Funció per obtenir nom del material
+    const getMaterialName = (materialItemId: string): string => {
+      const material = materialItems.find(m => m.id === materialItemId);
+      return material ? material.name : i18next.t('logistics.material_not_found');
+    };
+
+    const getMaterialCategory = (materialItemId: string): string => {
+      const material = materialItems.find(m => m.id === materialItemId);
+      return material ? material.category : i18next.t('logistics.unknown_category');
+    };
+
+    // Capçalera
+    let y = createPdfHeader(pdf, i18next.t('logistics.packing_list_title'));
+    
+    // Informació de l'esdeveniment
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(eventFrame.name, 14, y);
+    y += 8;
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    const eventInfo = `${formatDateDMY(eventFrame.startDate)} - ${eventFrame.place || ''}`;
+    pdf.text(eventInfo, 14, y);
+    y += 8;
+
+    // Estat de la llista
+    const statusText = i18next.t(`logistics.status_${eventFrame.packingList.status}`);
+    pdf.text(`${i18next.t('logistics.status')}: ${statusText}`, 14, y);
+    y += 12;
+
+    // Agrupar ítems per categoria
+    const groupedItems = eventFrame.packingList.items.reduce((groups, item) => {
+      const category = getMaterialCategory(item.materialItemId);
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(item);
+      return groups;
+    }, {} as Record<string, typeof eventFrame.packingList.items>);
+
+    // Generar taula per cada categoria
+    Object.entries(groupedItems).forEach(([category, items]) => {
+      y += 5;
+      
+      // Títol de la categoria
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(category, 14, y);
+      y += 7;
+
+      // Dades de la taula
+      const tableData = items.map(item => [
+        { content: '☐', styles: { fontSize: 12 } }, // Checkbox buit per marcar a mà
+        { content: item.quantity.toString(), styles: normalStyles },
+        { content: getMaterialName(item.materialItemId), styles: normalStyles },
+        { content: item.originSource, styles: normalStyles },
+        { content: item.notes || '', styles: normalStyles },
+        { content: item.isLoaded ? '✓' : '', styles: normalStyles }
+      ]);
+
+      // Capçaleres de la taula
+      const headers = [
+        { content: i18next.t('logistics.loaded'), styles: headStyles },
+        { content: i18next.t('logistics.quantity'), styles: headStyles },
+        { content: i18next.t('logistics.material_name'), styles: headStyles },
+        { content: i18next.t('logistics.origin'), styles: headStyles },
+        { content: i18next.t('logistics.notes'), styles: headStyles },
+        { content: i18next.t('logistics.status'), styles: headStyles }
+      ];
+
+      // Comprovar si hi ha espai suficient
+      if (y > 200) {
+        pdf.addPage();
+        y = 20;
+      }
+
+      // Generar taula
+      autoTable(pdf, {
+        head: [headers],
+        body: tableData,
+        startY: y,
+        theme: 'grid',
+        margin: { left: 14, right: 14 },
+        styles: { 
+          cellPadding: 3,
+          fontSize: 9,
+          lineColor: [200, 200, 200],
+        },
+        headStyles: {
+          fillColor: themeHslColors.primary,
+          textColor: themeHslColors.foregroundWhite,
+          fontStyle: 'bold',
+        },
+        bodyStyles: {
+          fillColor: [255, 255, 255],
+        },
+        alternateRowStyles: {
+          fillColor: [248, 248, 248],
+        },
+        columnStyles: {
+          0: { cellWidth: 15 }, // Checkbox
+          1: { cellWidth: 20 }, // Quantitat
+          2: { cellWidth: 60 }, // Nom material
+          3: { cellWidth: 40 }, // Origen
+          4: { cellWidth: 50 }, // Notes
+          5: { cellWidth: 20 }, // Estat carregat
+        }
+      });
+
+      y = (pdf as any).lastAutoTable.finalY + 10;
+    });
+
+    // Resum final
+    y += 10;
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(i18next.t('logistics.summary'), 14, y);
+    y += 6;
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    const totalItems = eventFrame.packingList.items.length;
+    const loadedItems = eventFrame.packingList.items.filter(item => item.isLoaded).length;
+    const summaryText = `${i18next.t('logistics.total_items')}: ${totalItems} | ${i18next.t('logistics.loaded_items')}: ${loadedItems}`;
+    pdf.text(summaryText, 14, y);
+
+    // Afegir peu de pàgina a totes les pàgines
+    const totalPages = (pdf.internal as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i);
+    }
+
+    // Desar PDF
+    const fileName = `FullaCarrega_${eventFrame.name.replace(/[^a-zA-Z0-9À-ÿ\s]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
+    await savePdfWithDialog(pdf, fileName, showToast);
+
+  } catch (error) {
+    showToast(`Error generant Fulla de Càrrega PDF: ${(error as Error).message}`, 'error');
+  }
+};

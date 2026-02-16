@@ -39,6 +39,13 @@ L'aplicació ofereix les següents eines:
     *   El sistema comprova la disponibilitat de l'estoc en temps real en assignar material a una fitxa de bolo.
     *   **Centre de Control:** Analitza la demanda de material calculant el pic d'ús simultani per dies (demanda concurrent), oferint una previsió d'estoc real.
 
+*   **Logística i Fulla de Càrrega (Escriptori):**
+    *   **Generació Intel·ligent:** Crea llistes de càrrega automàticament des de les fitxes tècniques i actuacions.
+    *   **Gestió Manual:** Permet afegir, editar i eliminar ítems manualment (piles, cinta, etc.).
+    *   **Control de Carregat:** Marca ítems com "carregats" per al seguiment del magatzem.
+    *   **Prioritat de Dades:** El sistema d'estoc prioritza les llistes de càrrega sobre les previsions tècniques.
+    *   **Exportació PDF:** Genera fulls de càrrega professionals amb checkboxes per marcar a mà.
+
 *   **Connectivitat i Gestió de Dades (Escriptori):**
     *   **Format Natiu `.gep`:** L'aplicació utilitza per defecte l'extensió personalitzada **`.gep`** (Gestor Esdeveniments Personal), la qual cosa professionalitza l'eina i permet l'obertura directa de fitxers amb doble clic. Es manté **compatibilitat total** de lectura i escriptura amb arxius `.json` tradicionals.
     *   **Integració amb Google Calendar:** Sincronitza els esdeveniments a **múltiples calendaris** de Google gestionats per l'app i visualitza altres calendaris personals.

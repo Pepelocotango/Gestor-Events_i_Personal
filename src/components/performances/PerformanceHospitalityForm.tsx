@@ -5,7 +5,7 @@ import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
-import { EyeIcon, PdfIcon } from '../../constants';
+import { EyeIcon } from '../../constants';
 import PerformancePdfOptionsModal from './PerformancePdfOptions';
 import { generatePerformanceHospitalityPdfObject, exportPerformanceHospitalityToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
 
@@ -164,15 +164,6 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
           >
             <EyeIcon className="w-4 h-4" />
             {t('performances.preview_hospitality')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('performances.export_hospitality_tooltip')}>
-          <button
-            onClick={handleExportHospitality}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
-          >
-            <PdfIcon className="w-4 h-4" />
-            {t('performances.export_hospitality')}
           </button>
         </Tooltip>
       </div>

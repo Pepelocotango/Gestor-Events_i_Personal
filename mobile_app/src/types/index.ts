@@ -164,9 +164,78 @@ export interface EventFrame {
   lastSync?: string;
   techSheet?: TechSheetData;
   isArchived?: boolean;
+  performances?: Performance[];
+  packingList?: PackingList;
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;
+
+// --- Performance Interfaces ---
+
+export interface PerformanceAdvancing {
+  riderReceived: boolean;
+  counterRiderSent: boolean;
+  schedulesConfirmed: boolean;
+  hospitalityClosed: boolean;
+}
+
+export interface InputListItem {
+  id: string;
+  channel?: string; // Canal de la taula (1, 2, 3...)
+  patchColor?: string; // Color de la mànega (red, blue, etc.)
+  patchNumber?: string; // Número a la mànega
+  label: string; // Instrument
+  micRider: string; // El que demana l'artista (abans micDi)
+  micContra: string; // El que posem nosaltres (NOU)
+  stand: string; // Tipus de peu (NOU)
+  notes: string;
+  materialItemId?: string; // ID de l'ítem de l'inventari vinculat (opcional)
+}
+
+export interface PerformanceTechData {
+  inputList: InputListItem[];
+  lightingNotes: string;
+  videoNotes: string;
+  stageRequirements: string;
+}
+
+export interface PerformanceHospitalityData {
+  dressingRooms: string;
+  cateringNotes: string;
+  dietaryRequirements: string;
+  travelLogistics: string;
+  parkingNotes: string;
+}
+
+export interface Performance {
+  id: string;
+  name: string; // Nom de l'artista/acte
+  type: string; // Música, Teatre, etc.
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  notes: string;
+  color?: string; // Color identificatiu per a l'escaleta (opcional)
+  status: 'pending' | 'confirmed' | 'cancelled';
+  arrivalTime?: string; // Hora d'arribada
+  soundCheckTime?: string; // Hora de soundcheck
+  showTime?: string; // Hora d'actuació
+  departureTime?: string; // Hora de sortida
+  duration?: string; // Durada prevista
+  techData?: PerformanceTechData;
+  hospitalityData?: PerformanceHospitalityData;
+  advancing?: PerformanceAdvancing;
+  linkedPersonGroupId?: string; // ID del contacte de l'agenda vinculat (opcional)
+}
+
+export interface PerformancePdfOptions {
+  includeBasicInfo: boolean;        // Info artista, horaris, contacte
+  includeInputs: boolean;          // Llista d'inputs tècnics
+  includeTechnicalNotes: boolean;  // Notes de llums, vídeo, escenari
+  includeHospitality: boolean;     // Hospitality complet
+  includeGeneralNotes: boolean;    // Notes generals de l'actuació
+  showEmptySections: boolean;      // Mostrar seccions buides amb "-"
+}
 
 export interface MaterialItem {
   id: string;
@@ -188,6 +257,23 @@ export interface MaterialControlRow {
     startDate: string;
     endDate: string;
   }[];
+}
+
+// --- Packing List Interfaces ---
+
+export interface PackingListItem {
+  id: string;             // UUID únic per aquesta línia
+  materialItemId: string; // ID de l'inventari (vincle fort)
+  quantity: number;       // Quantitat real a carregar
+  originSource: string;   // Text informatiu: "Fitxa: So", "Actuació: Banda X", "Manual"
+  isLoaded: boolean;      // Checkbox per marcar quan està al camió
+  notes?: string;         // Notes específiques de logística
+}
+
+export interface PackingList {
+  status: 'draft' | 'active' | 'closed'; // Estat de la llista
+  lastUpdated?: string;   // Data ISO
+  items: PackingListItem[];
 }
 
 export interface MaterialControlFilters {

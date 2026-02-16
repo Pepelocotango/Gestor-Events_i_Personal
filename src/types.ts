@@ -166,6 +166,7 @@ export interface InputListItem {
   micContra: string; // El que posem nosaltres (NOU)
   stand: string; // Tipus de peu (NOU)
   notes: string;
+  materialItemId?: string; // ID de l'ítem de l'inventari vinculat (opcional)
 }
 
 export interface PerformanceTechData {
@@ -201,6 +202,7 @@ export interface Performance {
   techData?: PerformanceTechData;
   hospitalityData?: PerformanceHospitalityData;
   advancing?: PerformanceAdvancing;
+  linkedPersonGroupId?: string; // ID del contacte de l'agenda vinculat (opcional)
 }
 
 export interface PerformancePdfOptions {
@@ -234,6 +236,7 @@ export interface EventFrame {
   techSheet?: TechSheetData;
   isArchived?: boolean;
   performances?: Performance[];
+  packingList?: PackingList;
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;
@@ -258,6 +261,23 @@ export interface MaterialControlRow {
     startDate: string;
     endDate: string;
   }[];
+}
+
+// --- Packing List Interfaces ---
+
+export interface PackingListItem {
+  id: string;             // UUID únic per aquesta línia
+  materialItemId: string; // ID de l'inventari (vincle fort)
+  quantity: number;       // Quantitat real a carregar
+  originSource: string;   // Text informatiu: "Fitxa: So", "Actuació: Banda X", "Manual"
+  isLoaded: boolean;      // Checkbox per marcar quan està al camió
+  notes?: string;         // Notes específiques de logística
+}
+
+export interface PackingList {
+  status: 'draft' | 'active' | 'closed'; // Estat de la llista
+  lastUpdated?: string;   // Data ISO
+  items: PackingListItem[];
 }
 
 export interface ManagedAppCalendar {
@@ -325,6 +345,7 @@ export type ModalType =
   | 'googleEventDetails'
   | 'about'
   | 'pdfPreview'
+  | 'logisticsManagement'
   | null;
 
 export interface ModalData {

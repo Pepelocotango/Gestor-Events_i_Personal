@@ -4,7 +4,7 @@ import logger from '@/utils/logger';
 import { useModalStore } from '@/stores/modalStore';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '@/types';
-import { PersonAddIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, GoogleIcon, RestoreIcon } from '@/constants';
+import { PersonAddIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, GoogleIcon, RestoreIcon, BriefcaseIcon } from '@/constants';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { formatDateRangeDMY } from '@/utils/dateFormat';
 import AssignmentCard from './AssignmentCard';
@@ -142,6 +142,20 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                     aria-label={t('event.edit_tooltip')}
                   >
                     <EditIcon className="w-5 h-5" />
+                  </button>
+                </Tooltip>
+                <Tooltip text={t('logistics.manage_tooltip')}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openModal('logisticsManagement', {
+                        eventFrame
+                      });
+                    }}
+                    className="p-2.5 text-accent-foreground hover:text-accent-foreground/90 rounded-md hover:bg-accent/50 transition-colors"
+                    aria-label={t('logistics.manage_tooltip')}
+                  >
+                    <BriefcaseIcon className="w-5 h-5" />
                   </button>
                 </Tooltip>
                 <Tooltip text={t('event.delete_tooltip')}>

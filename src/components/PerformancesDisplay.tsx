@@ -5,7 +5,7 @@ import { useModalStore } from '../stores/modalStore';
 import { EventFrame, Performance, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
-import { exportEventPerformancesSummaryPdf, generateEventPerformancesPdfObject } from '../utils/pdfGenerator';
+import { exportEventPerformancesSummaryPdf, generateEventPerformancesPdfObject, exportRegidoriaSummaryPdf } from '../utils/pdfGenerator';
 import { PdfIcon, EyeIcon } from '../constants';
 
 const PerformanceList = lazy(() => import('./performances/PerformanceList'));
@@ -116,6 +116,15 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
     exportEventPerformancesSummaryPdf(eventFrame, eventFrame.performances || [], showToast);
   };
 
+  const handleExportRoadbook = () => {
+    if (!selectedEventFrameId) return;
+    
+    const eventFrame = eventFrames.find(ef => ef.id === selectedEventFrameId);
+    if (!eventFrame) return;
+
+    exportRegidoriaSummaryPdf(eventFrame, eventFrame.performances || [], eventFrame.techSheet, showToast);
+  };
+
   const handlePreview = () => {
     if (!selectedEventFrameId) return;
     
@@ -180,10 +189,19 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
                     {t('performances.preview_runsheet')}
                   </button>
                 </Tooltip>
+                <Tooltip text={t('performances.export_roadbook_tooltip')}>
+                  <button
+                    onClick={handleExportRoadbook}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+                  >
+                    <PdfIcon className="w-4 h-4" />
+                    {t('performances.export_roadbook')}
+                  </button>
+                </Tooltip>
                 <Tooltip text={t('performances.export_runsheet_tooltip')}>
                   <button
                     onClick={handleExportEventSummary}
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
                   >
                     <PdfIcon className="w-4 h-4" />
                     {t('performances.export_runsheet')}

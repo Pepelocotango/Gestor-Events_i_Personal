@@ -18,7 +18,7 @@ import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
-import { PlusIcon, EyeIcon, PdfIcon } from '../../constants';
+import { PlusIcon, EyeIcon } from '../../constants';
 import SortableInputRow from './SortableInputRow';
 import PerformancePdfOptionsModal from './PerformancePdfOptions';
 import { generatePerformanceInputsPdfObject, exportPerformanceInputsToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
@@ -37,7 +37,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   showToast,
 }) => {
   const { t } = useTranslation();
-  const { updatePerformance } = useEventDataStore();
+  const { updatePerformance, materialItems } = useEventDataStore();
   const { openModal } = useModalStore();
 
   // Estat local
@@ -238,15 +238,6 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
                   {t('performances.preview_inputs')}
                 </button>
               </Tooltip>
-              <Tooltip text={t('performances.export_inputs_tooltip')}>
-                <button
-                  onClick={handleExportInputs}
-                  className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
-                >
-                  <PdfIcon className="w-4 h-4" />
-                  {t('performances.export_inputs')}
-                </button>
-              </Tooltip>
               <Tooltip text={t('performances.add_input_tooltip')}>
                 <button
                   onClick={addInputItem}
@@ -305,6 +296,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
                         onChange={handleInputChange}
                         onRemove={removeInputItem}
                         t={t}
+                        materialItems={materialItems}
                       />
                     ))}
                   </tbody>
