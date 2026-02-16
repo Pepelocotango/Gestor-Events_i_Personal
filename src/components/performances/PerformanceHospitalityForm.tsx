@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Performance, PerformanceHospitalityData, ShowToastFunction, PerformancePdfOptions } from '../../types';
+import { Performance, PerformanceHospitalityData, ShowToastFunction, type PerformancePdfOptions } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { EyeIcon, PdfIcon } from '../../constants';
-import PerformancePdfOptions from './PerformancePdfOptions';
+import PerformancePdfOptionsModal from './PerformancePdfOptions';
 import { generatePerformanceHospitalityPdfObject, exportPerformanceHospitalityToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
 
 interface PerformanceHospitalityFormProps {
@@ -148,7 +148,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
   return (
     <div className="space-y-6">
       {/* PDF Options */}
-      <PerformancePdfOptions
+      <PerformancePdfOptionsModal
         options={pdfOptions}
         onOptionsChange={setPdfOptions}
         onExport={handleExportCustomPdf}

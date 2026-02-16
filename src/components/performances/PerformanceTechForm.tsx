@@ -13,14 +13,14 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { Performance, InputListItem, PerformanceTechData, ShowToastFunction, PerformancePdfOptions } from '../../types';
+import { Performance, InputListItem, PerformanceTechData, ShowToastFunction, type PerformancePdfOptions } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { PlusIcon, EyeIcon, PdfIcon } from '../../constants';
 import SortableInputRow from './SortableInputRow';
-import PerformancePdfOptions from './PerformancePdfOptions';
+import PerformancePdfOptionsModal from './PerformancePdfOptions';
 import { generatePerformanceInputsPdfObject, exportPerformanceInputsToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
 
 interface PerformanceTechFormProps {
@@ -52,7 +52,6 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   const techDataRef = useRef(techData);
   const isDirtyRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastIdRef = useRef(performance.id);
 
   // Opcions d'exportació PDF
   const [pdfOptions, setPdfOptions] = useState<PerformancePdfOptions>({
@@ -73,6 +72,14 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   const markAsDirty = () => {
     isDirtyRef.current = true;
   };
+
+  // Guardar dades
+  const saveData = useCallback(() => {
+    if (isDirtyRef.current) {
+      updatePerformance(eventFrameId, { ...performance, techData: techDataRef.current });
+      isDirtyRef.current = false;
+    }
+  }, [updatePerformance, eventFrameId, performance]);
 
   // Auto-save amb timeout
   useEffect(() => {
@@ -208,7 +215,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     >
       <div className="space-y-6">
         {/* PDF Options */}
-        <PerformancePdfOptions
+        <PerformancePdfOptionsModal
           options={pdfOptions}
           onOptionsChange={setPdfOptions}
           onExport={handleExportCustomPdf}
