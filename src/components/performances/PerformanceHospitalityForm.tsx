@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Performance, PerformanceHospitalityData, ShowToastFunction } from '../../types';
+import { Performance, PerformanceHospitalityData, ShowToastFunction, PerformancePdfOptions } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { EyeIcon, PdfIcon } from '../../constants';
-import { generatePerformanceHospitalityPdfObject, exportPerformanceHospitalityToPdf } from '../../utils/pdfGenerator';
+import PerformancePdfOptions from './PerformancePdfOptions';
+import { generatePerformanceHospitalityPdfObject, exportPerformanceHospitalityToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
 
 interface PerformanceHospitalityFormProps {
   eventFrameId: string;
@@ -42,6 +43,16 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
 
   // Ref per trackejar l'ID
   const lastIdRef = useRef<string>(performance.id);
+
+  // Opcions d'exportació PDF
+  const [pdfOptions, setPdfOptions] = useState<PerformancePdfOptions>({
+    includeBasicInfo: false,
+    includeInputs: false,
+    includeTechnicalNotes: false,
+    includeHospitality: true,
+    includeGeneralNotes: false,
+    showEmptySections: false,
+  });
 
   // Sincronitzar hospitalityDataRef amb hospitalityData
   useEffect(() => {
@@ -130,8 +141,20 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
     exportPerformanceHospitalityToPdf(performanceWithHospitalityData, eventFrame, showToast);
   };
 
+  const handleExportCustomPdf = () => {
+    exportPerformanceToPdfWithOptions(performance, eventFrame, pdfOptions, showToast);
+  };
+
   return (
     <div className="space-y-6">
+      {/* PDF Options */}
+      <PerformancePdfOptions
+        options={pdfOptions}
+        onOptionsChange={setPdfOptions}
+        onExport={handleExportCustomPdf}
+        disabled={!performance.name}
+      />
+
       {/* Botons d'acció */}
       <div className="flex justify-end gap-2 mb-6">
         <Tooltip text={t('performances.preview_hospitality_tooltip')}>

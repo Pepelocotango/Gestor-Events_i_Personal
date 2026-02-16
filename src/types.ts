@@ -203,6 +203,21 @@ export interface Performance {
   advancing?: PerformanceAdvancing;
 }
 
+export interface PerformancePdfOptions {
+  includeBasicInfo: boolean;        // Info artista, horaris, contacte
+  includeInputs: boolean;          // Llista d'inputs tècnics
+  includeTechnicalNotes: boolean;  // Notes de llums, vídeo, escenari
+  includeHospitality: boolean;     // Hospitality complet
+  includeGeneralNotes: boolean;    // Notes generals de l'actuació
+  showEmptySections: boolean;      // Mostrar seccions buides amb "-"
+}
+
+export interface ValidationResult {
+  errors: string[];
+  warnings: string[];
+  isValid: boolean;
+}
+
 export interface EventFrame {
   id: string;
   name: string;

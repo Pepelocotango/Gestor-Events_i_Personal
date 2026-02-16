@@ -945,7 +945,19 @@
         "add_input_tooltip": "Añadir nuevo input a la lista",
         "tab_basic_tooltip": "Información básica de la actuación",
         "tab_tech_tooltip": "Configuración técnica de inputs y escenario",
-        "tab_hospitality_tooltip": "Requerimientos de hospitalidad y logística"
+        "tab_hospitality_tooltip": "Requerimientos de hospitalidad y logística",
+        "pdf_options_title": "Opciones de Exportación PDF",
+        "include_basic_info": "Información básica",
+        "include_inputs": "Lista de inputs",
+        "include_technical_notes": "Notas técnicas",
+        "include_hospitality": "Hospitalidad",
+        "include_general_notes": "Notas generales",
+        "show_empty_sections": "Mostrar secciones vacías",
+        "export_custom_pdf": "Exportar PDF Personalizado",
+        "pdf_validation_error": "Error de validación: {{message}}",
+        "pdf_validation_warning": "Advertencia: {{message}}",
+        "no_technical_notes": "No hay notas técnicas",
+        "no_hospitality": "No hay datos de hospitalidad"
     },
     "roles": {
         "assembly": {

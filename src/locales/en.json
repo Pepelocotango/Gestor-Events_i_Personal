@@ -941,7 +941,19 @@
         "add_input_tooltip": "Add new input to the list",
         "tab_basic_tooltip": "Basic performance information",
         "tab_tech_tooltip": "Technical configuration of inputs and stage",
-        "tab_hospitality_tooltip": "Hospitality and logistics requirements"
+        "tab_hospitality_tooltip": "Hospitality and logistics requirements",
+        "pdf_options_title": "PDF Export Options",
+        "include_basic_info": "Basic Information",
+        "include_inputs": "Input List",
+        "include_technical_notes": "Technical Notes",
+        "include_hospitality": "Hospitality",
+        "include_general_notes": "General Notes",
+        "show_empty_sections": "Show Empty Sections",
+        "export_custom_pdf": "Export Custom PDF",
+        "pdf_validation_error": "Validation error: {{message}}",
+        "pdf_validation_warning": "Warning: {{message}}",
+        "no_technical_notes": "No technical notes",
+        "no_hospitality": "No hospitality data"
     },
     "roles": {
         "assembly": {

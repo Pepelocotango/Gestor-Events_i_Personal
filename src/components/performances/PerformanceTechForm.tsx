@@ -13,14 +13,15 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { Performance, InputListItem, PerformanceTechData, ShowToastFunction } from '../../types';
+import { Performance, InputListItem, PerformanceTechData, ShowToastFunction, PerformancePdfOptions } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { PlusIcon, EyeIcon, PdfIcon } from '../../constants';
 import SortableInputRow from './SortableInputRow';
-import { generatePerformanceInputsPdfObject, exportPerformanceInputsToPdf } from '../../utils/pdfGenerator';
+import PerformancePdfOptions from './PerformancePdfOptions';
+import { generatePerformanceInputsPdfObject, exportPerformanceInputsToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
 
 interface PerformanceTechFormProps {
   eventFrameId: string;
@@ -37,80 +38,43 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
 }) => {
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
-  const openModal = useModalStore(state => state.openModal);
+  const { openModal } = useModalStore();
 
-  const getInitialTechData = useCallback((): PerformanceTechData => {
-    const techData = performance.techData || {
-      inputList: [],
-      lightingNotes: '',
-      videoNotes: '',
-      stageRequirements: '',
-    };
+  // Estat local
+  const [techData, setTechData] = useState<PerformanceTechData>(() => ({
+    inputList: performance.techData?.inputList || [],
+    lightingNotes: performance.techData?.lightingNotes || '',
+    videoNotes: performance.techData?.videoNotes || '',
+    stageRequirements: performance.techData?.stageRequirements || '',
+  }));
 
-    // Migració de dades: micDi -> micRider
-    const migratedInputList = techData.inputList.map(item => ({
-      ...item,
-      micRider: item.micRider || (item as any).micDi || '',
-      micContra: item.micContra || '',
-      stand: item.stand || '',
-      patchColor: item.patchColor || 'transparent',
-      patchNumber: item.patchNumber || '',
-    }));
-
-    return {
-      ...techData,
-      inputList: migratedInputList,
-    };
-  }, [performance.techData]);
-
-  const [techData, setTechData] = useState<PerformanceTechData>(getInitialTechData());
+  // Refs per dirty checking i sincronització
   const techDataRef = useRef(techData);
   const isDirtyRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastIdRef = useRef(performance.id);
 
-  // Ref per trackejar l'ID
-  const lastIdRef = useRef<string>(performance.id);
+  // Opcions d'exportació PDF
+  const [pdfOptions, setPdfOptions] = useState<PerformancePdfOptions>({
+    includeBasicInfo: true,
+    includeInputs: true,
+    includeTechnicalNotes: true,
+    includeHospitality: false,
+    includeGeneralNotes: false,
+    showEmptySections: false,
+  });
 
-  // Sincronitzar techDataRef amb techData
+  // Actualitzar ref quan techData canvia
   useEffect(() => {
     techDataRef.current = techData;
   }, [techData]);
 
-  // Guarda de seguretat: useEffect de sincronització
-  useEffect(() => {
-    // CAS A: Canvi d'artista
-    if (performance.id !== lastIdRef.current) {
-      lastIdRef.current = performance.id;
-      setTechData(getInitialTechData());
-      return;
-    }
-
-    // CAS B: Mateix artista, formulari dirty - NO actualitzar
-    if (isDirtyRef.current) {
-      return;
-    }
-
-    // CAS C: Mateix artista, no dirty, dades diferents - SÍ actualitzar
-    if (JSON.stringify(techData) !== JSON.stringify(getInitialTechData())) {
-      setTechData(getInitialTechData());
-    }
-  }, [performance.id, performance.techData, getInitialTechData, techData]);
-
+  // Marcar com a dirty
   const markAsDirty = () => {
     isDirtyRef.current = true;
   };
 
-  const saveData = useCallback(() => {
-    if (isDirtyRef.current) {
-      updatePerformance(eventFrameId, {
-        ...performance,
-        techData: techDataRef.current,
-      });
-      isDirtyRef.current = false;
-    }
-  }, [updatePerformance, eventFrameId, performance]);
-
-  // Auto-save
+  // Auto-save amb timeout
   useEffect(() => {
     if (isDirtyRef.current) {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -232,6 +196,10 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     exportPerformanceInputsToPdf(performanceWithTechData, eventFrame, showToast);
   };
 
+  const handleExportCustomPdf = () => {
+    exportPerformanceToPdfWithOptions(performance, eventFrame, pdfOptions, showToast);
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -239,6 +207,14 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
       onDragEnd={handleDragEnd}
     >
       <div className="space-y-6">
+        {/* PDF Options */}
+        <PerformancePdfOptions
+          options={pdfOptions}
+          onOptionsChange={setPdfOptions}
+          onExport={handleExportCustomPdf}
+          disabled={!performance.name}
+        />
+
         {/* Input List */}
         <div>
           <div className="flex justify-between items-center mb-4">

@@ -942,7 +942,19 @@
         "add_input_tooltip": "Afegir nou input a la llista",
         "tab_basic_tooltip": "Informació bàsica de l'actuació",
         "tab_tech_tooltip": "Configuració tècnica d'inputs i escenari",
-        "tab_hospitality_tooltip": "Requeriments d'hospitalitat i logística"
+        "tab_hospitality_tooltip": "Requeriments d'hospitalitat i logística",
+        "pdf_options_title": "Opcions d'Exportació PDF",
+        "include_basic_info": "Informació bàsica",
+        "include_inputs": "Llista d'inputs",
+        "include_technical_notes": "Notes tècniques",
+        "include_hospitality": "Hospitalitat",
+        "include_general_notes": "Notes generals",
+        "show_empty_sections": "Mostrar seccions buides",
+        "export_custom_pdf": "Exportar PDF Personalitzat",
+        "pdf_validation_error": "Error de validació: {{message}}",
+        "pdf_validation_warning": "Advertència: {{message}}",
+        "no_technical_notes": "No hi ha notes tècniques",
+        "no_hospitality": "No hi ha dades d'hospitalitat"
     },
     "roles": {
         "assembly": {
