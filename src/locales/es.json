@@ -942,10 +942,13 @@
         "video_notes": "Notas de Vídeo",
         "video_notes_placeholder": "Introduce las notas de vídeo...",
         "video_notes_tooltip": "Requerimientos de vídeo",
+<<<<<<< /home/peplx/GitHub/GEP/Gestor-Events_i_Personal/src/locales/es.json
         "add_input_tooltip": "Añadir nuevo input a la lista",
         "tab_basic_tooltip": "Información básica de la actuación",
         "tab_tech_tooltip": "Configuración técnica de inputs y escenario",
         "tab_hospitality_tooltip": "Requerimientos de hospitalidad y logística",
+=======
+>>>>>>> /home/peplx/.windsurf/worktrees/Gestor-Events_i_Personal/Gestor-Events_i_Personal-70f58ce6/src/locales/es.json
         "pdf_options_title": "Opciones de Exportación PDF",
         "include_basic_info": "Información básica",
         "include_inputs": "Lista de inputs",

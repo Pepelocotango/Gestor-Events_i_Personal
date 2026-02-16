@@ -1594,6 +1594,7 @@ const extractRegidoriaNotes = (performance: Performance): string => {
   return notes.join(' | ');
 };
 
+<<<<<<< /home/peplx/GitHub/GEP/Gestor-Events_i_Personal/src/utils/pdfGenerator.ts
 // --- EXPORTACIÓ D'ACTUACIONS (WRAPPER PER COMPATIBILITAT) ---
 
 export const exportPerformanceToPdf = async (
@@ -1613,6 +1614,111 @@ export const exportPerformanceToPdf = async (
   };
   
   return exportPerformanceToPdfWithOptions(performance, eventFrame, defaultOptions, showToast);
+=======
+// --- VALIDACIÓ DE DADES D'ACTUACIONS ---
+
+const validatePerformanceData = (performance: Performance): ValidationResult => {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  
+  // Validar camps obligatoris
+  if (!performance.name?.trim()) {
+    errors.push(i18next.t('performances.pdf_validation_error', { message: "El nom de l'actuació és obligatori" }));
+  }
+  
+  // Validar formats
+  if (performance.contactEmail && performance.contactEmail.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(performance.contactEmail)) {
+      warnings.push(i18next.t('performances.pdf_validation_warning', { message: "Format d'email invàlid" }));
+    }
+  }
+  
+  // Validar telèfon
+  if (performance.contactPhone && performance.contactPhone.trim()) {
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]+$/;
+    if (!phoneRegex.test(performance.contactPhone)) {
+      warnings.push(i18next.t('performances.pdf_validation_warning', { message: "Format de telèfon invàlid" }));
+    }
+  }
+  
+  // Validar horaris
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  const timeFields = [
+    { field: 'arrivalTime', label: "hora d'arribada" },
+    { field: 'soundCheckTime', label: "hora de soundcheck" },
+    { field: 'showTime', label: "hora d'actuació" },
+    { field: 'departureTime', label: "hora de sortida" }
+  ];
+  
+  timeFields.forEach(({ field, label }) => {
+    const value = performance[field as keyof Performance];
+    if (value && !timeRegex.test(value as string)) {
+      warnings.push(i18next.t('performances.pdf_validation_warning', { message: `Format de ${label} invàlid (HH:MM)` }));
+    }
+  });
+  
+  return { errors, warnings, isValid: errors.length === 0 };
+};
+
+// --- ESTILS ENRIQUITS PER A ACTUACIONS ---
+
+const getPerformanceStyles = () => {
+  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+  
+  const headStyles: Partial<Styles> = { 
+    fillColor: hslToRgb(...themeHslColors.primary), 
+    textColor: hslToRgb(...themeHslColors.foregroundWhite), 
+    fontStyle: 'bold' 
+  };
+  
+  const labelStyles: Partial<Styles> = { 
+    fillColor: hslToRgb(...themeHslColors.grayMuted), 
+    textColor: hslToRgb(...themeHslColors.foreground), 
+    fontStyle: 'bold', 
+    cellWidth: 50 
+  };
+  
+  const subHeadStyles: Partial<Styles> = { 
+    fillColor: hslToRgb(...themeHslColors.graySubtle), 
+    textColor: hslToRgb(...themeHslColors.foreground), 
+    fontStyle: 'bold' 
+  };
+  
+  const emptySectionStyles: Partial<Styles> = { 
+    fontStyle: 'italic', 
+    textColor: hslToRgb(...themeHslColors.grayMuted) 
+  };
+  
+  const inputColumnStyles = {
+    0: { cellWidth: 15 },  // Patch
+    1: { cellWidth: 12 },  // Channel
+    2: { cellWidth: 'auto' }, // Label
+    3: { cellWidth: 20 },  // Mic Rider
+    4: { cellWidth: 20 },  // Mic Contra
+    5: { cellWidth: 15 },  // Stand
+    6: { cellWidth: 'auto' }  // Notes
+  };
+  
+  return {
+    sane,
+    headStyles,
+    labelStyles,
+    subHeadStyles,
+    emptySectionStyles,
+    inputColumnStyles
+  };
+};
+
+// --- CONTROL DE SALTS DE PÀGINA ---
+
+const checkPageBreak = (pdf: jsPDF, currentY: number, requiredHeight: number = 20): number => {
+  if (currentY > 280 - requiredHeight) {
+    pdf.addPage();
+    return 10;
+  }
+  return currentY;
+>>>>>>> /home/peplx/.windsurf/worktrees/Gestor-Events_i_Personal/Gestor-Events_i_Personal-70f58ce6/src/utils/pdfGenerator.ts
 };
 
 // --- EXPORTACIÓ D'ACTUACIONS AMB OPCIONS ---
@@ -1769,7 +1875,11 @@ export const exportPerformanceToPdfWithOptions = async (
         y = checkPageBreak(pdf, y, 20);
         autoTable(pdf, {
           head: [[{ content: i18next.t('pdf.technical_notes'), styles: headStyles }]],
+<<<<<<< /home/peplx/GitHub/GEP/Gestor-Events_i_Personal/src/utils/pdfGenerator.ts
           body: [[{ content: i18next.t('pdf.no_technical_notes'), styles: emptySectionStyles }]],
+=======
+          body: [[{ content: i18next.t('performances.no_technical_notes'), styles: emptySectionStyles }]],
+>>>>>>> /home/peplx/.windsurf/worktrees/Gestor-Events_i_Personal/Gestor-Events_i_Personal-70f58ce6/src/utils/pdfGenerator.ts
           startY: y,
           theme: 'grid',
           margin: { left: 10, right: 10 },
@@ -1813,7 +1923,11 @@ export const exportPerformanceToPdfWithOptions = async (
         y = checkPageBreak(pdf, y, 20);
         autoTable(pdf, {
           head: [[{ content: i18next.t('pdf.hospitality'), styles: headStyles }]],
+<<<<<<< /home/peplx/GitHub/GEP/Gestor-Events_i_Personal/src/utils/pdfGenerator.ts
           body: [[{ content: i18next.t('pdf.no_hospitality'), styles: emptySectionStyles }]],
+=======
+          body: [[{ content: i18next.t('performances.no_hospitality'), styles: emptySectionStyles }]],
+>>>>>>> /home/peplx/.windsurf/worktrees/Gestor-Events_i_Personal/Gestor-Events_i_Personal-70f58ce6/src/utils/pdfGenerator.ts
           startY: y,
           theme: 'grid',
           margin: { left: 10, right: 10 },
