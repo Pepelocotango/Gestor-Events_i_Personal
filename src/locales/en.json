@@ -950,6 +950,8 @@
         "include_general_notes": "General Notes",
         "show_empty_sections": "Show Empty Sections",
         "export_custom_pdf": "Export Custom PDF",
+        "save": "Save",
+        "save_changes": "Save Changes",
         "pdf_validation_error": "Validation error: {{message}}",
         "pdf_validation_warning": "Warning: {{message}}",
         "no_technical_notes": "No technical notes",

@@ -951,6 +951,8 @@
         "include_general_notes": "Notes generals",
         "show_empty_sections": "Mostrar seccions buides",
         "export_custom_pdf": "Exportar PDF Personalitzat",
+        "save": "Desar",
+        "save_changes": "Desar Canvis",
         "pdf_validation_error": "Error de validació: {{message}}",
         "pdf_validation_warning": "Advertència: {{message}}",
         "no_technical_notes": "No hi ha notes tècniques",

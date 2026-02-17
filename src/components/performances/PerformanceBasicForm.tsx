@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { formatTimeHHMM } from '../../utils/dateFormat';
 import Tooltip from '../ui/Tooltip';
+import { useBufferedSave } from '../../hooks/useBufferedSave';
 
 interface PerformanceBasicFormProps {
   eventFrameId: string;
@@ -19,7 +20,7 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
 
-  const getInitialPerformanceData = useCallback((): Performance => {
+  const initialPerformanceData = useMemo((): Performance => {
     return {
       id: performance.id,
       name: performance.name || '',
@@ -36,12 +37,19 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
       showTime: performance.showTime,
       departureTime: performance.departureTime,
     };
-  }, [performance.id, performance.name, performance.type, performance.contactName, performance.contactPhone, performance.contactEmail, performance.notes, performance.status, performance.duration, performance.color, performance.arrivalTime, performance.soundCheckTime, performance.showTime, performance.departureTime]);
+  }, [performance]);
 
-  const [formData, setFormData] = useState<Performance>(getInitialPerformanceData());
-  const formDataRef = useRef(formData);
-  const isDirtyRef = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const {
+    localData: formData,
+    updateLocal,
+    saveNow,
+    isDirty
+  } = useBufferedSave(initialPerformanceData, (data, isManual) => {
+    updatePerformance(eventFrameId, data);
+    if (isManual) {
+      showToast(t('performances.save_success'), 'success');
+    }
+  });
 
   const PERFORMANCE_TYPES: Array<{key: string; label: string}> = [
     { key: 'music', label: t('performances.types.music') },
@@ -53,74 +61,8 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
     { key: 'other', label: t('performances.types.other') }
   ];
 
-  // Ref per trackejar l'ID
-  const lastIdRef = useRef<string>(performance.id);
-
-  // Sincronitzar formDataRef amb formData
-  useEffect(() => {
-    formDataRef.current = formData;
-  }, [formData]);
-
-  // Guarda de seguretat: useEffect de sincronització
-  useEffect(() => {
-    // CAS A: Canvi d'artista
-    if (performance.id !== lastIdRef.current) {
-      lastIdRef.current = performance.id;
-      setFormData(getInitialPerformanceData());
-      return;
-    }
-
-    // CAS B: Mateix artista, formulari dirty - NO actualitzar
-    if (isDirtyRef.current) {
-      return;
-    }
-
-    // CAS C: Mateix artista, no dirty, dades diferents - SÍ actualitzar
-    if (JSON.stringify(formData) !== JSON.stringify(getInitialPerformanceData())) {
-      setFormData(getInitialPerformanceData());
-    }
-  }, [performance.id, performance, getInitialPerformanceData, formData]);
-
-  const markAsDirty = () => {
-    isDirtyRef.current = true;
-  };
-
-  const saveData = useCallback((isManualSave = false) => {
-    if (isDirtyRef.current) {
-      updatePerformance(eventFrameId, formDataRef.current);
-      if (isManualSave) {
-        showToast(t('performances.save_success'), 'success');
-      }
-      isDirtyRef.current = false;
-    }
-  }, [updatePerformance, eventFrameId, showToast, t]);
-
-  // Auto-save
-  useEffect(() => {
-    if (isDirtyRef.current) {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
-    }
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [formData, saveData]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (isDirtyRef.current) saveData();
-    };
-  }, [saveData]);
-
   const handleFieldChange = (field: keyof Performance, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    markAsDirty();
-  };
-
-  const handleBlur = () => {
-    saveData(true);
+    updateLocal({ [field]: value });
   };
 
   return (
@@ -141,7 +83,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               type="text"
               value={formData.name}
               onChange={(e) => handleFieldChange('name', e.target.value)}
-              onBlur={handleBlur}
               className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.name_placeholder')}
             />
@@ -157,7 +98,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               <select
                 value={formData.type}
                 onChange={(e) => handleFieldChange('type', e.target.value)}
-                onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               >
                 <option value="">{t('performances.select_type')}</option>
@@ -176,7 +116,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               <select
                 value={formData.status}
                 onChange={(e) => handleFieldChange('status', e.target.value as 'pending' | 'confirmed' | 'cancelled')}
-                onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               >
                 <option value="pending">{t('performances.status.pending')}</option>
@@ -205,7 +144,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 type="time"
                 value={formatTimeHHMM(formData.arrivalTime || '')}
                 onChange={(e) => handleFieldChange('arrivalTime', e.target.value)}
-                onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
             </div>
@@ -220,7 +158,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 type="time"
                 value={formatTimeHHMM(formData.soundCheckTime || '')}
                 onChange={(e) => handleFieldChange('soundCheckTime', e.target.value)}
-                onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
             </div>
@@ -235,7 +172,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 type="time"
                 value={formatTimeHHMM(formData.showTime || '')}
                 onChange={(e) => handleFieldChange('showTime', e.target.value)}
-                onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
             </div>
@@ -250,7 +186,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 type="time"
                 value={formatTimeHHMM(formData.departureTime || '')}
                 onChange={(e) => handleFieldChange('departureTime', e.target.value)}
-                onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               />
             </div>
@@ -266,7 +201,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               type="text"
               value={formData.duration || ''}
               onChange={(e) => handleFieldChange('duration', e.target.value)}
-              onBlur={handleBlur}
               className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.duration_placeholder')}
             />
@@ -290,7 +224,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
               type="text"
               value={formData.contactName}
               onChange={(e) => handleFieldChange('contactName', e.target.value)}
-              onBlur={handleBlur}
               className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
               placeholder={t('performances.contact_name_placeholder')}
             />
@@ -307,7 +240,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 type="tel"
                 value={formData.contactPhone}
                 onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
-                onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
                 placeholder={t('performances.contact_phone_placeholder')}
               />
@@ -323,7 +255,6 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 type="email"
                 value={formData.contactEmail}
                 onChange={(e) => handleFieldChange('contactEmail', e.target.value)}
-                onBlur={handleBlur}
                 className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
                 placeholder={t('performances.contact_email_placeholder')}
               />
@@ -346,12 +277,26 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
           <textarea
             value={formData.notes}
             onChange={(e) => handleFieldChange('notes', e.target.value)}
-            onBlur={handleBlur}
             rows={4}
             className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-vertical"
             placeholder={t('performances.notes_placeholder')}
           />
         </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end pt-6 border-t border-border">
+        <button
+          onClick={saveNow}
+          disabled={!isDirty}
+          className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
+            isDirty
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70'
+          }`}
+        >
+          {isDirty ? t('performances.save_changes') : t('performances.save')}
+        </button>
       </div>
     </div>
   );

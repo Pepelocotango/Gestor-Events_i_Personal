@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance, PerformanceHospitalityData, ShowToastFunction, type PerformancePdfOptions } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
@@ -8,6 +8,7 @@ import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { EyeIcon, PdfIcon } from '../../constants';
 import PerformancePdfOptionsModal from './PerformancePdfOptions';
 import { generatePerformanceHospitalityPdfObject, exportPerformanceHospitalityToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
+import { useBufferedSave } from '../../hooks/useBufferedSave';
 
 interface PerformanceHospitalityFormProps {
   eventFrameId: string;
@@ -26,7 +27,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
   const { updatePerformance } = useEventDataStore();
   const openModal = useModalStore(state => state.openModal);
 
-  const getInitialHospitalityData = useCallback((): PerformanceHospitalityData => {
+  const initialHospitalityData = useMemo((): PerformanceHospitalityData => {
     return performance.hospitalityData || {
       dressingRooms: '',
       cateringNotes: '',
@@ -36,13 +37,20 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
     };
   }, [performance.hospitalityData]);
 
-  const [hospitalityData, setHospitalityData] = useState<PerformanceHospitalityData>(getInitialHospitalityData());
-  const hospitalityDataRef = useRef(hospitalityData);
-  const isDirtyRef = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Ref per trackejar l'ID
-  const lastIdRef = useRef<string>(performance.id);
+  const {
+    localData: hospitalityData,
+    updateLocal,
+    saveNow,
+    isDirty
+  } = useBufferedSave(initialHospitalityData, (data, isManual) => {
+    updatePerformance(eventFrameId, {
+      ...performance,
+      hospitalityData: data,
+    });
+    if (isManual) {
+      showToast(t('performances.save_success'), 'success');
+    }
+  });
 
   // Opcions d'exportació PDF
   const [pdfOptions, setPdfOptions] = useState<PerformancePdfOptions>({
@@ -54,73 +62,14 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
     showEmptySections: false,
   });
 
-  // Sincronitzar hospitalityDataRef amb hospitalityData
-  useEffect(() => {
-    hospitalityDataRef.current = hospitalityData;
-  }, [hospitalityData]);
-
-  // Guarda de seguretat: useEffect de sincronització
-  useEffect(() => {
-    // CAS A: Canvi d'artista
-    if (performance.id !== lastIdRef.current) {
-      lastIdRef.current = performance.id;
-      setHospitalityData(getInitialHospitalityData());
-      return;
-    }
-
-    // CAS B: Mateix artista, formulari dirty - NO actualitzar
-    if (isDirtyRef.current) {
-      return;
-    }
-
-    // CAS C: Mateix artista, no dirty, dades diferents - SÍ actualitzar
-    if (JSON.stringify(hospitalityData) !== JSON.stringify(getInitialHospitalityData())) {
-      setHospitalityData(getInitialHospitalityData());
-    }
-  }, [performance.id, performance.hospitalityData, getInitialHospitalityData, hospitalityData]);
-
-  const markAsDirty = () => {
-    isDirtyRef.current = true;
-  };
-
-  const saveData = useCallback(() => {
-    if (isDirtyRef.current) {
-      updatePerformance(eventFrameId, {
-        ...performance,
-        hospitalityData: hospitalityDataRef.current,
-      });
-      isDirtyRef.current = false;
-    }
-  }, [updatePerformance, eventFrameId, performance]);
-
-  // Auto-save
-  useEffect(() => {
-    if (isDirtyRef.current) {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
-    }
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [hospitalityData, saveData]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (isDirtyRef.current) saveData();
-    };
-  }, [saveData]);
-
   const handleFieldChange = (field: keyof PerformanceHospitalityData, value: any) => {
-    setHospitalityData(prev => ({ ...prev, [field]: value }));
-    markAsDirty();
+    updateLocal({ [field]: value });
   };
 
   const handlePreviewHospitality = () => {
     const performanceWithHospitalityData = {
       ...performance,
-      hospitalityData: hospitalityDataRef.current
+      hospitalityData: hospitalityData
     };
     const doc = generatePerformanceHospitalityPdfObject(performanceWithHospitalityData, eventFrame);
     const pdfBlob = doc.output('blob');
@@ -136,7 +85,7 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
   const handleExportHospitality = () => {
     const performanceWithHospitalityData = {
       ...performance,
-      hospitalityData: hospitalityDataRef.current
+      hospitalityData: hospitalityData
     };
     exportPerformanceHospitalityToPdf(performanceWithHospitalityData, eventFrame, showToast);
   };
@@ -250,6 +199,21 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
           placeholder={t('performances.parking_placeholder')}
         />
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end pt-6 border-t border-border">
+        <button
+          onClick={saveNow}
+          disabled={!isDirty}
+          className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
+            isDirty
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70'
+          }`}
+        >
+          {isDirty ? t('performances.save_changes') : t('performances.save')}
+        </button>
       </div>
     </div>
   );
