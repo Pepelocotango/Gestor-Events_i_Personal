@@ -30,12 +30,19 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │       ├── grid.svg               # Patró de fons per al disseny
 │   │   │       └── under-construction.png # Imatge de construcció per a seccions en desenvolupament
 │   │   ├── src/
-│   │   │   ├── components/       # Components reutilitzables d'Astro
-│   │   │   │   ├── Download.astro  # Secció de descàrregues per a diferents plataformes
-│   │   │   │   ├── Features.astro  # Secció de funcionalitats amb targetes il·lustrades
-│   │   │   │   ├── Gallery.astro   # Galeria d'imatges de l'aplicació
-│   │   │   │   ├── Hero.astro      # Secció hero amb títol, subtítol i CTA principal
-│   │   │   │   └── Nav.astro       # Barra de navegació superior amb mode fosc/il·luminat
+│   │   │   ├── components/       # Components reutilitzables d'Astro i React
+│   │   │   ├── Download.astro        # Secció de descàrregues per a diferents plataformes
+│   │   │   ├── Features.astro        # Secció de funcionalitats amb targetes il·lustrades
+│   │   │   ├── Gallery.astro         # Galeria d'imatges de l'aplicació
+│   │   │   ├── Hero.astro            # Secció hero amb títol, subtítol i CTA principal
+│   │   │   ├── Nav.astro             # Barra de navegació superior amb mode fosc/il·luminat
+│   │   │   ├── GithubReleases.tsx    # Component React que obté i mostra els releases de GitHub per a les descàrregues.
+│   │   │   ├── ProductTour.tsx       # Tour guiat interactiu del producte per als visitants de la web.
+│   │   │   ├── ImageCarousel.tsx     # Galeria d'imatges amb carrusel interactiu.
+│   │   │   ├── ImageCarouselI18n.tsx # Variant del carrusel amb suport d'internacionalització.
+│   │   │   ├── AnimatedSplash.tsx    # Animació de splash per a la pàgina web.
+│   │   │   ├── LanguageSelector.astro # Selector d'idioma en format Astro per a la navegació web.
+│   │   │   └── LanguageSelector.tsx  # Selector d'idioma en format React per a la web.
 │   │   │   ├── layouts/          # Plantilles de disseny
 │   │   │   │   └── Layout.astro   # Plantilla base de la pàgina amb metaetiquetes i estils globals
 │   │   │   ├── pages/            # Pàgines de l'aplicació (genera rutes automàtiques)
@@ -177,6 +184,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── PerformanceList.tsx             # Llista d'actuacions amb indicadors visuals de dades tècniques.
 │   │   │   ├── PerformanceTechForm.tsx         # Formulari tècnic (input list, llums, vídeo, escenari).
 │   │   │   ├── SortableInputRow.tsx            # Fila ordenable per a l'input list tècnic.
+│   │   │   ├── PerformancePdfOptions.tsx        # Modal d'opcions de configuració per a l'exportació PDF d'actuacions (selecció de seccions a incloure).
 │   │   │   └── SortablePerformance.tsx         # Component individual d'actuació amb drag-and-drop.
 │   │   ├── tech_sheets/          # Components específics per a la gestió de les Fitxes de Bolo.
 │   │   │   ├── ConditionalFormControl.tsx      # Component UI per a seccions que es mostren condicionalment (SI/NO).
@@ -196,14 +204,20 @@ enllaç a Gestor-Events_i_Personal/
 │   │       ├── Tooltip.tsx                     # Component per a missatges d'ajuda emergents (usa Portals).
 │   │       └── WelcomeScreen.tsx               # Pantalla de benvinguda per a la gestió de documents.
 │   │   ├── AssignmentCard.tsx      # Renderitza una assignació individual dins d'un esdeveniment. Inclou un botó explícit "Mostrar"/"Ocultar" per a l'expansió. [REFACTORITZAT: usa eventDataStore]
-│   │   ├── Controls.tsx            # Barra de controls superior (desar, carregar, tema, etc.). [REFACTORITZAT: usa stores]
+│   │   ├── Controls.tsx            # Component dedicat exclusivament a la integració amb Google Calendar i a mostrar la ruta del fitxer actual. Les funcions de desar/carregar s'han traslladat al CustomMenuBar.
 │   │   ├── ErrorBoundary.tsx       # Component de React per capturar errors de renderitzat i evitar que l'app es trenqui.
 │   │   ├── EventFrameCard.tsx      # Renderitza una targeta per a un esdeveniment marc a la llista. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── MainDisplay.tsx         # Vista principal. Gestiona la detecció de conflictes en modificar estats. [REFACTORITZAT: usa stores]
 │   │   ├── MaterialDisplay.tsx     # Vista per a la gestió de l'inventari de material. [REFACTORITZAT: usa MaterialForm]
+│   │   ├── MaterialControlCenter.tsx # Contenidor principal del Centre de Control de Material. Orquestra els filtres, la taula i les exportacions.
+│   │   ├── MaterialControlTable.tsx  # Taula de resultats del Centre de Control amb ordenació jeràrquica per categoria/origen/nom.
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
+│   │   ├── LanguageSelector.tsx    # Selector d'idioma (CA/ES/EN) amb persistència a localStorage i detecció automàtica.
+│   │   ├── I18nProvider.tsx        # Proveïdor de context d'internacionalització (react-i18next) per a l'aplicació.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. Accedeix a peopleGroups via selector reactiu i usa getState() per a les accions. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── PerformancesDisplay.tsx # !! NOVA VISTA !! Gestor d'actuacions artístiques amb control d'avançament, formularis tècnics/hospitalitat, i exportació PDF (FASE 4).
+│   │   ├── SummariesDisplay.tsx    # Vista contenidora de la secció Resums (ruta /summaries). Envolta SummaryReports amb el layout de la vista.
+│   │   ├── SummarySection.tsx      # Component auxiliar per a la renderització de seccions individuals dins dels resums.
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades. [REFACTORITZAT: usa eventDataStore]
 │   │   └── TechSheetsDisplay.tsx   # Vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
 │   ├── stores/                 # Gestors d'estat global (Zustand).

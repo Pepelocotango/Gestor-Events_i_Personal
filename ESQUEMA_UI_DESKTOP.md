@@ -228,14 +228,15 @@ Formulari amb informació essencial de l'actuació:
 - **Contingut**: Tota la informació de l'actuació (bàsic, tècnic, hospitality)
 - **Format**: PDF professional amb capçaleres i taules formatades
 
-#### Full de Ruta del Regidor
-- **Botó "Exportar Full de Ruta del Regidor"**: Disponible a la vista principal
-- **Contingut**: Escaleta combinada amb horaris generals + actuacions
-- **Característiques**:
-  - Horaris generals de la fitxa de bolo
+#### Full de Ruta del Regidor ⚠️ PENDENT D'IMPLEMENTACIÓ A LA UI
+- **Estat**: La funció `exportRegidoriaSummaryPdf()` **existeix a `pdfGenerator.ts`** però **no està accessible des de la interfície** (no hi ha cap botó que la cridi).
+- **Contingut previst**: Escaleta combinada amb horaris generals de la fitxa de bolo + horaris d'actuacions
+- **Característiques previstes**:
+  - Horaris generals de la fitxa de bolo (`techSheetData.schedule`)
   - Horaris d'actuacions amb prefixos [ARRIBADA], [PROVES], [SHOW]
   - Notes crítiques de regidoria extretes automàticament
   - Ordenació cronològica per prioritat i hora
+- **Per implementar**: Cal afegir un botó a `PerformancesDisplay` que passi `techSheetData` i cridi `exportRegidoriaSummaryPdf(eventFrame, performances, techSheetData, showToast)`.
 
 ### 8.8. Interaccions i UX
 
@@ -260,6 +261,6 @@ Formulari amb informació essencial de l'actuació:
 2. **Creació d'Actuacions**: Afegir actuacions amb informació bàsica
 3. **Control d'Avançament**: Marcar progrés amb els badges interactius
 4. **Compleció de Dades**: Omplir formularis tècnics i d'hospitalitat
-5. **Exportació**: Generar riders individuals o Full de Ruta del Regidor
+5. **Exportació**: Generar riders individuals o resum d'actuacions en PDF. *(El Full de Ruta del Regidor és pendent d'exposar a la UI)*
 
 Aquesta nova secció proporciona eines professionals per a la gestió completa d'actuacions artístiques, integrant-se perfectament amb la resta de funcionalitats de l'aplicació.

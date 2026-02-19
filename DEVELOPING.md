@@ -192,8 +192,12 @@ Per facilitar la depuració i mantenir uns registres nets en producció, l'aplic
     -   `warn`: Situacions inesperades que no aturen l'aplicació (p. ex., "El fitxer service-account.json no es troba").
     -   `error`: Errors crítics que han provocat una fallada.
 -   **Configuració per Entorn:**
-    -   **Desenvolupament:** Es registren tots els nivells (`debug` i superiors) tant a la consola com al fitxer.
-    -   **Producció:** Només es registren els nivells `info`, `warn` i `error` al fitxer, per mantenir-lo concís i rellevant.
+    -   **Actualment (Beta):** El nivell de log és `debug` de manera forçada per a totes les builds (desenvolupament i producció), per facilitar la detecció d'errors durant la fase beta. La línia de codi que diferenciava entorns està comentada a `main.cjs`:
+        ```javascript
+        // log.level = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
+        log.level = 'debug'; // Forçat durant la beta
+        ```
+    -   **Objectiu futur (post-beta):** Reactivar la distinció per entorn: `debug` en desenvolupament, `info`/`warn`/`error` en producció.
 -   **Integració Transparent:** `electron-log` sobreescriu automàticament els mètodes de `console` (`log`, `error`, etc.). Això permet que les crides de log des del frontend siguin capturades pel backend i escrites al fitxer de log sense necessitat de cap canal IPC personalitzat.
 -   **Accés per a l'Usuari:** S'ha afegit una opció de menú ("Ajuda -> Obrir Carpeta de Logs") que obre directament el directori on es desen els fitxers de log, facilitant a l'usuari final l'enviament de registres per a la depuració.
 -   **Rotació per Mida:** En lloc de crear un fitxer nou a cada sessió, ara s'utilitza un fitxer principal (`main.log`). Quan aquest fitxer arriba a 1MB, es reanomena amb un timestamp (p. ex., `main.163...log`) i se'n crea un de nou.
@@ -209,7 +213,7 @@ El sistema de còpies de seguretat s'ha fet més intel·ligent i flexible per ev
     -   La lògica de `createBackup()` només s'executa si `isDocumentSave` és `true`.
     -   Totes les crides des del frontend (`App.tsx`, `pdfGenerator.ts`, etc.) han estat actualitzades per passar aquest flag correctament.
 -   **Gestió d'Extensions Dinàmica:** Les funcions `createBackup` i `cleanupOldBackups` ja no depenen d'una extensió fixa. Utilitzen el mòdul `path` de Node.js per extreure l'extensió del fitxer original i generen/gestionen els backups amb la mateixa extensió. Això garanteix que un fitxer `.gep` tingui backups `.gep` i un `.json` tingui backups `.json`.
--   **Nomenclatura i Neteja:** La nomenclatura (amb el nom del document original) i la neteja automàtica (conservant els 5 backups més recents per document) es mantenen.
+-   **Nomenclatura i Neteja:** La nomenclatura (amb el nom del document original) i la neteja automàtica (conservant els 3 backups més recents per document) es mantenen.
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 
@@ -545,10 +549,12 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
 L'aplicació utilitza `react-router-dom` amb `HashRouter` per a la navegació entre les vistes principals. `HashRouter` és l'elecció estàndard per a aplicacions Electron, ja que funciona bé amb el protocol `file://` utilitzat en les builds de producció i evita problemes de configuració del servidor.
 
 Les rutes principals definides són:
--   `/`: `MainDisplay`
--   `/tech-sheets`: `TechSheetsDisplay`
--   `/people`: `PeopleDisplay`
--   `/material`: `MaterialDisplay`
+-   `/`: `MainDisplay` 
+-   `/summaries`: `SummariesDisplay` (Resums i estadístiques)
+-   `/tech-sheets`: `TechSheetsDisplay` 
+-   `/people`: `PeopleDisplay` 
+-   `/material`: `MaterialDisplay` 
+-   `/performances`: `PerformancesDisplay` (Mòdul d'Actuacions - FASE 4)
 
 El component `Navigation.tsx` renderitza els enllaços (`NavLink`) que permeten a l'usuari moure's entre aquestes vistes.
 
