@@ -1110,6 +1110,7 @@
             },
             "preview": "Vista Previa",
             "save_changes": "Guardar Cambios",
+            "saved": "Guardado",
             "saving_pending_before_export": "Guardando cambios pendientes antes de exportar...",
             "schedule": {
                 "add_item": "+ Añadir Horario",

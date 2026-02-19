@@ -1107,6 +1107,7 @@
             },
             "preview": "Vista Prèvia",
             "save_changes": "Desar Canvis",
+            "saved": "Desat",
             "saving_pending_before_export": "Desant canvis pendents abans d'exportar...",
             "schedule": {
                 "add_item": "+ Afegir Horari",

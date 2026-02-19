@@ -128,7 +128,7 @@ interface EventDataActions {
     updateMaterialItem: (updatedItem: MaterialItem) => void;
     deleteMaterialItem: (itemId: string) => void;
     addMaterialItemsFromFile: (newItems: MaterialItem[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
-    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData) => { available: number, total: number };
     mergePeopleGroups: (newPeople: PersonGroup[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
     replacePeopleGroups: (newPeople: PersonGroup[]) => void;
     replaceMaterialItems: (newItems: MaterialItem[]) => void;
@@ -809,20 +809,21 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             state.lastActionDescription = 'Reemplaçat l\'inventari de material';
         });
     },
-    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string) => {
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData) => {
         const { materialItems, eventFrames } = get();
         const materialItem = materialItems.find(item => item.id === materialId);
         if (!materialItem) return { available: 0, total: 0 };
 
         let committedInCurrentEvent = 0;
-        const currentEventFrame = eventFrames.find(ef => ef.id === currentEventFrameId);
-        if (currentEventFrame?.techSheet) {
+        const techSheetToUse = overrideTechSheet || eventFrames.find(ef => ef.id === currentEventFrameId)?.techSheet;
+
+        if (techSheetToUse) {
             const needsKeys: (keyof TechSheetData)[] = [
                 'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
                 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
             ];
             needsKeys.forEach(key => {
-                const section = currentEventFrame.techSheet![key];
+                const section = techSheetToUse[key];
                 if (section && section.status === 'yes' && Array.isArray((section as any).data?.needs)) {
                     (section as any).data.needs.forEach((need: NeedItem) => {
                         if (need.materialItemId === materialId && need.id !== currentItemId) {

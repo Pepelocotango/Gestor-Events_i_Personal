@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 interface UseBufferedSaveReturn<T> {
   localData: T;
   updateLocal: (updates: Partial<T>) => void;
+  updateFullObject: (newData: T) => void;
   saveNow: () => void;
   isDirty: boolean;
 }
@@ -50,13 +51,24 @@ export function useBufferedSave<T extends object>(
     };
   }, [initialData]);
 
-  // Funció per actualitzar l'estat local
+  // Funció per actualitzar l'estat local (merge parcial)
   const updateLocal = useCallback((updates: Partial<T>) => {
     setLocalData((prev) => {
       const next = { ...prev, ...updates };
       localDataRef.current = next;
       return next;
     });
+
+    if (!isDirtyRef.current) {
+      isDirtyRef.current = true;
+      setIsDirty(true);
+    }
+  }, []);
+
+  // Funció per actualitzar l'estat local (reemplaçament complet)
+  const updateFullObject = useCallback((newData: T) => {
+    setLocalData(newData);
+    localDataRef.current = newData;
 
     if (!isDirtyRef.current) {
       isDirtyRef.current = true;
@@ -76,6 +88,7 @@ export function useBufferedSave<T extends object>(
   return {
     localData,
     updateLocal,
+    updateFullObject,
     saveNow,
     isDirty,
   };

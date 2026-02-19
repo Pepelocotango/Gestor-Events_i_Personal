@@ -1,6 +1,6 @@
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useEventDataStore, selectMaterialControlData } from '../stores/eventDataStore';
+import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
@@ -14,7 +14,6 @@ interface TechSheetsDisplayProps {
 const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   const { t } = useTranslation();
   const eventFrames = useEventDataStore(state => state.eventFrames);
-  const fullEventDataStore = useEventDataStore(state => state);
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string>('');
   const [includeArchived, setIncludeArchived] = useState(false);
 
@@ -46,26 +45,6 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
   const selectedEventFrame = useMemo((): EventFrame | undefined => {
     return eventFrames.find((ef: EventFrame) => ef.id === selectedEventFrameId);
   }, [eventFrames, selectedEventFrameId]);
-
-  const availabilityMap = useMemo(() => {
-    if (!selectedEventFrame) {
-      return new Map<string, { available: number; total: number }>();
-    }
-
-    const controlData = selectMaterialControlData(fullEventDataStore, {
-      dateRange: { start: selectedEventFrame.startDate, end: selectedEventFrame.endDate },
-    });
-
-    const newMap = new Map<string, { available: number; total: number }>();
-    controlData.forEach(row => {
-      newMap.set(row.item.id, {
-        available: row.item.stock - row.totalDemand,
-        total: row.item.stock,
-      });
-    });
-
-    return newMap;
-  }, [selectedEventFrame, fullEventDataStore]);
 
   useEffect(() => {
     if (selectedEventFrameId && !sortedEventFrames.some(ef => ef.id === selectedEventFrameId)) {
@@ -120,7 +99,6 @@ const TechSheetsDisplay: React.FC<TechSheetsDisplayProps> = ({ showToast }) => {
               key={selectedEventFrame.id}
               eventFrame={selectedEventFrame}
               showToast={showToast}
-              availabilityMap={availabilityMap}
             />
           </Suspense>
         ) : (
