@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
+import { registerSaveListener } from '../utils/saveManager';
 
 interface UseBufferedSaveReturn<T> {
   localData: T;
@@ -92,6 +93,12 @@ export function useBufferedSave<T extends object>(
       useEventDataStore.getState().setHasUnsavedChanges(false);
     }
   }, []);
+
+  // Registrem el listener de guardat global per forçar el flush quan calgui (ex: Ctrl+S)
+  useEffect(() => {
+    const unregister = registerSaveListener(saveNow);
+    return unregister;
+  }, [saveNow]);
 
   return {
     localData,
