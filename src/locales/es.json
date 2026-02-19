@@ -954,6 +954,9 @@
         "include_general_notes": "Notas generales",
         "show_empty_sections": "Mostrar secciones vacías",
         "export_custom_pdf": "Exportar PDF Personalizado",
+        "save": "Guardar",
+        "save_changes": "Guardar Cambios",
+        "saved": "Guardado",
         "pdf_validation_error": "Error de validación: {{message}}",
         "pdf_validation_warning": "Advertencia: {{message}}",
         "no_technical_notes": "No hay notas técnicas",
@@ -1108,6 +1111,7 @@
             },
             "preview": "Vista Previa",
             "save_changes": "Guardar Cambios",
+            "saved": "Guardado",
             "saving_pending_before_export": "Guardando cambios pendientes antes de exportar...",
             "schedule": {
                 "add_item": "+ Añadir Horario",

@@ -13,6 +13,7 @@ import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import { notificationService } from './utils/notificationService';
+import { triggerAllSaves } from './utils/saveManager';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const SummariesDisplay = lazy(() => import('./components/SummariesDisplay'));
@@ -76,7 +77,8 @@ const App: React.FC = () => {
   // Subscribe to only the pieces of state that cause re-renders.
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
 
-  // Ref to track the latest state of hasUnsavedChanges to avoid stale state in listeners.
+  // Ref to track the latest state of hasUnsavedChanges to avoid stale state in listeners (Electron quit).
+  // S'actualitza a cada canvi de hasUnsavedChanges per garantir que quitLogicRef tingui el valor real.
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   useEffect(() => {
     hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -221,6 +223,9 @@ const App: React.FC = () => {
       return false;
     }
     try {
+      // Forcem el buidatge de tots els buffers locals (useBufferedSave) a la store global
+      triggerAllSaves();
+
       const dataToSave = await exportDataFromManager();
       const jsonString = JSON.stringify(dataToSave, null, 2);
       const fileName = (currentFilePath ? currentFilePath.split(/[/\\]/).pop() : undefined) || generateDefaultFileName();
@@ -266,6 +271,9 @@ const App: React.FC = () => {
       return false;
     }
     try {
+      // Forcem el buidatge de tots els buffers locals (useBufferedSave) a la store global
+      triggerAllSaves();
+
       logger.info('[App.tsx] handleSaveDocument: Exportant dades de la store...');
       const dataToSave = await exportDataFromManager();
       
@@ -570,6 +578,8 @@ const App: React.FC = () => {
 
   // Lògica de sortida refactoritzada per eliminar el backup de sessió.
   // El tancament ara és gestionat per un IPC handler simple que no crea backups.
+  // Lògica de sortida refactoritzada. S'encapsula en una Ref per ser accessible des del listener d'Electron.
+  // Es verifica que hasUnsavedChangesRef.current s'utilitza per evitar tancaments sense avís.
   const quitLogicRef = useRef<() => Promise<void>>();
   useEffect(() => {
     quitLogicRef.current = async () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -22,6 +22,7 @@ import { PlusIcon, EyeIcon, PdfIcon } from '../../constants';
 import SortableInputRow from './SortableInputRow';
 import PerformancePdfOptionsModal from './PerformancePdfOptions';
 import { generatePerformanceInputsPdfObject, exportPerformanceInputsToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
+import { useBufferedSave } from '../../hooks/useBufferedSave';
 
 interface PerformanceTechFormProps {
   eventFrameId: string;
@@ -40,18 +41,24 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   const { updatePerformance } = useEventDataStore();
   const { openModal } = useModalStore();
 
-  // Estat local
-  const [techData, setTechData] = useState<PerformanceTechData>(() => ({
+  const initialTechData = useMemo((): PerformanceTechData => ({
     inputList: performance.techData?.inputList || [],
     lightingNotes: performance.techData?.lightingNotes || '',
     videoNotes: performance.techData?.videoNotes || '',
     stageRequirements: performance.techData?.stageRequirements || '',
-  }));
+  }), [performance.techData]);
 
-  // Refs per dirty checking i sincronització
-  const techDataRef = useRef(techData);
-  const isDirtyRef = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const {
+    localData: techData,
+    updateLocal,
+    saveNow,
+    isDirty
+  } = useBufferedSave(initialTechData, (data, isManual) => {
+    updatePerformance(eventFrameId, { ...performance, techData: data });
+    if (isManual) {
+      showToast(t('performances.save_success'), 'success');
+    }
+  });
 
   // Opcions d'exportació PDF
   const [pdfOptions, setPdfOptions] = useState<PerformancePdfOptions>({
@@ -62,48 +69,6 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     includeGeneralNotes: false,
     showEmptySections: false,
   });
-
-  // Actualitzar ref quan techData canvia
-  useEffect(() => {
-    techDataRef.current = techData;
-  }, [techData]);
-
-  // Marcar com a dirty
-  const markAsDirty = () => {
-    isDirtyRef.current = true;
-  };
-
-  // Guardar dades
-  const saveData = useCallback(() => {
-    if (isDirtyRef.current) {
-      updatePerformance(eventFrameId, { ...performance, techData: techDataRef.current });
-      isDirtyRef.current = false;
-    }
-  }, [updatePerformance, eventFrameId, performance]);
-
-  // Auto-save amb timeout
-  useEffect(() => {
-    if (isDirtyRef.current) {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
-    }
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [techData, saveData]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (isDirtyRef.current) saveData();
-    };
-  }, [saveData]);
-
-  const handleFieldChange = (field: keyof PerformanceTechData, value: any) => {
-    setTechData(prev => ({ ...prev, [field]: value }));
-    markAsDirty();
-  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -122,27 +87,21 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newInputList = arrayMove(techData.inputList, oldIndex, newIndex);
-        setTechData(prev => ({
-          ...prev,
-          inputList: newInputList,
-        }));
-        markAsDirty();
+        updateLocal({ inputList: newInputList });
       }
     }
   };
 
   const handleInputChange = (id: string, field: keyof InputListItem, value: any) => {
-    setTechData(prev => ({
-      ...prev,
-      inputList: prev.inputList.map(item =>
+    updateLocal({
+      inputList: techData.inputList.map(item =>
         item.id === id ? { ...item, [field]: value } : item
       ),
-    }));
-    markAsDirty();
+    });
   };
 
   const addInputItem = () => {
-    const lastItem = techDataRef.current.inputList[techDataRef.current.inputList.length - 1];
+    const lastItem = techData.inputList[techData.inputList.length - 1];
     let newChannel = '';
     
     if (lastItem?.channel) {
@@ -164,25 +123,25 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
       notes: '',
     };
     
-    setTechData(prev => ({
-      ...prev,
-      inputList: [...prev.inputList, newItem],
-    }));
-    markAsDirty();
+    updateLocal({
+      inputList: [...techData.inputList, newItem],
+    });
   };
 
   const removeInputItem = (id: string) => {
-    setTechData(prev => ({
-      ...prev,
-      inputList: prev.inputList.filter(item => item.id !== id),
-    }));
-    markAsDirty();
+    updateLocal({
+      inputList: techData.inputList.filter(item => item.id !== id),
+    });
+  };
+
+  const handleFieldChange = (field: keyof PerformanceTechData, value: any) => {
+    updateLocal({ [field]: value });
   };
 
   const handlePreviewInputs = () => {
     const performanceWithTechData = {
       ...performance,
-      techData: techDataRef.current
+      techData: techData
     };
     const doc = generatePerformanceInputsPdfObject(performanceWithTechData, eventFrame);
     const pdfBlob = doc.output('blob');
@@ -198,7 +157,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   const handleExportInputs = () => {
     const performanceWithTechData = {
       ...performance,
-      techData: techDataRef.current
+      techData: techData
     };
     exportPerformanceInputsToPdf(performanceWithTechData, eventFrame, showToast);
   };
@@ -357,6 +316,26 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
             className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary resize-none min-h-[80px]"
             placeholder={t('performances.stage_requirements_placeholder')}
           />
+        </div>
+
+        {/* Save Button */}
+        <div className="flex justify-end pt-6 border-t border-border">
+          <button
+            onClick={saveNow}
+            disabled={!isDirty}
+            className={`px-6 py-2 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
+              isDirty
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                : 'bg-secondary text-secondary-foreground/50 cursor-not-allowed'
+            }`}
+          >
+            {isDirty ? t('performances.save_changes') : (
+              <>
+                <span className="text-lg">✓</span>
+                {t('performances.saved')}
+              </>
+            )}
+          </button>
         </div>
       </div>
     </DndContext>
