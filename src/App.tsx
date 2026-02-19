@@ -76,7 +76,8 @@ const App: React.FC = () => {
   // Subscribe to only the pieces of state that cause re-renders.
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
 
-  // Ref to track the latest state of hasUnsavedChanges to avoid stale state in listeners.
+  // Ref to track the latest state of hasUnsavedChanges to avoid stale state in listeners (Electron quit).
+  // S'actualitza a cada canvi de hasUnsavedChanges per garantir que quitLogicRef tingui el valor real.
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   useEffect(() => {
     hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -570,6 +571,8 @@ const App: React.FC = () => {
 
   // Lògica de sortida refactoritzada per eliminar el backup de sessió.
   // El tancament ara és gestionat per un IPC handler simple que no crea backups.
+  // Lògica de sortida refactoritzada. S'encapsula en una Ref per ser accessible des del listener d'Electron.
+  // Es verifica que hasUnsavedChangesRef.current s'utilitza per evitar tancaments sense avís.
   const quitLogicRef = useRef<() => Promise<void>>();
   useEffect(() => {
     quitLogicRef.current = async () => {

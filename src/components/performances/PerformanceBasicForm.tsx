@@ -289,13 +289,18 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
         <button
           onClick={saveNow}
           disabled={!isDirty}
-          className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
+          className={`px-6 py-2 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
             isDirty
               ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70'
+              : 'bg-secondary text-secondary-foreground/50 cursor-not-allowed'
           }`}
         >
-          {isDirty ? t('performances.save_changes') : t('performances.save')}
+          {isDirty ? t('performances.save_changes') : (
+            <>
+              <span className="text-lg">✓</span>
+              {t('performances.saved')}
+            </>
+          )}
         </button>
       </div>
     </div>
