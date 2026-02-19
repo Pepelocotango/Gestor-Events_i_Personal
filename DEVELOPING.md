@@ -623,11 +623,13 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
 
 -   **Inicialització:** Quan se selecciona un esdeveniment, el component `TechSheetForm` s'inicialitza amb les dades de `eventFrame.techSheet`. Si la propietat no existeix (dades antigues), la funció `createDefaultTechSheet` genera una estructura buida per evitar errors.
 
--   **Gestió de Desat Intel·ligent (UI Optimista + Debouncing):** Per solucionar la manca de fiabilitat del desat amb `onBlur` (propens a errors de *stale state*) i garantir la integritat de dades en temps real (especialment per al control d'estoc), s'ha implementat un sistema de desat híbrid i robust.
-    -   **UI Optimista:** La interfície respon a l'instant als canvis de l'usuari. Quan es modifica una quantitat de material, per exemple, el càlcul de disponibilitat es refresca immediatament basant-se en l'estat intern del formulari, sense esperar el desat a l'estat central.
-    -   **Desat Automàtic amb Temporitzador (Debouncing):** Quan l'usuari edita un camp, s'inicia un temporitzador. Si l'usuari fa una pausa, el sistema desa automàticament els canvis a l'estat central de l'aplicació. Això es gestiona amb un `useEffect` que observa canvis a `formData` i una referència (`useRef`) per al flag `isDirty` per evitar l'estat caduc.
-    -   **Botó de Desat Manual:** S'ha afegit un botó "Desar Canvis" que s'activa només quan hi ha canvis pendents. Això dona a l'usuari control explícit per forçar un desat immediat si ho desitja.
-    -   **Desat de Seguretat:** Com a mesura final de seguretat, una funció de neteja en un `useEffect` garanteix que qualsevol canvi pendent es desi automàticament si l'usuari canvia d'esdeveniment o navega fora de la pàgina, evitant qualsevol pèrdua de dades.
+-   **Gestió de Desat "Buffered Edit" (Edició en Memòria Intermèdia):** Per garantir el màxim rendiment (especialment en operacions com Drag & Drop) i una gestió de dades robusta, s'utilitza el hook `useBufferedSave`.
+    -   **Estat Local:** Les dades viuen en un estat local (`useState`) mentre s'editen. Això garanteix que la interfície sigui extremadament fluida, ja que les actualitzacions de l'estat global de Zustand són costoses.
+    -   **Sincronització Global:**
+        -   **Automàtica:** Les dades es guarden a l'Store Global de Zustand automàticament quan el component es desmunta (ex: canviar de pestanya o d'esdeveniment).
+        -   **Manual:** L'usuari pot forçar el desat prement el botó "Desar Canvis".
+        -   **Coordinada (saveManager):** El fitxer `src/utils/saveManager.ts` implementa un patró Observer que permet a `App.tsx` demanar a tots els components amb buffer que "buidin" (flush) les seves dades abans de generar el fitxer final al disc. Això garanteix la consistència WYSIWYG en el guardat global (Ctrl+S).
+    -   **Retroacció Visual:** El botó de desat mostra clarament l'estat ("Desar Canvis" vs "✓ Desat") per donar feedback positiu a l'usuari.
 
 -   **Gestió de Llistes Dinàmiques:**
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
@@ -685,7 +687,7 @@ Per millorar la consistència i la claredat, la lògica d'ordenació de dades s'
 
 La funció implementa una lògica granular per garantir un càlcul d'estoc precís. Per evitar re-renderitzats innecessaris durant el càlcul, accedeix a l'estat directament amb `get()` dins de l'store.
 
- 1.  **Entrades:** La funció rep l'ID del material (`materialId`), les dates de l'esdeveniment actual (`startDate`, `endDate`) i l'ID de l'esdeveniment actual (`currentEventFrameId`).
+ 1.  **Entrades:** La funció rep l'ID del material (`materialId`), les dates de l'esdeveniment actual (`startDate`, `endDate`), l'ID de l'esdeveniment actual (`currentEventFrameId`) i un paràmetre opcional **`overrideTechSheet`**. Aquest paràmetre permet calcular la disponibilitat en temps real utilitzant les dades del buffer local abans que s'hagin persistit a la store global.
  2.  **Obtenció de l'Ítem:** Busca l'ítem de material a `materialItemsRef.current` per obtenir el seu estoc total (`materialItem.stock`). Si no el troba, retorna 0.
  3.  **Iteració per Dia i Càlcul de Disponibilitat Mínima:**
      -   La funció no comprova un simple solapament de rangs, sinó que itera sobre **cada dia individual** dins del rang de dates de l'esdeveniment que s'està consultant (`for (let d = new Date(start); d <= end; ...)`).
@@ -1810,15 +1812,8 @@ const PerformanceDetailContainer = lazy(() => import('./performances/Performance
 const PerformanceTechForm = lazy(() => import('./performances/PerformanceTechForm'));
 ```
 
-#### 2. Debounce Save
-```typescript
-const debouncedSave = useMemo(
-  () => debounce((field: string, value: any) => {
-    updatePerformance(eventFrameId, { ...performance, [field]: value });
-  }, 500),
-  [eventFrameId, performance]
-);
-```
+#### 2. Buffered Edit (useBufferedSave)
+Aquest mòdul utilitza l'arquitectura de buffer per garantir que l'edició de camps de text llargs i la reordenació de la llista d'inputs sigui fluida. Els canvis es mantenen en local fins que es prem "Desar", es canvia d'actuació o es desa el document global.
 
 #### 3. Internacionalització
 Tots els textos utilitzen claus i18n:
