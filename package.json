@@ -22,9 +22,9 @@
     "dist": "electron-builder",
     
     "// COMMENT": "--- SCRIPTS DE COMPILACIÓ LOCAL (Amb valors per defecte) ---",
-    "build:mac": "cross-env BRANCH_NAME=local BUILD_NUMBER=dev npm run build && electron-builder --mac --x64 --publish never",
-    "build:linux": "cross-env BRANCH_NAME=local BUILD_NUMBER=dev npm run build && electron-builder --linux --x64 --publish never",
-    "build:win": "cross-env BRANCH_NAME=local BUILD_NUMBER=dev npm run build && electron-builder --win --x64 --publish never",
+    "build:mac": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && npm run build && electron-builder --mac --x64 --publish never",
+    "build:linux": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && npm run build && electron-builder --linux --x64 --publish never",
+    "build:win": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && npm run build && electron-builder --win --x64 --publish never",
     "i18n:extract:desktop": "npx i18next-parser --config i18next-parser.config.cjs",
     "i18n:extract:mobile": "npx i18next-parser --config i18next-parser.mobile.config.cjs",
     "i18n:extract:web": "npx i18next-parser --config i18next-parser.web.config.cjs",
