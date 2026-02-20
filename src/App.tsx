@@ -421,11 +421,11 @@ const App: React.FC = () => {
       switch (type) {
         case 'people':
           dataToSave = { peopleGroups: fullData.peopleGroups };
-          filename = 'persones_grups_dades.json';
+          filename = 'persones_grups_dades.gep';
           break;
         case 'material':
           dataToSave = { materialItems: fullData.materialItems };
-          filename = 'material_dades.json';
+          filename = 'material_dades.gep';
           break;
       }
       const jsonString = JSON.stringify(dataToSave, null, 2);
