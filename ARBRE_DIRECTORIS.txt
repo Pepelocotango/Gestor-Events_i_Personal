@@ -215,6 +215,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── LanguageSelector.tsx    # Selector d'idioma (CA/ES/EN) amb persistència a localStorage i detecció automàtica.
 │   │   ├── I18nProvider.tsx        # Proveïdor de context d'internacionalització (react-i18next) per a l'aplicació.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. Accedeix a peopleGroups via selector reactiu i usa getState() per a les accions. [REFACTORITZAT: usa eventDataStore]
+│   │   ├── ProductionNoteSticker.tsx # Component per mostrar i editar notes ràpides de producció a les capçaleres dels esdeveniments.
 │   │   ├── PerformancesDisplay.tsx # !! NOVA VISTA !! Gestor d'actuacions artístiques amb control d'avançament, formularis tècnics/hospitalitat, i exportació PDF (FASE 4).
 │   │   ├── SummariesDisplay.tsx    # Vista contenidora de la secció Resums (ruta /summaries). Envolta SummaryReports amb el layout de la vista.
 │   │   ├── SummarySection.tsx      # Component auxiliar per a la renderització de seccions individuals dins dels resums.
