@@ -15,7 +15,8 @@ const ProductionNoteSticker: React.FC<ProductionNoteStickerProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(note || '');
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar que es propagui al click del títol
     if (onEdit) {
       setIsEditing(true);
       setEditValue(note || '');
@@ -63,7 +64,6 @@ const ProductionNoteSticker: React.FC<ProductionNoteStickerProps> = ({
         <div
           onDoubleClick={handleDoubleClick}
           className="px-2 py-1 text-xs rounded cursor-pointer transition-colors duration-200 border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/60 hover:text-foreground hover:bg-muted/50"
-          title={t('production_note.tooltip')}
         >
           + {t('production_note.add')}
         </div>
@@ -75,8 +75,7 @@ const ProductionNoteSticker: React.FC<ProductionNoteStickerProps> = ({
     <Tooltip text={note}>
       <div
         onDoubleClick={handleDoubleClick}
-        className="px-2 py-1 text-xs rounded cursor-pointer transition-colors duration-200 whitespace-nowrap overflow-hidden max-w-[150px] bg-card text-card-foreground hover:bg-muted border border-border"
-        title={t('production_note.tooltip')}
+        className="px-2 py-1 text-xs rounded cursor-pointer transition-colors duration-200 whitespace-nowrap overflow-hidden max-w-[150px] bg-destructive/50 text-foreground hover:bg-destructive/60 border border-border"
       >
         {note}
       </div>

@@ -166,7 +166,7 @@
     },
     "production_note": {
         "placeholder": "Production note...",
-        "tooltip": "Double-click to edit",
+        "tooltip": "Double-click to edit quick production note",
         "updated": "Production note updated",
         "add": "Add note"
     },

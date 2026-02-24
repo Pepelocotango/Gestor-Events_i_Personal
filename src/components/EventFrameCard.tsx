@@ -89,6 +89,17 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                   <CheckCircleIcon className={`w-7 h-7 transition-colors ${eventFrame.personnelComplete ? 'text-success' : 'text-warning'}`} />
                 </button>
               </Tooltip>
+              <ProductionNoteSticker
+                note={eventFrame.productionNote}
+                onEdit={(newNote) => {
+                  onUpdateEventFrame({
+                    ...eventFrame,
+                    productionNote: newNote || undefined,
+                    lastModified: new Date().toISOString()
+                  });
+                  setToastMessage(t('production_note.updated'), 'success');
+                }}
+              />
               <h4
                 id={`event-frame-title-${eventFrame.id}`}
                 className="text-xl font-bold hover:text-primary flex items-center gap-2"
@@ -104,17 +115,6 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                     </span>
                   </Tooltip>
                 )}
-                <ProductionNoteSticker
-                  note={eventFrame.productionNote}
-                  onEdit={(newNote) => {
-                    onUpdateEventFrame({
-                      ...eventFrame,
-                      productionNote: newNote || undefined,
-                      lastModified: new Date().toISOString()
-                    });
-                    setToastMessage(t('production_note.updated'), 'success');
-                  }}
-                />
                 {eventFrame.name}
               </h4>
             </div>
