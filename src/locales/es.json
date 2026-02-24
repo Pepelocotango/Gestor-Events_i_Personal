@@ -165,6 +165,7 @@
         "restored_toast": "Evento \"{{name}}\" restaurado."
     },
     "production_note": {
+        "title": "Nota de Producción",
         "placeholder": "Nota producción...",
         "tooltip": "Doble-click para editar nota rápida de producción",
         "updated": "Nota de producción actualizada",

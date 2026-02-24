@@ -131,6 +131,16 @@ const GoogleEventDetailsModal: React.FC = () => {
           </div>
         </div>
 
+        {/* Nota de Producció */}
+        {event.extendedProps?.productionNote && (
+          <div>
+            <h3 className="font-semibold text-foreground mb-1">{t('production_note.title')}</h3>
+            <div className="p-2 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-foreground">{event.extendedProps.productionNote}</p>
+            </div>
+          </div>
+        )}
+
         {/* Assistents */}
         <div className="flex items-start space-x-3">
           <UsersIcon className="h-5 w-5 text-muted-foreground mt-1" />
