@@ -81,24 +81,26 @@ jobs:
         # Les variables ja estan a l'entorn pel pas anterior
         run: npm run build:electron -- --linux --x64 --publish never
 
-      - name: 6. Creació del paquet ZIP per a Linux
-        id: zip_creation
+      - name: 6. Preparar fitxers per a l'artefacte
+        id: prep_artifact
         run: |
-          # Busquem l'AppImage generada dinàmicament (que ja tindrà el nom GEP_...)
+          # Creem una carpeta temporal
+          mkdir -p GEP_Artifact
+          
+          # Busquem i copiem l'AppImage
           APPIMAGE_FILE=$(find dist -name "*.AppImage" -type f -printf "%f\n" | head -n 1)
-          echo "Found AppImage: ${APPIMAGE_FILE}"
+          cp "dist/${APPIMAGE_FILE}" GEP_Artifact/
+          
+          # Copiem la documentació i exemples
+          cp LICENSE README.md DEVELOPING.md GEP_Artifact/
+          cp -r "examples json" GEP_Artifact/
+          
+          # Nom del ZIP final (sense l'extensió .zip)
+          ARTIFACT_NAME="GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Linux"
+          echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
-          # Construïm el nom del ZIP consistent amb l'AppImage
-          ZIP_NAME="GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Linux.zip"
-          echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
-
-          cd dist
-          zip -r "../${ZIP_NAME}" "${APPIMAGE_FILE}"
-          cd ..
-          zip -r "${ZIP_NAME}" LICENSE README.md DEVELOPING.md "examples json"
-
-      - name: 7. Pujada del ZIP de Linux com a artefacte
+      - name: 7. Pujada de la carpeta com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.zip_creation.outputs.zip_name }}
-          path: ${{ steps.zip_creation.outputs.zip_name }}
+          name: ${{ steps.prep_artifact.outputs.artifact_name }}
+          path: GEP_Artifact/

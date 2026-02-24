@@ -55,39 +55,28 @@ jobs:
     - name: Compilació i empaquetat de l'aplicació
       run: npm run build:electron -- --win --x64 --publish never
 
-    # 5. Creació del paquet ZIP per a Windows
-    - name: Crear paquet ZIP de Windows
-      id: zip_windows
+    # 5. Preparar carpeta d'artefactes
+    - name: Preparar carpeta d'artefactes
+      id: prep_windows
       shell: pwsh
       run: |
-        # 1. Inicialitzem l'array buit per evitar concatenació de strings
-        $filesToZip = @()
+        # Creem carpeta temporal
+        New-Item -ItemType Directory -Force -Path "GEP_Artifact"
+        
+        # Copiem els executables
+        Get-ChildItem -Path "dist" -Filter "*.exe" | Copy-Item -Destination "GEP_Artifact"
+        
+        # Copiem documentació i exemples
+        Copy-Item -Path "LICENSE", "README.md", "DEVELOPING.md" -Destination "GEP_Artifact"
+        Copy-Item -Path "examples json" -Destination "GEP_Artifact" -Recurse
+        
+        # Definim el nom de l'artefacte (sense .zip)
+        $artifactName = "GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Windows"
+        echo "artifact_name=$artifactName" >> $env:GITHUB_OUTPUT
 
-        # 2. Afegim l'executable generat
-        $exeFiles = Get-ChildItem -Path "dist" -Filter "*.exe" | Select-Object -ExpandProperty FullName
-        $filesToZip += $exeFiles
-
-        # 3. Afegim els fitxers de documentació (rutes relatives)
-        $filesToZip += "LICENSE", "README.md", "DEVELOPING.md"
-
-        # 4. Afegim els exemples (rutes absolutes)
-        $exampleFiles = Get-ChildItem -Path "examples json" -Recurse | Select-Object -ExpandProperty FullName
-        $filesToZip += $exampleFiles
-
-        # Debug: Imprimir llista de fitxers per verificar
-        Write-Host "Fitxers a comprimir: "
-        $filesToZip | ForEach-Object { Write-Host $_ }
-
-        # 5. Definir nom
-        $zipName = "GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Windows.zip"
-        echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
-
-        # 6. Comprimir
-        Compress-Archive -Path $filesToZip -DestinationPath $zipName
-
-    # 6. Pujada de l'artefacte ZIP de Windows
-    - name: Pujada del ZIP de Windows
+    # 6. Pujada de l'artefacte
+    - name: Pujada de la carpeta com a artefacte
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ steps.zip_windows.outputs.zip_name }}
-        path: ${{ steps.zip_windows.outputs.zip_name }}
+        name: ${{ steps.prep_windows.outputs.artifact_name }}
+        path: GEP_Artifact/

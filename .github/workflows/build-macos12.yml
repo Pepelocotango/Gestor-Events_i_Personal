@@ -46,23 +46,24 @@ jobs:
       - name: 7. Compilació de l'aplicació per a macOS
         run: npm run build:mac
 
-      - name: 8. Creació del paquet ZIP per a macOS
+      - name: 8. Preparar fitxers per a l'artefacte
         run: |
-          # Busquem el DMG generat dinàmicament
+          mkdir -p GEP_Artifact
+          
+          # Busquem el DMG i el copiem
           DMG_FILE=$(find dist -name "*.dmg" -type f -maxdepth 1 | head -n 1)
-          DMG_NAME=$(basename "$DMG_FILE")
+          cp "$DMG_FILE" GEP_Artifact/
           
-          # Nom del ZIP final
-          ZIP_NAME="GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-macOS.zip"
+          # Copiem la documentació
+          cp LICENSE README.md DEVELOPING.md GEP_Artifact/
+          cp -r "examples json" GEP_Artifact/
           
-          mv "$DMG_FILE" .
-          zip -r "${ZIP_NAME}" "${DMG_NAME}" LICENSE README.md DEVELOPING.md "examples json"
-          
-          # Exportem el nom per al pas de pujada
-          echo "FINAL_ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          # Nom de l'artefacte (sense .zip)
+          ARTIFACT_NAME="GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-macOS"
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
 
-      - name: 9. Pujada del ZIP de macOS com a artefacte
+      - name: 9. Pujada de la carpeta com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.FINAL_ZIP_NAME }}
-          path: ${{ env.FINAL_ZIP_NAME }}
+          name: ${{ env.ARTIFACT_NAME }}
+          path: GEP_Artifact/
