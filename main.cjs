@@ -869,7 +869,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
               calendarId: targetCalendarId, 
               eventId: event.id 
             });
-            await delay(150); // Petita pausa per evitar sobrecàrrega
+            await delay(500); // Pausa per evitar sobrecàrrega de l'API
           } catch (error) {
             logAndSendProgress(`⚠️ No s'ha pogut eliminar l'esdeveniment ${event.id}: ${error.message}`, true, 'sync.error_deleting_event', { eventId: event.id, error: error.message });
           }
@@ -944,9 +944,18 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
               ? `🚨 NOTA DE PRODUCCIÓ: ${localFrame.productionNote}\n\n` 
               : '';
 
+            // Construïm les propietats privades dinàmicament per no enviar camps buits
+            const privateProps = {
+              eventFrameId: localFrame.id
+            };
+            if (localFrame.productionNote) {
+              privateProps.productionNote = localFrame.productionNote;
+            }
+
             const eventData = {
               summary: localFrame.name || 'Esdeveniment sense títol',
-              description: `${prodNoteDescription}Lloc: ${localFrame.place || 'No especificat'}\n` +
+              description: prodNoteDescription + 
+                          `Lloc: ${localFrame.place || 'No especificat'}\n` +
                           `${techLine}` + 
                           `Notes: ${localFrame.generalNotes || ''}\n\n` +
                           `--- PERSONAL ASSIGNAT ---\n${assignedPeopleList || 'Cap assignació'}`,
@@ -954,10 +963,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
               start: { date: localFrame.startDate }, 
               end: { date: addDaysISO(localFrame.endDate, 1) }, 
               extendedProperties: {
-                private: {
-                  eventFrameId: localFrame.id,
-                  productionNote: localFrame.productionNote || ''
-                }
+                private: privateProps
               }
             };
 
@@ -1003,7 +1009,7 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
               localData.eventFrames[frameIndex].lastSync = new Date().toISOString();
             }
 
-            await delay(300); // Pausa per evitar sobrecàrrega de l'API
+            await delay(1500); // Pausa per evitar sobrecàrrega de l'API
 
           } catch (error) {
             logAndSendProgress(`   ❌ Error en processar l'esdeveniment "${localFrame.name}": ${error.message}`, true, 'sync.error_processing_event', { name: localFrame.name, error: error.message });
