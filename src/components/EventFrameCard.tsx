@@ -9,6 +9,7 @@ import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { formatDateRangeDMY } from '@/utils/dateFormat';
 import AssignmentCard from './AssignmentCard';
 import Tooltip from './ui/Tooltip';
+import ProductionNoteSticker from './ProductionNoteSticker';
 
 interface EventFrameCardProps {
   eventFrame: EventFrame;
@@ -103,6 +104,17 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                     </span>
                   </Tooltip>
                 )}
+                <ProductionNoteSticker
+                  note={eventFrame.productionNote}
+                  onEdit={(newNote) => {
+                    onUpdateEventFrame({
+                      ...eventFrame,
+                      productionNote: newNote || undefined,
+                      lastModified: new Date().toISOString()
+                    });
+                    setToastMessage(t('production_note.updated'), 'success');
+                  }}
+                />
                 {eventFrame.name}
               </h4>
             </div>

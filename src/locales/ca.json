@@ -164,6 +164,11 @@
         "restore_tooltip": "Restaurar l'esdeveniment",
         "restored_toast": "Esdeveniment \"{{name}}\" restaurat."
     },
+    "production_note": {
+        "placeholder": "Nota producció...",
+        "tooltip": "Doble-click per editar",
+        "updated": "Nota de producció actualitzada"
+    },
     "main": {
         "add_event_frame": "Afegir Nou Marc",
         "add_event_tooltip": "Crear un nou marc d'esdeveniment",

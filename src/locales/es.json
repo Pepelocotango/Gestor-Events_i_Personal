@@ -164,6 +164,11 @@
         "restore_tooltip": "Restaurar el evento",
         "restored_toast": "Evento \"{{name}}\" restaurado."
     },
+    "production_note": {
+        "placeholder": "Nota producción...",
+        "tooltip": "Doble-click para editar",
+        "updated": "Nota de producción actualizada"
+    },
     "main": {
         "add_event_frame": "Añadir Nuevo Marco",
         "add_event_tooltip": "Crear un nuevo marco de evento",

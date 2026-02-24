@@ -225,6 +225,7 @@ export interface EventFrame {
   startDate: string;
   endDate: string;
   generalNotes?: string;
+  productionNote?: string;
   personnelComplete?: boolean;
   assignments: Assignment[];
   googleEventId?: string;

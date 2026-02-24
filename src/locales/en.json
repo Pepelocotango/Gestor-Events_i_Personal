@@ -164,6 +164,11 @@
         "restore_tooltip": "Restore event",
         "restored_toast": "Event \"{{name}}\" restored."
     },
+    "production_note": {
+        "placeholder": "Production note...",
+        "tooltip": "Double-click to edit",
+        "updated": "Production note updated"
+    },
     "main": {
         "add_event_frame": "Add New Frame",
         "add_event_tooltip": "Create a new event frame",

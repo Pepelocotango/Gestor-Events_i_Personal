@@ -258,9 +258,17 @@ const MainDisplay = React.forwardRef<
     try {
       const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
       const localEventsForCalendar = eventFrames.map(ef => ({
-        id: ef.id, title: ef.name, start: ef.startDate, end: addDaysISO(ef.endDate, 1), allDay: true,
+        id: ef.id, 
+        title: ef.productionNote ? `${ef.productionNote} - ${ef.name}` : ef.name, 
+        start: ef.startDate, 
+        end: addDaysISO(ef.endDate, 1), 
+        allDay: true,
         className: ef.personnelComplete ? 'event-complete' : 'event-incomplete',
-        extendedProps: { type: 'local', googleEventId: ef.googleEventId }
+        extendedProps: { 
+          type: 'local', 
+          googleEventId: ef.googleEventId,
+          productionNote: ef.productionNote
+        }
       }));
       const filteredGoogleEventsForCalendar = googleEvents
         .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
