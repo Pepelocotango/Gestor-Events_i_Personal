@@ -938,10 +938,15 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
             // Generar resum tècnic (Assegura't d'haver afegit la funció generateTechNeedsSummary abans)
             const techSummary = generateTechNeedsSummary(localFrame.techSheet);
             const techLine = techSummary ? `${techSummary}\n\n` : '';
+            
+            // Crear la descripció de la nota de producció
+            const prodNoteDescription = localFrame.productionNote 
+              ? `🚨 NOTA DE PRODUCCIÓ: ${localFrame.productionNote}\n\n` 
+              : '';
 
             const eventData = {
               summary: localFrame.name || 'Esdeveniment sense títol',
-              description: `Lloc: ${localFrame.place || 'No especificat'}\n` +
+              description: `${prodNoteDescription}Lloc: ${localFrame.place || 'No especificat'}\n` +
                           `${techLine}` + 
                           `Notes: ${localFrame.generalNotes || ''}\n\n` +
                           `--- PERSONAL ASSIGNAT ---\n${assignedPeopleList || 'Cap assignació'}`,
@@ -950,7 +955,8 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
               end: { date: addDaysISO(localFrame.endDate, 1) }, 
               extendedProperties: {
                 private: {
-                  eventFrameId: localFrame.id
+                  eventFrameId: localFrame.id,
+                  productionNote: localFrame.productionNote || ''
                 }
               }
             };
@@ -1197,7 +1203,11 @@ ipcMain.handle('get-google-events', async () => {
           allDay: !!event.start.date,
           backgroundColor: color,
           borderColor: color,
-          extendedProps: { type: 'google', calendarId: calendarId }
+          extendedProps: { 
+            type: 'google', 
+            calendarId: calendarId,
+            productionNote: event.extendedProperties?.private?.productionNote || ''
+          }
         })) || [];
         allEvents.push(...events);
       } catch (e) {}

@@ -11,6 +11,9 @@ const GoogleEventDetailsModal: React.FC = () => {
 
   const event = data?.eventData;
 
+  // Extreure la nota de producció de les propietats privades de Google
+  const productionNote = event?.extendedProperties?.private?.productionNote;
+
   if (!event) {
     return (
       <div className="p-4 text-center">
@@ -132,11 +135,11 @@ const GoogleEventDetailsModal: React.FC = () => {
         </div>
 
         {/* Nota de Producció */}
-        {event.extendedProps?.productionNote && (
+        {productionNote && (
           <div>
             <h3 className="font-semibold text-foreground mb-1">{t('production_note.title')}</h3>
             <div className="p-2 bg-destructive/10 border border-destructive/20 rounded-md">
-              <p className="text-sm text-foreground">{event.extendedProps.productionNote}</p>
+              <p className="text-sm text-foreground">{productionNote}</p>
             </div>
           </div>
         )}
