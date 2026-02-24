@@ -259,7 +259,7 @@ const MainDisplay = React.forwardRef<
       const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
       const localEventsForCalendar = eventFrames.map(ef => ({
         id: ef.id, 
-        title: ef.productionNote ? `${ef.productionNote} - ${ef.name}` : ef.name, 
+        title: ef.name, 
         start: ef.startDate, 
         end: addDaysISO(ef.endDate, 1), 
         allDay: true,
