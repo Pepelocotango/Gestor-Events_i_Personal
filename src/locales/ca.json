@@ -167,7 +167,8 @@
     "production_note": {
         "placeholder": "Nota producció...",
         "tooltip": "Doble-click per editar",
-        "updated": "Nota de producció actualitzada"
+        "updated": "Nota de producció actualitzada",
+        "add": "Afegir nota"
     },
     "main": {
         "add_event_frame": "Afegir Nou Marc",

@@ -167,7 +167,8 @@
     "production_note": {
         "placeholder": "Production note...",
         "tooltip": "Double-click to edit",
-        "updated": "Production note updated"
+        "updated": "Production note updated",
+        "add": "Add note"
     },
     "main": {
         "add_event_frame": "Add New Frame",

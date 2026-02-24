@@ -58,7 +58,17 @@ const ProductionNoteSticker: React.FC<ProductionNoteStickerProps> = ({
   }
 
   if (!note) {
-    return null;
+    return (
+      <Tooltip text={t('production_note.tooltip')}>
+        <div
+          onDoubleClick={handleDoubleClick}
+          className="px-2 py-1 text-xs rounded cursor-pointer transition-colors duration-200 border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/60 hover:text-foreground hover:bg-muted/50"
+          title={t('production_note.tooltip')}
+        >
+          + {t('production_note.add')}
+        </div>
+      </Tooltip>
+    );
   }
 
   return (
