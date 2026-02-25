@@ -1,6 +1,5 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
 import { formatDateDMY, formatDateRangeDMY } from '../utils/dateFormat';
@@ -29,6 +28,7 @@ interface AssignmentCardProps {
   onDailyStatusChange: (eventFrameId: string, assignment: Assignment, date: string, newStatus: AssignmentStatus) => void;
   onEdit: (eventFrameId: string, assignmentId: string) => void;
   onDelete: (eventFrameId: string, assignmentId: string) => void;
+  personName: string;
 }
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
@@ -42,16 +42,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onDelete,
 }) => {
   const { t } = useTranslation();
-  const peopleGroups = useEventDataStore(state => state.peopleGroups);
-  const peopleMap = useMemo(() => {
-    const m = new Map<string, string>();
-    peopleGroups.forEach(p => m.set(p.id, p.name));
-    return m;
-  }, [peopleGroups]);
-  const personName = peopleMap.get(assignment.personGroupId);
-  if (!personName) {
-    console.error(`PersonGroup not found for ID: ${assignment.personGroupId}`);
-  }
+  // `personName` is provided via props to avoid recalculating maps per card
 
   // Helper to translate status enum
   const translateStatus = (status: AssignmentStatus) => {
@@ -277,4 +268,4 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   );
 };
 
-export default AssignmentCard;
+export default React.memo(AssignmentCard);

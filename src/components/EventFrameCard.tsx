@@ -1,6 +1,5 @@
-import { forwardRef, useMemo } from 'react';
+import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import logger from '@/utils/logger';
 import { useModalStore } from '@/stores/modalStore';
 import { useEventDataStore } from '@/stores/eventDataStore';
 import { EventFrame, Assignment, AssignmentStatus } from '@/types';
@@ -27,22 +26,17 @@ interface EventFrameCardProps {
   isArchived?: boolean;
   isFocused?: boolean;
   onFocus?: () => void;
+  peopleMap: Map<string, string>;
 }
 
 const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   eventFrame, isExpanded, expandedDailyViewAssignmentIds, filters, onToggleExpand,
   onToggleDailyView, onUpdateEventFrame, onGeneralStatusChange,
   onDailyStatusChange, onEditAssignment, onDeleteAssignment, setToastMessage,
-  isArchived = false, isFocused = false, onFocus,
+  isArchived = false, isFocused = false, onFocus, peopleMap,
 }, ref) => {
   const { t } = useTranslation();
-  logger.info(`[EventFrameCard] Render for ${eventFrame.name}. isExpanded: ${isExpanded}`);
-  const { peopleGroups, restoreEventFrame } = useEventDataStore.getState();
-  const peopleMap = useMemo(() => {
-    const m = new Map<string, string>();
-    peopleGroups.forEach(p => m.set(p.id, p.name));
-    return m;
-  }, [peopleGroups]);
+  const { restoreEventFrame } = useEventDataStore.getState();
   const { openModal } = useModalStore.getState();
 
   const filteredAssignments = eventFrame.assignments
@@ -176,6 +170,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      const peopleGroups = useEventDataStore.getState().peopleGroups;
                       const defaultPersonGroupId = peopleGroups.length > 0 ? peopleGroups[0].id : '';
                       openModal('addAssignment', {
                         eventFrame,
@@ -198,7 +193,6 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  logger.info(`[EventFrameCard] Chevron clicked for ${eventFrame.name}. Calling onToggleExpand.`);
                   onToggleExpand(eventFrame.id);
                 }}
                 className="p-2.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent/50 transition-colors"
@@ -235,6 +229,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                   onDailyStatusChange={onDailyStatusChange}
                   onEdit={onEditAssignment}
                   onDelete={onDeleteAssignment}
+                  personName={peopleMap.get(assign.personGroupId) || t('assignment.person_unknown')}
                 />
               ))}
             </ul>
@@ -245,4 +240,4 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   );
 });
 
-export default EventFrameCard;
+export default React.memo(EventFrameCard);
