@@ -224,9 +224,9 @@ const CustomMenuBar: React.FC<CustomMenuBarProps> = ({
                 <svg className="w-4 h-4 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
               </div>
               <div className="absolute left-full -top-1 mt-0 py-1 bg-popover border border-border rounded-md hidden group-hover:block min-w-max">
-                {item.submenu.map(subItem => (
+                {item.submenu.map((subItem, subIndex) => (
                   <button
-                    key={subItem.label}
+                    key={`${item.label}-submenu-${subIndex}`}
                     onClick={() => handleAction(subItem.action, subItem.role)}
                     disabled={subItem.disabled}
                     className="block w-full text-left px-4 py-2 text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex justify-between items-center"
