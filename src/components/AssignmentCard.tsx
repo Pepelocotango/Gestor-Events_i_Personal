@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
@@ -40,6 +40,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onDailyStatusChange,
   onEdit,
   onDelete,
+  personName,
 }) => {
   const { t } = useTranslation();
   // `personName` is provided via props to avoid recalculating maps per card
