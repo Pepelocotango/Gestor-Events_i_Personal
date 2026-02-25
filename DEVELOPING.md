@@ -19,6 +19,7 @@ Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, l
 - Menú d'aplicació personalitzat en React: substitució del menú natiu d'Electron, comunicació frontend-backend via IPC.
 - Gestió d'IPC centralitzada: canals segurs, separació de responsabilitats, API interna documentada.
 - Solució als bucles infinits de renderitzat: selectors Zustand independents, gestió asíncrona de flags d'actualització.
+- **Optimitzacions de rendiment:** s'han eliminat els logs IPC enviats des de components durant el renderitzat, i s'ha memoitzat la majoria de components de la llista principal, reduint el consum de memòria i millorant la fluïdesa.
 - **NOU MÒDUL D'ACTUACIONS (FASE 4):** Sistema complet per a la gestió d'actuacions artístiques amb control d'avançament, formularis tècnics/hospitalitat, i exportació PDF.
 - **Full de Ruta del Regidor:** PDF combinat que fusiona horaris generals de la fitxa de bolo amb horaris d'actuacions i notes crítiques de regidoria.
 - **Control d'Avançament Visual:** Checklist interactiu amb 4 estats (Rider Rebut, Contra-rider Enviat, Horaris Confirmats, Hospitality Tancat).
