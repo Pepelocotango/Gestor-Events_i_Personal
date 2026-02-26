@@ -1,7 +1,7 @@
 {
   "name": "gestor-esdeveniments-personal",
   "productName": "GestorEsdevenimentsPersonal",
-  "version": "1.6.1",
+  "version": "1.6.0",
   "description": "Una aplicació per gestionar esdeveniments i personal",
   "author": "Pep",
   "license": "GPL-3.0-or-later",
@@ -18,9 +18,10 @@
     "start": "npm run build:theme && npm run wait && npm run electron-dev",
     "clean": "rm -rf dist node_modules/.vite",
     "fresh-start": "npm run clean && npm start",
-    "postversion": "node scripts/update-version.js",
+    "postversion": "node scripts/update-version.cjs",
     "build:electron": "npm run build && electron-builder",
     "dist": "electron-builder",
+    
     "// COMMENT": "--- SCRIPTS DE COMPILACIÓ LOCAL (Amb valors per defecte) ---",
     "build:mac": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && npm run build && electron-builder --mac --x64 --publish never",
     "build:linux": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && npm run build && electron-builder --linux --x64 --publish never",
