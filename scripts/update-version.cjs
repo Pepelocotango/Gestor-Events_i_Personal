@@ -17,7 +17,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // Arrel del projecte (el script és a scripts/, per això cal pujar un nivell)
-const ROOT = path.join(__dirname, '..');
+const ROOT = path.resolve(__dirname, '..');
 
 // Llegir la nova versió de package.json
 const packageJsonPath = path.join(ROOT, 'package.json');
@@ -30,44 +30,44 @@ console.log(`🔄 Actualitzant versió a: ${newVersion}`);
 const filesToUpdate = [
   {
     path: path.join(ROOT, 'README.md'),
-    pattern: /# Gestor d'Esdeveniments i Personal V\d+\.\d+\.\d+ \([^)]+\)/,
-    replacement: `# Gestor d'Esdeveniments i Personal V${newVersion} (${getMonthYear()})`
-  },
-  {
-    path: path.join(ROOT, 'DEVELOPING.md'), 
-    pattern: /## DEVELOPING.md V\d+\.\d+\.\d+/,
-    replacement: `## DEVELOPING.md V${newVersion}`
+    pattern: /# Gestor d'Esdeveniments i Personal V\d+\.\d+\.\d+[^)]*\)/,
+    replacement: `# Gestor d'Esdeveniments i Personal V${newVersion} (${getMonthYear()})` 
   },
   {
     path: path.join(ROOT, 'DEVELOPING.md'),
-    pattern: /# NOVETATS V\d+\.\d+\.\d+ \([^)]+\)/,
-    replacement: `# NOVETATS V${newVersion} (${getMonthYear()})`
+    pattern: /## DEVELOPING\.md V\d+\.\d+\.\d+/,
+    replacement: `## DEVELOPING.md V${newVersion}` 
+  },
+  {
+    path: path.join(ROOT, 'DEVELOPING.md'),
+    pattern: /# NOVETATS V\d+\.\d+\.\d+[^)]*\)/,
+    replacement: `# NOVETATS V${newVersion} (${getMonthYear()})` 
   },
   {
     path: path.join(ROOT, 'ESQUEMA_UI_DESKTOP.md'),
-    pattern: /# Esquema de la Interfície d'Usuari \(UI\) - Aplicació d'Escriptori \(v\d+\.\d+\.\d+\)/,
-    replacement: `# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v${newVersion})`
+    pattern: /# Esquema de la Interf.cie d.Usuari \(UI\)[^\n]*\(v\d+\.\d+\.\d+\)/,
+    replacement: `# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v${newVersion})` 
   },
   {
     path: path.join(ROOT, 'index.html'),
-    pattern: /<title>Gestor de Esdeveniments i Personal V\d+\.\d+\.\d+<\/title>/,
+    pattern: /<title>[^<]*V\d+\.\d+\.\d+<\/title>/,
     replacement: `<title>Gestor de Esdeveniments i Personal V${newVersion}</title>` 
   },
   {
     path: path.join(ROOT, 'apps_web', 'landing', 'src', 'i18n', 'translations', 'ca.json'),
-    pattern: /"version": "Versió \d+\.\d+\.\d+ - Sota llicència GPL v3\.0"/,
+    pattern: /"version":\s*"[^"]*\d+\.\d+\.\d+[^"]*GPL[^"]*"/,
     replacement: `"version": "Versió ${newVersion} - Sota llicència GPL v3.0"` 
   },
   {
     path: path.join(ROOT, 'apps_web', 'landing', 'src', 'i18n', 'translations', 'en.json'),
-    pattern: /"version": "Version \d+\.\d+\.\d+ - Under GPL v3\.0 license"/,
+    pattern: /"version":\s*"[^"]*\d+\.\d+\.\d+[^"]*GPL[^"]*"/,
     replacement: `"version": "Version ${newVersion} - Under GPL v3.0 license"` 
   },
   {
     path: path.join(ROOT, 'apps_web', 'landing', 'src', 'i18n', 'translations', 'es.json'),
-    pattern: /"version": "Versión \d+\.\d+\.\d+ - Bajo licencia GPL v3\.0"/,
+    pattern: /"version":\s*"[^"]*\d+\.\d+\.\d+[^"]*GPL[^"]*"/,
     replacement: `"version": "Versión ${newVersion} - Bajo licencia GPL v3.0"` 
-  }
+  },
 ];
 
 // Funció per obtenir el mes i any actual
@@ -81,12 +81,14 @@ function getMonthYear() {
 // Funció per actualitzar un fitxer
 function updateFile(filePath, pattern, replacement) {
   try {
+    console.log('🔍 Checking file:', filePath);
     if (!fs.existsSync(filePath)) {
       console.log(`⚠️  Fitxer no trobat: ${filePath}`);
       return false;
     }
 
     const content = fs.readFileSync(filePath, 'utf8');
+    console.log(`🎯 Pattern test for ${path.basename(filePath)}:`, pattern.test(content));
     const newContent = content.replace(pattern, replacement);
     
     if (content !== newContent) {
