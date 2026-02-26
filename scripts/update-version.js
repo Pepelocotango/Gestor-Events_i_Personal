@@ -54,9 +54,19 @@ const filesToUpdate = [
     replacement: `<title>Gestor de Esdeveniments i Personal V${newVersion}</title>` 
   },
   {
-    path: path.join(ROOT, 'mobile_app', 'ESQUEMA_UI_MOBIL.md'),
-    pattern: /\(v\d+\.\d+\.\d+\)/,
-    replacement: `(v${newVersion})` 
+    path: path.join(ROOT, 'apps_web', 'landing', 'src', 'i18n', 'translations', 'ca.json'),
+    pattern: /"version": "Versió \d+\.\d+\.\d+ - Sota llicència GPL v3\.0"/,
+    replacement: `"version": "Versió ${newVersion} - Sota llicència GPL v3.0"` 
+  },
+  {
+    path: path.join(ROOT, 'apps_web', 'landing', 'src', 'i18n', 'translations', 'en.json'),
+    pattern: /"version": "Version \d+\.\d+\.\d+ - Under GPL v3\.0 license"/,
+    replacement: `"version": "Version ${newVersion} - Under GPL v3.0 license"` 
+  },
+  {
+    path: path.join(ROOT, 'apps_web', 'landing', 'src', 'i18n', 'translations', 'es.json'),
+    pattern: /"version": "Versión \d+\.\d+\.\d+ - Bajo licencia GPL v3\.0"/,
+    replacement: `"version": "Versión ${newVersion} - Bajo licencia GPL v3.0"` 
   }
 ];
 
