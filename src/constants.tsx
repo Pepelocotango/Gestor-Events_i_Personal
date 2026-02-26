@@ -19,7 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { AssignmentStatus } from './types';
 
-export const APP_TITLE = "Gestor de Esdeveniments i Personal v1.6.0";
+export const APP_TITLE = `Gestor de Esdeveniments i Personal v${__APP_VERSION__}`;
 export const THEME_STORAGE_KEY = 'eventManagementAppTheme';
 
 export const ASSIGNMENT_STATUS_OPTIONS = [

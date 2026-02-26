@@ -14,9 +14,13 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
+
+// Arrel del projecte (el script és a scripts/, per això cal pujar un nivell)
+const ROOT = path.join(__dirname, '..');
 
 // Llegir la nova versió de package.json
-const packageJsonPath = path.join(__dirname, 'package.json');
+const packageJsonPath = path.join(ROOT, 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const newVersion = packageJson.version;
 
@@ -25,24 +29,34 @@ console.log(`🔄 Actualitzant versió a: ${newVersion}`);
 // Fitxers a actualitzar
 const filesToUpdate = [
   {
-    path: path.join(__dirname, 'README.md'),
+    path: path.join(ROOT, 'README.md'),
     pattern: /# Gestor d'Esdeveniments i Personal V\d+\.\d+\.\d+ \([^)]+\)/,
     replacement: `# Gestor d'Esdeveniments i Personal V${newVersion} (${getMonthYear()})`
   },
   {
-    path: path.join(__dirname, 'DEVELOPING.md'), 
+    path: path.join(ROOT, 'DEVELOPING.md'), 
     pattern: /## DEVELOPING.md V\d+\.\d+\.\d+/,
     replacement: `## DEVELOPING.md V${newVersion}`
   },
   {
-    path: path.join(__dirname, 'DEVELOPING.md'),
+    path: path.join(ROOT, 'DEVELOPING.md'),
     pattern: /# NOVETATS V\d+\.\d+\.\d+ \([^)]+\)/,
     replacement: `# NOVETATS V${newVersion} (${getMonthYear()})`
   },
   {
-    path: path.join(__dirname, 'ESQUEMA_UI_DESKTOP.md'),
+    path: path.join(ROOT, 'ESQUEMA_UI_DESKTOP.md'),
     pattern: /# Esquema de la Interfície d'Usuari \(UI\) - Aplicació d'Escriptori \(v\d+\.\d+\.\d+\)/,
     replacement: `# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v${newVersion})`
+  },
+  {
+    path: path.join(ROOT, 'index.html'),
+    pattern: /<title>Gestor de Esdeveniments i Personal V\d+\.\d+\.\d+<\/title>/,
+    replacement: `<title>Gestor de Esdeveniments i Personal V${newVersion}</title>` 
+  },
+  {
+    path: path.join(ROOT, 'mobile_app', 'ESQUEMA_UI_MOBIL.md'),
+    pattern: /\(v\d+\.\d+\.\d+\)/,
+    replacement: `(v${newVersion})` 
   }
 ];
 
@@ -93,10 +107,16 @@ console.log(`   Versió actualitzada a: ${newVersion}`);
 console.log(`   Fitxers actualitzats: ${updatedCount}/${filesToUpdate.length}`);
 
 if (updatedCount > 0) {
-  console.log(`\n🎉 Versió actualitzada correctament!`);
-  console.log(`   Recorda fer commit dels canvis:`);
-  console.log(`   git add .`);
-  console.log(`   git commit -m "chore: bump version to ${newVersion}"`);
+  try {
+    execSync('git add -A', { stdio: 'inherit' });
+    execSync('git commit --amend --no-edit', { stdio: 'inherit' });
+    console.log(`\n🎉 Versió ${newVersion} commitejada correctament amb tots els fitxers!`);
+  } catch (error) {
+    console.log(`\n⚠️  No s'ha pogut fer git commit --amend automàticament.`);
+    console.log(`   Fes-ho manualment:`);
+    console.log(`   git add .`);
+    console.log(`   git commit --amend --no-edit`);
+  }
 } else {
   console.log(`\n⚠️  No s'ha actualitzat cap fitxer. Revisa els patrons de cerca.`);
 }
