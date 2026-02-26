@@ -997,7 +997,7 @@ const App: React.FC = () => {
         return (
           <AboutModal
             name={appMetadata?.name || 'Gestor d\'Esdeveniments'}
-            version={appMetadata?.version || '1.0.0'}
+            version={appMetadata?.version || __APP_VERSION__}
             description={appMetadata?.description || 'Aplicació per a la gestió d\'esdeveniments'}
             onClose={closeModal}
           />
