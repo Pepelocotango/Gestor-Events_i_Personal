@@ -47,7 +47,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   │   ├── AnimatedSplash.tsx    # Animació de splash per a la pàgina web.
 │   │   │   │   ├── LanguageSelector.astro # Selector d'idioma en format Astro per a la navegació web.
 │   │   │   │   ├── LanguageSelector.tsx  # !! NOU !! Selector d'idioma en format React per a la web (v1.6.1+).
-│   │   │   │   ├── I18nProvider.tsx    # Proveïdor de context d'internacionalització per a la web.
+│   │   │   │   └── I18nProvider.tsx    # Proveïdor de context d'internacionalització per a la web.
 │   │   │   ├── env.d.ts            # !! NOU !! Definicions de tipus per a variables d'entorn (v1.6.1+).
 │   │   │   ├── i18n/               # Configuració d'internacionalització per a la web.
 │   │   │   │   ├── translations/     # Traduccions per a la web.
@@ -108,7 +108,6 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── app.json                 # Configuració principal de l'aplicació Expo
 │   ├── babel.config.js          # Configuració de Babel
 │   ├── eas.json                 # Configuració per a Expo Application Services
-│   └── metro.config.js          # Configuració del bundler Metro
 │   ├── eas.json                  # Configuració per a Expo Application Services (EAS).
 │   ├── package-lock.json         # Fitxer lock de dependències generat per npm.
 │   ├── index.js                  # Punt de registre inicial de l'aplicació per a Expo.
@@ -259,12 +258,10 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── MaterialControlTable.tsx  # Taula de resultats del Centre de Control amb ordenació jeràrquica per categoria/origen/nom.
 │   │   ├── Navigation.tsx          # Barra de navegació entre les vistes principals.
 │   │   ├── LanguageSelector.tsx    # Selector d'idioma (CA/ES/EN) amb persistència a localStorage i detecció automàtica.
-│   │   ├── I18nProvider.tsx        # Proveïdor de context d'internacionalització (react-i18next) per a l'aplicació.
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. Accedeix a peopleGroups via selector reactiu i usa getState() per a les accions. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── ProductionNoteSticker.tsx # Component per mostrar i editar notes ràpides de producció a les capçaleres dels esdeveniments.
 │   │   ├── PerformancesDisplay.tsx # !! NOVA VISTA !! Gestor d'actuacions artístiques amb control d'avançament, formularis tècnics/hospitalitat, i exportació PDF (FASE 4).
 │   │   ├── SummariesDisplay.tsx    # Vista contenidora de la secció Resums (ruta /summaries). Envolta SummaryReports amb el layout de la vista.
-│   │   ├── SummarySection.tsx      # Component auxiliar per a la renderització de seccions individuals dins dels resums.
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── TechSheetsDisplay.tsx   # Vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
 │   ├── i18n.ts                     # Configuració d'i18n per a l'aplicació d'escriptori.
@@ -303,13 +300,13 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── images.d.ts               # Permet la importació de fitxers d'imatge (.png) a TypeScript.
 │   ├── index.css                 # [AUTO-GENERAT] Fitxer principal d'estils. No editar manualment.
 │   ├── index.tsx                 # Punt d'entrada de React que renderitza l'App al DOM.
+│   └── vite-env.d.ts            # !! NOU !! Fitxer de definicions de TypeScript per a Vite (v1.6.2+). Declara la variable __APP_VERSION__.
 ├── ARBRE_DIRECTORIS.txt          # Documentació visual de l'estructura del projecte.
 ├── apps_web/                  # Aplicacions web del projecte
 │   └── documentation/          # Documentació tècnica (Docusaurus) desplegada a GitHub Pages
 │       ├── docs/               # Arxius de documentació en format Markdown
 │       ├── src/                # Codi font personalitzat
-│       ├── new.txt             # Fitxer de text per a la documentació web.
-│       └── docusaurus.config.js # Configuració de Docusaurus
+│       └── new.txt             # Fitxer de text per a la documentació web.
 ├── .gitattributes                # Fitxer per definir atributs per a rutes de git.
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
 ├── DEVELOPING.md                 # Documentació tècnica detallada de l'arquitectura i funcionalitats per a desenvolupadors.
@@ -338,4 +335,3 @@ enllaç a Gestor-Events_i_Personal/
 ├── i18next-parser.mobile.config.cjs  # Configuració de i18next-parser per a l'app mòbil (escaneig de claus i18n a mobile_app/).
 ├── i18next-parser.web.config.cjs # Configuració de i18next-parser per a la web/landing (escaneig de claus i18n a apps_web/landing/).
 ├── vite.config.ts                # Fitxer de configuració de Vite, l'eina de compilació del frontend.
-├── vite-env.d.ts               # !! NOU !! Fitxer de definicions de TypeScript per a Vite (v1.6.2+). Declara la variable __APP_VERSION__.
