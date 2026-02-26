@@ -14,7 +14,8 @@ enllaç a Gestor-Events_i_Personal/
 ├── examples json/                # Exemples de fitxers JSON per a proves.
 │   ├── example_all.json          # JSON amb dades completes.
 │   ├── example_material.json     # JSON amb dades de material.
-│   └── example_person.json       # JSON amb dades de contactes.
+│   ├── example_person.json       # JSON amb dades de contactes.
+│   └── exampleAll.gep           # !! NOU !! Exemple de fitxer complet amb extensió .gep (v1.6.1+).
 ├── imatges/                      # Conté imatges i captures de pantalla per a la documentació.
 │   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
 ├── captures_pantalla/            # Carpeta per emmagatzemar captures de pantalla útils per a la documentació.
@@ -42,11 +43,25 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── ImageCarouselI18n.tsx # Variant del carrusel amb suport d'internacionalització.
 │   │   │   ├── AnimatedSplash.tsx    # Animació de splash per a la pàgina web.
 │   │   │   ├── LanguageSelector.astro # Selector d'idioma en format Astro per a la navegació web.
-│   │   │   └── LanguageSelector.tsx  # Selector d'idioma en format React per a la web.
+│   │   │   ├── LanguageSelector.tsx  # !! NOU !! Selector d'idioma en format React per a la web (v1.6.1+).
+│   │   │   ├── data/               # !! NOU !! Dades per al tour guiat del producte (v1.6.1+).
+│   │   │   │   └── tourSections.ts # Seccions del tour guiat interactiu del producte.
+│   │   │   ├── env.d.ts            # !! NOU !! Definicions de tipus per a variables d'entorn (v1.6.1+).
+│   │   │   ├── i18n/               # Configuració d'internacionalització per a la web.
+│   │   │   │   └── translations/     # Traduccions per a la web.
+│   │   │   │       ├── ca.json      # Traduccions en català per a la web.
+│   │   │   │       ├── en.json      # Traduccions en anglès per a la web.
+│   │   │   │       └── es.json      # Traduccions en castellà per a la web.
+│   │   │   ├── index.ts            # !! NOU !! Índex de configuració d'i18n per a la web (v1.6.1+).
 │   │   │   ├── layouts/          # Plantilles de disseny
 │   │   │   │   └── Layout.astro   # Plantilla base de la pàgina amb metaetiquetes i estils globals
 │   │   │   ├── pages/            # Pàgines de l'aplicació (genera rutes automàtiques)
-│   │   │   │   └── index.astro   # Pàgina d'inici
+│   │   │   │   ├── ca/           # Pàgines en català
+│   │   │   │   │   └── index.astro   # Pàgina d'inici
+│   │   │   │   ├── en/           # Pàgines en anglès
+│   │   │   │   │   └── index.astro   # Pàgina d'inici
+│   │   │   │   └── es/           # Pàgines en castellà
+│   │   │   │       └── index.astro   # Pàgina d'inici
 │   │   │   └── styles/           # Estils globals
 │   │   │       └── global.css    # Estils CSS globals i variables personalitzades
 │   │   ├── astro.config.mjs     # Configuració principal d'Astro
@@ -103,21 +118,25 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── ui/               # Components d'UI genèrics.
 │   │   │   │   └── ThemeSwitcher.tsx   # Component per canviar entre el tema clar i fosc.
 │   │   │   ├── tech_sheet/       # Components específics per a la visualització de la fitxa de bolo.
-│   │   │   │   ├── ReadOnlyField.tsx   # Component per mostrar un camp individual (etiqueta i valor).
-│   │   │   │   └── ReadOnlySection.tsx # Component per agrupar camps sota un títol de secció.
-│   │   │   ├── ActionToolbar.tsx         # Barra d'eines per a la pantalla d'esdeveniments (ordenar, arxivar, expandir).
-│   │   │   ├── CustomHeader.tsx          # Capçalera global de l'aplicació amb accions principals (desar, tancar, desfer/refer).
-│   │   │   ├── DailyStatusEditor.tsx     # Editor d'estat diari dins d'una targeta.
-│   │   │   ├── EventFrameCard.tsx        # Targeta individual per mostrar la informació d'un esdeveniment.
-│   │   │   ├── FilterControls.tsx        # Controls de filtre per a la pantalla d'esdeveniments.
-│   │   │   ├── MaterialControlFilters.tsx# Controls de filtre per al Centre de Control de Material.
-│   │   │   ├── CustomSelect.tsx          # Selector personalitzat (Modal + FlatList) per controls estilitzables (dark/light)
-│   │   │   ├── MaterialControlList.tsx   # Llista de resultats del Centre de Control.
-│   │   │   ├── MaterialListItem.tsx      # Component per a un element individual a la llista de material.
-│   │   │   ├── MaterialToolbar.tsx       # Barra d'eines per a la pantalla de materials (cerca, ordenar, expandir tot).
-│   │   │   ├── PeopleToolbar.tsx         # Barra d'eines per a la pantalla de persones (cerca, ordenar, filtrar).
-│   │   │   ├── TechSheetListItem.tsx     # Item de llista per a fitxes de bolo.
-│   │   │   └── PersonListItem.tsx        # Component per a un element individual a la llista de persones.
+│   │   │   ├── ReadOnlyField.tsx   # Component per mostrar un camp individual (etiqueta i valor).
+│   │   │   └── ReadOnlySection.tsx # Component per agrupar camps sota un títol de secció.
+│   │   ├── ActionToolbar.tsx         # Barra d'eines per a la pantalla d'esdeveniments (ordenar, arxivar, expandir).
+│   │   ├── AboutModal.tsx           # !! NOU !! Modal "Sobre l'aplicació" per a l'app mòbil (v1.6.1+).
+│   │   ├── CollapsibleSection.tsx    # !! NOU !! Component per seccions col·lapsables amb animació (v1.6.1+).
+│   │   ├── CustomHeader.tsx          # Capçalera global de l'aplicació amb accions principals (desar, tancar, desfer/refer).
+│   │   ├── DailyStatusEditor.tsx     # Editor d'estat diari dins d'una targeta.
+│   │   ├── EventFrameCard.tsx        # Targeta individual per mostrar la informació d'un esdeveniment.
+│   │   ├── FilterControls.tsx        # Controls de filtre per a la pantalla d'esdeveniments.
+│   │   ├── LanguageSelector.tsx       # !! NOU !! Selector d'idioma per a l'app mòbil (v1.6.1+).
+│   │   ├── MaterialControlFilters.tsx# Controls de filtre per al Centre de Control de Material.
+│   │   ├── CustomSelect.tsx          # Selector personalitzat (Modal + FlatList) per controls estilitzables (dark/light)
+│   │   ├── MaterialControlList.tsx   # Llista de resultats del Centre de Control.
+│   │   ├── MaterialListItem.tsx      # Component per a un element individual a la llista de material.
+│   │   ├── MaterialToolbar.tsx       # Barra d'eines per a la pantalla de materials (cerca, ordenar, expandir tot).
+│   │   ├── PeopleToolbar.tsx         # Barra d'eines per a la pantalla de persones (cerca, ordenar, filtrar).
+│   │   ├── SummarySection.tsx        # !! NOU !! Component per mostrar seccions de resums (v1.6.1+).
+│   │   ├── TechSheetListItem.tsx     # Item de llista per a fitxes de bolo.
+│   │   └── PersonListItem.tsx        # Component per a un element individual a la llista de persones.
 │   │   ├── navigation.ts         # Defineix els tipus per a la pila de navegació (React Navigation).
 │   │   ├── screens/              # Pantalles principals de l'aplicació.
 │   │   │   ├── EventsScreen.tsx          # Pantalla principal per a la gestió d'esdeveniments.
@@ -128,7 +147,11 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── PeopleScreen.tsx          # Pantalla per a la gestió de persones/contactes.
 │   │   │   ├── PersonFormScreen.tsx      # Formulari per crear/editar persones.
 │   │   │   ├── MaterialScreen.tsx        # Pantalla per a la gestió d'inventari de material.
-│   │   │   └── MaterialFormScreen.tsx    # Formulari per crear/editar material.
+│   │   │   ├── MaterialFormScreen.tsx    # Formulari per crear/editar material.
+│   │   │   ├── AssignmentFormScreen.tsx  # !! NOU !! Formulari per crear/editar assignacions (v1.6.1+).
+│   │   │   ├── CalendarScreen.tsx        # !! NOU !! Pantalla de calendari amb vista mensual/anual (v1.6.1+).
+│   │   │   ├── MaterialControlScreen.tsx # !! NOU !! Pantalla del Centre de Control de Material (v1.6.1+).
+│   │   │   └── SummaryScreen.tsx        # !! NOU !! Pantalla de resums i estadístiques (v1.6.1+).
 │   │   ├── services/             # Lògica de negoci i accés a dades.
 │   │   │   ├── fileService.ts      # Interfície que defineix el contracte per als serveis de dades.
 │   │   │   └── SAFFileService.ts     # Implementació del servei que utilitza el Storage Access Framework (SAF).
@@ -136,26 +159,36 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   └── dataStore.ts      # Store per a l'estat de les dades de l'aplicació.
 │   │   ├── types/                # Definicions de tipus de TypeScript compartides.
 │   │   │   └── index.ts          # Tipus de dades (AppData, EventFrame, etc.).
-│   │   └── utils/                # Utilitats generals per a l'aplicació mòbil.
-│   │       ├── dateFormat.ts     # Utilitats per al format de dates (mòbil).
-│   │       ├── dates.ts          # Funcions auxiliars per a dates.
-│   │       ├── statusUtils.ts    # Funcions per gestionar estats i mapatge de colors/labels.
-│   │       ├── themeConfig.ts    # Configuració central de colors (semàntica).
-│   │       └── themes.ts         # Defineix els colors per als temes clar i fosc.
+│   │   ├── utils/                # Utilitats generals per a l'aplicació mòbil.
+│   │   │   ├── dateFormat.ts     # Utilitats per al format de dates (mòbil).
+│   │   │   ├── dates.ts          # Funcions auxiliars per a dates.
+│   │   │   ├── statusUtils.ts    # Funcions per gestionar estats i mapatge de colors/labels.
+│   │   │   ├── themeConfig.ts    # Configuració central de colors (semàntica).
+│   │   │   └── themes.ts         # Defineix els colors per als temes clar i fosc.
 │   ├── App.tsx                   # Punt d'entrada principal que carrega les pantalles.
+│   ├── i18n.ts                    # !! NOU !! Configuració d'i18n per a l'app mòbil (v1.6.1+).
 │   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil (v1.6.0).
 │   ├── package.json              # Dependències i scripts de l'aplicació mòbil.
-│   └── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil.
+│   ├── metro.config.js          # !! NOU !! Configuració del bundler Metro (v1.6.1+).
+│   ├── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil.
+│   ├── src/                      # Codi font de l'aplicació mòbil.
+│   │   ├── locales/               # !! NOU !! Traduccions per a l'app mòbil (v1.6.1+).
+│   │   │   ├── ca.json          # Traduccions en català per a l'app mòbil.
+│   │   │   ├── en.json          # Traduccions en anglès per a l'app mòbil.
+│   │   │   └── es.json          # Traduccions en castellà per a l'app mòbil.
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
 │   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
 ├── scripts/                      # Scripts d'utilitat per al procés de desenvolupament i compilació.
 │   ├── templates/                # Plantilles utilitzades pels scripts.
 │   │   └── index.css.template    # Plantilla per a l'arxiu index.css, amb marcadors per a les variables de tema.
-│   └── build-theme.cjs           # Script per generar automàticament els fitxers de tema (CSS i TS) a partir de la configuració.
+│   ├── build-theme.cjs           # Script per generar automàticament els fitxers de tema (CSS i TS) a partir de la configuració.
+│   └── update-version.cjs        # !! NOU !! Script d'actualització automàtica de versions (s'executa després de npm version) (v1.6.1+).
 ├── src/
 │   ├── assets/                   # Actius (imatges, etc.) que són importats directament pel codi font.
 │   │   └── splash/               # Imatges per a l'animació de la pantalla de benvinguda.
-│   │       └── frame_*.png       # Seqüència d'imatges per a l'animació.
+│   │       ├── frame_*.png       # Seqüència d'imatges per a l'animació.
+│   │       ├── ALL_TRANSPARENCIA 100%/ # Versions 100% transparent de les imatges.
+│   │       └── png_amb_transparencia    # Versions PNG amb transparencia.
 │   ├── components/               # Carpeta principal dels components de React que formen la UI.
 │   │   ├── forms/                # Components reutilitzables de formularis.
 │   │   │   └── MaterialForm.tsx  # Formulari reutilitzable per crear/editar ítems de material.
@@ -179,12 +212,12 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── performances/           # !! NOU MÒDUL D'ACTUACIONS !! Components per a la gestió d'actuacions artístiques (FASE 4).
 │   │   │   ├── PerformanceAdvancing.tsx      # Component de control d'avançament (checklist visual amb 4 estats).
 │   │   │   ├── PerformanceBasicForm.tsx       # Formulari bàsic d'actuació (identitat, contacte, horaris, notes).
-│   │   │   ├── PerformanceDetailContainer.tsx # Contenidor principal amb pestanyes (Bàsic, Tècnic, Hospitality).
-│   │   │   ├── PerformanceHospitalityForm.tsx # Formulari d'hospitalitat (camerinos, càtering, dietes, viatge, pàrquing).
+│   │   │   ├── PerformanceDetailContainer.tsx # !! NOU !! Contenidor principal amb pestanyes (Bàsic, Tècnic, Hospitality) (v1.6.1+).
+│   │   │   ├── PerformanceHospitalityForm.tsx # !! NOU !! Formulari d'hospitalitat (camerinos, càtering, dietes, viatge, pàrquing) (v1.6.1+).
 │   │   │   ├── PerformanceList.tsx             # Llista d'actuacions amb indicadors visuals de dades tècniques.
-│   │   │   ├── PerformanceTechForm.tsx         # Formulari tècnic (input list, llums, vídeo, escenari).
+│   │   │   ├── PerformanceTechForm.tsx         # !! NOU !! Formulari tècnic (input list, llums, vídeo, escenari) (v1.6.1+).
 │   │   │   ├── SortableInputRow.tsx            # Fila ordenable per a l'input list tècnic.
-│   │   │   ├── PerformancePdfOptions.tsx        # Modal d'opcions de configuració per a l'exportació PDF d'actuacions (selecció de seccions a incloure).
+│   │   │   ├── PerformancePdfOptions.tsx        # !! NOU !! Modal d'opcions de configuració per a l'exportació PDF d'actuacions (selecció de seccions a incloure) (v1.6.1+).
 │   │   │   └── SortablePerformance.tsx         # Component individual d'actuació amb drag-and-drop.
 │   │   ├── tech_sheets/          # Components específics per a la gestió de les Fitxes de Bolo.
 │   │   │   ├── ConditionalFormControl.tsx      # Component UI per a seccions que es mostren condicionalment (SI/NO).
@@ -220,15 +253,15 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── SummariesDisplay.tsx    # Vista contenidora de la secció Resums (ruta /summaries). Envolta SummaryReports amb el layout de la vista.
 │   │   ├── SummarySection.tsx      # Component auxiliar per a la renderització de seccions individuals dins dels resums.
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades. [REFACTORITZAT: usa eventDataStore]
-│   │   └── TechSheetsDisplay.tsx   # Vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
-│   ├── stores/                 # Gestors d'estat global (Zustand).
-│   │   ├── eventDataStore.ts   # !! EL CERVELL DEL FRONTEND !! Store que centralitza tot l'estat i la lògica de negoci. Inclou historial desfer/refer, lògica d'arxivatge d'esdeveniments, i partialize memoitzada per evitar bucles infinits.
-│   │   ├── googleConfigStore.ts# Store per a la configuració i estat de la integració amb Google Calendar.
-│   │   ├── loggingMiddleware.ts# Middleware de Zustand per registrar accions i canvis d'estat.
-│   │   └── modalStore.ts       # Store centralitzat per a l'estat i la lògica dels modals.
-│   ├── hooks/                  # Hooks de React reutilitzables.
-   │   └── useBufferedSave.ts  # Hook per a edició local d'alt rendiment amb integració al sistema de guardat global.
-│   ├── utils/
+│   │   │   └── TechSheetsDisplay.tsx   # Vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
+│   │   ├── stores/                 # Gestors d'estat global (Zustand).
+│   │   │   ├── eventDataStore.ts   # !! EL CERVELL DEL FRONTEND !! Store que centralitza tot l'estat i la lògica de negoci. Inclou historial desfer/refer, lògica d'arxivatge d'esdeveniments, i partialize memoitzada per evitar bucles infinits.
+│   │   │   ├── googleConfigStore.ts# Store per a la configuració i estat de la integració amb Google Calendar.
+│   │   │   ├── loggingMiddleware.ts# Middleware de Zustand per registrar accions i canvis d'estat.
+│   │   │   └── modalStore.ts       # Store centralitzat per a l'estat i la lògica dels modals.
+│   │   ├── hooks/                  # Hooks de React reutilitzables.
+│   │   │   └── useBufferedSave.ts  # Hook per a edició local d'alt rendiment amb integració al sistema de guardat global.
+│   │   ├── utils/
 │   │   ├── colorUtils.ts         # Utilitat per convertir colors (ex: HSL a RGB) per a la generació de PDF.
 │   │   ├── csvUtils.ts           # Utilitats per a la generació i escapat de fitxers CSV. Inclou funcions per formatar cel·les, afegir BOM per compatibilitat Excel, i exportar llistes filtrades.
 │   │   ├── dataIntegrity.ts      # Lògica per validar i reparar dades carregades des d'un fitxer. Comprova la integritat referencial, elimina elements trencats i documenta les correccions aplicades.
@@ -242,7 +275,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── techSheetMigration.ts   # Lògica específica per migrar l'estructura de les fitxes de bolo. Converteix dades antigues a l'estructura moderna de TechSheetData, assegura compatibilitat i integritat, i gestiona casos especials amb defaults i validació. Utilitzat en la càrrega de documents i migració automàtica.
 │   │   ├── themeDefinition.ts    # [AUTO-GENERAT] Objecte TS amb colors per a la generació de PDFs. No editar manualment.
 │   │   ├── notificationService.ts # Servei centralitzat per mostrar notificacions (toasts) i missatges globals a la UI. Integrat amb modalStore i la lògica de feedback d'usuari.
-   │   ├── saveManager.ts         # Patró Observer per coordinar el guardat de tots els formularis oberts abans de l'exportació.
+   │   ├── saveManager.ts         # !! NOU !! Patró Observer per coordinar el guardat de tots els formularis oberts abans de l'exportació (v1.6.1+).
 │   │   ├── selectors.ts           # Selectors optimitzats per Zustand. Permeten accedir a porcions de l'estat de forma memoitzada i evitar re-renderitzats innecessaris. Inclou la lògica de filtrat per a esdeveniments arxivats.
 │   ├── App.tsx                   # Component arrel de React. Gestiona l'enrutament, modals i estat de la UI. [REFACTORITZAT: usa stores de Zustand]
 │   ├── calendar-styles.d.ts      # Definició de tipus per a la importació de fitxers CSS a TypeScript.
@@ -269,11 +302,12 @@ enllaç a Gestor-Events_i_Personal/
 ├── logs/                         # Carpeta de logs i fitxers `*.log` (ignorats via `.gitignore`).
 ├── .vscode/                      # Configuració d'Editor/IDE (ignorada via `.gitignore`).
 ├── postcss.config.cjs            # Fitxer de configuració per a PostCSS (usat per Tailwind).
-├── preload.cjs                   # Pont de seguretat d'Electron que exposa funcions del backend al frontend de manera segura.
+├── preload.cjs                   # !! NOU !! Pont de seguretat d'Electron que exposa funcions del backend al frontend de manera segura (v1.6.2+).
 ├── tailwind.config.cjs           # Fitxer de configuració per al framework de CSS Tailwind.
 ├── theme.config.cjs              # !! FONT ÚNICA DE LA VERITAT PER ALS COLORS !! Defineix tota la paleta de colors per als temes i la generació de PDF.
 ├── tsconfig.json                 # Fitxer de configuració del compilador de TypeScript.
 ├── i18next-parser.config.cjs     # Configuració de i18next-parser per a l'app d'escriptori (escaneig de claus i18n a src/).
 ├── i18next-parser.mobile.config.cjs  # Configuració de i18next-parser per a l'app mòbil (escaneig de claus i18n a mobile_app/).
 ├── i18next-parser.web.config.cjs # Configuració de i18next-parser per a la web/landing (escaneig de claus i18n a apps_web/landing/).
-└── vite.config.ts                # Fitxer de configuració de Vite, l'eina de compilació del frontend.
+├── vite.config.ts                # Fitxer de configuració de Vite, l'eina de compilació del frontend.
+├── vite-env.d.ts               # !! NOU !! Fitxer de definicions de TypeScript per a Vite (v1.6.2+). Declara la variable __APP_VERSION__.
