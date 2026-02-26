@@ -1,6 +1,6 @@
 branca de desenvolupament ACTIVA 2026  00DEV_GEP
 
-web de la app a Vercel (branca main o la branca de desplegament configurada):
+web de la app a Vercel a la branca main O 0DEV_GEP:
 https://gestor-events-i-personal-landingpag.vercel.app/
 
 
