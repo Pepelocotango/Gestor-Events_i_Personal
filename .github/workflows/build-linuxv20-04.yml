@@ -76,6 +76,8 @@ jobs:
           SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '_')
           echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
           echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+          APP_VERSION=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
       - name: 5. Compilació de l'aplicació per a Linux
         # Les variables ja estan a l'entorn pel pas anterior
@@ -96,7 +98,7 @@ jobs:
           cp -r "examples json" GEP_Artifact/
           
           # Nom del ZIP final (sense l'extensió .zip)
-          ARTIFACT_NAME="GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Linux"
+          ARTIFACT_NAME="GEP_v${{ env.APP_VERSION }}-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Linux"
           echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
       - name: 7. Pujada de la carpeta com a artefacte

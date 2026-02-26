@@ -42,6 +42,8 @@ jobs:
           SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '_')
           echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
           echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+          APP_VERSION=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
       - name: 7. Compilació de l'aplicació per a macOS
         run: npm run build:mac
@@ -59,7 +61,7 @@ jobs:
           cp -r "examples json" GEP_Artifact/
           
           # Nom de l'artefacte (sense .zip)
-          ARTIFACT_NAME="GEP_v1.6.0-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-macOS"
+          ARTIFACT_NAME="GEP_v${{ env.APP_VERSION }}-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-macOS"
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
 
       - name: 9. Pujada de la carpeta com a artefacte
