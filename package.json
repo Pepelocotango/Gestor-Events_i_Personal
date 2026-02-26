@@ -1,7 +1,7 @@
 {
   "name": "gestor-esdeveniments-personal",
   "productName": "GestorEsdevenimentsPersonal",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Una aplicació per gestionar esdeveniments i personal",
   "author": "Pep",
   "license": "GPL-3.0-or-later",

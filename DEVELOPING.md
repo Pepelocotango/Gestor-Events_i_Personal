@@ -4,14 +4,14 @@ web de la app a Vercel (branca main o la branca de desplegament configurada):
 https://gestor-events-i-personal-landingpag.vercel.app/
 
 
-## DEVELOPING.md V1.6.1
+## DEVELOPING.md V1.6.2
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
-# NOVETATS V1.6.1 (FEBRER 2026)
+# NOVETATS V1.6.2 (FEBRER 2026)
 
 **Resum de canvis tècnics recents:**
 - Refactorització completa de la gestió d'estat amb Zustand i zundo: stores independents, historial desfer/refer, partialize memoitzada per evitar bucles infinits.
