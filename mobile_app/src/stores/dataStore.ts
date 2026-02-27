@@ -3,7 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import * as SecureStore from 'expo-secure-store';
-import { AppData, Assignment, AssignmentStatus, EventFrame, EventFrameForExport, PersonGroup, MaterialItem, MaterialControlRow, MaterialControlFilters, TechSheetData, NeedItem } from '../types';
+import { AppData, Assignment, AssignmentStatus, EventFrame, EventFrameForExport, PersonGroup, MaterialItem, MaterialControlRow, MaterialControlFilters, TechSheetData, NeedItem, GoogleConfigForExport } from '../types';
 import { SAFFileService } from '../services/SAFFileService';
 
 const fileService = new SAFFileService();
@@ -19,6 +19,7 @@ interface DataState {
   eventFrames: EventFrame[];
   peopleGroups: PersonGroup[];
   materialItems: MaterialItem[];
+  googleConfig: GoogleConfigForExport | null;
   hasUnsavedChanges: boolean;
   isLoading: boolean;
   error: string | null;
@@ -59,6 +60,7 @@ export const useDataStore = create<DataState>()(
       eventFrames: [],
   peopleGroups: [],
   materialItems: [],
+  googleConfig: null,
   hasUnsavedChanges: false,
   isLoading: false,
   error: null,
@@ -100,6 +102,7 @@ export const useDataStore = create<DataState>()(
         eventFrames: hydratedEventFrames,
         peopleGroups: data.peopleGroups,
         materialItems: data.materialItems || [],
+        googleConfig: data.googleConfig || null,
         fileName: name,
         fileUri: uri,
         hasUnsavedChanges: false,
@@ -115,6 +118,7 @@ export const useDataStore = create<DataState>()(
       eventFrames: [],
       peopleGroups: [],
       materialItems: [],
+      googleConfig: null,
       fileName: null,
       fileUri: null,
       hasUnsavedChanges: false,
@@ -122,7 +126,7 @@ export const useDataStore = create<DataState>()(
   },
 
   saveFileAs: async () => {
-    const { fileName, eventFrames, peopleGroups, materialItems } = get();
+    const { fileName, eventFrames, peopleGroups, materialItems, googleConfig } = get();
 
     set({ isLoading: true, error: null });
     try {
@@ -133,6 +137,7 @@ export const useDataStore = create<DataState>()(
         peopleGroups,
         assignments: allAssignments,
         materialItems,
+        ...(googleConfig ? { googleConfig } : {}),
       };
 
       const jsonString = JSON.stringify(dataToSave, null, 2);
@@ -155,7 +160,7 @@ export const useDataStore = create<DataState>()(
   },
 
   shareFile: async () => {
-    const { fileName, eventFrames, peopleGroups, materialItems } = get();
+    const { fileName, eventFrames, peopleGroups, materialItems, googleConfig } = get();
 
     set({ isLoading: true, error: null });
     try {
@@ -166,6 +171,7 @@ export const useDataStore = create<DataState>()(
         peopleGroups,
         assignments: allAssignments,
         materialItems,
+        ...(googleConfig ? { googleConfig } : {}),
       };
 
       const jsonString = JSON.stringify(dataToSave, null, 2);
