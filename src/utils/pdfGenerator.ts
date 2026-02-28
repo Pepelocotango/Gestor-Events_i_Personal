@@ -74,29 +74,28 @@ export const exportSummariesToPdf = async (
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     let y = createPdfHeader(pdf, `${i18next.t('pdf.summary_title_prefix')}${title}`);
-    let pageCount = 1;
-
-    const addPageIfNeeded = (currentY: number) => {
-      if (currentY > 280) {
-        addFooter(pdf, pageCount);
-        pdf.addPage();
-        pageCount++;
-        return 10; // Y inicial per a la nova pàgina
-      }
-      return currentY;
-    };
 
     if (data.size === 0) {
       pdf.setFontSize(12);
       pdf.text(i18next.t('pdf.no_data_message'), 14, y);
     } else {
       data.forEach((assignments, groupKey) => {
-        y = addPageIfNeeded(y);
-
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(groupKey, 14, y);
-        y += 8;
+    // Salt de pàgina si estem massa avall
+    if (y > 250) {
+      pdf.addPage();
+      y = createPdfHeader(pdf, `${i18next.t('pdf.summary_title_prefix')}${title}`);
+    }
+    
+    // Título del grupo con subHeadStyles
+        const subHeadStyles = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' as const };
+        autoTable(pdf, {
+          body: [[{ content: groupKey, styles: subHeadStyles }]],
+          startY: y,
+          theme: 'grid',
+          margin: { left: 10, right: 10 },
+          styles: { cellPadding: 2 }
+        });
+        y = (pdf as any).lastAutoTable.finalY + 2;
 
         const head = [[
           i18next.t('pdf.table_headers.event_person'),
@@ -128,10 +127,10 @@ export const exportSummariesToPdf = async (
           head,
           body,
           startY: y,
-          theme: 'striped',
-          styles: { fontSize: 9, cellPadding: 2 },
-          headStyles: { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
-          margin: { top: 15, bottom: 15 }
+          theme: 'grid',
+          styles: { fontSize: 10, cellPadding: 2 },
+          headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+          margin: { left: 10, right: 10, top: 5, bottom: 15 }
         });
 
         y = (pdf as any).lastAutoTable.finalY + 10;
@@ -181,7 +180,7 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
 
     const body: any[][] = [];
     Object.keys(itemsByCategory).sort().forEach(category => {
-      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: hslToRgb(...themeHslColors.grayBorder), textColor: hslToRgb(...themeHslColors.foreground) } }]);
+      body.push([{ content: category, colSpan: 4, styles: { fontStyle: 'bold', fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground) } }]);
       itemsByCategory[category].forEach(item => {
         body.push([
           item.name,
@@ -197,8 +196,8 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
       body,
       startY: y,
       theme: 'grid',
-      styles: { fontSize: 10, cellPadding: 2.5 },
-      headStyles: { fillColor: hslToRgb(...themeHslColors.success), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       didDrawPage: (_data: any) => {
         if (_data.pageNumber > 1) {
           createPdfHeader(pdf, 'Llista de Material');
@@ -288,7 +287,7 @@ export const exportMaterialControlSummaryPdf = async (
       body,
       startY: y,
       theme: 'grid',
-      styles: { fontSize: 9, cellPadding: 2 },
+      styles: { fontSize: 10, cellPadding: 2 },
       headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       didDrawPage: (data: any) => {
         if (data.pageNumber > 1) {
@@ -354,11 +353,17 @@ export const exportMaterialControlDetailedPdf = async (
         y = createPdfHeader(pdf, i18next.t('pdf.material_control_detailed'));
       }
 
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
+      // Título del evento con subHeadStyles
+      const subHeadStyles = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' as const };
       const eventTitle = `${eventData.eventName} (${formatDateRangeDMY(eventDetails?.startDate, eventDetails?.endDate)})`;
-      pdf.text(eventTitle, 14, y);
-      y += 8;
+      autoTable(pdf, {
+        body: [[{ content: eventTitle, styles: subHeadStyles }]],
+        startY: y,
+        theme: 'grid',
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 2;
 
       const head = [[
         i18next.t('pdf.table_headers.quantity'),
@@ -373,9 +378,9 @@ export const exportMaterialControlDetailedPdf = async (
         head,
         body,
         startY: y,
-        theme: 'striped',
-        styles: { fontSize: 9, cellPadding: 2 },
-        headStyles: { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2 },
+        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       });
 
       y = (pdf as any).lastAutoTable.finalY + 10;
@@ -421,9 +426,9 @@ export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: 
       head,
       body,
       startY: y,
-      theme: 'striped',
-      styles: { fontSize: 9, cellPadding: 2, overflow: 'linebreak' },
-      headStyles: { fillColor: hslToRgb(...themeHslColors.orange), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       columnStyles: {
         2: { cellWidth: 60 },
         3: { cellWidth: 'auto' }
@@ -832,7 +837,7 @@ export const exportEventListToPdf = async (
       startY: y,
       theme: 'grid',
       styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-      headStyles: { fillColor: hslToRgb(...themeHslColors.grayMedium), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       columnStyles: {
         3: { cellWidth: 85 },
         5: { cellWidth: 60 }
@@ -868,7 +873,7 @@ export const generateEventPerformancesPdfObject = (
   let y = createPdfHeader(pdf, `${i18next.t('pdf.event_runsheet_title')} - ${eventFrame.name}`);
 
   const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
 
   // --- Info de l'Esdeveniment ---
   const eventInfo = [
@@ -920,8 +925,8 @@ export const generateEventPerformancesPdfObject = (
       head: [[{ content: i18next.t('pdf.artistic_runsheet'), colSpan: 6, styles: headStyles }]],
       body: [runsheetHead, ...runsheetBody],
       startY: y,
-      theme: 'striped',
-      styles: { fontSize: 10, cellPadding: 3 },
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2 },
       headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       margin: { left: 10, right: 10 }
     });
@@ -966,7 +971,7 @@ export const generatePerformanceInputsPdfObject = (
   let y = createPdfHeader(pdf, `${i18next.t('pdf.performance_inputs_title')} - ${performance.name}`);
 
   const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
 
   // --- Capçalera de l'Esdeveniment ---
   const headerBody = [
@@ -1008,8 +1013,8 @@ export const generatePerformanceInputsPdfObject = (
       head: [[{ content: i18next.t('pdf.input_list'), colSpan: 7, styles: headStyles }]],
       body: [inputHead, ...inputBody],
       startY: y,
-      theme: 'striped',
-      styles: { fontSize: 10, cellPadding: 3 },
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2 },
       headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
       margin: { left: 10, right: 10 }
     });
@@ -1056,7 +1061,7 @@ export const generatePerformanceHospitalityPdfObject = (
   let y = createPdfHeader(pdf, `${i18next.t('pdf.performance_hospitality_title')} - ${performance.name}`);
 
   const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
   const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
 
   // --- Capçalera de l'Esdeveniment ---
@@ -1155,7 +1160,7 @@ export const exportRegidoriaSummaryPdf = async (
     let y = createPdfHeader(pdf, `${i18next.t('pdf.regidoria_summary_title')} - ${eventFrame.name}`);
 
     const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-    const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+    const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
     const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
 
     // --- Capçalera de l'Esdeveniment ---
@@ -1257,8 +1262,8 @@ export const exportRegidoriaSummaryPdf = async (
         head: [[{ content: i18next.t('pdf.combined_schedule'), colSpan: 4, styles: headStyles }]],
         body: [combinedScheduleHead, ...combinedScheduleBody],
         startY: y,
-        theme: 'striped',
-        styles: { fontSize: 9, cellPadding: 2 },
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2 },
         headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
         columnStyles: {
           0: { cellWidth: 40 },
@@ -1362,7 +1367,7 @@ const getPerformanceStyles = () => {
   const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
   
   const headStyles: Partial<Styles> = { 
-    fillColor: hslToRgb(...themeHslColors.primary), 
+    fillColor: hslToRgb(...themeHslColors.grayDark), 
     textColor: hslToRgb(...themeHslColors.foregroundWhite), 
     fontStyle: 'bold' 
   };
@@ -1541,8 +1546,8 @@ export const exportPerformanceToPdfWithOptions = async (
         head: [[{ content: i18next.t('pdf.input_list'), colSpan: 7, styles: headStyles }]],
         body: [inputHead, ...inputBody],
         startY: y,
-        theme: 'striped',
-        styles: { fontSize: 10, cellPadding: 3 },
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2 },
         headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
         columnStyles: inputColumnStyles as any,
         margin: { left: 10, right: 10 }
