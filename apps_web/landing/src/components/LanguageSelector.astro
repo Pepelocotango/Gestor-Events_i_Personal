@@ -34,9 +34,9 @@ const getTargetUrl = (targetPath: string) => {
     return '/';
   }
   
-  // Per a gep-mailer, sempre afegir el prefix d'idioma
+  // Per a gep-mailer, sempre afegir el prefix d'idioma excepte per a la ruta arrel
   if (cleanContentPath === 'gep-mailer') {
-    return targetPath === '' ? '/ca/gep-mailer' : `/${targetPath}gep-mailer`;
+    return targetPath === '' ? '/gep-mailer' : `/${targetPath}gep-mailer`;
   }
   
   return `/${targetPath}${cleanContentPath}`;

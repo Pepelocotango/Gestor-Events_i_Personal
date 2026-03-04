@@ -162,7 +162,7 @@ const fontLink3 = {
               {isGepMailerPage ? null : <li><a href="#product-tour" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.product_tour}</a></li>}
               {isGepMailerPage ? null : <li><a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.gallery}</a></li>}
               <li><a href="#download" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.download}</a></li>
-              <li><a href={currentLocale === 'ca' ? '/ca/gep-mailer' : `/${currentLocale}/gep-mailer`} class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.gep_mailer}</a></li>
+              <li><a href={currentLocale === 'ca' ? '/gep-mailer' : `/${currentLocale}/gep-mailer`} class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.gep_mailer}</a></li>
             </ul>
           </nav>
           <LanguageSelector currentLocale={currentLocale} currentPath={currentPath} />
