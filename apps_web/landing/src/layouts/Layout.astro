@@ -17,6 +17,7 @@ interface Props {
       contact: string;
       menu: string;
       logo_text: string;
+      gep_mailer: string;
     };
     footer: {
       title: string;
@@ -37,6 +38,9 @@ interface Props {
 }
 
 const { title, description, currentLocale = 'ca', currentPath = '/', translations } = Astro.props;
+
+// Detectar si estamos en página de gep-mailer
+const isGepMailerPage = currentPath.includes('/gep-mailer');
 
 const siteTitle = translations.site.title;
 const siteDescription = description || translations.site.description;
@@ -153,11 +157,12 @@ const fontLink3 = {
           </a>
           <nav class="hidden lg:block">
             <ul class="flex space-x-8">
-              <li><a href="#home" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.home}</a></li>
-              <li><a href="#features" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.features}</a></li>
-              <li><a href="#product-tour" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.product_tour}</a></li>
-              <li><a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.gallery}</a></li>
+              <li><a href={isGepMailerPage ? (currentLocale === 'ca' ? '/' : `/${currentLocale}/`) : '#home'} class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.home}</a></li>
+              {isGepMailerPage ? null : <li><a href="#features" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.features}</a></li>}
+              {isGepMailerPage ? null : <li><a href="#product-tour" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.product_tour}</a></li>}
+              {isGepMailerPage ? null : <li><a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.gallery}</a></li>}
               <li><a href="#download" class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.download}</a></li>
+              <li><a href={currentLocale === 'ca' ? '/ca/gep-mailer' : `/${currentLocale}/gep-mailer`} class="text-gray-300 hover:text-white transition-colors font-medium">{translations.navigation.gep_mailer}</a></li>
             </ul>
           </nav>
           <LanguageSelector currentLocale={currentLocale} currentPath={currentPath} />
@@ -176,18 +181,37 @@ const fontLink3 = {
               <p class="text-gray-400">{translations.footer.version}</p>
             </div>
             <div class="flex space-x-6">
-              <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
-                 target="_blank" 
-                 rel="noopener noreferrer" 
-                 class="text-gray-400 hover:text-white transition-colors">
-                {translations.footer.source_code}
-              </a>
-              <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/blob/main/README.md" 
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 class="text-gray-400 hover:text-white transition-colors">
-                {translations.footer.documentation}
-              </a>
+              {isGepMailerPage ? (
+                <>
+                  <a href="https://github.com/Pepelocotango/gep-mailer-proto" 
+                     target="_blank" 
+                     rel="noopener noreferrer" 
+                     class="text-gray-400 hover:text-white transition-colors">
+                    {translations.footer.source_code}
+                  </a>
+                  <a href="https://github.com/Pepelocotango/gep-mailer-proto/blob/main/README.md" 
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="text-gray-400 hover:text-white transition-colors">
+                    {translations.footer.documentation}
+                  </a>
+                </>
+              ) : (
+                <>
+                  <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal" 
+                     target="_blank" 
+                     rel="noopener noreferrer" 
+                     class="text-gray-400 hover:text-white transition-colors">
+                    {translations.footer.source_code}
+                  </a>
+                  <a href="https://github.com/Pepelocotango/Gestor-Events_i_Personal/blob/main/README.md" 
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="text-gray-400 hover:text-white transition-colors">
+                    {translations.footer.documentation}
+                  </a>
+                </>
+              )}
             </div>
           </div>
           <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
