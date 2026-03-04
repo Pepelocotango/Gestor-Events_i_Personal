@@ -176,7 +176,8 @@
         "home": "Inicio",
         "logo_text": "Gestor de Eventos",
         "menu": "Menú",
-        "product_tour": "Descubre la interfaz"
+        "product_tour": "Descubre la interfaz",
+        "gep_mailer": "GEP-Mailer"
     },
     "releases": {
         "at_github": "En GitHub Releases",
@@ -307,5 +308,23 @@
             "image": "desktop-dashboard.png",
             "title": "Barra de Menú Superior"
         }
-    ]
+    ],
+    "gep_mailer": {
+        "title": "GEP-Mailer: Comunicaciones Eficientes",
+        "subtitle": "Herramienta especializada para solicitudes de disponibilidad de personal",
+        "description": "Aplicación auxiliar del ecosistema GEP diseñada para agilizar la comunicación con el personal técnico. Con paridad de datos 100% con la aplicación GEP principal.",
+        "features": {
+            "nested_mailto": "Correos 'Nested Mailto' con botones de respuesta integrados (Sí/No/Parcial/Pendiente)",
+            "contact_management": "Gestión completa de contactos (CRUD) con paridad 100% GEP",
+            "import_formats": "Importación multi-formato: GEP, JSON, CSV, VCF",
+            "duplicate_detection": "Detección inteligente de duplicados con opción de fusionar/reemplazar",
+            "history": "Historial automático de eventos y contactos recientes"
+        },
+        "download_section": {
+            "title": "Descargar GEP-Mailer v1.0.0",
+            "description": "Elige tu plataforma y comienza a mejorar tus comunicaciones con el personal técnico hoy mismo.",
+            "label": "Descargar GEP-Mailer",
+            "requirements": "Requisitos mínimos: 4GB RAM, 500MB espacio en disco, conexión a internet"
+        }
+    }
 }
