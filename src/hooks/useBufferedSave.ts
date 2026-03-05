@@ -4,6 +4,7 @@ import { registerSaveListener } from '../utils/saveManager';
 
 interface UseBufferedSaveReturn<T> {
   localData: T;
+  localDataRef: React.RefObject<T>;
   updateLocal: (updates: Partial<T>) => void;
   updateFullObject: (newData: T) => void;
   saveNow: () => void;
@@ -102,6 +103,7 @@ export function useBufferedSave<T extends object>(
 
   return {
     localData,
+    localDataRef,
     updateLocal,
     updateFullObject,
     saveNow,

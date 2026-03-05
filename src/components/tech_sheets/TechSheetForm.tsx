@@ -27,7 +27,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   const { t } = useTranslation();
   const { peopleGroups, materialItems, addOrUpdateTechSheet, getMaterialAvailability } = useEventDataStore.getState();
 
-  const { localData: formData, updateLocal, updateFullObject, saveNow, isDirty } = useBufferedSave<TechSheetData>(
+  const { localData: formData, localDataRef: formDataRef, updateLocal, updateFullObject, saveNow, isDirty } = useBufferedSave<TechSheetData>(
     eventFrame.techSheet!,
     (data) => {
       addOrUpdateTechSheet(eventFrame.id, data);
@@ -40,20 +40,41 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     return m;
   }, [peopleGroups]);
 
+  // NOU: derived memo granular — recalcula NOMÉS quan canvien les seccions de material
+  const needsSectionsData = useMemo(() => ({
+    lighting: formData.lighting,
+    sound: formData.sound,
+    video: formData.video,
+    machinery: formData.machinery,
+    rentals: formData.rentals,
+    otherEquipment: formData.otherEquipment,
+    electrical: formData.electrical,
+    structures: formData.structures,
+    platforms: formData.platforms,
+    consumables: formData.consumables,
+    curtains: formData.curtains,
+    transport: formData.transport,
+  }), [
+    formData.lighting, formData.sound, formData.video, formData.machinery,
+    formData.rentals, formData.otherEquipment, formData.electrical,
+    formData.structures, formData.platforms, formData.consumables,
+    formData.curtains, formData.transport,
+  ]);
+
   const originSuggestions = useMemo(() => {
     const suggestions = new Set<string>();
     materialItems.forEach(item => {
       if (item.location) suggestions.add(item.location);
     });
-    const needsSections: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
-    needsSections.forEach(sectionName => {
-      const section = formData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const NEEDS_KEYS: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
+    NEEDS_KEYS.forEach(sectionName => {
+      const section = needsSectionsData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
       section?.data?.needs?.forEach(need => {
         if (need.origin) suggestions.add(need.origin);
       });
     });
     return Array.from(suggestions).sort();
-  }, [materialItems, formData]);
+  }, [materialItems, needsSectionsData]); // ✅ Sense formData sencer
 
   const sectionKeys = useMemo(() => [
     'general', 'personnel', 'preAssembly', 'schedule', 'logistics',
@@ -117,27 +138,27 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   const availabilityMap = useMemo(() => {
     const map = new Map<string, { available: number; total: number }>();
     const materialIds = new Set<string>();
-
-    const needsSections: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
+    const NEEDS_KEYS: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
     
-    needsSections.forEach(sectionName => {
-      const section = formData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    NEEDS_KEYS.forEach(sectionName => {
+      const section = needsSectionsData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
       section?.data?.needs?.forEach(need => {
         if (need.materialItemId) materialIds.add(need.materialItemId);
       });
     });
 
     materialIds.forEach(id => {
-      const avail = getMaterialAvailability(id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, undefined, formData);
+      // Usar formDataRef.current per accedir al buffer actual sense crear dependència
+      const avail = getMaterialAvailability(id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, undefined, formDataRef.current || undefined);
       map.set(id, avail);
     });
 
     return map;
-  }, [formData, eventFrame.startDate, eventFrame.endDate, eventFrame.id, getMaterialAvailability]);
+  }, [needsSectionsData, eventFrame.startDate, eventFrame.endDate, eventFrame.id, getMaterialAvailability, formDataRef]); // formDataRef és estable (és un ref), no causa recàlculs
 
   const getLocalMaterialAvailability = useCallback((materialId: string, startDate: string, endDate: string, eventFrameId: string, currentItemId?: string) => {
-    return getMaterialAvailability(materialId, startDate, endDate, eventFrameId, currentItemId, formData);
-  }, [getMaterialAvailability, formData]);
+    return getMaterialAvailability(materialId, startDate, endDate, eventFrameId, currentItemId, formDataRef.current || undefined);
+  }, [getMaterialAvailability, formDataRef]); // ✅ formDataRef és estable
 
   if (!formData) {
     return <div>{t('tech_sheets.form.loading_data')}</div>;
@@ -270,11 +291,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     }
   };
 
-  const handleConditionalChange = (
+  const handleConditionalChange = useCallback((
     fieldName: keyof TechSheetData,
     fieldValue: Partial<ConditionalSection<any> | { status: ConditionalStatus }>
   ) => {
-    const currentField = formData[fieldName] as ConditionalSection<any> || { status: 'unset', details: '' };
+    const currentField = (formDataRef.current?.[fieldName] as ConditionalSection<any>) || { status: 'unset', details: '' };
     const updatedField = { ...currentField, ...fieldValue };
 
     // INICI DE LA CORRECCIÓ
@@ -292,10 +313,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     // FI DE LA CORRECCIÓ
 
     updateLocal({ [fieldName]: updatedField });
-  };
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleNeedsListChange = useCallback((sectionName: TechSheetNeedsKey, index: number, field: string, value: any) => {
-    const section = formData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const section = formDataRef.current?.[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
     const newNeeds = [...(section?.data?.needs || [])];
     const currentItem = { ...newNeeds[index] };
     (currentItem as any)[field] = value;
@@ -312,14 +333,14 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
 
     updateLocal({ [sectionName]: updatedSection });
-  }, [materialItems, formData, updateLocal]);
+  }, [materialItems, updateLocal, formDataRef]); // ✅ Sense formData
 
   const handleRemoveNeedsListItem = useCallback((sectionName: TechSheetNeedsKey, index: number) => {
-    const section = formData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const section = formDataRef.current?.[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
     const newNeeds = (section?.data?.needs || []).filter((_, i) => i !== index);
     const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
     updateLocal({ [sectionName]: updatedSection });
-  }, [formData, updateLocal]);
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleMoveNeedItemUp = (listName: TechSheetNeedsKey, index: number) => {
     if (index === 0) return;
@@ -348,11 +369,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
   const handleAddNeedsListItem = useCallback((sectionName: TechSheetNeedsKey) => {
     const newItem: NeedItem = { id: generateLocalId(), quantity: 1, description: '', origin: '' };
-    const section = formData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const section = formDataRef.current?.[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
     const newNeeds = [...(section?.data?.needs || []), newItem];
     const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
     updateLocal({ [sectionName]: updatedSection });
-  }, [formData, updateLocal]);
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleAssemblyScheduleChange = (id: string, field: keyof AssemblyScheduleItem, value: string) => {
     const newSchedule = [...(formData.schedule?.data || [])];
@@ -441,20 +462,20 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   };
 
   const handleProviderChange = useCallback((providerIndex: number, personGroupId: string) => {
-    const newProviders = (formData.technicalProviders || []).map((provider, index) => {
+    const newProviders = (formDataRef.current?.technicalProviders || []).map((provider, index) => {
       if (index === providerIndex) {
         return { ...provider, personGroupId: personGroupId };
       }
       return provider;
     });
     updateLocal({ technicalProviders: newProviders });
-  }, [formData, updateLocal]);
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleRoleChange = useCallback((providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => {
     const finalValue = (field === 'role' && typeof value === 'string' && value.includes(': '))
       ? value.split(': ')[1]
       : value;
-    const newProviders = (formData.technicalProviders || []).map((provider, pIndex) => {
+    const newProviders = (formDataRef.current?.technicalProviders || []).map((provider, pIndex) => {
       if (pIndex === providerIndex) {
         const newRoles = provider.roles.map((role, rIndex) => {
           if (rIndex === roleIndex) {
@@ -467,20 +488,20 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       return provider;
     });
     updateLocal({ technicalProviders: newProviders });
-  }, [formData, updateLocal]);
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleAddProvider = useCallback(() => {
     const newProvider: TechSheetProvider = { id: generateLocalId(), personGroupId: '', roles: [], isManual: true };
-    updateLocal({ technicalProviders: [...(formData.technicalProviders || []), newProvider] });
-  }, [formData, updateLocal]);
+    updateLocal({ technicalProviders: [...(formDataRef.current?.technicalProviders || []), newProvider] });
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleRemoveProvider = useCallback((providerIndex: number) => {
-    updateLocal({ technicalProviders: (formData.technicalProviders || []).filter((_, i) => i !== providerIndex) });
-  }, [formData, updateLocal]);
+    updateLocal({ technicalProviders: (formDataRef.current?.technicalProviders || []).filter((_, i) => i !== providerIndex) });
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleAddRole = useCallback((providerIndex: number) => {
     const newRole: TechSheetRoleItem = { id: generateLocalId(), role: '', quantity: 1, notes: '', printNotes: true };
-    const newProviders = (formData.technicalProviders || []).map((provider, index) => {
+    const newProviders = (formDataRef.current?.technicalProviders || []).map((provider, index) => {
       if (index === providerIndex) {
         return {
           ...provider,
@@ -490,10 +511,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       return provider;
     });
     updateLocal({ technicalProviders: newProviders });
-  }, [formData, updateLocal]);
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleRemoveRole = useCallback((providerIndex: number, roleIndex: number) => {
-    const newProviders = (formData.technicalProviders || []).map((provider, index) => {
+    const newProviders = (formDataRef.current?.technicalProviders || []).map((provider, index) => {
       if (index === providerIndex) {
         return {
           ...provider,
@@ -503,7 +524,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
       return provider;
     });
     updateLocal({ technicalProviders: newProviders });
-  }, [formData, updateLocal]);
+  }, [updateLocal, formDataRef]); // ✅
 
   const openModal = useModalStore(state => state.openModal);
 
