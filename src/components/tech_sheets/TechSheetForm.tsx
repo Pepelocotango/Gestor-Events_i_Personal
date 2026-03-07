@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
+import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction, MaterialItem } from '../../types';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import TechSheetSection from './TechSheetSection';
@@ -181,13 +181,13 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     updateLocal({ [field]: value });
   }, [updateLocal]);
 
-  const handleSortNeedsByOrigin = (listName: TechSheetNeedsKey) => {
+  const handleSortNeedsByOrigin = useCallback((listName: TechSheetNeedsKey) => {
     const currentDirection = sortDirections[listName] || 'asc';
     const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
     
     setSortDirections(prev => ({ ...prev, [listName]: newDirection }));
     
-    const section = formData[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const section = formDataRef.current?.[listName] as ConditionalSection<{ needs: NeedItem[] }>;
     if (!section || !section.data || !section.data.needs) return;
 
     const sortedNeeds = [...section.data.needs].sort((a, b) => {
@@ -197,7 +197,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
     const updatedSection = { ...section, data: { ...section.data, needs: sortedNeeds } };
     updateLocal({ [listName]: updatedSection });
-  };
+  }, [sortDirections, updateLocal, formDataRef]);
 
   const handleSortScheduleByDate = () => {
     const scheduleData = formData.schedule?.data || [];
@@ -656,41 +656,79 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     }
   };
 
-  const renderNeedsSection = (title: string, fieldName: TechSheetNeedsKey) => (
+interface NeedsSectionProps {
+  fieldName: TechSheetNeedsKey;
+  title: string;
+  status: ConditionalStatus;
+  details: string;
+  needs: NeedItem[];
+  onConditionalChange: (fieldName: keyof TechSheetData, value: any) => void;
+  onListChange: (listName: string, index: number, field: string, value: any) => void;
+  onRemoveListItem: (listName: string, index: number) => void;
+  onAddListItem: (listName: string) => void;
+  onMoveItemUp: (listName: string, index: number) => void;
+  onMoveItemDown: (listName: string, index: number) => void;
+  onSortByOrigin: (listName: string) => void;
+  sortDirection: 'asc' | 'desc';
+  originSuggestions: string[];
+  materialItems: MaterialItem[];
+  eventFrame: any;
+  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string, currentItemId?: string) => { available: number; total: number };
+  availabilityMap: Map<string, { available: number; total: number }>;
+}
+
+const NeedsSection = React.memo<NeedsSectionProps>(({
+  fieldName, title, status, details, needs, onConditionalChange, 
+  onListChange, onRemoveListItem, onAddListItem, onMoveItemUp, onMoveItemDown,
+  onSortByOrigin, sortDirection, originSuggestions, materialItems, eventFrame,
+  getMaterialAvailability, availabilityMap
+}) => {
+  const { t } = useTranslation();
+
+  const handleStatusChange = useCallback((s: ConditionalStatus) => {
+    onConditionalChange(fieldName, { status: s });
+  }, [onConditionalChange, fieldName]);
+
+  const handleDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    onConditionalChange(fieldName, { details: e.target.value });
+  }, [onConditionalChange, fieldName]);
+
+  return (
     <ConditionalFormControl
       label={`${title}:`}
-      status={formData[fieldName]?.status || 'unset'}
-      onStatusChange={(status) => handleConditionalChange(fieldName, { status })}
+      status={status}
+      onStatusChange={handleStatusChange}
     >
       <TechSheetField
         id={`${fieldName}Details`}
         label={t('tech_sheets.needs.field_labels.details_prefix', { title: title.toLowerCase() })}
-        value={formData[fieldName]?.details || ''}
-        onChange={(e) => handleConditionalChange(fieldName, { details: e.target.value })}
+        value={details}
+        onChange={handleDetailsChange}
         as="textarea"
         rows={2}
       />
       <NeedsList
-        needs={formData[fieldName]?.data?.needs || []}
-        title={t('tech_sheets.needs.field_labels.material_prefix', { title: title.toLowerCase() })}
+        needs={needs}
         listName={fieldName}
-        onListChange={handleNeedsListChange as any}
-        onRemoveListItem={handleRemoveNeedsListItem as any}
-        onAddListItem={handleAddNeedsListItem as any}
-        onMoveItemUp={handleMoveNeedItemUp as any}
-        onMoveItemDown={handleMoveNeedItemDown as any}
-        onSortByOrigin={handleSortNeedsByOrigin as any}
-        sortDirection={sortDirections[fieldName] || 'asc'}
+        title={t('tech_sheets.needs.field_labels.material_prefix', { title: title.toLowerCase() })}
+        onListChange={onListChange}
+        onRemoveListItem={onRemoveListItem}
+        onAddListItem={onAddListItem}
+        onMoveItemUp={onMoveItemUp}
+        onMoveItemDown={onMoveItemDown}
+        onSortByOrigin={onSortByOrigin}
+        sortDirection={sortDirection}
         originSuggestions={originSuggestions}
         materialItems={materialItems}
         eventFrame={eventFrame}
-        getMaterialAvailability={getLocalMaterialAvailability as any}
+        getMaterialAvailability={getMaterialAvailability}
         availabilityMap={availabilityMap}
       />
     </ConditionalFormControl>
   );
+});
 
-  return (
+return (
     <div className="p-2 bg-background rounded-lg shadow space-y-4 tech-sheet-form-container">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -1165,18 +1203,246 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
             tooltipText={t('tech_sheets.form.technical_needs.notes_tooltip')}
           />
         </div>
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.lighting'), 'lighting')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.sound'), 'sound')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.video'), 'video')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.machinery'), 'machinery')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.rentals'), 'rentals')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.other_equipment'), 'otherEquipment')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.electrical'), 'electrical')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.structures'), 'structures')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.platforms'), 'platforms')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.consumables'), 'consumables')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.curtains'), 'curtains')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.transport'), 'transport')}
+        <NeedsSection
+          fieldName="lighting"
+          title={t('tech_sheets.needs.category_labels.lighting')}
+          status={formData.lighting?.status || 'unset'}
+          details={formData.lighting?.details || ''}
+          needs={formData.lighting?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['lighting'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="sound"
+          title={t('tech_sheets.needs.category_labels.sound')}
+          status={formData.sound?.status || 'unset'}
+          details={formData.sound?.details || ''}
+          needs={formData.sound?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['sound'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="video"
+          title={t('tech_sheets.needs.category_labels.video')}
+          status={formData.video?.status || 'unset'}
+          details={formData.video?.details || ''}
+          needs={formData.video?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['video'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="machinery"
+          title={t('tech_sheets.needs.category_labels.machinery')}
+          status={formData.machinery?.status || 'unset'}
+          details={formData.machinery?.details || ''}
+          needs={formData.machinery?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['machinery'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="rentals"
+          title={t('tech_sheets.needs.category_labels.rentals')}
+          status={formData.rentals?.status || 'unset'}
+          details={formData.rentals?.details || ''}
+          needs={formData.rentals?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['rentals'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="otherEquipment"
+          title={t('tech_sheets.needs.category_labels.other_equipment')}
+          status={formData.otherEquipment?.status || 'unset'}
+          details={formData.otherEquipment?.details || ''}
+          needs={formData.otherEquipment?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['otherEquipment'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="electrical"
+          title={t('tech_sheets.needs.category_labels.electrical')}
+          status={formData.electrical?.status || 'unset'}
+          details={formData.electrical?.details || ''}
+          needs={formData.electrical?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['electrical'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="structures"
+          title={t('tech_sheets.needs.category_labels.structures')}
+          status={formData.structures?.status || 'unset'}
+          details={formData.structures?.details || ''}
+          needs={formData.structures?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['structures'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="platforms"
+          title={t('tech_sheets.needs.category_labels.platforms')}
+          status={formData.platforms?.status || 'unset'}
+          details={formData.platforms?.details || ''}
+          needs={formData.platforms?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['platforms'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="consumables"
+          title={t('tech_sheets.needs.category_labels.consumables')}
+          status={formData.consumables?.status || 'unset'}
+          details={formData.consumables?.details || ''}
+          needs={formData.consumables?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['consumables'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="curtains"
+          title={t('tech_sheets.needs.category_labels.curtains')}
+          status={formData.curtains?.status || 'unset'}
+          details={formData.curtains?.details || ''}
+          needs={formData.curtains?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['curtains'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="transport"
+          title={t('tech_sheets.needs.category_labels.transport')}
+          status={formData.transport?.status || 'unset'}
+          details={formData.transport?.details || ''}
+          needs={formData.transport?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['transport'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
       </TechSheetSection>
 
       {/* Other Details */}
