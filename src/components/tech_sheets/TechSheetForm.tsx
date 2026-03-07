@@ -389,13 +389,14 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
   }, [updateLocal, formDataRef]); // 
 
   const handleAssemblyScheduleChange = useCallback((id: string, field: keyof AssemblyScheduleItem, value: string) => {
-    const newSchedule = [...(formData.schedule?.data || [])];
+    const scheduleData = formDataRef.current?.schedule;
+    const newSchedule = [...(scheduleData?.data || [])];
     const index = newSchedule.findIndex(item => item.id === id);
     if (index === -1) return;
 
     newSchedule[index] = { ...newSchedule[index], [field]: value };
-    updateLocal({ schedule: { ...(formData.schedule || { status: 'unset', details: '' }), data: newSchedule } });
-  }, [formData.schedule, updateLocal]);
+    updateLocal({ schedule: { ...(scheduleData || { status: 'unset', details: '' }), data: newSchedule } });
+  }, [updateLocal, formDataRef]);
 
   const handleAddAssemblyScheduleItem = (date?: string) => {
     const newDate = date !== undefined ? date : eventFrame.startDate;

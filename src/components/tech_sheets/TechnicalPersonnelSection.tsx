@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -64,6 +64,11 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   const { t } = useTranslation();
   const roleSuggestions = useRoleSuggestions();
   const openModal = useModalStore(state => state.openModal);
+
+  // Stable handler for technical personnel notes
+  const handleTechnicalPersonnelNotesChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    onFieldChange('technicalPersonnelNotes', e.target.value);
+  }, [onFieldChange]);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
     peopleGroups.forEach(p => m.set(p.id, p.name));
@@ -232,7 +237,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
           id="technicalPersonnelNotes"
           label=""
           value={technicalPersonnelNotes || ''}
-          onChange={(e) => onFieldChange('technicalPersonnelNotes', e.target.value)}
+          onChange={handleTechnicalPersonnelNotesChange}
           as="textarea"
           rows={3}
           placeholder={t('tech_sheets.personnel.notes_placeholder')}
