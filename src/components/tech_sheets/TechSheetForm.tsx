@@ -166,7 +166,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
   const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
 
     if (type === 'checkbox') {
@@ -175,11 +175,11 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     } else {
       updateLocal({ [name]: value });
     }
-  };
+  }, [updateLocal]);
 
-  const handleFieldChange = (field: keyof TechSheetData, value: any) => {
+  const handleFieldChange = useCallback((field: keyof TechSheetData, value: any) => {
     updateLocal({ [field]: value });
-  };
+  }, [updateLocal]);
 
   const handleSortNeedsByOrigin = (listName: TechSheetNeedsKey) => {
     const currentDirection = sortDirections[listName] || 'asc';
@@ -315,6 +315,19 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     updateLocal({ [fieldName]: updatedField });
   }, [updateLocal, formDataRef]); // ✅
 
+  // Stable handlers for conditional fields to prevent inline lambdas
+  const handleParkingDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    handleConditionalChange('parking', { details: e.target.value });
+  }, [handleConditionalChange]);
+
+  const handlePreAssemblyDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    handleConditionalChange('preAssembly', { details: e.target.value });
+  }, [handleConditionalChange]);
+
+  const handleScheduleDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    handleConditionalChange('schedule', { details: e.target.value });
+  }, [handleConditionalChange]);
+
   const handleNeedsListChange = useCallback((sectionName: TechSheetNeedsKey, index: number, field: string, value: any) => {
     const section = formDataRef.current?.[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
     const newNeeds = [...(section?.data?.needs || [])];
@@ -373,18 +386,16 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     const newNeeds = [...(section?.data?.needs || []), newItem];
     const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
     updateLocal({ [sectionName]: updatedSection });
-  }, [updateLocal, formDataRef]); // ✅
+  }, [updateLocal, formDataRef]); // 
 
-  const handleAssemblyScheduleChange = (id: string, field: keyof AssemblyScheduleItem, value: string) => {
+  const handleAssemblyScheduleChange = useCallback((id: string, field: keyof AssemblyScheduleItem, value: string) => {
     const newSchedule = [...(formData.schedule?.data || [])];
     const index = newSchedule.findIndex(item => item.id === id);
     if (index === -1) return;
 
-    const updatedItem = { ...newSchedule[index], [field]: value };
-    newSchedule[index] = updatedItem;
-
+    newSchedule[index] = { ...newSchedule[index], [field]: value };
     updateLocal({ schedule: { ...(formData.schedule || { status: 'unset', details: '' }), data: newSchedule } });
-  };
+  }, [formData.schedule, updateLocal]);
 
   const handleAddAssemblyScheduleItem = (date?: string) => {
     const newDate = date !== undefined ? date : eventFrame.startDate;
@@ -825,7 +836,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
               id="parkingDetails"
               label={t('tech_sheets.form.general.parking_details')}
               value={formData.parking?.details || ''}
-              onChange={(e) => handleConditionalChange('parking', { details: e.target.value })}
+              onChange={handleParkingDetailsChange}
               as="textarea"
               rows={2}
               placeholder={t('tech_sheets.form.general.parking_details_placeholder')}
@@ -843,7 +854,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
         onToggle={() => handleToggleSection('personnel')}
       >
         <TechnicalPersonnelSection
-          formData={formData}
+          showTechnicalPersonnelNotesInPdf={formData.showTechnicalPersonnelNotesInPdf}
+          technicalPersonnelNotes={formData.technicalPersonnelNotes}
           technicalProviders={formData.technicalProviders || []}
           peopleGroups={peopleGroups}
           eventFrame={eventFrame}
@@ -877,7 +889,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
             id="preAssemblyDetails"
             label={t('tech_sheets.form.pre_assembly.details_label')}
             value={formData.preAssembly?.details || ''}
-            onChange={(e) => handleConditionalChange('preAssembly', { details: e.target.value })}
+            onChange={handlePreAssemblyDetailsChange}
             as="textarea"
             rows={2}
             placeholder={t('tech_sheets.form.pre_assembly.details_placeholder')}
@@ -920,7 +932,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
                 id="scheduleDetails"
                 label=""
                 value={formData.schedule?.details || ''}
-                onChange={(e) => handleConditionalChange('schedule', { details: e.target.value })}
+                onChange={handleScheduleDetailsChange}
                 as="textarea"
                 rows={2}
                 placeholder={t('tech_sheets.form.schedule.notes_placeholder')}

@@ -25,7 +25,8 @@ import { formatDateDMY } from '../../utils/dateFormat';
 import SortableProvider from './SortableProvider';
 
 interface TechnicalPersonnelSectionProps {
-  formData: TechSheetData;
+  showTechnicalPersonnelNotesInPdf?: boolean;
+  technicalPersonnelNotes?: string;
   technicalProviders: TechSheetProvider[];
   peopleGroups: PersonGroup[];
   eventFrame: any;
@@ -44,7 +45,8 @@ interface TechnicalPersonnelSectionProps {
 }
 
 const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
-  formData,
+  showTechnicalPersonnelNotesInPdf,
+  technicalPersonnelNotes,
   technicalProviders,
   peopleGroups,
   eventFrame,
@@ -218,7 +220,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                 type="checkbox"
                 id="showTechnicalPersonnelNotesInPdf"
                 name="showTechnicalPersonnelNotesInPdf"
-                checked={formData.showTechnicalPersonnelNotesInPdf ?? true}
+                checked={showTechnicalPersonnelNotesInPdf ?? true}
                 onChange={(e) => onFieldChange('showTechnicalPersonnelNotesInPdf', e.target.checked)}
                 className="h-4 w-4 rounded border-border accent-primary focus:ring-ring"
               />
@@ -229,7 +231,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
         <TechSheetField
           id="technicalPersonnelNotes"
           label=""
-          value={formData.technicalPersonnelNotes || ''}
+          value={technicalPersonnelNotes || ''}
           onChange={(e) => onFieldChange('technicalPersonnelNotes', e.target.value)}
           as="textarea"
           rows={3}
@@ -406,5 +408,5 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   );
 };
 
-export default TechnicalPersonnelSection;
+export default React.memo(TechnicalPersonnelSection);
 

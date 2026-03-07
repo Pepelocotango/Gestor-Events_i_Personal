@@ -55,5 +55,5 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
   );
 };
 
-export default ConditionalFormControl;
+export default React.memo(ConditionalFormControl);
 
