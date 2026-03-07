@@ -342,9 +342,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     updateLocal({ [sectionName]: updatedSection });
   }, [updateLocal, formDataRef]); // ✅
 
-  const handleMoveNeedItemUp = (listName: TechSheetNeedsKey, index: number) => {
+  const handleMoveNeedItemUp = useCallback((listName: TechSheetNeedsKey, index: number) => {
     if (index === 0) return;
-    const section = formData[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const section = formDataRef.current?.[listName] as ConditionalSection<{ needs: NeedItem[] }>;
     if (!section || !section.data || !section.data.needs) return;
 
     const newNeeds = [...section.data.needs];
@@ -352,10 +352,10 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
     const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
     updateLocal({ [listName]: updatedSection });
-  };
+  }, [updateLocal, formDataRef]); // ✅
 
-  const handleMoveNeedItemDown = (listName: TechSheetNeedsKey, index: number) => {
-    const section = formData[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+  const handleMoveNeedItemDown = useCallback((listName: TechSheetNeedsKey, index: number) => {
+    const section = formDataRef.current?.[listName] as ConditionalSection<{ needs: NeedItem[] }>;
     if (!section || !section.data || !section.data.needs) return;
 
     const newNeeds = [...section.data.needs];
@@ -365,7 +365,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
 
     const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
     updateLocal({ [listName]: updatedSection });
-  };
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleAddNeedsListItem = useCallback((sectionName: TechSheetNeedsKey) => {
     const newItem: NeedItem = { id: generateLocalId(), quantity: 1, description: '', origin: '' };

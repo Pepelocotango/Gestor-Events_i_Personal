@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, MutableRefObject } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { registerSaveListener } from '../utils/saveManager';
 
 interface UseBufferedSaveReturn<T> {
   localData: T;
-  localDataRef: React.RefObject<T>;
+  localDataRef: MutableRefObject<T>;
   updateLocal: (updates: Partial<T>) => void;
   updateFullObject: (newData: T) => void;
   saveNow: () => void;
