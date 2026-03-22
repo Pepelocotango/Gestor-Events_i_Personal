@@ -45,4 +45,7 @@ __pycache__/
 google-credentials.json
 service-account.json
 
+# Configuració i context de Gemini (permetem que es pugi al repo)
+!.gemini/
+
 ### FINAL FITXER: .gitignore ###

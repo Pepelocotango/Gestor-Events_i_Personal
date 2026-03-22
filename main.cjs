@@ -1055,6 +1055,103 @@ ipcMain.handle('sync-with-google', async (event, { localData, targetCalendarId }
   }
 });
 
+// --- NOU HANDLER PER A SINCRONITZACIÓ INDIVIDUAL ---
+ipcMain.handle('sync-single-event-with-google', async (event, { localData, eventFrameId, targetCalendarId }) => {
+  const logMessages = [];
+  const logAndSendProgress = (msg, isError = false) => {
+    const timestamp = getCurrentTime();
+    const logMessage = isError ? `[ERROR] ${msg}` : `[${timestamp}] ${msg}`;
+    logMessages.push(logMessage);
+    if (mainWindow) {
+      mainWindow.webContents.send('sync-progress', { current: 1, total: 1, message: msg, logs: [...logMessages] });
+    }
+    return logMessage;
+  };
+
+  try {
+    logAndSendProgress(`🔵 Iniciant sincronització individual per a l'esdeveniment ID: ${eventFrameId}...`);
+
+    if (!googleServiceAccountClient) throw new Error('Client Service Account no inicialitzat.');
+    const config = loadGoogleConfigFromFile();
+    if (!config?.userEmail) throw new Error('No s\'ha trobat l\'email de l\'usuari.');
+
+    const calendar = google.calendar({ version: 'v3', auth: googleServiceAccountClient });
+    const localFrame = localData.eventFrames.find(f => f.id === eventFrameId);
+    if (!localFrame) throw new Error('Esdeveniment no trobat a les dades locals.');
+
+    logAndSendProgress(`📤 Processant: ${localFrame.name}...`);
+
+    // Preparar dades de l'esdeveniment (copiat de la lògica global per mantenir consistència)
+    const eventAssignments = (localData.assignments || []).filter(a => a.eventFrameId === localFrame.id);
+    const statusIcons = { 'Sí': '🟢', 'No': '🔴', 'Pendent': '🟡', 'Mixt': '🔵' };
+
+    const assignedPeopleList = eventAssignments
+      .map(a => {
+          const person = localData.peopleGroups.find(p => p.id === a.personGroupId);
+          if (!person) return null;
+          const roleStr = a.role ? ` (${a.role})` : '';
+          const notePart = a.notes ? `\n   └ 📝 Nota: ${a.notes}` : '';
+          if (a.status === 'Mixt' && a.dailyStatuses) {
+            const sortedDates = Object.keys(a.dailyStatuses).sort();
+            const dailyDetails = sortedDates.map(date => {
+                const dayStatus = a.dailyStatuses[date];
+                const dayStr = date.split('-').reverse().slice(0, 2).join('/');
+                return `   ${statusIcons[dayStatus] || '⚪'} ${dayStr}: ${dayStatus}`;
+            }).join('\n');
+            return `${statusIcons['Mixt']} ${person.name}${roleStr} [MIXT]:\n${dailyDetails}${notePart}`;
+          } 
+          const icon = statusIcons[a.status] || '⚪';
+          const dateStr = (a.startDate === a.endDate) ? formatDateDMY(a.startDate) : `${formatDateDMY(a.startDate)} - ${formatDateDMY(a.endDate)}`;
+          return `${icon} ${person.name}${roleStr}: ${dateStr} (${a.status})${notePart}`;
+      })
+      .filter(Boolean).join('\n');
+    
+    const techSummary = generateTechNeedsSummary(localFrame.techSheet);
+    const prodNoteDescription = localFrame.productionNote ? `🚨 NOTA DE PRODUCCIÓ: ${localFrame.productionNote}\n\n` : '';
+    const privateProps = { eventFrameId: localFrame.id };
+    if (localFrame.productionNote) privateProps.productionNote = localFrame.productionNote;
+
+    const eventData = {
+      summary: localFrame.name || 'Esdeveniment sense títol',
+      description: prodNoteDescription + `Lloc: ${localFrame.place || 'No especificat'}\n` + (techSummary ? `${techSummary}\n\n` : '') + `Notes: ${localFrame.generalNotes || ''}\n\n--- PERSONAL ASSIGNAT ---\n${assignedPeopleList || 'Cap assignació'}`,
+      location: localFrame.place || '',
+      start: { date: localFrame.startDate }, 
+      end: { date: addDaysISO(localFrame.endDate, 1) }, 
+      extendedProperties: { private: privateProps }
+    };
+
+    let googleEventId = localFrame.googleEventId;
+
+    if (googleEventId) {
+      try {
+        await calendar.events.update({ calendarId: targetCalendarId, eventId: googleEventId, requestBody: eventData });
+        logAndSendProgress(`✅ Actualitzat a Google Calendar.`);
+      } catch (error) {
+        if (error.code === 404) {
+          googleEventId = null; 
+          logAndSendProgress(`ℹ️ No trobat a Google, es crearà de nou.`);
+        } else throw error;
+      }
+    }
+
+    if (!googleEventId) {
+      const createdEvent = await calendar.events.insert({ calendarId: targetCalendarId, requestBody: eventData });
+      googleEventId = createdEvent.data.id;
+      logAndSendProgress(`✅ Creat a Google Calendar.`);
+    }
+
+    localFrame.googleEventId = googleEventId;
+    localFrame.googleCalendarId = targetCalendarId;
+    localFrame.lastSync = new Date().toISOString();
+
+    return { success: true, message: 'Sincronització individual completada.', data: localFrame };
+
+  } catch (error) {
+    logAndSendProgress(`❌ Error: ${error.message}`, true);
+    return { success: false, message: error.message };
+  }
+});
+
 // --- Altres Handlers Google ---
 
 ipcMain.handle('google-auth-start', async () => {

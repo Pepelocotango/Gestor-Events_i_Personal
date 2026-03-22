@@ -617,6 +617,18 @@ El model híbrid es manté:
     -   En cas d'èxit, actualitza les dades i mostra una notificació.
     -   Si rep l'error `CALENDAR_NOT_FOUND`, mostra un missatge a l'usuari i torna a obrir el modal de selecció perquè pugui triar un altre calendari.
 
+#### Flux de Sincronització Individual (v1.6.3+)
+
+1.  **[UI]** L'usuari fa clic a la icona de Google Calendar d'una targeta d'esdeveniment específica (`EventFrameCard`).
+2.  **[Frontend]** Es crida a l'acció `syncSingleEvent(eventFrameId)` de l'store `useEventDataStore`.
+3.  **[Frontend - Zustand]** L'acció verifica la configuració i, si cal, obre el modal de selecció de calendari.
+4.  **[Frontend]** Un cop confirmat el calendari, s'executa `executeSingleSync(eventFrameId, targetCalendarId)`.
+5.  **[Backend]** El gestor `sync-single-event-with-google` a `main.cjs` realitza l'operació:
+    -   No esborra cap esdeveniment del calendari.
+    -   Busca l'esdeveniment a Google per ID o el crea de nou.
+    -   Retorna l'objecte actualitzat amb els nous IDs de sincronització.
+6.  **[Frontend]** L'store actualitza només l'esdeveniment sincronitzat i mostra el progrés a través de `SyncProgressOverlay`.
+
 #### Flux de Neteja i Desconnexió
 
 -   **Eliminació d'un Sol Calendari (`delete-app-calendar`):** Des del modal de configuració, l'usuari pot eliminar un calendari gestionat específic. Aquesta acció l'esborra de Google i de la llista `managedAppCalendars` a la configuració.

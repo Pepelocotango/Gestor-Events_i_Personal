@@ -1,4 +1,7 @@
 enllaç a Gestor-Events_i_Personal/
+├── .gemini/
+│   ├── GEMINI.md               # Context i directrius per a l'IA.
+│   └── MEMORIA_PROJECTE.md      # Historial de decisions i tasques.
 ├── .github/
 │   └── workflows/                # CI/CD: Conté els scripts per a la compilació i desplegament automàtics a GitHub.
 │       ├── build-linuxv20-04.yml # Script per compilar la versió per a Linux (AppImage).

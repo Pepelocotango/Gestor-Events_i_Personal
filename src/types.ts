@@ -544,6 +544,7 @@ export interface ElectronAPI {
   getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
   getEventDetails: (calendarId: string, eventId: string) => Promise<{ success: boolean, event?: any, message?: string }>;
   syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
+  syncSingleEventWithGoogle: (payload: { localData: AppData, eventFrameId: string, targetCalendarId: string }) => Promise<any>;
   onSyncProgress: (callback: (progress: Omit<SyncProgressState, 'visible'>) => void) => () => void;
   googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
   deleteAppCalendar: (calendarId: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;

@@ -36,7 +36,7 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
   isArchived = false, isFocused = false, onFocus, peopleMap,
 }, ref) => {
   const { t } = useTranslation();
-  const { restoreEventFrame } = useEventDataStore.getState();
+  const { restoreEventFrame, syncSingleEvent } = useEventDataStore.getState();
   const { openModal } = useModalStore.getState();
 
   const filteredAssignments = eventFrame.assignments
@@ -148,6 +148,18 @@ const EventFrameCard = forwardRef<HTMLDivElement, EventFrameCardProps>(({
                     aria-label={t('event.edit_tooltip')}
                   >
                     <EditIcon className="w-5 h-5" />
+                  </button>
+                </Tooltip>
+                <Tooltip text={t('event.sync_single_google_tooltip')}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      syncSingleEvent(eventFrame.id);
+                    }}
+                    className={`p-2.5 rounded-md hover:bg-accent/50 transition-colors ${eventFrame.googleEventId ? 'text-blue-500' : 'text-muted-foreground opacity-50'}`}
+                    aria-label={t('event.sync_single_google_tooltip')}
+                  >
+                    <GoogleIcon className="w-5 h-5" />
                   </button>
                 </Tooltip>
                 <Tooltip text={t('event.delete_tooltip')}>

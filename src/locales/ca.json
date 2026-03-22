@@ -154,6 +154,7 @@
         "expand_tooltip": "Expandir secció",
         "general_notes_title": "Notes Generals",
         "google_sync_tooltip": "Aquest esdeveniment està sincronitzat amb Google Calendar",
+        "sync_single_google_tooltip": "Sincronitzar aquest esdeveniment amb Google Calendar",
         "item_type": "Marc d'Esdeveniment",
         "mark_complete_tooltip": "Marcar com a complet",
         "mark_incomplete_tooltip": "Marcar com a incomplet",

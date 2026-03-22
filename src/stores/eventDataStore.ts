@@ -122,6 +122,8 @@ interface EventDataActions {
     refreshGoogleEvents: () => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     syncWithGoogle: () => Promise<void>;
     executeSync: (targetCalendarId: string) => Promise<any>;
+    syncSingleEvent: (eventFrameId: string) => Promise<void>;
+    executeSingleSync: (eventFrameId: string, targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
     reorderTechnicalProviders: (eventFrameId: string, reorderedProviders: TechSheetProvider[]) => void;
     addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => MaterialItem;
@@ -929,6 +931,98 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         set({ isSyncing: false });
         return finalResult;
       },
+    syncSingleEvent: async (eventFrameId: string) => {
+        const { openModal, closeModal } = useModalStore.getState();
+        const { executeSingleSync } = get();
+
+        if (window.electronAPI?.loadGoogleConfig) {
+            const config = await window.electronAPI.loadGoogleConfig();
+            if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
+                openModal('googleSettings');
+                return;
+            }
+
+            // Si només n'hi ha un, sincronitzem directament sense preguntar
+            if (config.managedAppCalendars.length === 1) {
+                executeSingleSync(eventFrameId, config.managedAppCalendars[0].id);
+                return;
+            }
+
+            // Si n'hi ha diversos, deixem que l'usuari triï el calendari de destí
+            openModal('selectSyncCalendar', {
+                managedCalendars: config.managedAppCalendars,
+                activeCalendarId: config.activeAppCalendarId,
+                onConfirmSync: (targetCalendarId: string) => {
+                    closeModal();
+                    executeSingleSync(eventFrameId, targetCalendarId);
+                }
+            });
+        }
+    },
+    executeSingleSync: async (eventFrameId, targetCalendarId) => {
+        const { exportData, refreshGoogleEvents } = get();
+        let finalResult: any = { success: false, message: 'La sincronització no es va completar.', type: 'error' };
+
+        set({ 
+          isSyncing: true, 
+          syncProgress: { 
+            current: 0, 
+            total: 1, 
+            message: 'Iniciant...', 
+            visible: true, 
+            logs: [`[INFO] Iniciant sincronització d'esdeveniment individual...`] 
+          } 
+        });
+
+        try {
+            if (window.electronAPI) {
+                const localData = await exportData();
+                const result = await window.electronAPI.syncSingleEventWithGoogle({ localData, eventFrameId, targetCalendarId });
+
+                if (result.success && result.data) {
+                    set(state => {
+                        const frameIndex = state.eventFrames.findIndex(f => f.id === eventFrameId);
+                        if (frameIndex !== -1) {
+                            state.eventFrames[frameIndex] = {
+                                ...state.eventFrames[frameIndex],
+                                googleEventId: result.data.googleEventId,
+                                googleCalendarId: result.data.googleCalendarId,
+                                lastSync: result.data.lastSync
+                            };
+                        }
+                        state.hasUnsavedChanges = true;
+                        state.syncProgress.current = 1;
+                        state.syncProgress.message = 'Sincronització completada amb èxit.';
+                        state.syncProgress.logs.push('[INFO] Procés finalitzat correctament.');
+                    });
+                    
+                    await refreshGoogleEvents();
+                    finalResult = { success: true, message: result.message || 'Sincronització completada.', type: 'success' };
+                    notificationService.success(finalResult.message);
+                } else {
+                    set(state => {
+                        state.syncProgress.message = result.message || 'Error durant la sincronització.';
+                        state.syncProgress.logs.push(`[ERROR] ${result.message}`);
+                    });
+                    await refreshGoogleEvents();
+                    finalResult = { success: false, message: result.message || 'Error durant la sincronització.', type: 'error' };
+                    notificationService.error(finalResult.message);
+                }
+            }
+        } catch (error: any) {
+            const errorMsg = error.message || 'Error inesperat.';
+            set(state => {
+                state.syncProgress.message = errorMsg;
+                state.syncProgress.logs.push(`[ERROR CRÍTIC] ${errorMsg}`);
+            });
+            finalResult = { success: false, message: errorMsg, type: 'error' };
+            notificationService.error(errorMsg);
+        } finally {
+            set({ isSyncing: false });
+        }
+
+        return finalResult;
+    },
 
     // ARCHIVING
     archiveOldEventFrames: () => {
