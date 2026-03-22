@@ -2045,3 +2045,33 @@ const TechSheetForm = ({ eventFrame }) => {
 };
 ```
 
+### 11. Configuració i Experiència d'Usuari
+
+#### 11.1. Splash Screen (Animació d'Inici)
+- **Implementació:** Component `SplashScreen.tsx` situat a `src/components/ui/`.
+- **Funcionament:** Anima una seqüència de 9 fitxers PNG (`src/assets/splash/frame_1.png` a `frame_9.png`) amb un interval de 200ms entre fotogrames.
+- **Temporització:** Després d'1.5 segons d'animació, s'inicia un *fade-out* suau de 2 segons.
+- **Persistència:** L'usuari pot habilitar o deshabilitar aquesta pantalla des del menú "Visualització". La preferència es guarda al fitxer `session.json` de la carpeta `userData`.
+
+#### 11.2. Acceleració per Hardware (GPU)
+- **Seguretat:** Per defecte, l'acceleració per hardware està desactivada (`gpuEnabled = false`) a `main.cjs` per evitar errors en controladors de vídeo antics.
+- **Control:** Es pot activar mitjançant el menú superior. Electron requereix un reinici de l'aplicació per aplicar el canvi de `app.disableHardwareAcceleration()`.
+- **Estat:** El valor es recupera de `session.json` abans de la creació de la finestra principal.
+
+#### 11.3. Sistema d'Internacionalització (i18n)
+- **Motor:** Utilitza `i18next` amb `react-i18next`.
+- **Idiomes:** Suport complet per a Català (`ca`, defecte), Espanyol (`es`) i Anglès (`en`).
+- **Detecció:** Prioritza el paràmetre `lng` de la URL i després el `localStorage`.
+- **Tooltips:** Component `Tooltip.tsx` que utilitza Portals de React per evitar problemes de profunditat (z-index) i desbordament en taules o llistes complexes.
+
+### 12. Infraestructura de Compilació (CI/CD)
+
+#### 12.1. GitHub Actions
+- **Linux (`build-linuxv20-04.yml`):** Compila en Ubuntu 22.04, injecta secrets de Google, valida el format JSON de les credencials i genera un AppImage de 64 bits.
+- **Windows/macOS:** Workflows dedicats per a la generació de `.exe` i `.dmg` signats.
+- **Mòbil:** Workflow d'Expo per a builds d'Android i iOS.
+
+#### 12.2. Gestió d'Icones
+- **Repositori:** `build/icons/` conté les versions mestres per a cada plataforma.
+- **Formats:** `.icns` (Mac), `.ico` (Windows) i una graella de `.png` (Linux/Web) per garantir la consistència visual del logo de GEP.
+
