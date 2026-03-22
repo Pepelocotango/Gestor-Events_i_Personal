@@ -10,6 +10,7 @@
 - Ús de la carpeta `.gemini/` per emmagatzemar context i memòria de sessió.
 - Implementació de `sync-single-event-with-google` al backend per permetre actualitzacions quirúrgiques sense esborrar tot el calendari.
 - Ús de `notificationService` en lloc de `showToast` dins de l'store global.
+- **Simplificació del Guardat:** Eliminació del botó de desar manual en les fitxes de bolo (`TechSheetForm`) per evitar confusió amb el guardat a disc. Es confia en el desat automàtic al desmuntar i en el flux de guardat global (Ctrl+S).
 
 ## Tasques Pendents
 - [x] Configuració de context de Gemini (Març 2026).

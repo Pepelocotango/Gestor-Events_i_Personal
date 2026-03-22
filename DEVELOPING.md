@@ -652,10 +652,10 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
 -   **Gestió de Desat "Buffered Edit" (Edició en Memòria Intermèdia):** Per garantir el màxim rendiment (especialment en operacions com Drag & Drop) i una gestió de dades robusta, s'utilitza el hook `useBufferedSave`.
     -   **Estat Local:** Les dades viuen en un estat local (`useState`) mentre s'editen. Això garanteix que la interfície sigui extremadament fluida, ja que les actualitzacions de l'estat global de Zustand són costoses.
     -   **Sincronització Global:**
-        -   **Automàtica:** Les dades es guarden a l'Store Global de Zustand automàticament quan el component es desmunta (ex: canviar de pestanya o d'esdeveniment).
-        -   **Manual:** L'usuari pot forçar el desat prement el botó "Desar Canvis".
-        -   **Coordinada (saveManager):** El fitxer `src/utils/saveManager.ts` implementa un patró Observer que permet a `App.tsx` demanar a tots els components amb buffer que "buidin" (flush) les seves dades abans de generar el fitxer final al disc. Això garanteix la consistència WYSIWYG en el guardat global (Ctrl+S).
-    -   **Retroacció Visual:** El botó de desat mostra clarament l'estat ("Desar Canvis" vs "✓ Desat") per donar feedback positiu a l'usuari.
+        - **Automàtica:** Les dades es guarden a l'Store Global de Zustand automàticament quan el component es desmunta (ex: canviar de pestanya o d'esdeveniment).
+        - **Coordinada (saveManager):** El fitxer `src/utils/saveManager.ts` implementa un patró Observer que permet a `App.tsx` demanar a tots els components amb buffer que "buidin" (flush) les seves dades abans de generar el fitxer final al disc. Això garanteix la consistència WYSIWYG en el guardat global (Ctrl+S).
+        - **Flux de l'Usuari:** S'ha eliminat el botó de "Desar" manual dins del formulari per evitar la confusió entre "Desat a la RAM" i "Desat al fitxer .gep". Ara l'usuari confia en el flag global `hasUnsavedChanges` que s'activa automàticament en fer qualsevol canvi.
+
 
 -   **Gestió de Llistes Dinàmiques:**
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
