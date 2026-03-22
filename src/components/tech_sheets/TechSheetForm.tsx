@@ -748,24 +748,6 @@ return (
           <Tooltip text={t('tech_sheets.form.tooltip_collapse_all')}>
             <button onClick={collapseAll} className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md hover:bg-accent no-print">{t('tech_sheets.form.collapse_all')}</button>
           </Tooltip>
-          <Tooltip text={t('tech_sheets.form.tooltip_save')}>
-            <button
-              onClick={saveNow}
-              disabled={!isDirty}
-              className={`save-changes-button px-3 py-1 rounded-md font-semibold no-print flex items-center gap-2 transition-colors ${
-                isDirty
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'bg-secondary text-secondary-foreground/50 cursor-not-allowed'
-              }`}
-            >
-              {isDirty ? t('tech_sheets.form.save_changes') : (
-                <>
-                  <span className="text-lg">✓</span>
-                  {t('tech_sheets.form.saved') || 'Desat'}
-                </>
-              )}
-            </button>
-          </Tooltip>
           <Tooltip text={t('tech_sheets.form.tooltip_preview')}>
             <button onClick={handlePreview} className="preview-pdf-button px-3 py-1 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 font-semibold no-print flex items-center gap-2">
               <EyeIcon className="h-4 w-4" />
