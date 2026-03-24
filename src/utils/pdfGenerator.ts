@@ -870,16 +870,16 @@ export const generateEventPerformancesPdfObject = (
   performances: Performance[]
 ): jsPDF => {
   const pdf = new jsPDF('p', 'mm', 'a4');
-  let y = createPdfHeader(pdf, `${i18next.t('pdf.event_runsheet_title')} - ${eventFrame.name}`);
-
+  
   const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
   const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+  // Afegim labelStyles que faltava aquí
+  const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
 
-  // --- Info de l'Esdeveniment ---
-  const eventInfo = [
-    [{ content: i18next.t('pdf.event_info'), colSpan: 2, styles: { halign: 'center' as const, fontSize: 14, fontStyle: 'bold' as const } }],
-    [{ content: i18next.t('pdf.location'), styles: { fillColor: hslToRgb(...themeHslColors.grayMuted), fontStyle: 'bold' as const, cellWidth: 50 } }, sane(eventFrame.place)],
-    [{ content: i18next.t('pdf.date'), styles: { fillColor: hslToRgb(...themeHslColors.grayMuted), fontStyle: 'bold' as const, cellWidth: 50 } }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)],
+  let y = 10; // ELIMINEM createPdfHeader I COMENCEM A 10
+
+  // --- Info de l'Esdeveniment (Estil Fitxa de Bolo) ---
+  const eventInfo =[[{ content: `${i18next.t('pdf.event_runsheet_title')} - ${eventFrame.name}`, colSpan: 2, styles: { halign: 'center' as const, fontSize: 16, fontStyle: 'bold' as const } }],[{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],[{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)],
   ];
   autoTable(pdf, {
     body: eventInfo,
@@ -903,14 +903,14 @@ export const generateEventPerformancesPdfObject = (
         return timeA.localeCompare(timeB);
       });
 
-    const runsheetHead = [[
+    const runsheetHead = [
       i18next.t('pdf.time'),
       i18next.t('pdf.artist'),
       i18next.t('pdf.type'),
       i18next.t('pdf.status'),
       i18next.t('pdf.duration'),
       i18next.t('pdf.notes')
-    ]];
+    ];
 
     const runsheetBody = sortedPerformances.map(performance => [
       sane(performance.showTime),
@@ -922,8 +922,11 @@ export const generateEventPerformancesPdfObject = (
     ]);
 
     autoTable(pdf, {
-      head: [[{ content: i18next.t('pdf.artistic_runsheet'), colSpan: 6, styles: headStyles }]],
-      body: [runsheetHead, ...runsheetBody],
+      head: [
+        [{ content: i18next.t('pdf.artistic_runsheet'), colSpan: 6, styles: headStyles }],
+        runsheetHead
+      ],
+      body: runsheetBody,
       startY: y,
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 2 },
@@ -950,198 +953,6 @@ export const exportEventPerformancesSummaryPdf = async (
     const pdf = generateEventPerformancesPdfObject(eventFrame, performances);
     const fileName = `Escaleta_${eventFrame.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
-
-  } catch (error) {
-    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
-  }
-};
-
-// --- EXPORTACIÓ D'INPUTS TÈCNICS ---
-
-export const generatePerformanceInputsPdfObject = (
-  performance: Performance,
-  eventFrame: EventFrame
-): jsPDF => {
-  // Validación para evitar errores
-  if (!performance || !performance.name) {
-    throw new Error('Performance data is missing or incomplete');
-  }
-  
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  let y = createPdfHeader(pdf, `${i18next.t('pdf.performance_inputs_title')} - ${performance.name}`);
-
-  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
-
-  // --- Capçalera de l'Esdeveniment ---
-  const headerBody = [
-    [{ content: i18next.t('pdf.event_info'), colSpan: 2, styles: { halign: 'center' as const, fontSize: 14, fontStyle: 'bold' as const } }],
-    [{ content: i18next.t('pdf.event_name'), styles: { fillColor: hslToRgb(...themeHslColors.grayMuted), fontStyle: 'bold' as const, cellWidth: 50 } }, sane(eventFrame.name)],
-    [{ content: i18next.t('pdf.artist_name'), styles: { fillColor: hslToRgb(...themeHslColors.grayMuted), fontStyle: 'bold' as const, cellWidth: 50 } }, sane(performance.name)],
-  ];
-  autoTable(pdf, {
-    body: headerBody,
-    theme: 'grid',
-    startY: y,
-    margin: { left: 10, right: 10 },
-    styles: { cellPadding: 2 }
-  });
-  y = (pdf as any).lastAutoTable.finalY + 10;
-
-  // --- Input List ---
-  if (performance.techData?.inputList && performance.techData.inputList.length > 0) {
-    const inputHead = [[
-      i18next.t('pdf.patch'),
-      i18next.t('pdf.channel'),
-      i18next.t('pdf.label'),
-      i18next.t('pdf.mic_rider'),
-      i18next.t('pdf.mic_contra'),
-      i18next.t('pdf.stand'),
-      i18next.t('pdf.notes')
-    ]];
-    const inputBody = performance.techData.inputList.map(input => [
-      sane(input.patchColor && input.patchColor !== 'transparent' ? `${input.patchColor} ${input.patchNumber || ''}` : ''),
-      sane(input.channel),
-      sane(input.label),
-      sane(input.micRider),
-      sane(input.micContra),
-      sane(input.stand),
-      sane(input.notes)
-    ]);
-
-    autoTable(pdf, {
-      head: [[{ content: i18next.t('pdf.input_list'), colSpan: 7, styles: headStyles }]],
-      body: [inputHead, ...inputBody],
-      startY: y,
-      theme: 'grid',
-      styles: { fontSize: 10, cellPadding: 2 },
-      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
-      margin: { left: 10, right: 10 }
-    });
-  } else {
-    pdf.setFontSize(12);
-    pdf.text(i18next.t('pdf.no_inputs'), 14, y);
-  }
-
-  const totalPages = (pdf.internal as any).getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    pdf.setPage(i);
-    addFooter(pdf, i);
-  }
-
-  return pdf;
-};
-
-export const exportPerformanceInputsToPdf = async (
-  performance: Performance,
-  eventFrame: EventFrame,
-  showToast: ShowToastFunction
-) => {
-  try {
-    const pdf = generatePerformanceInputsPdfObject(performance, eventFrame);
-    const fileName = `Inputs_${performance.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
-    await savePdfWithDialog(pdf, fileName, showToast);
-  } catch (error) {
-    showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
-  }
-};
-
-// --- EXPORTACIÓ D'HOSPITALITAT ---
-
-export const generatePerformanceHospitalityPdfObject = (
-  performance: Performance,
-  eventFrame: EventFrame
-): jsPDF => {
-  // Validación para evitar errores
-  if (!performance || !performance.name) {
-    throw new Error('Performance data is missing or incomplete');
-  }
-  
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  let y = createPdfHeader(pdf, `${i18next.t('pdf.performance_hospitality_title')} - ${performance.name}`);
-
-  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
-  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
-  const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
-
-  // --- Capçalera de l'Esdeveniment ---
-  const headerBody = [
-    [{ content: i18next.t('pdf.event_info'), colSpan: 2, styles: { halign: 'center' as const, fontSize: 14, fontStyle: 'bold' as const } }],
-    [{ content: i18next.t('pdf.event_name'), styles: labelStyles }, sane(eventFrame.name)],
-    [{ content: i18next.t('pdf.artist_name'), styles: labelStyles }, sane(performance.name)],
-  ];
-  autoTable(pdf, {
-    body: headerBody,
-    theme: 'grid',
-    startY: y,
-    margin: { left: 10, right: 10 },
-    styles: { cellPadding: 2 }
-  });
-  y = (pdf as any).lastAutoTable.finalY + 10;
-
-  // --- Hospitality Info ---
-  const hospitalityBody = [];
-  if (performance.hospitalityData?.dressingRooms) {
-    hospitalityBody.push([{ content: i18next.t('pdf.dressing_rooms'), styles: labelStyles }, sane(performance.hospitalityData.dressingRooms)]);
-  }
-  if (performance.hospitalityData?.cateringNotes) {
-    hospitalityBody.push([{ content: i18next.t('pdf.catering'), styles: labelStyles }, sane(performance.hospitalityData.cateringNotes)]);
-  }
-  if (performance.hospitalityData?.dietaryRequirements) {
-    hospitalityBody.push([{ content: i18next.t('pdf.dietary_requirements'), styles: labelStyles }, sane(performance.hospitalityData.dietaryRequirements)]);
-  }
-  if (performance.hospitalityData?.travelLogistics) {
-    hospitalityBody.push([{ content: i18next.t('pdf.travel_logistics'), styles: labelStyles }, sane(performance.hospitalityData.travelLogistics)]);
-  }
-  if (performance.hospitalityData?.parkingNotes) {
-    hospitalityBody.push([{ content: i18next.t('pdf.parking'), styles: labelStyles }, sane(performance.hospitalityData.parkingNotes)]);
-  }
-
-  if (hospitalityBody.length > 0) {
-    hospitalityBody.unshift([{ content: i18next.t('pdf.hospitality'), colSpan: 2, styles: headStyles }]);
-    autoTable(pdf, {
-      body: hospitalityBody,
-      theme: 'grid',
-      startY: y,
-      margin: { left: 10, right: 10 },
-      styles: { cellPadding: 2 }
-    });
-    y = (pdf as any).lastAutoTable.finalY + 10;
-  } else {
-    pdf.setFontSize(12);
-    pdf.text(i18next.t('pdf.no_hospitality'), 14, y);
-  }
-
-  // --- Notes Generals ---
-  if (performance.notes) {
-    autoTable(pdf, {
-      head: [[{ content: i18next.t('pdf.general_notes'), styles: headStyles }]],
-      body: [[sane(performance.notes)]],
-      startY: y,
-      theme: 'grid',
-      margin: { left: 10, right: 10 },
-      styles: { cellPadding: 2 }
-    });
-  }
-
-  const totalPages = (pdf.internal as any).getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    pdf.setPage(i);
-    addFooter(pdf, i);
-  }
-
-  return pdf;
-};
-
-export const exportPerformanceHospitalityToPdf = async (
-  performance: Performance,
-  eventFrame: EventFrame,
-  showToast: ShowToastFunction
-) => {
-  try {
-    const pdf = generatePerformanceHospitalityPdfObject(performance, eventFrame);
-    const fileName = `Hospitality_${performance.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
-    await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) {
     showToast(`Error generant PDF: ${(error as Error).message}`, 'error');
   }
@@ -1157,17 +968,15 @@ export const exportRegidoriaSummaryPdf = async (
 ) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    let y = createPdfHeader(pdf, `${i18next.t('pdf.regidoria_summary_title')} - ${eventFrame.name}`);
-
+    
     const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
     const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
     const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
 
-    // --- Capçalera de l'Esdeveniment ---
-    const headerBody = [
-      [{ content: i18next.t('pdf.event_info'), colSpan: 2, styles: { halign: 'center' as const, fontSize: 14, fontStyle: 'bold' as const } }],
-      [{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],
-      [{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)],
+    let y = 10; // ELIMINEM createPdfHeader
+
+    // --- Capçalera de l'Esdeveniment (Estil Fitxa de Bolo) ---
+    const headerBody = [[{ content: `${i18next.t('pdf.regidoria_summary_title')} - ${eventFrame.name}`, colSpan: 2, styles: { halign: 'center' as const, fontSize: 16, fontStyle: 'bold' as const } }],[{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],[{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)],
     ];
     autoTable(pdf, {
       body: headerBody,
@@ -1242,12 +1051,12 @@ export const exportRegidoriaSummaryPdf = async (
     });
 
     if (allScheduleItems.length > 0) {
-      const combinedScheduleHead = [[
+      const combinedScheduleHead = [
         i18next.t('pdf.time'),
         i18next.t('pdf.description'),
         i18next.t('pdf.type'),
         i18next.t('pdf.regidoria_notes')
-      ]];
+      ];
 
       const combinedScheduleBody = allScheduleItems.map(item => [
         item.endTime && item.endTime !== item.time 
@@ -1259,8 +1068,11 @@ export const exportRegidoriaSummaryPdf = async (
       ]);
 
       autoTable(pdf, {
-        head: [[{ content: i18next.t('pdf.combined_schedule'), colSpan: 4, styles: headStyles }]],
-        body: [combinedScheduleHead, ...combinedScheduleBody],
+        head: [
+          [{ content: i18next.t('pdf.combined_schedule'), colSpan: 4, styles: headStyles }],
+          combinedScheduleHead
+        ],
+        body: combinedScheduleBody,
         startY: y,
         theme: 'grid',
         styles: { fontSize: 10, cellPadding: 2 },
@@ -1317,7 +1129,7 @@ const extractRegidoriaNotes = (performance: Performance): string => {
 
 // --- VALIDACIÓ DE DADES D'ACTUACIONS ---
 
-const validatePerformanceData = (performance: Performance): ValidationResult => {
+export const validatePerformanceData = (performance: Performance): ValidationResult => {
   const errors: string[] = [];
   const warnings: string[] = [];
   
@@ -1436,6 +1248,274 @@ export const exportPerformanceToPdf = async (
 
 // --- EXPORTACIÓ D'ACTUACIONS AMB OPCIONS ---
 
+// --- NOVA FUNCIÓ GENERADORA D'OBJECTES PDF PER A ACTUACIONS ---
+export const generatePerformancePdfObjectWithOptions = (
+  performance: Performance,
+  eventFrame: EventFrame,
+  options: PerformancePdfOptions
+): jsPDF => {
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const { sane, headStyles, labelStyles, emptySectionStyles, inputColumnStyles } = getPerformanceStyles();
+  
+  let y = 10; // ELIMINEM createPdfHeader
+  const mainTitle = `${i18next.t('pdf.performance_rider_title')} - ${performance.name}`;
+
+  // --- Capçalera de l'Esdeveniment (Estil Fitxa de Bolo) ---
+  if (options.includeBasicInfo) {
+    const headerBody = [
+      [{ content: mainTitle, colSpan: 2, styles: { halign: 'center' as const, fontSize: 16, fontStyle: 'bold' as const } }],
+      [{ content: i18next.t('pdf.event_name'), styles: labelStyles }, sane(eventFrame.name)],
+      [{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],
+      [{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)]
+    ];
+    autoTable(pdf, {
+      body: headerBody,
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+  } else {
+    // Si l'usuari decideix no incloure la info bàsica, almenys hem de posar el títol del Rider
+    autoTable(pdf, {
+      body: [[{ content: mainTitle, styles: { halign: 'center' as const, fontSize: 16, fontStyle: 'bold' as const } }]],
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  // --- Info de l'Artista ---
+  if (options.includeBasicInfo) {
+    y = checkPageBreak(pdf, y, 40);
+    const artistBody = [
+      [{ content: i18next.t('pdf.artist_info'), colSpan: 2, styles: headStyles }],
+      [{ content: i18next.t('pdf.artist_name'), styles: labelStyles }, sane(performance.name)],
+      [{ content: i18next.t('pdf.artist_type'), styles: labelStyles }, sane(performance.type)],
+      [{ content: i18next.t('pdf.contact_name'), styles: labelStyles }, sane(performance.contactName)],
+      [{ content: i18next.t('pdf.contact_phone'), styles: labelStyles }, sane(performance.contactPhone)],
+      [{ content: i18next.t('pdf.contact_email'), styles: labelStyles }, sane(performance.contactEmail)],
+      [{ content: i18next.t('pdf.status'), styles: labelStyles }, sane(performance.status)],
+    ];
+    autoTable(pdf, {
+      body: artistBody,
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  // --- Horaris ---
+  if (options.includeBasicInfo) {
+    y = checkPageBreak(pdf, y, 30);
+    const scheduleBody = [
+      [{ content: i18next.t('pdf.schedule'), colSpan: 2, styles: headStyles }],
+      [{ content: i18next.t('pdf.arrival_time'), styles: labelStyles }, sane(performance.arrivalTime)],
+      [{ content: i18next.t('pdf.soundcheck_time'), styles: labelStyles }, sane(performance.soundCheckTime)],
+      [{ content: i18next.t('pdf.show_time'), styles: labelStyles }, sane(performance.showTime)],
+      [{ content: i18next.t('pdf.departure_time'), styles: labelStyles }, sane(performance.departureTime)],
+      [{ content: i18next.t('pdf.duration'), styles: labelStyles }, sane(performance.duration)],
+    ];
+    autoTable(pdf, {
+      body: scheduleBody,
+      theme: 'grid',
+      startY: y,
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  // --- Input List ---
+  if (options.includeInputs && performance.techData?.inputList && performance.techData.inputList.length > 0) {
+    y = checkPageBreak(pdf, y, 50);
+    const inputHead =[
+      i18next.t('pdf.patch'),
+      i18next.t('pdf.channel'),
+      i18next.t('pdf.label'),
+      i18next.t('pdf.mic_rider'),
+      i18next.t('pdf.mic_contra'),
+      i18next.t('pdf.stand'),
+      i18next.t('pdf.notes')
+    ];
+
+    // 1. Mapa de colors per al PDF (Valors RGB equivalents als de Tailwind)
+    const patchColorMap: Record<string, [number, number, number]> = {
+      red:[239, 68, 68],     
+      blue: [59, 130, 246],   
+      green:[34, 197, 94],   
+      yellow:[250, 204, 21], 
+      orange:[249, 115, 22], 
+      purple: [168, 85, 247], 
+      brown: [180, 83, 9],    
+    };
+
+    // 2. Preparem el body passant el color com a propietat oculta (customColor)
+    const inputBody = performance.techData.inputList.map(input => {
+      const hasColor = input.patchColor && input.patchColor !== 'transparent';
+      return[
+        { 
+          content: sane(input.patchNumber), 
+          // Si hi ha color, afegim un padding esquerre extra (8mm) per deixar lloc al cercle
+          styles: { cellPadding: { left: hasColor ? 8 : 2, top: 2, bottom: 2, right: 2 } },
+          customColor: input.patchColor // Passem la dada del color al renderitzador
+        },
+        sane(input.channel),
+        sane(input.label),
+        sane(input.micRider),
+        sane(input.micContra),
+        sane(input.stand),
+        sane(input.notes)
+      ];
+    });
+
+    autoTable(pdf, {
+      head: [[{ content: i18next.t('pdf.input_list'), colSpan: 7, styles: headStyles }],
+        inputHead
+      ],
+      body: inputBody,
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+      columnStyles: inputColumnStyles as any,
+      margin: { left: 10, right: 10 },
+      // 3. AQUESTA ÉS LA MÀGIA: Dibuixem el cercle just després de renderitzar la cel·la
+      didDrawCell: (data) => {
+        if (data.section === 'body' && data.column.index === 0) {
+          const raw = data.cell.raw as any;
+          if (raw && raw.customColor && raw.customColor !== 'transparent' && patchColorMap[raw.customColor]) {
+            const rgb = patchColorMap[raw.customColor];
+            pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
+            
+            // Calculem el centre vertical de la cel·la
+            const x = data.cell.x + 4; // 4mm des del marge esquerre
+            const y = data.cell.y + (data.cell.height / 2);
+            
+            // Dibuixem un cercle de 2mm de radi ple ('F' = Fill)
+            pdf.circle(x, y, 2, 'F');
+          }
+        }
+      }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+  } else if (options.includeInputs && options.showEmptySections) {
+    y = checkPageBreak(pdf, y, 20);
+    pdf.setFontSize(12);
+    pdf.text(i18next.t('pdf.no_inputs'), 14, y);
+    y += 10;
+  }
+
+  // --- Notes Tècniques ---
+  if (options.includeTechnicalNotes) {
+    const techNotes = [];
+    if (performance.techData?.lightingNotes) {
+      techNotes.push([{ content: i18next.t('pdf.lighting_notes'), styles: labelStyles }, sane(performance.techData.lightingNotes)]);
+    }
+    if (performance.techData?.videoNotes) {
+      techNotes.push([{ content: i18next.t('pdf.video_notes'), styles: labelStyles }, sane(performance.techData.videoNotes)]);
+    }
+    if (performance.techData?.stageRequirements) {
+      techNotes.push([{ content: i18next.t('pdf.stage_requirements'), styles: labelStyles }, sane(performance.techData.stageRequirements)]);
+    }
+
+    if (techNotes.length > 0) {
+      y = checkPageBreak(pdf, y, 30);
+      techNotes.unshift([{ content: i18next.t('pdf.technical_notes'), colSpan: 2, styles: headStyles }]);
+      autoTable(pdf, {
+        body: techNotes,
+        theme: 'grid',
+        startY: y,
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    } else if (options.showEmptySections) {
+      y = checkPageBreak(pdf, y, 20);
+      autoTable(pdf, {
+        head: [[{ content: i18next.t('pdf.technical_notes'), styles: headStyles }]],
+        body: [[{ content: i18next.t('performances.no_technical_notes'), styles: emptySectionStyles }]],
+        startY: y,
+        theme: 'grid',
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
+  }
+
+  // --- Hospitality ---
+  if (options.includeHospitality) {
+    const hospitalityNotes = [];
+    if (performance.hospitalityData?.dressingRooms) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.dressing_rooms'), styles: labelStyles }, sane(performance.hospitalityData.dressingRooms)]);
+    }
+    if (performance.hospitalityData?.cateringNotes) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.catering'), styles: labelStyles }, sane(performance.hospitalityData.cateringNotes)]);
+    }
+    if (performance.hospitalityData?.dietaryRequirements) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.dietary_requirements'), styles: labelStyles }, sane(performance.hospitalityData.dietaryRequirements)]);
+    }
+    if (performance.hospitalityData?.travelLogistics) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.travel_logistics'), styles: labelStyles }, sane(performance.hospitalityData.travelLogistics)]);
+    }
+    if (performance.hospitalityData?.parkingNotes) {
+      hospitalityNotes.push([{ content: i18next.t('pdf.parking'), styles: labelStyles }, sane(performance.hospitalityData.parkingNotes)]);
+    }
+
+    if (hospitalityNotes.length > 0) {
+      y = checkPageBreak(pdf, y, 30);
+      hospitalityNotes.unshift([{ content: i18next.t('pdf.hospitality'), colSpan: 2, styles: headStyles }]);
+      autoTable(pdf, {
+        body: hospitalityNotes,
+        theme: 'grid',
+        startY: y,
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    } else if (options.showEmptySections) {
+      y = checkPageBreak(pdf, y, 20);
+      autoTable(pdf, {
+        head: [[{ content: i18next.t('pdf.hospitality'), styles: headStyles }]],
+        body: [[{ content: i18next.t('performances.no_hospitality'), styles: emptySectionStyles }]],
+        startY: y,
+        theme: 'grid',
+        margin: { left: 10, right: 10 },
+        styles: { cellPadding: 2 }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
+  }
+
+  // --- Notes Generals ---
+  if (options.includeGeneralNotes && performance.notes) {
+    y = checkPageBreak(pdf, y, 20);
+    autoTable(pdf, {
+      head: [[{ content: i18next.t('pdf.general_notes'), styles: headStyles }]],
+      body: [[sane(performance.notes)]],
+      startY: y,
+      theme: 'grid',
+      margin: { left: 10, right: 10 },
+      styles: { cellPadding: 2 }
+    });
+  }
+
+  const totalPages = (pdf.internal as any).getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    pdf.setPage(i);
+    addFooter(pdf, i);
+  }
+
+  return pdf;
+};
+
+// --- FUNCIÓ REFACTORITZADA D'EXPORTACIÓ ---
 export const exportPerformanceToPdfWithOptions = async (
   performance: Performance,
   eventFrame: EventFrame,
@@ -1443,224 +1523,15 @@ export const exportPerformanceToPdfWithOptions = async (
   showToast: ShowToastFunction
 ) => {
   try {
-    // Validar dades primer
+    // Validar dades primer i mostrar errors/warnings
     const validation = validatePerformanceData(performance);
     if (!validation.isValid) {
       validation.errors.forEach(error => showToast(error, 'error'));
       return;
     }
-    
-    // Mostrar advertències
     validation.warnings.forEach(warning => showToast(warning, 'info'));
     
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const { sane, headStyles, labelStyles, emptySectionStyles, inputColumnStyles } = getPerformanceStyles();
-    
-    let y = createPdfHeader(pdf, `${i18next.t('pdf.performance_rider_title')} - ${performance.name}`);
-
-    // --- Capçalera de l'Esdeveniment ---
-    if (options.includeBasicInfo) {
-      y = checkPageBreak(pdf, y, 30);
-      const headerBody = [
-        [{ content: i18next.t('pdf.event_info'), colSpan: 2, styles: { halign: 'center' as const, fontSize: 14, fontStyle: 'bold' as const } }],
-        [{ content: i18next.t('pdf.event_name'), styles: labelStyles }, sane(eventFrame.name)],
-        [{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],
-        [{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)],
-      ];
-      autoTable(pdf, {
-        body: headerBody,
-        theme: 'grid',
-        startY: y,
-        margin: { left: 10, right: 10 },
-        styles: { cellPadding: 2 }
-      });
-      y = (pdf as any).lastAutoTable.finalY + 5;
-    }
-
-    // --- Info de l'Artista ---
-    if (options.includeBasicInfo) {
-      y = checkPageBreak(pdf, y, 40);
-      const artistBody = [
-        [{ content: i18next.t('pdf.artist_info'), colSpan: 2, styles: headStyles }],
-        [{ content: i18next.t('pdf.artist_name'), styles: labelStyles }, sane(performance.name)],
-        [{ content: i18next.t('pdf.artist_type'), styles: labelStyles }, sane(performance.type)],
-        [{ content: i18next.t('pdf.contact_name'), styles: labelStyles }, sane(performance.contactName)],
-        [{ content: i18next.t('pdf.contact_phone'), styles: labelStyles }, sane(performance.contactPhone)],
-        [{ content: i18next.t('pdf.contact_email'), styles: labelStyles }, sane(performance.contactEmail)],
-        [{ content: i18next.t('pdf.status'), styles: labelStyles }, sane(performance.status)],
-      ];
-      autoTable(pdf, {
-        body: artistBody,
-        theme: 'grid',
-        startY: y,
-        margin: { left: 10, right: 10 },
-        styles: { cellPadding: 2 }
-      });
-      y = (pdf as any).lastAutoTable.finalY + 5;
-    }
-
-    // --- Horaris ---
-    if (options.includeBasicInfo) {
-      y = checkPageBreak(pdf, y, 30);
-      const scheduleBody = [
-        [{ content: i18next.t('pdf.schedule'), colSpan: 2, styles: headStyles }],
-        [{ content: i18next.t('pdf.arrival_time'), styles: labelStyles }, sane(performance.arrivalTime)],
-        [{ content: i18next.t('pdf.soundcheck_time'), styles: labelStyles }, sane(performance.soundCheckTime)],
-        [{ content: i18next.t('pdf.show_time'), styles: labelStyles }, sane(performance.showTime)],
-        [{ content: i18next.t('pdf.departure_time'), styles: labelStyles }, sane(performance.departureTime)],
-        [{ content: i18next.t('pdf.duration'), styles: labelStyles }, sane(performance.duration)],
-      ];
-      autoTable(pdf, {
-        body: scheduleBody,
-        theme: 'grid',
-        startY: y,
-        margin: { left: 10, right: 10 },
-        styles: { cellPadding: 2 }
-      });
-      y = (pdf as any).lastAutoTable.finalY + 5;
-    }
-
-    // --- Input List ---
-    if (options.includeInputs && performance.techData?.inputList && performance.techData.inputList.length > 0) {
-      y = checkPageBreak(pdf, y, 50);
-      const inputHead = [[
-        i18next.t('pdf.patch'),
-        i18next.t('pdf.channel'),
-        i18next.t('pdf.label'),
-        i18next.t('pdf.mic_rider'),
-        i18next.t('pdf.mic_contra'),
-        i18next.t('pdf.stand'),
-        i18next.t('pdf.notes')
-      ]];
-      const inputBody = performance.techData.inputList.map(input => [
-        sane(input.patchColor && input.patchColor !== 'transparent' ? `${input.patchColor} ${input.patchNumber || ''}` : ''),
-        sane(input.channel),
-        sane(input.label),
-        sane(input.micRider),
-        sane(input.micContra),
-        sane(input.stand),
-        sane(input.notes)
-      ]);
-
-      autoTable(pdf, {
-        head: [[{ content: i18next.t('pdf.input_list'), colSpan: 7, styles: headStyles }]],
-        body: [inputHead, ...inputBody],
-        startY: y,
-        theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 2 },
-        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
-        columnStyles: inputColumnStyles as any,
-        margin: { left: 10, right: 10 }
-      });
-      y = (pdf as any).lastAutoTable.finalY + 5;
-    } else if (options.includeInputs && options.showEmptySections) {
-      y = checkPageBreak(pdf, y, 20);
-      pdf.setFontSize(12);
-      pdf.text(i18next.t('pdf.no_inputs'), 14, y);
-      y += 10;
-    }
-
-    // --- Notes Tècniques ---
-    if (options.includeTechnicalNotes) {
-      const techNotes = [];
-      if (performance.techData?.lightingNotes) {
-        techNotes.push([{ content: i18next.t('pdf.lighting_notes'), styles: labelStyles }, sane(performance.techData.lightingNotes)]);
-      }
-      if (performance.techData?.videoNotes) {
-        techNotes.push([{ content: i18next.t('pdf.video_notes'), styles: labelStyles }, sane(performance.techData.videoNotes)]);
-      }
-      if (performance.techData?.stageRequirements) {
-        techNotes.push([{ content: i18next.t('pdf.stage_requirements'), styles: labelStyles }, sane(performance.techData.stageRequirements)]);
-      }
-
-      if (techNotes.length > 0) {
-        y = checkPageBreak(pdf, y, 30);
-        techNotes.unshift([{ content: i18next.t('pdf.technical_notes'), colSpan: 2, styles: headStyles }]);
-        autoTable(pdf, {
-          body: techNotes,
-          theme: 'grid',
-          startY: y,
-          margin: { left: 10, right: 10 },
-          styles: { cellPadding: 2 }
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-      } else if (options.showEmptySections) {
-        y = checkPageBreak(pdf, y, 20);
-        autoTable(pdf, {
-          head: [[{ content: i18next.t('pdf.technical_notes'), styles: headStyles }]],
-          body: [[{ content: i18next.t('performances.no_technical_notes'), styles: emptySectionStyles }]],
-          startY: y,
-          theme: 'grid',
-          margin: { left: 10, right: 10 },
-          styles: { cellPadding: 2 }
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-      }
-    }
-
-    // --- Hospitality ---
-    if (options.includeHospitality) {
-      const hospitalityNotes = [];
-      if (performance.hospitalityData?.dressingRooms) {
-        hospitalityNotes.push([{ content: i18next.t('pdf.dressing_rooms'), styles: labelStyles }, sane(performance.hospitalityData.dressingRooms)]);
-      }
-      if (performance.hospitalityData?.cateringNotes) {
-        hospitalityNotes.push([{ content: i18next.t('pdf.catering'), styles: labelStyles }, sane(performance.hospitalityData.cateringNotes)]);
-      }
-      if (performance.hospitalityData?.dietaryRequirements) {
-        hospitalityNotes.push([{ content: i18next.t('pdf.dietary_requirements'), styles: labelStyles }, sane(performance.hospitalityData.dietaryRequirements)]);
-      }
-      if (performance.hospitalityData?.travelLogistics) {
-        hospitalityNotes.push([{ content: i18next.t('pdf.travel_logistics'), styles: labelStyles }, sane(performance.hospitalityData.travelLogistics)]);
-      }
-      if (performance.hospitalityData?.parkingNotes) {
-        hospitalityNotes.push([{ content: i18next.t('pdf.parking'), styles: labelStyles }, sane(performance.hospitalityData.parkingNotes)]);
-      }
-
-      if (hospitalityNotes.length > 0) {
-        y = checkPageBreak(pdf, y, 30);
-        hospitalityNotes.unshift([{ content: i18next.t('pdf.hospitality'), colSpan: 2, styles: headStyles }]);
-        autoTable(pdf, {
-          body: hospitalityNotes,
-          theme: 'grid',
-          startY: y,
-          margin: { left: 10, right: 10 },
-          styles: { cellPadding: 2 }
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-      } else if (options.showEmptySections) {
-        y = checkPageBreak(pdf, y, 20);
-        autoTable(pdf, {
-          head: [[{ content: i18next.t('pdf.hospitality'), styles: headStyles }]],
-          body: [[{ content: i18next.t('performances.no_hospitality'), styles: emptySectionStyles }]],
-          startY: y,
-          theme: 'grid',
-          margin: { left: 10, right: 10 },
-          styles: { cellPadding: 2 }
-        });
-        y = (pdf as any).lastAutoTable.finalY + 5;
-      }
-    }
-
-    // --- Notes Generals ---
-    if (options.includeGeneralNotes && performance.notes) {
-      y = checkPageBreak(pdf, y, 20);
-      autoTable(pdf, {
-        head: [[{ content: i18next.t('pdf.general_notes'), styles: headStyles }]],
-        body: [[sane(performance.notes)]],
-        startY: y,
-        theme: 'grid',
-        margin: { left: 10, right: 10 },
-        styles: { cellPadding: 2 }
-      });
-    }
-
-    const totalPages = (pdf.internal as any).getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      pdf.setPage(i);
-      addFooter(pdf, i);
-    }
-
+    const pdf = generatePerformancePdfObjectWithOptions(performance, eventFrame, options);
     const fileName = `CustomRider_${performance.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
 

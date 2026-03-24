@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -13,33 +13,27 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { Performance, InputListItem, PerformanceTechData, ShowToastFunction, type PerformancePdfOptions } from '../../types';
+import { Performance, InputListItem, PerformanceTechData, ShowToastFunction } from '../../types';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { useModalStore } from '../../stores/modalStore';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
-import { PlusIcon, EyeIcon, PdfIcon } from '../../constants';
+import { PlusIcon } from '../../constants';
 import SortableInputRow from './SortableInputRow';
-import PerformancePdfOptionsModal from './PerformancePdfOptions';
-import { generatePerformanceInputsPdfObject, exportPerformanceInputsToPdf, exportPerformanceToPdfWithOptions } from '../../utils/pdfGenerator';
 import { useBufferedSave } from '../../hooks/useBufferedSave';
 
 interface PerformanceTechFormProps {
   eventFrameId: string;
   performance: Performance;
-  eventFrame: any; // EventFrame data
   showToast: ShowToastFunction;
 }
 
 const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
   eventFrameId,
   performance,
-  eventFrame,
   showToast,
 }) => {
   const { t } = useTranslation();
   const { updatePerformance } = useEventDataStore();
-  const { openModal } = useModalStore();
 
   const initialTechData = useMemo((): PerformanceTechData => ({
     inputList: performance.techData?.inputList || [],
@@ -60,15 +54,6 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     }
   });
 
-  // Opcions d'exportació PDF
-  const [pdfOptions, setPdfOptions] = useState<PerformancePdfOptions>({
-    includeBasicInfo: true,
-    includeInputs: true,
-    includeTechnicalNotes: true,
-    includeHospitality: false,
-    includeGeneralNotes: false,
-    showEmptySections: false,
-  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -138,33 +123,6 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     updateLocal({ [field]: value });
   };
 
-  const handlePreviewInputs = () => {
-    const performanceWithTechData = {
-      ...performance,
-      techData: techData
-    };
-    const doc = generatePerformanceInputsPdfObject(performanceWithTechData, eventFrame);
-    const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob) + '#toolbar=0&navpanes=0&view=FitH';
-    
-    openModal('pdfPreview', {
-      pdfUrl,
-      titleOverride: t('modals.pdf_preview.title_override', { name: performance.name }),
-      onSave: () => handleExportInputs()
-    });
-  };
-
-  const handleExportInputs = () => {
-    const performanceWithTechData = {
-      ...performance,
-      techData: techData
-    };
-    exportPerformanceInputsToPdf(performanceWithTechData, eventFrame, showToast);
-  };
-
-  const handleExportCustomPdf = () => {
-    exportPerformanceToPdfWithOptions(performance, eventFrame, pdfOptions, showToast);
-  };
 
   return (
     <DndContext
@@ -173,13 +131,6 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
       onDragEnd={handleDragEnd}
     >
       <div className="space-y-6">
-        {/* PDF Options */}
-        <PerformancePdfOptionsModal
-          options={pdfOptions}
-          onOptionsChange={setPdfOptions}
-          onExport={handleExportCustomPdf}
-          disabled={!performance.name}
-        />
 
         {/* Input List */}
         <div>
@@ -188,30 +139,12 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
               <h3 className="text-lg font-semibold">{t('performances.input_list_title')}</h3>
             </Tooltip>
             <div className="flex gap-2">
-              <Tooltip text={t('performances.preview_inputs_tooltip')}>
-                <button
-                  onClick={handlePreviewInputs}
-                  className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
-                >
-                  <EyeIcon className="w-4 h-4" />
-                  {t('performances.preview_inputs')}
-                </button>
-              </Tooltip>
-              <Tooltip text={t('performances.export_inputs_tooltip')}>
-                <button
-                  onClick={handleExportInputs}
-                  className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
-                >
-                  <PdfIcon className="w-4 h-4" />
-                  {t('performances.export_inputs')}
-                </button>
-              </Tooltip>
               <Tooltip text={t('performances.add_input_tooltip')}>
                 <button
                   onClick={addInputItem}
-                  className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
                 >
-                  <PlusIcon className="w-4 h-4 inline mr-1" />
+                  <PlusIcon className="w-4 h-4" />
                   {t('performances.add_input')}
                 </button>
               </Tooltip>

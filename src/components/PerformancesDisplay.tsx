@@ -6,6 +6,7 @@ import { EventFrame, Performance, ShowToastFunction } from '../types';
 import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
 import { exportEventPerformancesSummaryPdf, generateEventPerformancesPdfObject } from '../utils/pdfGenerator';
+import { triggerAllSaves } from '../utils/saveManager';
 import { PdfIcon, EyeIcon } from '../constants';
 
 const PerformanceList = lazy(() => import('./performances/PerformanceList'));
@@ -110,7 +111,9 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
   const handleExportEventSummary = () => {
     if (!selectedEventFrameId) return;
     
-    const eventFrame = eventFrames.find(ef => ef.id === selectedEventFrameId);
+    triggerAllSaves(); // GUARDA ELS BUFFERS ABANS D'EXPORTAR
+    
+    const eventFrame = useEventDataStore.getState().eventFrames.find(ef => ef.id === selectedEventFrameId);
     if (!eventFrame) return;
 
     exportEventPerformancesSummaryPdf(eventFrame, eventFrame.performances || [], showToast);
@@ -119,7 +122,9 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
   const handlePreview = () => {
     if (!selectedEventFrameId) return;
     
-    const eventFrame = eventFrames.find(ef => ef.id === selectedEventFrameId);
+    triggerAllSaves(); // GUARDA ELS BUFFERS ABANS DE PREVISUALITZAR
+    
+    const eventFrame = useEventDataStore.getState().eventFrames.find(ef => ef.id === selectedEventFrameId);
     if (!eventFrame) return;
 
     const doc = generateEventPerformancesPdfObject(eventFrame, eventFrame.performances || []);
