@@ -101,6 +101,34 @@ export function useBufferedSave<T extends object>(
     return unregister;
   }, [saveNow]);
 
+  // Auto-save en events de finestra per evitar pèrdua de dades
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && isDirtyRef.current) {
+        console.log('[Window] Pàgina amagada - desant automàticament');
+        saveToGlobalRef.current(localDataRef.current, false);
+        isDirtyRef.current = false;
+        setIsDirty(false);
+      }
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirtyRef.current) {
+        console.log('[Window] Abans de descarregar - hi ha canvis pendents');
+        e.preventDefault();
+        e.returnValue = 'Tens canvis sense desar. Vols continuar?';
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirtyRef, saveToGlobalRef, setIsDirty]);
+
   return {
     localData,
     localDataRef,

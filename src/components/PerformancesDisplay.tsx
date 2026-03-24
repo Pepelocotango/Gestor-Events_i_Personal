@@ -230,7 +230,6 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
                     <PerformanceDetailContainer
                       eventFrameId={selectedEventFrameId}
                       performance={selectedPerformance}
-                      eventFrame={selectedEventFrame}
                       showToast={showToast}
                     />
                   </Suspense>

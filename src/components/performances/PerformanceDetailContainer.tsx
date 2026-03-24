@@ -23,7 +23,6 @@ import {
 interface PerformanceDetailContainerProps {
   eventFrameId: string;
   performance: Performance;
-  eventFrame: any; 
   showToast: ShowToastFunction;
 }
 
@@ -32,7 +31,6 @@ type ActiveTab = 'basic' | 'tech' | 'hospitality';
 const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
   eventFrameId,
   performance,
-  eventFrame,
   showToast,
 }) => {
   const { t } = useTranslation();
@@ -48,6 +46,13 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
     includeGeneralNotes: true,
     showEmptySections: false,
   });
+
+  // Handler per canviar de pestanya amb auto-save
+  const handleTabChange = (newTab: ActiveTab) => {
+    // Força guardar abans de canviar de pestanya per evitar pèrdua de dades
+    triggerAllSaves();
+    setActiveTab(newTab);
+  };
 
   const tabs = [
     { 
@@ -119,9 +124,9 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
       case 'basic':
         return <PerformanceBasicForm eventFrameId={eventFrameId} performance={performance} showToast={showToast} />;
       case 'tech':
-        return <PerformanceTechForm eventFrameId={eventFrameId} performance={performance} eventFrame={eventFrame} showToast={showToast} />;
+        return <PerformanceTechForm eventFrameId={eventFrameId} performance={performance} showToast={showToast} />;
       case 'hospitality':
-        return <PerformanceHospitalityForm eventFrameId={eventFrameId} performance={performance} eventFrame={eventFrame} showToast={showToast} />;
+        return <PerformanceHospitalityForm eventFrameId={eventFrameId} performance={performance} showToast={showToast} />;
       default:
         return null;
     }
@@ -170,7 +175,7 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
             {tabs.map((tab) => (
               <Tooltip key={tab.id} text={tab.tooltip}>
                 <button
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`
                     flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
                     ${activeTab === tab.id
