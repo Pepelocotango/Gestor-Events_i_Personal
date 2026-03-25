@@ -23,6 +23,79 @@ interface TechSheetFormProps {
 
 type TechSheetNeedsKey = 'lighting' | 'sound' | 'video' | 'machinery' | 'rentals' | 'otherEquipment' | 'electrical' | 'structures' | 'platforms' | 'consumables' | 'curtains' | 'transport';
 
+interface NeedsSectionProps {
+  fieldName: TechSheetNeedsKey;
+  title: string;
+  status: ConditionalStatus;
+  details: string;
+  needs: NeedItem[];
+  onConditionalChange: (fieldName: keyof TechSheetData, value: any) => void;
+  onListChange: (listName: string, index: number, field: string, value: any) => void;
+  onRemoveListItem: (listName: string, index: number) => void;
+  onAddListItem: (listName: string) => void;
+  onMoveItemUp: (listName: string, index: number) => void;
+  onMoveItemDown: (listName: string, index: number) => void;
+  onSortByOrigin: (listName: string) => void;
+  sortDirection: 'asc' | 'desc';
+  originSuggestions: string[];
+  materialItems: MaterialItem[];
+  eventFrame: any;
+  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string, currentItemId?: string) => { available: number; total: number };
+  availabilityMap: Map<string, { available: number; total: number }>;
+}
+
+const NeedsSection = React.memo<NeedsSectionProps>(({
+  fieldName, title, status, details, needs, onConditionalChange, 
+  onListChange, onRemoveListItem, onAddListItem, onMoveItemUp, onMoveItemDown,
+  onSortByOrigin, sortDirection, originSuggestions, materialItems, eventFrame,
+  getMaterialAvailability, availabilityMap
+}) => {
+  const { t } = useTranslation();
+
+  const handleStatusChange = useCallback((s: ConditionalStatus) => {
+    onConditionalChange(fieldName, { status: s });
+  }, [onConditionalChange, fieldName]);
+
+  const handleDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    onConditionalChange(fieldName, { details: e.target.value });
+  }, [onConditionalChange, fieldName]);
+
+  return (
+    <ConditionalFormControl
+      label={`${title}:`}
+      status={status}
+      onStatusChange={handleStatusChange}
+      isCollapsible={true} // <-- NOU: Activem el col·lapse
+    >
+      <TechSheetField
+        id={`${fieldName}Details`}
+        label={t('tech_sheets.needs.field_labels.details_prefix', { title: title.toLowerCase() })}
+        value={details}
+        onChange={handleDetailsChange}
+        as="textarea"
+        rows={2}
+      />
+      <NeedsList
+        needs={needs}
+        listName={fieldName}
+        title={t('tech_sheets.needs.field_labels.material_prefix', { title: title.toLowerCase() })}
+        onListChange={onListChange}
+        onRemoveListItem={onRemoveListItem}
+        onAddListItem={onAddListItem}
+        onMoveItemUp={onMoveItemUp}
+        onMoveItemDown={onMoveItemDown}
+        onSortByOrigin={onSortByOrigin}
+        sortDirection={sortDirection}
+        originSuggestions={originSuggestions}
+        materialItems={materialItems}
+        eventFrame={eventFrame}
+        getMaterialAvailability={getMaterialAvailability}
+        availabilityMap={availabilityMap}
+      />
+    </ConditionalFormControl>
+  );
+});
+
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) => {
   const { t } = useTranslation();
   const { peopleGroups, materialItems, addOrUpdateTechSheet, getMaterialAvailability } = useEventDataStore.getState();
@@ -656,79 +729,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) 
     }
   };
 
-interface NeedsSectionProps {
-  fieldName: TechSheetNeedsKey;
-  title: string;
-  status: ConditionalStatus;
-  details: string;
-  needs: NeedItem[];
-  onConditionalChange: (fieldName: keyof TechSheetData, value: any) => void;
-  onListChange: (listName: string, index: number, field: string, value: any) => void;
-  onRemoveListItem: (listName: string, index: number) => void;
-  onAddListItem: (listName: string) => void;
-  onMoveItemUp: (listName: string, index: number) => void;
-  onMoveItemDown: (listName: string, index: number) => void;
-  onSortByOrigin: (listName: string) => void;
-  sortDirection: 'asc' | 'desc';
-  originSuggestions: string[];
-  materialItems: MaterialItem[];
-  eventFrame: any;
-  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string, currentItemId?: string) => { available: number; total: number };
-  availabilityMap: Map<string, { available: number; total: number }>;
-}
-
-const NeedsSection = React.memo<NeedsSectionProps>(({
-  fieldName, title, status, details, needs, onConditionalChange, 
-  onListChange, onRemoveListItem, onAddListItem, onMoveItemUp, onMoveItemDown,
-  onSortByOrigin, sortDirection, originSuggestions, materialItems, eventFrame,
-  getMaterialAvailability, availabilityMap
-}) => {
-  const { t } = useTranslation();
-
-  const handleStatusChange = useCallback((s: ConditionalStatus) => {
-    onConditionalChange(fieldName, { status: s });
-  }, [onConditionalChange, fieldName]);
-
-  const handleDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    onConditionalChange(fieldName, { details: e.target.value });
-  }, [onConditionalChange, fieldName]);
-
   return (
-    <ConditionalFormControl
-      label={`${title}:`}
-      status={status}
-      onStatusChange={handleStatusChange}
-    >
-      <TechSheetField
-        id={`${fieldName}Details`}
-        label={t('tech_sheets.needs.field_labels.details_prefix', { title: title.toLowerCase() })}
-        value={details}
-        onChange={handleDetailsChange}
-        as="textarea"
-        rows={2}
-      />
-      <NeedsList
-        needs={needs}
-        listName={fieldName}
-        title={t('tech_sheets.needs.field_labels.material_prefix', { title: title.toLowerCase() })}
-        onListChange={onListChange}
-        onRemoveListItem={onRemoveListItem}
-        onAddListItem={onAddListItem}
-        onMoveItemUp={onMoveItemUp}
-        onMoveItemDown={onMoveItemDown}
-        onSortByOrigin={onSortByOrigin}
-        sortDirection={sortDirection}
-        originSuggestions={originSuggestions}
-        materialItems={materialItems}
-        eventFrame={eventFrame}
-        getMaterialAvailability={getMaterialAvailability}
-        availabilityMap={availabilityMap}
-      />
-    </ConditionalFormControl>
-  );
-});
-
-return (
     <div className="p-2 bg-background rounded-lg shadow space-y-4 tech-sheet-form-container">
       {/* Header */}
       <div className="flex justify-between items-center">

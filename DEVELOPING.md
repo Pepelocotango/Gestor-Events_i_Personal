@@ -4,12 +4,47 @@ web de la app a Vercel a la branca main O 0DEV_GEP:
 https://gestor-events-i-personal-landingpag.vercel.app/
 
 
-## DEVELOPING.md V1.6.2
+## DEVELOPING.md V1.6.3
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
+
+# NOVETATS V1.6.3 (MARÇ 2026)
+
+**Resum de canvis tècnics recents:**
+- **PDF Color Patches:** Implementació de visualització de colors a la Input List dels PDFs d'actuacions. Els colors (red, blue, green, yellow, orange, purple, brown) es mostren com a cercles omplerts a la primera columna de la taula, amb el text desplaçat per evitar solapaments.
+- **Sistema de Persistència de Dades Robust:** Implementació completa d'auto-save a tots els formularis (Tech Sheets, Performances) amb protecció contra pèrdua de dades en canvi de pestanya, finestra o focus.
+- **Correccions Crítiques de Bugs:** Solucionat fals "guardat" que permetia tancar l'aplicació amb dades perdudes, i condicions de cursa a la Input List que sobreescribien canals en clics ràpids.
+- **Optimitzacions de Re-renderitzat:** Extret NeedsSection fora de TechSheetForm per evitar unmount/remount massiu, i afegit funcionalitat de col·lapsar seccions tècniques.
+
+**Característiques Noves Detallades:**
+
+### 🎨 PDF Color Visualization
+- **Implementació:** `generatePerformancePdfObjectWithOptions` ara genera cercles de color RGB per cada item de la Input List
+- **Mapa de Colors:** Implementat `patchColorMap` amb valors RGB per a colors semàntics (red: [239, 68, 68], blue: [59, 130, 246], etc.)
+- **Renderitzat:** Utilitzat `didDrawCell` hook de jspdf-autotable per dibuixar cercles i `cellPadding` per desplaçar text
+- **Compatibilitat:** Funciona amb tots els PDFs d'actuacions (Basic, Tech, Hospitality)
+
+### 🛡️ Sistema de Persistència de Dades Universal
+- **useBufferedSave Hook Millorat:** Ara inclou protecció contra race conditions i events de finestra
+- **Auto-save Multi-nivell:** 
+  - Window events: `visibilitychange` (auto-save quan la pàgina s'amaga)
+  - Window events: `beforeunload` (alerta abans de tancar amb canvis pendents)
+  - Tab switching: `triggerAllSaves()` abans de canviar de pestanya
+- **Protecció Universal:** Tots els formularis utilitzen el mateix hook robust
+- **Zero Pèrdua de Dades:** Cap via de sortida sense protecció
+
+### 🐛 Correccions Crítiques Aplicades
+- **BUG 1 - Fals "Guardat":** Eliminada línia `setHasUnsavedChanges(false)` a `saveNow()` per evitar que l'aplicació es pensi que tot està guardat quan només ho està a RAM
+- **BUG 2 - Race Conditions Input List:** Afegit `localDataRef` a PerformanceTechForm i actualitzades totes les funcions (`handleInputChange`, `addInputItem`, `removeInputItem`) per utilitzar refs síncrons en lloc d'estat reactiu
+
+### 🚀 Optimitzacions de Rendiment
+- **ConditionalFormControl Col·lapsable:** Afegides props `isCollapsible` i `defaultExpanded` amb botó de toggle (ChevronDown/ChevronUp)
+- **NeedsSection Extret:** Mogut fora de TechSheetForm per evitar re-creació en cada render
+- **Components Memoitzats:** `React.memo` efectiu en components extrets
+- **Focus Mantingut:** El cursor no es perd en escriure a formularis
 
 # NOVETATS V1.6.2 (FEBRER 2026)
 
@@ -461,6 +496,141 @@ export const useEventDataStore = create<...>()(
 #### Historial d'Accions Visual (Desfer/Refer)
 
 La funcionalitat d'historial desfer/refer utilitza Zustand + zundo amb una optimització clau:
+
+---
+
+### 4.2. Sistema de Persistència de Dades Universal (V1.6.3)
+
+El sistema de persistència de dades ha estat completament refactoritzat per garantir **zero pèrdua de dades** en qualsevol circumstància. Tots els formularis (Tech Sheets, Performances) utilitzen ara el mateix hook robust `useBufferedSave`.
+
+#### useBufferedSave Hook Millorat
+
+El hook `src/hooks/useBufferedSave.ts` és el cor del sistema de persistència:
+
+```typescript
+const {
+  localData,           // Dades locals del formulari
+  localDataRef,        // Ref síncrona per evitar races
+  updateLocal,         // Actualització parcial
+  updateFullObject,    // Actualització completa
+  saveNow,            // Desat manual
+  isDirty             // Estat de modificació
+} = useBufferedSave(initialData, (data, isManual) => {
+  // Callback de desat a l'estat global
+});
+```
+
+#### Proteccions Multi-nivell
+
+**1. Window Events:**
+```typescript
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'hidden' && isDirtyRef.current) {
+      saveToGlobalRef.current(localDataRef.current, false);
+    }
+  };
+
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (isDirtyRef.current) {
+      e.preventDefault();
+      e.returnValue = 'Tens canvis sense desar. Vols continuar?';
+    }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('beforeunload', handleBeforeUnload);
+}, []);
+```
+
+**2. Tab Switching:**
+```typescript
+// PerformanceDetailContainer.tsx
+const handleTabChange = (newTab: ActiveTab) => {
+  triggerAllSaves(); // Força guardar abans de canviar
+  setActiveTab(newTab);
+};
+```
+
+**3. Race Condition Protection:**
+```typescript
+// Evita sobreescriure canvis locals
+useEffect(() => {
+  if (isDirtyRef.current) {
+    console.log('[SYNC] Ignorant sincronització - hi ha canvis pendents');
+    return;
+  }
+  // Sincronització segura
+}, [initialData]);
+```
+
+#### Correccions Crítiques Aplicades
+
+**BUG 1 - Fals "Guardat":**
+- **Problema:** `saveNow()` marcava `hasUnsavedChanges = false` falsament
+- **Solució:** Eliminada la línia que modificava l'estat global
+- **Resultat:** L'aplicació només es considera "guardada" quan es desa al disc
+
+**BUG 2 - Race Conditions Input List:**
+- **Problema:** Les funcions utilitzaven estat reactiu obsolet
+- **Solució:** Afegit `localDataRef` i actualitzades totes les funcions
+- **Resultat:** Operacions atòmiques sense pèrdua de dades
+
+---
+
+### 4.3. Optimitzacions de Re-renderitzat (V1.6.3)
+
+#### ConditionalFormControl Col·lapsable
+
+El component `src/components/tech_sheets/ConditionalFormControl.tsx` ara suporta col·lapse:
+
+```typescript
+interface ConditionalFormControlProps {
+  // ... props existents
+  isCollapsible?: boolean;
+  defaultExpanded?: boolean;
+}
+
+// Botó de toggle
+{status === 'yes' && isCollapsible && (
+  <button onClick={() => setIsExpanded(!isExpanded)}>
+    {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+  </button>
+)}
+```
+
+#### NeedsSection Extret
+
+El component `NeedsSection` s'ha mogut fora de `TechSheetForm` per evitar re-creació:
+
+```typescript
+// FORA de TechSheetForm - estable i memoitzat
+const NeedsSection = React.memo<NeedsSectionProps>(({
+  fieldName, title, status, details, needs, onConditionalChange, 
+  // ... altres props
+}) => {
+  return (
+    <ConditionalFormControl
+      label={`${title}:`}
+      status={status}
+      onStatusChange={handleStatusChange}
+      isCollapsible={true} // <-- Activat col·lapse
+    >
+      {/* children */}
+    </ConditionalFormControl>
+  );
+});
+```
+
+#### Avantatges de l'Arquitectura
+
+1. **Zero Re-renderitzats Massius:** Components estables fora del component principal
+2. **Focus Mantingut:** El cursor no es perd en escriure
+3. **UX Millorada:** Seccions col·lapsables per millorar focus
+4. **Components Memoitzats:** `React.memo` efectiu
+5. **Rendiment òptim:** Menys renderitzats innecessaris
+
+---
 
 - **Descripció d'acció:** Cada acció que modifica l'estat actualitza `lastActionDescription` amb un text clar (ex: "Creat esdeveniment: 'Nom'").
 - **Notificacions:** Les funcions `undoWithToast` i `redoWithToast` mostren un toast amb la descripció de l'acció desfer/refer.
@@ -1039,7 +1209,75 @@ import Tooltip from './ui/Tooltip';
 
 ---
 
-## 7. Compilació i Desplegament (CI/CD)
+## 7. Generació de PDFs i Visualització de Colors (V1.6.3)
+
+### 7.1. PDF Color Patches - Input List Visualization
+
+El sistema de generació de PDFs ara inclou visualització de colors a la Input List de les actuacions, permetent identificar visualment els canals per color.
+
+#### Implementació Tècnica
+
+**Mapa de Colors RGB:**
+```typescript
+// src/utils/pdfGenerator.ts
+const patchColorMap: Record<string, [number, number, number]> = {
+  red: [239, 68, 68],
+  blue: [59, 130, 246],
+  green: [34, 197, 94],
+  yellow: [250, 204, 21],
+  orange: [249, 115, 22],
+  purple: [168, 85, 247],
+  brown: [180, 83, 9],
+  transparent: [200, 200, 200],
+};
+```
+
+**Renderitzat de Cercles de Color:**
+```typescript
+// generatePerformancePdfObjectWithOptions
+const inputBody = performance.inputList.map(item => ({
+  customColor: patchColorMap[item.patchColor] || patchColorMap.transparent,
+  cellPadding: { left: 8 }, // Espai per al cercle
+  channel: item.channel,
+  patchNumber: item.patchNumber,
+  label: item.label,
+  micRider: item.micRider,
+  // ... altres camps
+}));
+
+// Hook didDrawCell per dibuixar cercles
+autoTable(pdf, {
+  head: inputHead,
+  body: inputBody,
+  didDrawCell: (data) => {
+    if (data.section === 'body' && data.column.index === 0) {
+      const color = data.row.raw.customColor;
+      if (color) {
+        // Dibuixa cercle omplert amb el color
+        pdf.setFillColor(...color);
+        pdf.circle(data.cell.x + 4, data.cell.y + data.cell.height / 2, 3, 'F');
+      }
+    }
+  },
+  // ... altres opcions
+});
+```
+
+#### Característiques
+
+- **Colors Semàntics:** Mapeig de noms de color a valors RGB precisos
+- **Cercles Omplerts:** Visualització clara i compacta dels colors
+- **Text Desplaçat:** `cellPadding` evita solapaments entre cercle i text
+- **Compatibilitat:** Funciona amb tots els PDFs d'actuacions (Basic, Tech, Hospitality)
+- **Fallback Color:** Color gris per a "transparent" o colors no reconeguts
+
+#### Integració
+
+La funcionalitat està integrada a `generatePerformancePdfObjectWithOptions` i s'activa automàticament quan es generen PDFs que inclouen la Input List. Els colors es mostren a la primera columna de la taula, proporcionant una referència visual ràpida per a l'equip tècnic.
+
+---
+
+## 8. Compilació i Desplegament (CI/CD)
 
 El projecte està configurat per a la Integració i Desplegament Continus (CI/CD) mitjançant GitHub Actions.
 
