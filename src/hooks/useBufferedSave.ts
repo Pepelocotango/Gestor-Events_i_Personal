@@ -87,11 +87,8 @@ export function useBufferedSave<T extends object>(
       saveToGlobalRef.current(localDataRef.current, true);
       isDirtyRef.current = false;
       setIsDirty(false);
-      // Opcionalment informem a l'estat global que el buffer s'ha buidat.
-      // Nota: Això posarà hasUnsavedChanges a false a la store global,
-      // la qual cosa és adequada si entenem que "Saved" al formulari
-      // és suficient per a l'usuari, tot i que encara no s'hagi escrit al disc.
-      useEventDataStore.getState().setHasUnsavedChanges(false);
+      // ❌ NO modificar l'estat global aquí - el formulari només guarda a RAM (Zustand)
+      // El guardat real al disc es fa des del menú superior de l'app
     }
   }, []);
 

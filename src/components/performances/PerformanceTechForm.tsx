@@ -44,6 +44,7 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
 
   const {
     localData: techData,
+    localDataRef: techDataRef,
     updateLocal,
     saveNow,
     isDirty
@@ -79,14 +80,17 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
 
   const handleInputChange = (id: string, field: keyof InputListItem, value: any) => {
     updateLocal({
-      inputList: techData.inputList.map(item =>
+      // Utilitza techDataRef.current en lloc de techData
+      inputList: techDataRef.current.inputList.map(item =>
         item.id === id ? { ...item, [field]: value } : item
       ),
     });
   };
 
   const addInputItem = () => {
-    const lastItem = techData.inputList[techData.inputList.length - 1];
+    // Utilitza techDataRef.current
+    const currentList = techDataRef.current.inputList;
+    const lastItem = currentList[currentList.length - 1];
     let newChannel = '';
     
     if (lastItem?.channel) {
@@ -109,13 +113,14 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     };
     
     updateLocal({
-      inputList: [...techData.inputList, newItem],
+      inputList: [...currentList, newItem], // Utilitza currentList
     });
   };
 
   const removeInputItem = (id: string) => {
     updateLocal({
-      inputList: techData.inputList.filter(item => item.id !== id),
+      // Utilitza techDataRef.current
+      inputList: techDataRef.current.inputList.filter(item => item.id !== id),
     });
   };
 
