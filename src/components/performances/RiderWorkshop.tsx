@@ -1,13 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
-  ChevronLeft, 
   Search, 
   Mic2, 
   Music, 
   Trash2, 
-  Save,
   Filter,
   Package,
   GripVertical,
@@ -22,7 +20,9 @@ import Tooltip from '../ui/Tooltip';
 import { 
   InputListItem, 
   MaterialItem, 
-  PerformanceTechData 
+  PerformanceTechData,
+  TechSheetData,
+  Performance
 } from '../../types';
 import { useBufferedSave } from '../../hooks/useBufferedSave';
 import { 
@@ -50,9 +50,12 @@ import { CSS } from '@dnd-kit/utilities';
 interface DraggableMaterialProps {
   item: MaterialItem;
   availability: { available: number; total: number };
+  eventFrame: any;
+  techData: PerformanceTechData;
+  performance?: Performance;
 }
 
-const DraggableMaterial: React.FC<DraggableMaterialProps> = ({ item, availability }) => {
+const DraggableMaterial: React.FC<DraggableMaterialProps> = ({ item, availability, eventFrame, techData, performance }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `material-${item.id}`,
     data: { item, type: 'material' }
@@ -63,6 +66,67 @@ const DraggableMaterial: React.FC<DraggableMaterialProps> = ({ item, availabilit
   } : undefined;
 
   const isOutOfStock = availability.available <= 0;
+  const isNegativeStock = availability.available < 0;
+
+  // Calcular totes les assignacions d'aquest material
+  interface MaterialAssignment {
+    eventName: string;
+    performanceName: string;
+    quantity: number;
+  }
+
+  const getAssignments = (): MaterialAssignment[] => {
+    const assignments: MaterialAssignment[] = [];
+    
+    // 1. Rider actual (dades locals)
+    techData.inputList
+      .filter((input: InputListItem) => input.micContraId === item.id || input.standId === item.id)
+      .forEach(() => {
+        assignments.push({
+          eventName: eventFrame.name || 'Esdeveniment',
+          performanceName: performance?.name || 'Actuació actual',
+          quantity: 1
+        });
+      });
+
+    // 2. Altres actuacions del mateix esdeveniment (dades globals)
+    eventFrame.performances?.forEach((perf: Performance) => {
+      if (perf.id !== performance?.id) { // No comptar el rider actual dues vegades
+        perf.techData?.inputList?.forEach((input: InputListItem) => {
+          if (input.micContraId === item.id || input.standId === item.id) {
+            assignments.push({
+              eventName: eventFrame.name || 'Esdeveniment',
+              performanceName: perf.name,
+              quantity: 1
+            });
+          }
+        });
+      }
+    });
+
+    // 3. Fitxa tècnica de l'esdeveniment
+    if (eventFrame.techSheet) {
+      const needsKeys = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment'];
+      needsKeys.forEach(key => {
+        const section = eventFrame.techSheet[key];
+        if (section && section.status === 'yes' && Array.isArray(section.data?.needs)) {
+          section.data.needs.forEach((need: any) => {
+            if (need.materialItemId === item.id) {
+              assignments.push({
+                eventName: eventFrame.name || 'Esdeveniment',
+                performanceName: 'Fitxa Tècnica',
+                quantity: Number(need.quantity) || 1
+              });
+            }
+          });
+        }
+      });
+    }
+
+    return assignments;
+  };
+
+  const assignments = getAssignments();
 
   return (
     <div
@@ -72,19 +136,33 @@ const DraggableMaterial: React.FC<DraggableMaterialProps> = ({ item, availabilit
       {...attributes}
       className={`p-2 mb-2 rounded border transition-all cursor-grab active:cursor-grabbing ${
         isDragging ? 'opacity-50 border-primary' : 
+        isNegativeStock ? 'bg-destructive/20 border-destructive/50 animate-pulse' : 
         isOutOfStock ? 'bg-muted/50 border-border grayscale text-muted-foreground' : 
         'bg-card border-border hover:border-primary/50 shadow-sm'
       }`}
     >
       <div className="flex justify-between items-center text-sm">
-        <span className="font-medium truncate mr-2">{item.name}</span>
+        <span className={`font-medium truncate mr-2 ${
+          isNegativeStock ? 'text-destructive font-bold' : ''
+        }`}>{item.name}</span>
         <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+          isNegativeStock ? 'bg-destructive text-destructive-foreground animate-pulse' : 
           isOutOfStock ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
         }`}>
           {availability.available}/{item.stock}
         </span>
       </div>
       {item.location && <div className="text-[10px] text-muted-foreground truncate">{item.location}</div>}
+      {/* Llista d'assignacions del material */}
+      {assignments.length > 0 && (
+        <div className="text-[9px] text-muted-foreground mt-1 space-y-0.5">
+          {assignments.map((assignment, idx) => (
+            <div key={idx} className="truncate">
+              {assignment.eventName}: {assignment.performanceName}: {assignment.quantity}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -139,7 +217,7 @@ interface WorkshopRowProps {
 
 const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) => {
   const { t } = useTranslation();
-  const { materialItems, getMaterialAvailability, eventFrames } = useEventDataStore();
+  const { getMaterialAvailability, eventFrames } = useEventDataStore();
   const { eventFrameId } = useParams<{ eventFrameId: string }>();
   
   const eventFrame = useMemo(() => eventFrameId ? eventFrames.find(ef => ef.id === eventFrameId) : null, [eventFrameId, eventFrames]);
@@ -415,19 +493,15 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
 
 interface RiderBalanceProps {
   inputList: InputListItem[];
-  materialItems: MaterialItem[];
   eventFrame: { startDate: string; endDate: string; id: string };
   getMaterialAvailability: (id: string, start: string, end: string, frameId: string) => { available: number; total: number };
 }
 
 const RiderBalance: React.FC<RiderBalanceProps> = ({ 
   inputList, 
-  materialItems, 
   eventFrame, 
   getMaterialAvailability 
 }) => {
-  const { t } = useTranslation();
-
   // Calcular demanda total de l'actuació actual
   const usage = useMemo(() => {
     const counts: Record<string, { id: string; name: string; qty: number }> = {};
@@ -512,29 +586,63 @@ const RiderWorkshop: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [activeDragItem, setActiveDragItem] = useState<any>(null);
+  const migratedPerformances = useRef<Set<string>>(new Set()); // Evitar migracions duplicades
 
-  // Seleccionar la primera actuació per defecte quan canvia l'esdeveniment
-  useEffect(() => {
-    if (eventFrame?.performances?.length) {
-      if (!selectedPerformanceId || !eventFrame.performances.find(p => p.id === selectedPerformanceId)) {
-        setSelectedPerformanceId(eventFrame.performances[0].id);
-      }
-    } else {
-      setSelectedPerformanceId(null);
+  const performance = useMemo(() => {
+    const perf = eventFrame?.performances?.find(p => p.id === selectedPerformanceId);
+    
+    // MIGRACIÓ: Si la performance no té techData, crear-lo per evitar pèrdua de dades
+    if (perf && !perf.techData && !migratedPerformances.current.has(perf.id)) {
+      console.log('[RiderWorkshop] MIGRACIÓ: Creant techData per a performance existent:', perf.name);
+      migratedPerformances.current.add(perf.id); // Marcar com a migrada
+      
+      const updatedPerf = {
+        ...perf,
+        techData: {
+          inputList: [],
+          lightingNotes: '',
+          videoNotes: '',
+          stageRequirements: '',
+        }
+      };
+      
+      // Actualitzar la store immediatament (sense afegir a dependències)
+      setTimeout(() => {
+        if (selectedEventFrameId) {
+          updatePerformance(selectedEventFrameId, updatedPerf);
+        }
+      }, 0);
+      
+      console.log('[RiderWorkshop] Performance carregada (després de migració):', { 
+        selectedPerformanceId, 
+        performanceName: updatedPerf.name, 
+        inputListLength: updatedPerf.techData?.inputList?.length 
+      });
+      return updatedPerf;
     }
-  }, [eventFrame, selectedPerformanceId]);
-
-  const performance = useMemo(() => 
-    eventFrame?.performances?.find(p => p.id === selectedPerformanceId), 
-  [eventFrame, selectedPerformanceId]);
+    
+    console.log('[RiderWorkshop] Performance carregada:', { 
+      selectedPerformanceId, 
+      performanceName: perf?.name, 
+      inputListLength: perf?.techData?.inputList?.length 
+    });
+    return perf;
+  }, [eventFrame, selectedPerformanceId, selectedEventFrameId]);
 
   // Gestió de dades buferitzades
-  const initialTechData = useMemo((): PerformanceTechData => ({
-    inputList: performance?.techData?.inputList || [],
-    lightingNotes: performance?.techData?.lightingNotes || '',
-    videoNotes: performance?.techData?.videoNotes || '',
-    stageRequirements: performance?.techData?.stageRequirements || '',
-  }), [performance]);
+  const initialTechData = useMemo((): PerformanceTechData => {
+    // Si la performance té techData, l'utilitzem directament
+    if (performance?.techData) {
+      return performance.techData;
+    }
+    // Si no, creem un objecte buit però mantenint la referència
+    return {
+      inputList: [],
+      lightingNotes: '',
+      videoNotes: '',
+      stageRequirements: '',
+    };
+  }, [performance]);
 
   const {
     localData: techData,
@@ -543,10 +651,31 @@ const RiderWorkshop: React.FC = () => {
     saveNow,
     isDirty
   } = useBufferedSave(initialTechData, (data) => {
+    console.log('[RiderWorkshop] Intentant desar performance:', { selectedEventFrameId, performance: performance?.name, data });
     if (selectedEventFrameId && performance) {
+      console.log('[RiderWorkshop] Cridant updatePerformance...');
       updatePerformance(selectedEventFrameId, { ...performance, techData: data });
+      console.log('[RiderWorkshop] updatePerformance cridat correctament');
+    } else {
+      console.warn('[RiderWorkshop] No es pot desar - falta eventFrameId o performance:', { selectedEventFrameId, performance });
     }
   });
+
+  // Seleccionar la primera actuació per defecte quan canvia l'esdeveniment
+  useEffect(() => {
+    if (eventFrame?.performances?.length) {
+      if (!selectedPerformanceId || !eventFrame.performances.find(p => p.id === selectedPerformanceId)) {
+        // Desar les dades actuals abans de canviar de performance
+        if (isDirty) {
+          console.log('[RiderWorkshop] Desant canvis pendents abans de canviar de performance');
+          saveNow();
+        }
+        setSelectedPerformanceId(eventFrame.performances[0].id);
+      }
+    } else {
+      setSelectedPerformanceId(null);
+    }
+  }, [eventFrame, selectedPerformanceId, isDirty, saveNow]);
 
   const categories = useMemo(() => {
     const cats = new Set(materialItems.map(m => m.category));
@@ -749,7 +878,14 @@ const RiderWorkshop: React.FC = () => {
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{t('rider_workshop.switch_performance')}</span>
               <select 
                 value={selectedPerformanceId || ''} 
-                onChange={(e) => setSelectedPerformanceId(e.target.value)}
+                onChange={(e) => {
+                  // Desar les dades actuals abans de canviar de performance
+                  if (isDirty) {
+                    console.log('[RiderWorkshop] Desant canvis pendents abans de canviar de performance (selector)');
+                    saveNow();
+                  }
+                  setSelectedPerformanceId(e.target.value);
+                }}
                 className="bg-transparent border-none p-0 text-sm focus:ring-0 outline-none font-bold"
               >
                 {!eventFrame.performances?.length && <option value="">{t('performances.no_performances')}</option>}
@@ -777,17 +913,6 @@ const RiderWorkshop: React.FC = () => {
                 </button>
               </Tooltip>
             </div>
-
-            <button
-              onClick={saveNow}
-              disabled={!isDirty}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all shadow-sm ${
-                isDirty ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70'
-              }`}
-            >
-              <Save className="w-4 h-4" />
-              {isDirty ? t('performances.save_changes') : t('performances.saved')}
-            </button>
           </div>
         </div>
 
@@ -829,19 +954,50 @@ const RiderWorkshop: React.FC = () => {
                   {t('rider_workshop.no_material_found')}
                 </div>
               ) : (
-                filteredMaterial.map((item: MaterialItem) => (
-                  <DraggableMaterial 
-                    key={item.id} 
-                    item={item} 
-                    availability={getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id)}
-                  />
-                ))
+                filteredMaterial.map((item: MaterialItem) => {
+                  // Calculem quants d'aquest material ja estan assignats al rider local
+                  const localAssignments = techData.inputList.filter(
+                    input => input.micContraId === item.id || input.standId === item.id
+                  ).length;
+
+                  // Creem un TechSheetData mínim només amb aquestes assignacions locals
+                  const localOverride: TechSheetData = {
+                    eventName: eventFrame.name || '',
+                    location: eventFrame.place || '',
+                    date: eventFrame.startDate,
+                    showDuration: '',
+                    technicalProviders: [],
+                    sound: {
+                      status: 'yes',
+                      details: '',
+                      data: {
+                        needs: Array.from({ length: localAssignments }, (_, index) => ({
+                          id: `local-${item.id}-${index}`,
+                          materialItemId: item.id,
+                          quantity: '1',
+                          description: '',
+                          origin: 'Rider'
+                        }))
+                      }
+                    }
+                  };
+
+                  return (
+                    <DraggableMaterial 
+                      key={item.id} 
+                      item={item} 
+                      availability={getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, undefined, localOverride)}
+                      eventFrame={eventFrame}
+                      techData={techData}
+                      performance={performance}
+                    />
+                  );
+                })
               )}
             </div>
             
             <RiderBalance 
               inputList={techData.inputList}
-              materialItems={materialItems}
               eventFrame={eventFrame}
               getMaterialAvailability={getMaterialAvailability}
             />

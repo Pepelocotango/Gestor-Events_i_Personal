@@ -643,7 +643,19 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
         if (!eventFrame) return null;
 
-        const newPerformance: Performance = { ...performanceData, id: generateId() };
+        // Assegurar que tota performance tingui techData per defecte
+        const newPerformance: Performance = { 
+            ...performanceData, 
+            id: generateId(),
+            techData: performanceData.techData || {
+                inputList: [],
+                lightingNotes: '',
+                videoNotes: '',
+                stageRequirements: '',
+            }
+        };
+        console.log('[EventDataStore] Creant nova performance:', { name: newPerformance.name, hasTechData: !!newPerformance.techData });
+        
         set((state: EventDataState) => {
             const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
             if (targetFrame) {
@@ -659,16 +671,24 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return newPerformance.id;
     },
     updatePerformance: (eventFrameId: string, updatedPerformance: Performance) => {
+        console.log('[EventDataStore] updatePerformance cridat:', { eventFrameId, performanceName: updatedPerformance.name, techData: updatedPerformance.techData });
         const { eventFrames } = get();
         const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
-        if (!eventFrame) return;
+        if (!eventFrame) {
+            console.warn('[EventDataStore] No es troba eventFrame:', eventFrameId);
+            return;
+        }
 
         set((state: EventDataState) => {
             const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
             if (targetFrame && targetFrame.performances) {
                 const performanceIndex = targetFrame.performances.findIndex(p => p.id === updatedPerformance.id);
                 if (performanceIndex !== -1) {
+                    console.log('[EventDataStore] Actualitzant performance a l\'índex:', performanceIndex);
                     targetFrame.performances[performanceIndex] = updatedPerformance;
+                    console.log('[EventDataStore] Performance actualitzada correctament');
+                } else {
+                    console.warn('[EventDataStore] No es troba la performance amb ID:', updatedPerformance.id);
                 }
             }
             state.hasUnsavedChanges = true;

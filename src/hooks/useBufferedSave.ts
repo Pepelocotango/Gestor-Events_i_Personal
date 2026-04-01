@@ -30,17 +30,39 @@ export function useBufferedSave<T extends object>(
   const isDirtyRef = useRef(false);
   const localDataRef = useRef<T>(initialData);
   const saveToGlobalRef = useRef(saveToGlobal);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mantenim la ref de la funció de desat actualitzada
   useEffect(() => {
     saveToGlobalRef.current = saveToGlobal;
   }, [saveToGlobal]);
 
+  // Auto-save amb timeout (2 segons després de l'últim canvi)
+  useEffect(() => {
+    if (isDirtyRef.current) {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        console.log('[BufferedSave] Auto-save amb timeout');
+        saveToGlobalRef.current(localDataRef.current, false);
+        isDirtyRef.current = false;
+        setIsDirty(false);
+      }, 2000);
+    }
+
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [localData, isDirty]);
+
   // Sincronització amb dades inicials i lògica de neteja (cleanup)
   useEffect(() => {
-    // Abans que aquest efecte s'executi amb les noves initialData,
-    // el cleanup de l'efecte anterior s'haurà executat (si existia).
+    // Primer comprovem si hi ha canvis pendents abans de sobreescriure
+    if (isDirtyRef.current) {
+      console.log('[BufferedSave] Desant canvis pendents abans de canviar de dades inicials');
+      saveToGlobalRef.current(localDataRef.current, false);
+    }
 
+    // Ara sí, actualitzem amb les noves dades inicials
     setLocalData(initialData);
     localDataRef.current = initialData;
     isDirtyRef.current = false;
@@ -49,7 +71,24 @@ export function useBufferedSave<T extends object>(
     return () => {
       // Aquesta funció s'executa quan el component es desmunta O quan initialData canvia
       if (isDirtyRef.current) {
+        console.log('[BufferedSave] Desant canvis pendents en cleanup');
         saveToGlobalRef.current(localDataRef.current, false);
+      }
+    };
+  }, [initialData]);
+
+  // FORÇAR SAVE QUAN CANVIA DE PERFORMANCE (cas especial per Riders)
+  useEffect(() => {
+    // Aquest useEffect només s'executa quan canvia initialData
+    // Si hi ha canvis pendents, ja s'han desat al useEffect anterior
+    // Però si no n'hi ha, no fem res
+    return () => {
+      // Cleanup addicional per assegurar que no es perden dades
+      if (isDirtyRef.current) {
+        console.log('[BufferedSave] Cleanup addicional - desant canvis pendents');
+        saveToGlobalRef.current(localDataRef.current, false);
+        isDirtyRef.current = false;
+        setIsDirty(false);
       }
     };
   }, [initialData]);
@@ -83,12 +122,15 @@ export function useBufferedSave<T extends object>(
 
   // Funció per forçar el desat immediat
   const saveNow = useCallback(() => {
+    console.log('[BufferedSave] saveNow cridat, isDirtyRef.current:', isDirtyRef.current);
     if (isDirtyRef.current) {
+      console.log('[BufferedSave] Desant dades:', localDataRef.current);
       saveToGlobalRef.current(localDataRef.current, true);
       isDirtyRef.current = false;
       setIsDirty(false);
-      // ❌ NO modificar l'estat global aquí - el formulari només guarda a RAM (Zustand)
-      // El guardat real al disc es fa des del menú superior de l'app
+      console.log('[BufferedSave] Dades desades correctament');
+    } else {
+      console.log('[BufferedSave] No hi ha canvis pendents per desar');
     }
   }, []);
 
