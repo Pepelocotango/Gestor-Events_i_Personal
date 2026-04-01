@@ -45,6 +45,15 @@ __pycache__/
 google-credentials.json
 service-account.json
 
+# Binaris i fitxers temporals per error
+node
+npm
+vite
+rm
+concurrently
+wait-on
+gestor-esdeveniments-personal@*
+
 # Configuració i context de Gemini (permetem que es pugi al repo)
 !.gemini/
 

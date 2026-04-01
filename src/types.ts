@@ -163,8 +163,10 @@ export interface InputListItem {
   patchNumber?: string; // Número a la mànega
   label: string; // Instrument
   micRider: string; // El que demana l'artista (abans micDi)
-  micContra: string; // El que posem nosaltres (NOU)
-  stand: string; // Tipus de peu (NOU)
+  micContra: string; // El que posem nosaltres (text lliure o nom de l'item)
+  micContraId?: string; // ID de l'item de l'inventari (NOU)
+  stand: string; // Tipus de peu (text lliure o nom de l'item)
+  standId?: string; // ID de l'item de l'inventari (NOU)
   notes: string;
 }
 

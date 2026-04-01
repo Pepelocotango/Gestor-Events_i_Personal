@@ -28,6 +28,7 @@ import WelcomeScreen from './components/ui/WelcomeScreen';
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
 const PerformancesDisplay = lazy(() => import('./components/PerformancesDisplay'));
+const RiderWorkshop = lazy(() => import('./components/performances/RiderWorkshop'));
 
 const AboutModal = lazy(() => import('./components/modals/AboutModal'));
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
@@ -1141,6 +1142,7 @@ const App: React.FC = () => {
                   <Route path="/people" element={<PeopleDisplay showToast={showToast} />} />
                   <Route path="/material" element={<MaterialDisplay showToast={showToast} />} />
                   <Route path="/performances" element={<PerformancesDisplay showToast={showToast} />} />
+                  <Route path="/rider-workshop/:eventFrameId" element={<RiderWorkshop />} />
                 </Routes>
               </Suspense>
             )}

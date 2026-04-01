@@ -17,7 +17,8 @@ import {
 import { Performance } from '../../types';
 import Tooltip from '../ui/Tooltip';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { PlusIcon } from '../../constants';
+import { useNavigate } from 'react-router-dom';
+import { PlusIcon, LayoutGridIcon } from '../../constants';
 import SortablePerformance from './SortablePerformance';
 
 interface PerformanceListProps {
@@ -27,7 +28,7 @@ interface PerformanceListProps {
   onSelectPerformance: (performanceId: string | null) => void;
   onAddPerformance: () => void;
   onDeletePerformance: (performanceId: string) => void;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  showToast: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
 const PerformanceList: React.FC<PerformanceListProps> = ({
@@ -40,6 +41,7 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
   showToast,
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { reorderPerformances } = useEventDataStore();
 
   const sensors = useSensors(
@@ -80,17 +82,28 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">{t('performances.list_title')}</h3>
-        <Tooltip text={t('performances.add_tooltip')}>
-          <button
-            onClick={onAddPerformance}
-            className="w-full px-4 py-2 rounded-md text-sm font-semibold bg-success text-success-foreground hover:bg-success/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          >
-            <PlusIcon className="w-4 h-4 inline mr-2" />
-            {t('performances.add_button')}
-          </button>
-        </Tooltip>
+      <div className="flex justify-between items-center gap-2">
+        <h3 className="text-lg font-semibold shrink-0">{t('performances.list_title')}</h3>
+        <div className="flex gap-2 w-full justify-end">
+          <Tooltip text={t('rider_workshop.title')}>
+            <button
+              onClick={() => navigate(`/rider-workshop/${eventFrameId}`)}
+              className="px-3 py-2 rounded-md text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200 flex items-center gap-2"
+            >
+              <LayoutGridIcon className="w-4 h-4" />
+              Workshop
+            </button>
+          </Tooltip>
+          <Tooltip text={t('performances.add_tooltip')}>
+            <button
+              onClick={onAddPerformance}
+              className="px-4 py-2 rounded-md text-sm font-semibold bg-success text-success-foreground hover:bg-success/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 flex items-center gap-2"
+            >
+              <PlusIcon className="w-4 h-4" />
+              {t('performances.add_button')}
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       {performances.length === 0 ? (
