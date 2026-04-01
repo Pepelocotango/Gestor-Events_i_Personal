@@ -170,8 +170,23 @@ export interface InputListItem {
   notes: string;
 }
 
+export interface MonitorListItem {
+  id: string;
+  outputChannel?: string; // Canal de sortida MIX (A1, A2, B1, B2, etc.)
+  patchColor?: string; // Color de la mànega (red, blue, etc.)
+  patchNumber?: string; // Número a la mànega
+  label: string; // Nom del monitor/MIX
+  mixRider: string; // El que demana l'artista per aquest MIX
+  mixContra: string; // El que posem nosaltres (text lliure o nom de l'item)
+  mixContraId?: string; // ID del material de l'inventari
+  mixStand?: string; // Peu del monitor (text lliure o nom de l'item)
+  mixStandId?: string; // ID del peu de monitor de l'inventari
+  notes: string;
+}
+
 export interface PerformanceTechData {
   inputList: InputListItem[];
+  monitorList: MonitorListItem[];
   lightingNotes: string;
   videoNotes: string;
   stageRequirements: string;

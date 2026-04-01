@@ -19,10 +19,10 @@ import { notificationService } from '../../utils/notificationService';
 import Tooltip from '../ui/Tooltip';
 import { 
   InputListItem, 
-  MaterialItem, 
+  MaterialItem,
   PerformanceTechData,
-  TechSheetData,
-  Performance
+  Performance,
+  MonitorListItem
 } from '../../types';
 import { useBufferedSave } from '../../hooks/useBufferedSave';
 import { 
@@ -337,6 +337,184 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove, act
   );
 };
 
+// --- Fila de Monitor/Auxiliar ---
+
+interface MonitorRowProps {
+  item: MonitorListItem;
+  onChange: (id: string, field: keyof MonitorListItem, value: any) => void;
+  onRemove: (id: string) => void;
+  activeCell: { id: string; field: 'mixContra' | 'mixStand' } | null;
+  onCellFocus: (id: string, field: 'mixContra' | 'mixStand') => void;
+}
+
+const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus }) => {
+  const { getMaterialAvailability, eventFrames } = useEventDataStore();
+  const { eventFrameId } = useParams<{ eventFrameId: string }>();
+  
+  const eventFrame = useMemo(() => eventFrameId ? eventFrames.find(ef => ef.id === eventFrameId) : null, [eventFrameId, eventFrames]);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useSortable({
+    id: item.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+  };
+
+  const checkAvailability = (materialId?: string) => {
+    if (!materialId || !eventFrame) return { isError: false, available: 0 };
+    const avail = getMaterialAvailability(materialId, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+    return { isError: avail.available < 0, available: avail.available };
+  };
+
+  const mixContraStatus = checkAvailability(item.mixContraId);
+  const mixStandStatus = checkAvailability(item.mixStandId);
+
+  const isMixContraActive = activeCell?.id === item.id && activeCell?.field === 'mixContra';
+  const isMixStandActive = activeCell?.id === item.id && activeCell?.field === 'mixStand';
+
+  const patchColors =[
+    { name: 'transparent', class: 'bg-transparent border border-gray-300' },
+    { name: 'red', class: 'bg-red-500' },
+    { name: 'blue', class: 'bg-blue-500' },
+    { name: 'green', class: 'bg-green-500' },
+    { name: 'yellow', class: 'bg-yellow-400' },
+    { name: 'orange', class: 'bg-orange-500' },
+    { name: 'purple', class: 'bg-purple-500' },
+    { name: 'brown', class: 'bg-amber-700' },
+  ];
+
+  const currentColorIndex = patchColors.findIndex(color => color.name === item.patchColor);
+  const nextColor = patchColors[(currentColorIndex + 1) % patchColors.length];
+
+  return (
+    <tr 
+      ref={setNodeRef} 
+      style={style} 
+      className={`hover:bg-muted/30 transition-colors ${isDragging ? 'bg-accent/50 shadow-lg' : ''}`}
+    >
+      <td className="w-10 text-center border-r border-border/50">
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-2">
+          <GripVertical className="w-4 h-4 text-muted-foreground mx-auto" />
+        </div>
+      </td>
+      
+      <td className="py-1 px-1 w-24">
+        <div className="flex items-center gap-1.5 ml-1">
+          <button
+            onClick={() => onChange(item.id, 'patchColor', nextColor.name)}
+            className={`w-5 h-5 rounded-full border border-border shadow-sm shrink-0 ${
+              patchColors.find(c => c.name === item.patchColor)?.class || 'bg-transparent'
+            }`}
+          />
+          <input
+            type="text"
+            value={item.patchNumber || ''}
+            onChange={(e) => onChange(item.id, 'patchNumber', e.target.value)}
+            className="w-10 px-1 py-1 bg-muted/50 border border-border rounded text-xs text-center focus:ring-1 focus:ring-primary font-bold"
+            placeholder="#"
+          />
+        </div>
+      </td>
+
+      <td className="py-1 px-1 w-16">
+        <input
+          type="text"
+          value={item.outputChannel || ''}
+          onChange={(e) => onChange(item.id, 'outputChannel', e.target.value)}
+          className="w-full px-1 py-1 bg-transparent border-none text-sm font-mono text-center focus:ring-1 focus:ring-primary font-bold"
+          placeholder="A1"
+        />
+      </td>
+
+      <td className="py-1 px-1 min-w-[150px]">
+        <input
+          type="text"
+          value={item.label}
+          onChange={(e) => onChange(item.id, 'label', e.target.value)}
+          className="w-full px-2 py-1.5 bg-transparent border-none text-sm focus:ring-1 focus:ring-primary font-bold"
+          placeholder="Monitor/MIX..."
+        />
+      </td>
+
+      <td className="py-1 px-1 text-muted-foreground italic min-w-[150px]">
+        <input
+          type="text"
+          value={item.mixRider}
+          onChange={(e) => onChange(item.id, 'mixRider', e.target.value)}
+          className="w-full px-2 py-1.5 bg-transparent border-none text-sm italic focus:ring-1 focus:ring-primary"
+          placeholder="MIX demanat..."
+        />
+      </td>
+
+      <td className={`py-1 px-1 min-w-[160px] transition-colors ${mixContraStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
+        <div className={`relative flex items-center rounded border ${isMixContraActive ? 'ring-2 ring-primary border-primary bg-primary/10' : 'border-transparent'}`}>
+          <input
+            type="text"
+            value={item.mixContra}
+            onChange={(e) => onChange(item.id, 'mixContra', e.target.value)}
+            onFocus={() => onCellFocus(item.id, 'mixContra')}
+            className="w-full px-2 py-1.5 bg-transparent border-none text-sm focus:outline-none placeholder:text-muted-foreground/50"
+            placeholder="Clic per assignar..."
+          />
+          {mixContraStatus.isError && (
+            <Tooltip text="Sense estoc disponible!">
+              <div className="absolute right-2 text-destructive pointer-events-none">
+                <Package className="w-4 h-4 animate-pulse" />
+              </div>
+            </Tooltip>
+          )}
+        </div>
+      </td>
+
+      <td className={`py-1 px-1 min-w-[160px] transition-colors ${mixStandStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
+        <div className={`relative flex items-center rounded border ${isMixStandActive ? 'ring-2 ring-primary border-primary bg-primary/10' : 'border-transparent'}`}>
+          <input
+            type="text"
+            value={item.mixStand || ''}
+            onChange={(e) => onChange(item.id, 'mixStand', e.target.value)}
+            onFocus={() => onCellFocus(item.id, 'mixStand')}
+            className="w-full px-2 py-1.5 bg-transparent border-none text-sm focus:outline-none placeholder:text-muted-foreground/50"
+            placeholder="Clic per assignar..."
+          />
+          {mixStandStatus.isError && (
+            <Tooltip text="Sense estoc disponible!">
+              <div className="absolute right-2 text-destructive pointer-events-none">
+                <Package className="w-4 h-4 animate-pulse" />
+              </div>
+            </Tooltip>
+          )}
+        </div>
+      </td>
+
+      <td className="py-1 px-1">
+        <input
+          type="text"
+          value={item.notes}
+          onChange={(e) => onChange(item.id, 'notes', e.target.value)}
+          className="w-full px-2 py-1.5 bg-transparent border-none text-sm text-muted-foreground focus:ring-1 focus:ring-primary"
+          placeholder="..."
+        />
+      </td>
+
+      <td className="py-1 px-1 text-center w-10 border-l border-border/50">
+        <button
+          onClick={() => onRemove(item.id)}
+          className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </td>
+    </tr>
+  );
+};
+
 // --- Selector de Categories ---
 
 interface SearchableCategorySelectorProps {
@@ -526,7 +704,7 @@ const RiderWorkshop: React.FC = () => {
   const[selectedPerformanceId, setSelectedPerformanceId] = useState<string | null>(null);
 
   // NOU: Estat per saber quina casella està seleccionada (Click to Assign)
-  const [activeCell, setActiveCell] = useState<{ id: string; field: 'micContra' | 'stand' } | null>(null);
+  const [activeCell, setActiveCell] = useState<{ id: string; field: 'micContra' | 'stand' | 'mixContra' | 'mixStand' } | null>(null);
 
   useEffect(() => {
     if (urlEventFrameId) setSelectedEventFrameId(urlEventFrameId);
@@ -551,7 +729,7 @@ const RiderWorkshop: React.FC = () => {
       migratedPerformances.current.add(perf.id);
       const updatedPerf = {
         ...perf,
-        techData: { inputList:[], lightingNotes: '', videoNotes: '', stageRequirements: '' }
+        techData: { inputList:[], monitorList: [], lightingNotes: '', videoNotes: '', stageRequirements: '' }
       };
       
       setTimeout(() => {
@@ -564,7 +742,7 @@ const RiderWorkshop: React.FC = () => {
 
   const initialTechData = useMemo((): PerformanceTechData => {
     if (performance?.techData) return performance.techData;
-    return { inputList:[], lightingNotes: '', videoNotes: '', stageRequirements: '' };
+    return { inputList:[], monitorList: [], lightingNotes: '', videoNotes: '', stageRequirements: '' };
   }, [performance]);
 
   const {
@@ -646,13 +824,35 @@ const RiderWorkshop: React.FC = () => {
     updateLocal({ inputList: newInputList });
   };
 
+  // Helper functions to filter activeCell types
+  const getWorkshopActiveCell = (): { id: string; field: 'micContra' | 'stand' } | null => {
+    if (!activeCell) return null;
+    if (activeCell.field === 'micContra' || activeCell.field === 'stand') {
+      return activeCell as { id: string; field: 'micContra' | 'stand' };
+    }
+    return null;
+  };
+
+  const getMonitorActiveCell = (): { id: string; field: 'mixContra' | 'mixStand' } | null => {
+    if (!activeCell) return null;
+    if (activeCell.field === 'mixContra' || activeCell.field === 'mixStand') {
+      return activeCell as { id: string; field: 'mixContra' | 'mixStand' };
+    }
+    return null;
+  };
+
   // NOU: Clicar a un material de l'inventari l'assigna a la casella activa
   const handleMaterialClick = (material: MaterialItem) => {
     if (activeCell) {
-      handleInputChange(activeCell.id, activeCell.field, material.name);
+      if (activeCell.field === 'mixContra' || activeCell.field === 'mixStand') {
+        handleMonitorChange(activeCell.id, activeCell.field, material.name);
+      } else {
+        handleInputChange(activeCell.id, activeCell.field, material.name);
+      }
       showToast(`${material.name} assignat`, 'success');
     } else {
-      showToast("Fes clic a una casella de 'Mic (Contra)' o 'Stand' a la taula per poder assignar material.", "info");
+      const message = "Fes clic a una casella per poder assignar material.";
+      showToast(message, "info");
     }
   };
 
@@ -677,6 +877,61 @@ const RiderWorkshop: React.FC = () => {
       notes: '',
     };
     updateLocal({ inputList: [...currentList, newItem] });
+  };
+
+  // Funcions per gestionar monitors (separats dels inputs)
+  const handleMonitorChange = (id: string, field: keyof MonitorListItem, value: any) => {
+    const newMonitorList = (techDataRef.current.monitorList || []).map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value };
+        
+        // Auto-vincular l'ID si el text coincideix exactament amb un material de l'inventari
+        if (field === 'mixContra') {
+          const matched = materialItems.find(m => m.name === value);
+          updatedItem.mixContraId = matched ? matched.id : undefined;
+        }
+        if (field === 'mixStand') {
+          const matched = materialItems.find(m => m.name === value);
+          updatedItem.mixStandId = matched ? matched.id : undefined;
+        }
+        return updatedItem;
+      }
+      return item;
+    });
+    updateLocal({ monitorList: newMonitorList });
+  };
+
+  const addMonitorItem = () => {
+    const currentList = techDataRef.current.monitorList || [];
+    const lastItem = currentList[currentList.length - 1];
+    let newOutputChannel = '';
+    if (lastItem?.outputChannel) {
+      // Lògica per generar el següent canal de sortida (A1, A2, B1, B2, etc.)
+      const match = lastItem.outputChannel.match(/([A-Z])(\d+)/);
+      if (match) {
+        const letter = match[1];
+        const number = parseInt(match[2]);
+        const nextNumber = number + 1;
+        newOutputChannel = `${letter}${nextNumber}`;
+      } else {
+        newOutputChannel = 'A1';
+      }
+    } else {
+      newOutputChannel = 'A1';
+    }
+
+    const newItem: MonitorListItem = {
+      id: Date.now().toString(),
+      outputChannel: newOutputChannel,
+      patchColor: 'transparent',
+      patchNumber: '',
+      label: '',
+      mixRider: '',
+      mixContra: '',
+      mixStand: '',
+      notes: '',
+    };
+    updateLocal({ monitorList: [...currentList, newItem] });
   };
 
   const copyRiderToContra = () => {
@@ -968,10 +1223,78 @@ const RiderWorkshop: React.FC = () => {
                                 item={item} 
                                 onChange={handleInputChange}
                                 onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })}
-                                activeCell={activeCell}
+                                activeCell={getWorkshopActiveCell()}
                                 onCellFocus={(id, field) => setActiveCell({ id, field })}
                               />
                             ))}
+                          </SortableContext>
+                        </DndContext>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Taula de Monitors/Auxiliars */}
+                  <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden mt-6">
+                    <div className="flex justify-between items-center px-6 py-3 border-b border-border bg-muted/5">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-bold">Monitors / Auxiliars</h3>
+                        <span className="text-xs px-2 py-1 bg-muted border border-border rounded-full text-muted-foreground">
+                          {techData.monitorList?.length || 0}
+                        </span>
+                      </div>
+                      <button
+                        onClick={addMonitorItem}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-accent transition-colors text-xs font-bold border border-border"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Afegir Monitor
+                      </button>
+                    </div>
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-muted/50 border-b border-border text-left">
+                          <th className="w-10"></th>
+                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            {t('performances.patch_header')}
+                          </th>
+                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">
+                            {t('performances.channel_header')}
+                          </th>
+                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            {t('performances.label_header')}
+                          </th>
+                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            MIX Rider
+                          </th>
+                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            MIX Contra
+                          </th>
+                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Peu
+                          </th>
+                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            {t('performances.notes_header')}
+                          </th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <SortableContext items={(techData.monitorList || []).map(p => p.id)} strategy={verticalListSortingStrategy}>
+                            {(techData.monitorList || []).map((item) => (
+                                <MonitorRow 
+                                  key={item.id} 
+                                  item={item} 
+                                  onChange={handleMonitorChange}
+                                  onRemove={(id) => updateLocal({ monitorList: (techDataRef.current.monitorList || []).filter(i => i.id !== id) })}
+                                  activeCell={getMonitorActiveCell()}
+                                  onCellFocus={(id, field) => setActiveCell({ id, field })}
+                                />
+                              ))}
                           </SortableContext>
                         </DndContext>
                       </tbody>
