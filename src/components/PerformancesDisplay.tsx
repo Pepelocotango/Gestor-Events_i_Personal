@@ -7,7 +7,7 @@ import Tooltip from './ui/Tooltip';
 import CollapsibleSection from './ui/CollapsibleSection';
 import { exportEventPerformancesSummaryPdf, generateEventPerformancesPdfObject } from '../utils/pdfGenerator';
 import { triggerAllSaves } from '../utils/saveManager';
-import { PdfIcon, EyeIcon } from '../constants';
+import { PdfIcon, EyeIcon, MicrophoneIcon } from '../constants';
 
 const PerformanceList = lazy(() => import('./performances/PerformanceList'));
 const PerformanceDetailContainer = lazy(() => import('./performances/PerformanceDetailContainer'));
@@ -143,24 +143,24 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
   };
 
   return (
-    <div className="p-6">
+    <div className="px-2 py-2">
       <CollapsibleSection 
         title={t('performances.manager_title')}
         defaultOpen={true}
       >
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Selector d'Esdeveniment */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-3 rounded-lg border border-border shadow-sm">
             <div className="flex items-center gap-4">
               <Tooltip text={t('performances.event_selector_tooltip')}>
-                <label className="block text-sm font-medium">
+                <label className="block text-sm font-bold text-muted-foreground uppercase tracking-tight">
                   {t('performances.select_event')}
                 </label>
               </Tooltip>
               <select
                 value={selectedEventFrameId}
                 onChange={(e) => setSelectedEventFrameId(e.target.value)}
-                className="px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="px-3 py-1.5 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary font-medium min-w-[250px]"
               >
                 <option value="">{t('performances.select_event_placeholder')}</option>
                 {eventFrames
@@ -179,7 +179,7 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
                 <Tooltip text={t('performances.preview_runsheet_tooltip')}>
                   <button
                     onClick={handlePreview}
-                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+                    className="px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2 text-xs font-bold"
                   >
                     <EyeIcon className="w-4 h-4" />
                     {t('performances.preview_runsheet')}
@@ -188,7 +188,7 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
                 <Tooltip text={t('performances.export_runsheet_tooltip')}>
                   <button
                     onClick={handleExportEventSummary}
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2"
+                    className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring flex items-center gap-2 text-xs font-bold"
                   >
                     <PdfIcon className="w-4 h-4" />
                     {t('performances.export_runsheet')}
@@ -200,45 +200,54 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
 
           {/* Missatge si no hi ha esdeveniment seleccionat */}
           {!selectedEventFrameId && (
-            <div className="text-center py-12 text-muted-foreground bg-muted/30 border-2 border-dashed border-border rounded-lg">
-              <p className="text-lg font-medium">{t('performances.no_event_selected')}</p>
+            <div className="text-center py-16 text-muted-foreground bg-muted/20 border-2 border-dashed border-border rounded-lg">
+              <p className="text-lg font-medium italic">{t('performances.no_event_selected')}</p>
             </div>
           )}
 
-          {/* Layout de dues columnes */}
+          {/* Layout de dues columnes a tota l'amplada */}
           {selectedEventFrameId && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Columna 1: Llista d'actuacions */}
-              <div className="lg:col-span-1">
-                <Suspense fallback={<div className="text-center p-8">{t('common.loading')}</div>}>
-                  <PerformanceList
-                    eventFrameId={selectedEventFrameId}
-                    performances={selectedEventFrame?.performances || []}
-                    selectedPerformanceId={selectedPerformanceId}
-                    onSelectPerformance={setSelectedPerformanceId}
-                    onAddPerformance={handleAddPerformance}
-                    onDeletePerformance={handleDeletePerformance}
-                    showToast={showToast}
-                  />
-                </Suspense>
-              </div>
-
-              {/* Columna 2 i 3: Formulari */}
-              <div className="lg:col-span-2">
-                {selectedPerformance ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-280px)] min-h-[500px]">
+              {/* Columna 1: Llista d'actuacions (3 de 12 columnes) */}
+              <div className="lg:col-span-3 flex flex-col overflow-hidden bg-card rounded-lg border border-border shadow-sm">
+                <div className="flex-grow overflow-y-auto p-1 custom-scrollbar">
                   <Suspense fallback={<div className="text-center p-8">{t('common.loading')}</div>}>
-                    <PerformanceDetailContainer
+                    <PerformanceList
                       eventFrameId={selectedEventFrameId}
-                      performance={selectedPerformance}
+                      performances={selectedEventFrame?.performances || []}
+                      selectedPerformanceId={selectedPerformanceId}
+                      onSelectPerformance={setSelectedPerformanceId}
+                      onAddPerformance={handleAddPerformance}
+                      onDeletePerformance={handleDeletePerformance}
                       showToast={showToast}
                     />
                   </Suspense>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground bg-muted/30 border-2 border-dashed border-border rounded-lg">
-                    <p className="text-lg font-medium">{t('performances.no_performance_selected')}</p>
-                    <p className="text-sm mt-2">{t('performances.select_performance_to_edit')}</p>
-                  </div>
-                )}
+                </div>
+              </div>
+
+              {/* Columna 2 i 3: Formulari (9 de 12 columnes) */}
+              <div className="lg:col-span-9 flex flex-col overflow-hidden bg-card rounded-lg border border-border shadow-sm">
+                <div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-background/30">
+                  {selectedPerformance ? (
+                    <Suspense fallback={<div className="text-center p-8">{t('common.loading')}</div>}>
+                      <PerformanceDetailContainer
+                        eventFrameId={selectedEventFrameId}
+                        performance={selectedPerformance}
+                        showToast={showToast}
+                      />
+                    </Suspense>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4">
+                      <div className="p-4 bg-muted/50 rounded-full">
+                        <MicrophoneIcon className="w-12 h-12 opacity-20" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-bold">{t('performances.no_performance_selected')}</p>
+                        <p className="text-sm opacity-70">{t('performances.select_performance_to_edit')}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -967,7 +967,20 @@
         "pdf_validation_error": "Error de validación: {{message}}",
         "pdf_validation_warning": "Advertencia: {{message}}",
         "no_technical_notes": "No hay notas técnicas",
-        "no_hospitality": "No hay datos de hospitalidad"
+        "no_hospitality": "No hay datos de hospitalidad",
+        "tech_read_only_msg": "La edición técnica se ha movido al nuevo módulo de Riders."
+    },
+    "rider_workshop": {
+        "assigned": "asignado correctamente",
+        "clear_all_contra": "Limpiar toda la Contra-rider",
+        "copy_rider_to_contra": "Copiar Rider a Contra-rider",
+        "drop_here": "Arrastra material aquí",
+        "inventory_title": "Inventario de Material",
+        "no_material_found": "No se ha encontrado material.",
+        "search_placeholder": "Buscar material...",
+        "switch_performance": "Cambiar artista:",
+        "title": "Riders",
+        "all_categories": "Todas"
     },
     "roles": {
         "assembly": {

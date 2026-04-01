@@ -12,9 +12,12 @@ import {
   Package,
   GripVertical,
   Plus,
-  Copy
+  Copy,
+  LayoutGridIcon,
+  ChartBarIcon
 } from 'lucide-react';
 import { useEventDataStore } from '../../stores/eventDataStore';
+import { notificationService } from '../../utils/notificationService';
 import Tooltip from '../ui/Tooltip';
 import { 
   InputListItem, 
@@ -37,8 +40,10 @@ import {
 import { 
   SortableContext, 
   verticalListSortingStrategy, 
-  arrayMove 
+  arrayMove,
+  useSortable
 } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // --- Sub-components per al Dnd ---
 
@@ -134,7 +139,11 @@ interface WorkshopRowProps {
 
 const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) => {
   const { t } = useTranslation();
+  const { materialItems, getMaterialAvailability, eventFrames } = useEventDataStore();
+  const { eventFrameId } = useParams<{ eventFrameId: string }>();
   
+  const eventFrame = useMemo(() => eventFrameId ? eventFrames.find(ef => ef.id === eventFrameId) : null, [eventFrameId, eventFrames]);
+
   const {
     attributes,
     listeners,
@@ -150,6 +159,16 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) =
     zIndex: isDragging ? 50 : undefined,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  // Funció per comprovar disponibilitat d'un material concret
+  const checkAvailability = (materialId?: string) => {
+    if (!materialId || !eventFrame) return { isError: false, available: 0 };
+    const avail = getMaterialAvailability(materialId, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+    return { isError: avail.available < 0, available: avail.available };
+  };
+
+  const micStatus = checkAvailability(item.micContraId);
+  const standStatus = checkAvailability(item.standId);
 
   // Colors per al patch
   const patchColors = [
@@ -172,14 +191,14 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) =
       style={style} 
       className={`hover:bg-muted/30 transition-colors ${isDragging ? 'bg-accent/50' : ''}`}
     >
-      <td className="w-10 text-center">
+      <td className="w-10 text-center border-r border-border/50">
         <div {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-2">
           <GripVertical className="w-4 h-4 text-muted-foreground mx-auto" />
         </div>
       </td>
       
       <td className="py-1 px-1 w-24">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 ml-1">
           <button
             onClick={() => onChange(item.id, 'patchColor', nextColor.name)}
             className={`w-5 h-5 rounded-full border border-border shadow-sm shrink-0 ${
@@ -190,7 +209,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) =
             type="text"
             value={item.patchNumber || ''}
             onChange={(e) => onChange(item.id, 'patchNumber', e.target.value)}
-            className="w-10 px-1 py-1 bg-muted/50 border border-border rounded text-xs text-center focus:ring-1 focus:ring-primary"
+            className="w-10 px-1 py-1 bg-muted/50 border border-border rounded text-xs text-center focus:ring-1 focus:ring-primary font-bold"
             placeholder="#"
           />
         </div>
@@ -201,7 +220,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) =
           type="text"
           value={item.channel || ''}
           onChange={(e) => onChange(item.id, 'channel', e.target.value)}
-          className="w-full px-1 py-1 bg-transparent border-none text-sm font-mono text-center focus:ring-1 focus:ring-primary"
+          className="w-full px-1 py-1 bg-transparent border-none text-sm font-mono text-center focus:ring-1 focus:ring-primary font-bold"
           placeholder="CH"
         />
       </td>
@@ -211,7 +230,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) =
           type="text"
           value={item.label}
           onChange={(e) => onChange(item.id, 'label', e.target.value)}
-          className="w-full px-2 py-1.5 bg-transparent border-none text-sm focus:ring-1 focus:ring-primary font-medium"
+          className="w-full px-2 py-1.5 bg-transparent border-none text-sm focus:ring-1 focus:ring-primary font-bold"
           placeholder={t('performances.label_placeholder')}
         />
       </td>
@@ -226,24 +245,42 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) =
         />
       </td>
 
-      <td className="py-1 px-1 bg-primary/5 min-w-[160px]">
-        <DroppableCell 
-          inputId={item.id} 
-          field="micContra" 
-          value={item.micContra} 
-          onChange={(val) => onChange(item.id, 'micContra', val)}
-          placeholder={t('rider_workshop.drop_here')}
-        />
+      <td className={`py-1 px-1 min-w-[160px] transition-colors ${micStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
+        <div className="relative flex items-center">
+          <DroppableCell 
+            inputId={item.id} 
+            field="micContra" 
+            value={item.micContra} 
+            onChange={(val) => onChange(item.id, 'micContra', val)}
+            placeholder={t('rider_workshop.drop_here')}
+          />
+          {micStatus.isError && (
+            <Tooltip text={`${t('common.error')}: Sense estoc disponible!`}>
+              <div className="absolute right-2 text-destructive">
+                <Package className="w-4 h-4 animate-pulse" />
+              </div>
+            </Tooltip>
+          )}
+        </div>
       </td>
 
-      <td className="py-1 px-1 bg-primary/5 min-w-[160px]">
-        <DroppableCell 
-          inputId={item.id} 
-          field="stand" 
-          value={item.stand} 
-          onChange={(val) => onChange(item.id, 'stand', val)}
-          placeholder={t('rider_workshop.drop_here')}
-        />
+      <td className={`py-1 px-1 min-w-[160px] transition-colors ${standStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
+        <div className="relative flex items-center">
+          <DroppableCell 
+            inputId={item.id} 
+            field="stand" 
+            value={item.stand} 
+            onChange={(val) => onChange(item.id, 'stand', val)}
+            placeholder={t('rider_workshop.drop_here')}
+          />
+          {standStatus.isError && (
+            <Tooltip text={`${t('common.error')}: Sense estoc disponible!`}>
+              <div className="absolute right-2 text-destructive">
+                <Package className="w-4 h-4 animate-pulse" />
+              </div>
+            </Tooltip>
+          )}
+        </div>
       </td>
 
       <td className="py-1 px-1">
@@ -256,7 +293,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) =
         />
       </td>
 
-      <td className="py-1 px-1 text-center w-10">
+      <td className="py-1 px-1 text-center w-10 border-l border-border/50">
         <button
           onClick={() => onRemove(item.id)}
           className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
@@ -268,32 +305,222 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove }) =
   );
 };
 
+// --- Selector de Categories Cercable ---
+
+interface SearchableCategorySelectorProps {
+  categories: string[];
+  activeCategory: string;
+  onSelect: (category: string) => void;
+  placeholder: string;
+}
+
+const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({ 
+  categories, 
+  activeCategory, 
+  onSelect,
+  placeholder 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const filteredCategories = useMemo(() => {
+    const search = searchTerm.toLowerCase().trim();
+    if (!search) return categories;
+    return categories.filter(cat => cat.toLowerCase().includes(search));
+  }, [categories, searchTerm]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between gap-2 bg-background border border-border rounded px-2 py-1 text-[10px] font-bold focus:ring-1 focus:ring-primary outline-none transition-all hover:border-primary/50"
+      >
+        <span className="truncate">
+          {activeCategory === 'all' ? placeholder : activeCategory}
+        </span>
+        <Filter className={`w-3 h-3 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 w-full mt-1 bg-popover border border-border rounded-md shadow-lg z-[100] flex flex-col overflow-hidden">
+          <div className="p-1.5 border-b border-border bg-muted/30">
+            <div className="relative">
+              <Search className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+              <input
+                autoFocus
+                type="text"
+                placeholder="..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-6 pr-2 py-1 bg-background border border-border rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          </div>
+          <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
+            <button
+              onClick={() => {
+                onSelect('all');
+                setIsOpen(false);
+                setSearchTerm('');
+              }}
+              className={`w-full text-left px-2 py-1.5 rounded text-[10px] font-bold transition-colors ${
+                activeCategory === 'all' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'hover:bg-primary/10 hover:text-primary dark:hover:bg-accent dark:hover:text-accent-foreground'
+              }`}
+            >
+              {placeholder}
+            </button>
+            {filteredCategories.filter(c => c !== 'all').map((cat) => (
+              <button
+                key={cat}
+                onClick={() => {
+                  onSelect(cat);
+                  setIsOpen(false);
+                  setSearchTerm('');
+                }}
+                className={`w-full text-left px-2 py-1.5 rounded text-[10px] font-medium transition-colors truncate ${
+                  activeCategory === cat 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:bg-primary/10 hover:text-primary dark:hover:bg-accent dark:hover:text-accent-foreground'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+            {filteredCategories.length === 0 && (
+              <div className="px-2 py-3 text-[10px] text-muted-foreground text-center italic">
+                Sense resultats
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- Balanç del Rider (Subcomponent) ---
+
+interface RiderBalanceProps {
+  inputList: InputListItem[];
+  materialItems: MaterialItem[];
+  eventFrame: { startDate: string; endDate: string; id: string };
+  getMaterialAvailability: (id: string, start: string, end: string, frameId: string) => { available: number; total: number };
+}
+
+const RiderBalance: React.FC<RiderBalanceProps> = ({ 
+  inputList, 
+  materialItems, 
+  eventFrame, 
+  getMaterialAvailability 
+}) => {
+  const { t } = useTranslation();
+
+  // Calcular demanda total de l'actuació actual
+  const usage = useMemo(() => {
+    const counts: Record<string, { id: string; name: string; qty: number }> = {};
+    
+    inputList.forEach(item => {
+      if (item.micContraId) {
+        if (!counts[item.micContraId]) counts[item.micContraId] = { id: item.micContraId, name: item.micContra, qty: 0 };
+        counts[item.micContraId].qty += 1;
+      }
+      if (item.standId) {
+        if (!counts[item.standId]) counts[item.standId] = { id: item.standId, name: item.stand, qty: 0 };
+        counts[item.standId].qty += 1;
+      }
+    });
+    
+    return Object.values(counts).map(u => {
+      const avail = getMaterialAvailability(u.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+      return { ...u, available: avail.available, isError: avail.available < 0 };
+    });
+  }, [inputList, getMaterialAvailability, eventFrame]);
+
+  if (usage.length === 0) return null;
+
+  return (
+    <div className="p-3 border-t border-border bg-card">
+      <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
+        <ChartBarIcon className="w-3 h-3" />
+        Balanç del Rider
+      </h3>
+      <div className="space-y-1.5">
+        {usage.map(u => (
+          <div key={u.id} className={`flex items-center justify-between p-1.5 rounded border ${u.isError ? 'bg-destructive/5 border-destructive/20' : 'bg-muted/30 border-transparent'}`}>
+            <span className={`text-[10px] font-medium truncate flex-grow mr-2 ${u.isError ? 'text-destructive font-bold' : ''}`}>
+              {u.name}
+            </span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${u.isError ? 'bg-destructive text-destructive-foreground' : 'bg-primary/10 text-primary'}`}>
+              {u.qty}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // --- Pantalla Principal ---
 
 const RiderWorkshop: React.FC = () => {
-  const { eventFrameId } = useParams<{ eventFrameId: string }>();
+  const { eventFrameId: urlEventFrameId } = useParams<{ eventFrameId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
   
   const { 
+    eventFrames,
     getEventFrameById, 
     materialItems, 
     getMaterialAvailability,
-    updatePerformance,
-    showToast
+    updatePerformance
   } = useEventDataStore();
 
-  const eventFrame = useMemo(() => eventFrameId ? getEventFrameById(eventFrameId) : null, [eventFrameId, getEventFrameById]);
-  
+  const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'success') => {
+    notificationService[type](message);
+  };
+
+  const [selectedEventFrameId, setSelectedEventFrameId] = useState<string | null>(urlEventFrameId || null);
   const [selectedPerformanceId, setSelectedPerformanceId] = useState<string | null>(null);
+
+  // Sincronitzar ID de la URL amb l'estat local
+  useEffect(() => {
+    if (urlEventFrameId) setSelectedEventFrameId(urlEventFrameId);
+  }, [urlEventFrameId]);
+
+  const eventFrame = useMemo(() => 
+    selectedEventFrameId ? getEventFrameById(selectedEventFrameId) : null
+  , [selectedEventFrameId, getEventFrameById]);
+
+  // Llista d'esdeveniments actius (no arxivats) per al selector inicial
+  const activeEventFrames = useMemo(() => 
+    eventFrames.filter(ef => !ef.isArchived).sort((a, b) => b.startDate.localeCompare(a.startDate))
+  , [eventFrames]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [activeDragItem, setActiveDragItem] = useState<any>(null);
 
-  // Seleccionar la primera actuació per defecte
+  // Seleccionar la primera actuació per defecte quan canvia l'esdeveniment
   useEffect(() => {
-    if (eventFrame?.performances?.length && !selectedPerformanceId) {
-      setSelectedPerformanceId(eventFrame.performances[0].id);
+    if (eventFrame?.performances?.length) {
+      if (!selectedPerformanceId || !eventFrame.performances.find(p => p.id === selectedPerformanceId)) {
+        setSelectedPerformanceId(eventFrame.performances[0].id);
+      }
+    } else {
+      setSelectedPerformanceId(null);
     }
   }, [eventFrame, selectedPerformanceId]);
 
@@ -316,8 +543,8 @@ const RiderWorkshop: React.FC = () => {
     saveNow,
     isDirty
   } = useBufferedSave(initialTechData, (data) => {
-    if (eventFrameId && performance) {
-      updatePerformance(eventFrameId, { ...performance, techData: data });
+    if (selectedEventFrameId && performance) {
+      updatePerformance(selectedEventFrameId, { ...performance, techData: data });
     }
   });
 
@@ -388,7 +615,6 @@ const RiderWorkshop: React.FC = () => {
     const newInputList = techDataRef.current.inputList.map(item => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
-        // Si canviem el text manualment, comprovem si encara és el material guardat
         if (field === 'micContra' && item.micContraId) {
           const mat = materialItems.find(m => m.id === item.micContraId);
           if (mat && mat.name !== value) updatedItem.micContraId = undefined;
@@ -448,6 +674,41 @@ const RiderWorkshop: React.FC = () => {
     showToast(t('rider_workshop.clear_all_contra'), 'info');
   };
 
+  const handleEventChange = (id: string) => {
+    setSelectedEventFrameId(id);
+    navigate(`/riders/${id}`, { replace: true });
+  };
+
+  if (!selectedEventFrameId) {
+    return (
+      <div className="p-6">
+        <div className="flex flex-col items-center justify-center py-12 text-center space-y-6 bg-muted/30 border-2 border-dashed border-border rounded-lg">
+          <div className="max-w-md space-y-2">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LayoutGridIcon className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold">{t('performances.select_event')}</h2>
+            <p className="text-sm text-muted-foreground">
+              {t('performances.select_event_placeholder')}
+            </p>
+          </div>
+          <div className="w-full max-w-sm px-4">
+            <select 
+              className="w-full bg-card border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm"
+              onChange={(e) => handleEventChange(e.target.value)}
+              value=""
+            >
+              <option value="" disabled>{t('performances.select_event_placeholder')}</option>
+              {activeEventFrames.map(ef => (
+                <option key={ef.id} value={ef.id}>{new Date(ef.startDate).toLocaleDateString('ca-ES')} - {ef.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!eventFrame) {
     return <div className="p-8 text-center">{t('common.event_not_found')}</div>;
   }
@@ -459,42 +720,50 @@ const RiderWorkshop: React.FC = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="fixed inset-0 z-50 flex flex-col bg-background text-foreground overflow-hidden">
+      <div className="px-2 py-2 h-[calc(100vh-140px)] flex flex-col space-y-4">
         
-        {/* Header */}
-        <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/')}
-              className="p-1.5 hover:bg-accent rounded-md transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
+        {/* Header de la Secció */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-3 rounded-lg border border-border shadow-sm shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <LayoutGridIcon className="w-5 h-5 text-primary" />
+            </div>
             <div>
-              <h1 className="font-bold text-lg leading-none">{t('rider_workshop.title')}</h1>
-              <p className="text-xs text-muted-foreground mt-1">{eventFrame.name}</p>
+              <h1 className="font-bold text-lg leading-none">{t('main.nav_riders')}</h1>
+              <div className="mt-1">
+                 <select 
+                  value={selectedEventFrameId} 
+                  onChange={(e) => handleEventChange(e.target.value)}
+                  className="bg-transparent border-none p-0 text-xs text-muted-foreground hover:text-primary cursor-pointer outline-none font-medium"
+                >
+                  {activeEventFrames.map(ef => (
+                    <option key={ef.id} value={ef.id}>{ef.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">{t('rider_workshop.switch_performance')}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-md border border-border">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{t('rider_workshop.switch_performance')}</span>
               <select 
                 value={selectedPerformanceId || ''} 
                 onChange={(e) => setSelectedPerformanceId(e.target.value)}
-                className="bg-background border border-border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-primary outline-none"
+                className="bg-transparent border-none p-0 text-sm focus:ring-0 outline-none font-bold"
               >
+                {!eventFrame.performances?.length && <option value="">{t('performances.no_performances')}</option>}
                 {eventFrame.performances?.map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>
             
-            <div className="flex items-center gap-2 border-l border-border pl-4">
+            <div className="flex items-center gap-1 border-l border-border pl-3">
                <Tooltip text={t('rider_workshop.copy_rider_to_contra')}>
                 <button
                   onClick={copyRiderToContra}
-                  className="p-1.5 hover:bg-accent rounded-md transition-colors text-muted-foreground hover:text-primary"
+                  className="p-2 hover:bg-accent rounded-md transition-colors text-muted-foreground hover:text-primary"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
@@ -502,7 +771,7 @@ const RiderWorkshop: React.FC = () => {
               <Tooltip text={t('rider_workshop.clear_all_contra')}>
                 <button
                   onClick={clearAllContra}
-                  className="p-1.5 hover:bg-accent rounded-md transition-colors text-muted-foreground hover:text-destructive"
+                  className="p-2 hover:bg-accent rounded-md transition-colors text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -512,60 +781,55 @@ const RiderWorkshop: React.FC = () => {
             <button
               onClick={saveNow}
               disabled={!isDirty}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                isDirty ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90' : 'bg-muted text-muted-foreground'
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all shadow-sm ${
+                isDirty ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70'
               }`}
             >
               <Save className="w-4 h-4" />
               {isDirty ? t('performances.save_changes') : t('performances.saved')}
             </button>
           </div>
-        </header>
+        </div>
 
-        <div className="flex-grow flex overflow-hidden">
+        <div className="flex-grow flex overflow-hidden bg-card rounded-lg border border-border shadow-sm">
           
           {/* Sidebar - Inventari */}
-          <aside className="w-72 border-r border-border bg-muted/30 flex flex-col shrink-0">
-            <div className="p-4 border-b border-border space-y-3">
+          <aside className="w-64 border-r border-border bg-muted/10 flex flex-col shrink-0">
+            <div className="p-3 border-b border-border space-y-2">
+              {/* Cercador d'ítems */}
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder={t('rider_workshop.search_placeholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full pl-8 pr-2 py-1.5 bg-background border border-border rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`text-[10px] px-2 py-1 rounded-full border whitespace-nowrap transition-colors ${
-                      activeCategory === cat 
-                        ? 'bg-primary border-primary text-primary-foreground' 
-                        : 'bg-background border-border hover:border-primary/50'
-                    }`}
-                  >
-                    {cat === 'all' ? t('rider_workshop.all_categories') : cat}
-                  </button>
-                ))}
+              
+              {/* Selector de Categories Intel·ligent */}
+              <div className="flex items-center gap-2">
+                <SearchableCategorySelector
+                  categories={categories}
+                  activeCategory={activeCategory}
+                  onSelect={setActiveCategory}
+                  placeholder={t('rider_workshop.all_categories')}
+                />
               </div>
             </div>
             
-            <div className="flex-grow overflow-y-auto p-4 custom-scrollbar">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Package className="w-3.5 h-3.5" />
+            <div className="flex-grow overflow-y-auto p-3 custom-scrollbar">
+              <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
+                <Package className="w-3 h-3" />
                 {t('rider_workshop.inventory_title')}
               </h3>
               {filteredMaterial.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm italic">
+                <div className="text-center py-6 text-muted-foreground text-xs italic">
                   {t('rider_workshop.no_material_found')}
                 </div>
               ) : (
-                filteredMaterial.map(item => (
+                filteredMaterial.map((item: MaterialItem) => (
                   <DraggableMaterial 
                     key={item.id} 
                     item={item} 
@@ -574,118 +838,129 @@ const RiderWorkshop: React.FC = () => {
                 ))
               )}
             </div>
+            
+            <RiderBalance 
+              inputList={techData.inputList}
+              materialItems={materialItems}
+              eventFrame={eventFrame}
+              getMaterialAvailability={getMaterialAvailability}
+            />
           </aside>
 
           {/* Main Content - Taula de Rider */}
-          <main className="flex-grow overflow-auto p-6 bg-background">
+          <main className="flex-grow overflow-auto bg-background flex flex-col">
             {!performance ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground italic">
+              <div className="flex-grow flex items-center justify-center text-muted-foreground italic">
                 {t('performances.no_inputs')}
               </div>
             ) : (
-              <div className="max-w-6xl mx-auto space-y-6">
+              <div className="flex flex-col h-full">
                 
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-3">
-                      <Music className="text-primary w-6 h-6" />
-                      {performance.name}
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {performance.type} • {performance.showTime || '--:--'}
-                    </p>
+                <div className="flex justify-between items-center px-6 py-3 border-b border-border bg-muted/5 sticky top-0 z-10 backdrop-blur-sm">
+                  <div className="flex items-center gap-3">
+                    <Music className="text-primary w-5 h-5" />
+                    <h2 className="text-lg font-bold truncate max-w-xs">{performance.name}</h2>
+                    <span className="text-[10px] px-2 py-0.5 bg-muted border border-border rounded-full text-muted-foreground font-medium uppercase">
+                      {performance.type || 'N/A'}
+                    </span>
+                    <span className="text-xs font-mono text-primary font-bold">
+                      {performance.showTime || '--:--'}
+                    </span>
                   </div>
                   <button
                     onClick={addInputItem}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-accent transition-colors text-sm font-medium border border-border"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-accent transition-colors text-xs font-bold border border-border"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3.5 h-3.5" />
                     {t('performances.add_input')}
                   </button>
                 </div>
 
-                <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-                  <table className="w-full border-collapse">
-                    {/* ... (thead es manté igual) */}
-                    <thead>
-                      <tr className="bg-muted/50 border-b border-border text-left">
-                        <th className="w-10"></th>
-                        <th className="py-3 px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                          {t('performances.patch_header')}
-                        </th>
-                        <th className="py-3 px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">
-                          {t('performances.channel_header')}
-                        </th>
-                        <th className="py-3 px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                          {t('performances.label_header')}
-                        </th>
-                        <th className="py-3 px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                          {t('performances.mic_rider_header')}
-                        </th>
-                        <th className="py-3 px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                          {t('performances.mic_contra_header')}
-                        </th>
-                        <th className="py-3 px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                          {t('performances.stand_header')}
-                        </th>
-                        <th className="py-3 px-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                          {t('performances.notes_header')}
-                        </th>
-                        <th className="w-12"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
-                        {techData.inputList.map((item) => (
-                          <WorkshopRow 
-                            key={item.id} 
-                            item={item} 
-                            onChange={handleInputChange}
-                            onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })}
-                          />
-                        ))}
-                      </SortableContext>
-                    </tbody>
-                  </table>
-                </div>
+                <div className="flex-grow p-6">
+                  <div className="space-y-6">
+                    <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-muted/50 border-b border-border text-left">
+                            <th className="w-10"></th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.patch_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">
+                              {t('performances.channel_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.label_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.mic_rider_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.mic_contra_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.stand_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.notes_header')}
+                            </th>
+                            <th className="w-10"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
+                            {techData.inputList.map((item) => (
+                              <WorkshopRow 
+                                key={item.id} 
+                                item={item} 
+                                onChange={handleInputChange}
+                                onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })}
+                              />
+                            ))}
+                          </SortableContext>
+                        </tbody>
+                      </table>
+                    </div>
 
-                {/* Notes Tècniques Addicionals */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
-                      {t('performances.lighting_notes')}
-                    </label>
-                    <textarea
-                      value={techData.lightingNotes}
-                      onChange={(e) => updateLocal({ lightingNotes: e.target.value })}
-                      placeholder="..."
-                      className="w-full h-32 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-                      {t('performances.video_notes')}
-                    </label>
-                    <textarea
-                      value={techData.videoNotes}
-                      onChange={(e) => updateLocal({ videoNotes: e.target.value })}
-                      placeholder="..."
-                      className="w-full h-32 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-red-400"></span>
-                      {t('performances.stage_requirements')}
-                    </label>
-                    <textarea
-                      value={techData.stageRequirements}
-                      onChange={(e) => updateLocal({ stageRequirements: e.target.value })}
-                      placeholder="..."
-                      className="w-full h-32 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none"
-                    />
+                    {/* Notes Tècniques Addicionals */}
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 pb-6">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
+                          {t('performances.lighting_notes')}
+                        </label>
+                        <textarea
+                          value={techData.lightingNotes}
+                          onChange={(e) => updateLocal({ lightingNotes: e.target.value })}
+                          placeholder="..."
+                          className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                          {t('performances.video_notes')}
+                        </label>
+                        <textarea
+                          value={techData.videoNotes}
+                          onChange={(e) => updateLocal({ videoNotes: e.target.value })}
+                          placeholder="..."
+                          className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                          {t('performances.stage_requirements')}
+                        </label>
+                        <textarea
+                          value={techData.stageRequirements}
+                          onChange={(e) => updateLocal({ stageRequirements: e.target.value })}
+                          placeholder="..."
+                          className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

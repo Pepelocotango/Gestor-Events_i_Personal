@@ -1,7 +1,15 @@
 # Memòria del Projecte - GEP
 
-## Estat del Projecte (Març 2026)
-- **Repositori:** Creat i amb estructura bàsica de desktop (`src/`) i mòbil (`mobile_app/`).
+## Directrius de Desenvolupament (CRÍTICS)
+- **Commits:** NO FER MAI cap commit sense el permís explícit de l'usuari.
+- **Comunicació:** Tota la comunicació i comentaris en català.
+
+## Estat del Projecte (Abril 2026)
+- **Repositori:** Neteja de binaris orfes a l'arrel i actualització de `.gitignore`.
+- **Fase 4 (Actuacions):** Implementació del `RiderWorkshop.tsx` amb:
+    - Reordenació de files (Dnd) operativa.
+    - Drag & Drop de material de l'inventari a la contra-rider.
+    - Nous camps de notes tècniques (Llums, Vídeo, Escenari).
 - **Objectiu:** Crear un gestor d'esdeveniments complet amb visualització de calendaris, personal i gestió de material.
 - **Sincronització Individual:** Implementació de `sync-single-event-with-google` al backend per permetre actualitzacions quirúrgiques sense esborrar tot el calendari.
 - **Simplificació del Guardat:** Eliminació del botó de desar manual en les fitxes de bolo (`TechSheetForm`) per evitar confusió amb el guardat a disc. Es confia en el desat automàtic al desmuntar i en el flux de guardat global (Ctrl+S).

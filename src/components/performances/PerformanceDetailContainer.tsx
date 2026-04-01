@@ -133,60 +133,66 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Capçalera amb títol i botons d'exportació globals */}
-      <div className="flex justify-between items-center bg-card p-4 rounded-lg border border-border shadow-sm">
-        <h2 className="text-xl font-bold text-foreground truncate max-w-[50%]">
+    <div className="space-y-3">
+      {/* Capçalera amb títol i botons d'exportació globals - Compacta */}
+      <div className="flex justify-between items-center bg-card px-4 py-2.5 rounded-lg border border-border shadow-sm">
+        <h2 className="text-lg font-bold text-foreground truncate max-w-[60%]">
           {performance.name || t('performances.unnamed')}
         </h2>
         <div className="flex items-center gap-2">
           <Tooltip text={t('tech_sheets.form.tooltip_preview')}>
-            <button onClick={handlePreviewRider} className="preview-pdf-button px-3 py-1 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 font-semibold no-print flex items-center gap-2">
-              <EyeIcon className="h-4 w-4" />
+            <button onClick={handlePreviewRider} className="preview-pdf-button px-2.5 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 font-bold text-xs no-print flex items-center gap-2 transition-colors">
+              <EyeIcon className="h-3.5 w-3.5" />
               <span>{t('tech_sheets.form.preview')}</span>
             </button>
           </Tooltip>
           <Tooltip text={t('tech_sheets.form.tooltip_export')}>
-            <button onClick={handleExportRider} className="export-pdf-button px-3 py-1 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-semibold no-print flex items-center gap-2">
-              <PdfIcon className="w-4 h-4" />
+            <button onClick={handleExportRider} className="export-pdf-button px-2.5 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-bold text-xs no-print flex items-center gap-2 transition-colors">
+              <PdfIcon className="h-3.5 w-3.5" />
               <span>{t('tech_sheets.form.export_pdf')}</span>
             </button>
           </Tooltip>
         </div>
       </div>
 
-      {/* Secció Plegable d'Opcions PDF */}
-      <CollapsibleSection title={t('performances.pdf_options_title')} defaultOpen={false}>
-        <PerformancePdfOptionsModal
-          options={pdfOptions}
-          onOptionsChange={setPdfOptions}
-          onExport={handleExportRider}
-          disabled={!performance.name}
-        />
+      {/* Secció Plegable d'Opcions PDF - Compacta */}
+      <CollapsibleSection 
+        title={t('performances.pdf_options_title')} 
+        defaultOpen={false}
+        headerClassName="py-1.5 text-xs font-bold uppercase tracking-widest bg-muted/30"
+      >
+        <div className="p-3 bg-card border-x border-b border-border rounded-b-lg">
+          <PerformancePdfOptionsModal
+            options={pdfOptions}
+            onOptionsChange={setPdfOptions}
+            onExport={handleExportRider}
+            disabled={!performance.name}
+          />
+        </div>
       </CollapsibleSection>
 
       {/* Advancement Control */}
       <PerformanceAdvancing eventFrameId={eventFrameId} performance={performance} />
       
-      {/* Contenidor de Pestanyes */}
-      <div className="bg-card border border-border rounded-lg shadow-sm">
-        <div className="border-b border-border">
+      {/* Contenidor de Pestanyes - Compacte */}
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden flex flex-col flex-grow">
+        <div className="border-b border-border bg-muted/10">
           <nav className="flex space-x-1 p-1" aria-label="Tabs">
             {tabs.map((tab) => (
               <Tooltip key={tab.id} text={tab.tooltip}>
                 <button
                   onClick={() => handleTabChange(tab.id)}
                   className={`
-                    flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
+                    flex items-center space-x-2 px-3 py-1.5 text-xs font-bold rounded-md transition-all duration-200
                     ${activeTab === tab.id
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                     }
-                    focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1
+                    focus:outline-none focus:ring-1 focus:ring-ring
                   `}
                   aria-current={activeTab === tab.id ? 'page' : undefined}
                 >
-                  {tab.icon}
+                  {React.cloneElement(tab.icon as React.ReactElement, { className: "w-3.5 h-3.5" })}
                   <span>{tab.label}</span>
                 </button>
               </Tooltip>
@@ -194,7 +200,7 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
           </nav>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 flex-grow overflow-y-auto custom-scrollbar">
           {renderTabContent()}
         </div>
       </div>

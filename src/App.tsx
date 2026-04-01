@@ -1142,7 +1142,8 @@ const App: React.FC = () => {
                   <Route path="/people" element={<PeopleDisplay showToast={showToast} />} />
                   <Route path="/material" element={<MaterialDisplay showToast={showToast} />} />
                   <Route path="/performances" element={<PerformancesDisplay showToast={showToast} />} />
-                  <Route path="/rider-workshop/:eventFrameId" element={<RiderWorkshop />} />
+                  <Route path="/riders" element={<RiderWorkshop />} />
+                  <Route path="/riders/:eventFrameId" element={<RiderWorkshop />} />
                 </Routes>
               </Suspense>
             )}

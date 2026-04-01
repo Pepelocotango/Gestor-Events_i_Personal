@@ -85,15 +85,6 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
       <div className="flex justify-between items-center gap-2">
         <h3 className="text-lg font-semibold shrink-0">{t('performances.list_title')}</h3>
         <div className="flex gap-2 w-full justify-end">
-          <Tooltip text={t('rider_workshop.title')}>
-            <button
-              onClick={() => navigate(`/rider-workshop/${eventFrameId}`)}
-              className="px-3 py-2 rounded-md text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200 flex items-center gap-2"
-            >
-              <LayoutGridIcon className="w-4 h-4" />
-              Workshop
-            </button>
-          </Tooltip>
           <Tooltip text={t('performances.add_tooltip')}>
             <button
               onClick={onAddPerformance}

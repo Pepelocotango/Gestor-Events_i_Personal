@@ -209,7 +209,10 @@
         "nav_material_tooltip": "Control de material i inventari",
         "nav_people": "Persones",
         "nav_people_tooltip": "Gestió de contactes i personal",
-        "nav_performances_tooltip": "Gestió d'actuacions i riders",
+        "nav_performances": "Actuacions",
+        "nav_performances_tooltip": "Gestió d'actuacions i horaris",
+        "nav_riders": "Riders",
+        "nav_riders_tooltip": "Disseny i gestió de contra-riders",
         "nav_summaries": "Resums",
         "nav_summaries_tooltip": "Resums i estadístiques",
         "nav_tech_sheets": "Fitxes Tècniques",
@@ -403,7 +406,7 @@
             "conflict_detail": "Aquesta assignació té un conflicte.",
             "create_new_tooltip": "Crear la nova assignació",
             "date_range_error": "Les dates han d'estar dins del rang del marc ({{start}} - {{end}}).",
-            "duplicate_conflict": "Ja existeix una assignació duplicada.",
+            "duplicate_conflict": "Ja existeix un assignació duplicada.",
             "end_date_label": "Data de Fi",
             "end_date_required": "La data de fi és obligatòria.",
             "end_date_tooltip": "Data de fi de l'assignació",
@@ -965,7 +968,20 @@
         "pdf_validation_error": "Error de validació: {{message}}",
         "pdf_validation_warning": "Advertència: {{message}}",
         "no_technical_notes": "No hi ha notes tècniques",
-        "no_hospitality": "No hi ha dades d'hospitalitat"
+        "no_hospitality": "No hi ha dades d'hospitalitat",
+        "tech_read_only_msg": "L'edició tècnica s'ha mogut al nou mòdul de Riders."
+    },
+    "rider_workshop": {
+        "assigned": "assignat correctament",
+        "clear_all_contra": "Netejar tota la Contra-rider",
+        "copy_rider_to_contra": "Copiar Rider a Contra-rider",
+        "drop_here": "Arrossega material aquí",
+        "inventory_title": "Inventari de Material",
+        "no_material_found": "No s'ha trobat cap material.",
+        "search_placeholder": "Cercar material...",
+        "switch_performance": "Canviar artista:",
+        "title": "Riders",
+        "all_categories": "Totes"
     },
     "roles": {
         "assembly": {

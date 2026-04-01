@@ -93,58 +93,60 @@ const PerformanceAdvancing: React.FC<PerformanceAdvancingProps> = ({
   ];
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 mb-6">
-      {/* Header with Progress */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold">{t('performances.advancing.title')}</h3>
-          <span className={`text-sm font-medium ${getProgressTextColor()}`}>
+    <div className="bg-card border border-border rounded-lg p-2.5 mb-2 shadow-sm">
+      {/* Header with Progress - Compacte */}
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('performances.advancing.title')}</h3>
+          <span className={`text-xs font-bold ${getProgressTextColor()}`}>
             {Math.round(getCompletionPercentage())}%
           </span>
         </div>
         
-        {/* Progress Bar */}
-        <div className="flex-1 max-w-xs mx-4">
-          <div className="w-full bg-muted rounded-full h-2">
+        {/* Progress Bar - Més fina i a la dreta */}
+        <div className="flex-grow max-w-[150px] ml-4">
+          <div className="w-full bg-muted rounded-full h-1.5">
             <div
-              className={`h-2 rounded-full transition-all duration-300 ${getProgressColor()}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${getProgressColor()}`}
               style={{ width: `${getCompletionPercentage()}%` }}
             />
           </div>
         </div>
       </div>
 
-      {/* Badges Clicables */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Badges Clicables - Més petits i horitzontals */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {advancingItems.map((item) => (
           <Tooltip key={item.key} text={item.tooltip}>
             <button
               onClick={() => toggleAdvancingItem(item.key)}
               className={`
-                flex flex-col items-center p-3 rounded-lg border-2 transition-all duration-200
+                flex items-center gap-2 p-1.5 rounded border transition-all duration-200
                 ${advancing[item.key as keyof PerformanceAdvancingType]
-                  ? 'border-success bg-success/10 text-success hover:bg-success/20'
-                  : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:border-muted-foreground'
+                  ? 'border-success/50 bg-success/5 text-success hover:bg-success/10'
+                  : 'border-border bg-muted/20 text-muted-foreground hover:bg-muted/40 hover:border-muted-foreground/30'
                 }
-                focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
+                focus:outline-none focus:ring-1 focus:ring-ring
               `}
             >
-              <span className="text-2xl mb-1">{item.icon}</span>
-              <span className="text-xs font-medium text-center">{item.label}</span>
+              <div className={advancing[item.key as keyof PerformanceAdvancingType] ? 'text-success' : 'opacity-40'}>
+                {React.cloneElement(item.icon as React.ReactElement, { className: "w-4 h-4" })}
+              </div>
+              <span className="text-[10px] font-bold leading-tight text-left flex-grow">{item.label}</span>
               {advancing[item.key as keyof PerformanceAdvancingType] && (
-                <span className="text-xs mt-1">✓</span>
+                <span className="text-[10px] font-black mr-1">✓</span>
               )}
             </button>
           </Tooltip>
         ))}
       </div>
 
-      {/* Estat de Completitud */}
+      {/* Estat de Completitud - Molt discret */}
       {getCompletionPercentage() === 100 && (
-        <div className="mt-4 p-3 bg-success/10 border border-success/30 rounded-lg">
-          <p className="text-sm text-success font-medium text-center">
+        <div className="mt-2 py-1 px-2 bg-success/10 border border-success/20 rounded flex items-center justify-center gap-2">
+          <span className="text-[10px] text-success font-bold uppercase tracking-widest">
             {t('performances.advancing.all_complete')}
-          </p>
+          </span>
         </div>
       )}
     </div>

@@ -817,8 +817,10 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         if (!materialItem) return { available: 0, total: 0 };
 
         let committedInCurrentEvent = 0;
-        const techSheetToUse = overrideTechSheet || eventFrames.find(ef => ef.id === currentEventFrameId)?.techSheet;
+        const currentEvent = eventFrames.find(ef => ef.id === currentEventFrameId);
+        const techSheetToUse = overrideTechSheet || currentEvent?.techSheet;
 
+        // 1. Demanda en la Fitxa Tècnica de l'esdeveniment actual
         if (techSheetToUse) {
             const needsKeys: (keyof TechSheetData)[] = [
                 'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
@@ -836,13 +838,33 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             });
         }
 
+        // 2. Demanda en els Riders (performances) de l'esdeveniment actual
+        if (currentEvent?.performances) {
+            currentEvent.performances.forEach(perf => {
+                perf.techData?.inputList?.forEach(input => {
+                    if (input.micContraId === materialId) committedInCurrentEvent += 1;
+                    if (input.standId === materialId) committedInCurrentEvent += 1;
+                });
+            });
+        }
+
+        // 3. Càlcul de disponibilitat dia a dia (per a altres esdeveniments)
         let minAvailable = materialItem.stock;
-        for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
             const currentDate = new Date(d);
             let dailyCommittedStock = 0;
+
             eventFrames.forEach(ef => {
                 if (ef.id === currentEventFrameId) return;
-                if (currentDate >= new Date(ef.startDate) && currentDate <= new Date(ef.endDate)) {
+                
+                const efStart = new Date(ef.startDate);
+                const efEnd = new Date(ef.endDate);
+
+                if (currentDate >= efStart && currentDate <= efEnd) {
+                    // Demanda en Fitxes Tècniques d'altres esdeveniments
                     Object.values(ef.techSheet || {}).forEach(section => {
                         if (section && section.status === 'yes' && Array.isArray((section as any).data?.needs)) {
                             (section as any).data.needs.forEach((need: NeedItem) => {
@@ -852,10 +874,21 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                             });
                         }
                     });
+
+                    // Demanda en Riders d'altres esdeveniments
+                    if (ef.performances) {
+                        ef.performances.forEach(perf => {
+                            perf.techData?.inputList?.forEach(input => {
+                                if (input.micContraId === materialId) dailyCommittedStock += 1;
+                                if (input.standId === materialId) dailyCommittedStock += 1;
+                            });
+                        });
+                    }
                 }
             });
             minAvailable = Math.min(minAvailable, materialItem.stock - dailyCommittedStock);
         }
+
         return { total: materialItem.stock, available: minAvailable - committedInCurrentEvent };
     },
 

@@ -963,7 +963,20 @@
         "pdf_validation_error": "Validation error: {{message}}",
         "pdf_validation_warning": "Warning: {{message}}",
         "no_technical_notes": "No technical notes",
-        "no_hospitality": "No hospitality data"
+        "no_hospitality": "No hospitality data",
+        "tech_read_only_msg": "Technical editing has moved to the new Riders module."
+    },
+    "rider_workshop": {
+        "assigned": "assigned correctly",
+        "clear_all_contra": "Clear all Counter-rider",
+        "copy_rider_to_contra": "Copy Rider to Counter-rider",
+        "drop_here": "Drop material here",
+        "inventory_title": "Material Inventory",
+        "no_material_found": "No material found.",
+        "search_placeholder": "Search material...",
+        "switch_performance": "Switch artist:",
+        "title": "Riders",
+        "all_categories": "All"
     },
     "roles": {
         "assembly": {
