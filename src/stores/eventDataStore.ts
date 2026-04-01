@@ -130,7 +130,7 @@ interface EventDataActions {
     updateMaterialItem: (updatedItem: MaterialItem) => void;
     deleteMaterialItem: (itemId: string) => void;
     addMaterialItemsFromFile: (newItems: MaterialItem[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
-    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData) => { available: number, total: number };
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData, currentPerformanceId?: string) => { available: number, total: number };
     mergePeopleGroups: (newPeople: PersonGroup[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
     replacePeopleGroups: (newPeople: PersonGroup[]) => void;
     replaceMaterialItems: (newItems: MaterialItem[]) => void;
@@ -649,6 +649,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             id: generateId(),
             techData: performanceData.techData || {
                 inputList: [],
+                monitorList: [],
                 lightingNotes: '',
                 videoNotes: '',
                 stageRequirements: '',
@@ -831,7 +832,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             state.lastActionDescription = 'Reemplaçat l\'inventari de material';
         });
     },
-    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData) => {
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData, currentPerformanceId?: string) => {
         const { materialItems, eventFrames } = get();
         const materialItem = materialItems.find(item => item.id === materialId);
         if (!materialItem) return { available: 0, total: 0 };
@@ -862,8 +863,37 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         if (currentEvent?.performances) {
             currentEvent.performances.forEach(perf => {
                 perf.techData?.inputList?.forEach(input => {
-                    if (input.micContraId === materialId) committedInCurrentEvent += 1;
-                    if (input.standId === materialId) committedInCurrentEvent += 1;
+                    if (input.micContraId === materialId && input.id !== currentItemId) {
+                        // Si és exclusiu i no és la performance actual, no compta com a compromès
+                        if (input.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar
+                        } else {
+                            committedInCurrentEvent += 1;
+                        }
+                    }
+                    if (input.standId === materialId && input.id !== currentItemId) {
+                        if (input.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar
+                        } else {
+                            committedInCurrentEvent += 1;
+                        }
+                    }
+                });
+                perf.techData?.monitorList?.forEach(monitor => {
+                    if (monitor.mixContraId === materialId && monitor.id !== currentItemId) {
+                        if (monitor.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar
+                        } else {
+                            committedInCurrentEvent += 1;
+                        }
+                    }
+                    if (monitor.mixStandId === materialId && monitor.id !== currentItemId) {
+                        if (monitor.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar
+                        } else {
+                            committedInCurrentEvent += 1;
+                        }
+                    }
                 });
             });
         }

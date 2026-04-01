@@ -67,46 +67,35 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
   const getAssignments = (): MaterialAssignment[] => {
     const assignments: MaterialAssignment[] =[];
     
-    techData.inputList
+    // Comptar assignacions a l'actuació actual
+    const currentInputCount = techData.inputList
       .filter((input: InputListItem) => input.micContraId === item.id || input.standId === item.id)
-      .forEach(() => {
-        assignments.push({
-          eventName: eventFrame.name || 'Esdeveniment',
-          performanceName: performance?.name || 'Actuació actual',
-          quantity: 1
-        });
-      });
-
-    (techData.monitorList || [])
+      .length;
+    const currentMonitorCount = (techData.monitorList || [])
       .filter((monitor: MonitorListItem) => monitor.mixContraId === item.id || monitor.mixStandId === item.id)
-      .forEach(() => {
-        assignments.push({
-          eventName: eventFrame.name || 'Esdeveniment',
-          performanceName: performance?.name || 'Actuació actual',
-          quantity: 1
-        });
+      .length;
+    const currentTotal = currentInputCount + currentMonitorCount;
+    if (currentTotal > 0) {
+      assignments.push({
+        eventName: eventFrame.name || 'Esdeveniment',
+        performanceName: performance?.name || 'Actuació actual',
+        quantity: currentTotal
       });
+    }
 
+    // Comptar assignacions a altres actuacions
     eventFrame.performances?.forEach((perf: Performance) => {
       if (perf.id !== performance?.id) { 
-        perf.techData?.inputList?.forEach((input: InputListItem) => {
-          if (input.micContraId === item.id || input.standId === item.id) {
-            assignments.push({
-              eventName: eventFrame.name || 'Esdeveniment',
-              performanceName: perf.name,
-              quantity: 1
-            });
-          }
-        });
-        perf.techData?.monitorList?.forEach((monitor: MonitorListItem) => {
-          if (monitor.mixContraId === item.id || monitor.mixStandId === item.id) {
-            assignments.push({
-              eventName: eventFrame.name || 'Esdeveniment',
-              performanceName: perf.name,
-              quantity: 1
-            });
-          }
-        });
+        const perfInputCount = perf.techData?.inputList?.filter((input: InputListItem) => input.micContraId === item.id || input.standId === item.id).length || 0;
+        const perfMonitorCount = perf.techData?.monitorList?.filter((monitor: MonitorListItem) => monitor.mixContraId === item.id || monitor.mixStandId === item.id).length || 0;
+        const perfTotal = perfInputCount + perfMonitorCount;
+        if (perfTotal > 0) {
+          assignments.push({
+            eventName: eventFrame.name || 'Esdeveniment',
+            performanceName: perf.name,
+            quantity: perfTotal
+          });
+        }
       }
     });
 
@@ -153,9 +142,11 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
       }`}
     >
       <div className="flex justify-between items-center text-sm">
-        <span className={`font-medium truncate mr-2 ${
-          isNegativeStock ? 'text-destructive font-bold' : ''
-        }`}>{item.name}</span>
+        <Tooltip text={item.name}>
+          <span className={`font-medium truncate mr-2 ${
+            isNegativeStock ? 'text-destructive font-bold' : ''
+          }`}>{item.name}</span>
+        </Tooltip>
         <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
           isNegativeStock ? 'bg-destructive text-destructive-foreground animate-pulse' : 
           isOutOfStock ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
@@ -167,8 +158,9 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
       {assignments.length > 0 && (
         <div className="text-[9px] text-muted-foreground mt-1 space-y-0.5">
           {assignments.map((assignment, idx) => (
-            <div key={idx} className="truncate">
-              {assignment.eventName}: {assignment.performanceName}: {assignment.quantity}
+            <div key={idx} className="truncate flex justify-between items-center">
+              <span>{assignment.eventName}: {assignment.performanceName}:</span>
+              <span className="font-bold text-primary">{assignment.quantity}</span>
             </div>
           ))}
         </div>
@@ -343,6 +335,15 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove, act
           onChange={(e) => onChange(item.id, 'notes', e.target.value)}
           className="w-full px-2 py-1.5 bg-transparent border-none text-sm text-muted-foreground focus:ring-1 focus:ring-primary"
           placeholder="..."
+        />
+      </td>
+
+      <td className="py-1 px-1 text-center">
+        <input
+          type="checkbox"
+          checked={item.exclusive || false}
+          onChange={(e) => onChange(item.id, 'exclusive', e.target.checked)}
+          className="w-4 h-4"
         />
       </td>
 
@@ -524,6 +525,15 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
         />
       </td>
 
+      <td className="py-1 px-1 text-center">
+        <input
+          type="checkbox"
+          checked={item.exclusive || false}
+          onChange={(e) => onChange(item.id, 'exclusive', e.target.checked)}
+          className="w-4 h-4"
+        />
+      </td>
+
       <td className="py-1 px-1 text-center w-10 border-l border-border/50">
         <button
           onClick={() => onRemove(item.id)}
@@ -645,53 +655,44 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
 // --- Balanç del Rider ---
 
 interface RiderBalanceProps {
-  inputList: InputListItem[];
-  monitorList: MonitorListItem[];
+  performances: Performance[];
   eventFrame: { startDate: string; endDate: string; id: string };
   getMaterialAvailability: (id: string, start: string, end: string, frameId: string) => { available: number; total: number };
-  performance?: Performance; 
 }
 
-const RiderBalance: React.FC<RiderBalanceProps> = ({ inputList, monitorList, eventFrame, getMaterialAvailability, performance }) => {
+const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, eventFrame, getMaterialAvailability }) => {
   const usage = useMemo(() => {
     const counts: Record<string, { id: string; name: string; qty: number }> = {};
     
-    inputList.forEach(item => {
-      if (item.micContraId) {
-        if (!counts[item.micContraId]) counts[item.micContraId] = { id: item.micContraId, name: item.micContra, qty: 0 };
-        counts[item.micContraId].qty += 1;
-      }
-      if (item.standId) {
-        if (!counts[item.standId]) counts[item.standId] = { id: item.standId, name: item.stand, qty: 0 };
-        counts[item.standId].qty += 1;
-      }
-    });
-
-    monitorList.forEach(item => {
-      if (item.mixContraId) {
-        if (!counts[item.mixContraId]) counts[item.mixContraId] = { id: item.mixContraId, name: item.mixContra, qty: 0 };
-        counts[item.mixContraId].qty += 1;
-      }
-      if (item.mixStandId) {
-        if (!counts[item.mixStandId]) counts[item.mixStandId] = { id: item.mixStandId, name: item.mixStand, qty: 0 };
-        counts[item.mixStandId].qty += 1;
-      }
+    performances.forEach(perf => {
+      perf.techData?.inputList?.forEach(item => {
+        if (item.micContraId) {
+          if (!counts[item.micContraId]) counts[item.micContraId] = { id: item.micContraId, name: item.micContra, qty: 0 };
+          counts[item.micContraId].qty += 1;
+        }
+        if (item.standId) {
+          if (!counts[item.standId]) counts[item.standId] = { id: item.standId, name: item.stand, qty: 0 };
+          counts[item.standId].qty += 1;
+        }
+      });
+      perf.techData?.monitorList?.forEach(item => {
+        if (item.mixContraId) {
+          if (!counts[item.mixContraId]) counts[item.mixContraId] = { id: item.mixContraId, name: item.mixContra, qty: 0 };
+          counts[item.mixContraId].qty += 1;
+        }
+        if (item.mixStandId) {
+          if (!counts[item.mixStandId]) counts[item.mixStandId] = { id: item.mixStandId, name: item.mixStand || 'Sense nom', qty: 0 };
+          counts[item.mixStandId].qty += 1;
+        }
+      });
     });
     
     return Object.values(counts).map(u => {
       const globalAvail = getMaterialAvailability(u.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-      
-      const savedUsage = (performance?.techData?.inputList?.filter(
-        input => input.micContraId === u.id || input.standId === u.id
-      ).length || 0) + (performance?.techData?.monitorList?.filter(
-        monitor => monitor.mixContraId === u.id || monitor.mixStandId === u.id
-      ).length || 0);
-
-      const actualAvailable = globalAvail.available + savedUsage - u.qty;
-
+      const actualAvailable = globalAvail.available - u.qty;
       return { ...u, available: actualAvailable, isError: actualAvailable < 0 };
     });
-  },[inputList, monitorList, getMaterialAvailability, eventFrame, performance]);
+  },[performances, getMaterialAvailability, eventFrame]);
 
   if (usage.length === 0) return null;
 
@@ -699,7 +700,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ inputList, monitorList, eve
     <div className="p-3 border-t border-border bg-card">
       <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
         <ChartBarIcon className="w-3 h-3" />
-        Balanç del Rider
+        Balanç de l'Esdeveniment
       </h3>
       <div className="space-y-1.5">
         {usage.map(u => (
@@ -1171,7 +1172,7 @@ const RiderWorkshop: React.FC = () => {
                 ).length;
 
                 // 3. Disponibilitat global
-                const globalAvail = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+                const globalAvail = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, undefined, undefined, performance?.id);
                 
                 // 4. Càlcul precís evitant la doble comptabilitat
                 const actualAvailable = globalAvail.available + savedUsage - localUsage;
@@ -1193,11 +1194,9 @@ const RiderWorkshop: React.FC = () => {
           </div>
           
           <RiderBalance 
-            inputList={techData.inputList}
-            monitorList={techData.monitorList || []}
+            performances={eventFrame.performances || []}
             eventFrame={eventFrame}
             getMaterialAvailability={getMaterialAvailability}
-            performance={performance} // NOU: Li passem l'actuació
           />
         </aside>
 
@@ -1263,6 +1262,9 @@ const RiderWorkshop: React.FC = () => {
                             <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                               {t('performances.notes_header')}
                             </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">
+                              Exclusiu
+                            </th>
                             <th className="w-10"></th>
                           </tr>
                         </thead>
@@ -1324,6 +1326,9 @@ const RiderWorkshop: React.FC = () => {
                             </th>
                             <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                               {t('performances.notes_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">
+                              Exclusiu
                             </th>
                             <th className="w-10"></th>
                           </tr>

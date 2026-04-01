@@ -168,6 +168,7 @@ export interface InputListItem {
   stand: string; // Tipus de peu (text lliure o nom de l'item)
   standId?: string; // ID de l'item de l'inventari (NOU)
   notes: string;
+  exclusive?: boolean; // Si és exclusiu per aquesta actuació
 }
 
 export interface MonitorListItem {
@@ -182,6 +183,7 @@ export interface MonitorListItem {
   mixStand?: string; // Peu del monitor (text lliure o nom de l'item)
   mixStandId?: string; // ID del peu de monitor de l'inventari
   notes: string;
+  exclusive?: boolean; // Si és exclusiu per aquesta actuació
 }
 
 export interface PerformanceTechData {
@@ -443,7 +445,7 @@ export interface EventDataConteImplicits {
   updateMaterialItem: (updatedItem: MaterialItem) => void;
   deleteMaterialItem: (itemId: string) => void;
   addMaterialItemsFromFile: (newItems: MaterialItem[]) => void;
-  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
+  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData, currentPerformanceId?: string) => { available: number, total: number };
   mergePeopleGroups: (newPeople: PersonGroup[]) => void;
   replacePeopleGroups: (newPeople: PersonGroup[]) => void;
   replaceMaterialItems: (newItems: MaterialItem[]) => void;
