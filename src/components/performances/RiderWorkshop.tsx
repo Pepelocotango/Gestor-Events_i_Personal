@@ -77,10 +77,29 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
         });
       });
 
+    (techData.monitorList || [])
+      .filter((monitor: MonitorListItem) => monitor.mixContraId === item.id || monitor.mixStandId === item.id)
+      .forEach(() => {
+        assignments.push({
+          eventName: eventFrame.name || 'Esdeveniment',
+          performanceName: performance?.name || 'Actuació actual',
+          quantity: 1
+        });
+      });
+
     eventFrame.performances?.forEach((perf: Performance) => {
       if (perf.id !== performance?.id) { 
         perf.techData?.inputList?.forEach((input: InputListItem) => {
           if (input.micContraId === item.id || input.standId === item.id) {
+            assignments.push({
+              eventName: eventFrame.name || 'Esdeveniment',
+              performanceName: perf.name,
+              quantity: 1
+            });
+          }
+        });
+        perf.techData?.monitorList?.forEach((monitor: MonitorListItem) => {
+          if (monitor.mixContraId === item.id || monitor.mixStandId === item.id) {
             assignments.push({
               eventName: eventFrame.name || 'Esdeveniment',
               performanceName: perf.name,
@@ -117,6 +136,8 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
   // Comprovar si aquest material està assignat al rider actual
   const isCurrentlyAssigned = techData.inputList.some(
     (input: InputListItem) => input.micContraId === item.id || input.standId === item.id
+  ) || (techData.monitorList || []).some(
+    (monitor: MonitorListItem) => monitor.mixContraId === item.id || monitor.mixStandId === item.id
   );
 
   return (
@@ -625,12 +646,13 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
 
 interface RiderBalanceProps {
   inputList: InputListItem[];
+  monitorList: MonitorListItem[];
   eventFrame: { startDate: string; endDate: string; id: string };
   getMaterialAvailability: (id: string, start: string, end: string, frameId: string) => { available: number; total: number };
   performance?: Performance; 
 }
 
-const RiderBalance: React.FC<RiderBalanceProps> = ({ inputList, eventFrame, getMaterialAvailability, performance }) => {
+const RiderBalance: React.FC<RiderBalanceProps> = ({ inputList, monitorList, eventFrame, getMaterialAvailability, performance }) => {
   const usage = useMemo(() => {
     const counts: Record<string, { id: string; name: string; qty: number }> = {};
     
@@ -644,19 +666,32 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ inputList, eventFrame, getM
         counts[item.standId].qty += 1;
       }
     });
+
+    monitorList.forEach(item => {
+      if (item.mixContraId) {
+        if (!counts[item.mixContraId]) counts[item.mixContraId] = { id: item.mixContraId, name: item.mixContra, qty: 0 };
+        counts[item.mixContraId].qty += 1;
+      }
+      if (item.mixStandId) {
+        if (!counts[item.mixStandId]) counts[item.mixStandId] = { id: item.mixStandId, name: item.mixStand, qty: 0 };
+        counts[item.mixStandId].qty += 1;
+      }
+    });
     
     return Object.values(counts).map(u => {
       const globalAvail = getMaterialAvailability(u.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
       
-      const savedUsage = performance?.techData?.inputList?.filter(
+      const savedUsage = (performance?.techData?.inputList?.filter(
         input => input.micContraId === u.id || input.standId === u.id
-      ).length || 0;
+      ).length || 0) + (performance?.techData?.monitorList?.filter(
+        monitor => monitor.mixContraId === u.id || monitor.mixStandId === u.id
+      ).length || 0);
 
       const actualAvailable = globalAvail.available + savedUsage - u.qty;
 
       return { ...u, available: actualAvailable, isError: actualAvailable < 0 };
     });
-  },[inputList, getMaterialAvailability, eventFrame, performance]);
+  },[inputList, monitorList, getMaterialAvailability, eventFrame, performance]);
 
   if (usage.length === 0) return null;
 
@@ -794,10 +829,25 @@ const RiderWorkshop: React.FC = () => {
     if (!over) return;
 
     if (active.id !== over.id) {
-      const oldIndex = techData.inputList.findIndex((item) => item.id === active.id);
-      const newIndex = techData.inputList.findIndex((item) => item.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        updateLocal({ inputList: arrayMove(techData.inputList, oldIndex, newIndex) });
+      // Comprovar si és un input
+      const inputIndex = techData.inputList.findIndex((item) => item.id === active.id);
+      if (inputIndex !== -1) {
+        const newIndex = techData.inputList.findIndex((item) => item.id === over.id);
+        if (newIndex !== -1) {
+          updateLocal({ inputList: arrayMove(techData.inputList, inputIndex, newIndex) });
+        }
+        return;
+      }
+
+      // Comprovar si és un monitor
+      const monitorIndex = (techData.monitorList || []).findIndex((item) => item.id === active.id);
+      if (monitorIndex !== -1) {
+        const newIndex = (techData.monitorList || []).findIndex((item) => item.id === over.id);
+        if (newIndex !== -1) {
+          const newMonitorList = arrayMove(techData.monitorList || [], monitorIndex, newIndex);
+          updateLocal({ monitorList: newMonitorList });
+        }
+        return;
       }
     }
   };
@@ -1144,6 +1194,7 @@ const RiderWorkshop: React.FC = () => {
           
           <RiderBalance 
             inputList={techData.inputList}
+            monitorList={techData.monitorList || []}
             eventFrame={eventFrame}
             getMaterialAvailability={getMaterialAvailability}
             performance={performance} // NOU: Li passem l'actuació
@@ -1180,42 +1231,42 @@ const RiderWorkshop: React.FC = () => {
               </div>
 
               <div className="flex-grow p-6">
-                <div className="space-y-6">
-                  <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-muted/50 border-b border-border text-left">
-                          <th className="w-10"></th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.patch_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">
-                            {t('performances.channel_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.label_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.mic_rider_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.mic_contra_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.stand_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.notes_header')}
-                          </th>
-                          <th className="w-10"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        <DndContext
-                          sensors={sensors}
-                          collisionDetection={closestCenter}
-                          onDragEnd={handleDragEnd}
-                        >
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="space-y-6">
+                    <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-muted/50 border-b border-border text-left">
+                            <th className="w-10"></th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.patch_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">
+                              {t('performances.channel_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.label_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.mic_rider_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.mic_contra_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.stand_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.notes_header')}
+                            </th>
+                            <th className="w-10"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
                           <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
                             {techData.inputList.map((item) => (
                               <WorkshopRow 
@@ -1228,62 +1279,56 @@ const RiderWorkshop: React.FC = () => {
                               />
                             ))}
                           </SortableContext>
-                        </DndContext>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Taula de Monitors/Auxiliars */}
-                  <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden mt-6">
-                    <div className="flex justify-between items-center px-6 py-3 border-b border-border bg-muted/5">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-bold">Monitors / Auxiliars</h3>
-                        <span className="text-xs px-2 py-1 bg-muted border border-border rounded-full text-muted-foreground">
-                          {techData.monitorList?.length || 0}
-                        </span>
-                      </div>
-                      <button
-                        onClick={addMonitorItem}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-accent transition-colors text-xs font-bold border border-border"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        Afegir Monitor
-                      </button>
+                        </tbody>
+                      </table>
                     </div>
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-muted/50 border-b border-border text-left">
-                          <th className="w-10"></th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.patch_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">
-                            {t('performances.channel_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.label_header')}
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            MIX Rider
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            MIX Contra
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Peu
-                          </th>
-                          <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {t('performances.notes_header')}
-                          </th>
-                          <th className="w-10"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        <DndContext
-                          sensors={sensors}
-                          collisionDetection={closestCenter}
-                          onDragEnd={handleDragEnd}
+
+                    {/* Taula de Monitors/Auxiliars */}
+                    <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden mt-6">
+                      <div className="flex justify-between items-center px-6 py-3 border-b border-border bg-muted/5">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-lg font-bold">Monitors / Auxiliars</h3>
+                          <span className="text-xs px-2 py-1 bg-muted border border-border rounded-full text-muted-foreground">
+                            {techData.monitorList?.length || 0}
+                          </span>
+                        </div>
+                        <button
+                          onClick={addMonitorItem}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-accent transition-colors text-xs font-bold border border-border"
                         >
+                          <Plus className="w-3.5 h-3.5" />
+                          Afegir Monitor
+                        </button>
+                      </div>
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-muted/50 border-b border-border text-left">
+                            <th className="w-10"></th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.patch_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">
+                              {t('performances.channel_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.label_header')}
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              MIX Rider
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              MIX Contra
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              Peu
+                            </th>
+                            <th className="py-2.5 px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {t('performances.notes_header')}
+                            </th>
+                            <th className="w-10"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
                           <SortableContext items={(techData.monitorList || []).map(p => p.id)} strategy={verticalListSortingStrategy}>
                             {(techData.monitorList || []).map((item) => (
                                 <MonitorRow 
@@ -1296,51 +1341,51 @@ const RiderWorkshop: React.FC = () => {
                                 />
                               ))}
                           </SortableContext>
-                        </DndContext>
-                      </tbody>
-                    </table>
-                  </div>
+                        </tbody>
+                      </table>
+                    </div>
 
-                  {/* Notes Tècniques Addicionals */}
-                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 pb-6">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
-                        {t('performances.lighting_notes')}
-                      </label>
-                      <textarea
-                        value={techData.lightingNotes}
-                        onChange={(e) => updateLocal({ lightingNotes: e.target.value })}
-                        placeholder="..."
-                        className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                        {t('performances.video_notes')}
-                      </label>
-                      <textarea
-                        value={techData.videoNotes}
-                        onChange={(e) => updateLocal({ videoNotes: e.target.value })}
-                        placeholder="..."
-                        className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                        {t('performances.stage_requirements')}
-                      </label>
-                      <textarea
-                        value={techData.stageRequirements}
-                        onChange={(e) => updateLocal({ stageRequirements: e.target.value })}
-                        placeholder="..."
-                        className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
-                      />
+                    {/* Notes Tècniques Addicionals */}
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 pb-6">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
+                          {t('performances.lighting_notes')}
+                        </label>
+                        <textarea
+                          value={techData.lightingNotes}
+                          onChange={(e) => updateLocal({ lightingNotes: e.target.value })}
+                          placeholder="..."
+                          className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                          {t('performances.video_notes')}
+                        </label>
+                        <textarea
+                          value={techData.videoNotes}
+                          onChange={(e) => updateLocal({ videoNotes: e.target.value })}
+                          placeholder="..."
+                          className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                          {t('performances.stage_requirements')}
+                        </label>
+                        <textarea
+                          value={techData.stageRequirements}
+                          onChange={(e) => updateLocal({ stageRequirements: e.target.value })}
+                          placeholder="..."
+                          className="w-full h-28 p-3 bg-card border border-border rounded-md text-sm focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                </DndContext>
               </div>
             </div>
           )}

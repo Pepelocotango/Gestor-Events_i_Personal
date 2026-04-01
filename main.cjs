@@ -45,26 +45,31 @@ log.transports.file.archiveLogFn = (oldLogFile) => {
   const archiveName = `main.${Date.now()}.log`;
   const archivePath = path.join(logDir, archiveName);
   try {
-    fs.renameSync(oldLogFile.path, archivePath);
-    const MAX_ARCHIVES = 5;
-    const files = fs.readdirSync(logDir);
-    const logArchives = files
-      .filter(f => f.startsWith('main.') && f.endsWith('.log'))
-      .sort((a, b) => {
-        const timeA = parseInt(a.split('.')[1] || '0');
-        const timeB = parseInt(b.split('.')[1] || '0');
-        return timeA - timeB;
-      });
-    if (logArchives.length > MAX_ARCHIVES) {
-      const filesToDelete = logArchives.slice(0, logArchives.length - MAX_ARCHIVES);
-      filesToDelete.forEach(f => {
-        try {
-          fs.unlinkSync(path.join(logDir, f));
-          console.debug(`Arxiu de log antic eliminat: ${f}`);
-        } catch (unlinkErr) {
-          console.error(`Error eliminant l'arxiu de log antic ${f}:`, unlinkErr);
-        }
-      });
+    // Comprovar si el fitxer existeix abans d'intentar moure'l
+    if (fs.existsSync(oldLogFile.path)) {
+      fs.renameSync(oldLogFile.path, archivePath);
+      const MAX_ARCHIVES = 5;
+      const files = fs.readdirSync(logDir);
+      const logArchives = files
+        .filter(f => f.startsWith('main.') && f.endsWith('.log'))
+        .sort((a, b) => {
+          const timeA = parseInt(a.split('.')[1] || '0');
+          const timeB = parseInt(b.split('.')[1] || '0');
+          return timeA - timeB;
+        });
+      if (logArchives.length > MAX_ARCHIVES) {
+        const filesToDelete = logArchives.slice(0, logArchives.length - MAX_ARCHIVES);
+        filesToDelete.forEach(f => {
+          try {
+            fs.unlinkSync(path.join(logDir, f));
+            console.debug(`Arxiu de log antic eliminat: ${f}`);
+          } catch (unlinkErr) {
+            console.error(`Error eliminant l'arxiu de log antic ${f}:`, unlinkErr);
+          }
+        });
+      }
+    } else {
+      console.debug(`El fitxer de log ${oldLogFile.path} no existeix, saltant rotació`);
     }
   } catch (err) {
     console.error('S\'ha produït un error durant la rotació de logs:', err);
