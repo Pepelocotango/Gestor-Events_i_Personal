@@ -109,10 +109,10 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
       <div
         className={`
           relative p-4 border rounded-lg cursor-pointer transition-all duration-200
-          ${isDragging ? 'opacity-50 rotate-2 scale-95' : ''}
-          ${isSelected 
+          ${isDragging ? 'opacity-30 border-dashed border-2 bg-muted/50' : ''}
+          ${!isDragging && isSelected 
             ? 'border-primary bg-primary/5 shadow-sm' 
-            : `border-border hover:border-primary/50 hover:bg-accent/50 ${getStatusBorder(performance.status)} border-l-4`
+            : !isDragging ? `border-border hover:border-primary/50 hover:bg-accent/50 ${getStatusBorder(performance.status)} border-l-4` : ''
           }
         `}
         onClick={onSelect}

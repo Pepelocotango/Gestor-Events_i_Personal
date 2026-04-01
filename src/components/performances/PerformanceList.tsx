@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -8,6 +8,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -17,9 +19,9 @@ import {
 import { Performance } from '../../types';
 import Tooltip from '../ui/Tooltip';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { useNavigate } from 'react-router-dom';
-import { PlusIcon, LayoutGridIcon } from '../../constants';
+import { PlusIcon } from '../../constants';
 import SortablePerformance from './SortablePerformance';
+import { GripVertical } from 'lucide-react'; // <-- Afegim la icona per l'overlay
 
 interface PerformanceListProps {
   eventFrameId: string;
@@ -41,8 +43,10 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
   showToast,
 }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { reorderPerformances } = useEventDataStore();
+
+  // NOU: Estat per saber quina targeta estem arrossegant
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -51,8 +55,14 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
     })
   );
 
+  // NOU: Quan comencem a arrossegar, guardem l'ID
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  },[]);
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null); // Netejem l'estat en acabar
 
     if (over && active.id !== over.id) {
       const oldIndex = performances.findIndex((p) => p.id === active.id);
@@ -67,7 +77,11 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
         showToast(t('performances.reorder_success'), 'success');
       }
     }
-  }, [performances, eventFrameId, reorderPerformances, showToast, t]);
+  },[performances, eventFrameId, reorderPerformances, showToast, t]);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+  },[]);
 
   const handleDeletePerformance = useCallback((performanceId: string) => {
     const performance = performances.find(p => p.id === performanceId);
@@ -78,7 +92,12 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
       }
       showToast(t('performances.delete_success', { name: performance.name }), 'success');
     }
-  }, [performances, selectedPerformanceId, onDeletePerformance, onSelectPerformance, showToast, t]);
+  },[performances, selectedPerformanceId, onDeletePerformance, onSelectPerformance, showToast, t]);
+
+  // NOU: Busquem les dades de l'actuació que s'està arrossegant per a l'Overlay
+  const activePerformance = useMemo(() => 
+    performances.find(p => p.id === activeId)
+  , [activeId, performances]);
 
   return (
     <div className="space-y-4">
@@ -105,7 +124,9 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
           <SortableContext
             items={performances.map(p => p.id)}
@@ -123,6 +144,17 @@ const PerformanceList: React.FC<PerformanceListProps> = ({
               ))}
             </div>
           </SortableContext>
+
+          {/* Aquest és el "fantasma" en miniatura que arrossegues amb el ratolí */}
+          <DragOverlay>
+            {activePerformance ? (
+              <div className="px-4 py-3 bg-primary text-primary-foreground rounded-lg shadow-2xl flex items-center gap-3 opacity-95 scale-105 cursor-grabbing rotate-2 border border-primary/50 w-max max-w-[280px]">
+                <GripVertical size={18} className="opacity-70 shrink-0" />
+                <span className="font-bold truncate">{activePerformance.name || t('performances.unnamed')}</span>
+              </div>
+            ) : null}
+          </DragOverlay>
+
         </DndContext>
       )}
     </div>
