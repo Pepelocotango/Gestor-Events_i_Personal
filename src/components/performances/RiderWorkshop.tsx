@@ -575,8 +575,8 @@ const RiderWorkshop: React.FC = () => {
   }, [urlEventFrameId]);
 
   const eventFrame = useMemo(() => 
-    selectedEventFrameId ? getEventFrameById(selectedEventFrameId) : null
-  , [selectedEventFrameId, getEventFrameById]);
+    selectedEventFrameId ? eventFrames.find(ef => ef.id === selectedEventFrameId) : null
+  , [selectedEventFrameId, eventFrames]);
 
   // Llista d'esdeveniments actius (no arxivats) per al selector inicial
   const activeEventFrames = useMemo(() => 
