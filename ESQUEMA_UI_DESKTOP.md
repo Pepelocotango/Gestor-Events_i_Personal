@@ -1,4 +1,4 @@
-# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v1.6.3)
+# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v1.6.4)
 
 Aquest document detalla l'estructura visual, les funcionalitats i les interaccions de l'usuari a l'aplicació d'escriptori.
 
@@ -264,3 +264,29 @@ Formulari amb informació essencial de l'actuació:
 5. **Exportació**: Generar riders individuals o resum d'actuacions en PDF. *(El Full de Ruta del Regidor és pendent d'exposar a la UI)*
 
 Aquesta nova secció proporciona eines professionals per a la gestió completa d'actuacions artístiques, integrant-se perfectament amb la resta de funcionalitats de l'aplicació.
+
+---
+
+## 9. Workshop de Riders (`RiderWorkshop`) - **GESTIÓ INDUSTRIAL**
+
+Nova interfície professional d'alta densitat per al disseny tècnic i logística de material.
+
+### 9.1. Barra Lateral d'Inventari (Sidebar)
+- **Alçada Total:** Ocupa el 100% vertical esquerre.
+- **Cercador i Filtres:** Per nom, ubicació o categoria de material.
+- **Llista d'Ítems:** Mostra estoc real `Disponible / Total`. Inclou indicadors de sobre-assignació (vermell/pulsació) i materials ja usats en l'actuació (verd).
+- **Point & Shoot:** Al clicar un ítem, s'assigna automàticament a la cel·la activa de la taula.
+
+### 9.2. Header del Workshop
+- **Navegació:** Selectors ràpids d'Esdeveniment i d'Artista.
+- **Accions:** Botons per copiar Rider a Contra-rider i per netejar la llista de contra-rider.
+- **Botó "Afegir Input":** Accés ràpid per crear nous canals.
+
+### 9.3. Àrea de Treball (Seccions Col·lapsables)
+- **Llista d'Inputs:** Taula amb Drag & Drop per a patch, canals, etiquetes i comparativa Rider/Contra.
+- **Monitors / Auxiliars:** Secció dedicada per a enviaments (MIX) amb generació automàtica de sortides.
+- **Notes Tècniques:** Tres blocs compactes per a Llums, Vídeo i Escenari.
+- **Balanç Consolidat:** Taula al final que suma tot el material de totes les actuacions de l'esdeveniment, indicant ubicacions d'origen i errors d'estoc.
+
+### 9.4. Tooltips Tècnics
+- **Visualització:** Totes les cel·les amb text llarg mostren el contingut sencer en passar el ratolí, garantint que no es perdi informació en pantalles compactes.

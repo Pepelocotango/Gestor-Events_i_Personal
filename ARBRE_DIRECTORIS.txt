@@ -229,7 +229,8 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── PerformanceDetailContainer.tsx # !! NOU !! Contenidor principal amb pestanyes (Bàsic, Tècnic, Hospitality) (v1.6.1+).
 │   │   │   ├── PerformanceHospitalityForm.tsx # !! NOU !! Formulari d'hospitalitat (camerinos, càtering, dietes, viatge, pàrquing) (v1.6.1+).
 │   │   │   ├── PerformanceList.tsx             # Llista d'actuacions amb indicadors visuals de dades tècniques.
-│   │   │   ├── PerformanceTechForm.tsx         # !! NOU !! Formulari tècnic (input list, llums, vídeo, escenari) (v1.6.1+).
+│   │   │   ├── PerformanceTechForm.tsx         # Formulari tècnic de lectura (vincle al Workshop).
+│   │   │   ├── RiderWorkshop.tsx               # !! NOU !! Taller tècnic avançat amb control d'estoc real i "Point & Shoot" (v1.6.4+).
 │   │   │   ├── SortableInputRow.tsx            # Fila ordenable per a l'input list tècnic.
 │   │   │   ├── PerformancePdfOptions.tsx        # !! NOU !! Modal d'opcions de configuració per a l'exportació PDF d'actuacions (selecció de seccions a incloure) (v1.6.1+).
 │   │   │   └── SortablePerformance.tsx         # Component individual d'actuació amb drag-and-drop.

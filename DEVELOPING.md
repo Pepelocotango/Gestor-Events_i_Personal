@@ -4,14 +4,14 @@ web de la app a Vercel a la branca main O 0DEV_GEP:
 https://gestor-events-i-personal-landingpag.vercel.app/
 
 
-## DEVELOPING.md V1.6.3
+## DEVELOPING.md V1.6.4
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
-# NOVETATS V1.6.3 (MARÇ 2026)
+# NOVETATS V1.6.4 (ABRIL 2026)
 
 **Resum de canvis tècnics recents:**
 - **PDF Color Patches:** Implementació de visualització de colors a la Input List dels PDFs d'actuacions. Els colors (red, blue, green, yellow, orange, purple, brown) es mostren com a cercles omplerts a la primera columna de la taula, amb el text desplaçat per evitar solapaments.
@@ -1997,6 +1997,42 @@ export interface PerformanceTechData {
   videoNotes: string;
   stageRequirements: string;
 }
+```
+
+---
+
+## 12. WORKSHOP DE RIDERS (GESTIÓ TÈCNICA AVANÇADA)
+
+El Workshop de Riders (`RiderWorkshop.tsx`) és una interfície d'alta densitat dissenyada per a caps tècnics i dissenyadors de patch. A diferència dels formularis estàndard, està optimitzat per a la velocitat i el control logístic.
+
+### 12.1. Arquitectura de la Interfície
+
+- **Barra Lateral Infinita:** Ocupa el 100% de l'alçada de l'aplicació a l'esquerra. Conté el cercador, filtres de categoria i la llista d'inventari completa.
+- **Header Compacte:** Agrupa la selecció d'esdeveniment, el selector d'artista i les accions globals (com "Copiar Rider a Contra") en una sola línia per maximitzar l'espai de treball.
+- **Àrea de Treball Col·lapsable:** Totes les seccions (Inputs, Monitors, Notes i Balanç) es poden expandir o contraure per centrar el focus en la tasca actual.
+
+### 12.2. Control d'Estoc en Temps Real
+
+El sistema realitza càlculs complexos de disponibilitat a cada canvi:
+- **Disponibilitat Dinàmica:** Cada ítem de l'inventari mostra `Disponible / Total`. El valor `Disponible` es calcula restant de l'estoc global tot el material ja assignat en:
+  1. Totes les actuacions del festival/esdeveniment actual.
+  2. Altres esdeveniments que coincideixin en dates.
+- **Alerta de Balanç Negatiu:** Si un material se sobre-assigna, el fons es torna vermell i s'activa una animació de pulsació.
+
+### 12.3. Assignació "Point & Shoot"
+
+Aquesta funcionalitat elimina la necessitat d'escriure noms de material:
+1. **Activació:** En fer clic a qualsevol cel·la de "Mic Contra", "Peu", "MIX Contra", etc., la cel·la entra en mode actiu.
+2. **Assignació:** En clicar sobre qualsevol ítem de la barra lateral d'inventari, el nom del material s'insereix automàticament a la cel·la seleccionada.
+3. **Vincular ID:** El sistema vincula automàticament l'ID del material a la llista d'inputs per garantir que el balanç consolidat sigui exacte.
+
+### 12.4. Balanç Consolidat de l'Esdeveniment
+
+Situat al final de l'àrea de treball, el balanç actua com un resum logístic total:
+- **Visió Multi-actuació:** Suma totes les necessitats de tots els artistes del mateix esdeveniment.
+- **Origen de Material:** Mostra la ubicació exacta (magatzem/prestatgeria) de cada ítem necessari.
+- **Tooltips Intel·ligents:** Totes les dades que no caben a les columnes es mostren íntegrament en passar el ratolí, utilitzant el sistema de portat de tooltips.
+- **Comptador d'Errors:** El header de la secció mostra el nombre total d'errors d'estoc fins i tot quan la secció està col·lapsada.
 
 export interface InputListItem {
   id: string;

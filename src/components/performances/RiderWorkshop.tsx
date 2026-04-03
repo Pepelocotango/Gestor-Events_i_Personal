@@ -249,61 +249,71 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove, act
       </td>
 
       <td className="py-1 px-1.5 min-w-[120px]">
-        <input
-          type="text"
-          value={item.label}
-          onChange={(e) => onChange(item.id, 'label', e.target.value)}
-          className="w-full px-1.5 py-1 bg-transparent border-none text-[11px] focus:ring-0 outline-none font-bold placeholder:opacity-20"
-          placeholder="..."
-        />
+        <Tooltip text={item.label || ''}>
+          <input
+            type="text"
+            value={item.label}
+            onChange={(e) => onChange(item.id, 'label', e.target.value)}
+            className="w-full px-1.5 py-1 bg-transparent border-none text-[11px] focus:ring-0 outline-none font-bold placeholder:opacity-20"
+            placeholder="..."
+          />
+        </Tooltip>
       </td>
 
       <td className="py-1 px-1.5 text-muted-foreground italic min-w-[120px]">
-        <input
-          type="text"
-          value={item.micRider}
-          onChange={(e) => onChange(item.id, 'micRider', e.target.value)}
-          className="w-full px-1.5 py-1 bg-transparent border-none text-[10px] italic focus:ring-0 outline-none"
-          placeholder="Demanat..."
-        />
+        <Tooltip text={item.micRider || ''}>
+          <input
+            type="text"
+            value={item.micRider}
+            onChange={(e) => onChange(item.id, 'micRider', e.target.value)}
+            className="w-full px-1.5 py-1 bg-transparent border-none text-[10px] italic focus:ring-0 outline-none"
+            placeholder="Demanat..."
+          />
+        </Tooltip>
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${micStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <div className={`relative flex items-center rounded border transition-all ${isMicActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
-          <input
-            type="text"
-            value={item.micContra}
-            onChange={(e) => onChange(item.id, 'micContra', e.target.value)}
-            onFocus={() => onCellFocus(item.id, 'micContra')}
-            className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-            placeholder="Assignar..."
-          />
-          {micStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
-        </div>
+        <Tooltip text={item.micContra || (micStatus.isError ? "Sense estoc disponible!" : "")}>
+          <div className={`relative flex items-center rounded border transition-all ${isMicActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
+            <input
+              type="text"
+              value={item.micContra}
+              onChange={(e) => onChange(item.id, 'micContra', e.target.value)}
+              onFocus={() => onCellFocus(item.id, 'micContra')}
+              className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
+              placeholder="Assignar..."
+            />
+            {micStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
+          </div>
+        </Tooltip>
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${standStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <div className={`relative flex items-center rounded border transition-all ${isStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
-          <input
-            type="text"
-            value={item.stand}
-            onChange={(e) => onChange(item.id, 'stand', e.target.value)}
-            onFocus={() => onCellFocus(item.id, 'stand')}
-            className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-            placeholder="Assignar..."
-          />
-          {standStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
-        </div>
+        <Tooltip text={item.stand || (standStatus.isError ? "Sense estoc disponible!" : "")}>
+          <div className={`relative flex items-center rounded border transition-all ${isStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
+            <input
+              type="text"
+              value={item.stand}
+              onChange={(e) => onChange(item.id, 'stand', e.target.value)}
+              onFocus={() => onCellFocus(item.id, 'stand')}
+              className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
+              placeholder="Assignar..."
+            />
+            {standStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
+          </div>
+        </Tooltip>
       </td>
 
       <td className="py-1 px-1.5">
-        <input
-          type="text"
-          value={item.notes}
-          onChange={(e) => onChange(item.id, 'notes', e.target.value)}
-          className="w-full px-1 py-1 bg-transparent border-none text-[10px] text-muted-foreground focus:ring-0 outline-none"
-          placeholder="..."
-        />
+        <Tooltip text={item.notes || ''}>
+          <input
+            type="text"
+            value={item.notes}
+            onChange={(e) => onChange(item.id, 'notes', e.target.value)}
+            className="w-full px-1 py-1 bg-transparent border-none text-[10px] text-muted-foreground focus:ring-0 outline-none"
+            placeholder="..."
+          />
+        </Tooltip>
       </td>
 
       <td className="py-1 px-1 text-center">
@@ -420,61 +430,71 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       </td>
 
       <td className="py-1 px-1.5 min-w-[120px]">
-        <input
-          type="text"
-          value={item.label}
-          onChange={(e) => onChange(item.id, 'label', e.target.value)}
-          className="w-full px-1.5 py-1 bg-transparent border-none text-[11px] focus:ring-0 outline-none font-bold placeholder:opacity-20"
-          placeholder="..."
-        />
+        <Tooltip text={item.label || ''}>
+          <input
+            type="text"
+            value={item.label}
+            onChange={(e) => onChange(item.id, 'label', e.target.value)}
+            className="w-full px-1.5 py-1 bg-transparent border-none text-[11px] focus:ring-0 outline-none font-bold placeholder:opacity-20"
+            placeholder="..."
+          />
+        </Tooltip>
       </td>
 
       <td className="py-1 px-1.5 text-muted-foreground italic min-w-[120px]">
-        <input
-          type="text"
-          value={item.mixRider}
-          onChange={(e) => onChange(item.id, 'mixRider', e.target.value)}
-          className="w-full px-1.5 py-1 bg-transparent border-none text-[10px] italic focus:ring-0 outline-none"
-          placeholder="Demanat..."
-        />
+        <Tooltip text={item.mixRider || ''}>
+          <input
+            type="text"
+            value={item.mixRider}
+            onChange={(e) => onChange(item.id, 'mixRider', e.target.value)}
+            className="w-full px-1.5 py-1 bg-transparent border-none text-[10px] italic focus:ring-0 outline-none"
+            placeholder="Demanat..."
+          />
+        </Tooltip>
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixContraStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <div className={`relative flex items-center rounded border transition-all ${isMixContraActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
-          <input
-            type="text"
-            value={item.mixContra}
-            onChange={(e) => onChange(item.id, 'mixContra', e.target.value)}
-            onFocus={() => onCellFocus(item.id, 'mixContra')}
-            className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-            placeholder="Assignar..."
-          />
-          {mixContraStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
-        </div>
+        <Tooltip text={item.mixContra || (mixContraStatus.isError ? "Sense estoc disponible!" : "")}>
+          <div className={`relative flex items-center rounded border transition-all ${isMixContraActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
+            <input
+              type="text"
+              value={item.mixContra}
+              onChange={(e) => onChange(item.id, 'mixContra', e.target.value)}
+              onFocus={() => onCellFocus(item.id, 'mixContra')}
+              className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
+              placeholder="Assignar..."
+            />
+            {mixContraStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
+          </div>
+        </Tooltip>
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixStandStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <div className={`relative flex items-center rounded border transition-all ${isMixStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
-          <input
-            type="text"
-            value={item.mixStand || ''}
-            onChange={(e) => onChange(item.id, 'mixStand', e.target.value)}
-            onFocus={() => onCellFocus(item.id, 'mixStand')}
-            className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-            placeholder="Assignar..."
-          />
-          {mixStandStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
-        </div>
+        <Tooltip text={item.mixStand || (mixStandStatus.isError ? "Sense estoc disponible!" : "")}>
+          <div className={`relative flex items-center rounded border transition-all ${isMixStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
+            <input
+              type="text"
+              value={item.mixStand || ''}
+              onChange={(e) => onChange(item.id, 'mixStand', e.target.value)}
+              onFocus={() => onCellFocus(item.id, 'mixStand')}
+              className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
+              placeholder="Assignar..."
+            />
+            {mixStandStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
+          </div>
+        </Tooltip>
       </td>
 
       <td className="py-1 px-1.5">
-        <input
-          type="text"
-          value={item.notes}
-          onChange={(e) => onChange(item.id, 'notes', e.target.value)}
-          className="w-full px-1 py-1 bg-transparent border-none text-[10px] text-muted-foreground focus:ring-0 outline-none"
-          placeholder="..."
-        />
+        <Tooltip text={item.notes || ''}>
+          <input
+            type="text"
+            value={item.notes}
+            onChange={(e) => onChange(item.id, 'notes', e.target.value)}
+            className="w-full px-1 py-1 bg-transparent border-none text-[10px] text-muted-foreground focus:ring-0 outline-none"
+            placeholder="..."
+          />
+        </Tooltip>
       </td>
 
       <td className="py-1 px-1 text-center">
@@ -645,9 +665,9 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
       </div>
       
       {isExpanded && (
-        <div className="animate-in fade-in duration-200">
+        <div className="max-h-[250px] overflow-y-auto custom-scrollbar animate-in fade-in duration-200">
           <table className="w-full border-collapse text-left">
-            <thead className="bg-background border-b border-border">
+            <thead className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b border-border">
               <tr>
                 <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Material</th>
                 <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Ubicació</th>
@@ -658,8 +678,16 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
             <tbody className="divide-y divide-border/50">
               {usage.map(u => (
                 <tr key={u.id} className={`transition-colors ${u.isError ? 'bg-destructive/5' : ''}`}>
-                  <td className={`py-1.5 px-4 text-[10px] font-black ${u.isError ? 'text-destructive' : ''}`}>{u.name}</td>
-                  <td className="py-1.5 px-4 text-[9px] text-muted-foreground italic">{u.location}</td>
+                  <td className={`py-1.5 px-4 text-[10px] font-black ${u.isError ? 'text-destructive' : ''}`}>
+                    <Tooltip text={u.name || ''}>
+                      <span className="truncate block max-w-[200px]">{u.name}</span>
+                    </Tooltip>
+                  </td>
+                  <td className="py-1.5 px-4 text-[9px] text-muted-foreground italic">
+                    <Tooltip text={u.location || ''}>
+                      <span className="truncate block max-w-[150px]">{u.location}</span>
+                    </Tooltip>
+                  </td>
                   <td className="py-1.5 px-4 text-[11px] font-mono font-black text-center">
                     <span className={u.isError ? 'text-destructive' : 'text-primary'}>{u.qty}</span>
                   </td>

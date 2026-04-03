@@ -2,7 +2,7 @@
 
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal V1.6.3 (MARÇ 2026)
+# Gestor d'Esdeveniments i Personal V1.6.4 (ABRIL 2026)
 
 Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que permet la **gestió i edició** de dades en mobilitat.
 
@@ -172,6 +172,13 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 
 ---
 ## 🚀 Novetats i Funcionalitats Clau
+
+* **Workshop de Riders (NOU):**
+  * **Taller Tècnic Avançat:** Una nova interfície professional ("Workshop") dedicada exclusivament al disseny tècnic de patch i monitors.
+  * **Control d'Estoc en Temps Real:** L'inventari lateral mostra la disponibilitat real restant, tenint en compte les assignacions de totes les actuacions de l'esdeveniment i d'altres produccions simultànies.
+  * **Assignació "Point & Shoot":** Clica una cel·la de la taula (micròfon o peu) i selecciona directament el material de l'inventari per assignar-lo, evitant errors d'escriptura.
+  * **Balanç Consolidat Integrat:** Una secció detallada (col·lapsable) que resumeix tot el material necessari per al conjunt del festival o esdeveniment, amb alertes visuals si se supera l'estoc disponible.
+  * **Disseny Industrial Compacte:** Interfície d'alta densitat d'informació amb seccions col·lapsables (Inputs, Monitors, Notes, Balanç) i tooltips intel·ligents a cada cel·la.
 
 * **Mòdul d'Actuacions (FASE 4):**
   * **Gestió d'actuacions artístiques** per esdeveniment: llista ordenable (drag-and-drop), formularis bàsic, tècnic i d'hospitalitat.

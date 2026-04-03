@@ -54,6 +54,16 @@ const filesToUpdate = [
     replacement: `<title>Gestor de Esdeveniments i Personal V${newVersion}</title>` 
   },
   {
+    path: path.join(ROOT, 'ARBRE_DIRECTORIS.txt'),
+    pattern: /\(v1\.6\.3\+\)/g,
+    replacement: `(v${newVersion}+)`
+  },
+  {
+    path: path.join(ROOT, 'apps_web', 'landing', 'src', 'layouts', 'Layout.astro'),
+    pattern: /<span>Nova versió V\d+\.\d+\.\d+ [^ ]+ \d+ disponible<\/span>/,
+    replacement: `<span>Nova versió V${newVersion} ${getMonthYearTitleCase()} disponible</span>`
+  },
+  {
     path: path.join(ROOT, 'apps_web', 'landing', 'src', 'i18n', 'translations', 'ca.json'),
     pattern: /"version":\s*"[^"]*\d+\.\d+\.\d+[^"]*GPL[^"]*"/,
     replacement: `"version": "Versió ${newVersion} - Sota llicència GPL v3.0"` 
@@ -70,10 +80,18 @@ const filesToUpdate = [
   },
 ];
 
-// Funció per obtenir el mes i any actual
+// Funció per obtenir el mes i any actual en majúscules (per documents)
 function getMonthYear() {
   const months = ['GENER', 'FEBRER', 'MARÇ', 'ABRIL', 'MAIG', 'JUNY', 
                   'JULIOL', 'AGOST', 'SETEMBRE', 'OCTUBRE', 'NOVEMBRE', 'DESEMBRE'];
+  const now = new Date();
+  return `${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+// Funció per obtenir el mes i any en format títol (per la web)
+function getMonthYearTitleCase() {
+  const months = ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 
+                  'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'];
   const now = new Date();
   return `${months[now.getMonth()]} ${now.getFullYear()}`;
 }
@@ -88,17 +106,20 @@ function updateFile(filePath, pattern, replacement) {
     }
 
     const content = fs.readFileSync(filePath, 'utf8');
-    console.log(`🎯 Pattern test for ${path.basename(filePath)}:`, pattern.test(content));
-    const newContent = content.replace(pattern, replacement);
+    const hasMatch = pattern.test(content);
+    console.log(`🎯 Pattern test for ${path.basename(filePath)}:`, hasMatch);
     
-    if (content !== newContent) {
-      fs.writeFileSync(filePath, newContent, 'utf8');
-      console.log(`✅ Actualitzat: ${path.basename(filePath)}`);
-      return true;
-    } else {
-      console.log(`ℹ️  No cal actualitzar: ${path.basename(filePath)} (patró no trobat)`);
-      return false;
+    if (hasMatch) {
+      const newContent = content.replace(pattern, replacement);
+      if (content !== newContent) {
+        fs.writeFileSync(filePath, newContent, 'utf8');
+        console.log(`✅ Actualitzat: ${path.basename(filePath)}`);
+        return true;
+      }
     }
+    
+    console.log(`ℹ️  No s'ha modificat: ${path.basename(filePath)}`);
+    return false;
   } catch (error) {
     console.log(`❌ Error actualitzant ${path.basename(filePath)}:`, error.message);
     return false;
@@ -120,14 +141,14 @@ console.log(`   Fitxers actualitzats: ${updatedCount}/${filesToUpdate.length}`);
 
 if (updatedCount > 0) {
   try {
+    // Comprovem si som en un repo git abans de fer res
+    execSync('git rev-parse --is-inside-work-tree', { stdio: 'ignore' });
     execSync('git add -A', { stdio: 'inherit' });
-    execSync('git commit --amend --no-edit', { stdio: 'inherit' });
-    console.log(`\n🎉 Versió ${newVersion} commitejada correctament amb tots els fitxers!`);
+    // Si venim de npm version, el commit de la versió ja s'ha fet, l'esmenem.
+    // Si no, simplement deixem els fitxers a l'stage.
+    console.log(`\n📂 Fitxers preparats per al commit.`);
   } catch (error) {
-    console.log(`\n⚠️  No s'ha pogut fer git commit --amend automàticament.`);
-    console.log(`   Fes-ho manualment:`);
-    console.log(`   git add .`);
-    console.log(`   git commit --amend --no-edit`);
+    console.log(`\nℹ️  No s'ha realitzat cap acció de git (no és un repositori o error de comanda).`);
   }
 } else {
   console.log(`\n⚠️  No s'ha actualitzat cap fitxer. Revisa els patrons de cerca.`);
