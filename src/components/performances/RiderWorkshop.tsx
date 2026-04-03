@@ -123,7 +123,7 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
       }`}
     >
       <div className="flex justify-between items-center text-[10px]">
-        <Tooltip text={item.name}>
+        <Tooltip text={`${item.name}${item.notes ? ` \n\n📝 ${item.notes}` : ''}`}>
           <span className={`font-bold truncate mr-1 ${
             isNegativeStock ? 'text-destructive' : ''
           }`}>{item.name}</span>
@@ -135,7 +135,13 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
           {availability.available}/{item.stock}
         </span>
       </div>
-      {item.location && <div className="text-[8px] text-muted-foreground truncate italic opacity-60 leading-none mt-0.5">{item.location}</div>}
+      <div className="flex flex-col gap-0.5 mt-0.5 opacity-60">
+        {item.location && <div className="text-[8px] text-muted-foreground truncate italic leading-none">{item.location}</div>}
+        {item.notes && <div className="text-[7px] text-muted-foreground truncate font-medium leading-none flex items-center gap-1">
+          <EditIcon className="w-2 h-2 shrink-0" />
+          {item.notes}
+        </div>}
+      </div>
       {assignments.length > 0 && (
         <div className="text-[7px] text-muted-foreground mt-1 space-y-0.5 border-t border-border/30 pt-1">
           {assignments.map((assignment, idx) => (
@@ -710,27 +716,42 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
 // --- Pantalla Principal ---
 
 const RiderWorkshop: React.FC = () => {
+  // 1. Hooks de Router y Traducción
   const { eventFrameId: urlEventFrameId } = useParams<{ eventFrameId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  // 2. Hooks de Store
   const { eventFrames, materialItems, getMaterialAvailability, updatePerformance } = useEventDataStore();
 
+  // 3. Estados Locales
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string | null>(urlEventFrameId || null);
   const [selectedPerformanceId, setSelectedPerformanceId] = useState<string | null>(null);
   const [activeCell, setActiveCell] = useState<{ id: string; field: 'micContra' | 'stand' | 'mixContra' | 'mixStand' } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  
+  // 4. Referencias
   const migratedPerformances = useRef<Set<string>>(new Set());
 
-  // Estats per seccions col·lapsables
+  // 5. Estados para secciones colapsables
   const [isInputsExpanded, setIsInputsExpanded] = useState(true);
   const [isMonitorsExpanded, setIsMonitorsExpanded] = useState(true);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 
-  useEffect(() => { if (urlEventFrameId) setSelectedEventFrameId(urlEventFrameId); }, [urlEventFrameId]);
+  // 6. Efectos
+  useEffect(() => { 
+    if (urlEventFrameId) setSelectedEventFrameId(urlEventFrameId); 
+  }, [urlEventFrameId]);
 
-  const eventFrame = useMemo(() => selectedEventFrameId ? eventFrames.find(ef => ef.id === selectedEventFrameId) : null, [selectedEventFrameId, eventFrames]);
-  const activeEventFrames = useMemo(() => eventFrames.filter(ef => !ef.isArchived).sort((a, b) => b.startDate.localeCompare(a.startDate)), [eventFrames]);
+  // 7. Memos de Datos
+  const eventFrame = useMemo(() => 
+    selectedEventFrameId ? eventFrames.find(ef => ef.id === selectedEventFrameId) : null
+  , [selectedEventFrameId, eventFrames]);
+
+  const activeEventFrames = useMemo(() => 
+    eventFrames.filter(ef => !ef.isArchived).sort((a, b) => b.startDate.localeCompare(a.startDate))
+  , [eventFrames]);
 
   const performance = useMemo(() => {
     const perf = eventFrame?.performances?.find(p => p.id === selectedPerformanceId);
@@ -743,11 +764,16 @@ const RiderWorkshop: React.FC = () => {
     return perf;
   },[eventFrame, selectedPerformanceId, selectedEventFrameId, updatePerformance]);
 
-  const initialTechData = useMemo(() => performance?.techData || { inputList:[], monitorList: [], lightingNotes: '', videoNotes: '', stageRequirements: '' }, [performance]);
+  const initialTechData = useMemo(() => 
+    performance?.techData || { inputList:[], monitorList: [], lightingNotes: '', videoNotes: '', stageRequirements: '' }
+  , [performance]);
 
+  // 8. Hook de Guardado con Buffering
   const { localData: techData, localDataRef: techDataRef, updateLocal, saveNow, isDirty } = useBufferedSave(initialTechData, (data) => {
     if (selectedEventFrameId && performance) updatePerformance(selectedEventFrameId, { ...performance, techData: data });
   });
+
+  const materialCategories = useMemo(() => ['all', ...Array.from(new Set(materialItems.map(m => m.category)))].sort(), [materialItems]);
 
   useEffect(() => {
     if (eventFrame?.performances?.length) {
@@ -770,8 +796,10 @@ const RiderWorkshop: React.FC = () => {
     });
   }, [materialItems, searchTerm, activeCategory]);
 
+  // 9. DnD Kit Hooks
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
+  // 10. Handlers
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -828,7 +856,42 @@ const RiderWorkshop: React.FC = () => {
     }
   };
 
-  if (!selectedEventFrameId) return <div className="p-8 text-center italic text-muted-foreground">Selecciona un esdeveniment per començar...</div>;
+  const handleEventChange = (id: string) => {
+    setSelectedEventFrameId(id);
+    navigate(`/riders/${id}`, { replace: true });
+  };
+
+  // --- RENDERITZAT CONDICIONAL (DESPRÉS DE TOTS ELS HOOKS) ---
+
+  if (!selectedEventFrameId) {
+    return (
+      <div className="p-6 h-full flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center py-12 text-center space-y-6 bg-muted/30 border-2 border-dashed border-border rounded-xl w-full max-w-2xl shadow-sm">
+          <div className="max-w-md space-y-2 px-6">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LayoutGridIcon className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-xl font-black uppercase tracking-tight">{t('performances.select_event')}</h2>
+            <p className="text-xs text-muted-foreground font-medium">
+              {t('performances.select_event_placeholder')}
+            </p>
+          </div>
+          <div className="w-full max-w-sm px-6">
+            <select 
+              className="w-full bg-card border border-border rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm font-black text-primary cursor-pointer hover:bg-muted/50 transition-colors"
+              onChange={(e) => handleEventChange(e.target.value)}
+              value=""
+            >
+              <option value="" disabled>{t('performances.select_event_placeholder')}</option>
+              {activeEventFrames.map(ef => (
+                <option key={ef.id} value={ef.id}>{new Date(ef.startDate).toLocaleDateString('ca-ES')} - {ef.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-140px)] w-full overflow-hidden bg-background">
@@ -845,7 +908,7 @@ const RiderWorkshop: React.FC = () => {
               <Search className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
               <input type="text" placeholder={t('rider_workshop.search_placeholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-7 pr-2 py-1 bg-muted/30 border border-border rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-primary/50 font-medium" />
             </div>
-            <SearchableCategorySelector categories={useMemo(() => ['all', ...Array.from(new Set(materialItems.map(m => m.category)))].sort(), [materialItems])} activeCategory={activeCategory} onSelect={setActiveCategory} placeholder="Categories" />
+            <SearchableCategorySelector categories={materialCategories} activeCategory={activeCategory} onSelect={setActiveCategory} placeholder="Categories" />
           </div>
         </div>
         <div className="flex-grow overflow-y-auto p-2 custom-scrollbar bg-muted/5">
@@ -867,7 +930,7 @@ const RiderWorkshop: React.FC = () => {
           <div className="flex items-center gap-4">
              <div className="flex items-center gap-2">
               <LayoutGridIcon className="w-4 h-4 text-primary" />
-              <select value={selectedEventFrameId} onChange={(e) => { setSelectedEventFrameId(e.target.value); navigate(`/riders/${e.target.value}`, { replace: true }); }} className="bg-transparent border-none p-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary outline-none cursor-pointer">
+              <select value={selectedEventFrameId} onChange={(e) => { handleEventChange(e.target.value); }} className="bg-transparent border-none p-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary outline-none cursor-pointer">
                 {activeEventFrames.map(ef => <option key={ef.id} value={ef.id}>{ef.name}</option>)}
               </select>
             </div>
