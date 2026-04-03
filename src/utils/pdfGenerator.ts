@@ -1333,27 +1333,10 @@ const calculateOptimalColumnWidths = (
     // VERIFICACIÓ CRÍTICA: Si encara no hi ha prou espai, ajustar per forçar que tot cabgui
     const totalCalculated = finalWidths.reduce((sum, w) => sum + w, 0);
     if (totalCalculated > totalWidthUnits) {
-      console.log('[DEBUG] Espai insuficient, ajustant amples per forçar que tot cabgui');
-      
       // Reduir totes les columnes proporcionalment
       const reductionFactor = totalWidthUnits / totalCalculated;
       finalWidths = finalWidths.map(width => Math.max(10, width * reductionFactor));
     }
-    
-    // DEBUG: Mostrar informació de depuració
-    console.log('[DEBUG] Column Width Calculation:', {
-      orientation,
-      pageDimensions,
-      activeColumns,
-      totalWidthUnits: Math.round(totalWidthUnits),
-      totalMinWidth,
-      extraSpace: Math.round(extraSpace),
-      minWidths,
-      maxWidths,
-      finalWidths: finalWidths.map(w => Math.round(w)),
-      totalCalculated: Math.round(finalWidths.reduce((sum, w) => sum + w, 0)),
-      fitsInPage: finalWidths.reduce((sum, w) => sum + w, 0) <= totalWidthUnits
-    });
     
     // Aplicar els amples calculats als índexs de columna correctes
     activeColumns.forEach((columnIndex, i) => {
@@ -1361,15 +1344,6 @@ const calculateOptimalColumnWidths = (
     });
   } else {
     // Si no hi ha espai suficient, usar els amples mínims
-    console.log('[DEBUG] Using minimum widths:', {
-      orientation,
-      pageDimensions,
-      activeColumns,
-      totalWidthUnits: Math.round(totalWidthUnits),
-      totalMinWidth,
-      minWidths
-    });
-    
     activeColumns.forEach((columnIndex, i) => {
       columnWidths[columnIndex] = { cellWidth: minWidths[i] };
     });
@@ -1404,7 +1378,7 @@ const getPerformanceStyles = () => {
   return { sane, headStyles, labelStyles, emptySectionStyles };
 };
 
-// --- FUNCIO DE DENSITAT PER TAULES ---
+// --- FUNCIONS DE DENSITAT PER TAULES ---
 
 const getTableDensityStyles = (orientation: 'portrait' | 'landscape') => {
   if (orientation === 'landscape') {
@@ -1448,6 +1422,7 @@ export const exportPerformanceToPdf = async (
   const defaultOptions: PerformancePdfOptions = {
     includeBasicInfo: true,
     includeInputs: true,
+    includeMonitors: true,
     includeTechnicalNotes: true,
     includeHospitality: true,
     includeGeneralNotes: true,
@@ -1703,7 +1678,7 @@ export const generatePerformancePdfObjectWithOptions = (
   }
 
   // --- Monitor List ---
-  if (options.includeInputs && performance.techData?.monitorList && performance.techData.monitorList.length > 0) {
+  if (options.includeMonitors && performance.techData?.monitorList && performance.techData.monitorList.length > 0) {
     y = checkPageBreak(pdf, y, 50);
     
     // Filtrar columnes segons les opcions i verificar si tenen dades

@@ -36,7 +36,7 @@ import { useBufferedSave } from '../../hooks/useBufferedSave';
 import { triggerAllSaves } from '../../utils/saveManager';
 import { 
   generatePerformancePdfObjectWithOptions, 
-  exportPerformanceToPdfWithOptions, 
+  exportPerformanceToPdfWithOptions as exportPerformanceToPdfWithOptions, 
   validatePerformanceData 
 } from '../../utils/pdfGenerator';
 import { 
@@ -811,6 +811,7 @@ const RiderWorkshop: React.FC = () => {
   const [pdfOptions] = useState<PerformancePdfOptions>({
     includeBasicInfo: true,
     includeInputs: true,
+    includeMonitors: true,
     includeTechnicalNotes: true,
     includeHospitality: true,
     includeGeneralNotes: true,
@@ -1002,6 +1003,7 @@ const RiderWorkshop: React.FC = () => {
           ...pdfOptions,
           includeBasicInfo: showBasicInfoInPdf,
           includeInputs: showInputsInPdf,
+          includeMonitors: showMonitorsInPdf,
           includeTechnicalNotes: showTechnicalNotesInPdf,
           includeHospitality: showHospitalityInPdf,
           includeGeneralNotes: showGeneralNotesInPdf,
@@ -1040,6 +1042,7 @@ const RiderWorkshop: React.FC = () => {
         ...pdfOptions,
         includeBasicInfo: showBasicInfoInPdf,
         includeInputs: showInputsInPdf,
+        includeMonitors: showMonitorsInPdf,
         includeTechnicalNotes: showTechnicalNotesInPdf,
         includeHospitality: showHospitalityInPdf,
         includeGeneralNotes: showGeneralNotesInPdf,

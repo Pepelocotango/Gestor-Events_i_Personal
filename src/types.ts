@@ -225,6 +225,7 @@ export interface Performance {
 export interface PerformancePdfOptions {
   includeBasicInfo: boolean;        // Info artista, horaris, contacte
   includeInputs: boolean;          // Llista d'inputs tècnics
+  includeMonitors: boolean;         // Llista de monitors tècnics
   includeTechnicalNotes: boolean;  // Notes de llums, vídeo, escenari
   includeHospitality: boolean;     // Hospitality complet
   includeGeneralNotes: boolean;    // Notes generals de l'actuació
