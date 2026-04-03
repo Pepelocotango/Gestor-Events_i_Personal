@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow, Performance, PerformancePdfOptions, RiderPdfOptions, ValidationResult } from '../types';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow, Performance, PerformancePdfOptions, ValidationResult } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 import { themeHslColors } from './themeDefinition';
@@ -1704,45 +1704,6 @@ export const generatePerformancePdfObjectWithOptions = (
   }
 
   return pdf;
-};
-
-// --- FUNCIÓ ESPECÍFICA PER RIDERS ---
-export const generateRiderPdfObjectWithOptions = (
-  performance: Performance,
-  eventFrame: EventFrame,
-  options: RiderPdfOptions,
-  allPerformances?: Performance[],
-  materialItems?: MaterialItem[]
-): jsPDF => {
-  // Reutilitzar la mateixa lògica que generatePerformancePdfObjectWithOptions
-  // pero amb tipat fort per Riders
-  return generatePerformancePdfObjectWithOptions(performance, eventFrame, options, allPerformances, materialItems);
-};
-
-export const exportRiderToPdfWithOptions = async (
-  performance: Performance,
-  eventFrame: EventFrame,
-  options: RiderPdfOptions,
-  showToast: ShowToastFunction,
-  allPerformances?: Performance[],
-  materialItems?: MaterialItem[]
-) => {
-  try {
-    // Validar dades primer i mostrar errors/warnings
-    const validation = validatePerformanceData(performance);
-    if (!validation.isValid) {
-      validation.errors.forEach(error => showToast(error, 'error'));
-      return;
-    }
-    validation.warnings.forEach(warning => showToast(warning, 'info'));
-    
-    const pdf = generateRiderPdfObjectWithOptions(performance, eventFrame, options, allPerformances, materialItems);
-    const fileName = `Rider_${performance.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
-    await savePdfWithDialog(pdf, fileName, showToast);
-
-  } catch (error) {
-    showToast(`Error generant PDF Rider: ${(error as Error).message}`, 'error');
-  }
 };
 
 // --- FUNCIÓ REFACTORITZADA D'EXPORTACIÓ ---
