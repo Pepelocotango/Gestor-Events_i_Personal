@@ -1381,7 +1381,7 @@ const calculateOptimalColumnWidths = (
 // --- ESTILS ENRIQUITS PER A ACTUACIONS ---
 
 const getPerformanceStyles = () => {
-  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value));
+  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
   
   const headStyles: Partial<Styles> = { 
     fillColor: hslToRgb(...themeHslColors.grayDark), 
