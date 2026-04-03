@@ -78,10 +78,12 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
       status: 'pending',
       techData: {
         inputList: [],
+        monitorList: [],
         lightingNotes: '',
         videoNotes: '',
-        stageRequirements: '',
+        stageRequirements: ''
       },
+
       hospitalityData: {
         dressingRooms: '',
         cateringNotes: '',

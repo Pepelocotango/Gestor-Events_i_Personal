@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { TFunction } from 'i18next';
 import { 
   Search, 
   Music, 
@@ -153,14 +154,14 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
 
 interface WorkshopRowProps {
   item: InputListItem;
+  t: TFunction;
   onChange: (id: string, field: keyof InputListItem, value: any) => void;
   onRemove: (id: string) => void;
   activeCell: { id: string; field: 'micContra' | 'stand' } | null;
   onCellFocus: (id: string, field: 'micContra' | 'stand') => void;
 }
 
-const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus }) => {
-  const { t } = useTranslation();
+const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, activeCell, onCellFocus }) => {
   const { getMaterialAvailability, eventFrames } = useEventDataStore();
   const { eventFrameId } = useParams<{ eventFrameId: string }>();
   
@@ -267,7 +268,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, onChange, onRemove, act
             value={item.micRider}
             onChange={(e) => onChange(item.id, 'micRider', e.target.value)}
             className="w-full px-1.5 py-1 bg-transparent border-none text-[10px] italic focus:ring-0 outline-none"
-            placeholder="Demanat..."
+            placeholder={t('performances.mic_di_placeholder')}
           />
         </Tooltip>
       </td>
@@ -665,9 +666,9 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
       </div>
       
       {isExpanded && (
-        <div className="max-h-[250px] overflow-y-auto custom-scrollbar animate-in fade-in duration-200">
+        <div className="animate-in fade-in duration-200">
           <table className="w-full border-collapse text-left">
-            <thead className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b border-border">
+            <thead className="bg-background border-b border-border">
               <tr>
                 <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Material</th>
                 <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Ubicació</th>
@@ -842,14 +843,14 @@ const RiderWorkshop: React.FC = () => {
           <div className="space-y-1">
             <div className="relative">
               <Search className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
-              <input type="text" placeholder="Cercar material..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-7 pr-2 py-1 bg-muted/30 border border-border rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-primary/50 font-medium" />
+              <input type="text" placeholder={t('rider_workshop.search_placeholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-7 pr-2 py-1 bg-muted/30 border border-border rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-primary/50 font-medium" />
             </div>
             <SearchableCategorySelector categories={useMemo(() => ['all', ...Array.from(new Set(materialItems.map(m => m.category)))].sort(), [materialItems])} activeCategory={activeCategory} onSelect={setActiveCategory} placeholder="Categories" />
           </div>
         </div>
         <div className="flex-grow overflow-y-auto p-2 custom-scrollbar bg-muted/5">
           <h3 className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2 px-1 opacity-50"><Package className="w-3 h-3" /> Inventari</h3>
-          {filteredMaterial.map(item => {
+          {eventFrame && filteredMaterial.map(item => {
             const globalAvail = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, undefined, undefined, performance?.id);
             const savedUsage = performance?.techData?.inputList?.filter(i => i.micContraId === item.id || i.standId === item.id).length || 0;
             const localUsage = techData.inputList.filter(i => i.micContraId === item.id || i.standId === item.id).length;
@@ -919,7 +920,7 @@ const RiderWorkshop: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-border/50">
                       <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
-                        {techData.inputList.map(item => <WorkshopRow key={item.id} item={item} onChange={handleInputChange} onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })} activeCell={activeCell?.field === 'micContra' || activeCell?.field === 'stand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
+                        {techData.inputList.map(item => <WorkshopRow key={item.id} item={item} t={t} onChange={handleInputChange} onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })} activeCell={activeCell?.field === 'micContra' || activeCell?.field === 'stand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
                       </SortableContext>
                     </tbody>
                   </table>

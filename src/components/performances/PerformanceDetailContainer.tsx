@@ -124,7 +124,7 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
       case 'basic':
         return <PerformanceBasicForm eventFrameId={eventFrameId} performance={performance} showToast={showToast} />;
       case 'tech':
-        return <PerformanceTechForm eventFrameId={eventFrameId} performance={performance} showToast={showToast} />;
+        return <PerformanceTechForm eventFrameId={eventFrameId} performance={performance} />;
       case 'hospitality':
         return <PerformanceHospitalityForm eventFrameId={eventFrameId} performance={performance} showToast={showToast} />;
       default:
