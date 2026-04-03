@@ -222,6 +222,30 @@ export interface Performance {
   advancing?: PerformanceAdvancing;
 }
 
+export interface RiderPdfOptions extends PerformancePdfOptions {
+  showBalance: boolean;           // Mostrar balanç consolidat (requerit per Riders)
+  inputColumns: {                 // Columnes individuals per inputs (requerit)
+    patch: boolean;
+    channel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+  monitorColumns: {               // Columnes individuals per monitors (requerit)
+    patch: boolean;
+    outputChannel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+}
+
 export interface PerformancePdfOptions {
   includeBasicInfo: boolean;        // Info artista, horaris, contacte
   includeInputs: boolean;          // Llista d'inputs tècnics
@@ -229,6 +253,27 @@ export interface PerformancePdfOptions {
   includeHospitality: boolean;     // Hospitality complet
   includeGeneralNotes: boolean;    // Notes generals de l'actuació
   showEmptySections: boolean;      // Mostrar seccions buides amb "-"
+  showBalance?: boolean;           // Mostrar balanç consolidat
+  inputColumns?: {                 // Columnes individuals per inputs
+    patch: boolean;
+    channel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+  monitorColumns?: {               // Columnes individuals per monitors
+    patch: boolean;
+    outputChannel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
 }
 
 export interface ValidationResult {

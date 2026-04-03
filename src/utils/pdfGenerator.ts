@@ -1,12 +1,13 @@
 import i18next from 'i18next';
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow, Performance, PerformancePdfOptions, ValidationResult } from '../types';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow, Performance, PerformancePdfOptions, RiderPdfOptions, ValidationResult } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 import { themeHslColors } from './themeDefinition';
 import { hslToRgb } from './colorUtils';
 import { generateFileName, generateTechSheetFileName } from './fileNameUtils';
+import { useEventDataStore } from '../stores/eventDataStore';
 
 // Define ActiveFilters type locally for this module
 type ActiveFilters = {
@@ -1252,7 +1253,9 @@ export const exportPerformanceToPdf = async (
 export const generatePerformancePdfObjectWithOptions = (
   performance: Performance,
   eventFrame: EventFrame,
-  options: PerformancePdfOptions
+  options: PerformancePdfOptions,
+  allPerformances?: Performance[],
+  materialItems?: MaterialItem[]
 ): jsPDF => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const { sane, headStyles, labelStyles, emptySectionStyles, inputColumnStyles } = getPerformanceStyles();
@@ -1334,15 +1337,40 @@ export const generatePerformancePdfObjectWithOptions = (
   // --- Input List ---
   if (options.includeInputs && performance.techData?.inputList && performance.techData.inputList.length > 0) {
     y = checkPageBreak(pdf, y, 50);
-    const inputHead =[
-      i18next.t('pdf.patch'),
-      i18next.t('pdf.channel'),
-      i18next.t('pdf.label'),
-      i18next.t('pdf.mic_rider'),
-      i18next.t('pdf.mic_contra'),
-      i18next.t('pdf.stand'),
-      i18next.t('pdf.notes')
-    ];
+    
+    // Filtrar columnes segons les opcions i verificar si tenen dades
+    const columns = options.inputColumns || {
+      patch: true, channel: true, label: true, rider: true, 
+      contra: true, stand: true, notes: true, exclusive: true
+    };
+    
+    // Verificar quines columnes tenen dades no buides
+    const columnsWithData = {
+      patch: columns.patch && performance.techData.inputList.some(input => input.patchNumber),
+      channel: columns.channel && performance.techData.inputList.some(input => input.channel),
+      label: columns.label && performance.techData.inputList.some(input => input.label),
+      rider: columns.rider && performance.techData.inputList.some(input => input.micRider),
+      contra: columns.contra && performance.techData.inputList.some(input => input.micContra),
+      stand: columns.stand && performance.techData.inputList.some(input => input.stand),
+      notes: columns.notes && performance.techData.inputList.some(input => input.notes),
+      exclusive: columns.exclusive && performance.techData.inputList.some(input => input.exclusive)
+    };
+    
+    // Construir capçalera només amb columnes que tenen dades
+    const inputHead = [];
+    if (columnsWithData.patch) inputHead.push(i18next.t('pdf.patch'));
+    if (columnsWithData.channel) inputHead.push(i18next.t('pdf.channel'));
+    if (columnsWithData.label) inputHead.push(i18next.t('pdf.label'));
+    if (columnsWithData.rider) inputHead.push(i18next.t('pdf.mic_rider'));
+    if (columnsWithData.contra) inputHead.push(i18next.t('pdf.mic_contra'));
+    if (columnsWithData.stand) inputHead.push(i18next.t('pdf.stand'));
+    if (columnsWithData.notes) inputHead.push(i18next.t('pdf.notes'));
+    if (columnsWithData.exclusive) inputHead.push(i18next.t('pdf.exclusive'));
+    
+    // Si no hi ha cap columna amb dades, ometre la secció
+    if (inputHead.length === 0) {
+      return pdf; // Ometre aquesta secció completament
+    }
 
     // 1. Mapa de colors per al PDF (Valors RGB equivalents als de Tailwind)
     const patchColorMap: Record<string, [number, number, number]> = {
@@ -1355,27 +1383,31 @@ export const generatePerformancePdfObjectWithOptions = (
       brown: [180, 83, 9],    
     };
 
-    // 2. Preparem el body passant el color com a propietat oculta (customColor)
+    // 2. Preparem el body filtrant només les columnes amb dades
     const inputBody = performance.techData.inputList.map(input => {
+      const row = [];
       const hasColor = input.patchColor && input.patchColor !== 'transparent';
-      return[
-        { 
+      
+      if (columnsWithData.patch) {
+        row.push({ 
           content: sane(input.patchNumber), 
-          // Si hi ha color, afegim un padding esquerre extra (8mm) per deixar lloc al cercle
           styles: { cellPadding: { left: hasColor ? 8 : 2, top: 2, bottom: 2, right: 2 } },
-          customColor: input.patchColor // Passem la dada del color al renderitzador
-        },
-        sane(input.channel),
-        sane(input.label),
-        sane(input.micRider),
-        sane(input.micContra),
-        sane(input.stand),
-        sane(input.notes)
-      ];
+          customColor: input.patchColor
+        });
+      }
+      if (columnsWithData.channel) row.push(sane(input.channel));
+      if (columnsWithData.label) row.push(sane(input.label));
+      if (columnsWithData.rider) row.push(sane(input.micRider));
+      if (columnsWithData.contra) row.push(sane(input.micContra));
+      if (columnsWithData.stand) row.push(sane(input.stand));
+      if (columnsWithData.notes) row.push(sane(input.notes));
+      if (columnsWithData.exclusive) row.push(input.exclusive ? '✓' : '');
+      
+      return row;
     });
 
     autoTable(pdf, {
-      head: [[{ content: i18next.t('pdf.input_list'), colSpan: 7, styles: headStyles }],
+      head: [[{ content: i18next.t('pdf.input_list'), colSpan: inputHead.length, styles: headStyles }],
         inputHead
       ],
       body: inputBody,
@@ -1409,6 +1441,106 @@ export const generatePerformancePdfObjectWithOptions = (
     pdf.setFontSize(12);
     pdf.text(i18next.t('pdf.no_inputs'), 14, y);
     y += 10;
+  }
+
+  // --- Monitor List ---
+  if (options.includeInputs && performance.techData?.monitorList && performance.techData.monitorList.length > 0) {
+    y = checkPageBreak(pdf, y, 50);
+    
+    // Filtrar columnes segons les opcions i verificar si tenen dades
+    const monitorColumns = options.monitorColumns || {
+      patch: true, outputChannel: true, label: true, rider: true, 
+      contra: true, stand: true, notes: true, exclusive: true
+    };
+    
+    // Verificar quines columnes tenen dades no buides
+    const columnsWithData = {
+      patch: monitorColumns.patch && performance.techData.monitorList.some(monitor => monitor.patchNumber),
+      outputChannel: monitorColumns.outputChannel && performance.techData.monitorList.some(monitor => monitor.outputChannel),
+      label: monitorColumns.label && performance.techData.monitorList.some(monitor => monitor.label),
+      rider: monitorColumns.rider && performance.techData.monitorList.some(monitor => monitor.mixRider),
+      contra: monitorColumns.contra && performance.techData.monitorList.some(monitor => monitor.mixContra),
+      stand: monitorColumns.stand && performance.techData.monitorList.some(monitor => monitor.mixStand),
+      notes: monitorColumns.notes && performance.techData.monitorList.some(monitor => monitor.notes),
+      exclusive: monitorColumns.exclusive && performance.techData.monitorList.some(monitor => monitor.exclusive)
+    };
+    
+    // Construir capçalera només amb columnes que tenen dades
+    const monitorHead = [];
+    if (columnsWithData.patch) monitorHead.push(i18next.t('pdf.patch'));
+    if (columnsWithData.outputChannel) monitorHead.push(i18next.t('pdf.output_channel'));
+    if (columnsWithData.label) monitorHead.push(i18next.t('pdf.label'));
+    if (columnsWithData.rider) monitorHead.push(i18next.t('pdf.monitor_rider'));
+    if (columnsWithData.contra) monitorHead.push(i18next.t('pdf.monitor_contra'));
+    if (columnsWithData.stand) monitorHead.push(i18next.t('pdf.monitor_stand'));
+    if (columnsWithData.notes) monitorHead.push(i18next.t('pdf.notes'));
+    if (columnsWithData.exclusive) monitorHead.push(i18next.t('pdf.exclusive'));
+    
+    // Si no hi ha cap columna amb dades, ometre la secció
+    if (monitorHead.length === 0) {
+      // Ometre aquesta secció
+    } else {
+      // Mapa de colors per al PDF (mateix que per inputs)
+      const patchColorMap: Record<string, [number, number, number]> = {
+        red:[239, 68, 68],     
+        blue: [59, 130, 246],   
+        green:[34, 197, 94],   
+        yellow:[250, 204, 21], 
+        orange:[249, 115, 22], 
+        purple: [168, 85, 247], 
+        brown: [180, 83, 9],    
+      };
+
+      // Preparem el body filtrant només les columnes amb dades
+      const monitorBody = performance.techData.monitorList.map(monitor => {
+        const row = [];
+        const hasColor = monitor.patchColor && monitor.patchColor !== 'transparent';
+        
+        if (columnsWithData.patch) {
+          row.push({ 
+            content: sane(monitor.patchNumber), 
+            styles: { cellPadding: { left: hasColor ? 8 : 2, top: 2, bottom: 2, right: 2 } },
+            customColor: monitor.patchColor
+          });
+        }
+        if (columnsWithData.outputChannel) row.push(sane(monitor.outputChannel));
+        if (columnsWithData.label) row.push(sane(monitor.label));
+        if (columnsWithData.rider) row.push(sane(monitor.mixRider));
+        if (columnsWithData.contra) row.push(sane(monitor.mixContra));
+        if (columnsWithData.stand) row.push(sane(monitor.mixStand));
+        if (columnsWithData.notes) row.push(sane(monitor.notes));
+        if (columnsWithData.exclusive) row.push(monitor.exclusive ? '✓' : '');
+        
+        return row;
+      });
+
+      autoTable(pdf, {
+        head: [[{ content: i18next.t('pdf.monitor_list'), colSpan: monitorHead.length, styles: headStyles }],
+          monitorHead
+        ],
+        body: monitorBody,
+        startY: y,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2 },
+        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+        columnStyles: inputColumnStyles as any,
+        margin: { left: 10, right: 10 },
+        didDrawCell: (data) => {
+          if (data.section === 'body' && data.column.index === 0) {
+            const raw = data.cell.raw as any;
+            if (raw && raw.customColor && raw.customColor !== 'transparent' && patchColorMap[raw.customColor]) {
+              const rgb = patchColorMap[raw.customColor];
+              pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
+              
+              const x = data.cell.x + 4;
+              const y = data.cell.y + (data.cell.height / 2);
+              pdf.circle(x, y, 2, 'F');
+            }
+          }
+        }
+      });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
   }
 
   // --- Notes Tècniques ---
@@ -1504,6 +1636,65 @@ export const generatePerformancePdfObjectWithOptions = (
       margin: { left: 10, right: 10 },
       styles: { cellPadding: 2 }
     });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  // --- Balanç Consolidat ---
+  if (allPerformances && materialItems && options.showBalance !== false) {
+    // Calcular el balanç com al RiderBalance component
+    const usage: Record<string, { id: string; name: string; qty: number; location: string }> = {};
+    
+    allPerformances.forEach(perf => {
+      [...(perf.techData?.inputList || []), ...(perf.techData?.monitorList || [])].forEach((item: any) => {
+        const matId = item.micContraId || item.standId || item.mixContraId || item.mixStandId;
+        const matName = item.micContra || item.stand || item.mixContra || item.mixStand;
+        if (matId && matName) {
+          const key = `${matId}-${matName}`;
+          if (!usage[key]) {
+            usage[key] = { id: matId, name: matName, qty: 0, location: perf.name || 'Unknown' };
+          }
+          usage[key].qty += 1;
+        }
+      });
+    });
+
+    // Obtenir la funció getMaterialAvailability del store
+    const { getMaterialAvailability } = useEventDataStore.getState();
+
+    const balanceData = Object.values(usage).map(item => {
+      const availability = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+      const status = item.qty <= availability.available ? 'ok' : item.qty <= availability.total ? 'warning' : 'error';
+      return [
+        sane(item.name),
+        item.qty.toString(),
+        availability.available.toString(),
+        availability.total.toString(),
+        status === 'ok' ? '✓' : status === 'warning' ? '⚠' : '✗'
+      ];
+    });
+
+    if (balanceData.length > 0) {
+      y = checkPageBreak(pdf, y, 30);
+      const balanceHead = [
+        i18next.t('pdf.material'),
+        i18next.t('pdf.quantity'),
+        i18next.t('pdf.available'),
+        i18next.t('pdf.total'),
+        i18next.t('pdf.status')
+      ];
+      
+      autoTable(pdf, {
+        head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 5, styles: headStyles }],
+          balanceHead
+        ],
+        body: balanceData,
+        startY: y,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2 },
+        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+        margin: { left: 10, right: 10 }
+      });
+    }
   }
 
   const totalPages = (pdf.internal as any).getNumberOfPages();
@@ -1515,12 +1706,26 @@ export const generatePerformancePdfObjectWithOptions = (
   return pdf;
 };
 
-// --- FUNCIÓ REFACTORITZADA D'EXPORTACIÓ ---
-export const exportPerformanceToPdfWithOptions = async (
+// --- FUNCIÓ ESPECÍFICA PER RIDERS ---
+export const generateRiderPdfObjectWithOptions = (
   performance: Performance,
   eventFrame: EventFrame,
-  options: PerformancePdfOptions,
-  showToast: ShowToastFunction
+  options: RiderPdfOptions,
+  allPerformances?: Performance[],
+  materialItems?: MaterialItem[]
+): jsPDF => {
+  // Reutilitzar la mateixa lògica que generatePerformancePdfObjectWithOptions
+  // pero amb tipat fort per Riders
+  return generatePerformancePdfObjectWithOptions(performance, eventFrame, options, allPerformances, materialItems);
+};
+
+export const exportRiderToPdfWithOptions = async (
+  performance: Performance,
+  eventFrame: EventFrame,
+  options: RiderPdfOptions,
+  showToast: ShowToastFunction,
+  allPerformances?: Performance[],
+  materialItems?: MaterialItem[]
 ) => {
   try {
     // Validar dades primer i mostrar errors/warnings
@@ -1531,7 +1736,34 @@ export const exportPerformanceToPdfWithOptions = async (
     }
     validation.warnings.forEach(warning => showToast(warning, 'info'));
     
-    const pdf = generatePerformancePdfObjectWithOptions(performance, eventFrame, options);
+    const pdf = generateRiderPdfObjectWithOptions(performance, eventFrame, options, allPerformances, materialItems);
+    const fileName = `Rider_${performance.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
+    await savePdfWithDialog(pdf, fileName, showToast);
+
+  } catch (error) {
+    showToast(`Error generant PDF Rider: ${(error as Error).message}`, 'error');
+  }
+};
+
+// --- FUNCIÓ REFACTORITZADA D'EXPORTACIÓ ---
+export const exportPerformanceToPdfWithOptions = async (
+  performance: Performance,
+  eventFrame: EventFrame,
+  options: PerformancePdfOptions,
+  showToast: ShowToastFunction,
+  allPerformances?: Performance[],
+  materialItems?: MaterialItem[]
+) => {
+  try {
+    // Validar dades primer i mostrar errors/warnings
+    const validation = validatePerformanceData(performance);
+    if (!validation.isValid) {
+      validation.errors.forEach(error => showToast(error, 'error'));
+      return;
+    }
+    validation.warnings.forEach(warning => showToast(warning, 'info'));
+    
+    const pdf = generatePerformancePdfObjectWithOptions(performance, eventFrame, options, allPerformances, materialItems);
     const fileName = `CustomRider_${performance.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
 

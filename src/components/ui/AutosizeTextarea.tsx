@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, forwardRef } from 'react';
+import React, { useLayoutEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 
 type AutosizeTextAreaProps = React.DetailedHTMLProps<
   React.TextareaHTMLAttributes<HTMLTextAreaElement>,
@@ -7,20 +7,28 @@ type AutosizeTextAreaProps = React.DetailedHTMLProps<
 
 const AutosizeTextarea = forwardRef<HTMLTextAreaElement, AutosizeTextAreaProps>(
   (props, ref) => {
+    const innerRef = useRef<HTMLTextAreaElement>(null);
+
+    // Exposar la ref interna a la ref externa si existeix
+    useImperativeHandle(ref, () => innerRef.current as HTMLTextAreaElement);
+
     useLayoutEffect(() => {
-      // Aquesta implementació assumeix que `ref` és un objecte ref mutable.
-      // Això no està garantit per React, però és la interpretació més
-      // directa de les instruccions.
-      if (ref && typeof ref !== 'function' && ref.current) {
-        const textarea = ref.current;
+      if (innerRef.current) {
+        const textarea = innerRef.current;
         // Reset height to recalculate scrollHeight
         textarea.style.height = 'auto';
         // Set height to scrollHeight to fit content
         textarea.style.height = `${textarea.scrollHeight}px`;
       }
-    }, [props.value, ref]); // La dependència de value i ref garanteix que s'executi en cada canvi
+    }, [props.value]); // La dependència de value garanteix que s'executi en cada canvi de text
 
-    return <textarea ref={ref} {...props} />;
+    return (
+      <textarea 
+        ref={innerRef} 
+        {...props} 
+        style={{ ...props.style, overflow: 'hidden' }} // Evitem scrollbars interns mentre s'ajusta
+      />
+    );
   }
 );
 

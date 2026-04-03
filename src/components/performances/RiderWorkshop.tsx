@@ -15,19 +15,30 @@ import {
   ChartBarIcon,
   MousePointerClick,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Eye,
+  FileText
 } from 'lucide-react';
 import { useEventDataStore } from '../../stores/eventDataStore';
+import { useModalStore } from '../../stores/modalStore';
 import { notificationService } from '../../utils/notificationService';
 import Tooltip from '../ui/Tooltip';
+import AutosizeTextarea from '../ui/AutosizeTextarea';
 import { 
   InputListItem, 
   MaterialItem,
   PerformanceTechData,
   Performance,
-  MonitorListItem
+  MonitorListItem,
+  PerformancePdfOptions
 } from '../../types';
 import { useBufferedSave } from '../../hooks/useBufferedSave';
+import { triggerAllSaves } from '../../utils/saveManager';
+import { 
+  generatePerformancePdfObjectWithOptions, 
+  exportPerformanceToPdfWithOptions, 
+  validatePerformanceData 
+} from '../../utils/pdfGenerator';
 import { 
   DndContext, 
   closestCenter, 
@@ -432,7 +443,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
           value={item.outputChannel || ''}
           onChange={(e) => onChange(item.id, 'outputChannel', e.target.value)}
           className="w-full px-1 py-0.5 bg-transparent border-none text-[11px] font-mono text-center focus:ring-0 outline-none font-black text-primary"
-          placeholder="A1"
+          placeholder="MIX"
         />
       </td>
 
@@ -600,6 +611,49 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
   );
 };
 
+// --- Component per Notes Tècniques amb Estat Local (per rapidesa) ---
+
+interface TechnicalNoteProps {
+  label: string;
+  value: string;
+  field: string;
+  colorClass: string;
+  onSave: (field: string, value: string) => void;
+}
+
+const TechnicalNote: React.FC<TechnicalNoteProps> = ({ label, value, field, colorClass, onSave }) => {
+  const [localValue, setLocalValue] = useState(value);
+  const isFocused = useRef(false);
+
+  useEffect(() => {
+    if (!isFocused.current) {
+      setLocalValue(value);
+    }
+  }, [value]);
+
+  const handleBlur = () => {
+    isFocused.current = false;
+    onSave(field, localValue);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
+        <div className={`w-1.5 h-1.5 rounded-full ${colorClass}`}></div>
+        {label}
+      </label>
+      <AutosizeTextarea 
+        value={localValue} 
+        onChange={(e) => setLocalValue(e.target.value)}
+        onFocus={() => { isFocused.current = true; }}
+        onBlur={handleBlur}
+        className="w-full min-h-[80px] p-3 bg-muted/10 border border-border rounded-lg text-[11px] focus:ring-1 focus:ring-primary/30 outline-none resize-none font-medium transition-all" 
+        placeholder={`${label}...`}
+      />
+    </div>
+  );
+};
+
 // --- Balanç del Rider (Taula Compacta i Col·lapsable) ---
 
 interface RiderBalanceProps {
@@ -607,9 +661,11 @@ interface RiderBalanceProps {
   materialItems: MaterialItem[];
   eventFrame: { startDate: string; endDate: string; id: string };
   getMaterialAvailability: (id: string, start: string, end: string, frameId: string) => { available: number; total: number };
+  showInPdf?: boolean;
+  onTogglePdf?: () => void;
 }
 
-const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability }) => {
+const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   const usage = useMemo(() => {
@@ -650,6 +706,17 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
             <ChartBarIcon className="w-3.5 h-3.5 text-primary" />
             Balanç Consolidat
           </h3>
+          {onTogglePdf && (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={showInPdf}
+                onChange={onTogglePdf}
+                className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+              />
+              <label className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+            </div>
+          )}
           {errorCount > 0 && (
             <span className="bg-destructive text-destructive-foreground text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">
               {errorCount} {errorCount === 1 ? 'ERROR' : 'ERRORS'}
@@ -723,6 +790,7 @@ const RiderWorkshop: React.FC = () => {
 
   // 2. Hooks de Store
   const { eventFrames, materialItems, getMaterialAvailability, updatePerformance } = useEventDataStore();
+  const { openModal } = useModalStore();
 
   // 3. Estados Locales
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string | null>(urlEventFrameId || null);
@@ -738,6 +806,46 @@ const RiderWorkshop: React.FC = () => {
   const [isInputsExpanded, setIsInputsExpanded] = useState(true);
   const [isMonitorsExpanded, setIsMonitorsExpanded] = useState(true);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
+
+  // Estat per a les opcions del PDF (reaprofitat de PerformanceDetailContainer)
+  const [pdfOptions, setPdfOptions] = useState<PerformancePdfOptions>({
+    includeBasicInfo: true,
+    includeInputs: true,
+    includeTechnicalNotes: true,
+    includeHospitality: true,
+    includeGeneralNotes: true,
+    showEmptySections: false,
+  });
+
+  // Estat per als botons "tick" específics del Rider
+  const [showInputsInPdf, setShowInputsInPdf] = useState(true);
+  const [showMonitorsInPdf, setShowMonitorsInPdf] = useState(true);
+  const [showTechnicalNotesInPdf, setShowTechnicalNotesInPdf] = useState(true);
+  const [showBalanceInPdf, setShowBalanceInPdf] = useState(true);
+
+  // Estat per a les columnes individuals d'inputs
+  const [inputColumnsInPdf, setInputColumnsInPdf] = useState({
+    patch: false,
+    channel: true,
+    label: true,
+    rider: false,
+    contra: true,
+    stand: true,
+    notes: false,
+    exclusive: false
+  });
+
+  // Estat per a les columnes individuals de monitors
+  const [monitorColumnsInPdf, setMonitorColumnsInPdf] = useState({
+    patch: false,
+    outputChannel: true,
+    label: true,
+    rider: false,
+    contra: true,
+    stand: true,
+    notes: false,
+    exclusive: false
+  });
 
   // 6. Efectos
   useEffect(() => { 
@@ -861,6 +969,107 @@ const RiderWorkshop: React.FC = () => {
     navigate(`/riders/${id}`, { replace: true });
   };
 
+  // --- LÒGICA DE PDF ---
+  const handlePreviewRider = () => {
+    triggerAllSaves(); // WYSIWYG: Força guardar el buffer
+    
+    // Obtenim les dades més recents
+    const latestEventFrame = useEventDataStore.getState().eventFrames.find(ef => ef.id === selectedEventFrameId);
+    const latestPerformance = latestEventFrame?.performances?.find(p => p.id === selectedPerformanceId);
+    
+    if (!latestPerformance || !latestEventFrame) return;
+
+    // Validació
+    const validation = validatePerformanceData(latestPerformance);
+    if (!validation.isValid) {
+      validation.errors.forEach(err => notificationService.error(err));
+      return;
+    }
+
+    try {
+      const doc = generatePerformancePdfObjectWithOptions(
+        latestPerformance, 
+        latestEventFrame, 
+        {
+          ...pdfOptions,
+          includeInputs: showInputsInPdf,
+          includeTechnicalNotes: showTechnicalNotesInPdf,
+          showBalance: showBalanceInPdf,
+          inputColumns: inputColumnsInPdf,
+          monitorColumns: monitorColumnsInPdf,
+        },
+        eventFrame?.performances,
+        materialItems
+      );
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob) + '#toolbar=0&navpanes=0&view=FitH';
+      
+      openModal('pdfPreview', {
+        pdfUrl,
+        titleOverride: t('modals.pdf_preview.title_override', { name: latestPerformance.name }),
+        onSave: () => handleExportRider()
+      });
+    } catch (error) {
+      notificationService.error((error as Error).message);
+    }
+  };
+
+  const handleExportRider = () => {
+    triggerAllSaves();
+    const latestEventFrame = useEventDataStore.getState().eventFrames.find(ef => ef.id === selectedEventFrameId);
+    const latestPerformance = latestEventFrame?.performances?.find(p => p.id === selectedPerformanceId);
+    
+    if (!latestPerformance || !latestEventFrame) return;
+
+    exportPerformanceToPdfWithOptions(
+      latestPerformance, 
+      latestEventFrame, 
+      {
+        ...pdfOptions,
+        includeInputs: showInputsInPdf,
+        includeTechnicalNotes: showTechnicalNotesInPdf,
+        showBalance: showBalanceInPdf,
+        inputColumns: inputColumnsInPdf,
+        monitorColumns: monitorColumnsInPdf,
+      },
+      notificationService.info,
+      eventFrame?.performances,
+      materialItems
+    );
+  };
+
+  const addInputItem = () => { 
+    const currentList = techDataRef.current.inputList;
+    const last = currentList[currentList.length-1]; 
+    let next = '1'; 
+    if (last?.channel) { 
+      const n = parseInt(last.channel); 
+      if (!isNaN(n)) next = (n+1).toString(); 
+    } else if (currentList.length > 0) {
+      next = (currentList.length + 1).toString();
+    }
+    updateLocal({ inputList: [...techDataRef.current.inputList, { id: Date.now().toString(), channel: next, patchColor: 'transparent', patchNumber: '', label: '', micRider: '', micContra: '', stand: '', notes: '' }] }); 
+    if (!isInputsExpanded) setIsInputsExpanded(true);
+  };
+
+  const addMonitorItem = () => { 
+    const currentList = techDataRef.current.monitorList || [];
+    const last = currentList[currentList.length-1]; 
+    let next = 'MIX 1'; 
+    if (last?.outputChannel) { 
+      const match = last.outputChannel.match(/(\d+)/);
+      if (match) {
+        next = `MIX ${parseInt(match[1]) + 1}`;
+      } else {
+        next = `MIX ${currentList.length + 1}`;
+      }
+    } else if (currentList.length > 0) {
+      next = `MIX ${currentList.length + 1}`;
+    }
+    updateLocal({ monitorList: [...currentList, { id: Date.now().toString(), outputChannel: next, patchColor: 'transparent', patchNumber: '', label: '', mixRider: '', mixContra: '', mixStand: '', notes: '' }] }); 
+    if (!isMonitorsExpanded) setIsMonitorsExpanded(true); 
+  };
+
   // --- RENDERITZAT CONDICIONAL (DESPRÉS DE TOTS ELS HOOKS) ---
 
   if (!selectedEventFrameId) {
@@ -940,15 +1149,21 @@ const RiderWorkshop: React.FC = () => {
               <select value={selectedPerformanceId || ''} onChange={(e) => { if (isDirty) saveNow(); setSelectedPerformanceId(e.target.value); setActiveCell(null); }} className="bg-muted px-2 py-1 rounded text-xs font-black text-primary outline-none border-none shadow-sm cursor-pointer hover:bg-muted/80">
                 {eventFrame?.performances?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
-              <div className="flex items-center gap-1 ml-2">
-                <Tooltip text="Copiar Rider a Contra"><button onClick={() => { updateLocal({ inputList: techDataRef.current.inputList.map(i => ({ ...i, micContra: i.micContra || i.micRider })) }); notificationService.success("Copiats"); }} className="p-1.5 hover:bg-primary/10 rounded-md text-muted-foreground hover:text-primary transition-colors"><Copy className="w-4 h-4" /></button></Tooltip>
-                <Tooltip text="Netejar Contra-rider"><button onClick={() => { updateLocal({ inputList: techDataRef.current.inputList.map(i => ({ ...i, micContra: '', micContraId: undefined, stand: '', standId: undefined })) }); notificationService.info("Netejat"); }} className="p-1.5 hover:bg-destructive/10 rounded-md text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-4 h-4" /></button></Tooltip>
-              </div>
             </div>
           </div>
-          <button onClick={() => { const last = techDataRef.current.inputList[techDataRef.current.inputList.length-1]; let next = ''; if (last?.channel) { const n = parseInt(last.channel); if (!isNaN(n)) next = (n+1).toString(); } updateLocal({ inputList: [...techDataRef.current.inputList, { id: Date.now().toString(), channel: next, patchColor: 'transparent', patchNumber: '', label: '', micRider: '', micContra: '', stand: '', notes: '' }] }); }} className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all text-[10px] font-black shadow-md shadow-primary/10">
-            <Plus className="w-3 h-3" /> INPUT
-          </button>
+          
+          <div className="flex items-center gap-1.5">
+            <Tooltip text={t('tech_sheets.form.tooltip_preview')}>
+              <button onClick={handlePreviewRider} className="p-2 hover:bg-secondary/20 text-muted-foreground hover:text-secondary-foreground rounded-lg transition-all active:scale-95">
+                <Eye className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <Tooltip text={t('tech_sheets.form.tooltip_export')}>
+              <button onClick={handleExportRider} className="p-2 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all active:scale-95">
+                <FileText className="w-4 h-4" />
+              </button>
+            </Tooltip>
+          </div>
         </header>
 
         {/* CONTINGUT SCROLLABLE */}
@@ -958,88 +1173,344 @@ const RiderWorkshop: React.FC = () => {
               {/* SECCIÓ INPUTS */}
               <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
                 <div onClick={() => setIsInputsExpanded(!isInputsExpanded)} className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                    <LayoutGridIcon className="w-3.5 h-3.5 text-primary" /> 
-                    Llista d'Inputs
-                    <span className="text-muted-foreground ml-2">({techData.inputList.length})</span>
-                  </h3>
-                  {isInputsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <LayoutGridIcon className="w-3.5 h-3.5 text-primary" /> 
+                      Llista d'Inputs
+                      <span className="text-muted-foreground ml-2">({techData.inputList.length})</span>
+                    </h3>
+                    <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        id="showInputsInPdf"
+                        checked={showInputsInPdf}
+                        onChange={(e) => setShowInputsInPdf(e.target.checked)}
+                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                      />
+                      <label htmlFor="showInputsInPdf" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1 bg-background/50 rounded-md p-0.5 border border-border/50">
+                      <Tooltip text="Copiar Rider a Contra">
+                        <button onClick={() => { updateLocal({ inputList: techDataRef.current.inputList.map(i => ({ ...i, micContra: i.micContra || i.micRider })) }); notificationService.success("Copiats"); }} className="p-1 hover:bg-primary/10 rounded text-muted-foreground hover:text-primary transition-colors">
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip text="Netejar Contra-rider">
+                        <button onClick={() => { updateLocal({ inputList: techDataRef.current.inputList.map(i => ({ ...i, micContra: '', micContraId: undefined, stand: '', standId: undefined })) }); notificationService.info("Netejat"); }} className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </Tooltip>
+                    </div>
+                    <button onClick={addInputItem} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
+                      <Plus className="w-2.5 h-2.5" /> AFEGIR INPUT
+                    </button>
+                    {isInputsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </div>
                 </div>
                 {isInputsExpanded && (
-                  <table className="w-full border-collapse animate-in fade-in duration-200">
-                    <thead>
-                      <tr className="bg-muted/10 text-left border-b border-border">
-                        <th className="w-8"></th>
-                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Patch</th>
-                        <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">CH</th>
-                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Etiqueta</th>
-                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Rider</th>
-                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Contra</th>
-                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Peu</th>
-                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Notes</th>
-                        <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">Exc.</th>
-                        <th className="w-10"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/50">
-                      <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
-                        {techData.inputList.map(item => <WorkshopRow key={item.id} item={item} t={t} onChange={handleInputChange} onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })} activeCell={activeCell?.field === 'micContra' || activeCell?.field === 'stand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
-                      </SortableContext>
-                    </tbody>
-                  </table>
+                  <div className="flex flex-col">
+                    <table className="w-full border-collapse animate-in fade-in duration-200">
+                      <thead>
+                        <tr className="bg-muted/10 text-left border-b border-border">
+                          <th className="w-8"></th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Patch
+                              <input
+                                type="checkbox"
+                                checked={inputColumnsInPdf.patch}
+                                onChange={() => setInputColumnsInPdf(prev => ({...prev, patch: !prev.patch}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              CH
+                              <input
+                                type="checkbox"
+                                checked={inputColumnsInPdf.channel}
+                                onChange={() => setInputColumnsInPdf(prev => ({...prev, channel: !prev.channel}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Etiqueta
+                              <input
+                                type="checkbox"
+                                checked={inputColumnsInPdf.label}
+                                onChange={() => setInputColumnsInPdf(prev => ({...prev, label: !prev.label}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Rider
+                              <input
+                                type="checkbox"
+                                checked={inputColumnsInPdf.rider}
+                                onChange={() => setInputColumnsInPdf(prev => ({...prev, rider: !prev.rider}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Contra
+                              <input
+                                type="checkbox"
+                                checked={inputColumnsInPdf.contra}
+                                onChange={() => setInputColumnsInPdf(prev => ({...prev, contra: !prev.contra}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Peu
+                              <input
+                                type="checkbox"
+                                checked={inputColumnsInPdf.stand}
+                                onChange={() => setInputColumnsInPdf(prev => ({...prev, stand: !prev.stand}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Notes
+                              <input
+                                type="checkbox"
+                                checked={inputColumnsInPdf.notes}
+                                onChange={() => setInputColumnsInPdf(prev => ({...prev, notes: !prev.notes}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              Exc.
+                              <input
+                                type="checkbox"
+                                checked={inputColumnsInPdf.exclusive}
+                                onChange={() => setInputColumnsInPdf(prev => ({...prev, exclusive: !prev.exclusive}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
+                          {techData.inputList.map(item => <WorkshopRow key={item.id} item={item} t={t} onChange={handleInputChange} onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })} activeCell={activeCell?.field === 'micContra' || activeCell?.field === 'stand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
+                        </SortableContext>
+                      </tbody>
+                    </table>
+                    <button onClick={addInputItem} className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
+                      <Plus className="w-3.5 h-3.5" /> AFEGIR NOVA FILA D'INPUT
+                    </button>
+                  </div>
                 )}
               </section>
 
               {/* SECCIÓ MONITORS */}
               <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
                 <div onClick={() => setIsMonitorsExpanded(!isMonitorsExpanded)} className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                    <Music className="w-3.5 h-3.5 text-primary" /> 
-                    Monitors
-                    <span className="text-muted-foreground ml-2">({techData.monitorList?.length || 0})</span>
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <Music className="w-3.5 h-3.5 text-primary" /> 
+                      Monitors
+                      <span className="text-muted-foreground ml-2">({techData.monitorList?.length || 0})</span>
+                    </h3>
+                    <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        id="showMonitorsInPdf"
+                        checked={showMonitorsInPdf}
+                        onChange={(e) => setShowMonitorsInPdf(e.target.checked)}
+                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                      />
+                      <label htmlFor="showMonitorsInPdf" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={(e) => { e.stopPropagation(); const last = (techDataRef.current.monitorList || [])[(techDataRef.current.monitorList || []).length-1]; let next = 'A1'; if (last?.outputChannel) { const m = last.outputChannel.match(/([A-Z])(\d+)/); if (m) next = `${m[1]}${parseInt(m[2])+1}`; } updateLocal({ monitorList: [...(techDataRef.current.monitorList || []), { id: Date.now().toString(), outputChannel: next, patchColor: 'transparent', patchNumber: '', label: '', mixRider: '', mixContra: '', mixStand: '', notes: '' }] }); if (!isMonitorsExpanded) setIsMonitorsExpanded(true); }} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1"><Plus className="w-2.5 h-2.5" /> AFEGIR</button>
+                    <button onClick={(e) => { e.stopPropagation(); addMonitorItem(); }} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1"><Plus className="w-2.5 h-2.5" /> AFEGIR MONITOR</button>
                     {isMonitorsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
                 </div>
                 {isMonitorsExpanded && (
-                  <table className="w-full border-collapse animate-in fade-in duration-200">
-                    <tbody className="divide-y divide-border/50">
-                      <SortableContext items={(techData.monitorList || []).map(p => p.id)} strategy={verticalListSortingStrategy}>
-                        {(techData.monitorList || []).map(item => <MonitorRow key={item.id} item={item} onChange={handleMonitorChange} onRemove={(id) => updateLocal({ monitorList: (techDataRef.current.monitorList || []).filter(i => i.id !== id) })} activeCell={activeCell?.field === 'mixContra' || activeCell?.field === 'mixStand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
-                      </SortableContext>
-                    </tbody>
-                  </table>
+                  <div className="flex flex-col">
+                    <table className="w-full border-collapse animate-in fade-in duration-200">
+                      <thead>
+                        <tr className="bg-muted/10 text-left border-b border-border">
+                          <th className="w-8"></th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Patch
+                              <input
+                                type="checkbox"
+                                checked={monitorColumnsInPdf.patch}
+                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, patch: !prev.patch}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              MIX
+                              <input
+                                type="checkbox"
+                                checked={monitorColumnsInPdf.outputChannel}
+                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, outputChannel: !prev.outputChannel}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Etiqueta
+                              <input
+                                type="checkbox"
+                                checked={monitorColumnsInPdf.label}
+                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, label: !prev.label}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Rider
+                              <input
+                                type="checkbox"
+                                checked={monitorColumnsInPdf.rider}
+                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, rider: !prev.rider}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Contra
+                              <input
+                                type="checkbox"
+                                checked={monitorColumnsInPdf.contra}
+                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, contra: !prev.contra}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Peu
+                              <input
+                                type="checkbox"
+                                checked={monitorColumnsInPdf.stand}
+                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, stand: !prev.stand}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            <div className="flex items-center gap-1">
+                              Notes
+                              <input
+                                type="checkbox"
+                                checked={monitorColumnsInPdf.notes}
+                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, notes: !prev.notes}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              Exc.
+                              <input
+                                type="checkbox"
+                                checked={monitorColumnsInPdf.exclusive}
+                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, exclusive: !prev.exclusive}))}
+                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                              />
+                            </div>
+                          </th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        <SortableContext items={(techData.monitorList || []).map(p => p.id)} strategy={verticalListSortingStrategy}>
+                          {(techData.monitorList || []).map(item => <MonitorRow key={item.id} item={item} onChange={handleMonitorChange} onRemove={(id) => updateLocal({ monitorList: (techDataRef.current.monitorList || []).filter(i => i.id !== id) })} activeCell={activeCell?.field === 'mixContra' || activeCell?.field === 'mixStand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
+                        </SortableContext>
+                      </tbody>
+                    </table>
+                    <button onClick={addMonitorItem} className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
+                      <Plus className="w-3.5 h-3.5" /> AFEGIR NOU MONITOR
+                    </button>
+                  </div>
                 )}
               </section>
 
               {/* SECCIÓ NOTES */}
               <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
                 <div onClick={() => setIsNotesExpanded(!isNotesExpanded)} className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                    <EditIcon className="w-3.5 h-3.5 text-primary" /> 
-                    Notes Tècniques
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <EditIcon className="w-3.5 h-3.5 text-primary" /> 
+                      Notes Tècniques
+                    </h3>
+                    <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        id="showTechnicalNotesInPdf"
+                        checked={showTechnicalNotesInPdf}
+                        onChange={(e) => setShowTechnicalNotesInPdf(e.target.checked)}
+                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                      />
+                      <label htmlFor="showTechnicalNotesInPdf" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                    </div>
+                  </div>
                   {isNotesExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                 </div>
                 {isNotesExpanded && (
-                  <div className="grid grid-cols-3 gap-3 p-3 animate-in fade-in duration-200">
-                    {['lightingNotes', 'videoNotes', 'stageRequirements'].map((field, idx) => (
-                      <div key={field} className="space-y-1">
-                        <label className="text-[8px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 ml-1">
-                          <div className={`w-1 h-1 rounded-full ${['bg-yellow-400', 'bg-blue-400', 'bg-red-400'][idx]}`}></div>
-                          {t(`performances.${field}`)}
-                        </label>
-                        <textarea value={(techData as any)[field]} onChange={(e) => updateLocal({ [field]: e.target.value })} className="w-full h-20 p-2 bg-muted/10 border border-border rounded text-[10px] focus:ring-1 focus:ring-primary/30 outline-none resize-none font-medium" placeholder="..." />
-                      </div>
-                    ))}
+                  <div className="flex flex-col gap-4 p-4 animate-in fade-in duration-200">
+                    <TechnicalNote 
+                      label={t('performances.lighting_notes')}
+                      value={techData.lightingNotes}
+                      field="lightingNotes"
+                      colorClass="bg-blue-500"
+                      onSave={(field, val) => updateLocal({ [field]: val })}
+                    />
+                    <TechnicalNote 
+                      label={t('performances.video_notes')}
+                      value={techData.videoNotes}
+                      field="videoNotes"
+                      colorClass="bg-purple-500"
+                      onSave={(field, val) => updateLocal({ [field]: val })}
+                    />
+                    <TechnicalNote 
+                      label={t('performances.stage_requirements')}
+                      value={techData.stageRequirements}
+                      field="stageRequirements"
+                      colorClass="bg-green-500"
+                      onSave={(field, val) => updateLocal({ [field]: val })}
+                    />
                   </div>
                 )}
               </section>
 
               {/* BALANÇ INTEGRAT - Aquí sota les notes */}
-              <RiderBalance performances={eventFrame?.performances || []} materialItems={materialItems} eventFrame={eventFrame as any} getMaterialAvailability={getMaterialAvailability} />
+              <RiderBalance 
+                performances={eventFrame?.performances || []} 
+                materialItems={materialItems} 
+                eventFrame={eventFrame as any} 
+                getMaterialAvailability={getMaterialAvailability}
+                showInPdf={showBalanceInPdf}
+                onTogglePdf={() => setShowBalanceInPdf(!showBalanceInPdf)}
+              />
             </div>
           </DndContext>
         </main>
