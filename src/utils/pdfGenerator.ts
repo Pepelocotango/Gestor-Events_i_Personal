@@ -1189,8 +1189,8 @@ const calculateOptimalColumnWidths = (
     ? { width: 297, height: 210, usableWidth: 277 }  // A4 horitzontal
     : { width: 210, height: 297, usableWidth: 190 }; // A4 vertical
   
-  // Convertir a units de jspdf-autotable (approx 2.8x)
-  const totalWidthUnits = pageDimensions.usableWidth * 2.8;
+  // Convertir a units de jspdf-autotable (jspdf-autotable treballa en mm, igual que jsPDF)
+  const totalWidthUnits = pageDimensions.usableWidth;
   
   // Identificar les columnes actives per índex
   const activeColumns: number[] = [];
@@ -1223,7 +1223,6 @@ const calculateOptimalColumnWidths = (
   
   activeColumns.forEach((columnIndex) => {
     let maxContentLength = 0;
-    let hasLongContent = false;
     
     // Analitzar el contingut de tots els ítems
     items.forEach(item => {
@@ -1241,73 +1240,71 @@ const calculateOptimalColumnWidths = (
       
       const contentLength = content.length;
       maxContentLength = Math.max(maxContentLength, contentLength);
-      
-      if (contentLength > 15) hasLongContent = true;
     });
     
-    // Calcular ample mínim i màxim per cada columna (en units de jspdf-autotable)
+    // Calcular ample mínim i màxim per cada columna (en mm)
     // Adaptat segons orientació i espai disponible
     let minWidth = 12;
     let maxWidth = 80;
     
     if (columnIndex === 0) {
       // Patch: sempre petit (només per colors)
-      minWidth = 12;
-      maxWidth = 20;
+      minWidth = 18;
+      maxWidth = 18;
     } else if (columnIndex === 1) {
       // Channel: adaptar segons si hi ha números llargs
-      minWidth = 12;
-      maxWidth = hasLongContent ? 35 : 25;
+      minWidth = 22;
+      maxWidth = 25;
     } else if (columnIndex === 2) {
       // Label: flexible segons contingut
       if (maxContentLength > 25) {
         minWidth = orientation === 'landscape' ? 40 : 30;
-        maxWidth = orientation === 'landscape' ? 120 : 80;
+        maxWidth = orientation === 'landscape' ? 70 : 55;
       } else if (maxContentLength > 15) {
         minWidth = orientation === 'landscape' ? 35 : 25;
-        maxWidth = orientation === 'landscape' ? 80 : 60;
+        maxWidth = orientation === 'landscape' ? 60 : 45;
       } else if (maxContentLength > 8) {
         minWidth = 25;
-        maxWidth = 45;
+        maxWidth = 35;
       } else {
         minWidth = 20;
-        maxWidth = 35;
+        maxWidth = 30;
       }
     } else if (columnIndex === 3 || columnIndex === 4) {
       // Mic Rider/Contra: adaptable
       if (maxContentLength > 20) {
         minWidth = orientation === 'landscape' ? 40 : 30;
-        maxWidth = orientation === 'landscape' ? 100 : 70;
+        maxWidth = orientation === 'landscape' ? 60 : 45;
       } else if (maxContentLength > 12) {
         minWidth = 30;
-        maxWidth = 50;
+        maxWidth = 40;
       } else {
         minWidth = 25;
-        maxWidth = 40;
+        maxWidth = 35;
       }
     } else if (columnIndex === 5) {
       // Stand: similar a mic
-      minWidth = 15;
-      maxWidth = hasLongContent ? 35 : 25;
+      minWidth = 30;
+      maxWidth = 35;
     } else if (columnIndex === 6) {
       // Notes: molt flexible, pot ocupar molt espai
       if (maxContentLength > 40) {
         minWidth = orientation === 'landscape' ? 50 : 40;
-        maxWidth = orientation === 'landscape' ? 150 : 100;
+        maxWidth = orientation === 'landscape' ? 80 : 60;
       } else if (maxContentLength > 20) {
         minWidth = orientation === 'landscape' ? 40 : 30;
-        maxWidth = orientation === 'landscape' ? 100 : 70;
+        maxWidth = orientation === 'landscape' ? 60 : 45;
       } else if (maxContentLength > 10) {
         minWidth = 30;
-        maxWidth = 50;
+        maxWidth = 40;
       } else {
         minWidth = 20;
-        maxWidth = 35;
+        maxWidth = 30;
       }
     } else if (columnIndex === 7) {
       // Exclusive: sempre petit (només ✓)
-      minWidth = 10;
-      maxWidth = 15;
+      minWidth = 13;
+      maxWidth = 13;
     }
     
     minWidths.push(minWidth);
@@ -1384,7 +1381,7 @@ const calculateOptimalColumnWidths = (
 // --- ESTILS ENRIQUITS PER A ACTUACIONS ---
 
 const getPerformanceStyles = () => {
-  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value));
   
   const headStyles: Partial<Styles> = { 
     fillColor: hslToRgb(...themeHslColors.grayDark), 
@@ -1404,22 +1401,28 @@ const getPerformanceStyles = () => {
     textColor: hslToRgb(...themeHslColors.grayMuted) 
   };
   
-  const inputColumnStyles = {
-    0: { cellWidth: 15 },  // Patch
-    1: { cellWidth: 12 },  // Channel
-    2: { cellWidth: 'auto' }, // Label
-    3: { cellWidth: 20 },  // Mic Rider
-    4: { cellWidth: 20 },  // Mic Contra
-    5: { cellWidth: 15 },  // Stand
-    6: { cellWidth: 'auto' }  // Notes
-  };
-  
+  return { sane, headStyles, labelStyles, emptySectionStyles };
+};
+
+// --- FUNCIO DE DENSITAT PER TAULES ---
+
+const getTableDensityStyles = (orientation: 'portrait' | 'landscape') => {
+  if (orientation === 'landscape') {
+    return {
+      fontSize: 9,
+      cellPadding: { top: 1.5, bottom: 1.5, left: 2, right: 2 },
+      overflow: 'linebreak' as const,
+      minCellHeight: 8,
+      valign: 'middle' as const
+    };
+  }
+  // Portrait: màxima densitat (≥32 files/pàgina)
   return {
-    sane,
-    headStyles,
-    labelStyles,
-    emptySectionStyles,
-    inputColumnStyles
+    fontSize: 8,
+    cellPadding: { top: 1, bottom: 1, left: 2, right: 2 },
+    overflow: 'linebreak' as const,
+    minCellHeight: 7,
+    valign: 'middle' as const
   };
 };
 
@@ -1567,49 +1570,52 @@ export const generatePerformancePdfObjectWithOptions = (
     // Calcular els amples òptims de les columnes segons el contingut
     const optimalColumnWidths = calculateOptimalColumnWidths(performance.techData.inputList, columnsWithData, options.pdfOrientation || 'portrait');
     
-    // Construir capçalera només amb columnes que tenen dades
+    // Obtenir estils de densitat segons orientació
+    const densityStyles = getTableDensityStyles(options.pdfOrientation || 'portrait');
+    
+    // Construir capçalera dinàmicament segons les columnes amb dades
     const inputHead = [];
     const columnStyles: any = {};
     let columnIndex = 0;
     
     if (columnsWithData.patch) {
       inputHead.push(i18next.t('pdf.patch'));
-      columnStyles[columnIndex] = optimalColumnWidths[0] || { cellWidth: 12 };
+      columnStyles[columnIndex] = optimalColumnWidths[0] || { cellWidth: 18 };
       columnIndex++;
     }
     if (columnsWithData.channel) {
       inputHead.push(i18next.t('pdf.channel'));
-      columnStyles[columnIndex] = optimalColumnWidths[1] || { cellWidth: 12 };
+      columnStyles[columnIndex] = optimalColumnWidths[1] || { cellWidth: 22 };
       columnIndex++;
     }
     if (columnsWithData.label) {
       inputHead.push(i18next.t('pdf.label'));
-      columnStyles[columnIndex] = optimalColumnWidths[2] || { cellWidth: 25 };
+      columnStyles[columnIndex] = optimalColumnWidths[2] || { cellWidth: 30 };
       columnIndex++;
     }
     if (columnsWithData.rider) {
       inputHead.push(i18next.t('pdf.mic_rider'));
-      columnStyles[columnIndex] = optimalColumnWidths[3] || { cellWidth: 20 };
+      columnStyles[columnIndex] = optimalColumnWidths[3] || { cellWidth: 25 };
       columnIndex++;
     }
     if (columnsWithData.contra) {
       inputHead.push(i18next.t('pdf.mic_contra'));
-      columnStyles[columnIndex] = optimalColumnWidths[4] || { cellWidth: 20 };
+      columnStyles[columnIndex] = optimalColumnWidths[4] || { cellWidth: 25 };
       columnIndex++;
     }
     if (columnsWithData.stand) {
       inputHead.push(i18next.t('pdf.stand'));
-      columnStyles[columnIndex] = optimalColumnWidths[5] || { cellWidth: 15 };
+      columnStyles[columnIndex] = optimalColumnWidths[5] || { cellWidth: 30 };
       columnIndex++;
     }
     if (columnsWithData.notes) {
       inputHead.push(i18next.t('pdf.notes'));
-      columnStyles[columnIndex] = optimalColumnWidths[6] || { cellWidth: 30 };
+      columnStyles[columnIndex] = optimalColumnWidths[6] || { cellWidth: 40 };
       columnIndex++;
     }
     if (columnsWithData.exclusive) {
       inputHead.push(i18next.t('pdf.exclusive'));
-      columnStyles[columnIndex] = optimalColumnWidths[7] || { cellWidth: 10 };
+      columnStyles[columnIndex] = optimalColumnWidths[7] || { cellWidth: 13 };
       columnIndex++;
     }
     
@@ -1659,8 +1665,13 @@ export const generatePerformancePdfObjectWithOptions = (
       body: inputBody,
       startY: y,
       theme: 'grid',
-      styles: { fontSize: 10, cellPadding: 2, cellWidth: 'wrap' }, // Afegit cellWidth: 'wrap'
-      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+      headStyles: { 
+        fillColor: hslToRgb(...themeHslColors.grayDark), 
+        textColor: hslToRgb(...themeHslColors.foregroundWhite), 
+        fontStyle: 'bold',
+        fontSize: densityStyles.fontSize,
+        cellPadding: densityStyles.cellPadding,
+      },
       columnStyles: columnStyles,
       margin: { left: 10, right: 10 },
       // 3. AQUESTA ÉS LA MÀGIA: Dibuixem el cercle just després de renderitzar la cel·la
@@ -1680,15 +1691,8 @@ export const generatePerformancePdfObjectWithOptions = (
           }
         }
       },
-      // 4. Configuració per permetre múltiples files en cel·les
-      tableWidth: 'wrap', // Permet que la taula s'ajusti a l'ample disponible
-      styles: {
-        fontSize: 10,
-        cellPadding: 2,
-        cellWidth: 'wrap', // Permet que el text es distribueixi en múltiples files
-        overflow: 'linebreak', // Força salt de línia quan el text no cap
-        minCellHeight: 12 // Alçada mínima per cel·la
-      }
+      // 4. Configuració de densitat per permetre múltiples files en cel·les
+      styles: densityStyles
     });
     y = (pdf as any).lastAutoTable.finalY + 5;
   } else if (options.includeInputs && options.showEmptySections) {
@@ -1722,6 +1726,9 @@ export const generatePerformancePdfObjectWithOptions = (
     
     // Calcular els amples òptims de les columnes segons el contingut
     const optimalColumnWidths = calculateOptimalColumnWidths(performance.techData.monitorList, columnsWithData, options.pdfOrientation || 'portrait');
+    
+    // Obtenir estils de densitat segons orientació
+    const densityStyles = getTableDensityStyles(options.pdfOrientation || 'portrait');
     
     // Construir capçalera només amb columnes que tenen dades
     const monitorHead = [];
@@ -1814,8 +1821,13 @@ export const generatePerformancePdfObjectWithOptions = (
         body: monitorBody,
         startY: y,
         theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 2, cellWidth: 'wrap' }, // Afegit cellWidth: 'wrap'
-        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+        headStyles: { 
+          fillColor: hslToRgb(...themeHslColors.grayDark), 
+          textColor: hslToRgb(...themeHslColors.foregroundWhite), 
+          fontStyle: 'bold',
+          fontSize: densityStyles.fontSize,
+          cellPadding: densityStyles.cellPadding,
+        },
         columnStyles: columnStyles,
         margin: { left: 10, right: 10 },
         didDrawCell: (data) => {
@@ -1831,15 +1843,8 @@ export const generatePerformancePdfObjectWithOptions = (
             }
           }
         },
-        // Configuració per permetre múltiples files en cel·les
-        tableWidth: 'wrap', // Permet que la taula s'ajusti a l'ample disponible
-        styles: {
-          fontSize: 10,
-          cellPadding: 2,
-          cellWidth: 'wrap', // Permet que el text es distribueixi en múltiples files
-          overflow: 'linebreak', // Força salt de línia quan el text no cap
-          minCellHeight: 12 // Alçada mínima per cel·la
-        }
+        // Configuració de densitat per permetre múltiples files en cel·les
+        styles: densityStyles
       });
       y = (pdf as any).lastAutoTable.finalY + 5;
     }
