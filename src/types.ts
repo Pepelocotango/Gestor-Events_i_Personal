@@ -228,8 +228,9 @@ export interface PerformancePdfOptions {
   includeTechnicalNotes: boolean;  // Notes de llums, vídeo, escenari
   includeHospitality: boolean;     // Hospitality complet
   includeGeneralNotes: boolean;    // Notes generals de l'actuació
-  showEmptySections: boolean;      // Mostrar seccions buides amb "-"
+  showEmptySections: boolean;      // Mostrar seccions buides com "-"
   showBalance?: boolean;           // Mostrar balanç consolidat
+  pdfOrientation?: 'portrait' | 'landscape'; // Orientació del PDF
   inputColumns?: {                 // Columnes individuals per inputs
     patch: boolean;
     channel: boolean;

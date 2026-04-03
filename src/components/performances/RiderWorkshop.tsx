@@ -807,8 +807,8 @@ const RiderWorkshop: React.FC = () => {
   const [isMonitorsExpanded, setIsMonitorsExpanded] = useState(true);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 
-  // Estat per a les opcions del PDF (reaprofitat de PerformanceDetailContainer)
-  const [pdfOptions, setPdfOptions] = useState<PerformancePdfOptions>({
+  // Estat per a les opcions del PDF (només lectura, reaprofitat de PerformanceDetailContainer)
+  const [pdfOptions] = useState<PerformancePdfOptions>({
     includeBasicInfo: true,
     includeInputs: true,
     includeTechnicalNotes: true,
@@ -822,6 +822,14 @@ const RiderWorkshop: React.FC = () => {
   const [showMonitorsInPdf, setShowMonitorsInPdf] = useState(true);
   const [showTechnicalNotesInPdf, setShowTechnicalNotesInPdf] = useState(true);
   const [showBalanceInPdf, setShowBalanceInPdf] = useState(true);
+
+  // Estat per a les seccions que faltaven
+  const [showBasicInfoInPdf, setShowBasicInfoInPdf] = useState(true);
+  const [showHospitalityInPdf, setShowHospitalityInPdf] = useState(true);
+  const [showGeneralNotesInPdf, setShowGeneralNotesInPdf] = useState(true);
+
+  // Estat per a l'orientació del PDF
+  const [pdfOrientation, setPdfOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
   // Estat per a les columnes individuals d'inputs
   const [inputColumnsInPdf, setInputColumnsInPdf] = useState({
@@ -992,11 +1000,15 @@ const RiderWorkshop: React.FC = () => {
         latestEventFrame, 
         {
           ...pdfOptions,
+          includeBasicInfo: showBasicInfoInPdf,
           includeInputs: showInputsInPdf,
           includeTechnicalNotes: showTechnicalNotesInPdf,
+          includeHospitality: showHospitalityInPdf,
+          includeGeneralNotes: showGeneralNotesInPdf,
           showBalance: showBalanceInPdf,
           inputColumns: inputColumnsInPdf,
           monitorColumns: monitorColumnsInPdf,
+          pdfOrientation: pdfOrientation,
         },
         eventFrame?.performances,
         materialItems
@@ -1026,11 +1038,15 @@ const RiderWorkshop: React.FC = () => {
       latestEventFrame, 
       {
         ...pdfOptions,
+        includeBasicInfo: showBasicInfoInPdf,
         includeInputs: showInputsInPdf,
         includeTechnicalNotes: showTechnicalNotesInPdf,
+        includeHospitality: showHospitalityInPdf,
+        includeGeneralNotes: showGeneralNotesInPdf,
         showBalance: showBalanceInPdf,
         inputColumns: inputColumnsInPdf,
         monitorColumns: monitorColumnsInPdf,
+        pdfOrientation: pdfOrientation,
       },
       notificationService.info,
       eventFrame?.performances,
@@ -1151,23 +1167,145 @@ const RiderWorkshop: React.FC = () => {
               </select>
             </div>
           </div>
-          
-          <div className="flex items-center gap-1.5">
-            <Tooltip text={t('tech_sheets.form.tooltip_preview')}>
-              <button onClick={handlePreviewRider} className="p-2 hover:bg-secondary/20 text-muted-foreground hover:text-secondary-foreground rounded-lg transition-all active:scale-95">
-                <Eye className="w-4 h-4" />
-              </button>
-            </Tooltip>
-            <Tooltip text={t('tech_sheets.form.tooltip_export')}>
-              <button onClick={handleExportRider} className="p-2 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all active:scale-95">
-                <FileText className="w-4 h-4" />
-              </button>
-            </Tooltip>
-          </div>
         </header>
 
         {/* CONTINGUT SCROLLABLE */}
         <main className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-4">
+          {/* SECCIÓ DE CONTROLS PDF */}
+          <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+            <div className="px-3 py-2 bg-muted/20 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-3.5 h-3.5 text-primary" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest">Controls PDF</h3>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Tooltip text={t('tech_sheets.form.tooltip_preview')}>
+                    <button onClick={handlePreviewRider} className="p-1.5 hover:bg-secondary/20 text-muted-foreground hover:text-secondary-foreground rounded-md transition-all active:scale-95">
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip text={t('tech_sheets.form.tooltip_export')}>
+                    <button onClick={handleExportRider} className="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-md transition-all active:scale-95">
+                      <FileText className="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 space-y-2">
+              {/* Orientació del PDF */}
+              <div className="flex items-center gap-2">
+                <Tooltip text="Selecciona l'orientació de la pàgina del PDF (vertical o horitzontal)">
+                  <label htmlFor="pdfOrientation" className="font-medium text-muted-foreground cursor-pointer">Orientació:</label>
+                </Tooltip>
+                <select
+                  id="pdfOrientation"
+                  value={pdfOrientation}
+                  onChange={(e) => setPdfOrientation(e.target.value as 'portrait' | 'landscape')}
+                  className="h-6 px-2 text-[9px] border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="portrait">Vertical</option>
+                  <option value="landscape">Horitzontal</option>
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-[9px]">
+                {/* Info Bàsica */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou informació bàsica de l'esdeveniment, artista i horaris al PDF">
+                    <input
+                      type="checkbox"
+                      id="showBasicInfoInPdf"
+                      checked={showBasicInfoInPdf}
+                      onChange={(e) => setShowBasicInfoInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showBasicInfoInPdf" className="font-medium text-muted-foreground cursor-pointer">Info Bàsica</label>
+                </div>
+                {/* Inputs */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou la taula d'inputs (micròfons) amb les columnes seleccionades al PDF">
+                    <input
+                      type="checkbox"
+                      id="showInputsInPdf"
+                      checked={showInputsInPdf}
+                      onChange={(e) => setShowInputsInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showInputsInPdf" className="font-medium text-muted-foreground cursor-pointer">Inputs</label>
+                </div>
+                {/* Monitors */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou la taula de monitors (MIX) amb les columnes seleccionades al PDF">
+                    <input
+                      type="checkbox"
+                      id="showMonitorsInPdf"
+                      checked={showMonitorsInPdf}
+                      onChange={(e) => setShowMonitorsInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showMonitorsInPdf" className="font-medium text-muted-foreground cursor-pointer">Monitors</label>
+                </div>
+                {/* Notes Tècniques */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou notes tècniques d'il·luminació, vídeo i requeriments d'escenari al PDF">
+                    <input
+                      type="checkbox"
+                      id="showTechnicalNotesInPdf"
+                      checked={showTechnicalNotesInPdf}
+                      onChange={(e) => setShowTechnicalNotesInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showTechnicalNotesInPdf" className="font-medium text-muted-foreground cursor-pointer">Notes Tècniques</label>
+                </div>
+                {/* Hospitalitat */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou informació d'hostes: cambres, catering, dietes, logística i aparcament al PDF">
+                    <input
+                      type="checkbox"
+                      id="showHospitalityInPdf"
+                      checked={showHospitalityInPdf}
+                      onChange={(e) => setShowHospitalityInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showHospitalityInPdf" className="font-medium text-muted-foreground cursor-pointer">Hospitalitat</label>
+                </div>
+                {/* Notes Generals */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou les notes generals de l'actuació al PDF">
+                    <input
+                      type="checkbox"
+                      id="showGeneralNotesInPdf"
+                      checked={showGeneralNotesInPdf}
+                      onChange={(e) => setShowGeneralNotesInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showGeneralNotesInPdf" className="font-medium text-muted-foreground cursor-pointer">Notes Generals</label>
+                </div>
+                {/* Balanç */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou el balanç consolidat de materials vs disponibilitat de tot l'esdeveniment al PDF">
+                    <input
+                      type="checkbox"
+                      id="showBalanceInPdf"
+                      checked={showBalanceInPdf}
+                      onChange={(e) => setShowBalanceInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showBalanceInPdf" className="font-medium text-muted-foreground cursor-pointer">Balanç</label>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div className="space-y-4">
               {/* SECCIÓ INPUTS */}
@@ -1180,14 +1318,16 @@ const RiderWorkshop: React.FC = () => {
                       <span className="text-muted-foreground ml-2">({techData.inputList.length})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        id="showInputsInPdf"
-                        checked={showInputsInPdf}
-                        onChange={(e) => setShowInputsInPdf(e.target.checked)}
-                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
-                      />
-                      <label htmlFor="showInputsInPdf" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                      <Tooltip text="Inclou la taula d'inputs (micròfons) al PDF">
+                        <input
+                          type="checkbox"
+                          id="showInputsInPdf_section"
+                          checked={showInputsInPdf}
+                          onChange={(e) => setShowInputsInPdf(e.target.checked)}
+                          className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                        />
+                      </Tooltip>
+                      <label htmlFor="showInputsInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
                     </div>
                   </div>
                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -1329,14 +1469,16 @@ const RiderWorkshop: React.FC = () => {
                       <span className="text-muted-foreground ml-2">({techData.monitorList?.length || 0})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        id="showMonitorsInPdf"
-                        checked={showMonitorsInPdf}
-                        onChange={(e) => setShowMonitorsInPdf(e.target.checked)}
-                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
-                      />
-                      <label htmlFor="showMonitorsInPdf" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                      <Tooltip text="Inclou la taula de monitors (MIX) al PDF">
+                        <input
+                          type="checkbox"
+                          id="showMonitorsInPdf_section"
+                          checked={showMonitorsInPdf}
+                          onChange={(e) => setShowMonitorsInPdf(e.target.checked)}
+                          className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                        />
+                      </Tooltip>
+                      <label htmlFor="showMonitorsInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -1463,14 +1605,16 @@ const RiderWorkshop: React.FC = () => {
                       Notes Tècniques
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        id="showTechnicalNotesInPdf"
-                        checked={showTechnicalNotesInPdf}
-                        onChange={(e) => setShowTechnicalNotesInPdf(e.target.checked)}
-                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
-                      />
-                      <label htmlFor="showTechnicalNotesInPdf" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                      <Tooltip text="Inclou notes tècniques d'il·luminació, vídeo i escenari al PDF">
+                        <input
+                          type="checkbox"
+                          id="showTechnicalNotesInPdf_section"
+                          checked={showTechnicalNotesInPdf}
+                          onChange={(e) => setShowTechnicalNotesInPdf(e.target.checked)}
+                          className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                        />
+                      </Tooltip>
+                      <label htmlFor="showTechnicalNotesInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
                     </div>
                   </div>
                   {isNotesExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}

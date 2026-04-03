@@ -1174,6 +1174,213 @@ export const validatePerformanceData = (performance: Performance): ValidationRes
   return { errors, warnings, isValid: errors.length === 0 };
 };
 
+// --- ANÀLISI I ADAPTACIÓ AUTOMÀTICA DE COLUMNES ---
+
+// Funció per calcular l'ample òptim de cada columna segons el contingut i orientació
+const calculateOptimalColumnWidths = (
+  items: any[], 
+  columnConfig: any, 
+  orientation: 'portrait' | 'landscape' = 'portrait'
+) => {
+  const columnWidths: any = {};
+  
+  // Dimensions segons orientació (en mm)
+  const pageDimensions = orientation === 'landscape' 
+    ? { width: 297, height: 210, usableWidth: 277 }  // A4 horitzontal
+    : { width: 210, height: 297, usableWidth: 190 }; // A4 vertical
+  
+  // Convertir a units de jspdf-autotable (approx 2.8x)
+  const totalWidthUnits = pageDimensions.usableWidth * 2.8;
+  
+  // Identificar les columnes actives per índex
+  const activeColumns: number[] = [];
+  const columnKeyToIndex: Record<string, number> = {
+    'patch': 0,
+    'channel': 1, 
+    'label': 2,
+    'rider': 3,
+    'contra': 4,
+    'stand': 5,
+    'notes': 6,
+    'exclusive': 7,
+    'outputChannel': 1  // Per monitors
+  };
+  
+  Object.keys(columnConfig).forEach((key) => {
+    if (columnConfig[key] && columnKeyToIndex[key] !== undefined) {
+      activeColumns.push(columnKeyToIndex[key]);
+    }
+  });
+  
+  // Si no hi ha columnes actives, retornar buit
+  if (activeColumns.length === 0) {
+    return columnWidths;
+  }
+  
+  // Calcular l'ample mínim necessari per cada columna activa
+  const minWidths: number[] = [];
+  const maxWidths: number[] = [];
+  
+  activeColumns.forEach((columnIndex) => {
+    let maxContentLength = 0;
+    let hasLongContent = false;
+    
+    // Analitzar el contingut de tots els ítems
+    items.forEach(item => {
+      let content = '';
+      
+      // Obtenir el contingut segons la columna (adaptat per inputs i monitors)
+      if (columnIndex === 0) content = item.patchNumber || '';
+      else if (columnIndex === 1) content = item.channel || item.outputChannel || '';
+      else if (columnIndex === 2) content = item.label || '';
+      else if (columnIndex === 3) content = item.micRider || item.mixRider || '';
+      else if (columnIndex === 4) content = item.micContra || item.mixContra || '';
+      else if (columnIndex === 5) content = item.stand || item.mixStand || '';
+      else if (columnIndex === 6) content = item.notes || '';
+      else if (columnIndex === 7) content = item.exclusive ? '✓' : '';
+      
+      const contentLength = content.length;
+      maxContentLength = Math.max(maxContentLength, contentLength);
+      
+      if (contentLength > 15) hasLongContent = true;
+    });
+    
+    // Calcular ample mínim i màxim per cada columna (en units de jspdf-autotable)
+    // Adaptat segons orientació i espai disponible
+    let minWidth = 12;
+    let maxWidth = 80;
+    
+    if (columnIndex === 0) {
+      // Patch: sempre petit (només per colors)
+      minWidth = 12;
+      maxWidth = 20;
+    } else if (columnIndex === 1) {
+      // Channel: adaptar segons si hi ha números llargs
+      minWidth = 12;
+      maxWidth = hasLongContent ? 35 : 25;
+    } else if (columnIndex === 2) {
+      // Label: flexible segons contingut
+      if (maxContentLength > 25) {
+        minWidth = orientation === 'landscape' ? 40 : 30;
+        maxWidth = orientation === 'landscape' ? 120 : 80;
+      } else if (maxContentLength > 15) {
+        minWidth = orientation === 'landscape' ? 35 : 25;
+        maxWidth = orientation === 'landscape' ? 80 : 60;
+      } else if (maxContentLength > 8) {
+        minWidth = 25;
+        maxWidth = 45;
+      } else {
+        minWidth = 20;
+        maxWidth = 35;
+      }
+    } else if (columnIndex === 3 || columnIndex === 4) {
+      // Mic Rider/Contra: adaptable
+      if (maxContentLength > 20) {
+        minWidth = orientation === 'landscape' ? 40 : 30;
+        maxWidth = orientation === 'landscape' ? 100 : 70;
+      } else if (maxContentLength > 12) {
+        minWidth = 30;
+        maxWidth = 50;
+      } else {
+        minWidth = 25;
+        maxWidth = 40;
+      }
+    } else if (columnIndex === 5) {
+      // Stand: similar a mic
+      minWidth = 15;
+      maxWidth = hasLongContent ? 35 : 25;
+    } else if (columnIndex === 6) {
+      // Notes: molt flexible, pot ocupar molt espai
+      if (maxContentLength > 40) {
+        minWidth = orientation === 'landscape' ? 50 : 40;
+        maxWidth = orientation === 'landscape' ? 150 : 100;
+      } else if (maxContentLength > 20) {
+        minWidth = orientation === 'landscape' ? 40 : 30;
+        maxWidth = orientation === 'landscape' ? 100 : 70;
+      } else if (maxContentLength > 10) {
+        minWidth = 30;
+        maxWidth = 50;
+      } else {
+        minWidth = 20;
+        maxWidth = 35;
+      }
+    } else if (columnIndex === 7) {
+      // Exclusive: sempre petit (només ✓)
+      minWidth = 10;
+      maxWidth = 15;
+    }
+    
+    minWidths.push(minWidth);
+    maxWidths.push(maxWidth);
+  });
+  
+  // Calcular l'ample total mínim necessari
+  const totalMinWidth = minWidths.reduce((sum, width) => sum + width, 0);
+  
+  // Si hi ha espai extra, distribuir-lo proporcionalment
+  if (totalMinWidth < totalWidthUnits && activeColumns.length > 0) {
+    const extraSpace = totalWidthUnits - totalMinWidth;
+    const flexibilityScores = maxWidths.map((max, i) => max - minWidths[i]);
+    const totalFlexibility = flexibilityScores.reduce((sum, score) => sum + score, 0);
+    
+    // Distribuir l'espai extra segons la flexibilitat de cada columna
+    let finalWidths = minWidths.map((minWidth, i) => {
+      if (totalFlexibility > 0) {
+        const extraRatio = flexibilityScores[i] / totalFlexibility;
+        const extraWidth = extraSpace * extraRatio;
+        return Math.min(maxWidths[i], minWidth + extraWidth);
+      }
+      return minWidth;
+    });
+    
+    // VERIFICACIÓ CRÍTICA: Si encara no hi ha prou espai, ajustar per forçar que tot cabgui
+    const totalCalculated = finalWidths.reduce((sum, w) => sum + w, 0);
+    if (totalCalculated > totalWidthUnits) {
+      console.log('[DEBUG] Espai insuficient, ajustant amples per forçar que tot cabgui');
+      
+      // Reduir totes les columnes proporcionalment
+      const reductionFactor = totalWidthUnits / totalCalculated;
+      finalWidths = finalWidths.map(width => Math.max(10, width * reductionFactor));
+    }
+    
+    // DEBUG: Mostrar informació de depuració
+    console.log('[DEBUG] Column Width Calculation:', {
+      orientation,
+      pageDimensions,
+      activeColumns,
+      totalWidthUnits: Math.round(totalWidthUnits),
+      totalMinWidth,
+      extraSpace: Math.round(extraSpace),
+      minWidths,
+      maxWidths,
+      finalWidths: finalWidths.map(w => Math.round(w)),
+      totalCalculated: Math.round(finalWidths.reduce((sum, w) => sum + w, 0)),
+      fitsInPage: finalWidths.reduce((sum, w) => sum + w, 0) <= totalWidthUnits
+    });
+    
+    // Aplicar els amples calculats als índexs de columna correctes
+    activeColumns.forEach((columnIndex, i) => {
+      columnWidths[columnIndex] = { cellWidth: Math.round(finalWidths[i]) };
+    });
+  } else {
+    // Si no hi ha espai suficient, usar els amples mínims
+    console.log('[DEBUG] Using minimum widths:', {
+      orientation,
+      pageDimensions,
+      activeColumns,
+      totalWidthUnits: Math.round(totalWidthUnits),
+      totalMinWidth,
+      minWidths
+    });
+    
+    activeColumns.forEach((columnIndex, i) => {
+      columnWidths[columnIndex] = { cellWidth: minWidths[i] };
+    });
+  }
+  
+  return columnWidths;
+};
+
 // --- ESTILS ENRIQUITS PER A ACTUACIONS ---
 
 const getPerformanceStyles = () => {
@@ -1257,8 +1464,9 @@ export const generatePerformancePdfObjectWithOptions = (
   allPerformances?: Performance[],
   materialItems?: MaterialItem[]
 ): jsPDF => {
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const { sane, headStyles, labelStyles, emptySectionStyles, inputColumnStyles } = getPerformanceStyles();
+  const orientation = options.pdfOrientation || 'portrait';
+  const pdf = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
+  const { sane, headStyles, labelStyles, emptySectionStyles } = getPerformanceStyles();
   
   let y = 10; // ELIMINEM createPdfHeader
   const mainTitle = `${i18next.t('pdf.performance_rider_title')} - ${performance.name}`;
@@ -1356,16 +1564,54 @@ export const generatePerformancePdfObjectWithOptions = (
       exclusive: columns.exclusive && performance.techData.inputList.some(input => input.exclusive)
     };
     
+    // Calcular els amples òptims de les columnes segons el contingut
+    const optimalColumnWidths = calculateOptimalColumnWidths(performance.techData.inputList, columnsWithData, options.pdfOrientation || 'portrait');
+    
     // Construir capçalera només amb columnes que tenen dades
     const inputHead = [];
-    if (columnsWithData.patch) inputHead.push(i18next.t('pdf.patch'));
-    if (columnsWithData.channel) inputHead.push(i18next.t('pdf.channel'));
-    if (columnsWithData.label) inputHead.push(i18next.t('pdf.label'));
-    if (columnsWithData.rider) inputHead.push(i18next.t('pdf.mic_rider'));
-    if (columnsWithData.contra) inputHead.push(i18next.t('pdf.mic_contra'));
-    if (columnsWithData.stand) inputHead.push(i18next.t('pdf.stand'));
-    if (columnsWithData.notes) inputHead.push(i18next.t('pdf.notes'));
-    if (columnsWithData.exclusive) inputHead.push(i18next.t('pdf.exclusive'));
+    const columnStyles: any = {};
+    let columnIndex = 0;
+    
+    if (columnsWithData.patch) {
+      inputHead.push(i18next.t('pdf.patch'));
+      columnStyles[columnIndex] = optimalColumnWidths[0] || { cellWidth: 12 };
+      columnIndex++;
+    }
+    if (columnsWithData.channel) {
+      inputHead.push(i18next.t('pdf.channel'));
+      columnStyles[columnIndex] = optimalColumnWidths[1] || { cellWidth: 12 };
+      columnIndex++;
+    }
+    if (columnsWithData.label) {
+      inputHead.push(i18next.t('pdf.label'));
+      columnStyles[columnIndex] = optimalColumnWidths[2] || { cellWidth: 25 };
+      columnIndex++;
+    }
+    if (columnsWithData.rider) {
+      inputHead.push(i18next.t('pdf.mic_rider'));
+      columnStyles[columnIndex] = optimalColumnWidths[3] || { cellWidth: 20 };
+      columnIndex++;
+    }
+    if (columnsWithData.contra) {
+      inputHead.push(i18next.t('pdf.mic_contra'));
+      columnStyles[columnIndex] = optimalColumnWidths[4] || { cellWidth: 20 };
+      columnIndex++;
+    }
+    if (columnsWithData.stand) {
+      inputHead.push(i18next.t('pdf.stand'));
+      columnStyles[columnIndex] = optimalColumnWidths[5] || { cellWidth: 15 };
+      columnIndex++;
+    }
+    if (columnsWithData.notes) {
+      inputHead.push(i18next.t('pdf.notes'));
+      columnStyles[columnIndex] = optimalColumnWidths[6] || { cellWidth: 30 };
+      columnIndex++;
+    }
+    if (columnsWithData.exclusive) {
+      inputHead.push(i18next.t('pdf.exclusive'));
+      columnStyles[columnIndex] = optimalColumnWidths[7] || { cellWidth: 10 };
+      columnIndex++;
+    }
     
     // Si no hi ha cap columna amb dades, ometre la secció
     if (inputHead.length === 0) {
@@ -1413,9 +1659,9 @@ export const generatePerformancePdfObjectWithOptions = (
       body: inputBody,
       startY: y,
       theme: 'grid',
-      styles: { fontSize: 10, cellPadding: 2 },
+      styles: { fontSize: 10, cellPadding: 2, cellWidth: 'wrap' }, // Afegit cellWidth: 'wrap'
       headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
-      columnStyles: inputColumnStyles as any,
+      columnStyles: columnStyles,
       margin: { left: 10, right: 10 },
       // 3. AQUESTA ÉS LA MÀGIA: Dibuixem el cercle just després de renderitzar la cel·la
       didDrawCell: (data) => {
@@ -1433,6 +1679,15 @@ export const generatePerformancePdfObjectWithOptions = (
             pdf.circle(x, y, 2, 'F');
           }
         }
+      },
+      // 4. Configuració per permetre múltiples files en cel·les
+      tableWidth: 'wrap', // Permet que la taula s'ajusti a l'ample disponible
+      styles: {
+        fontSize: 10,
+        cellPadding: 2,
+        cellWidth: 'wrap', // Permet que el text es distribueixi en múltiples files
+        overflow: 'linebreak', // Força salt de línia quan el text no cap
+        minCellHeight: 12 // Alçada mínima per cel·la
       }
     });
     y = (pdf as any).lastAutoTable.finalY + 5;
@@ -1465,16 +1720,54 @@ export const generatePerformancePdfObjectWithOptions = (
       exclusive: monitorColumns.exclusive && performance.techData.monitorList.some(monitor => monitor.exclusive)
     };
     
+    // Calcular els amples òptims de les columnes segons el contingut
+    const optimalColumnWidths = calculateOptimalColumnWidths(performance.techData.monitorList, columnsWithData, options.pdfOrientation || 'portrait');
+    
     // Construir capçalera només amb columnes que tenen dades
     const monitorHead = [];
-    if (columnsWithData.patch) monitorHead.push(i18next.t('pdf.patch'));
-    if (columnsWithData.outputChannel) monitorHead.push(i18next.t('pdf.output_channel'));
-    if (columnsWithData.label) monitorHead.push(i18next.t('pdf.label'));
-    if (columnsWithData.rider) monitorHead.push(i18next.t('pdf.monitor_rider'));
-    if (columnsWithData.contra) monitorHead.push(i18next.t('pdf.monitor_contra'));
-    if (columnsWithData.stand) monitorHead.push(i18next.t('pdf.monitor_stand'));
-    if (columnsWithData.notes) monitorHead.push(i18next.t('pdf.notes'));
-    if (columnsWithData.exclusive) monitorHead.push(i18next.t('pdf.exclusive'));
+    const columnStyles: any = {};
+    let columnIndex = 0;
+    
+    if (columnsWithData.patch) {
+      monitorHead.push(i18next.t('pdf.patch'));
+      columnStyles[columnIndex] = optimalColumnWidths[0] || { cellWidth: 12 };
+      columnIndex++;
+    }
+    if (columnsWithData.outputChannel) {
+      monitorHead.push(i18next.t('pdf.output_channel'));
+      columnStyles[columnIndex] = optimalColumnWidths[1] || { cellWidth: 12 };
+      columnIndex++;
+    }
+    if (columnsWithData.label) {
+      monitorHead.push(i18next.t('pdf.label'));
+      columnStyles[columnIndex] = optimalColumnWidths[2] || { cellWidth: 25 };
+      columnIndex++;
+    }
+    if (columnsWithData.rider) {
+      monitorHead.push(i18next.t('pdf.monitor_rider'));
+      columnStyles[columnIndex] = optimalColumnWidths[3] || { cellWidth: 20 };
+      columnIndex++;
+    }
+    if (columnsWithData.contra) {
+      monitorHead.push(i18next.t('pdf.monitor_contra'));
+      columnStyles[columnIndex] = optimalColumnWidths[4] || { cellWidth: 20 };
+      columnIndex++;
+    }
+    if (columnsWithData.stand) {
+      monitorHead.push(i18next.t('pdf.monitor_stand'));
+      columnStyles[columnIndex] = optimalColumnWidths[5] || { cellWidth: 15 };
+      columnIndex++;
+    }
+    if (columnsWithData.notes) {
+      monitorHead.push(i18next.t('pdf.notes'));
+      columnStyles[columnIndex] = optimalColumnWidths[6] || { cellWidth: 30 };
+      columnIndex++;
+    }
+    if (columnsWithData.exclusive) {
+      monitorHead.push(i18next.t('pdf.exclusive'));
+      columnStyles[columnIndex] = optimalColumnWidths[7] || { cellWidth: 10 };
+      columnIndex++;
+    }
     
     // Si no hi ha cap columna amb dades, ometre la secció
     if (monitorHead.length === 0) {
@@ -1521,9 +1814,9 @@ export const generatePerformancePdfObjectWithOptions = (
         body: monitorBody,
         startY: y,
         theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 2 },
+        styles: { fontSize: 10, cellPadding: 2, cellWidth: 'wrap' }, // Afegit cellWidth: 'wrap'
         headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
-        columnStyles: inputColumnStyles as any,
+        columnStyles: columnStyles,
         margin: { left: 10, right: 10 },
         didDrawCell: (data) => {
           if (data.section === 'body' && data.column.index === 0) {
@@ -1537,6 +1830,15 @@ export const generatePerformancePdfObjectWithOptions = (
               pdf.circle(x, y, 2, 'F');
             }
           }
+        },
+        // Configuració per permetre múltiples files en cel·les
+        tableWidth: 'wrap', // Permet que la taula s'ajusti a l'ample disponible
+        styles: {
+          fontSize: 10,
+          cellPadding: 2,
+          cellWidth: 'wrap', // Permet que el text es distribueixi en múltiples files
+          overflow: 'linebreak', // Força salt de línia quan el text no cap
+          minCellHeight: 12 // Alçada mínima per cel·la
         }
       });
       y = (pdf as any).lastAutoTable.finalY + 5;
