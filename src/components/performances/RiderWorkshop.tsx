@@ -12,7 +12,9 @@ import {
   Copy,
   LayoutGridIcon,
   ChartBarIcon,
-  MousePointerClick
+  MousePointerClick,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { notificationService } from '../../utils/notificationService';
@@ -571,7 +573,7 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
   );
 };
 
-// --- Balanç del Rider (Taula Compacta) ---
+// --- Balanç del Rider (Taula Compacta i Col·lapsable) ---
 
 interface RiderBalanceProps {
   performances: Performance[];
@@ -581,6 +583,8 @@ interface RiderBalanceProps {
 }
 
 const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   const usage = useMemo(() => {
     const counts: Record<string, { id: string; name: string; qty: number; location: string }> = {};
     
@@ -606,54 +610,71 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
 
   if (usage.length === 0) return null;
 
+  const errorCount = usage.filter(u => u.isError).length;
+
   return (
-    <div className="bg-muted/10 border-t border-border flex flex-col shrink-0">
-      <div className="px-4 py-1.5 bg-muted/40 border-b border-border flex items-center justify-between">
-        <h3 className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-          <ChartBarIcon className="w-3.5 h-3.5 text-primary" />
-          Balanç Consolidat
-        </h3>
-        <div className="flex gap-4 text-[8px] font-black uppercase tracking-tight">
-           <div className="flex items-center gap-1.5 text-primary">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-            OK
+    <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+      <div 
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="px-3 py-1.5 bg-muted/20 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+            <ChartBarIcon className="w-3.5 h-3.5 text-primary" />
+            Balanç Consolidat
+          </h3>
+          {errorCount > 0 && (
+            <span className="bg-destructive text-destructive-foreground text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">
+              {errorCount} {errorCount === 1 ? 'ERROR' : 'ERRORS'}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-4 text-[8px] font-black uppercase tracking-tight opacity-60">
+             <div className="flex items-center gap-1.5 text-primary">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+              OK
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-destructive"></div>
+              ERROR
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 text-destructive animate-pulse">
-            <div className="w-1.5 h-1.5 rounded-full bg-destructive"></div>
-            ERROR ESTOC
-          </div>
+          {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
         </div>
       </div>
       
-      <div className="max-h-[140px] overflow-y-auto custom-scrollbar">
-        <table className="w-full border-collapse text-left">
-          <thead className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b border-border">
-            <tr>
-              <th className="py-1 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Material</th>
-              <th className="py-1 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Ubicació</th>
-              <th className="py-1 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-center">Quantitat</th>
-              <th className="py-1 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-right">Estat</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/30">
-            {usage.map(u => (
-              <tr key={u.id} className={`transition-colors ${u.isError ? 'bg-destructive/5' : ''}`}>
-                <td className={`py-1 px-4 text-[10px] font-black ${u.isError ? 'text-destructive' : ''}`}>{u.name}</td>
-                <td className="py-1 px-4 text-[9px] text-muted-foreground italic">{u.location}</td>
-                <td className="py-1 px-4 text-[11px] font-mono font-black text-center">
-                  <span className={u.isError ? 'text-destructive' : 'text-primary'}>{u.qty}</span>
-                </td>
-                <td className="py-1 px-4 text-right">
-                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase ${u.isError ? 'bg-destructive text-destructive-foreground animate-pulse' : 'bg-primary/10 text-primary'}`}>
-                    {u.isError ? 'MANCA' : 'OK'}
-                  </span>
-                </td>
+      {isExpanded && (
+        <div className="animate-in fade-in duration-200">
+          <table className="w-full border-collapse text-left">
+            <thead className="bg-background border-b border-border">
+              <tr>
+                <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Material</th>
+                <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Ubicació</th>
+                <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-center">Quantitat</th>
+                <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-right">Estat</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {usage.map(u => (
+                <tr key={u.id} className={`transition-colors ${u.isError ? 'bg-destructive/5' : ''}`}>
+                  <td className={`py-1.5 px-4 text-[10px] font-black ${u.isError ? 'text-destructive' : ''}`}>{u.name}</td>
+                  <td className="py-1.5 px-4 text-[9px] text-muted-foreground italic">{u.location}</td>
+                  <td className="py-1.5 px-4 text-[11px] font-mono font-black text-center">
+                    <span className={u.isError ? 'text-destructive' : 'text-primary'}>{u.qty}</span>
+                  </td>
+                  <td className="py-1.5 px-4 text-right">
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase ${u.isError ? 'bg-destructive text-destructive-foreground animate-pulse' : 'bg-primary/10 text-primary'}`}>
+                      {u.isError ? 'MANCA' : 'OK'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 };
 
@@ -671,6 +692,11 @@ const RiderWorkshop: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const migratedPerformances = useRef<Set<string>>(new Set());
+
+  // Estats per seccions col·lapsables
+  const [isInputsExpanded, setIsInputsExpanded] = useState(true);
+  const [isMonitorsExpanded, setIsMonitorsExpanded] = useState(true);
+  const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 
   useEffect(() => { if (urlEventFrameId) setSelectedEventFrameId(urlEventFrameId); }, [urlEventFrameId]);
 
@@ -834,67 +860,106 @@ const RiderWorkshop: React.FC = () => {
         </header>
 
         {/* CONTINGUT SCROLLABLE */}
-        <main className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-6">
+        <main className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-4">
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <div className="space-y-6">
-              <section className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-muted/30 text-left border-b border-border">
-                      <th className="w-8"></th>
-                      <th className="py-2 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Patch</th>
-                      <th className="py-2 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">CH</th>
-                      <th className="py-2 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Etiqueta</th>
-                      <th className="py-2 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Rider</th>
-                      <th className="py-2 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Contra</th>
-                      <th className="py-2 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Peu</th>
-                      <th className="py-2 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Notes</th>
-                      <th className="py-2 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">Exc.</th>
-                      <th className="w-10"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/50">
-                    <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
-                      {techData.inputList.map(item => <WorkshopRow key={item.id} item={item} onChange={handleInputChange} onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })} activeCell={activeCell?.field === 'micContra' || activeCell?.field === 'stand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
-                    </SortableContext>
-                  </tbody>
-                </table>
-              </section>
-
-              <section className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-                <div className="px-4 py-2 bg-muted/30 border-b border-border flex justify-between items-center">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><Music className="w-3.5 h-3.5 text-primary" /> Monitors</h3>
-                  <button onClick={() => { const last = (techDataRef.current.monitorList || [])[(techDataRef.current.monitorList || []).length-1]; let next = 'A1'; if (last?.outputChannel) { const m = last.outputChannel.match(/([A-Z])(\d+)/); if (m) next = `${m[1]}${parseInt(m[2])+1}`; } updateLocal({ monitorList: [...(techDataRef.current.monitorList || []), { id: Date.now().toString(), outputChannel: next, patchColor: 'transparent', patchNumber: '', label: '', mixRider: '', mixContra: '', mixStand: '', notes: '' }] }); }} className="text-[9px] font-black text-primary hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> AFEGIR MONITOR</button>
+            <div className="space-y-4">
+              {/* SECCIÓ INPUTS */}
+              <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+                <div onClick={() => setIsInputsExpanded(!isInputsExpanded)} className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <LayoutGridIcon className="w-3.5 h-3.5 text-primary" /> 
+                    Llista d'Inputs
+                    <span className="text-muted-foreground ml-2">({techData.inputList.length})</span>
+                  </h3>
+                  {isInputsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                 </div>
-                <table className="w-full border-collapse">
-                  <tbody className="divide-y divide-border/50">
-                    <SortableContext items={(techData.monitorList || []).map(p => p.id)} strategy={verticalListSortingStrategy}>
-                      {(techData.monitorList || []).map(item => <MonitorRow key={item.id} item={item} onChange={handleMonitorChange} onRemove={(id) => updateLocal({ monitorList: (techDataRef.current.monitorList || []).filter(i => i.id !== id) })} activeCell={activeCell?.field === 'mixContra' || activeCell?.field === 'mixStand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
-                    </SortableContext>
-                  </tbody>
-                </table>
+                {isInputsExpanded && (
+                  <table className="w-full border-collapse animate-in fade-in duration-200">
+                    <thead>
+                      <tr className="bg-muted/10 text-left border-b border-border">
+                        <th className="w-8"></th>
+                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Patch</th>
+                        <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">CH</th>
+                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Etiqueta</th>
+                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Rider</th>
+                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Contra</th>
+                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Peu</th>
+                        <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Notes</th>
+                        <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">Exc.</th>
+                        <th className="w-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
+                        {techData.inputList.map(item => <WorkshopRow key={item.id} item={item} onChange={handleInputChange} onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })} activeCell={activeCell?.field === 'micContra' || activeCell?.field === 'stand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
+                      </SortableContext>
+                    </tbody>
+                  </table>
+                )}
               </section>
 
-              <section className="grid grid-cols-3 gap-4 pb-2">
-                {['lightingNotes', 'videoNotes', 'stageRequirements'].map((field, idx) => (
-                  <div key={field} className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2 ml-1">
-                      <div className={`w-1.5 h-1.5 rounded-full ${['bg-yellow-400', 'bg-blue-400', 'bg-red-400'][idx]}`}></div>
-                      {t(`performances.${field}`)}
-                    </label>
-                    <textarea value={(techData as any)[field]} onChange={(e) => updateLocal({ [field]: e.target.value })} className="w-full h-24 p-2.5 bg-card border border-border rounded-lg text-[11px] focus:ring-1 focus:ring-primary/30 outline-none resize-none shadow-inner font-medium" placeholder="..." />
+              {/* SECCIÓ MONITORS */}
+              <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+                <div onClick={() => setIsMonitorsExpanded(!isMonitorsExpanded)} className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <Music className="w-3.5 h-3.5 text-primary" /> 
+                    Monitors
+                    <span className="text-muted-foreground ml-2">({techData.monitorList?.length || 0})</span>
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <button onClick={(e) => { e.stopPropagation(); const last = (techDataRef.current.monitorList || [])[(techDataRef.current.monitorList || []).length-1]; let next = 'A1'; if (last?.outputChannel) { const m = last.outputChannel.match(/([A-Z])(\d+)/); if (m) next = `${m[1]}${parseInt(m[2])+1}`; } updateLocal({ monitorList: [...(techDataRef.current.monitorList || []), { id: Date.now().toString(), outputChannel: next, patchColor: 'transparent', patchNumber: '', label: '', mixRider: '', mixContra: '', mixStand: '', notes: '' }] }); if (!isMonitorsExpanded) setIsMonitorsExpanded(true); }} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1"><Plus className="w-2.5 h-2.5" /> AFEGIR</button>
+                    {isMonitorsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
-                ))}
+                </div>
+                {isMonitorsExpanded && (
+                  <table className="w-full border-collapse animate-in fade-in duration-200">
+                    <tbody className="divide-y divide-border/50">
+                      <SortableContext items={(techData.monitorList || []).map(p => p.id)} strategy={verticalListSortingStrategy}>
+                        {(techData.monitorList || []).map(item => <MonitorRow key={item.id} item={item} onChange={handleMonitorChange} onRemove={(id) => updateLocal({ monitorList: (techDataRef.current.monitorList || []).filter(i => i.id !== id) })} activeCell={activeCell?.field === 'mixContra' || activeCell?.field === 'mixStand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
+                      </SortableContext>
+                    </tbody>
+                  </table>
+                )}
               </section>
+
+              {/* SECCIÓ NOTES */}
+              <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+                <div onClick={() => setIsNotesExpanded(!isNotesExpanded)} className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <EditIcon className="w-3.5 h-3.5 text-primary" /> 
+                    Notes Tècniques
+                  </h3>
+                  {isNotesExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
+                </div>
+                {isNotesExpanded && (
+                  <div className="grid grid-cols-3 gap-3 p-3 animate-in fade-in duration-200">
+                    {['lightingNotes', 'videoNotes', 'stageRequirements'].map((field, idx) => (
+                      <div key={field} className="space-y-1">
+                        <label className="text-[8px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 ml-1">
+                          <div className={`w-1 h-1 rounded-full ${['bg-yellow-400', 'bg-blue-400', 'bg-red-400'][idx]}`}></div>
+                          {t(`performances.${field}`)}
+                        </label>
+                        <textarea value={(techData as any)[field]} onChange={(e) => updateLocal({ [field]: e.target.value })} className="w-full h-20 p-2 bg-muted/10 border border-border rounded text-[10px] focus:ring-1 focus:ring-primary/30 outline-none resize-none font-medium" placeholder="..." />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* BALANÇ INTEGRAT - Aquí sota les notes */}
+              <RiderBalance performances={eventFrame?.performances || []} materialItems={materialItems} eventFrame={eventFrame as any} getMaterialAvailability={getMaterialAvailability} />
             </div>
           </DndContext>
         </main>
-
-        {/* BALANÇ INFERIOR - Ample Total de la zona dreta */}
-        <RiderBalance performances={eventFrame?.performances || []} materialItems={materialItems} eventFrame={eventFrame as any} getMaterialAvailability={getMaterialAvailability} />
       </div>
     </div>
   );
 };
+
+const EditIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+  </svg>
+);
 
 export default RiderWorkshop;
