@@ -79,6 +79,8 @@ const PerformancesDisplay: React.FC<PerformancesDisplayProps> = ({ showToast: _s
       techData: {
         inputList: [],
         monitorList: [],
+        cableList: [],
+        spareList: [],
         lightingNotes: '',
         videoNotes: '',
         stageRequirements: ''

@@ -17,7 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
-  FileText
+  FileText,
+  Cable
 } from 'lucide-react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
@@ -30,7 +31,8 @@ import {
   PerformanceTechData,
   Performance,
   MonitorListItem,
-  PerformancePdfOptions
+  PerformancePdfOptions,
+  RiderGenericItem
 } from '../../types';
 import { useBufferedSave } from '../../hooks/useBufferedSave';
 import { triggerAllSaves } from '../../utils/saveManager';
@@ -564,6 +566,89 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
   );
 };
 
+// --- Generic Rider Row ---
+
+interface GenericRiderRowProps {
+  item: RiderGenericItem;
+  onChange: (id: string, field: keyof RiderGenericItem, value: any) => void;
+  onRemove: (id: string) => void;
+  activeCell: { id: string; field: 'item' } | null;
+  onCellFocus: (id: string) => void;
+}
+
+const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus }) => {
+  const { getMaterialAvailability, eventFrames } = useEventDataStore();
+  const { eventFrameId } = useParams<{ eventFrameId: string }>();
+  const eventFrame = useMemo(() => eventFrameId ? eventFrames.find(ef => ef.id === eventFrameId) : null, [eventFrameId, eventFrames]);
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 50 : undefined, opacity: isDragging ? 0.5 : 1 };
+
+  const checkAvailability = (materialId?: string) => {
+    if (!materialId || !eventFrame) return { isError: false };
+    const avail = getMaterialAvailability(materialId, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+    return { isError: avail.available < 0 };
+  };
+
+  const itemStatus = checkAvailability(item.itemId);
+  const isItemActive = activeCell?.id === item.id && activeCell?.field === 'item';
+
+  return (
+    <tr ref={setNodeRef} style={style} className={`hover:bg-muted/30 transition-colors group ${isDragging ? 'bg-accent/50 shadow-lg' : ''}`}>
+      <td className="w-8 text-center border-r border-border/50">
+        <div {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-1 opacity-20 group-hover:opacity-100 transition-opacity">
+          <GripVertical className="w-3.5 h-3.5 text-muted-foreground mx-auto" />
+        </div>
+      </td>
+      {/* Quantitat */}
+      <td className="py-1 px-1 w-12">
+        <input
+          type="number"
+          min={1}
+          value={item.qty ?? 1}
+          onChange={(e) => onChange(item.id, 'qty', Math.max(1, parseInt(e.target.value) || 1))}
+          className="w-10 px-1 py-0.5 bg-muted/50 border border-border rounded text-[9px] text-center focus:ring-1 focus:ring-primary/50 outline-none font-black"
+        />
+      </td>
+      {/* Item (point and shoot) */}
+      <td className={`py-1 px-1.5 min-w-[200px] transition-colors ${itemStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
+        <Tooltip text={item.itemName || (itemStatus.isError ? 'Sense estoc disponible!' : '')}>
+          <div className={`relative flex items-center rounded border transition-all ${isItemActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
+            <input
+              type="text"
+              value={item.itemName}
+              onChange={(e) => onChange(item.id, 'itemName', e.target.value)}
+              onFocus={() => onCellFocus(item.id)}
+              className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
+              placeholder="Assignar..."
+            />
+            {itemStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
+          </div>
+        </Tooltip>
+      </td>
+      {/* Notes */}
+      <td className="py-1 px-1.5">
+        <input
+          type="text"
+          value={item.notes}
+          onChange={(e) => onChange(item.id, 'notes', e.target.value)}
+          className="w-full px-1 py-1 bg-transparent border-none text-[10px] text-muted-foreground focus:ring-0 outline-none"
+          placeholder="..."
+        />
+      </td>
+      {/* Eliminar */}
+      <td className="py-1 px-1 text-center w-10 border-l border-border/50">
+        <button
+          onClick={() => onRemove(item.id)}
+          className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all opacity-0 group-hover:opacity-100"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </td>
+    </tr>
+  );
+};
+
 // --- Selector de Categories ---
 
 interface SearchableCategorySelectorProps {
@@ -752,6 +837,25 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
           counts[item.mixStandId].qty += item.standQty ?? 1;
         }
       });
+      
+      (perf.techData?.cableList || []).forEach((item: any) => {
+        if (item.itemId) {
+          if (!counts[item.itemId]) {
+            const m = materialItems.find(mi => mi.id === item.itemId);
+            counts[item.itemId] = { id: item.itemId, name: item.itemName, qty: 0, location: m?.location || '-', category: m?.category || '' };
+          }
+          counts[item.itemId].qty += item.qty ?? 1;
+        }
+      });
+      (perf.techData?.spareList || []).forEach((item: any) => {
+        if (item.itemId) {
+          if (!counts[item.itemId]) {
+            const m = materialItems.find(mi => mi.id === item.itemId);
+            counts[item.itemId] = { id: item.itemId, name: item.itemName, qty: 0, location: m?.location || '-', category: m?.category || '' };
+          }
+          counts[item.itemId].qty += item.qty ?? 1;
+        }
+      });
     });
     
     let result = Object.values(counts).map(u => {
@@ -914,7 +1018,7 @@ const RiderWorkshop: React.FC = () => {
   // 3. Estados Locales
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string | null>(urlEventFrameId || null);
   const [selectedPerformanceId, setSelectedPerformanceId] = useState<string | null>(null);
-  const [activeCell, setActiveCell] = useState<{ id: string; field: 'micContra' | 'stand' | 'extres' | 'mixContra' | 'mixStand' } | null>(null);
+  const [activeCell, setActiveCell] = useState<{ id: string; field: 'micContra' | 'stand' | 'extres' | 'mixContra' | 'mixStand' | 'cable' | 'spare' } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   
@@ -925,12 +1029,18 @@ const RiderWorkshop: React.FC = () => {
   const [isInputsExpanded, setIsInputsExpanded] = useState(true);
   const [isMonitorsExpanded, setIsMonitorsExpanded] = useState(true);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
+const [isCableExpanded, setIsCableExpanded] = useState(true);
+const [isSpareExpanded, setIsSpareExpanded]  = useState(true);
+const [showCableInPdf, setShowCableInPdf]   = useState(true);
+const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
 
   // Estat per a les opcions del PDF (només lectura, reaprofitat de PerformanceDetailContainer)
   const [pdfOptions] = useState<PerformancePdfOptions>({
     includeBasicInfo: true,
     includeInputs: true,
     includeMonitors: true,
+    includeCable: true,     // NOU
+    includeSpare: true,     // NOU
     includeTechnicalNotes: true,
     includeHospitality: true,
     includeGeneralNotes: true,
@@ -993,7 +1103,7 @@ const RiderWorkshop: React.FC = () => {
     const perf = eventFrame?.performances?.find(p => p.id === selectedPerformanceId);
     if (perf && !perf.techData && !migratedPerformances.current.has(perf.id)) {
       migratedPerformances.current.add(perf.id);
-      const updatedPerf = { ...perf, techData: { inputList:[], monitorList: [], lightingNotes: '', videoNotes: '', stageRequirements: '' } };
+      const updatedPerf = { ...perf, techData: { inputList:[], monitorList: [], cableList: [], spareList: [], lightingNotes: '', videoNotes: '', stageRequirements: '' } };
       setTimeout(() => { if (selectedEventFrameId) updatePerformance(selectedEventFrameId, updatedPerf); }, 0);
       return updatedPerf;
     }
@@ -1001,7 +1111,7 @@ const RiderWorkshop: React.FC = () => {
   },[eventFrame, selectedPerformanceId, selectedEventFrameId, updatePerformance]);
 
   const initialTechData = useMemo(() => 
-    performance?.techData || { inputList:[], monitorList: [], lightingNotes: '', videoNotes: '', stageRequirements: '' }
+    performance?.techData || { inputList:[], monitorList: [], cableList: [], spareList: [], lightingNotes: '', videoNotes: '', stageRequirements: '' }
   , [performance]);
 
   // 8. Hook de Guardado con Buffering
@@ -1049,6 +1159,18 @@ const RiderWorkshop: React.FC = () => {
     if (monitorIndex !== -1) {
       const newIndex = (techData.monitorList || []).findIndex(i => i.id === over.id);
       if (newIndex !== -1) updateLocal({ monitorList: arrayMove(techData.monitorList || [], monitorIndex, newIndex) });
+      return;
+    }
+    const cableIndex = (techData.cableList || []).findIndex(i => i.id === active.id);
+    if (cableIndex !== -1) {
+      const newIndex = (techData.cableList || []).findIndex(i => i.id === over.id);
+      if (newIndex !== -1) updateLocal({ cableList: arrayMove(techData.cableList || [], cableIndex, newIndex) });
+      return;
+    }
+    const spareIndex = (techData.spareList || []).findIndex(i => i.id === active.id);
+    if (spareIndex !== -1) {
+      const newIndex = (techData.spareList || []).findIndex(i => i.id === over.id);
+      if (newIndex !== -1) updateLocal({ spareList: arrayMove(techData.spareList || [], spareIndex, newIndex) });
     }
   };
 
@@ -1084,13 +1206,48 @@ const RiderWorkshop: React.FC = () => {
     updateLocal({ monitorList: newList });
   };
 
+  const handleGenericChange = (
+    listKey: 'cableList' | 'spareList',
+    id: string, field: keyof RiderGenericItem, value: any
+  ) => {
+    const newList = (techDataRef.current[listKey] || []).map(item => {
+      if (item.id !== id) return item;
+      const updated = { ...item, [field]: value };
+      if (field === 'itemName') {
+        const matched = materialItems.find(m => m.name === value);
+        updated.itemId = matched?.id;
+      }
+      return updated;
+    });
+    updateLocal({ [listKey]: newList });
+  };
+
+  const addGenericItem = (listKey: 'cableList' | 'spareList') => {
+    const newItem: RiderGenericItem = {
+      id: Date.now().toString(),
+      qty: 1,
+      itemName: '',
+      notes: '',
+    };
+    updateLocal({ [listKey]: [...(techDataRef.current[listKey] || []), newItem] });
+    if (listKey === 'cableList' && !isCableExpanded) setIsCableExpanded(true);
+    if (listKey === 'spareList' && !isSpareExpanded) setIsSpareExpanded(true);
+  };
+
   const handleMaterialClick = (material: MaterialItem) => {
     if (activeCell) {
-      if (activeCell.field === 'mixContra' || activeCell.field === 'mixStand') handleMonitorChange(activeCell.id, activeCell.field, material.name);
-      else handleInputChange(activeCell.id, activeCell.field, material.name);
+      if (activeCell.field === 'mixContra' || activeCell.field === 'mixStand') {
+        handleMonitorChange(activeCell.id, activeCell.field, material.name);
+      } else if (activeCell.field === 'cable') {
+        handleGenericChange('cableList', activeCell.id, 'itemName', material.name);
+      } else if (activeCell.field === 'spare') {
+        handleGenericChange('spareList', activeCell.id, 'itemName', material.name);
+      } else {
+        handleInputChange(activeCell.id, activeCell.field, material.name);
+      }
       notificationService.success(`${material.name} assignat`);
     } else {
-      notificationService.info("Selecciona una casella per assignar material.");
+      notificationService.info('Selecciona una casella per assignar material.');
     }
   };
 
@@ -1125,6 +1282,8 @@ const RiderWorkshop: React.FC = () => {
           includeBasicInfo: showBasicInfoInPdf,
           includeInputs: showInputsInPdf,
           includeMonitors: showMonitorsInPdf,
+          includeCable: showCableInPdf,
+          includeSpare: showSpareInPdf,
           includeTechnicalNotes: showTechnicalNotesInPdf,
           includeHospitality: showHospitalityInPdf,
           includeGeneralNotes: showGeneralNotesInPdf,
@@ -1164,6 +1323,8 @@ const RiderWorkshop: React.FC = () => {
         includeBasicInfo: showBasicInfoInPdf,
         includeInputs: showInputsInPdf,
         includeMonitors: showMonitorsInPdf,
+        includeCable: showCableInPdf,
+        includeSpare: showSpareInPdf,
         includeTechnicalNotes: showTechnicalNotesInPdf,
         includeHospitality: showHospitalityInPdf,
         includeGeneralNotes: showGeneralNotesInPdf,
@@ -1373,6 +1534,32 @@ const RiderWorkshop: React.FC = () => {
                     />
                   </Tooltip>
                   <label htmlFor="showMonitorsInPdf" className="font-medium text-muted-foreground cursor-pointer">Monitors</label>
+                </div>
+                {/* Cablejat */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou la secció de cablejat al PDF">
+                    <input
+                      type="checkbox"
+                      id="showCableInPdf"
+                      checked={showCableInPdf}
+                      onChange={(e) => setShowCableInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showCableInPdf" className="font-medium text-muted-foreground cursor-pointer">Cablejat</label>
+                </div>
+                {/* Material Spare */}
+                <div className="flex items-center gap-2">
+                  <Tooltip text="Inclou la secció de material spare al PDF">
+                    <input
+                      type="checkbox"
+                      id="showSpareInPdf"
+                      checked={showSpareInPdf}
+                      onChange={(e) => setShowSpareInPdf(e.target.checked)}
+                      className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                    />
+                  </Tooltip>
+                  <label htmlFor="showSpareInPdf" className="font-medium text-muted-foreground cursor-pointer">Material Spare</label>
                 </div>
                 {/* Notes Tècniques */}
                 <div className="flex items-center gap-2">
@@ -1717,6 +1904,122 @@ const RiderWorkshop: React.FC = () => {
                     </table>
                     <button onClick={addMonitorItem} className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
                       <Plus className="w-3.5 h-3.5" /> AFEGIR NOU MONITOR
+                    </button>
+                  </div>
+                )}
+              </section>
+
+              {/* SECCIÓ CABLEJAT */}
+              <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+                <div onClick={() => setIsCableExpanded(!isCableExpanded)}
+                  className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <Cable className="w-3.5 h-3.5 text-primary" />
+                      Cablejat
+                      <span className="text-muted-foreground ml-2">({techData.cableList?.length || 0})</span>
+                    </h3>
+                    <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+                      <input type="checkbox" checked={showCableInPdf}
+                        onChange={(e) => setShowCableInPdf(e.target.checked)}
+                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary" />
+                      <label className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => addGenericItem('cableList')}
+                      className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
+                      <Plus className="w-2.5 h-2.5" /> AFEGIR CABLE
+                    </button>
+                    {isCableExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </div>
+                </div>
+                {isCableExpanded && (
+                  <div className="flex flex-col">
+                    <table className="w-full border-collapse animate-in fade-in duration-200">
+                      <thead>
+                        <tr className="bg-muted/10 text-left border-b border-border">
+                          <th className="w-8"></th>
+                          <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest w-12">Qttat</th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Material</th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Notes</th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        <SortableContext items={(techData.cableList || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
+                          {(techData.cableList || []).map(item =>
+                            <GenericRiderRow key={item.id} item={item}
+                              onChange={(id, field, value) => handleGenericChange('cableList', id, field, value)}
+                              onRemove={(id) => updateLocal({ cableList: (techDataRef.current.cableList || []).filter(i => i.id !== id) })}
+                              activeCell={activeCell?.field === 'cable' ? activeCell as any : null}
+                              onCellFocus={(id) => setActiveCell({ id, field: 'cable' })}
+                            />
+                          )}
+                        </SortableContext>
+                      </tbody>
+                    </table>
+                    <button onClick={() => addGenericItem('cableList')}
+                      className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
+                      <Plus className="w-3.5 h-3.5" /> AFEGIR NOU CABLE
+                    </button>
+                  </div>
+                )}
+              </section>
+
+              {/* SECCIÓ MATERIAL SPARE */}
+              <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+                <div onClick={() => setIsSpareExpanded(!isSpareExpanded)}
+                  className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <Package className="w-3.5 h-3.5 text-primary" />
+                      Material Spare
+                      <span className="text-muted-foreground ml-2">({techData.spareList?.length || 0})</span>
+                    </h3>
+                    <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+                      <input type="checkbox" checked={showSpareInPdf}
+                        onChange={(e) => setShowSpareInPdf(e.target.checked)}
+                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary" />
+                      <label className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => addGenericItem('spareList')}
+                      className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
+                      <Plus className="w-2.5 h-2.5" /> AFEGIR SPARE
+                    </button>
+                    {isSpareExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </div>
+                </div>
+                {isSpareExpanded && (
+                  <div className="flex flex-col">
+                    <table className="w-full border-collapse animate-in fade-in duration-200">
+                      <thead>
+                        <tr className="bg-muted/10 text-left border-b border-border">
+                          <th className="w-8"></th>
+                          <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest w-12">Qttat</th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Material</th>
+                          <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Notes</th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        <SortableContext items={(techData.spareList || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
+                          {(techData.spareList || []).map(item =>
+                            <GenericRiderRow key={item.id} item={item}
+                              onChange={(id, field, value) => handleGenericChange('spareList', id, field, value)}
+                              onRemove={(id) => updateLocal({ spareList: (techDataRef.current.spareList || []).filter(i => i.id !== id) })}
+                              activeCell={activeCell?.field === 'spare' ? activeCell as any : null}
+                              onCellFocus={(id) => setActiveCell({ id, field: 'spare' })}
+                            />
+                          )}
+                        </SortableContext>
+                      </tbody>
+                    </table>
+                    <button onClick={() => addGenericItem('spareList')}
+                      className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
+                      <Plus className="w-3.5 h-3.5" /> AFEGIR NOU SPARE
                     </button>
                   </div>
                 )}

@@ -1423,6 +1423,8 @@ export const exportPerformanceToPdf = async (
     includeBasicInfo: true,
     includeInputs: true,
     includeMonitors: true,
+    includeCable: true,
+    includeSpare: true,
     includeTechnicalNotes: true,
     includeHospitality: true,
     includeGeneralNotes: true,
@@ -1825,6 +1827,50 @@ export const generatePerformancePdfObjectWithOptions = (
     }
   }
 
+  // --- Cablejat ---
+  if (options.includeCable && performance.techData?.cableList && performance.techData.cableList.length > 0) {
+    y = checkPageBreak(pdf, y, 30);
+    const cableHead = [i18next.t('pdf.qty'), i18next.t('pdf.material'), i18next.t('pdf.notes')];
+    const cableBody = performance.techData.cableList.map(item => [
+      (item.qty ?? 1).toString(),
+      sane(item.itemName),
+      sane(item.notes)
+    ]);
+    autoTable(pdf, {
+      head: [[{ content: 'Cablejat', colSpan: 3, styles: headStyles }], cableHead],
+      body: cableBody,
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+      columnStyles: { 0: { cellWidth: 15, halign: 'center' } },
+      margin: { left: 10, right: 10 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
+  // --- Material Spare ---
+  if (options.includeSpare && performance.techData?.spareList && performance.techData.spareList.length > 0) {
+    y = checkPageBreak(pdf, y, 30);
+    const spareHead = [i18next.t('pdf.qty'), i18next.t('pdf.material'), i18next.t('pdf.notes')];
+    const spareBody = performance.techData.spareList.map(item => [
+      (item.qty ?? 1).toString(),
+      sane(item.itemName),
+      sane(item.notes)
+    ]);
+    autoTable(pdf, {
+      head: [[{ content: 'Material Spare', colSpan: 3, styles: headStyles }], spareHead],
+      body: spareBody,
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+      columnStyles: { 0: { cellWidth: 15, halign: 'center' } },
+      margin: { left: 10, right: 10 }
+    });
+    y = (pdf as any).lastAutoTable.finalY + 5;
+  }
+
   // --- Notes Tècniques ---
   if (options.includeTechnicalNotes) {
     const techNotes = [];
@@ -1944,6 +1990,12 @@ export const generatePerformancePdfObjectWithOptions = (
       (perf.techData?.monitorList || []).forEach(monitor => {
         countMaterial(monitor.mixContraId, monitor.mixContra, monitor.monitorQty ?? 1);
         countMaterial(monitor.mixStandId,  monitor.mixStand,  monitor.standQty   ?? 1);
+      });
+      (perf.techData?.cableList || []).forEach(cable => {
+        countMaterial(cable.itemId, cable.itemName, cable.qty ?? 1);
+      });
+      (perf.techData?.spareList || []).forEach(spare => {
+        countMaterial(spare.itemId, spare.itemName, spare.qty ?? 1);
       });
     });
 

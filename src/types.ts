@@ -190,9 +190,19 @@ export interface MonitorListItem {
   exclusive?: boolean; // Si és exclusiu per aquesta actuació
 }
 
+export interface RiderGenericItem {
+  id: string;
+  qty: number;           // Quantitat, default 1
+  itemName: string;      // Text lliure o nom assignat des de l'inventari
+  itemId?: string;       // ID de l'item de l'inventari (si s'ha assignat via sidebar)
+  notes: string;         // Notes lliures
+}
+
 export interface PerformanceTechData {
   inputList: InputListItem[];
   monitorList: MonitorListItem[];
+  cableList: RiderGenericItem[];    // NOU
+  spareList: RiderGenericItem[];    // NOU
   lightingNotes: string;
   videoNotes: string;
   stageRequirements: string;
@@ -230,6 +240,8 @@ export interface PerformancePdfOptions {
   includeBasicInfo: boolean;        // Info artista, horaris, contacte
   includeInputs: boolean;          // Llista d'inputs tècnics
   includeMonitors: boolean;         // Llista de monitors tècnics
+  includeCable: boolean;           // NOU
+  includeSpare: boolean;           // NOU
   includeTechnicalNotes: boolean;  // Notes de llums, vídeo, escenari
   includeHospitality: boolean;     // Hospitality complet
   includeGeneralNotes: boolean;    // Notes generals de l'actuació

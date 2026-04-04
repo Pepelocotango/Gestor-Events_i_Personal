@@ -32,6 +32,8 @@ const PerformancePdfOptionsComponent: React.FC<PerformancePdfOptionsProps> = ({
     includeHospitality: true,
     includeGeneralNotes: true,
     includeMonitors: true,
+    includeCable: true,
+    includeSpare: true,
     showEmptySections: false
   };
 
@@ -133,6 +135,34 @@ const PerformancePdfOptionsComponent: React.FC<PerformancePdfOptionsProps> = ({
           />
           <label htmlFor="includeMonitors" className="text-sm font-medium">
             {t('performances.include_monitors')}
+          </label>
+        </div>
+
+        {/* Cablejat */}
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="includeCable"
+            checked={options.includeCable}
+            onChange={(e) => handleOptionChange('includeCable', e.target.checked)}
+            className="rounded border-border text-primary focus:ring-primary"
+          />
+          <label htmlFor="includeCable" className="text-sm font-medium">
+            Cablejat
+          </label>
+        </div>
+
+        {/* Material Spare */}
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="includeSpare"
+            checked={options.includeSpare}
+            onChange={(e) => handleOptionChange('includeSpare', e.target.checked)}
+            className="rounded border-border text-primary focus:ring-primary"
+          />
+          <label htmlFor="includeSpare" className="text-sm font-medium">
+            Material Spare
           </label>
         </div>
 

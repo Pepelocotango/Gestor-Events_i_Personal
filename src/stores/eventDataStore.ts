@@ -650,6 +650,8 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             techData: performanceData.techData || {
                 inputList: [],
                 monitorList: [],
+                cableList: [],
+                spareList: [],
                 lightingNotes: '',
                 videoNotes: '',
                 stageRequirements: '',
@@ -893,6 +895,17 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                         }
                     }
                 });
+                // Spare i Cable de l'event actual
+                perf.techData?.cableList?.forEach(cable => {
+                  if (cable.itemId === materialId && cable.id !== currentItemId) {
+                    committedInCurrentEvent += cable.qty ?? 1;
+                  }
+                });
+                perf.techData?.spareList?.forEach(spare => {
+                  if (spare.itemId === materialId && spare.id !== currentItemId) {
+                    committedInCurrentEvent += spare.qty ?? 1;
+                  }
+                });
             });
         }
 
@@ -933,6 +946,12 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                             perf.techData?.monitorList?.forEach(monitor => {
                                 if (monitor.mixContraId === materialId) dailyCommittedStock += monitor.monitorQty ?? 1;
                                 if (monitor.mixStandId  === materialId) dailyCommittedStock += monitor.standQty   ?? 1;
+                            });
+                            perf.techData?.cableList?.forEach(cable => {
+                                if (cable.itemId === materialId) dailyCommittedStock += cable.qty ?? 1;
+                            });
+                            perf.techData?.spareList?.forEach(spare => {
+                                if (spare.itemId === materialId) dailyCommittedStock += spare.qty ?? 1;
                             });
                         });
                     }
