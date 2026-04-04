@@ -174,8 +174,8 @@ interface WorkshopRowProps {
   t: TFunction;
   onChange: (id: string, field: keyof InputListItem, value: any) => void;
   onRemove: (id: string) => void;
-  activeCell: { id: string; field: 'micContra' | 'stand' } | null;
-  onCellFocus: (id: string, field: 'micContra' | 'stand') => void;
+  activeCell: { id: string; field: 'micContra' | 'stand' | 'extres' } | null;
+  onCellFocus: (id: string, field: 'micContra' | 'stand' | 'extres') => void;
 }
 
 const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, activeCell, onCellFocus }) => {
@@ -208,6 +208,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
 
   const micStatus = checkAvailability(item.micContraId);
   const standStatus = checkAvailability(item.standId);
+  const extresStatus = checkAvailability(item.extresId);
 
   const patchColors =[
     { name: 'transparent', class: 'bg-transparent border border-gray-300' },
@@ -225,6 +226,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
 
   const isMicActive = activeCell?.id === item.id && activeCell?.field === 'micContra';
   const isStandActive = activeCell?.id === item.id && activeCell?.field === 'stand';
+  const isExtresActive = activeCell?.id === item.id && activeCell?.field === 'extres';
 
   return (
     <tr 
@@ -322,15 +324,19 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
         </Tooltip>
       </td>
 
-      <td className="py-1 px-1.5">
-        <Tooltip text={item.notes || ''}>
-          <input
-            type="text"
-            value={item.notes}
-            onChange={(e) => onChange(item.id, 'notes', e.target.value)}
-            className="w-full px-1 py-1 bg-transparent border-none text-[10px] text-muted-foreground focus:ring-0 outline-none"
-            placeholder="..."
-          />
+      <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${extresStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
+        <Tooltip text={item.extres || (extresStatus.isError ? "Sense estoc disponible!" : "")}>
+          <div className={`relative flex items-center rounded border transition-all ${isExtresActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
+            <input
+              type="text"
+              value={item.extres || ''}
+              onChange={(e) => onChange(item.id, 'extres', e.target.value)}
+              onFocus={() => onCellFocus(item.id, 'extres')}
+              className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
+              placeholder="Assignar..."
+            />
+            {extresStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
+          </div>
         </Tooltip>
       </td>
 
@@ -667,29 +673,96 @@ interface RiderBalanceProps {
 
 const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [sortByCategory, setSortByCategory] = useState(false);
+  const [sortByLocation, setSortByLocation] = useState(false);
   
   const usage = useMemo(() => {
-    const counts: Record<string, { id: string; name: string; qty: number; location: string }> = {};
+    const counts: Record<string, { id: string; name: string; qty: number; location: string; category: string }> = {};
     
     performances.forEach(perf => {
-      [...(perf.techData?.inputList || []), ...(perf.techData?.monitorList || [])].forEach((item: any) => {
-        const matId = item.micContraId || item.standId || item.mixContraId || item.mixStandId;
-        const matName = item.micContra || item.stand || item.mixContra || item.mixStand;
-        if (matId) {
-          if (!counts[matId]) {
-            const m = materialItems.find(mi => mi.id === matId);
-            counts[matId] = { id: matId, name: matName, qty: 0, location: m?.location || '-' };
+      // Processar inputs per separat: micròfons, peus i extres
+      (perf.techData?.inputList || []).forEach((item: any) => {
+        // Comptar micròfon
+        if (item.micContraId) {
+          if (!counts[item.micContraId]) {
+            const m = materialItems.find(mi => mi.id === item.micContraId);
+            counts[item.micContraId] = { id: item.micContraId, name: item.micContra, qty: 0, location: m?.location || '-', category: m?.category || '' };
           }
-          counts[matId].qty += 1;
+          counts[item.micContraId].qty += 1;
+        }
+        
+        // Comptar peu (stand)
+        if (item.standId) {
+          if (!counts[item.standId]) {
+            const m = materialItems.find(mi => mi.id === item.standId);
+            counts[item.standId] = { id: item.standId, name: item.stand, qty: 0, location: m?.location || '-', category: m?.category || '' };
+          }
+          counts[item.standId].qty += 1;
+        }
+
+        // Comptar extres
+        if (item.extresId) {
+          if (!counts[item.extresId]) {
+            const m = materialItems.find(mi => mi.id === item.extresId);
+            counts[item.extresId] = { id: item.extresId, name: item.extres, qty: 0, location: m?.location || '-', category: m?.category || '' };
+          }
+          counts[item.extresId].qty += 1;
+        }
+      });
+      
+      // Processar monitors per separat: contra i peu
+      (perf.techData?.monitorList || []).forEach((item: any) => {
+        // Comptar contra de monitor
+        if (item.mixContraId) {
+          if (!counts[item.mixContraId]) {
+            const m = materialItems.find(mi => mi.id === item.mixContraId);
+            counts[item.mixContraId] = { id: item.mixContraId, name: item.mixContra, qty: 0, location: m?.location || '-', category: m?.category || '' };
+          }
+          counts[item.mixContraId].qty += 1;
+        }
+        
+        // Comptar peu de monitor
+        if (item.mixStandId) {
+          if (!counts[item.mixStandId]) {
+            const m = materialItems.find(mi => mi.id === item.mixStandId);
+            counts[item.mixStandId] = { id: item.mixStandId, name: item.mixStand, qty: 0, location: m?.location || '-', category: m?.category || '' };
+          }
+          counts[item.mixStandId].qty += 1;
         }
       });
     });
     
-    return Object.values(counts).map(u => {
+    let result = Object.values(counts).map(u => {
       const globalAvail = getMaterialAvailability(u.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
       return { ...u, available: globalAvail.available, isError: globalAvail.available < 0 };
-    }).sort((a, b) => (b.isError ? 1 : 0) - (a.isError ? 1 : 0));
-  },[performances, materialItems, getMaterialAvailability, eventFrame]);
+    });
+
+    // Aplicar ordenament
+    result.sort((a, b) => {
+      // Primer ordenar per errors (sempre prioritari)
+      const errorDiff = (b.isError ? 1 : 0) - (a.isError ? 1 : 0);
+      if (errorDiff !== 0) return errorDiff;
+
+      // Després aplicar els filtres d'ordenament
+      if (sortByCategory && sortByLocation) {
+        // Ambdós actius: primer per categoria, després per ubicació
+        const categoryDiff = a.category.localeCompare(b.category);
+        if (categoryDiff !== 0) return categoryDiff;
+        return a.location.localeCompare(b.location);
+      } else if (sortByCategory) {
+        // Només categoria
+        return a.category.localeCompare(b.category);
+      } else if (sortByLocation) {
+        // Només ubicació
+        return a.location.localeCompare(b.location);
+      } else {
+        // Sense ordenament específic, per nom
+        return a.name.localeCompare(b.name);
+      }
+    });
+
+    return result;
+  },[performances, materialItems, getMaterialAvailability, eventFrame, sortByCategory, sortByLocation]);
 
   if (usage.length === 0) return null;
 
@@ -706,6 +779,30 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
             <ChartBarIcon className="w-3.5 h-3.5 text-primary" />
             Balanç Consolidat
           </h3>
+          <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setSortByCategory(!sortByCategory)}
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                sortByCategory 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
+              }`}
+            >
+              Categoria
+              <ChevronUp className={`w-2.5 h-2.5 transition-transform ${sortByCategory ? 'rotate-180' : ''}`} />
+            </button>
+            <button
+              onClick={() => setSortByLocation(!sortByLocation)}
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                sortByLocation 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
+              }`}
+            >
+              Ubicació
+              <ChevronUp className={`w-2.5 h-2.5 transition-transform ${sortByLocation ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
           {onTogglePdf && (
             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
               <input
@@ -795,7 +892,7 @@ const RiderWorkshop: React.FC = () => {
   // 3. Estados Locales
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string | null>(urlEventFrameId || null);
   const [selectedPerformanceId, setSelectedPerformanceId] = useState<string | null>(null);
-  const [activeCell, setActiveCell] = useState<{ id: string; field: 'micContra' | 'stand' | 'mixContra' | 'mixStand' } | null>(null);
+  const [activeCell, setActiveCell] = useState<{ id: string; field: 'micContra' | 'stand' | 'extres' | 'mixContra' | 'mixStand' } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   
@@ -937,9 +1034,11 @@ const RiderWorkshop: React.FC = () => {
     const newList = techDataRef.current.inputList.map(item => {
       if (item.id === id) {
         const up = { ...item, [field]: value };
-        if (field === 'micContra' || field === 'stand') {
+        if (field === 'micContra' || field === 'stand' || field === 'extres') {
           const matched = materialItems.find(m => m.name === value);
-          if (field === 'micContra') up.micContraId = matched?.id; else up.standId = matched?.id;
+          if (field === 'micContra') up.micContraId = matched?.id; 
+          else if (field === 'stand') up.standId = matched?.id; 
+          else if (field === 'extres') up.extresId = matched?.id;
         }
         return up;
       }
@@ -1426,7 +1525,7 @@ const RiderWorkshop: React.FC = () => {
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
-                              Notes
+                              NOTES/EXTRES
                               <input
                                 type="checkbox"
                                 checked={inputColumnsInPdf.notes}
@@ -1451,7 +1550,7 @@ const RiderWorkshop: React.FC = () => {
                       </thead>
                       <tbody className="divide-y divide-border/50">
                         <SortableContext items={techData.inputList} strategy={verticalListSortingStrategy}>
-                          {techData.inputList.map(item => <WorkshopRow key={item.id} item={item} t={t} onChange={handleInputChange} onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })} activeCell={activeCell?.field === 'micContra' || activeCell?.field === 'stand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
+                          {techData.inputList.map(item => <WorkshopRow key={item.id} item={item} t={t} onChange={handleInputChange} onRemove={(id) => updateLocal({ inputList: techDataRef.current.inputList.filter(i => i.id !== id) })} activeCell={activeCell?.field === 'micContra' || activeCell?.field === 'stand' || activeCell?.field === 'extres' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
                         </SortableContext>
                       </tbody>
                     </table>

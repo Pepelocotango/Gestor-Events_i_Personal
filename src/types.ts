@@ -167,7 +167,9 @@ export interface InputListItem {
   micContraId?: string; // ID de l'item de l'inventari (NOU)
   stand: string; // Tipus de peu (text lliure o nom de l'item)
   standId?: string; // ID de l'item de l'inventari (NOU)
-  notes: string;
+  notes: string; // Notes de text lliure
+  extres?: string; // Materials extres (point and shoot o text lliure)
+  extresId?: string; // ID del material extres de l'inventari
   exclusive?: boolean; // Si és exclusiu per aquesta actuació
 }
 
