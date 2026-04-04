@@ -866,16 +866,16 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             currentEvent.performances.forEach(perf => {
                 perf.techData?.inputList?.forEach(input => {
                     if (input.micContraId === materialId && input.id !== currentItemId) {
-                        // Si és exclusiu i no és la performance actual, no compta com a compromès
-                        if (input.exclusive && perf.id !== currentPerformanceId) {
-                            // No comptar
+                        // Si NO és exclusiu (és compartit) i és d'un altre artista, assumim que comparteixen el mateix ítem físic
+                        if (!input.exclusive && perf.id !== currentPerformanceId) {
+                            // No sumem per no duplicar la demanda del mateix ítem compartit
                         } else {
                             committedInCurrentEvent += 1;
                         }
                     }
                     if (input.standId === materialId && input.id !== currentItemId) {
-                        if (input.exclusive && perf.id !== currentPerformanceId) {
-                            // No comptar
+                        if (!input.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar duplicat
                         } else {
                             committedInCurrentEvent += 1;
                         }
@@ -885,12 +885,16 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                     const monQty = monitor.monitorQty ?? 1;
                     const stQty  = monitor.standQty   ?? 1;
                     if (monitor.mixContraId === materialId && monitor.id !== currentItemId) {
-                        if (!(monitor.exclusive && perf.id !== currentPerformanceId)) {
+                        if (!monitor.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar duplicat
+                        } else {
                             committedInCurrentEvent += monQty;
                         }
                     }
                     if (monitor.mixStandId === materialId && monitor.id !== currentItemId) {
-                        if (!(monitor.exclusive && perf.id !== currentPerformanceId)) {
+                        if (!monitor.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar duplicat
+                        } else {
                             committedInCurrentEvent += stQty;
                         }
                     }
@@ -898,12 +902,20 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                 // Spare i Cable de l'event actual
                 perf.techData?.cableList?.forEach(cable => {
                   if (cable.itemId === materialId && cable.id !== currentItemId) {
-                    committedInCurrentEvent += cable.qty ?? 1;
+                    if (!cable.exclusive && perf.id !== currentPerformanceId) {
+                      // No comptar duplicat
+                    } else {
+                      committedInCurrentEvent += cable.qty ?? 1;
+                    }
                   }
                 });
                 perf.techData?.spareList?.forEach(spare => {
                   if (spare.itemId === materialId && spare.id !== currentItemId) {
-                    committedInCurrentEvent += spare.qty ?? 1;
+                    if (!spare.exclusive && perf.id !== currentPerformanceId) {
+                      // No comptar duplicat
+                    } else {
+                      committedInCurrentEvent += spare.qty ?? 1;
+                    }
                   }
                 });
             });

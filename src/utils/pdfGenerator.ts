@@ -1970,48 +1970,69 @@ export const generatePerformancePdfObjectWithOptions = (
   // --- Balanç Consolidat ---
   if (allPerformances && materialItems && options.showBalance !== false) {
     // Calcular el balanç com al RiderBalance component
-    const usage: Record<string, { id: string; name: string; qty: number; location: string }> = {};
+    const usage: Record<string, { id: string; name: string; qty: number; location: string; section: string }> = {};
 
-    const countMaterial = (matId: string | undefined, matName: string | undefined, qty: number = 1) => {
+    const countMaterial = (matId: string | undefined, matName: string | undefined, qty: number = 1, section: string) => {
       if (!matId || !matName) return;
       if (!usage[matId]) {
         const found = materialItems.find(mi => mi.id === matId);
-        usage[matId] = { id: matId, name: matName, qty: 0, location: found?.location || '-' };
+        usage[matId] = { id: matId, name: matName, qty: 0, location: found?.location || '-', section };
       }
       usage[matId].qty += qty;
     };
 
     allPerformances.forEach(perf => {
       (perf.techData?.inputList || []).forEach(input => {
-        countMaterial(input.micContraId, input.micContra);
-        countMaterial(input.standId,     input.stand);
-        countMaterial(input.extresId,    input.extres);
+        countMaterial(input.micContraId, input.micContra, 1, 'Inputs');
+        countMaterial(input.standId,     input.stand, 1, 'Inputs');
+        countMaterial(input.extresId,    input.extres, 1, 'Inputs');
       });
       (perf.techData?.monitorList || []).forEach(monitor => {
-        countMaterial(monitor.mixContraId, monitor.mixContra, monitor.monitorQty ?? 1);
-        countMaterial(monitor.mixStandId,  monitor.mixStand,  monitor.standQty   ?? 1);
+        countMaterial(monitor.mixContraId, monitor.mixContra, monitor.monitorQty ?? 1, 'Monitors');
+        countMaterial(monitor.mixStandId,  monitor.mixStand,  monitor.standQty   ?? 1, 'Monitors');
       });
       (perf.techData?.cableList || []).forEach(cable => {
-        countMaterial(cable.itemId, cable.itemName, cable.qty ?? 1);
+        countMaterial(cable.itemId, cable.itemName, cable.qty ?? 1, 'Cablejat');
       });
       (perf.techData?.spareList || []).forEach(spare => {
-        countMaterial(spare.itemId, spare.itemName, spare.qty ?? 1);
+        countMaterial(spare.itemId, spare.itemName, spare.qty ?? 1, 'Material Spare');
       });
     });
 
     // Obtenir la funció getMaterialAvailability del store
     const { getMaterialAvailability } = useEventDataStore.getState();
 
-    const balanceData = Object.values(usage).map(item => {
+    // Ordenar per secció primer
+    const sectionOrder = { 'Inputs': 0, 'Monitors': 1, 'Cablejat': 2, 'Material Spare': 3 };
+    const sortedUsage = Object.values(usage).sort((a, b) => {
+      const sectionDiff = sectionOrder[a.section as keyof typeof sectionOrder] - sectionOrder[b.section as keyof typeof sectionOrder];
+      if (sectionDiff !== 0) return sectionDiff;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Crear dades del balanç amb separadors de secció
+    const balanceData: any[] = [];
+    let currentSection = '';
+    
+    sortedUsage.forEach(item => {
       const availability = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
       const status = item.qty <= availability.available ? 'ok' : item.qty <= availability.total ? 'warning' : 'error';
-      return [
+      
+      // Afegir separador de secció si canvia
+      if (item.section !== currentSection) {
+        balanceData.push([
+          { content: item.section, colSpan: 5, styles: { ...headStyles, fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite) } }
+        ]);
+        currentSection = item.section;
+      }
+      
+      balanceData.push([
         sane(item.name),
         item.qty.toString(),
         availability.available.toString(),
         availability.total.toString(),
         status === 'ok' ? '✓' : status === 'warning' ? '⚠' : '✗'
-      ];
+      ]);
     });
 
     if (balanceData.length > 0) {

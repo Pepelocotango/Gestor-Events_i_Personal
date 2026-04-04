@@ -196,6 +196,7 @@ export interface RiderGenericItem {
   itemName: string;      // Text lliure o nom assignat des de l'inventari
   itemId?: string;       // ID de l'item de l'inventari (si s'ha assignat via sidebar)
   notes: string;         // Notes lliures
+  exclusive?: boolean;    // Si és exclusiu per aquesta actuació
 }
 
 export interface PerformanceTechData {

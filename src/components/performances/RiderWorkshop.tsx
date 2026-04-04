@@ -776,24 +776,31 @@ interface RiderBalanceProps {
   getMaterialAvailability: (id: string, start: string, end: string, frameId: string) => { available: number; total: number };
   showInPdf?: boolean;
   onTogglePdf?: () => void;
+  currentPerformanceId?: string | null;
+  bufferedTechData?: PerformanceTechData;
 }
 
-const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf }) => {
+const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf, currentPerformanceId, bufferedTechData }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [sortByCategory, setSortByCategory] = useState(false);
   const [sortByLocation, setSortByLocation] = useState(false);
   
   const usage = useMemo(() => {
-    const counts: Record<string, { id: string; name: string; qty: number; location: string; category: string }> = {};
+    const counts: Record<string, { id: string; name: string; qty: number; location: string; category: string; section: string }> = {};
     
     performances.forEach(perf => {
+      // Usar el buffer en temps real si és l'actuació que estem editant actualment
+      const dataToUse = (perf.id === currentPerformanceId && bufferedTechData) 
+        ? bufferedTechData 
+        : perf.techData;
+
       // Processar inputs per separat: micròfons, peus i extres
-      (perf.techData?.inputList || []).forEach((item: any) => {
+      (dataToUse?.inputList || []).forEach((item: any) => {
         // Comptar micròfon
         if (item.micContraId) {
           if (!counts[item.micContraId]) {
             const m = materialItems.find(mi => mi.id === item.micContraId);
-            counts[item.micContraId] = { id: item.micContraId, name: item.micContra, qty: 0, location: m?.location || '-', category: m?.category || '' };
+            counts[item.micContraId] = { id: item.micContraId, name: item.micContra, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Inputs' };
           }
           counts[item.micContraId].qty += 1;
         }
@@ -802,7 +809,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
         if (item.standId) {
           if (!counts[item.standId]) {
             const m = materialItems.find(mi => mi.id === item.standId);
-            counts[item.standId] = { id: item.standId, name: item.stand, qty: 0, location: m?.location || '-', category: m?.category || '' };
+            counts[item.standId] = { id: item.standId, name: item.stand, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Inputs' };
           }
           counts[item.standId].qty += 1;
         }
@@ -811,19 +818,19 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
         if (item.extresId) {
           if (!counts[item.extresId]) {
             const m = materialItems.find(mi => mi.id === item.extresId);
-            counts[item.extresId] = { id: item.extresId, name: item.extres, qty: 0, location: m?.location || '-', category: m?.category || '' };
+            counts[item.extresId] = { id: item.extresId, name: item.extres, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Inputs' };
           }
           counts[item.extresId].qty += 1;
         }
       });
       
       // Processar monitors per separat: contra i peu
-      (perf.techData?.monitorList || []).forEach((item: any) => {
+      (dataToUse?.monitorList || []).forEach((item: any) => {
         // Comptar contra de monitor
         if (item.mixContraId) {
           if (!counts[item.mixContraId]) {
             const m = materialItems.find(mi => mi.id === item.mixContraId);
-            counts[item.mixContraId] = { id: item.mixContraId, name: item.mixContra, qty: 0, location: m?.location || '-', category: m?.category || '' };
+            counts[item.mixContraId] = { id: item.mixContraId, name: item.mixContra, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Monitors' };
           }
           counts[item.mixContraId].qty += item.monitorQty ?? 1;
         }
@@ -832,26 +839,26 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
         if (item.mixStandId) {
           if (!counts[item.mixStandId]) {
             const m = materialItems.find(mi => mi.id === item.mixStandId);
-            counts[item.mixStandId] = { id: item.mixStandId, name: item.mixStand, qty: 0, location: m?.location || '-', category: m?.category || '' };
+            counts[item.mixStandId] = { id: item.mixStandId, name: item.mixStand, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Monitors' };
           }
           counts[item.mixStandId].qty += item.standQty ?? 1;
         }
       });
       
-      (perf.techData?.cableList || []).forEach((item: any) => {
+      (dataToUse?.cableList || []).forEach((item: any) => {
         if (item.itemId) {
           if (!counts[item.itemId]) {
             const m = materialItems.find(mi => mi.id === item.itemId);
-            counts[item.itemId] = { id: item.itemId, name: item.itemName, qty: 0, location: m?.location || '-', category: m?.category || '' };
+            counts[item.itemId] = { id: item.itemId, name: item.itemName, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Cablejat' };
           }
           counts[item.itemId].qty += item.qty ?? 1;
         }
       });
-      (perf.techData?.spareList || []).forEach((item: any) => {
+      (dataToUse?.spareList || []).forEach((item: any) => {
         if (item.itemId) {
           if (!counts[item.itemId]) {
             const m = materialItems.find(mi => mi.id === item.itemId);
-            counts[item.itemId] = { id: item.itemId, name: item.itemName, qty: 0, location: m?.location || '-', category: m?.category || '' };
+            counts[item.itemId] = { id: item.itemId, name: item.itemName, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Material Spare' };
           }
           counts[item.itemId].qty += item.qty ?? 1;
         }
@@ -863,9 +870,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
       return { ...u, available: globalAvail.available, isError: globalAvail.available < 0 };
     });
 
-    // Aplicar ordenament
+    // Aplicar ordenament: primer per secció, després per errors, després pels altres criteris
     result.sort((a, b) => {
-      // Primer ordenar per errors (sempre prioritari)
+      // Primer ordenar per secció (Inputs → Monitors → Cablejat → Material Spare)
+      const sectionOrder = { 'Inputs': 0, 'Monitors': 1, 'Cablejat': 2, 'Material Spare': 3 };
+      const sectionDiff = sectionOrder[a.section as keyof typeof sectionOrder] - sectionOrder[b.section as keyof typeof sectionOrder];
+      if (sectionDiff !== 0) return sectionDiff;
+      
+      // Després ordenar per errors (sempre prioritari)
       const errorDiff = (b.isError ? 1 : 0) - (a.isError ? 1 : 0);
       if (errorDiff !== 0) return errorDiff;
 
@@ -888,7 +900,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
     });
 
     return result;
-  },[performances, materialItems, getMaterialAvailability, eventFrame, sortByCategory, sortByLocation]);
+  }, [performances, materialItems, getMaterialAvailability, eventFrame, sortByCategory, sortByLocation, currentPerformanceId, bufferedTechData]);
 
   if (usage.length === 0) return null;
 
@@ -973,28 +985,45 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
-              {usage.map(u => (
-                <tr key={u.id} className={`transition-colors ${u.isError ? 'bg-destructive/5' : ''}`}>
-                  <td className={`py-1.5 px-4 text-[10px] font-black ${u.isError ? 'text-destructive' : ''}`}>
-                    <Tooltip text={u.name || ''}>
-                      <span className="truncate block max-w-[200px]">{u.name}</span>
-                    </Tooltip>
-                  </td>
-                  <td className="py-1.5 px-4 text-[9px] text-muted-foreground italic">
-                    <Tooltip text={u.location || ''}>
-                      <span className="truncate block max-w-[150px]">{u.location}</span>
-                    </Tooltip>
-                  </td>
-                  <td className="py-1.5 px-4 text-[11px] font-mono font-black text-center">
-                    <span className={u.isError ? 'text-destructive' : 'text-primary'}>{u.qty}</span>
-                  </td>
-                  <td className="py-1.5 px-4 text-right">
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase ${u.isError ? 'bg-destructive text-destructive-foreground animate-pulse' : 'bg-primary/10 text-primary'}`}>
-                      {u.isError ? 'MANCA' : 'OK'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {usage.map((u, index) => {
+                const isFirstInSection = index === 0 || usage[index - 1].section !== u.section;
+                return (
+                  <React.Fragment key={u.id}>
+                    {isFirstInSection && (
+                      <tr className="bg-muted/30">
+                        <td colSpan={4} className="py-2 px-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-primary"></div>
+                            <span className="text-[9px] font-black text-primary uppercase tracking-widest">
+                              {u.section}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    <tr className={`transition-colors ${u.isError ? 'bg-destructive/5' : ''}`}>
+                      <td className={`py-1.5 px-4 text-[10px] font-black ${u.isError ? 'text-destructive' : ''}`}>
+                        <Tooltip text={u.name || ''}>
+                          <span className="truncate block max-w-[200px]">{u.name}</span>
+                        </Tooltip>
+                      </td>
+                      <td className="py-1.5 px-4 text-[9px] text-muted-foreground italic">
+                        <Tooltip text={u.location || ''}>
+                          <span className="truncate block max-w-[150px]">{u.location}</span>
+                        </Tooltip>
+                      </td>
+                      <td className="py-1.5 px-4 text-[11px] font-mono font-black text-center">
+                        <span className={u.isError ? 'text-destructive' : 'text-primary'}>{u.qty}</span>
+                      </td>
+                      <td className="py-1.5 px-4 text-right">
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase ${u.isError ? 'bg-destructive text-destructive-foreground animate-pulse' : 'bg-primary/10 text-primary'}`}>
+                          {u.isError ? 'MANCA' : 'OK'}
+                        </span>
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -1180,9 +1209,9 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
         const up = { ...item, [field]: value };
         if (field === 'micContra' || field === 'stand' || field === 'extres') {
           const matched = materialItems.find(m => m.name === value);
-          if (field === 'micContra') up.micContraId = matched?.id; 
-          else if (field === 'stand') up.standId = matched?.id; 
-          else if (field === 'extres') up.extresId = matched?.id;
+          if (field === 'micContra') up.micContraId = matched ? matched.id : undefined; 
+          else if (field === 'stand') up.standId = matched ? matched.id : undefined; 
+          else if (field === 'extres') up.extresId = matched ? matched.id : undefined;
         }
         return up;
       }
@@ -1197,7 +1226,8 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
         const up = { ...item, [field]: value };
         if (field === 'mixContra' || field === 'mixStand') {
           const matched = materialItems.find(m => m.name === value);
-          if (field === 'mixContra') up.mixContraId = matched?.id; else up.mixStandId = matched?.id;
+          if (field === 'mixContra') up.mixContraId = matched ? matched.id : undefined; 
+          else if (field === 'mixStand') up.mixStandId = matched ? matched.id : undefined;
         }
         return up;
       }
@@ -1215,7 +1245,7 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
       const updated = { ...item, [field]: value };
       if (field === 'itemName') {
         const matched = materialItems.find(m => m.name === value);
-        updated.itemId = matched?.id;
+        updated.itemId = matched ? matched.id : undefined;
       }
       return updated;
     });
@@ -1373,6 +1403,24 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
 
   // --- RENDERITZAT CONDICIONAL (DESPRÉS DE TOTS ELS HOOKS) ---
 
+// Helper per calcular l'ús en temps real tenint en compte les quantitats
+  const calculateUsageForItem = (data: PerformanceTechData | undefined, itemId: string) => {
+    if (!data) return 0;
+    let count = 0;
+    data.inputList?.forEach(i => {
+      if (i.micContraId === itemId) count += 1;
+      if (i.standId === itemId) count += 1;
+      if (i.extresId === itemId) count += 1;
+    });
+    data.monitorList?.forEach(m => {
+      if (m.mixContraId === itemId) count += (m.monitorQty || 1);
+      if (m.mixStandId === itemId) count += (m.standQty || 1);
+    });
+    data.cableList?.forEach(c => { if (c.itemId === itemId) count += (c.qty || 1); });
+    data.spareList?.forEach(s => { if (s.itemId === itemId) count += (s.qty || 1); });
+    return count;
+  };
+
   if (!selectedEventFrameId) {
     return (
       <div className="p-6 h-full flex flex-col items-center justify-center">
@@ -1425,8 +1473,8 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
           <h3 className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2 px-1 opacity-50"><Package className="w-3 h-3" /> Inventari</h3>
           {eventFrame && filteredMaterial.map(item => {
             const globalAvail = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, undefined, undefined, performance?.id);
-            const savedUsage = performance?.techData?.inputList?.filter(i => i.micContraId === item.id || i.standId === item.id).length || 0;
-            const localUsage = techData.inputList.filter(i => i.micContraId === item.id || i.standId === item.id).length;
+            const savedUsage = calculateUsageForItem(performance?.techData, item.id);
+            const localUsage = calculateUsageForItem(techData, item.id);
             return <InventoryItem key={item.id} item={item} availability={{ available: globalAvail.available + savedUsage - localUsage, total: globalAvail.total }} eventFrame={eventFrame} techData={techData} performance={performance} onClick={handleMaterialClick} isSelectionActive={activeCell !== null} />;
           })}
         </div>
@@ -2083,6 +2131,8 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                 getMaterialAvailability={getMaterialAvailability}
                 showInPdf={showBalanceInPdf}
                 onTogglePdf={() => setShowBalanceInPdf(!showBalanceInPdf)}
+                currentPerformanceId={selectedPerformanceId}
+                bufferedTechData={techData}
               />
             </div>
           </DndContext>
