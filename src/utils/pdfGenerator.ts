@@ -1925,18 +1925,25 @@ export const generatePerformancePdfObjectWithOptions = (
   if (allPerformances && materialItems && options.showBalance !== false) {
     // Calcular el balanç com al RiderBalance component
     const usage: Record<string, { id: string; name: string; qty: number; location: string }> = {};
-    
+
+    const countMaterial = (matId: string | undefined, matName: string | undefined, qty: number = 1) => {
+      if (!matId || !matName) return;
+      if (!usage[matId]) {
+        const found = materialItems.find(mi => mi.id === matId);
+        usage[matId] = { id: matId, name: matName, qty: 0, location: found?.location || '-' };
+      }
+      usage[matId].qty += qty;
+    };
+
     allPerformances.forEach(perf => {
-      [...(perf.techData?.inputList || []), ...(perf.techData?.monitorList || [])].forEach((item: any) => {
-        const matId = item.micContraId || item.standId || item.mixContraId || item.mixStandId;
-        const matName = item.micContra || item.stand || item.mixContra || item.mixStand;
-        if (matId && matName) {
-          const key = `${matId}-${matName}`;
-          if (!usage[key]) {
-            usage[key] = { id: matId, name: matName, qty: 0, location: perf.name || 'Unknown' };
-          }
-          usage[key].qty += 1;
-        }
+      (perf.techData?.inputList || []).forEach(input => {
+        countMaterial(input.micContraId, input.micContra);
+        countMaterial(input.standId,     input.stand);
+        countMaterial(input.extresId,    input.extres);
+      });
+      (perf.techData?.monitorList || []).forEach(monitor => {
+        countMaterial(monitor.mixContraId, monitor.mixContra, monitor.monitorQty ?? 1);
+        countMaterial(monitor.mixStandId,  monitor.mixStand,  monitor.standQty   ?? 1);
       });
     });
 

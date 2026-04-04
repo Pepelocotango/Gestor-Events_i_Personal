@@ -477,6 +477,17 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
         </Tooltip>
       </td>
 
+      {/* Quantitat Monitor */}
+      <td className="py-1 px-1 w-10">
+        <input
+          type="number"
+          min={1}
+          value={item.monitorQty ?? 1}
+          onChange={(e) => onChange(item.id, 'monitorQty', Math.max(1, parseInt(e.target.value) || 1))}
+          className="w-10 px-1 py-0.5 bg-muted/50 border border-border rounded text-[9px] text-center focus:ring-1 focus:ring-primary/50 outline-none font-black"
+        />
+      </td>
+
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixContraStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
         <Tooltip text={item.mixContra || (mixContraStatus.isError ? "Sense estoc disponible!" : "")}>
           <div className={`relative flex items-center rounded border transition-all ${isMixContraActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
@@ -491,6 +502,17 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
             {mixContraStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
           </div>
         </Tooltip>
+      </td>
+
+      {/* Quantitat Peu */}
+      <td className="py-1 px-1 w-10">
+        <input
+          type="number"
+          min={1}
+          value={item.standQty ?? 1}
+          onChange={(e) => onChange(item.id, 'standQty', Math.max(1, parseInt(e.target.value) || 1))}
+          className="w-10 px-1 py-0.5 bg-muted/50 border border-border rounded text-[9px] text-center focus:ring-1 focus:ring-primary/50 outline-none font-black"
+        />
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixStandStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
@@ -718,7 +740,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
             const m = materialItems.find(mi => mi.id === item.mixContraId);
             counts[item.mixContraId] = { id: item.mixContraId, name: item.mixContra, qty: 0, location: m?.location || '-', category: m?.category || '' };
           }
-          counts[item.mixContraId].qty += 1;
+          counts[item.mixContraId].qty += item.monitorQty ?? 1;
         }
         
         // Comptar peu de monitor
@@ -727,7 +749,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
             const m = materialItems.find(mi => mi.id === item.mixStandId);
             counts[item.mixStandId] = { id: item.mixStandId, name: item.mixStand, qty: 0, location: m?.location || '-', category: m?.category || '' };
           }
-          counts[item.mixStandId].qty += 1;
+          counts[item.mixStandId].qty += item.standQty ?? 1;
         }
       });
     });
@@ -1184,7 +1206,7 @@ const RiderWorkshop: React.FC = () => {
     } else if (currentList.length > 0) {
       next = `MIX ${currentList.length + 1}`;
     }
-    updateLocal({ monitorList: [...currentList, { id: Date.now().toString(), outputChannel: next, patchColor: 'transparent', patchNumber: '', label: '', mixRider: '', mixContra: '', mixStand: '', notes: '' }] }); 
+    updateLocal({ monitorList: [...currentList, { id: Date.now().toString(), outputChannel: next, patchColor: 'transparent', patchNumber: '', label: '', mixRider: '', mixContra: '', monitorQty: 1, mixStand: '', standQty: 1, notes: '' }] }); 
     if (!isMonitorsExpanded) setIsMonitorsExpanded(true); 
   };
 
@@ -1638,6 +1660,7 @@ const RiderWorkshop: React.FC = () => {
                               />
                             </div>
                           </th>
+                          <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center w-10">Qttat</th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
                               Contra
@@ -1649,6 +1672,7 @@ const RiderWorkshop: React.FC = () => {
                               />
                             </div>
                           </th>
+                          <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center w-10">Qttat</th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
                               Peu

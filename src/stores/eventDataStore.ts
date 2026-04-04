@@ -880,18 +880,16 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                     }
                 });
                 perf.techData?.monitorList?.forEach(monitor => {
+                    const monQty = monitor.monitorQty ?? 1;
+                    const stQty  = monitor.standQty   ?? 1;
                     if (monitor.mixContraId === materialId && monitor.id !== currentItemId) {
-                        if (monitor.exclusive && perf.id !== currentPerformanceId) {
-                            // No comptar
-                        } else {
-                            committedInCurrentEvent += 1;
+                        if (!(monitor.exclusive && perf.id !== currentPerformanceId)) {
+                            committedInCurrentEvent += monQty;
                         }
                     }
                     if (monitor.mixStandId === materialId && monitor.id !== currentItemId) {
-                        if (monitor.exclusive && perf.id !== currentPerformanceId) {
-                            // No comptar
-                        } else {
-                            committedInCurrentEvent += 1;
+                        if (!(monitor.exclusive && perf.id !== currentPerformanceId)) {
+                            committedInCurrentEvent += stQty;
                         }
                     }
                 });
@@ -931,6 +929,10 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                             perf.techData?.inputList?.forEach(input => {
                                 if (input.micContraId === materialId) dailyCommittedStock += 1;
                                 if (input.standId === materialId) dailyCommittedStock += 1;
+                            });
+                            perf.techData?.monitorList?.forEach(monitor => {
+                                if (monitor.mixContraId === materialId) dailyCommittedStock += monitor.monitorQty ?? 1;
+                                if (monitor.mixStandId  === materialId) dailyCommittedStock += monitor.standQty   ?? 1;
                             });
                         });
                     }

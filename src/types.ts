@@ -182,8 +182,10 @@ export interface MonitorListItem {
   mixRider: string; // El que demana l'artista per aquest MIX
   mixContra: string; // El que posem nosaltres (text lliure o nom de l'item)
   mixContraId?: string; // ID del material de l'inventari
+  monitorQty?: number;   // Quantitat de monitors físics. Default: 1
   mixStand?: string; // Peu del monitor (text lliure o nom de l'item)
   mixStandId?: string; // ID del peu de monitor de l'inventari
+  standQty?: number;     // Quantitat de peus de monitor. Default: 1
   notes: string;
   exclusive?: boolean; // Si és exclusiu per aquesta actuació
 }
