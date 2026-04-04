@@ -31,6 +31,7 @@ const PerformancePdfOptionsComponent: React.FC<PerformancePdfOptionsProps> = ({
     includeTechnicalNotes: true,
     includeHospitality: true,
     includeGeneralNotes: true,
+    includeMonitors: true,
     showEmptySections: false
   };
 
@@ -118,6 +119,20 @@ const PerformancePdfOptionsComponent: React.FC<PerformancePdfOptionsProps> = ({
           />
           <label htmlFor="includeGeneralNotes" className="text-sm font-medium">
             {t('performances.include_general_notes')}
+          </label>
+        </div>
+
+        {/* Monitors */}
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="includeMonitors"
+            checked={options.includeMonitors}
+            onChange={(e) => handleOptionChange('includeMonitors', e.target.checked)}
+            className="rounded border-border text-primary focus:ring-primary"
+          />
+          <label htmlFor="includeMonitors" className="text-sm font-medium">
+            {t('performances.include_monitors')}
           </label>
         </div>
 

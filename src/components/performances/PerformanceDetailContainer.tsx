@@ -44,6 +44,7 @@ const PerformanceDetailContainer: React.FC<PerformanceDetailContainerProps> = ({
     includeTechnicalNotes: true,
     includeHospitality: true,
     includeGeneralNotes: true,
+    includeMonitors: true,
     showEmptySections: false,
   });
 
