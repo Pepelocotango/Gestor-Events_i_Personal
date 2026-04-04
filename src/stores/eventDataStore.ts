@@ -866,16 +866,22 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             currentEvent.performances.forEach(perf => {
                 perf.techData?.inputList?.forEach(input => {
                     if (input.micContraId === materialId && input.id !== currentItemId) {
-                        // Si NO és exclusiu (és compartit) i és d'un altre artista, assumim que comparteixen el mateix ítem físic
                         if (!input.exclusive && perf.id !== currentPerformanceId) {
-                            // No sumem per no duplicar la demanda del mateix ítem compartit
+                            // No sumem per no duplicar
                         } else {
                             committedInCurrentEvent += 1;
                         }
                     }
                     if (input.standId === materialId && input.id !== currentItemId) {
                         if (!input.exclusive && perf.id !== currentPerformanceId) {
-                            // No comptar duplicat
+                            // No sumem per no duplicar
+                        } else {
+                            committedInCurrentEvent += 1;
+                        }
+                    }
+                    if (input.extresId === materialId && input.id !== currentItemId) {
+                        if (!input.exclusive && perf.id !== currentPerformanceId) {
+                            // No sumem per no duplicar
                         } else {
                             committedInCurrentEvent += 1;
                         }
@@ -954,6 +960,7 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                             perf.techData?.inputList?.forEach(input => {
                                 if (input.micContraId === materialId) dailyCommittedStock += 1;
                                 if (input.standId === materialId) dailyCommittedStock += 1;
+                                if (input.extresId === materialId) dailyCommittedStock += 1;
                             });
                             perf.techData?.monitorList?.forEach(monitor => {
                                 if (monitor.mixContraId === materialId) dailyCommittedStock += monitor.monitorQty ?? 1;

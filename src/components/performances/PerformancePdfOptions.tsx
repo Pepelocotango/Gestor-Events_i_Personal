@@ -148,7 +148,7 @@ const PerformancePdfOptionsComponent: React.FC<PerformancePdfOptionsProps> = ({
             className="rounded border-border text-primary focus:ring-primary"
           />
           <label htmlFor="includeCable" className="text-sm font-medium">
-            Cablejat
+            {t('performances.include_cable', { defaultValue: 'Cablejat' })}
           </label>
         </div>
 
@@ -162,7 +162,7 @@ const PerformancePdfOptionsComponent: React.FC<PerformancePdfOptionsProps> = ({
             className="rounded border-border text-primary focus:ring-primary"
           />
           <label htmlFor="includeSpare" className="text-sm font-medium">
-            Material Spare
+            {t('performances.include_spare', { defaultValue: 'Material Spare' })}
           </label>
         </div>
 

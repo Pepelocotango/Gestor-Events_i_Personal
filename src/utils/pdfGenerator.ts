@@ -1837,7 +1837,7 @@ export const generatePerformancePdfObjectWithOptions = (
       sane(item.notes)
     ]);
     autoTable(pdf, {
-      head: [[{ content: 'Cablejat', colSpan: 3, styles: headStyles }], cableHead],
+      head: [[{ content: i18next.t('pdf.cable_list', { defaultValue: 'Cablejat' }), colSpan: 3, styles: headStyles }], cableHead],
       body: cableBody,
       startY: y,
       theme: 'grid',
@@ -1859,7 +1859,7 @@ export const generatePerformancePdfObjectWithOptions = (
       sane(item.notes)
     ]);
     autoTable(pdf, {
-      head: [[{ content: 'Material Spare', colSpan: 3, styles: headStyles }], spareHead],
+      head: [[{ content: i18next.t('pdf.spare_list', { defaultValue: 'Material Spare' }), colSpan: 3, styles: headStyles }], spareHead],
       body: spareBody,
       startY: y,
       theme: 'grid',
@@ -2004,6 +2004,17 @@ export const generatePerformancePdfObjectWithOptions = (
 
     // Ordenar per secció primer
     const sectionOrder = { 'Inputs': 0, 'Monitors': 1, 'Cablejat': 2, 'Material Spare': 3 };
+    
+    // Funció per traduir els noms tècnics de les seccions al PDF
+    const translateSection = (section: string) => {
+      switch(section) {
+        case 'Inputs': return i18next.t('pdf.inputs', { defaultValue: 'Inputs' });
+        case 'Monitors': return i18next.t('pdf.monitors', { defaultValue: 'Monitors' });
+        case 'Cablejat': return i18next.t('pdf.cable_list', { defaultValue: 'Cablejat' });
+        case 'Material Spare': return i18next.t('pdf.spare_list', { defaultValue: 'Material Spare' });
+        default: return section;
+      }
+    };
     const sortedUsage = Object.values(usage).sort((a, b) => {
       const sectionDiff = sectionOrder[a.section as keyof typeof sectionOrder] - sectionOrder[b.section as keyof typeof sectionOrder];
       if (sectionDiff !== 0) return sectionDiff;
@@ -2016,12 +2027,11 @@ export const generatePerformancePdfObjectWithOptions = (
     
     sortedUsage.forEach(item => {
       const availability = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-      const status = item.qty <= availability.available ? 'ok' : item.qty <= availability.total ? 'warning' : 'error';
       
       // Afegir separador de secció si canvia
       if (item.section !== currentSection) {
         balanceData.push([
-          { content: item.section, colSpan: 5, styles: { ...headStyles, fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite) } }
+          { content: translateSection(item.section), colSpan: 3, styles: { ...headStyles, fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite) } }
         ]);
         currentSection = item.section;
       }
@@ -2029,9 +2039,7 @@ export const generatePerformancePdfObjectWithOptions = (
       balanceData.push([
         sane(item.name),
         item.qty.toString(),
-        availability.available.toString(),
-        availability.total.toString(),
-        status === 'ok' ? '✓' : status === 'warning' ? '⚠' : '✗'
+        `${availability.available} / ${availability.total}` 
       ]);
     });
 
@@ -2040,13 +2048,11 @@ export const generatePerformancePdfObjectWithOptions = (
       const balanceHead = [
         i18next.t('pdf.material'),
         i18next.t('pdf.quantity'),
-        i18next.t('pdf.available'),
-        i18next.t('pdf.total'),
-        i18next.t('pdf.status')
+        i18next.t('pdf.stock_balance', { defaultValue: 'Estoc (Disp/Total)' })
       ];
       
       autoTable(pdf, {
-        head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 5, styles: headStyles }],
+        head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 3, styles: headStyles }],
           balanceHead
         ],
         body: balanceData,

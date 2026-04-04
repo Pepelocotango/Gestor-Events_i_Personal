@@ -83,13 +83,18 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
   const getAssignments = (): MaterialAssignment[] => {
     const assignments: MaterialAssignment[] =[];
     
-    const currentInputCount = techData.inputList
-      .filter((input: InputListItem) => input.micContraId === item.id || input.standId === item.id)
-      .length;
-    const currentMonitorCount = (techData.monitorList || [])
-      .filter((monitor: MonitorListItem) => monitor.mixContraId === item.id || monitor.mixStandId === item.id)
-      .length;
-    const currentTotal = currentInputCount + currentMonitorCount;
+    // Càlcul per a l'actuació actual (buffer)
+    let currentTotal = 0;
+    techData.inputList?.forEach(i => {
+      if (i.micContraId === item.id || i.standId === item.id || i.extresId === item.id) currentTotal += 1;
+    });
+    techData.monitorList?.forEach(m => {
+      if (m.mixContraId === item.id) currentTotal += (m.monitorQty || 1);
+      if (m.mixStandId === item.id) currentTotal += (m.standQty || 1);
+    });
+    techData.cableList?.forEach(c => { if (c.itemId === item.id) currentTotal += (c.qty || 1); });
+    techData.spareList?.forEach(s => { if (s.itemId === item.id) currentTotal += (s.qty || 1); });
+
     if (currentTotal > 0) {
       assignments.push({
         eventName: eventFrame.name || 'Esdeveniment',
@@ -98,11 +103,20 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
       });
     }
 
+    // Càlcul per a les altres actuacions (dades desades)
     eventFrame.performances?.forEach((perf: Performance) => {
       if (perf.id !== performance?.id) { 
-        const perfInputCount = perf.techData?.inputList?.filter((input: InputListItem) => input.micContraId === item.id || input.standId === item.id).length || 0;
-        const perfMonitorCount = perf.techData?.monitorList?.filter((monitor: MonitorListItem) => monitor.mixContraId === item.id || monitor.mixStandId === item.id).length || 0;
-        const perfTotal = perfInputCount + perfMonitorCount;
+        let perfTotal = 0;
+        perf.techData?.inputList?.forEach(i => {
+          if (i.micContraId === item.id || i.standId === item.id || i.extresId === item.id) perfTotal += 1;
+        });
+        perf.techData?.monitorList?.forEach(m => {
+          if (m.mixContraId === item.id) perfTotal += (m.monitorQty || 1);
+          if (m.mixStandId === item.id) perfTotal += (m.standQty || 1);
+        });
+        perf.techData?.cableList?.forEach(c => { if (c.itemId === item.id) perfTotal += (c.qty || 1); });
+        perf.techData?.spareList?.forEach(s => { if (s.itemId === item.id) perfTotal += (s.qty || 1); });
+
         if (perfTotal > 0) {
           assignments.push({
             eventName: eventFrame.name || 'Esdeveniment',
@@ -117,11 +131,7 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
   };
 
   const assignments = getAssignments();
-  const isCurrentlyAssigned = techData.inputList.some(
-    (input: InputListItem) => input.micContraId === item.id || input.standId === item.id
-  ) || (techData.monitorList || []).some(
-    (monitor: MonitorListItem) => monitor.mixContraId === item.id || monitor.mixStandId === item.id
-  );
+  const isCurrentlyAssigned = assignments.some(a => a.performanceName === (performance?.name || 'Actuació actual') && a.quantity > 0);
 
   return (
     <div
@@ -784,6 +794,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
   const [isExpanded, setIsExpanded] = useState(false);
   const [sortByCategory, setSortByCategory] = useState(false);
   const [sortByLocation, setSortByLocation] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   
   const usage = useMemo(() => {
     const counts: Record<string, { id: string; name: string; qty: number; location: string; category: string; section: string }> = {};
@@ -867,7 +878,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
     
     let result = Object.values(counts).map(u => {
       const globalAvail = getMaterialAvailability(u.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-      return { ...u, available: globalAvail.available, isError: globalAvail.available < 0 };
+      return { ...u, available: globalAvail.available, total: globalAvail.total, isError: globalAvail.available < 0 };
     });
 
     // Aplicar ordenament: primer per secció, després per errors, després pels altres criteris
@@ -981,7 +992,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
                 <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Material</th>
                 <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">Ubicació</th>
                 <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-center">Quantitat</th>
-                <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-right">Estat</th>
+                <th className="py-1.5 px-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-right">Estoc (Disp/Total)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
@@ -1001,7 +1012,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
                         </td>
                       </tr>
                     )}
-                    <tr className={`transition-colors ${u.isError ? 'bg-destructive/5' : ''}`}>
+                    <tr 
+                      className={`transition-colors cursor-pointer hover:bg-muted/20 ${
+                        u.isError ? 'bg-destructive/5' : ''
+                      } ${
+                        selectedItemId === u.id ? 'bg-primary/10 ring-1 ring-primary/30' : ''
+                      }`}
+                      onClick={() => setSelectedItemId(u.id === selectedItemId ? null : u.id)}
+                    >
                       <td className={`py-1.5 px-4 text-[10px] font-black ${u.isError ? 'text-destructive' : ''}`}>
                         <Tooltip text={u.name || ''}>
                           <span className="truncate block max-w-[200px]">{u.name}</span>
@@ -1016,8 +1034,8 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
                         <span className={u.isError ? 'text-destructive' : 'text-primary'}>{u.qty}</span>
                       </td>
                       <td className="py-1.5 px-4 text-right">
-                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase ${u.isError ? 'bg-destructive text-destructive-foreground animate-pulse' : 'bg-primary/10 text-primary'}`}>
-                          {u.isError ? 'MANCA' : 'OK'}
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase ${u.isError ? 'bg-destructive text-destructive-foreground animate-pulse' : 'bg-primary/10 text-primary'}`}>
+                          {u.available} / {u.total}
                         </span>
                       </td>
                     </tr>
