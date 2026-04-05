@@ -193,7 +193,7 @@ interface WorkshopRowProps {
 }
 
 const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, activeCell, onCellFocus }) => {
-  const { getMaterialAvailability, eventFrames } = useEventDataStore();
+  const { getMaterialAvailability, eventFrames, materialItems } = useEventDataStore();
   const { eventFrameId } = useParams<{ eventFrameId: string }>();
   
   const eventFrame = useMemo(() => eventFrameId ? eventFrames.find(ef => ef.id === eventFrameId) : null, [eventFrameId, eventFrames]);
@@ -223,6 +223,16 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
   const micStatus = checkAvailability(item.micContraId);
   const standStatus = checkAvailability(item.standId);
   const extresStatus = checkAvailability(item.extresId);
+
+  const micContraName = item.micContraId
+    ? materialItems.find(m => m.id === item.micContraId)?.name ?? item.micContra
+    : item.micContra || '';
+  const standName = item.standId
+    ? materialItems.find(m => m.id === item.standId)?.name ?? item.stand
+    : item.stand || '';
+  const extresName = item.extresId
+    ? materialItems.find(m => m.id === item.extresId)?.name ?? item.extres
+    : item.extres || '';
 
   const patchColors =[
     { name: 'transparent', class: 'bg-transparent border border-gray-300' },
@@ -307,11 +317,11 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${micStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={item.micContra || (micStatus.isError ? "Sense estoc disponible!" : "")}>
+        <Tooltip text={micContraName || (micStatus.isError ? "Sense estoc disponible!" : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isMicActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
-              value={item.micContra}
+              value={micContraName}
               onChange={(e) => onChange(item.id, 'micContra', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'micContra')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
@@ -323,11 +333,11 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${standStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={item.stand || (standStatus.isError ? "Sense estoc disponible!" : "")}>
+        <Tooltip text={standName || (standStatus.isError ? "Sense estoc disponible!" : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
-              value={item.stand}
+              value={standName}
               onChange={(e) => onChange(item.id, 'stand', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'stand')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
@@ -339,12 +349,11 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${extresStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={item.extres || (extresStatus.isError ? "Sense estoc disponible!" : "")}>
+        <Tooltip text={extresName || (extresStatus.isError ? "Sense estoc disponible!" : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isExtresActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
-              value={item.extres || ''}
-              onChange={(e) => onChange(item.id, 'extres', e.target.value)}
+              value={extresName}
               onFocus={() => onCellFocus(item.id, 'extres')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
               placeholder="Assignar..."
@@ -386,7 +395,7 @@ interface MonitorRowProps {
 }
 
 const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus }) => {
-  const { getMaterialAvailability, eventFrames } = useEventDataStore();
+  const { getMaterialAvailability, eventFrames, materialItems } = useEventDataStore();
   const { eventFrameId } = useParams<{ eventFrameId: string }>();
   
   const eventFrame = useMemo(() => eventFrameId ? eventFrames.find(ef => ef.id === eventFrameId) : null, [eventFrameId, eventFrames]);
@@ -409,6 +418,13 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
 
   const mixContraStatus = checkAvailability(item.mixContraId);
   const mixStandStatus = checkAvailability(item.mixStandId);
+
+  const mixContraName = item.mixContraId
+    ? materialItems.find(m => m.id === item.mixContraId)?.name ?? item.mixContra
+    : item.mixContra || '';
+  const mixStandName = item.mixStandId
+    ? materialItems.find(m => m.id === item.mixStandId)?.name ?? item.mixStand
+    : item.mixStand || '';
 
   const isMixContraActive = activeCell?.id === item.id && activeCell?.field === 'mixContra';
   const isMixStandActive = activeCell?.id === item.id && activeCell?.field === 'mixStand';
@@ -503,11 +519,11 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixContraStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={item.mixContra || (mixContraStatus.isError ? "Sense estoc disponible!" : "")}>
+        <Tooltip text={mixContraName || (mixContraStatus.isError ? "Sense estoc disponible!" : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isMixContraActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
-              value={item.mixContra}
+              value={mixContraName}
               onChange={(e) => onChange(item.id, 'mixContra', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'mixContra')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
@@ -530,12 +546,11 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixStandStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={item.mixStand || (mixStandStatus.isError ? "Sense estoc disponible!" : "")}>
+        <Tooltip text={mixStandName || (mixStandStatus.isError ? "Sense estoc disponible!" : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isMixStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
-              value={item.mixStand || ''}
-              onChange={(e) => onChange(item.id, 'mixStand', e.target.value)}
+              value={mixStandName}
               onFocus={() => onCellFocus(item.id, 'mixStand')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
               placeholder="Assignar..."
@@ -589,7 +604,7 @@ interface GenericRiderRowProps {
 }
 
 const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus }) => {
-  const { getMaterialAvailability, eventFrames } = useEventDataStore();
+  const { getMaterialAvailability, eventFrames, materialItems } = useEventDataStore();
   const { eventFrameId } = useParams<{ eventFrameId: string }>();
   const eventFrame = useMemo(() => eventFrameId ? eventFrames.find(ef => ef.id === eventFrameId) : null, [eventFrameId, eventFrames]);
 
@@ -604,6 +619,10 @@ const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRem
 
   const itemStatus = checkAvailability(item.itemId);
   const isItemActive = activeCell?.id === item.id && activeCell?.field === 'item';
+
+  const itemName = item.itemId
+    ? materialItems.find(m => m.id === item.itemId)?.name ?? item.itemName
+    : item.itemName || '';
 
   return (
     <tr ref={setNodeRef} style={style} className={`hover:bg-muted/30 transition-colors group ${isDragging ? 'bg-accent/50 shadow-lg' : ''}`}>
@@ -624,11 +643,11 @@ const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRem
       </td>
       {/* Item (point and shoot) */}
       <td className={`py-1 px-1.5 min-w-[200px] transition-colors ${itemStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={item.itemName || (itemStatus.isError ? 'Sense estoc disponible!' : '')}>
+        <Tooltip text={itemName || (itemStatus.isError ? 'Sense estoc disponible!' : '')}>
           <div className={`relative flex items-center rounded border transition-all ${isItemActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
-              value={item.itemName}
+              value={itemName}
               onChange={(e) => onChange(item.id, 'itemName', e.target.value)}
               onFocus={() => onCellFocus(item.id)}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"

@@ -64,7 +64,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
         if (item.micContraId) {
           if (!counts[item.micContraId]) {
             const m = materialItems.find(mi => mi.id === item.micContraId);
-            counts[item.micContraId] = { id: item.micContraId, name: item.micContra, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Inputs' };
+            counts[item.micContraId] = {
+              id: item.micContraId,
+              name: m?.name || item.micContra || '',
+              qty: 0,
+              location: m?.location || '-',
+              category: m?.category || '',
+              section: 'Inputs'
+            };
           }
           counts[item.micContraId].qty += 1;
         }
@@ -73,7 +80,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
         if (item.standId) {
           if (!counts[item.standId]) {
             const m = materialItems.find(mi => mi.id === item.standId);
-            counts[item.standId] = { id: item.standId, name: item.stand, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Inputs' };
+            counts[item.standId] = {
+              id: item.standId,
+              name: m?.name || item.stand || '',
+              qty: 0,
+              location: m?.location || '-',
+              category: m?.category || '',
+              section: 'Inputs'
+            };
           }
           counts[item.standId].qty += 1;
         }
@@ -82,7 +96,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
         if (item.extresId) {
           if (!counts[item.extresId]) {
             const m = materialItems.find(mi => mi.id === item.extresId);
-            counts[item.extresId] = { id: item.extresId, name: item.extres, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Inputs' };
+            counts[item.extresId] = {
+              id: item.extresId,
+              name: m?.name || item.extres || '',
+              qty: 0,
+              location: m?.location || '-',
+              category: m?.category || '',
+              section: 'Inputs'
+            };
           }
           counts[item.extresId].qty += 1;
         }
@@ -94,7 +115,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
         if (item.mixContraId) {
           if (!counts[item.mixContraId]) {
             const m = materialItems.find(mi => mi.id === item.mixContraId);
-            counts[item.mixContraId] = { id: item.mixContraId, name: item.mixContra, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Monitors' };
+            counts[item.mixContraId] = {
+              id: item.mixContraId,
+              name: m?.name || item.mixContra || '',
+              qty: 0,
+              location: m?.location || '-',
+              category: m?.category || '',
+              section: 'Monitors'
+            };
           }
           counts[item.mixContraId].qty += item.monitorQty ?? 1;
         }
@@ -103,7 +131,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
         if (item.mixStandId) {
           if (!counts[item.mixStandId]) {
             const m = materialItems.find(mi => mi.id === item.mixStandId);
-            counts[item.mixStandId] = { id: item.mixStandId, name: item.mixStand, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Monitors' };
+            counts[item.mixStandId] = {
+              id: item.mixStandId,
+              name: m?.name || item.mixStand || '',
+              qty: 0,
+              location: m?.location || '-',
+              category: m?.category || '',
+              section: 'Monitors'
+            };
           }
           counts[item.mixStandId].qty += item.standQty ?? 1;
         }
@@ -113,7 +148,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
         if (item.itemId) {
           if (!counts[item.itemId]) {
             const m = materialItems.find(mi => mi.id === item.itemId);
-            counts[item.itemId] = { id: item.itemId, name: item.itemName, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Cablejat' };
+            counts[item.itemId] = {
+              id: item.itemId,
+              name: m?.name || item.itemName || '',
+              qty: 0,
+              location: m?.location || '-',
+              category: m?.category || '',
+              section: 'Cablejat'
+            };
           }
           counts[item.itemId].qty += item.qty ?? 1;
         }
@@ -122,7 +164,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
         if (item.itemId) {
           if (!counts[item.itemId]) {
             const m = materialItems.find(mi => mi.id === item.itemId);
-            counts[item.itemId] = { id: item.itemId, name: item.itemName, qty: 0, location: m?.location || '-', category: m?.category || '', section: 'Material Spare' };
+            counts[item.itemId] = {
+              id: item.itemId,
+              name: m?.name || item.itemName || '',
+              qty: 0,
+              location: m?.location || '-',
+              category: m?.category || '',
+              section: 'Material Spare'
+            };
           }
           counts[item.itemId].qty += item.qty ?? 1;
         }
