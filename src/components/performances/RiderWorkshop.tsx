@@ -225,13 +225,13 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
   const extresStatus = checkAvailability(item.extresId);
 
   const micContraName = item.micContraId
-    ? materialItems.find(m => m.id === item.micContraId)?.name ?? item.micContra
+    ? materialItems.find(m => m.id === item.micContraId)?.name ?? ''
     : item.micContra || '';
   const standName = item.standId
-    ? materialItems.find(m => m.id === item.standId)?.name ?? item.stand
+    ? materialItems.find(m => m.id === item.standId)?.name ?? ''
     : item.stand || '';
   const extresName = item.extresId
-    ? materialItems.find(m => m.id === item.extresId)?.name ?? item.extres
+    ? materialItems.find(m => m.id === item.extresId)?.name ?? ''
     : item.extres || '';
 
   const patchColors =[
@@ -420,10 +420,10 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
   const mixStandStatus = checkAvailability(item.mixStandId);
 
   const mixContraName = item.mixContraId
-    ? materialItems.find(m => m.id === item.mixContraId)?.name ?? item.mixContra
+    ? materialItems.find(m => m.id === item.mixContraId)?.name ?? ''
     : item.mixContra || '';
   const mixStandName = item.mixStandId
-    ? materialItems.find(m => m.id === item.mixStandId)?.name ?? item.mixStand
+    ? materialItems.find(m => m.id === item.mixStandId)?.name ?? ''
     : item.mixStand || '';
 
   const isMixContraActive = activeCell?.id === item.id && activeCell?.field === 'mixContra';
@@ -621,7 +621,7 @@ const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRem
   const isItemActive = activeCell?.id === item.id && activeCell?.field === 'item';
 
   const itemName = item.itemId
-    ? materialItems.find(m => m.id === item.itemId)?.name ?? item.itemName
+    ? materialItems.find(m => m.id === item.itemId)?.name ?? ''
     : item.itemName || '';
 
   return (
@@ -1045,10 +1045,18 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
       if (item.id === id) {
         const up = { ...item, [field]: value };
         if (field === 'micContra' || field === 'stand' || field === 'extres') {
+          // Si el valor ve de l'inventari (té ID), actualitzar l'ID
           const matched = materialItems.find(m => m.name === value);
-          if (field === 'micContra') up.micContraId = matched ? matched.id : undefined; 
-          else if (field === 'stand') up.standId = matched ? matched.id : undefined; 
-          else if (field === 'extres') up.extresId = matched ? matched.id : undefined;
+          if (field === 'micContra') {
+            up.micContraId = matched ? matched.id : undefined;
+            up.micContra = matched ? matched.name : value;
+          } else if (field === 'stand') {
+            up.standId = matched ? matched.id : undefined;
+            up.stand = matched ? matched.name : value;
+          } else if (field === 'extres') {
+            up.extresId = matched ? matched.id : undefined;
+            up.extres = matched ? matched.name : value;
+          }
         }
         return up;
       }
@@ -1062,9 +1070,15 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
       if (item.id === id) {
         const up = { ...item, [field]: value };
         if (field === 'mixContra' || field === 'mixStand') {
+          // Si el valor ve de l'inventari (té ID), actualitzar l'ID
           const matched = materialItems.find(m => m.name === value);
-          if (field === 'mixContra') up.mixContraId = matched ? matched.id : undefined; 
-          else if (field === 'mixStand') up.mixStandId = matched ? matched.id : undefined;
+          if (field === 'mixContra') {
+            up.mixContraId = matched ? matched.id : undefined;
+            up.mixContra = matched ? matched.name : value;
+          } else if (field === 'mixStand') {
+            up.mixStandId = matched ? matched.id : undefined;
+            up.mixStand = matched ? matched.name : value;
+          }
         }
         return up;
       }
@@ -1081,8 +1095,10 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
       if (item.id !== id) return item;
       const updated = { ...item, [field]: value };
       if (field === 'itemName') {
+        // Si el valor ve de l'inventari (té ID), actualitzar l'ID
         const matched = materialItems.find(m => m.name === value);
         updated.itemId = matched ? matched.id : undefined;
+        updated.itemName = matched ? matched.name : value;
       }
       return updated;
     });
@@ -1104,13 +1120,58 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
   const handleMaterialClick = (material: MaterialItem) => {
     if (activeCell) {
       if (activeCell.field === 'mixContra' || activeCell.field === 'mixStand') {
-        handleMonitorChange(activeCell.id, activeCell.field, material.name);
+        // Assignar directament amb ID per evitar ambigüitats
+        const newList = (techDataRef.current.monitorList || []).map(item => {
+          if (item.id === activeCell.id) {
+            const up = { ...item };
+            if (activeCell.field === 'mixContra') {
+              up.mixContraId = material.id;
+              up.mixContra = material.name;
+            } else if (activeCell.field === 'mixStand') {
+              up.mixStandId = material.id;
+              up.mixStand = material.name;
+            }
+            return up;
+          }
+          return item;
+        });
+        updateLocal({ monitorList: newList });
       } else if (activeCell.field === 'cable') {
-        handleGenericChange('cableList', activeCell.id, 'itemName', material.name);
+        const newList = (techDataRef.current.cableList || []).map(item => {
+          if (item.id === activeCell.id) {
+            return { ...item, itemId: material.id, itemName: material.name };
+          }
+          return item;
+        });
+        updateLocal({ cableList: newList });
       } else if (activeCell.field === 'spare') {
-        handleGenericChange('spareList', activeCell.id, 'itemName', material.name);
+        const newList = (techDataRef.current.spareList || []).map(item => {
+          if (item.id === activeCell.id) {
+            return { ...item, itemId: material.id, itemName: material.name };
+          }
+          return item;
+        });
+        updateLocal({ spareList: newList });
       } else {
-        handleInputChange(activeCell.id, activeCell.field, material.name);
+        // Inputs: micContra, stand, extres
+        const newList = techDataRef.current.inputList.map(item => {
+          if (item.id === activeCell.id) {
+            const up = { ...item };
+            if (activeCell.field === 'micContra') {
+              up.micContraId = material.id;
+              up.micContra = material.name;
+            } else if (activeCell.field === 'stand') {
+              up.standId = material.id;
+              up.stand = material.name;
+            } else if (activeCell.field === 'extres') {
+              up.extresId = material.id;
+              up.extres = material.name;
+            }
+            return up;
+          }
+          return item;
+        });
+        updateLocal({ inputList: newList });
       }
       notificationService.success(`${material.name} assignat`);
     } else {

@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
-import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, Assignment, NeedItem, MaterialControlRow, Performance, PerformancePdfOptions, ValidationResult } from '../types';
+import { PersonGroup, SummaryRow, MaterialItem, TechSheetData, ShowToastFunction, EventFrame, MaterialControlRow, Performance, PerformancePdfOptions, ValidationResult } from '../types';
 import { formatDateDMY, formatDateRangeDMY } from './dateFormat';
 import { getStatusSummaryText } from './statusUtils';
 import { themeHslColors } from './themeDefinition';
@@ -921,7 +921,7 @@ export const exportPerformanceToPdf = async (performance: Performance, eventFram
 export const generatePerformancePdfObjectWithOptions = (performance: Performance, eventFrame: EventFrame, options: PerformancePdfOptions): jsPDF => {
   const orientation = options.pdfOrientation || 'portrait';
   const pdf = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
-  const { sane, headStyles, labelStyles, emptySectionStyles } = getPerformanceStyles();
+  const { sane, headStyles, labelStyles } = getPerformanceStyles();
   const densityStyles = getTableDensityStyles(orientation);
   let y = 10;
   const mainTitle = `${i18next.t('pdf.performance_rider_title')} - ${performance.name}`;
@@ -931,20 +931,20 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
     ? [[{ content: mainTitle, colSpan: 2, styles: { halign: 'center' as const, fontSize: 11, fontStyle: 'bold' as const, fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), cellPadding: 1.5 } }], [{ content: i18next.t('pdf.event_name'), styles: labelStyles }, sane(eventFrame.name)], [{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)], [{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)]]
     : [[{ content: mainTitle, styles: { halign: 'center' as const, fontSize: 11, fontStyle: 'bold' as const, fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), cellPadding: 1.5 } }]];
   
-  autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'fixed' });
+  autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
   y = (pdf as any).lastAutoTable.finalY + 3;
 
   // 2. Info Artista
   if (options.includeBasicInfo) {
     y = checkPageBreak(pdf, y, 35);
-    autoTable(pdf, { body: [[{ content: i18next.t('pdf.artist_info'), colSpan: 2, styles: headStyles }], [{ content: i18next.t('pdf.artist_name'), styles: labelStyles }, sane(performance.name)], [{ content: i18next.t('pdf.artist_type'), styles: labelStyles }, sane(performance.type)], [{ content: i18next.t('pdf.contact_name'), styles: labelStyles }, sane(performance.contactName)], [{ content: i18next.t('pdf.contact_phone'), styles: labelStyles }, sane(performance.contactPhone)], [{ content: i18next.t('pdf.contact_email'), styles: labelStyles }, sane(performance.contactEmail)], [{ content: i18next.t('pdf.status'), styles: labelStyles }, sane(performance.status)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'fixed' });
+    autoTable(pdf, { body: [[{ content: i18next.t('pdf.artist_info'), colSpan: 2, styles: headStyles }], [{ content: i18next.t('pdf.artist_name'), styles: labelStyles }, sane(performance.name)], [{ content: i18next.t('pdf.artist_type'), styles: labelStyles }, sane(performance.type)], [{ content: i18next.t('pdf.contact_name'), styles: labelStyles }, sane(performance.contactName)], [{ content: i18next.t('pdf.contact_phone'), styles: labelStyles }, sane(performance.contactPhone)], [{ content: i18next.t('pdf.contact_email'), styles: labelStyles }, sane(performance.contactEmail)], [{ content: i18next.t('pdf.status'), styles: labelStyles }, sane(performance.status)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
     y = (pdf as any).lastAutoTable.finalY + 3;
   }
 
   // 3. Horaris
   if (options.includeBasicInfo) {
     y = checkPageBreak(pdf, y, 25);
-    autoTable(pdf, { body: [[{ content: i18next.t('pdf.schedule'), colSpan: 2, styles: headStyles }], [{ content: i18next.t('pdf.arrival_time'), styles: labelStyles }, sane(performance.arrivalTime)], [{ content: i18next.t('pdf.soundcheck_time'), styles: labelStyles }, sane(performance.soundCheckTime)], [{ content: i18next.t('pdf.show_time'), styles: labelStyles }, sane(performance.showTime)], [{ content: i18next.t('pdf.departure_time'), styles: labelStyles }, sane(performance.departureTime)], [{ content: i18next.t('pdf.duration'), styles: labelStyles }, sane(performance.duration)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'fixed' });
+    autoTable(pdf, { body: [[{ content: i18next.t('pdf.schedule'), colSpan: 2, styles: headStyles }], [{ content: i18next.t('pdf.arrival_time'), styles: labelStyles }, sane(performance.arrivalTime)], [{ content: i18next.t('pdf.soundcheck_time'), styles: labelStyles }, sane(performance.soundCheckTime)], [{ content: i18next.t('pdf.show_time'), styles: labelStyles }, sane(performance.showTime)], [{ content: i18next.t('pdf.departure_time'), styles: labelStyles }, sane(performance.departureTime)], [{ content: i18next.t('pdf.duration'), styles: labelStyles }, sane(performance.duration)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
     y = (pdf as any).lastAutoTable.finalY + 3;
   }
 
@@ -974,8 +974,8 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
         if (colsWithData.channel) r.push(sane(i.channel)); if (colsWithData.label) r.push(sane(i.label)); if (colsWithData.rider) r.push(sane(i.micRider)); if (colsWithData.contra) r.push(sane(i.micContra)); if (colsWithData.stand) r.push(sane(i.stand)); if (colsWithData.notes) r.push(sane(i.extres)); if (colsWithData.exclusive) r.push(i.exclusive ? '✓' : '');
         return r;
       }),
-      startY: y, theme: 'grid', headStyles, columnStyles: cStyles, margin: { left: 10, right: 10 }, tableWidth: 'fixed',
-      didDrawCell: (d) => { if (d.section === 'body' && d.column.index === 0) { const raw = d.cell.raw as any; if (raw?.customColor && patchColorMap[raw.customColor]) { pdf.setFillColor(...patchColorMap[raw.customColor]); pdf.circle(d.cell.x + 2.5, d.cell.y + (d.cell.height / 2), 1.2, 'F'); } } },
+      startY: y, theme: 'grid', headStyles, columnStyles: cStyles, margin: { left: 10, right: 10 }, tableWidth: 'wrap',
+      didDrawCell: (d) => { if (d.section === 'body' && d.column.index === 0) { const raw = d.cell.raw as any; if (raw?.customColor && patchColorMap[raw.customColor]) { pdf.setFillColor(...(patchColorMap[raw.customColor] as [number, number, number])); pdf.circle(d.cell.x + 2.5, d.cell.y + (d.cell.height / 2), 1.2, 'F'); } } },
       styles: { ...densityStyles, cellPadding: 1 }
     });
     y = (pdf as any).lastAutoTable.finalY + 3;
@@ -1008,8 +1008,8 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
           if (mColsWithData.outputChannel) r.push(sane(i.outputChannel)); if (mColsWithData.label) r.push(sane(i.label)); if (mColsWithData.rider) r.push(sane(i.mixRider)); if (mColsWithData.contra) r.push(sane(i.mixContra)); if (mColsWithData.stand) r.push(sane(i.mixStand)); if (mColsWithData.notes) r.push(sane(i.notes)); if (mColsWithData.exclusive) r.push(i.exclusive ? '✓' : '');
           return r;
         }),
-        startY: y, theme: 'grid', headStyles, columnStyles: mcStyles, margin: { left: 10, right: 10 }, tableWidth: 'fixed',
-        didDrawCell: (d) => { if (d.section === 'body' && d.column.index === 0) { const raw = d.cell.raw as any; if (raw?.customColor && patchColorMap[raw.customColor]) { pdf.setFillColor(...patchColorMap[raw.customColor]); pdf.circle(d.cell.x + 2.5, d.cell.y + (d.cell.height / 2), 1.2, 'F'); } } },
+        startY: y, theme: 'grid', headStyles, columnStyles: mcStyles, margin: { left: 10, right: 10 }, tableWidth: 'wrap',
+        didDrawCell: (d) => { if (d.section === 'body' && d.column.index === 0) { const raw = d.cell.raw as any; if (raw?.customColor && patchColorMap[raw.customColor]) { pdf.setFillColor(...(patchColorMap[raw.customColor] as [number, number, number])); pdf.circle(d.cell.x + 2.5, d.cell.y + (d.cell.height / 2), 1.2, 'F'); } } },
         styles: { ...densityStyles, cellPadding: 1 }
       });
       y = (pdf as any).lastAutoTable.finalY + 3;
@@ -1019,12 +1019,12 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
   // 6. Cablejat i Spare
   if (options.includeCable && performance.techData?.cableList?.length) {
     y = checkPageBreak(pdf, y, 25);
-    autoTable(pdf, { head: [[{ content: i18next.t('pdf.cable_list'), colSpan: 3, styles: headStyles }], [i18next.t('pdf.qty'), i18next.t('pdf.material'), i18next.t('pdf.notes')]], body: performance.techData.cableList.map(i => [(i.qty || 1).toString(), sane(i.itemName), sane(i.notes)]), startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: 15, halign: 'center' } }, margin: { left: 10, right: 10 }, tableWidth: 'fixed' });
+    autoTable(pdf, { head: [[{ content: i18next.t('pdf.cable_list'), colSpan: 3, styles: headStyles }], [i18next.t('pdf.qty'), i18next.t('pdf.material'), i18next.t('pdf.notes')]], body: performance.techData.cableList.map(i => [(i.qty || 1).toString(), sane(i.itemName), sane(i.notes)]), startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: 15, halign: 'center' } }, margin: { left: 10, right: 10 }, tableWidth: 'wrap' });
     y = (pdf as any).lastAutoTable.finalY + 3;
   }
   if (options.includeSpare && performance.techData?.spareList?.length) {
     y = checkPageBreak(pdf, y, 25);
-    autoTable(pdf, { head: [[{ content: i18next.t('pdf.spare_list'), colSpan: 3, styles: headStyles }], [i18next.t('pdf.qty'), i18next.t('pdf.material'), i18next.t('pdf.notes')]], body: performance.techData.spareList.map(i => [(i.qty || 1).toString(), sane(i.itemName), sane(i.notes)]), startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: 15, halign: 'center' } }, margin: { left: 10, right: 10 }, tableWidth: 'fixed' });
+    autoTable(pdf, { head: [[{ content: i18next.t('pdf.spare_list'), colSpan: 3, styles: headStyles }], [i18next.t('pdf.qty'), i18next.t('pdf.material'), i18next.t('pdf.notes')]], body: performance.techData.spareList.map(i => [(i.qty || 1).toString(), sane(i.itemName), sane(i.notes)]), startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: 15, halign: 'center' } }, margin: { left: 10, right: 10 }, tableWidth: 'wrap' });
     y = (pdf as any).lastAutoTable.finalY + 3;
   }
 
@@ -1036,7 +1036,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
     if (performance.techData?.stageRequirements) tN.push([{ content: i18next.t('pdf.stage_requirements'), styles: labelStyles }, sane(performance.techData.stageRequirements)]);
     if (tN.length) {
       y = checkPageBreak(pdf, y, 30); tN.unshift([{ content: i18next.t('pdf.technical_notes'), colSpan: 2, styles: headStyles }]);
-      autoTable(pdf, { body: tN, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'fixed' });
+      autoTable(pdf, { body: tN, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
       y = (pdf as any).lastAutoTable.finalY + 3;
     }
   }
@@ -1049,7 +1049,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
     if (performance.hospitalityData?.parkingNotes) hN.push([{ content: i18next.t('pdf.parking'), styles: labelStyles }, sane(performance.hospitalityData.parkingNotes)]);
     if (hN.length) {
       y = checkPageBreak(pdf, y, 30); hN.unshift([{ content: i18next.t('pdf.hospitality'), colSpan: 2, styles: headStyles }]);
-      autoTable(pdf, { body: hN, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'fixed' });
+      autoTable(pdf, { body: hN, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
       y = (pdf as any).lastAutoTable.finalY + 3;
     }
   }
@@ -1057,7 +1057,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
   // 8. Notes Generals
   if (options.includeGeneralNotes && performance.notes) {
     y = checkPageBreak(pdf, y, 20);
-    autoTable(pdf, { head: [[{ content: i18next.t('pdf.general_notes'), styles: headStyles }]], body: [[sane(performance.notes)]], startY: y, theme: 'grid', margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'fixed' });
+    autoTable(pdf, { head: [[{ content: i18next.t('pdf.general_notes'), styles: headStyles }]], body: [[sane(performance.notes)]], startY: y, theme: 'grid', margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
     y = (pdf as any).lastAutoTable.finalY + 3;
   }
 
@@ -1070,7 +1070,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
       bData.push([sane(i.name), sane(i.location), i.qty.toString(), `${i.available} / ${i.total}`]);
     });
     y = checkPageBreak(pdf, y, 30);
-    autoTable(pdf, { head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 4, styles: headStyles }], [i18next.t('pdf.material'), i18next.t('pdf.location'), i18next.t('pdf.quantity'), i18next.t('pdf.stock_balance')]], body: bData, startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: orientation === 'landscape' ? 120 : 80 }, 1: { cellWidth: orientation === 'landscape' ? 80 : 60 }, 2: { cellWidth: 20, halign: 'center' }, 3: { cellWidth: 30, halign: 'center' } }, margin: { left: 10, right: 10 }, tableWidth: 'fixed' });
+    autoTable(pdf, { head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 4, styles: headStyles }], [i18next.t('pdf.material'), i18next.t('pdf.location'), i18next.t('pdf.quantity'), i18next.t('pdf.stock_balance')]], body: bData, startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: orientation === 'landscape' ? 120 : 80 }, 1: { cellWidth: orientation === 'landscape' ? 80 : 60 }, 2: { cellWidth: 20, halign: 'center' }, 3: { cellWidth: 30, halign: 'center' } }, margin: { left: 10, right: 10 }, tableWidth: 'wrap' });
   }
 
   const totalPages = (pdf.internal as any).getNumberOfPages();
