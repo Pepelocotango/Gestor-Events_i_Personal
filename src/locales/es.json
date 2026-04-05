@@ -628,7 +628,7 @@
         "artist_type": "Tipo de Artista",
         "artistic_runsheet": "Escaleta Artística",
         "catering": "Catering",
-        "channel": "Canal",
+        "channel": "CH IN",
         "combined_schedule": "Horario Combinado",
         "complete_status": "Completo",
         "contact_email": "Email de Contacto",
@@ -650,7 +650,7 @@
         "hospitality": "Hospitalidad",
         "incomplete_status": "Incompleto",
         "input_list": "Lista de Inputs",
-        "label": "Etiqueta",
+        "label": "INSTRUMENTO",
         "lighting_notes": "Notas de Luces",
         "location": "Ubicación",
         "material_control_detailed": "Detalle de Control de Material",
@@ -708,7 +708,7 @@
             "notes": "Notas",
             "origin": "Origen",
             "personnel_notes": "Personal Asignado y Notas",
-            "quantity": "Cantidad",
+            "quantity": "Cant.",
             "rol": "Rol",
             "status": "Estado",
             "stock": "Stock"
@@ -746,7 +746,7 @@
             "structures": "Estructuras",
             "tech_cia": "Técnicos/Prod. Cia",
             "technical_needs": "NECESIDADES TÉCNICAS",
-            "technical_personnel": "PERSONAL TÉCNICO",
+            "technical_personnel": "PERSONAL TÉCNIC",
             "transport": "Transporte",
             "video": "Vídeo"
         },
@@ -755,7 +755,16 @@
         "travel_logistics": "Logística de Viaje",
         "type": "Tipo",
         "video_notes": "Notas de Vídeo",
-        "yes": "SÍ"
+        "yes": "SÍ",
+        "monitor_list": "Lista de Monitores",
+        "output_channel": "CH OUT",
+        "monitor_contra": "Mix (Contra)",
+        "monitor_stand": "Pie",
+        "qty": "Cant.",
+        "material": "Material",
+        "quantity": "Cant.",
+        "balance_title": "Balance",
+        "stock_balance": "Stock (Disp/Total)"
     },
     "people": {
         "add_button": "Añadir",
