@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
+import { useRiderPdfConfigStore, autoSaveRiderPdfConfig } from '../../stores/riderPdfConfigStore';
 import { notificationService } from '../../utils/notificationService';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
@@ -33,6 +34,7 @@ import {
   Performance,
   MonitorListItem,
   PerformancePdfOptions,
+  EventFrame,
   RiderGenericItem
 } from '../../types';
 import { useBufferedSave } from '../../hooks/useBufferedSave';
@@ -832,19 +834,21 @@ const TechnicalNote: React.FC<TechnicalNoteProps> = ({ label, value, field, colo
 interface RiderBalanceProps {
   performances: Performance[];
   materialItems: MaterialItem[];
-  eventFrame: { startDate: string; endDate: string; id: string };
-  getMaterialAvailability: (id: string, startDate: string, endDate: string, eventId: string) => { available: number; total: number };
+  eventFrame: EventFrame;
+  getMaterialAvailability: (materialId: string, startDate: Date, endDate: Date, eventFrameId: string) => { available: number; total: number };
   showInPdf?: boolean;
   onTogglePdf?: () => void;
-  currentPerformanceId?: string;
+  currentPerformanceId?: string | undefined;
   bufferedTechData?: PerformanceTechData;
   onBalanceDataChange?: (balanceData: any[]) => void; // Callback per passar dades al PDF
+  balanceConfig?: { sortByCategory: boolean; sortByLocation: boolean; printBalance: boolean };
+  setBalanceConfig?: (config: Partial<{ sortByCategory: boolean; sortByLocation: boolean; printBalance: boolean }>) => void;
 }
 
-const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf, currentPerformanceId, bufferedTechData, onBalanceDataChange }) => {
+const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf, currentPerformanceId, bufferedTechData, onBalanceDataChange, balanceConfig, setBalanceConfig }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [sortByCategory, setSortByCategory] = useState(false);
-  const [sortByLocation, setSortByLocation] = useState(false);
+  const [sortByCategory, setSortByCategory] = useState(balanceConfig?.sortByCategory ?? false);
+  const [sortByLocation, setSortByLocation] = useState(balanceConfig?.sortByLocation ?? false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   
   const usage = useMemo(() => {
@@ -928,7 +932,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
     });
     
     let result = Object.values(counts).map(u => {
-      const globalAvail = getMaterialAvailability(u.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+      const globalAvail = getMaterialAvailability(u.id, new Date(eventFrame.startDate), new Date(eventFrame.endDate), eventFrame.id);
       return { ...u, available: globalAvail.available, total: globalAvail.total, isError: globalAvail.available < 0 };
     });
 
@@ -964,6 +968,14 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
     return result;
   }, [performances, materialItems, getMaterialAvailability, eventFrame, sortByCategory, sortByLocation, currentPerformanceId, bufferedTechData]);
 
+  // Sincronitzar estats locals amb el store
+  useEffect(() => {
+    if (balanceConfig) {
+      setSortByCategory(balanceConfig.sortByCategory);
+      setSortByLocation(balanceConfig.sortByLocation);
+    }
+  }, [balanceConfig]);
+
   // Passar les dades ordenades al component principal (WYSIWYG)
   useEffect(() => {
     if (onBalanceDataChange) {
@@ -988,26 +1000,36 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
           </h3>
           <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => setSortByCategory(!sortByCategory)}
+              onClick={() => {
+                const newValue = !balanceConfig?.sortByCategory;
+                setBalanceConfig?.({ sortByCategory: newValue });
+                setSortByCategory(newValue);
+                autoSaveRiderPdfConfig();
+              }}
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                sortByCategory 
+                balanceConfig?.sortByCategory 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
               }`}
             >
               Categoria
-              <ChevronUp className={`w-2.5 h-2.5 transition-transform ${sortByCategory ? 'rotate-180' : ''}`} />
+              <ChevronUp className={`w-2.5 h-2.5 transition-transform ${balanceConfig?.sortByCategory ? 'rotate-180' : ''}`} />
             </button>
             <button
-              onClick={() => setSortByLocation(!sortByLocation)}
+              onClick={() => {
+                const newValue = !balanceConfig?.sortByLocation;
+                setBalanceConfig?.({ sortByLocation: newValue });
+                setSortByLocation(newValue);
+                autoSaveRiderPdfConfig();
+              }}
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                sortByLocation 
+                balanceConfig?.sortByLocation 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
               }`}
             >
               Ubicació
-              <ChevronUp className={`w-2.5 h-2.5 transition-transform ${sortByLocation ? 'rotate-180' : ''}`} />
+              <ChevronUp className={`w-2.5 h-2.5 transition-transform ${balanceConfig?.sortByLocation ? 'rotate-180' : ''}`} />
             </button>
           </div>
           {onTogglePdf && (
@@ -1117,8 +1139,18 @@ const RiderWorkshop: React.FC = () => {
   const { t } = useTranslation();
 
   // 2. Hooks de Store
-  const { eventFrames, materialItems, getMaterialAvailability, updatePerformance } = useEventDataStore();
+  const { eventFrames, materialItems, getMaterialAvailability: getMaterialAvailabilityFromStore, updatePerformance } = useEventDataStore();
   const { openModal } = useModalStore();
+
+  // Wrapper per adaptar la signatura de getMaterialAvailability
+  const getMaterialAvailability = (materialId: string, startDate: Date, endDate: Date, eventFrameId: string) => {
+    return getMaterialAvailabilityFromStore(
+      materialId, 
+      startDate.toISOString(), 
+      endDate.toISOString(), 
+      eventFrameId
+    );
+  };
 
   // 3. Estados Locales
   const [selectedEventFrameId, setSelectedEventFrameId] = useState<string | null>(urlEventFrameId || null);
@@ -1138,7 +1170,6 @@ const RiderWorkshop: React.FC = () => {
 const [isCableExpanded, setIsCableExpanded] = useState(true);
 const [isSpareExpanded, setIsSpareExpanded]  = useState(true);
 const [showCableInPdf, setShowCableInPdf]   = useState(true);
-const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
 
   // Estat per a les opcions del PDF (només lectura, reaprofitat de PerformanceDetailContainer)
   const [pdfOptions] = useState<PerformancePdfOptions>({
@@ -1153,46 +1184,24 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
     showEmptySections: false,
   });
 
-  // Estat per als botons "tick" específics del Rider
-  const [showInputsInPdf, setShowInputsInPdf] = useState(true);
-  const [showMonitorsInPdf, setShowMonitorsInPdf] = useState(true);
-  const [showTechnicalNotesInPdf, setShowTechnicalNotesInPdf] = useState(true);
-  const [showBalanceInPdf, setShowBalanceInPdf] = useState(true);
-
-  // Estat per a les seccions que faltaven
-  const [showBasicInfoInPdf, setShowBasicInfoInPdf] = useState(true);
-  const [showHospitalityInPdf, setShowHospitalityInPdf] = useState(true);
-  const [showGeneralNotesInPdf, setShowGeneralNotesInPdf] = useState(true);
-
-  // Estat per a l'orientació del PDF
-  const [pdfOrientation, setPdfOrientation] = useState<'portrait' | 'landscape'>('portrait');
+  // --- CONFIGURACIÓ DEL PDF (Store) ---
+  const {
+    config: pdfConfig,
+    setOrientation,
+    setSection,
+    setInputColumn,
+    setMonitorColumn,
+    setBalanceConfig,
+    loadConfig,
+  } = useRiderPdfConfigStore();
 
   // Estat per rebre les dades del balanç (WYSIWYG)
   const [balanceData, setBalanceData] = useState<any[]>([]);
 
-  // Estat per a les columnes individuals d'inputs
-  const [inputColumnsInPdf, setInputColumnsInPdf] = useState({
-    patch: false,
-    channel: true,
-    label: true,
-    rider: false,
-    contra: true,
-    stand: true,
-    notes: false,
-    exclusive: false
-  });
-
-  // Estat per a les columnes individuals de monitors
-  const [monitorColumnsInPdf, setMonitorColumnsInPdf] = useState({
-    patch: false,
-    outputChannel: true,
-    label: true,
-    rider: false,
-    contra: true,
-    stand: true,
-    notes: false,
-    exclusive: false
-  });
+  // Carregar configuració al muntar el component
+  useEffect(() => {
+    loadConfig();
+  }, [loadConfig]);
 
   // 6. Efectos
   useEffect(() => { 
@@ -1420,20 +1429,20 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
         latestEventFrame, 
         {
           ...pdfOptions,
-          includeBasicInfo: showBasicInfoInPdf,
-          includeInputs: showInputsInPdf,
-          includeMonitors: showMonitorsInPdf,
-          includeCable: showCableInPdf,
-          includeSpare: showSpareInPdf,
-          includeTechnicalNotes: showTechnicalNotesInPdf,
-          includeHospitality: showHospitalityInPdf,
-          includeGeneralNotes: showGeneralNotesInPdf,
-          showBalance: showBalanceInPdf,
-          inputColumns: inputColumnsInPdf,
-          monitorColumns: monitorColumnsInPdf,
-          pdfOrientation: pdfOrientation,
+          includeBasicInfo: pdfConfig.sections.basicInfo,
+          includeInputs: pdfConfig.sections.inputs,
+          includeMonitors: pdfConfig.sections.monitors,
+          includeCable: pdfConfig.sections.cable,
+          includeSpare: pdfConfig.sections.spare,
+          includeTechnicalNotes: pdfConfig.sections.technicalNotes,
+          includeHospitality: pdfConfig.sections.hospitality,
+          includeGeneralNotes: pdfConfig.sections.generalNotes,
+          showBalance: pdfConfig.sections.balance,
+          inputColumns: pdfConfig.inputColumns,
+          monitorColumns: pdfConfig.monitorColumns,
+          pdfOrientation: pdfConfig.orientation,
           balanceData: balanceData,
-        }
+        },
       );
       const pdfBlob = doc.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob) + '#toolbar=0&navpanes=0&view=FitH';
@@ -1460,18 +1469,18 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
       latestEventFrame, 
       {
         ...pdfOptions,
-        includeBasicInfo: showBasicInfoInPdf,
-        includeInputs: showInputsInPdf,
-        includeMonitors: showMonitorsInPdf,
-        includeCable: showCableInPdf,
-        includeSpare: showSpareInPdf,
-        includeTechnicalNotes: showTechnicalNotesInPdf,
-        includeHospitality: showHospitalityInPdf,
-        includeGeneralNotes: showGeneralNotesInPdf,
-        showBalance: showBalanceInPdf,
-        inputColumns: inputColumnsInPdf,
-        monitorColumns: monitorColumnsInPdf,
-        pdfOrientation: pdfOrientation,
+        includeBasicInfo: pdfConfig.sections.basicInfo,
+        includeInputs: pdfConfig.sections.inputs,
+        includeMonitors: pdfConfig.sections.monitors,
+        includeCable: pdfConfig.sections.cable,
+        includeSpare: pdfConfig.sections.spare,
+        includeTechnicalNotes: pdfConfig.sections.technicalNotes,
+        includeHospitality: pdfConfig.sections.hospitality,
+        includeGeneralNotes: pdfConfig.sections.generalNotes,
+        showBalance: pdfConfig.sections.balance,
+        inputColumns: pdfConfig.inputColumns,
+        monitorColumns: pdfConfig.monitorColumns,
+        pdfOrientation: pdfConfig.orientation,
         balanceData: balanceData,
       },
       () => notificationService.info('PDF generat correctament')
@@ -1588,7 +1597,7 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
         <div className="flex-grow overflow-y-auto p-2 custom-scrollbar bg-muted/5">
           <h3 className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2 px-1 opacity-50"><Package className="w-3 h-3" /> Inventari</h3>
           {eventFrame && filteredMaterial.map(item => {
-            const globalAvail = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, undefined, undefined, performance?.id);
+            const globalAvail = getMaterialAvailability(item.id, new Date(eventFrame.startDate), new Date(eventFrame.endDate), eventFrame.id);
             const savedUsage = calculateUsageForItem(performance?.techData, item.id);
             const localUsage = calculateUsageForItem(techData, item.id);
             return <InventoryItem key={item.id} item={item} availability={{ available: globalAvail.available + savedUsage - localUsage, total: globalAvail.total }} eventFrame={eventFrame} techData={techData} performance={performance} onClick={handleMaterialClick} isSelectionActive={activeCell !== null} />;
@@ -1650,8 +1659,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                 </Tooltip>
                 <select
                   id="pdfOrientation"
-                  value={pdfOrientation}
-                  onChange={(e) => setPdfOrientation(e.target.value as 'portrait' | 'landscape')}
+                  value={pdfConfig.orientation}
+                  onChange={(e) => {
+                    setOrientation(e.target.value as 'portrait' | 'landscape');
+                    autoSaveRiderPdfConfig();
+                  }}
                   className="h-6 px-2 text-[9px] border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="portrait">Vertical</option>
@@ -1666,8 +1678,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showBasicInfoInPdf"
-                      checked={showBasicInfoInPdf}
-                      onChange={(e) => setShowBasicInfoInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.basicInfo}
+                      onChange={(e) => {
+                        setSection('basicInfo', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1679,8 +1694,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showInputsInPdf"
-                      checked={showInputsInPdf}
-                      onChange={(e) => setShowInputsInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.inputs}
+                      onChange={(e) => {
+                        setSection('inputs', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1692,8 +1710,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showMonitorsInPdf"
-                      checked={showMonitorsInPdf}
-                      onChange={(e) => setShowMonitorsInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.monitors}
+                      onChange={(e) => {
+                        setSection('monitors', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1705,8 +1726,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showCableInPdf"
-                      checked={showCableInPdf}
-                      onChange={(e) => setShowCableInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.cable}
+                      onChange={(e) => {
+                        setSection('cable', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1718,8 +1742,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showSpareInPdf"
-                      checked={showSpareInPdf}
-                      onChange={(e) => setShowSpareInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.spare}
+                      onChange={(e) => {
+                        setSection('spare', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1731,8 +1758,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showTechnicalNotesInPdf"
-                      checked={showTechnicalNotesInPdf}
-                      onChange={(e) => setShowTechnicalNotesInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.technicalNotes}
+                      onChange={(e) => {
+                        setSection('technicalNotes', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1744,8 +1774,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showHospitalityInPdf"
-                      checked={showHospitalityInPdf}
-                      onChange={(e) => setShowHospitalityInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.hospitality}
+                      onChange={(e) => {
+                        setSection('hospitality', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1757,8 +1790,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showGeneralNotesInPdf"
-                      checked={showGeneralNotesInPdf}
-                      onChange={(e) => setShowGeneralNotesInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.generalNotes}
+                      onChange={(e) => {
+                        setSection('generalNotes', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1770,8 +1806,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                     <input
                       type="checkbox"
                       id="showBalanceInPdf"
-                      checked={showBalanceInPdf}
-                      onChange={(e) => setShowBalanceInPdf(e.target.checked)}
+                      checked={pdfConfig.sections.balance}
+                      onChange={(e) => {
+                        setSection('balance', e.target.checked);
+                        autoSaveRiderPdfConfig();
+                      }}
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
@@ -1797,8 +1836,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                         <input
                           type="checkbox"
                           id="showInputsInPdf_section"
-                          checked={showInputsInPdf}
-                          onChange={(e) => setShowInputsInPdf(e.target.checked)}
+                          checked={pdfConfig.sections.inputs}
+                          onChange={(e) => {
+                            setSection('inputs', e.target.checked);
+                            autoSaveRiderPdfConfig();
+                          }}
                           className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                         />
                       </Tooltip>
@@ -1835,8 +1877,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Patch
                               <input
                                 type="checkbox"
-                                checked={inputColumnsInPdf.patch}
-                                onChange={() => setInputColumnsInPdf(prev => ({...prev, patch: !prev.patch}))}
+                                checked={pdfConfig.inputColumns.patch}
+                                onChange={() => {
+                                  setInputColumn('patch', !pdfConfig.inputColumns.patch);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1846,8 +1891,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               CH
                               <input
                                 type="checkbox"
-                                checked={inputColumnsInPdf.channel}
-                                onChange={() => setInputColumnsInPdf(prev => ({...prev, channel: !prev.channel}))}
+                                checked={pdfConfig.inputColumns.channel}
+                                onChange={() => {
+                                  setInputColumn('channel', !pdfConfig.inputColumns.channel);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1857,8 +1905,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Etiqueta
                               <input
                                 type="checkbox"
-                                checked={inputColumnsInPdf.label}
-                                onChange={() => setInputColumnsInPdf(prev => ({...prev, label: !prev.label}))}
+                                checked={pdfConfig.inputColumns.label}
+                                onChange={() => {
+                                  setInputColumn('label', !pdfConfig.inputColumns.label);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1868,8 +1919,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Rider
                               <input
                                 type="checkbox"
-                                checked={inputColumnsInPdf.rider}
-                                onChange={() => setInputColumnsInPdf(prev => ({...prev, rider: !prev.rider}))}
+                                checked={pdfConfig.inputColumns.rider}
+                                onChange={() => {
+                                  setInputColumn('rider', !pdfConfig.inputColumns.rider);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1879,8 +1933,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Contra
                               <input
                                 type="checkbox"
-                                checked={inputColumnsInPdf.contra}
-                                onChange={() => setInputColumnsInPdf(prev => ({...prev, contra: !prev.contra}))}
+                                checked={pdfConfig.inputColumns.contra}
+                                onChange={() => {
+                                  setInputColumn('contra', !pdfConfig.inputColumns.contra);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1890,8 +1947,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Peu
                               <input
                                 type="checkbox"
-                                checked={inputColumnsInPdf.stand}
-                                onChange={() => setInputColumnsInPdf(prev => ({...prev, stand: !prev.stand}))}
+                                checked={pdfConfig.inputColumns.stand}
+                                onChange={() => {
+                                  setInputColumn('stand', !pdfConfig.inputColumns.stand);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1901,8 +1961,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               NOTES/EXTRES
                               <input
                                 type="checkbox"
-                                checked={inputColumnsInPdf.notes}
-                                onChange={() => setInputColumnsInPdf(prev => ({...prev, notes: !prev.notes}))}
+                                checked={pdfConfig.inputColumns.notes}
+                                onChange={() => {
+                                  setInputColumn('notes', !pdfConfig.inputColumns.notes);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1912,8 +1975,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Exc.
                               <input
                                 type="checkbox"
-                                checked={inputColumnsInPdf.exclusive}
-                                onChange={() => setInputColumnsInPdf(prev => ({...prev, exclusive: !prev.exclusive}))}
+                                checked={pdfConfig.inputColumns.exclusive}
+                                onChange={() => {
+                                  setInputColumn('exclusive', !pdfConfig.inputColumns.exclusive);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1948,8 +2014,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                         <input
                           type="checkbox"
                           id="showMonitorsInPdf_section"
-                          checked={showMonitorsInPdf}
-                          onChange={(e) => setShowMonitorsInPdf(e.target.checked)}
+                          checked={pdfConfig.sections.monitors}
+                          onChange={(e) => {
+                            setSection('monitors', e.target.checked);
+                            autoSaveRiderPdfConfig();
+                          }}
                           className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                         />
                       </Tooltip>
@@ -1972,8 +2041,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Patch
                               <input
                                 type="checkbox"
-                                checked={monitorColumnsInPdf.patch}
-                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, patch: !prev.patch}))}
+                                checked={pdfConfig.monitorColumns.patch}
+                                onChange={() => {
+                                  setMonitorColumn('patch', !pdfConfig.monitorColumns.patch);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1983,8 +2055,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               MIX
                               <input
                                 type="checkbox"
-                                checked={monitorColumnsInPdf.outputChannel}
-                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, outputChannel: !prev.outputChannel}))}
+                                checked={pdfConfig.monitorColumns.outputChannel}
+                                onChange={() => {
+                                  setMonitorColumn('outputChannel', !pdfConfig.monitorColumns.outputChannel);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -1994,8 +2069,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Etiqueta
                               <input
                                 type="checkbox"
-                                checked={monitorColumnsInPdf.label}
-                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, label: !prev.label}))}
+                                checked={pdfConfig.monitorColumns.label}
+                                onChange={() => {
+                                  setMonitorColumn('label', !pdfConfig.monitorColumns.label);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -2005,8 +2083,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Rider
                               <input
                                 type="checkbox"
-                                checked={monitorColumnsInPdf.rider}
-                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, rider: !prev.rider}))}
+                                checked={pdfConfig.monitorColumns.rider}
+                                onChange={() => {
+                                  setMonitorColumn('rider', !pdfConfig.monitorColumns.rider);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -2017,8 +2098,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Contra
                               <input
                                 type="checkbox"
-                                checked={monitorColumnsInPdf.contra}
-                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, contra: !prev.contra}))}
+                                checked={pdfConfig.monitorColumns.contra}
+                                onChange={() => {
+                                  setMonitorColumn('contra', !pdfConfig.monitorColumns.contra);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -2029,8 +2113,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Peu
                               <input
                                 type="checkbox"
-                                checked={monitorColumnsInPdf.stand}
-                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, stand: !prev.stand}))}
+                                checked={pdfConfig.monitorColumns.stand}
+                                onChange={() => {
+                                  setMonitorColumn('stand', !pdfConfig.monitorColumns.stand);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -2040,8 +2127,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Notes
                               <input
                                 type="checkbox"
-                                checked={monitorColumnsInPdf.notes}
-                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, notes: !prev.notes}))}
+                                checked={pdfConfig.monitorColumns.notes}
+                                onChange={() => {
+                                  setMonitorColumn('notes', !pdfConfig.monitorColumns.notes);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -2051,8 +2141,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                               Exc.
                               <input
                                 type="checkbox"
-                                checked={monitorColumnsInPdf.exclusive}
-                                onChange={() => setMonitorColumnsInPdf(prev => ({...prev, exclusive: !prev.exclusive}))}
+                                checked={pdfConfig.monitorColumns.exclusive}
+                                onChange={() => {
+                                  setMonitorColumn('exclusive', !pdfConfig.monitorColumns.exclusive);
+                                  autoSaveRiderPdfConfig();
+                                }}
                                 className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
                               />
                             </div>
@@ -2142,9 +2235,15 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                       <span className="text-muted-foreground ml-2">({techData.spareList?.length || 0})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <input type="checkbox" checked={showSpareInPdf}
-                        onChange={(e) => setShowSpareInPdf(e.target.checked)}
-                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary" />
+                      <input 
+                        type="checkbox" 
+                        checked={pdfConfig.sections.spare}
+                        onChange={(e) => {
+                          setSection('spare', e.target.checked);
+                          autoSaveRiderPdfConfig();
+                        }}
+                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary" 
+                      />
                       <label className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
                     </div>
                   </div>
@@ -2202,8 +2301,11 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                         <input
                           type="checkbox"
                           id="showTechnicalNotesInPdf_section"
-                          checked={showTechnicalNotesInPdf}
-                          onChange={(e) => setShowTechnicalNotesInPdf(e.target.checked)}
+                          checked={pdfConfig.sections.technicalNotes}
+                          onChange={(e) => {
+                            setSection('technicalNotes', e.target.checked);
+                            autoSaveRiderPdfConfig();
+                          }}
                           className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                         />
                       </Tooltip>
@@ -2245,11 +2347,16 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                 materialItems={materialItems} 
                 eventFrame={eventFrame as any} 
                 getMaterialAvailability={getMaterialAvailability}
-                showInPdf={showBalanceInPdf}
-                onTogglePdf={() => setShowBalanceInPdf(!showBalanceInPdf)}
+                showInPdf={pdfConfig.sections.balance}
+                onTogglePdf={() => {
+                  setSection('balance', !pdfConfig.sections.balance);
+                  autoSaveRiderPdfConfig();
+                }}
                 currentPerformanceId={selectedPerformanceId || undefined}
                 bufferedTechData={techData}
                 onBalanceDataChange={setBalanceData}
+                balanceConfig={pdfConfig.balanceConfig}
+                setBalanceConfig={setBalanceConfig}
               />
             </div>
           </DndContext>

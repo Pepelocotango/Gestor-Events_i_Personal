@@ -272,6 +272,48 @@ export interface PerformancePdfOptions {
   };
 }
 
+export interface RiderBalanceConfig {
+  sortByCategory: boolean;
+  sortByLocation: boolean;
+  printBalance: boolean;
+}
+
+export interface RiderPdfConfig {
+  orientation: 'portrait' | 'landscape';
+  sections: {
+    basicInfo: boolean;
+    inputs: boolean;
+    monitors: boolean;
+    cable: boolean;
+    spare: boolean;
+    technicalNotes: boolean;
+    hospitality: boolean;
+    generalNotes: boolean;
+    balance: boolean;
+  };
+  inputColumns: {
+    patch: boolean;
+    channel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+  monitorColumns: {
+    patch: boolean;
+    outputChannel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+  balanceConfig: RiderBalanceConfig;
+}
+
 export interface ValidationResult {
   errors: string[];
   warnings: string[];
