@@ -7,7 +7,6 @@ import { getStatusSummaryText } from './statusUtils';
 import { themeHslColors } from './themeDefinition';
 import { hslToRgb } from './colorUtils';
 import { generateFileName, generateTechSheetFileName } from './fileNameUtils';
-import { useEventDataStore } from '../stores/eventDataStore';
 
 // Define ActiveFilters type locally for this module
 type ActiveFilters = {
@@ -1414,8 +1413,7 @@ const checkPageBreak = (pdf: jsPDF, currentY: number, requiredHeight: number = 2
 
 export const exportPerformanceToPdf = async (
   performance: Performance,
-  eventFrame: EventFrame,
-  showToast: ShowToastFunction
+  eventFrame: EventFrame
 ) => {
   // Wrapper per mantenir compatibilitat amb la funció existent
   // Utilitza les opcions per defecte per generar un rider complet
@@ -1431,7 +1429,8 @@ export const exportPerformanceToPdf = async (
     showEmptySections: false,
   };
   
-  return exportPerformanceToPdfWithOptions(performance, eventFrame, defaultOptions, showToast);
+  const pdf = generatePerformancePdfObjectWithOptions(performance, eventFrame, defaultOptions);
+  return pdf;
 };
 
 // --- EXPORTACIÓ D'ACTUACIONS AMB OPCIONS ---
@@ -1440,9 +1439,7 @@ export const exportPerformanceToPdf = async (
 export const generatePerformancePdfObjectWithOptions = (
   performance: Performance,
   eventFrame: EventFrame,
-  options: PerformancePdfOptions,
-  allPerformances?: Performance[],
-  materialItems?: MaterialItem[]
+  options: PerformancePdfOptions
 ): jsPDF => {
   const orientation = options.pdfOrientation || 'portrait';
   const pdf = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
@@ -2025,132 +2022,6 @@ export const generatePerformancePdfObjectWithOptions = (
         });
         y = (pdf as any).lastAutoTable.finalY + 5;
       }
-    } else if (allPerformances && materialItems) {
-      // Mètode antic (recalcul) - Només si no hi ha dades directes
-    // Calcular el balanç com al RiderBalance component
-    const usage: Record<string, { id: string; name: string; qty: number; location: string; category: string; section: string }> = {};
-
-    const countMaterial = (matId: string | undefined, matName: string | undefined, qty: number = 1, section: string) => {
-      if (!matId || !matName) return;
-      if (!usage[matId]) {
-        const found = materialItems.find(mi => mi.id === matId);
-        usage[matId] = { id: matId, name: matName, qty: 0, location: found?.location || '-', category: found?.category || '', section };
-      }
-      usage[matId].qty += qty;
-    };
-
-    allPerformances.forEach(perf => {
-      (perf.techData?.inputList || []).forEach(input => {
-        countMaterial(input.micContraId, input.micContra, 1, 'Inputs');
-        countMaterial(input.standId,     input.stand, 1, 'Inputs');
-        countMaterial(input.extresId,    input.extres, 1, 'Inputs');
-      });
-      (perf.techData?.monitorList || []).forEach(monitor => {
-        countMaterial(monitor.mixContraId, monitor.mixContra, monitor.monitorQty ?? 1, 'Monitors');
-        countMaterial(monitor.mixStandId,  monitor.mixStand,  monitor.standQty   ?? 1, 'Monitors');
-      });
-      (perf.techData?.cableList || []).forEach(cable => {
-        countMaterial(cable.itemId, cable.itemName, cable.qty ?? 1, 'Cablejat');
-      });
-      (perf.techData?.spareList || []).forEach(spare => {
-        countMaterial(spare.itemId, spare.itemName, spare.qty ?? 1, 'Material Spare');
-      });
-    });
-
-    // Obtenir la funció getMaterialAvailability del store
-    const { getMaterialAvailability } = useEventDataStore.getState();
-
-    // Ordenar per secció primer
-    const sectionOrder = { 'Inputs': 0, 'Monitors': 1, 'Cablejat': 2, 'Material Spare': 3 };
-    
-    // Funció per traduir els noms tècnics de les seccions al PDF
-    const translateSection = (section: string) => {
-      switch(section) {
-        case 'Inputs': return i18next.t('pdf.inputs', { defaultValue: 'Inputs' });
-        case 'Monitors': return i18next.t('pdf.monitors', { defaultValue: 'Monitors' });
-        case 'Cablejat': return i18next.t('pdf.cable_list', { defaultValue: 'Cablejat' });
-        case 'Material Spare': return i18next.t('pdf.spare_list', { defaultValue: 'Material Spare' });
-        default: return section;
-      }
-    };
-
-    // Calcular disponibilitat i errors com al RiderBalance
-    const usageWithAvailability = Object.values(usage).map(u => {
-      const globalAvail = getMaterialAvailability(u.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-      return { ...u, available: globalAvail.available, total: globalAvail.total, isError: globalAvail.available < 0 };
-    });
-
-    // Aplicar ordenament: primer per secció, després per errors, després pels altres criteris
-    const sortedUsage = usageWithAvailability.sort((a, b) => {
-      // Primer ordenar per secció (Inputs → Monitors → Cablejat → Material Spare)
-      const sectionDiff = sectionOrder[a.section as keyof typeof sectionOrder] - sectionOrder[b.section as keyof typeof sectionOrder];
-      if (sectionDiff !== 0) return sectionDiff;
-      
-      // Després ordenar per errors (sempre prioritari)
-      const errorDiff = (b.isError ? 1 : 0) - (a.isError ? 1 : 0);
-      if (errorDiff !== 0) return errorDiff;
-
-      // Després aplicar els filtres d'ordenament
-      if (options.balanceSortByCategory && options.balanceSortByLocation) {
-        // Ambdós actius: primer per categoria, després per ubicació
-        const categoryDiff = a.category.localeCompare(b.category);
-        if (categoryDiff !== 0) return categoryDiff;
-        return a.location.localeCompare(b.location);
-      } else if (options.balanceSortByCategory) {
-        // Només categoria
-        return a.category.localeCompare(b.category);
-      } else if (options.balanceSortByLocation) {
-        // Només ubicació
-        return a.location.localeCompare(b.location);
-      } else {
-        // Sense ordenament específic, per nom
-        return a.name.localeCompare(b.name);
-      }
-    });
-
-    // Crear dades del balanç amb separadors de secció
-    const balanceData: any[] = [];
-    let currentSection = '';
-    
-    sortedUsage.forEach(item => {
-      // Afegir separador de secció si canvia
-      if (item.section !== currentSection) {
-        balanceData.push([
-          { content: translateSection(item.section), colSpan: 4, styles: { ...headStyles, fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite) } }
-        ]);
-        currentSection = item.section;
-      }
-      
-      balanceData.push([
-        sane(item.name),
-        sane(item.location),
-        item.qty.toString(),
-        `${item.available} / ${item.total}` 
-      ]);
-    });
-
-    if (balanceData.length > 0) {
-      y = checkPageBreak(pdf, y, 30);
-      const balanceHead = [
-        i18next.t('pdf.material'),
-        i18next.t('pdf.location'),
-        i18next.t('pdf.quantity'),
-        i18next.t('pdf.stock_balance', { defaultValue: 'Estoc (Disp/Total)' })
-      ];
-      
-      autoTable(pdf, {
-        head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 4, styles: headStyles }],
-          balanceHead
-        ],
-        body: balanceData,
-        startY: y,
-        theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 2 },
-        headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
-        margin: { left: 10, right: 10 }
-      });
-      y = (pdf as any).lastAutoTable.finalY + 5;
-    }
     }
   }
 
@@ -2168,9 +2039,7 @@ export const exportPerformanceToPdfWithOptions = async (
   performance: Performance,
   eventFrame: EventFrame,
   options: PerformancePdfOptions,
-  showToast: ShowToastFunction,
-  allPerformances?: Performance[],
-  materialItems?: MaterialItem[]
+  showToast: ShowToastFunction
 ) => {
   try {
     // Validar dades primer i mostrar errors/warnings
@@ -2181,7 +2050,7 @@ export const exportPerformanceToPdfWithOptions = async (
     }
     validation.warnings.forEach(warning => showToast(warning, 'info'));
     
-    const pdf = generatePerformancePdfObjectWithOptions(performance, eventFrame, options, allPerformances, materialItems);
+    const pdf = generatePerformancePdfObjectWithOptions(performance, eventFrame, options);
     const fileName = `CustomRider_${performance.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
 

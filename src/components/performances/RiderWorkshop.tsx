@@ -1167,10 +1167,6 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
   // Estat per a l'orientació del PDF
   const [pdfOrientation, setPdfOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
-  // Estat per a les opcions d'ordenament del balanç al PDF
-  const [balanceSortByCategory, setBalanceSortByCategory] = useState(false);
-  const [balanceSortByLocation, setBalanceSortByLocation] = useState(false);
-  
   // Estat per rebre les dades del balanç (WYSIWYG)
   const [balanceData, setBalanceData] = useState<any[]>([]);
 
@@ -1436,12 +1432,8 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
           inputColumns: inputColumnsInPdf,
           monitorColumns: monitorColumnsInPdf,
           pdfOrientation: pdfOrientation,
-          balanceSortByCategory: balanceSortByCategory,
-          balanceSortByLocation: balanceSortByLocation,
           balanceData: balanceData,
-        },
-        eventFrame?.performances,
-        materialItems
+        }
       );
       const pdfBlob = doc.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob) + '#toolbar=0&navpanes=0&view=FitH';
@@ -1480,10 +1472,9 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
         inputColumns: inputColumnsInPdf,
         monitorColumns: monitorColumnsInPdf,
         pdfOrientation: pdfOrientation,
+        balanceData: balanceData,
       },
-      notificationService.info,
-      eventFrame?.performances,
-      materialItems
+      () => notificationService.info('PDF generat correctament')
     );
   };
 
@@ -1786,37 +1777,6 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                   </Tooltip>
                   <label htmlFor="showBalanceInPdf" className="font-medium text-muted-foreground cursor-pointer">Balanç</label>
                 </div>
-                
-                {/* Opcions d'ordenament del balanç */}
-                {showBalanceInPdf && (
-                  <div className="space-y-1">
-                    <div className="text-[8px] font-medium text-muted-foreground uppercase tracking-wider mt-2">Ordenament Balanç</div>
-                    <div className="flex items-center gap-2">
-                      <Tooltip text="Ordena el balanç per categoria de material">
-                        <input
-                          type="checkbox"
-                          id="balanceSortByCategory"
-                          checked={balanceSortByCategory}
-                          onChange={(e) => setBalanceSortByCategory(e.target.checked)}
-                          className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                        />
-                      </Tooltip>
-                      <label htmlFor="balanceSortByCategory" className="text-[9px] text-muted-foreground cursor-pointer">Categoria</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Tooltip text="Ordena el balanç per ubicació del material">
-                        <input
-                          type="checkbox"
-                          id="balanceSortByLocation"
-                          checked={balanceSortByLocation}
-                          onChange={(e) => setBalanceSortByLocation(e.target.checked)}
-                          className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                        />
-                      </Tooltip>
-                      <label htmlFor="balanceSortByLocation" className="text-[9px] text-muted-foreground cursor-pointer">Ubicació</label>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </section>

@@ -249,8 +249,6 @@ export interface PerformancePdfOptions {
   showEmptySections: boolean;      // Mostrar seccions buides com "-"
   showBalance?: boolean;           // Mostrar balanç consolidat
   pdfOrientation?: 'portrait' | 'landscape'; // Orientació del PDF
-  balanceSortByCategory?: boolean;  // Ordenar balanç per categoria
-  balanceSortByLocation?: boolean;  // Ordenar balanç per ubicació
   balanceData?: any[];             // Dades del balanç directes (WYSIWYG)
   inputColumns?: {                 // Columnes individuals per inputs
     patch: boolean;
