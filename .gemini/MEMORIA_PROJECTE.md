@@ -6,13 +6,14 @@
 
 ## Estat del Projecte (Abril 2026)
 - **Repositori:** Neteja de binaris orfes a l'arrel i actualització de `.gitignore`.
-- **Fase 4 (Actuacions):** Implementació del `RiderWorkshop.tsx` amb:
-    - Reordenació de files (Dnd) operativa.
-    - Drag & Drop de material de l'inventari a la contra-rider.
-    - Nous camps de notes tècniques (Llums, Vídeo, Escenari).
-- **Objectiu:** Crear un gestor d'esdeveniments complet amb visualització de calendaris, personal i gestió de material.
+- **Fase 4 (Actuacions / Riders):** Mòdul completament operatiu amb el nou `RiderWorkshop.tsx`:
+    - **Editor WYSIWYG:** Sistema d'edició visual per a llistes d'entrades (CH IN) i monitors (CH OUT).
+    - **Balanç Consolidat:** Component `RiderBalance.tsx` que calcula l'ús total de material vs disponibilitat d'inventari en temps real per a tot l'esdeveniment.
+    - **Reordenació DND:** Gestió fluida de l'ordre de canals i materials mitjançant `@dnd-kit`.
+    - **Internacionalització Tècnica:** Adaptació de termes professionals (CH IN, CH OUT, INSTRUMENT) en CA, ES i EN.
+- **Objectiu:** Finalització de la Phase 4 i consolidació de l'eina com a gestor tècnic professional.
 - **Sincronització Individual:** Implementació de `sync-single-event-with-google` al backend per permetre actualitzacions quirúrgiques sense esborrar tot el calendari.
-- **Simplificació del Guardat:** Eliminació del botó de desar manual en les fitxes de bolo (`TechSheetForm`) per evitar confusió amb el guardat a disc. Es confia en el desat automàtic al desmuntar i en el flux de guardat global (Ctrl+S).
+- **Optimització de PDF:** Nova lògica de càlcul d'amples de columna a `pdfGenerator.ts` amb escalat proporcional automàtic per garantir que cap taula superi els marges de la pàgina.
 
 ## Coneixement Profund de l'Arquitectura
 - **Internacionalització (i18n):** Sistema basat en `i18next` amb suport per a CA (defecte), ES i EN. Gestió granular de tooltips per a una millor UX.
@@ -119,13 +120,14 @@
 - **Desglossament d'Ús:** Vista detallada que mostra en quins esdeveniments i dates s'està utilitzant cada material per facilitar la logística externa o el lloguer puntual.
 - **Càlcul Dinàmic:** Algorisme de `materialAvailability.ts` que recorre totes les fitxes de bolo del projecte per obtenir una visió 360º de la demanda d'inventari.
 
-### 9. Mòdul d'Actuacions Artístiques (Fase 4)
-- **Estat del Desenvolupament:** Mòdul actualment en fase inicial ("verd"), funcional però amb gran marge de millora, refactorització i optimització de la interfície.
+### 9. Mòdul d'Actuacions Artístiques (Rider Workshop)
+- **Maduresa del Mòdul:** Ha passat de fase inicial a mòdul de producció ("ready").
 - **Gestió Integral d'Artistes:** Sistema per crear, editar i reordenar actuacions dins d'un esdeveniment marc.
 - **Control d'Avançament (Advancing):** Seguiment visual del flux de treball en 4 fases: Rider Rebut, Contra-rider Enviat, Horaris Confirmats i Hospitality Tancat.
-- **Sub-formularis Tècnics:** Gestió de dades d'alt nivell incloent Input Lists (ordenables via DND), necessitats de llums, vídeo i plànols d'escenari.
+- **Editor de Riders:** Interfície especialitzada per a Input Lists i Monitor Lists amb selecció de colors de patch i enllaç directe a l'inventari.
+- **Balanç de Material (Real-time):** Càlcul instantani de quantes unitats de cada micròfon, peu o cable s'estan utilitzant en total entre totes les actuacions del mateix esdeveniment.
 - **Mòdul de Hospitality:** Control de detalls logístics com càtering, dietes, camerinos, allotjament i aparcament per a les companyies.
-- **Exportació Especialitzada:** Generació de Riders individuals per artista i Escaletes Artístiques globals per a l'esdeveniment, independents de la fitxa tècnica de producció.
+- **Exportació Especialitzada:** Generació de Riders individuals per artista i Escaletes Artístiques globals amb configuració granular de seccions (orientació, visibilitat de columnes, etc.).
 
 ### 10. Exportació i Resums (`src/utils/pdfResumExport.ts` i `src/utils/csvExport.ts`)
 - **PDF Professional (`jspdf`):** Generació d'informes de resum amb taules estructurades (`jspdf-autotable`), capçaleres amb logos i numeració de pàgines.
@@ -146,7 +148,14 @@
 - **Demo Visual (`AnimatedSplash`):** Integració del component React de l'animació d'inici original a la web per a una previsualització fidel de l'app d'escriptori.
 - **Desplegament (Vercel):** Hostatjament automatitzat a `gestor-events.vercel.app` amb configuració de rutes i enviament de formularis (`gep-mailer.astro`).
 
+### 13. Generació de PDFs Tècnics (`src/utils/pdfGenerator.ts`)
+- **Arquitectura de Taules:** Ús de `jspdf-autotable` amb configuració `tableWidth: 'fixed'` i `overflow: 'linebreak'` per a una robustesa total.
+- **Càlcul d'Amples Òptims:** Algorisme `calculateOptimalColumnWidths` que analitza el contingut màxim de cada columna i l'espai disponible segons l'orientació (Portrait/Landscape).
+- **Escalat Proporcional:** Si la suma d'amples mínims de les columnes seleccionades supera l'ample de la pàgina, el sistema aplica automàticament un factor de reducció proporcional per encabir tota la informació.
+- **Persistència de Configuració:** Les preferències d'exportació (quines columnes mostrar, quines seccions incloure) es guarden per usuari a `riderPdfConfigStore.ts`.
+
 ## Tasques Pendents
 - [x] Configuració de context de Gemini (Març 2026).
 - [x] Sincronització individual per a esdeveniments (Google Calendar).
+- [x] Mòdul de Riders (WYSIWYG i Exportació PDF professional).
 - [ ] Implementació de funcions segons les teves indicacions.

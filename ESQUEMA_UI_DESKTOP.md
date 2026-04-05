@@ -199,16 +199,15 @@ Formulari amb informació essencial de l'actuació:
 
 ### 8.5. Pestanya "Tècnic" (`PerformanceTechForm`)
 
-#### Input List (Taula Dinàmica)
-- **Columnes**: Canal, Etiqueta, Mic/DI, Notes
-- **Botó "Afegir Fila"**: Afegeix noves línies a la taula
-- **Botó "Eliminar"**: Elimina cada fila individualment
-- **Autosave**: Cada canvi es desa automàticament
+Aquesta pestanya ara actua com un mirall de visualització completa del **Rider Workshop**, en mode de **només lectura** per evitar errors accidentals.
 
-#### Notes Tècniques
-- **Notes de Llums**: Requeriments d'il·luminació
-- **Notes de Vídeo**: Requeriments de vídeo
-- **Necessitats d'Escenari**: Requeriments d'escenari i estructura
+#### Visualització de Riders
+- **Avís d'Edició:** Inclou un enllaç directe al **Rider Workshop** per realitzar modificacions.
+- **Llista d'Inputs (CH IN):** Taula completa amb colors de patch, rider, contra, peus i notes.
+- **Llista de Monitors (CH OUT):** Detall dels enviaments (MIX) amb les quantitats de material assignades.
+- **Cablejat i Material Spare:** Taules compactes amb el material addicional necessari per a l'artista.
+- **Notes Tècniques:** Blocs de text per a Llums, Vídeo i Escenari.
+- **Balanç Consolidat (Read-Only):** Vista del balanç global de tot l'esdeveniment al final de la pestanya.
 
 ### 8.6. Pestanya "Hospitality" (`PerformanceHospitalityForm`)
 
@@ -277,16 +276,23 @@ Nova interfície professional d'alta densitat per al disseny tècnic i logístic
 - **Llista d'Ítems:** Mostra estoc real `Disponible / Total`. Inclou indicadors de sobre-assignació (vermell/pulsació) i materials ja usats en l'actuació (verd).
 - **Point & Shoot:** Al clicar un ítem, s'assigna automàticament a la cel·la activa de la taula.
 
-### 9.2. Header del Workshop
+### 9.2. Header i Controls PDF
 - **Navegació:** Selectors ràpids d'Esdeveniment i d'Artista.
-- **Accions:** Botons per copiar Rider a Contra-rider i per netejar la llista de contra-rider.
-- **Botó "Afegir Input":** Accés ràpid per crear nous canals.
+- **Panell de Configuració PDF:**
+  - **Orientació:** Commutador entre Vertical (Portrait) i Horitzontal (Landscape).
+  - **Selecció de Seccions:** Checkboxes per incloure/excloure info bàsica, inputs, monitors, cablejat, spare, notes tècniques, hospitality i balanç.
+  - **Selecció de Columnes:** Filtres granulars per triar quines columnes de la taula d'inputs/monitors han de sortir a l'exportació (Patch, CH, Label, Rider, Contra, Stand, Notes, Exc).
+  - **Auto-save:** Les preferències de PDF es guarden automàticament per usuari.
 
 ### 9.3. Àrea de Treball (Seccions Col·lapsables)
-- **Llista d'Inputs:** Taula amb Drag & Drop per a patch, canals, etiquetes i comparativa Rider/Contra.
-- **Monitors / Auxiliars:** Secció dedicada per a enviaments (MIX) amb generació automàtica de sortides.
+- **Llista d'Inputs (CH IN):** Taula amb Drag & Drop per a patch (colors), canals, etiquetes (INSTRUMENT) i comparativa Rider/Contra.
+- **Monitors / Auxiliars (CH OUT):** Secció dedicada per a enviaments (MIX) amb generació automàtica de sortides i càlcul de quantitats de monitors i peus.
+- **Cablejat i Spare:** Seccions dedicades per afegir material genèric des de l'inventari.
 - **Notes Tècniques:** Tres blocs compactes per a Llums, Vídeo i Escenari.
-- **Balanç Consolidat:** Taula al final que suma tot el material de totes les actuacions de l'esdeveniment, indicant ubicacions d'origen i errors d'estoc.
+- **Balanç Consolidat:** Taula que suma tot el material de totes les actuacions de l'esdeveniment.
+  - **Ordenació:** Per categoria o per ubicació d'origen del material.
+  - **Validació d'Estoc:** Marca en vermell i amb pulsació els ítems on la demanda total de l'esdeveniment supera l'estoc disponible.
 
-### 9.4. Tooltips Tècnics
-- **Visualització:** Totes les cel·les amb text llarg mostren el contingut sencer en passar el ratolí, garantint que no es perdi informació en pantalles compactes.
+### 9.4. Tooltips i UX Tècnica
+- **Visualització:** Totes les cel·les amb text llarg mostren el contingut sencer en passar el ratolí.
+- **Edició Concurrent:** Sistema de buffering (`useBufferedSave`) que permet una edició ultra-ràpida sense latència de disc, sincronitzant els canvis en segon pla.
