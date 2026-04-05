@@ -1968,7 +1968,65 @@ export const generatePerformancePdfObjectWithOptions = (
   }
 
   // --- Balanç Consolidat ---
-  if (allPerformances && materialItems && options.showBalance !== false) {
+  if (options.showBalance !== false) {
+    // Funció per traduir els noms tècnics de les seccions al PDF
+    const translateSection = (section: string) => {
+      switch(section) {
+        case 'Inputs': return i18next.t('pdf.inputs', { defaultValue: 'Inputs' });
+        case 'Monitors': return i18next.t('pdf.monitors', { defaultValue: 'Monitors' });
+        case 'Cablejat': return i18next.t('pdf.cable_list', { defaultValue: 'Cablejat' });
+        case 'Material Spare': return i18next.t('pdf.spare_list', { defaultValue: 'Material Spare' });
+        default: return section;
+      }
+    };
+
+    // WYSIWYG: Utilitzar dades directes del RiderBalance si estan disponibles
+    if (options.balanceData && options.balanceData.length > 0) {
+      // Utilitzar dades directes (WYSIWYG)
+      const balanceData: any[] = [];
+      let currentSection = '';
+      
+      options.balanceData.forEach(item => {
+        // Afegir separador de secció si canvia
+        if (item.section !== currentSection) {
+          balanceData.push([
+            { content: translateSection(item.section), colSpan: 4, styles: { ...headStyles, fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite) } }
+          ]);
+          currentSection = item.section;
+        }
+        
+        balanceData.push([
+          sane(item.name),
+          sane(item.location),
+          item.qty.toString(),
+          `${item.available} / ${item.total}` 
+        ]);
+      });
+
+      if (balanceData.length > 0) {
+        y = checkPageBreak(pdf, y, 30);
+        const balanceHead = [
+          i18next.t('pdf.material'),
+          i18next.t('pdf.location'),
+          i18next.t('pdf.quantity'),
+          i18next.t('pdf.stock_balance', { defaultValue: 'Estoc (Disp/Total)' })
+        ];
+        
+        autoTable(pdf, {
+          head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 4, styles: headStyles }],
+            balanceHead
+          ],
+          body: balanceData,
+          startY: y,
+          theme: 'grid',
+          styles: { fontSize: 10, cellPadding: 2 },
+          headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+          margin: { left: 10, right: 10 }
+        });
+        y = (pdf as any).lastAutoTable.finalY + 5;
+      }
+    } else if (allPerformances && materialItems) {
+      // Mètode antic (recalcul) - Només si no hi ha dades directes
     // Calcular el balanç com al RiderBalance component
     const usage: Record<string, { id: string; name: string; qty: number; location: string; category: string; section: string }> = {};
 
@@ -2091,6 +2149,8 @@ export const generatePerformancePdfObjectWithOptions = (
         headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
         margin: { left: 10, right: 10 }
       });
+      y = (pdf as any).lastAutoTable.finalY + 5;
+    }
     }
   }
 

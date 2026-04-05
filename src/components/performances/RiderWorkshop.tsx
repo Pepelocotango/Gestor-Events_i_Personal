@@ -833,14 +833,15 @@ interface RiderBalanceProps {
   performances: Performance[];
   materialItems: MaterialItem[];
   eventFrame: { startDate: string; endDate: string; id: string };
-  getMaterialAvailability: (id: string, start: string, end: string, frameId: string) => { available: number; total: number };
+  getMaterialAvailability: (id: string, startDate: string, endDate: string, eventId: string) => { available: number; total: number };
   showInPdf?: boolean;
   onTogglePdf?: () => void;
-  currentPerformanceId?: string | null;
+  currentPerformanceId?: string;
   bufferedTechData?: PerformanceTechData;
+  onBalanceDataChange?: (balanceData: any[]) => void; // Callback per passar dades al PDF
 }
 
-const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf, currentPerformanceId, bufferedTechData }) => {
+const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf, currentPerformanceId, bufferedTechData, onBalanceDataChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [sortByCategory, setSortByCategory] = useState(false);
   const [sortByLocation, setSortByLocation] = useState(false);
@@ -962,6 +963,13 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
 
     return result;
   }, [performances, materialItems, getMaterialAvailability, eventFrame, sortByCategory, sortByLocation, currentPerformanceId, bufferedTechData]);
+
+  // Passar les dades ordenades al component principal (WYSIWYG)
+  useEffect(() => {
+    if (onBalanceDataChange) {
+      onBalanceDataChange(usage);
+    }
+  }, [usage, onBalanceDataChange]);
 
   if (usage.length === 0) return null;
 
@@ -1162,6 +1170,9 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
   // Estat per a les opcions d'ordenament del balanç al PDF
   const [balanceSortByCategory, setBalanceSortByCategory] = useState(false);
   const [balanceSortByLocation, setBalanceSortByLocation] = useState(false);
+  
+  // Estat per rebre les dades del balanç (WYSIWYG)
+  const [balanceData, setBalanceData] = useState<any[]>([]);
 
   // Estat per a les columnes individuals d'inputs
   const [inputColumnsInPdf, setInputColumnsInPdf] = useState({
@@ -1427,6 +1438,7 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
           pdfOrientation: pdfOrientation,
           balanceSortByCategory: balanceSortByCategory,
           balanceSortByLocation: balanceSortByLocation,
+          balanceData: balanceData,
         },
         eventFrame?.performances,
         materialItems
@@ -2275,8 +2287,9 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                 getMaterialAvailability={getMaterialAvailability}
                 showInPdf={showBalanceInPdf}
                 onTogglePdf={() => setShowBalanceInPdf(!showBalanceInPdf)}
-                currentPerformanceId={selectedPerformanceId}
+                currentPerformanceId={selectedPerformanceId || undefined}
                 bufferedTechData={techData}
+                onBalanceDataChange={setBalanceData}
               />
             </div>
           </DndContext>
