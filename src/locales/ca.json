@@ -757,7 +757,16 @@
         "travel_logistics": "Logística de Viatge",
         "type": "Tipus",
         "video_notes": "Notes de Vídeo",
-        "yes": "SI"
+        "yes": "SI",
+        "monitor_list": "Llista de Monitors",
+        "output_channel": "Canal de Sortida",
+        "monitor_contra": "Mix (Contra)",
+        "monitor_stand": "Peu",
+        "qty": "Quantitat",
+        "material": "Material",
+        "quantity": "Quantitat",
+        "balance_title": "Balanç",
+        "stock_balance": "Estoc (Disp/Total)"
     },
     "people": {
         "add_button": "Afegir",

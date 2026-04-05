@@ -1540,7 +1540,7 @@ export const generatePerformancePdfObjectWithOptions = (
       rider: columns.rider && performance.techData.inputList.some(input => input.micRider),
       contra: columns.contra && performance.techData.inputList.some(input => input.micContra),
       stand: columns.stand && performance.techData.inputList.some(input => input.stand),
-      notes: columns.notes && performance.techData.inputList.some(input => input.notes),
+      notes: columns.notes && performance.techData.inputList.some(input => input.extres),
       exclusive: columns.exclusive && performance.techData.inputList.some(input => input.exclusive)
     };
     
@@ -1629,7 +1629,7 @@ export const generatePerformancePdfObjectWithOptions = (
       if (columnsWithData.rider) row.push(sane(input.micRider));
       if (columnsWithData.contra) row.push(sane(input.micContra));
       if (columnsWithData.stand) row.push(sane(input.stand));
-      if (columnsWithData.notes) row.push(sane(input.notes));
+      if (columnsWithData.notes) row.push(sane(input.extres));
       if (columnsWithData.exclusive) row.push(input.exclusive ? '✓' : '');
       
       return row;
@@ -1970,13 +1970,13 @@ export const generatePerformancePdfObjectWithOptions = (
   // --- Balanç Consolidat ---
   if (allPerformances && materialItems && options.showBalance !== false) {
     // Calcular el balanç com al RiderBalance component
-    const usage: Record<string, { id: string; name: string; qty: number; location: string; section: string }> = {};
+    const usage: Record<string, { id: string; name: string; qty: number; location: string; category: string; section: string }> = {};
 
     const countMaterial = (matId: string | undefined, matName: string | undefined, qty: number = 1, section: string) => {
       if (!matId || !matName) return;
       if (!usage[matId]) {
         const found = materialItems.find(mi => mi.id === matId);
-        usage[matId] = { id: matId, name: matName, qty: 0, location: found?.location || '-', section };
+        usage[matId] = { id: matId, name: matName, qty: 0, location: found?.location || '-', category: found?.category || '', section };
       }
       usage[matId].qty += qty;
     };
@@ -2015,10 +2015,39 @@ export const generatePerformancePdfObjectWithOptions = (
         default: return section;
       }
     };
-    const sortedUsage = Object.values(usage).sort((a, b) => {
+
+    // Calcular disponibilitat i errors com al RiderBalance
+    const usageWithAvailability = Object.values(usage).map(u => {
+      const globalAvail = getMaterialAvailability(u.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
+      return { ...u, available: globalAvail.available, total: globalAvail.total, isError: globalAvail.available < 0 };
+    });
+
+    // Aplicar ordenament: primer per secció, després per errors, després pels altres criteris
+    const sortedUsage = usageWithAvailability.sort((a, b) => {
+      // Primer ordenar per secció (Inputs → Monitors → Cablejat → Material Spare)
       const sectionDiff = sectionOrder[a.section as keyof typeof sectionOrder] - sectionOrder[b.section as keyof typeof sectionOrder];
       if (sectionDiff !== 0) return sectionDiff;
-      return a.name.localeCompare(b.name);
+      
+      // Després ordenar per errors (sempre prioritari)
+      const errorDiff = (b.isError ? 1 : 0) - (a.isError ? 1 : 0);
+      if (errorDiff !== 0) return errorDiff;
+
+      // Després aplicar els filtres d'ordenament
+      if (options.balanceSortByCategory && options.balanceSortByLocation) {
+        // Ambdós actius: primer per categoria, després per ubicació
+        const categoryDiff = a.category.localeCompare(b.category);
+        if (categoryDiff !== 0) return categoryDiff;
+        return a.location.localeCompare(b.location);
+      } else if (options.balanceSortByCategory) {
+        // Només categoria
+        return a.category.localeCompare(b.category);
+      } else if (options.balanceSortByLocation) {
+        // Només ubicació
+        return a.location.localeCompare(b.location);
+      } else {
+        // Sense ordenament específic, per nom
+        return a.name.localeCompare(b.name);
+      }
     });
 
     // Crear dades del balanç amb separadors de secció
@@ -2026,20 +2055,19 @@ export const generatePerformancePdfObjectWithOptions = (
     let currentSection = '';
     
     sortedUsage.forEach(item => {
-      const availability = getMaterialAvailability(item.id, eventFrame.startDate, eventFrame.endDate, eventFrame.id);
-      
       // Afegir separador de secció si canvia
       if (item.section !== currentSection) {
         balanceData.push([
-          { content: translateSection(item.section), colSpan: 3, styles: { ...headStyles, fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite) } }
+          { content: translateSection(item.section), colSpan: 4, styles: { ...headStyles, fillColor: hslToRgb(...themeHslColors.primary), textColor: hslToRgb(...themeHslColors.foregroundWhite) } }
         ]);
         currentSection = item.section;
       }
       
       balanceData.push([
         sane(item.name),
+        sane(item.location),
         item.qty.toString(),
-        `${availability.available} / ${availability.total}` 
+        `${item.available} / ${item.total}` 
       ]);
     });
 
@@ -2047,12 +2075,13 @@ export const generatePerformancePdfObjectWithOptions = (
       y = checkPageBreak(pdf, y, 30);
       const balanceHead = [
         i18next.t('pdf.material'),
+        i18next.t('pdf.location'),
         i18next.t('pdf.quantity'),
         i18next.t('pdf.stock_balance', { defaultValue: 'Estoc (Disp/Total)' })
       ];
       
       autoTable(pdf, {
-        head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 3, styles: headStyles }],
+        head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 4, styles: headStyles }],
           balanceHead
         ],
         body: balanceData,

@@ -18,7 +18,8 @@ import {
   ChevronUp,
   Eye,
   FileText,
-  Cable
+  Cable,
+  Star
 } from 'lucide-react';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import { useModalStore } from '../../stores/modalStore';
@@ -666,10 +667,12 @@ interface SearchableCategorySelectorProps {
   activeCategory: string;
   onSelect: (category: string) => void;
   placeholder: string;
+  favoriteCategories?: string[];
+  onToggleFavorite?: (category: string) => void;
 }
 
 const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({ 
-  categories, activeCategory, onSelect, placeholder 
+  categories, activeCategory, onSelect, placeholder, favoriteCategories = [], onToggleFavorite 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -680,6 +683,14 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
     if (!search) return categories;
     return categories.filter(cat => cat.toLowerCase().includes(search));
   }, [categories, searchTerm]);
+
+  // Separar categories preferides de la resta
+  const { favoriteItems, otherItems } = useMemo(() => {
+    const filtered = filteredCategories.filter(c => c !== 'all');
+    const favorites = favoriteCategories.filter(cat => filtered.includes(cat));
+    const others = filtered.filter(cat => !favoriteCategories.includes(cat));
+    return { favoriteItems: favorites, otherItems: others };
+  }, [filteredCategories, favoriteCategories]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -718,14 +729,53 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
             >
               {placeholder}
             </button>
-            {filteredCategories.filter(c => c !== 'all').map((cat) => (
-              <button
-                key={cat}
-                onClick={() => { onSelect(cat); setIsOpen(false); }}
-                className={`w-full text-left px-2 py-1.5 rounded text-[9px] font-medium transition-colors truncate ${activeCategory === cat ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/10'}`}
-              >
-                {cat}
-              </button>
+            
+            {/* Secció de Preferits */}
+            {favoriteItems.length > 0 && (
+              <>
+                <div className="px-2 py-1 text-[8px] font-black text-muted-foreground uppercase tracking-widest border-b border-border/30 mb-1">
+                  ⭐ Preferits
+                </div>
+                {favoriteItems.map((cat) => (
+                  <div key={cat} className="flex items-center group">
+                    <button
+                      onClick={() => { onSelect(cat); setIsOpen(false); }}
+                      className={`flex-1 text-left px-2 py-1.5 rounded-l text-[9px] font-medium transition-colors truncate ${activeCategory === cat ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/10'}`}
+                    >
+                      {cat}
+                    </button>
+                    <button
+                      onClick={() => onToggleFavorite?.(cat)}
+                      className="p-1.5 rounded-r border-l border-border/30 hover:bg-muted/50 transition-colors"
+                      title="Treure de preferits"
+                    >
+                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                    </button>
+                  </div>
+                ))}
+                {otherItems.length > 0 && (
+                  <div className="px-2 py-1 text-[8px] text-muted-foreground border-b border-border/30 mb-1 mt-2"></div>
+                )}
+              </>
+            )}
+            
+            {/* Resta de Categories */}
+            {otherItems.map((cat) => (
+              <div key={cat} className="flex items-center group">
+                <button
+                  onClick={() => { onSelect(cat); setIsOpen(false); }}
+                  className={`flex-1 text-left px-2 py-1.5 rounded-l text-[9px] font-medium transition-colors truncate ${activeCategory === cat ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/10'}`}
+                >
+                  {cat}
+                </button>
+                <button
+                  onClick={() => onToggleFavorite?.(cat)}
+                  className="p-1.5 rounded-r border-l border-border/30 hover:bg-muted/50 transition-colors opacity-0 group-hover:opacity-100"
+                  title="Afegir a preferits"
+                >
+                  <Star className="w-3 h-3 text-muted-foreground hover:text-yellow-500" />
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -1068,6 +1118,7 @@ const RiderWorkshop: React.FC = () => {
   const [activeCell, setActiveCell] = useState<{ id: string; field: 'micContra' | 'stand' | 'extres' | 'mixContra' | 'mixStand' | 'cable' | 'spare' } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [favoriteCategories, setFavoriteCategories] = useState<string[]>([]);
   
   // 4. Referencias
   const migratedPerformances = useRef<Set<string>>(new Set());
@@ -1107,6 +1158,10 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
 
   // Estat per a l'orientació del PDF
   const [pdfOrientation, setPdfOrientation] = useState<'portrait' | 'landscape'>('portrait');
+
+  // Estat per a les opcions d'ordenament del balanç al PDF
+  const [balanceSortByCategory, setBalanceSortByCategory] = useState(false);
+  const [balanceSortByLocation, setBalanceSortByLocation] = useState(false);
 
   // Estat per a les columnes individuals d'inputs
   const [inputColumnsInPdf, setInputColumnsInPdf] = useState({
@@ -1168,6 +1223,21 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
 
   const materialCategories = useMemo(() => ['all', ...Array.from(new Set(materialItems.map(m => m.category)))].sort(), [materialItems]);
 
+  // Carregar preferències de categories
+  useEffect(() => {
+    const loadFavoriteCategories = async () => {
+      try {
+        if (window.electronAPI?.getSessionData) {
+          const sessionData = await window.electronAPI.getSessionData();
+          setFavoriteCategories(sessionData.favoriteCategories || []);
+        }
+      } catch (error) {
+        console.error('[RiderWorkshop] Error carregant categories preferides:', error);
+      }
+    };
+    loadFavoriteCategories();
+  }, []);
+
   useEffect(() => {
     if (eventFrame?.performances?.length) {
       if (!selectedPerformanceId || !eventFrame.performances.find(p => p.id === selectedPerformanceId)) {
@@ -1218,6 +1288,22 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
     if (spareIndex !== -1) {
       const newIndex = (techData.spareList || []).findIndex(i => i.id === over.id);
       if (newIndex !== -1) updateLocal({ spareList: arrayMove(techData.spareList || [], spareIndex, newIndex) });
+    }
+  };
+
+  const handleToggleFavoriteCategory = async (category: string) => {
+    try {
+      const newFavorites = favoriteCategories.includes(category)
+        ? favoriteCategories.filter(c => c !== category)
+        : [...favoriteCategories, category];
+      
+      setFavoriteCategories(newFavorites);
+      
+      if (window.electronAPI?.saveSessionData) {
+        await window.electronAPI.saveSessionData('favoriteCategories', newFavorites);
+      }
+    } catch (error) {
+      console.error('[RiderWorkshop] Error desant categories preferides:', error);
     }
   };
 
@@ -1339,6 +1425,8 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
           inputColumns: inputColumnsInPdf,
           monitorColumns: monitorColumnsInPdf,
           pdfOrientation: pdfOrientation,
+          balanceSortByCategory: balanceSortByCategory,
+          balanceSortByLocation: balanceSortByLocation,
         },
         eventFrame?.performances,
         materialItems
@@ -1484,7 +1572,14 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
               <Search className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
               <input type="text" placeholder={t('rider_workshop.search_placeholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-7 pr-2 py-1 bg-muted/30 border border-border rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-primary/50 font-medium" />
             </div>
-            <SearchableCategorySelector categories={materialCategories} activeCategory={activeCategory} onSelect={setActiveCategory} placeholder="Categories" />
+            <SearchableCategorySelector 
+              categories={materialCategories} 
+              activeCategory={activeCategory} 
+              onSelect={setActiveCategory} 
+              placeholder="Categories"
+              favoriteCategories={favoriteCategories}
+              onToggleFavorite={handleToggleFavoriteCategory}
+            />
           </div>
         </div>
         <div className="flex-grow overflow-y-auto p-2 custom-scrollbar bg-muted/5">
@@ -1679,6 +1774,37 @@ const [showSpareInPdf, setShowSpareInPdf]   = useState(true);
                   </Tooltip>
                   <label htmlFor="showBalanceInPdf" className="font-medium text-muted-foreground cursor-pointer">Balanç</label>
                 </div>
+                
+                {/* Opcions d'ordenament del balanç */}
+                {showBalanceInPdf && (
+                  <div className="space-y-1">
+                    <div className="text-[8px] font-medium text-muted-foreground uppercase tracking-wider mt-2">Ordenament Balanç</div>
+                    <div className="flex items-center gap-2">
+                      <Tooltip text="Ordena el balanç per categoria de material">
+                        <input
+                          type="checkbox"
+                          id="balanceSortByCategory"
+                          checked={balanceSortByCategory}
+                          onChange={(e) => setBalanceSortByCategory(e.target.checked)}
+                          className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                        />
+                      </Tooltip>
+                      <label htmlFor="balanceSortByCategory" className="text-[9px] text-muted-foreground cursor-pointer">Categoria</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Tooltip text="Ordena el balanç per ubicació del material">
+                        <input
+                          type="checkbox"
+                          id="balanceSortByLocation"
+                          checked={balanceSortByLocation}
+                          onChange={(e) => setBalanceSortByLocation(e.target.checked)}
+                          className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                        />
+                      </Tooltip>
+                      <label htmlFor="balanceSortByLocation" className="text-[9px] text-muted-foreground cursor-pointer">Ubicació</label>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </section>
