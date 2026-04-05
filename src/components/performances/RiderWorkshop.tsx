@@ -971,9 +971,15 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
   }, [performances, materialItems, getMaterialAvailability, eventFrame, sortByCategory, sortByLocation, currentPerformanceId, bufferedTechData]);
 
   // Passar les dades ordenades al component principal (WYSIWYG)
+  const lastUsageRef = useRef<string>('');
+  
   useEffect(() => {
     if (onBalanceDataChange) {
-      onBalanceDataChange(usage);
+      const currentUsageStr = JSON.stringify(usage);
+      if (currentUsageStr !== lastUsageRef.current) {
+        lastUsageRef.current = currentUsageStr;
+        onBalanceDataChange(usage);
+      }
     }
   }, [usage, onBalanceDataChange]);
 

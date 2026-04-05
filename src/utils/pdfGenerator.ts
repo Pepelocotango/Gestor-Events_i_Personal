@@ -1243,67 +1243,67 @@ const calculateOptimalColumnWidths = (
     
     // Calcular ample mínim i màxim per cada columna (en mm)
     // Adaptat segons orientació i espai disponible
-    let minWidth = 12;
+    let minWidth = 10;
     let maxWidth = 80;
     
     if (columnIndex === 0) {
       // Patch: sempre petit (només per colors)
-      minWidth = 18;
-      maxWidth = 18;
+      minWidth = orientation === 'landscape' ? 15 : 12;
+      maxWidth = minWidth;
     } else if (columnIndex === 1) {
       // Channel: adaptar segons si hi ha números llargs
-      minWidth = 22;
-      maxWidth = 25;
+      minWidth = orientation === 'landscape' ? 20 : 15;
+      maxWidth = orientation === 'landscape' ? 25 : 20;
     } else if (columnIndex === 2) {
       // Label: flexible segons contingut
       if (maxContentLength > 25) {
-        minWidth = orientation === 'landscape' ? 40 : 30;
-        maxWidth = orientation === 'landscape' ? 70 : 55;
+        minWidth = orientation === 'landscape' ? 40 : 25;
+        maxWidth = orientation === 'landscape' ? 70 : 45;
       } else if (maxContentLength > 15) {
-        minWidth = orientation === 'landscape' ? 35 : 25;
-        maxWidth = orientation === 'landscape' ? 60 : 45;
+        minWidth = orientation === 'landscape' ? 35 : 20;
+        maxWidth = orientation === 'landscape' ? 60 : 35;
       } else if (maxContentLength > 8) {
-        minWidth = 25;
-        maxWidth = 35;
+        minWidth = 18;
+        maxWidth = 25;
       } else {
-        minWidth = 20;
-        maxWidth = 30;
+        minWidth = 15;
+        maxWidth = 20;
       }
     } else if (columnIndex === 3 || columnIndex === 4) {
       // Mic Rider/Contra: adaptable
       if (maxContentLength > 20) {
-        minWidth = orientation === 'landscape' ? 40 : 30;
-        maxWidth = orientation === 'landscape' ? 60 : 45;
+        minWidth = orientation === 'landscape' ? 35 : 22;
+        maxWidth = orientation === 'landscape' ? 55 : 35;
       } else if (maxContentLength > 12) {
-        minWidth = 30;
-        maxWidth = 40;
+        minWidth = 22;
+        maxWidth = 30;
       } else {
-        minWidth = 25;
-        maxWidth = 35;
+        minWidth = 18;
+        maxWidth = 25;
       }
     } else if (columnIndex === 5) {
       // Stand: similar a mic
-      minWidth = 30;
-      maxWidth = 35;
+      minWidth = 20;
+      maxWidth = 25;
     } else if (columnIndex === 6) {
       // Notes: molt flexible, pot ocupar molt espai
       if (maxContentLength > 40) {
-        minWidth = orientation === 'landscape' ? 50 : 40;
-        maxWidth = orientation === 'landscape' ? 80 : 60;
+        minWidth = orientation === 'landscape' ? 45 : 30;
+        maxWidth = orientation === 'landscape' ? 80 : 50;
       } else if (maxContentLength > 20) {
-        minWidth = orientation === 'landscape' ? 40 : 30;
-        maxWidth = orientation === 'landscape' ? 60 : 45;
+        minWidth = orientation === 'landscape' ? 35 : 25;
+        maxWidth = orientation === 'landscape' ? 60 : 40;
       } else if (maxContentLength > 10) {
-        minWidth = 30;
-        maxWidth = 40;
-      } else {
-        minWidth = 20;
+        minWidth = 22;
         maxWidth = 30;
+      } else {
+        minWidth = 18;
+        maxWidth = 25;
       }
     } else if (columnIndex === 7) {
       // Exclusive: sempre petit (només ✓)
-      minWidth = 13;
-      maxWidth = 13;
+      minWidth = 8;
+      maxWidth = 10;
     }
     
     minWidths.push(minWidth);
@@ -1312,15 +1312,20 @@ const calculateOptimalColumnWidths = (
   
   // Calcular l'ample total mínim necessari
   const totalMinWidth = minWidths.reduce((sum, width) => sum + width, 0);
-  
-  // Si hi ha espai extra, distribuir-lo proporcionalment
-  if (totalMinWidth < totalWidthUnits && activeColumns.length > 0) {
+  let finalWidths: number[] = [];
+
+  // SI NO HI HA ESPAI NI PEL MÍNIM, CAL ESCALAR PROPORCIONALMENT TOT
+  if (totalMinWidth >= totalWidthUnits) {
+    const scaleFactor = (totalWidthUnits - 2) / totalMinWidth; // Deixem 2mm de marge de seguretat
+    finalWidths = minWidths.map(w => Math.max(5, w * scaleFactor));
+  } else {
+    // Si hi ha espai extra, distribuir-lo proporcionalment
     const extraSpace = totalWidthUnits - totalMinWidth;
     const flexibilityScores = maxWidths.map((max, i) => max - minWidths[i]);
     const totalFlexibility = flexibilityScores.reduce((sum, score) => sum + score, 0);
     
     // Distribuir l'espai extra segons la flexibilitat de cada columna
-    let finalWidths = minWidths.map((minWidth, i) => {
+    finalWidths = minWidths.map((minWidth, i) => {
       if (totalFlexibility > 0) {
         const extraRatio = flexibilityScores[i] / totalFlexibility;
         const extraWidth = extraSpace * extraRatio;
@@ -1328,25 +1333,19 @@ const calculateOptimalColumnWidths = (
       }
       return minWidth;
     });
-    
-    // VERIFICACIÓ CRÍTICA: Si encara no hi ha prou espai, ajustar per forçar que tot cabgui
-    const totalCalculated = finalWidths.reduce((sum, w) => sum + w, 0);
-    if (totalCalculated > totalWidthUnits) {
-      // Reduir totes les columnes proporcionalment
-      const reductionFactor = totalWidthUnits / totalCalculated;
-      finalWidths = finalWidths.map(width => Math.max(10, width * reductionFactor));
+
+    // Re-verificar que la suma final no superi el límit per arrodoniments
+    const currentTotal = finalWidths.reduce((sum, w) => sum + w, 0);
+    if (currentTotal > totalWidthUnits) {
+      const correctionFactor = (totalWidthUnits - 1) / currentTotal;
+      finalWidths = finalWidths.map(w => w * correctionFactor);
     }
-    
-    // Aplicar els amples calculats als índexs de columna correctes
-    activeColumns.forEach((columnIndex, i) => {
-      columnWidths[columnIndex] = { cellWidth: Math.round(finalWidths[i]) };
-    });
-  } else {
-    // Si no hi ha espai suficient, usar els amples mínims
-    activeColumns.forEach((columnIndex, i) => {
-      columnWidths[columnIndex] = { cellWidth: minWidths[i] };
-    });
   }
+
+  // Aplicar els amples calculats als índexs de columna correctes
+  activeColumns.forEach((columnIndex, i) => {
+    columnWidths[columnIndex] = { cellWidth: finalWidths[i] };
+  });
   
   return columnWidths;
 };
