@@ -847,8 +847,10 @@ interface RiderBalanceProps {
 
 const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems, eventFrame, getMaterialAvailability, showInPdf = true, onTogglePdf, currentPerformanceId, bufferedTechData, onBalanceDataChange, balanceConfig, setBalanceConfig }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [sortByCategory, setSortByCategory] = useState(balanceConfig?.sortByCategory ?? false);
-  const [sortByLocation, setSortByLocation] = useState(balanceConfig?.sortByLocation ?? false);
+  
+  // Utilitzar directament els valors del store, no estats locals
+  const sortByCategory = balanceConfig?.sortByCategory ?? false;
+  const sortByLocation = balanceConfig?.sortByLocation ?? false;
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   
   const usage = useMemo(() => {
@@ -968,14 +970,6 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
     return result;
   }, [performances, materialItems, getMaterialAvailability, eventFrame, sortByCategory, sortByLocation, currentPerformanceId, bufferedTechData]);
 
-  // Sincronitzar estats locals amb el store
-  useEffect(() => {
-    if (balanceConfig) {
-      setSortByCategory(balanceConfig.sortByCategory);
-      setSortByLocation(balanceConfig.sortByLocation);
-    }
-  }, [balanceConfig]);
-
   // Passar les dades ordenades al component principal (WYSIWYG)
   useEffect(() => {
     if (onBalanceDataChange) {
@@ -1003,7 +997,6 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
               onClick={() => {
                 const newValue = !balanceConfig?.sortByCategory;
                 setBalanceConfig?.({ sortByCategory: newValue });
-                setSortByCategory(newValue);
                 autoSaveRiderPdfConfig();
               }}
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
@@ -1019,7 +1012,6 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({ performances, materialItems
               onClick={() => {
                 const newValue = !balanceConfig?.sortByLocation;
                 setBalanceConfig?.({ sortByLocation: newValue });
-                setSortByLocation(newValue);
                 autoSaveRiderPdfConfig();
               }}
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
