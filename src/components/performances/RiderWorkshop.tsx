@@ -18,7 +18,8 @@ import {
   Eye,
   FileText,
   Cable,
-  Star
+  Star,
+  FileSpreadsheet
 } from 'lucide-react';
 import RiderBalance from './RiderBalance';
 import { useEventDataStore } from '../../stores/eventDataStore';
@@ -43,6 +44,7 @@ import {
   exportPerformanceToPdfWithOptions as exportPerformanceToPdfWithOptions, 
   validatePerformanceData 
 } from '../../utils/pdfGenerator';
+import { exportPerformanceRiderToCsv } from '../../utils/csvUtils';
 import { 
   DndContext, 
   closestCenter, 
@@ -1265,6 +1267,23 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
     );
   };
 
+  const handleExportCsv = () => {
+    triggerAllSaves();
+    const latestEventFrame = useEventDataStore.getState().eventFrames.find(ef => ef.id === selectedEventFrameId);
+    const latestPerformance = latestEventFrame?.performances?.find(p => p.id === selectedPerformanceId);
+    
+    if (!latestPerformance) return;
+
+    exportPerformanceRiderToCsv(
+      latestPerformance, 
+      (msg, type) => {
+        if (type === 'error') notificationService.error(msg);
+        else notificationService.info(msg);
+      },
+      t
+    );
+  };
+
   const addInputItem = () => { 
     const currentList = techDataRef.current.inputList;
     const last = currentList[currentList.length-1]; 
@@ -1419,6 +1438,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   <Tooltip text={t('tech_sheets.form.tooltip_preview')}>
                     <button onClick={handlePreviewRider} className="p-1.5 hover:bg-secondary/20 text-muted-foreground hover:text-secondary-foreground rounded-md transition-all active:scale-95">
                       <Eye className="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip text="Exportar a CSV">
+                    <button onClick={handleExportCsv} className="p-1.5 hover:bg-success/10 text-muted-foreground hover:text-success rounded-md transition-all active:scale-95">
+                      <FileSpreadsheet className="w-3.5 h-3.5" />
                     </button>
                   </Tooltip>
                   <Tooltip text={t('tech_sheets.form.tooltip_export')}>

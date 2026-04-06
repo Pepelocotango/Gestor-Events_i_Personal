@@ -805,92 +805,72 @@ export const validatePerformanceData = (p: Performance): ValidationResult => {
   return { errors, warnings, isValid: errors.length === 0 };
 };
 
-// --- CÀLCUL D'AMPLES ÒPTIMS ---
+// --- CÀLCUL D'AMPLES ÒPTIMS AMB REGLES INTEL·LIGENTS ---
 const calculateOptimalColumnWidths = (items: any[], columnConfig: any, orientation: 'portrait' | 'landscape' = 'portrait') => {
   const usableWidth = orientation === 'landscape' ? 277 : 190;
   
-  // 1. Identificar quines columnes estan actives REALMENT
+  // 1. Definició de les regles per columna
+  const rules: Record<string, { weight: number; fixedW?: number; align: 'left' | 'center' }> = {
+    'patch': { weight: 0, fixedW: orientation === 'landscape' ? 12 : 10, align: 'center' },
+    'channel': { weight: 0, fixedW: orientation === 'landscape' ? 13 : 11, align: 'center' },
+    'outputChannel': { weight: 0, fixedW: orientation === 'landscape' ? 13 : 11, align: 'center' },
+    'label': { weight: 3, align: 'left' },
+    'rider': { weight: 2, align: 'left' },
+    'contra': { weight: 2, align: 'left' },
+    'stand': { weight: 1, align: 'left' },
+    'notes': { weight: 5, align: 'left' },
+    'exclusive': { weight: 0, fixedW: 8, align: 'center' }
+  };
+
   const columnKeys = ['patch', 'channel', 'label', 'rider', 'contra', 'stand', 'notes', 'exclusive'];
-  if (columnConfig.outputChannel) columnKeys[1] = 'outputChannel'; // Adaptar per monitors
+  if (columnConfig.outputChannel) columnKeys[1] = 'outputChannel';
 
   const activeKeys = columnKeys.filter(key => columnConfig[key]);
   if (activeKeys.length === 0) return {};
 
-  const minWidths: number[] = [];
-  const maxWidths: number[] = [];
-  const flexFactors: number[] = []; // Factor de quant es pot estirar cada columna
+  // 2. Calcular espai ocupat per columnes FIXES i identificar ELÀSTIQUES
+  let fixedTotalW = 0;
+  let totalWeight = 0;
+  const elasticKeys: string[] = [];
 
-  // 2. Calcular amples base per a cada columna activa
   activeKeys.forEach(key => {
-    let maxLen = 0;
-    items.forEach(item => {
-      let val = '';
-      if (key === 'patch') val = item.patchNumber || '';
-      else if (key === 'channel' || key === 'outputChannel') val = item.channel || item.outputChannel || '';
-      else if (key === 'label') val = item.label || '';
-      else if (key === 'rider') val = item.micRider || item.mixRider || '';
-      else if (key === 'contra') val = item.micContra || item.mixContra || '';
-      else if (key === 'stand') val = item.stand || item.mixStand || '';
-      else if (key === 'notes') val = item.notes || item.extres || '';
-      else if (key === 'exclusive') val = item.exclusive ? '✓' : '';
-      maxLen = Math.max(maxLen, String(val).length);
-    });
+    const rule = rules[key];
+    if (rule.weight === 0 && rule.fixedW) {
+      fixedTotalW += rule.fixedW;
+    } else {
+      elasticKeys.push(key);
+      totalWeight += rule.weight;
+    }
+  });
 
-    let minW = 10, maxW = 80, flex = 1;
+  // 3. Repartir l'espai restant entre les ELÀSTIQUES
+  const remainingW = usableWidth - fixedTotalW;
+  const colStyles: any = {};
 
-    switch(key) {
-      case 'patch': 
-        minW = orientation === 'landscape' ? 12 : 10; 
-        maxW = minW; flex = 0; break;
-      case 'channel':
-      case 'outputChannel':
-        minW = orientation === 'landscape' ? 14 : 11;
-        maxW = minW; flex = 0; break;
-      case 'label':
-        minW = orientation === 'landscape' ? 35 : 25;
-        maxW = orientation === 'landscape' ? 80 : 55; flex = 2; break;
-      case 'rider':
-      case 'contra':
-        minW = orientation === 'landscape' ? 30 : 22;
-        maxW = orientation === 'landscape' ? 60 : 45; flex = 1.5; break;
-      case 'stand':
-        minW = orientation === 'landscape' ? 20 : 18;
-        maxW = 35; flex = 0.5; break;
-      case 'notes':
-        minW = orientation === 'landscape' ? 40 : 25;
-        maxW = orientation === 'landscape' ? 100 : 70; flex = 3; break;
-      case 'exclusive':
-        minW = 7; maxW = 8; flex = 0; break;
+  activeKeys.forEach((key, index) => {
+    const rule = rules[key];
+    let finalW = 0;
+
+    if (rule.weight === 0 && rule.fixedW) {
+      finalW = rule.fixedW;
+    } else if (totalWeight > 0) {
+      finalW = (rule.weight / totalWeight) * remainingW;
     }
 
-    // Ajustar segons contingut real si és molt curt
-    if (maxLen < 5 && flex > 0) { minW = Math.max(minW - 5, 10); flex *= 0.5; }
-
-    minWidths.push(minW);
-    maxWidths.push(maxW);
-    flexFactors.push(flex);
+    colStyles[index] = { 
+      cellWidth: finalW, 
+      halign: rule.align 
+    };
   });
 
-  // 3. REPARTIMENT PROPORCIONAL DEL 100% DE L'AMPLADA
-  const currentTotalMin = minWidths.reduce((s, w) => s + w, 0);
-  const extraSpace = usableWidth - currentTotalMin;
-  const totalFlex = flexFactors.reduce((s, f) => s + f, 0);
+  // Ajust de seguretat per arrodoniments
+  const totalCalculated = Object.values(colStyles).reduce((s: number, c: any) => s + c.cellWidth, 0);
+  if (totalCalculated > usableWidth) {
+    const correction = (usableWidth - 0.1) / totalCalculated;
+    Object.keys(colStyles).forEach(k => colStyles[k].cellWidth *= correction);
+  }
 
-  const finalWidths = minWidths.map((minW, i) => {
-    if (extraSpace > 0 && totalFlex > 0) {
-      const share = (flexFactors[i] / totalFlex) * extraSpace;
-      return minW + share;
-    }
-    return minW;
-  });
-
-  // 4. Mapatge d'índexs RELATIUS per a jspdf-autotable
-  const res: any = {};
-  finalWidths.forEach((width, i) => {
-    res[i] = { cellWidth: width };
-  });
-
-  return res;
+  return colStyles;
 };
 
 // --- ESTILS I DENSITAT ---
