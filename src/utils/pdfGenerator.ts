@@ -806,7 +806,7 @@ export const validatePerformanceData = (p: Performance): ValidationResult => {
 };
 
 // --- CÀLCUL D'AMPLES ÒPTIMS AMB REGLES INTEL·LIGENTS ---
-const calculateOptimalColumnWidths = (items: any[], columnConfig: any, orientation: 'portrait' | 'landscape' = 'portrait') => {
+const calculateOptimalColumnWidths = (columnConfig: any, orientation: 'portrait' | 'landscape' = 'portrait') => {
   const usableWidth = orientation === 'landscape' ? 277 : 190;
   
   // 1. Definició de les regles per columna
@@ -933,7 +933,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
     y = checkPageBreak(pdf, y, 40);
     const cols = options.inputColumns || { patch: true, channel: true, label: true, rider: true, contra: true, stand: true, notes: true, exclusive: true };
     const colsWithData = { patch: cols.patch && performance.techData.inputList.some(i => i.patchNumber), channel: cols.channel && performance.techData.inputList.some(i => i.channel), label: cols.label && performance.techData.inputList.some(i => i.label), rider: cols.rider && performance.techData.inputList.some(i => i.micRider), contra: cols.contra && performance.techData.inputList.some(i => i.micContra), stand: cols.stand && performance.techData.inputList.some(i => i.stand), notes: cols.notes && performance.techData.inputList.some(i => i.extres), exclusive: cols.exclusive && performance.techData.inputList.some(i => i.exclusive) };
-    const optW = calculateOptimalColumnWidths(performance.techData.inputList, colsWithData, orientation);
+    const optW = calculateOptimalColumnWidths(colsWithData, orientation);
     const head: any[] = []; const cStyles: any = {}; let cIdx = 0;
     const patchColorMap: any = { red:[239, 68, 68], blue: [59, 130, 246], green:[34, 197, 94], yellow:[250, 204, 21], orange:[249, 115, 22], purple: [168, 85, 247], brown: [180, 83, 9] };
     
@@ -966,7 +966,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
     y = checkPageBreak(pdf, y, 40);
     const mCols = options.monitorColumns || { patch: true, outputChannel: true, label: true, rider: true, contra: true, stand: true, notes: true, exclusive: true };
     const mColsWithData = { patch: mCols.patch && performance.techData.monitorList.some(i => i.patchNumber), outputChannel: mCols.outputChannel && performance.techData.monitorList.some(i => i.outputChannel), label: mCols.label && performance.techData.monitorList.some(i => i.label), rider: mCols.rider && performance.techData.monitorList.some(i => i.mixRider), contra: mCols.contra && performance.techData.monitorList.some(i => i.mixContra), stand: mCols.stand && performance.techData.monitorList.some(i => i.mixStand), notes: mCols.notes && performance.techData.monitorList.some(i => i.notes), exclusive: mCols.exclusive && performance.techData.monitorList.some(i => i.exclusive) };
-    const mOptW = calculateOptimalColumnWidths(performance.techData.monitorList, mColsWithData, orientation);
+    const mOptW = calculateOptimalColumnWidths(mColsWithData, orientation);
     const mHead: any[] = []; const mcStyles: any = {}; let mcIdx = 0;
     const patchColorMap: any = { red:[239, 68, 68], blue: [59, 130, 246], green:[34, 197, 94], yellow:[250, 204, 21], orange:[249, 115, 22], purple: [168, 85, 247], brown: [180, 83, 9] };
 
