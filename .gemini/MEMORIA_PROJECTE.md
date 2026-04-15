@@ -12,8 +12,9 @@
     - **Reordenació DND:** Gestió fluida de l'ordre de canals i materials mitjançant `@dnd-kit`.
     - **Internacionalització Tècnica:** Adaptació de termes professionals (CH IN, CH OUT, INSTRUMENT) en CA, ES i EN.
 - **Objectiu:** Finalització de la Phase 4 i consolidació de l'eina com a gestor tècnic professional.
+- **Optimització de PDF:** Nova lògica de **Maquetació Intel·ligent**: columnes ancorades (Patch, CH.IN, Exc) i columnes elàstiques amb pesos per aprofitar el 100% de l'ample útil del DIN A4.
+- **Exportació CSV:** Implementació de la descàrrega de dades del Rider (Inputs, Monitors i Material) en format CSV des del Rider Workshop.
 - **Sincronització Individual:** Implementació de `sync-single-event-with-google` al backend per permetre actualitzacions quirúrgiques sense esborrar tot el calendari.
-- **Optimització de PDF:** Nova lògica de càlcul d'amples de columna a `pdfGenerator.ts` amb escalat proporcional automàtic per garantir que cap taula superi els marges de la pàgina.
 
 ## Coneixement Profund de l'Arquitectura
 - **Internacionalització (i18n):** Sistema basat en `i18next` amb suport per a CA (defecte), ES i EN. Gestió granular de tooltips per a una millor UX.

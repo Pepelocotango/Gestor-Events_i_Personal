@@ -276,8 +276,12 @@ Nova interfície professional d'alta densitat per al disseny tècnic i logístic
 - **Llista d'Ítems:** Mostra estoc real `Disponible / Total`. Inclou indicadors de sobre-assignació (vermell/pulsació) i materials ja usats en l'actuació (verd).
 - **Point & Shoot:** Al clicar un ítem, s'assigna automàticament a la cel·la activa de la taula.
 
-### 9.2. Header i Controls PDF
+### 9.2. Header i Controls PDF / CSV
 - **Navegació:** Selectors ràpids d'Esdeveniment i d'Artista.
+- **Accions d'Exportació:**
+  - **Previsualització (Ull):** Obre un modal amb el PDF generat en temps real.
+  - **Exportar CSV (Full de càlcul):** Descarrega les dades tècniques (Inputs, Monitors, Material) en format CSV.
+  - **Exportar PDF (Document):** Genera el fitxer PDF professional segons la configuració.
 - **Panell de Configuració PDF:**
   - **Orientació:** Commutador entre Vertical (Portrait) i Horitzontal (Landscape).
   - **Selecció de Seccions:** Checkboxes per incloure/excloure info bàsica, inputs, monitors, cablejat, spare, notes tècniques, hospitality i balanç.

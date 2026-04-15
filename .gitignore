@@ -58,3 +58,4 @@ gestor-esdeveniments-personal@*
 !.gemini/
 
 ### FINAL FITXER: .gitignore ###
+.aider*
