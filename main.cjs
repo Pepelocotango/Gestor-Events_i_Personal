@@ -1,8 +1,4 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron');
-// Fix sandbox per Ubuntu 24.04
-const { app } = require('electron');
-app.commandLine.appendSwitch('disable-setuid-sandbox');
-
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
