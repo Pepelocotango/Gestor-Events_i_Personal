@@ -59,3 +59,4 @@ gestor-esdeveniments-personal@*
 
 ### FINAL FITXER: .gitignore ###
 .aider*
+squashfs-root/

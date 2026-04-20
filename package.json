@@ -122,6 +122,7 @@
     "linux": {
       "target": "AppImage",
       "category": "Office",
+      "executableArgs": ["--disable-setuid-sandbox"],
       "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-Linux-Ubuntu18.04+.${ext}"
     },
     "win": {
