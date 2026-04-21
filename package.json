@@ -84,7 +84,7 @@
     "appId": "com.gestorevents.app",
     "productName": "GestorEsdevenimentsPersonal",
     "directories": {
-      "output": "dist"
+      "output": "releases"
     },
     "fileAssociations": [
       {
@@ -94,13 +94,13 @@
       }
     ],
     "files": [
-      "dist/**/*",
-      "main.cjs",
-      "preload.cjs",
-      "metadata.json",
-      "google-credentials.json",
-      "service-account.json"
-    ],
+  "dist/**/*",
+  "main.cjs",
+  "preload.cjs",
+  "metadata.json",
+  "google-credentials.json",
+  "service-account.json"
+],
     "extraResources": [
       {
         "from": "examples json",
