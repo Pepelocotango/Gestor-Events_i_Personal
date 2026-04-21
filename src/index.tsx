@@ -7,7 +7,8 @@ import './i18n'; // Import i18n configuration
 // --- INTERCEPTOR DE CONSOLA PER A PERSISTÈNCIA DE LOGS ---
 // Això captura TOTS els logs de la consola (React, llibreries, etc.) 
 // i els envia al procés principal per a que es guardin al fitxer de log.
-if (window.electronAPI && window.electronAPI.logToMain) {
+const electronAPI = (window as any).electronAPI;
+if (electronAPI && electronAPI.logToMain) {
   const originalConsole = {
     log: console.log.bind(console),
     warn: console.warn.bind(console),
@@ -27,7 +28,7 @@ if (window.electronAPI && window.electronAPI.logToMain) {
       try {
         // Mapegem 'log' a 'info' pel backend
         const mappedLevel = level === 'log' ? 'info' : level;
-        window.electronAPI.logToMain(mappedLevel, ...args);
+        electronAPI.logToMain(mappedLevel, ...args);
       } catch (e) {
         // Si falla el pont IPC, no fem res per evitar bucles infinits
       }
