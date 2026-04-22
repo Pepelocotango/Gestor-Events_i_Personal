@@ -6,6 +6,8 @@
 
 Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que permet la **gestió i edició** de dades en mobilitat.
 
+**🌐 Pàgina Web oficial: [https://gestor-events.vercel.app](https://gestor-events.vercel.app)**
+
 El projecte està actualment en fase de desenvolupament actiu.
 
 ## Funcionalitats Principals
