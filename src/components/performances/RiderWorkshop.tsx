@@ -16,6 +16,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
+import i18next from 'i18next';
 import { 
   Search, 
   Music, 
@@ -119,8 +120,8 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
 
     if (currentTotal > 0) {
       assignments.push({
-        eventName: eventFrame.name || 'Esdeveniment',
-        performanceName: performance?.name || 'Actuació actual',
+        eventName: eventFrame.name || i18next.t('rider_workshop.event'),
+        performanceName: performance?.name || i18next.t('rider_workshop.current_performance'),
         quantity: currentTotal
       });
     }
@@ -141,7 +142,7 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
 
         if (perfTotal > 0) {
           assignments.push({
-            eventName: eventFrame.name || 'Esdeveniment',
+            eventName: eventFrame.name || i18next.t('rider_workshop.event'),
             performanceName: perf.name,
             quantity: perfTotal
           });
@@ -153,7 +154,7 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item, availability, event
   };
 
   const assignments = getAssignments();
-  const isCurrentlyAssigned = assignments.some(a => a.performanceName === (performance?.name || 'Actuació actual') && a.quantity > 0);
+  const isCurrentlyAssigned = assignments.some(a => a.performanceName === (performance?.name || i18next.t('rider_workshop.current_performance')) && a.quantity > 0);
 
   return (
     <div
@@ -813,7 +814,7 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
                 <button
                   onClick={() => onToggleFavorite?.(cat)}
                   className="p-1.5 rounded-r border-l border-border/30 hover:bg-muted/50 transition-colors opacity-0 group-hover:opacity-100"
-                  title="Afegir a preferits"
+                  title={i18next.t('rider_workshop.add_to_favorites')}
                 >
                   <Star className="w-3 h-3 text-muted-foreground hover:text-yellow-500" />
                 </button>
@@ -1287,7 +1288,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
         pdfOrientation: pdfConfig.orientation,
         balanceData: balanceData,
       },
-      () => notificationService.info('PDF generat correctament')
+      () => notificationService.info(t('rider_workshop.pdf_generated_success'))
     );
   };
 
@@ -1484,8 +1485,8 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
             <div className="p-3 space-y-2">
               {/* Orientació del PDF */}
               <div className="flex items-center gap-2">
-                <Tooltip text="Selecciona l'orientació de la pàgina del PDF (vertical o horitzontal)">
-                  <label htmlFor="pdfOrientation" className="font-medium text-muted-foreground cursor-pointer">Orientació:</label>
+                <Tooltip text={t('rider_workshop.pdf_orientation_tooltip')}>
+                  <label htmlFor="pdfOrientation" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.pdf_orientation_label')}</label>
                 </Tooltip>
                 <select
                   id="pdfOrientation"
@@ -1496,15 +1497,15 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   }}
                   className="h-6 px-2 text-[9px] border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                 >
-                  <option value="portrait">Vertical</option>
-                  <option value="landscape">Horitzontal</option>
+                  <option value="portrait">{t('rider_workshop.portrait')}</option>
+                  <option value="landscape">{t('rider_workshop.landscape')}</option>
                 </select>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-[9px]">
                 {/* Info Bàsica */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou informació bàsica de l'esdeveniment, artista i horaris al PDF">
+                  <Tooltip text={t('rider_workshop.basic_info_tooltip')}>
                     <input
                       type="checkbox"
                       id="showBasicInfoInPdf"
@@ -1516,11 +1517,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showBasicInfoInPdf" className="font-medium text-muted-foreground cursor-pointer">Info Bàsica</label>
+                  <label htmlFor="showBasicInfoInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.basic_info_label')}</label>
                 </div>
                 {/* Inputs */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou la taula d'inputs (micròfons) amb les columnes seleccionades al PDF">
+                  <Tooltip text={t('rider_workshop.inputs_tooltip')}>
                     <input
                       type="checkbox"
                       id="showInputsInPdf"
@@ -1532,11 +1533,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showInputsInPdf" className="font-medium text-muted-foreground cursor-pointer">Inputs</label>
+                  <label htmlFor="showInputsInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.inputs_label')}</label>
                 </div>
                 {/* Monitors */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou la taula de monitors (MIX) amb les columnes seleccionades al PDF">
+                  <Tooltip text={t('rider_workshop.monitors_tooltip')}>
                     <input
                       type="checkbox"
                       id="showMonitorsInPdf"
@@ -1548,11 +1549,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showMonitorsInPdf" className="font-medium text-muted-foreground cursor-pointer">Monitors</label>
+                  <label htmlFor="showMonitorsInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.monitors_label')}</label>
                 </div>
                 {/* Cablejat */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou la secció de cablejat al PDF">
+                  <Tooltip text={t('rider_workshop.cable_list_tooltip')}>
                     <input
                       type="checkbox"
                       id="showCableInPdf"
@@ -1564,11 +1565,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showCableInPdf" className="font-medium text-muted-foreground cursor-pointer">Cablejat</label>
+                  <label htmlFor="showCableInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.cable_list_label')}</label>
                 </div>
                 {/* Material Spare */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou la secció de material spare al PDF">
+                  <Tooltip text={t('rider_workshop.spare_list_tooltip')}>
                     <input
                       type="checkbox"
                       id="showSpareInPdf"
@@ -1580,11 +1581,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showSpareInPdf" className="font-medium text-muted-foreground cursor-pointer">Material Spare</label>
+                  <label htmlFor="showSpareInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.spare_list_label')}</label>
                 </div>
                 {/* Notes Tècniques */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou notes tècniques d'il·luminació, vídeo i requeriments d'escenari al PDF">
+                  <Tooltip text={t('rider_workshop.technical_notes_tooltip')}>
                     <input
                       type="checkbox"
                       id="showTechnicalNotesInPdf"
@@ -1596,11 +1597,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showTechnicalNotesInPdf" className="font-medium text-muted-foreground cursor-pointer">Notes Tècniques</label>
+                  <label htmlFor="showTechnicalNotesInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.technical_notes_label')}</label>
                 </div>
                 {/* Hospitalitat */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou informació d'hostes: cambres, catering, dietes, logística i aparcament al PDF">
+                  <Tooltip text={t('rider_workshop.hospitality_tooltip')}>
                     <input
                       type="checkbox"
                       id="showHospitalityInPdf"
@@ -1612,11 +1613,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showHospitalityInPdf" className="font-medium text-muted-foreground cursor-pointer">Hospitalitat</label>
+                  <label htmlFor="showHospitalityInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.hospitality_label')}</label>
                 </div>
                 {/* Notes Generals */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou les notes generals de l'actuació al PDF">
+                  <Tooltip text={t('rider_workshop.general_notes_tooltip')}>
                     <input
                       type="checkbox"
                       id="showGeneralNotesInPdf"
@@ -1628,11 +1629,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showGeneralNotesInPdf" className="font-medium text-muted-foreground cursor-pointer">Notes Generals</label>
+                  <label htmlFor="showGeneralNotesInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.general_notes_label')}</label>
                 </div>
                 {/* Balanç */}
                 <div className="flex items-center gap-2">
-                  <Tooltip text="Inclou el balanç consolidat de materials vs disponibilitat de tot l'esdeveniment al PDF">
+                  <Tooltip text={t('rider_workshop.balance_tooltip')}>
                     <input
                       type="checkbox"
                       id="showBalanceInPdf"
@@ -1644,7 +1645,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                     />
                   </Tooltip>
-                  <label htmlFor="showBalanceInPdf" className="font-medium text-muted-foreground cursor-pointer">Balanç</label>
+                  <label htmlFor="showBalanceInPdf" className="font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.balance_label')}</label>
                 </div>
               </div>
             </div>
@@ -1658,11 +1659,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                       <LayoutGridIcon className="w-3.5 h-3.5 text-primary" /> 
-                      Llista d'Inputs
+                      {t('rider_workshop.inputs_section_title')}
                       <span className="text-muted-foreground ml-2">({techData.inputList.length})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <Tooltip text="Inclou la taula d'inputs (micròfons) al PDF">
+                      <Tooltip text={t('rider_workshop.inputs_tooltip')}>
                         <input
                           type="checkbox"
                           id="showInputsInPdf_section"
@@ -1674,24 +1675,24 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                           className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                         />
                       </Tooltip>
-                      <label htmlFor="showInputsInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                      <label htmlFor="showInputsInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.pdf_label')}</label>
                     </div>
                   </div>
                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1 bg-background/50 rounded-md p-0.5 border border-border/50">
-                      <Tooltip text="Copiar Rider a Contra">
-                        <button onClick={() => { updateLocal({ inputList: techDataRef.current.inputList.map(i => ({ ...i, micContra: i.micContra || i.micRider })) }); notificationService.success("Copiats"); }} className="p-1 hover:bg-primary/10 rounded text-muted-foreground hover:text-primary transition-colors">
+                      <Tooltip text={t('rider_workshop.copy_rider_to_contra_tooltip')}>
+                        <button onClick={() => { updateLocal({ inputList: techDataRef.current.inputList.map(i => ({ ...i, micContra: i.micContra || i.micRider })) }); notificationService.success(t('rider_workshop.copied')); }} className="p-1 hover:bg-primary/10 rounded text-muted-foreground hover:text-primary transition-colors">
                           <Copy className="w-3 h-3" />
                         </button>
                       </Tooltip>
-                      <Tooltip text="Netejar Contra-rider">
-                        <button onClick={() => { updateLocal({ inputList: techDataRef.current.inputList.map(i => ({ ...i, micContra: '', micContraId: undefined, stand: '', standId: undefined })) }); notificationService.info("Netejat"); }} className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors">
+                      <Tooltip text={t('rider_workshop.clear_contra_tooltip')}>
+                        <button onClick={() => { updateLocal({ inputList: techDataRef.current.inputList.map(i => ({ ...i, micContra: '', micContraId: undefined, stand: '', standId: undefined })) }); notificationService.info(t('rider_workshop.cleared')); }} className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors">
                           <Trash2 className="w-3 h-3" />
                         </button>
                       </Tooltip>
                     </div>
                     <button onClick={addInputItem} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
-                      <Plus className="w-2.5 h-2.5" /> AFEGIR INPUT
+                      <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_input')}
                     </button>
                     {isInputsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
@@ -1824,7 +1825,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       </tbody>
                     </table>
                     <button onClick={addInputItem} className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
-                      <Plus className="w-3.5 h-3.5" /> AFEGIR NOVA FILA D'INPUT
+                      <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_input_row')}
                     </button>
                   </div>
                 )}
@@ -1836,11 +1837,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                       <Music className="w-3.5 h-3.5 text-primary" /> 
-                      Monitors
+                      {t('rider_workshop.monitors_section_title')}
                       <span className="text-muted-foreground ml-2">({techData.monitorList?.length || 0})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <Tooltip text="Inclou la taula de monitors (MIX) al PDF">
+                      <Tooltip text={t('rider_workshop.monitors_tooltip')}>
                         <input
                           type="checkbox"
                           id="showMonitorsInPdf_section"
@@ -1852,11 +1853,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                           className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                         />
                       </Tooltip>
-                      <label htmlFor="showMonitorsInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                      <label htmlFor="showMonitorsInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.pdf_label')}</label>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={(e) => { e.stopPropagation(); addMonitorItem(); }} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1"><Plus className="w-2.5 h-2.5" /> AFEGIR MONITOR</button>
+                    <button onClick={(e) => { e.stopPropagation(); addMonitorItem(); }} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1"><Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_monitor')}</button>
                     {isMonitorsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
                 </div>
@@ -1990,7 +1991,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       </tbody>
                     </table>
                     <button onClick={addMonitorItem} className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
-                      <Plus className="w-3.5 h-3.5" /> AFEGIR NOU MONITOR
+                      <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_monitor')}
                     </button>
                   </div>
                 )}
@@ -2003,7 +2004,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                       <Cable className="w-3.5 h-3.5 text-primary" />
-                      Cablejat
+                      {t('rider_workshop.cable_section_title')}
                       <span className="text-muted-foreground ml-2">({techData.cableList?.length || 0})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
@@ -2016,7 +2017,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => addGenericItem('cableList')}
                       className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
-                      <Plus className="w-2.5 h-2.5" /> AFEGIR CABLE
+                      <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_cable')}
                     </button>
                     {isCableExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
@@ -2048,7 +2049,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                     </table>
                     <button onClick={() => addGenericItem('cableList')}
                       className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
-                      <Plus className="w-3.5 h-3.5" /> AFEGIR NOU CABLE
+                      <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_cable')}
                     </button>
                   </div>
                 )}
@@ -2061,7 +2062,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                       <Package className="w-3.5 h-3.5 text-primary" />
-                      Material Spare
+                      {t('rider_workshop.spare_section_title')}
                       <span className="text-muted-foreground ml-2">({techData.spareList?.length || 0})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
@@ -2080,7 +2081,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => addGenericItem('spareList')}
                       className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
-                      <Plus className="w-2.5 h-2.5" /> AFEGIR SPARE
+                      <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_spare')}
                     </button>
                     {isSpareExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
@@ -2112,7 +2113,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                     </table>
                     <button onClick={() => addGenericItem('spareList')}
                       className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
-                      <Plus className="w-3.5 h-3.5" /> AFEGIR NOU SPARE
+                      <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_spare')}
                     </button>
                   </div>
                 )}
@@ -2124,10 +2125,10 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                       <EditIcon className="w-3.5 h-3.5 text-primary" /> 
-                      Notes Tècniques
+                      {t('rider_workshop.technical_section_title')}
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <Tooltip text="Inclou notes tècniques d'il·luminació, vídeo i escenari al PDF">
+                      <Tooltip text={t('rider_workshop.technical_notes_tooltip')}>
                         <input
                           type="checkbox"
                           id="showTechnicalNotesInPdf_section"
@@ -2139,7 +2140,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                           className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
                         />
                       </Tooltip>
-                      <label htmlFor="showTechnicalNotesInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
+                      <label htmlFor="showTechnicalNotesInPdf_section" className="text-[8px] font-medium text-muted-foreground cursor-pointer">{t('rider_workshop.pdf_label')}</label>
                     </div>
                   </div>
                   {isNotesExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}

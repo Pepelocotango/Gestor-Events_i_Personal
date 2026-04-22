@@ -844,10 +844,10 @@ const extractRegidoriaNotes = (p: Performance): string => {
 // =============================================================================
 export const validatePerformanceData = (p: Performance): ValidationResult => {
   const errors: string[] = [], warnings: string[] = [];
-  if (!p.name?.trim()) errors.push(i18next.t('performances.pdf_validation_error', { message: "El nom de l'actuació és obligatori" }));
-  if (p.contactEmail?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.contactEmail)) warnings.push(i18next.t('performances.pdf_validation_warning', { message: "Format d'email invàlid" }));
+  if (!p.name?.trim()) errors.push(i18next.t('performances.pdf_validation_error', { message: i18next.t('rider_workshop.performance_name_required') }));
+  if (p.contactEmail?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.contactEmail)) warnings.push(i18next.t('performances.pdf_validation_warning', { message: i18next.t('rider_workshop.email_format_invalid') }));
   const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-  ['arrivalTime', 'soundCheckTime', 'showTime', 'departureTime'].forEach(f => { if (p[f as keyof Performance] && !timeRegex.test(p[f as keyof Performance] as string)) warnings.push(i18next.t('performances.pdf_validation_warning', { message: `Format de ${f} invàlid (HH:MM)` })); });
+  ['arrivalTime', 'soundCheckTime', 'showTime', 'departureTime'].forEach(f => { if (p[f as keyof Performance] && !timeRegex.test(p[f as keyof Performance] as string)) warnings.push(i18next.t('performances.pdf_validation_warning', { message: i18next.t('rider_workshop.time_format_invalid', { field: f }) })); });
   return { errors, warnings, isValid: errors.length === 0 };
 };
 
