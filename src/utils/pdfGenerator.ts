@@ -805,90 +805,106 @@ export const validatePerformanceData = (p: Performance): ValidationResult => {
   return { errors, warnings, isValid: errors.length === 0 };
 };
 
-// --- CÀLCUL D'AMPLES ÒPTIMS AMB REGLES INTEL·LIGENTS ---
-const calculateOptimalColumnWidths = (columnConfig: any, orientation: 'portrait' | 'landscape' = 'portrait') => {
-  const usableWidth = orientation === 'landscape' ? 277 : 190;
+// --- CÀLCUL D'AMPLES ÒPTIMS TIPUS FULLA DE CÀLCUL (AUTOFIT) ---
+const calculateOptimalColumnWidths = (columnConfig: any, data: any[], orientation: 'portrait' | 'landscape' = 'portrait') => {
+  // Ample útil amb marge de seguretat (188 en portrait, 275 en landscape)
+  const usableWidth = orientation === 'landscape' ? 275 : 188;
+  const fontSize = orientation === 'landscape' ? 8.5 : 7;
   
-  // 1. Definició de les regles per columna
-  const rules: Record<string, { weight: number; fixedW?: number; align: 'left' | 'center' }> = {
-    'patch': { weight: 0, fixedW: orientation === 'landscape' ? 12 : 10, align: 'center' },
-    'channel': { weight: 0, fixedW: orientation === 'landscape' ? 13 : 11, align: 'center' },
-    'outputChannel': { weight: 0, fixedW: orientation === 'landscape' ? 13 : 11, align: 'center' },
-    'label': { weight: 3, align: 'left' },
-    'rider': { weight: 2, align: 'left' },
-    'contra': { weight: 2, align: 'left' },
-    'stand': { weight: 1, align: 'left' },
-    'notes': { weight: 5, align: 'left' },
-    'exclusive': { weight: 0, fixedW: 8, align: 'center' }
+  // Estimació de mm per caràcter (font Helvetica és aprox 0.35mm per punt de font)
+  const mmPerChar = (fontSize * 0.45) * 0.3527; 
+  const paddingW = 4; // 2mm a cada costat
+
+  // 1. Definició de regles base
+  const rules: Record<string, { isFixed: boolean; width?: number; minW: number; align: 'left' | 'center' }> = {
+    'patch': { isFixed: true, width: orientation === 'landscape' ? 13 : 11, minW: 10, align: 'center' },
+    'channel': { isFixed: true, width: orientation === 'landscape' ? 13 : 11, minW: 10, align: 'center' },
+    'outputChannel': { isFixed: true, width: orientation === 'landscape' ? 13 : 11, minW: 10, align: 'center' },
+    'label': { isFixed: false, minW: 15, align: 'left' },
+    'rider': { isFixed: false, minW: 15, align: 'left' },
+    'contra': { isFixed: false, minW: 15, align: 'left' },
+    'stand': { isFixed: false, minW: 12, align: 'left' },
+    'notes': { isFixed: false, minW: 20, align: 'left' },
+    'exclusive': { isFixed: true, width: 8, minW: 8, align: 'center' }
   };
 
-  const columnKeys = ['patch', 'channel', 'label', 'rider', 'contra', 'stand', 'notes', 'exclusive'];
-  if (columnConfig.outputChannel) columnKeys[1] = 'outputChannel';
+  const fieldMapping: Record<string, string> = {
+    'patch': 'patchNumber', 'channel': 'channel', 'outputChannel': 'outputChannel',
+    'label': 'label',
+    'rider': data[0]?.micRider !== undefined ? 'micRider' : 'mixRider',
+    'contra': data[0]?.micContra !== undefined ? 'micContra' : 'mixContra',
+    'stand': data[0]?.stand !== undefined ? 'stand' : 'mixStand',
+    'notes': data[0]?.extres !== undefined ? 'extres' : 'notes'
+  };
 
-  const activeKeys = columnKeys.filter(key => columnConfig[key]);
+  const activeKeys = ['patch', 'channel', 'outputChannel', 'label', 'rider', 'contra', 'stand', 'notes', 'exclusive'].filter(k => columnConfig[k]);
   if (activeKeys.length === 0) return {};
 
-  // 2. Calcular espai ocupat per columnes FIXES i identificar ELÀSTIQUES
-  let fixedTotalW = 0;
-  let totalWeight = 0;
-  const elasticKeys: string[] = [];
+  // 2. Mesurar requeriment IDEAL de cada columna segons el text real
+  const idealWidths: Record<string, number> = {};
+  let fixedSum = 0;
+  let elasticSum = 0;
 
   activeKeys.forEach(key => {
     const rule = rules[key];
-    if (rule.weight === 0 && rule.fixedW) {
-      fixedTotalW += rule.fixedW;
+    if (rule.isFixed) {
+      idealWidths[key] = rule.width || rule.minW;
+      fixedSum += idealWidths[key];
     } else {
-      elasticKeys.push(key);
-      totalWeight += rule.weight;
+      const field = fieldMapping[key];
+      const maxLen = field ? Math.max(...data.map(item => String(item[field] || '').trim().length), 0) : 0;
+      // Amplada segons text + padding
+      idealWidths[key] = Math.max(rule.minW, (maxLen * mmPerChar) + paddingW);
+      elasticSum += idealWidths[key];
     }
   });
 
-  // 3. Repartir l'espai restant entre les ELÀSTIQUES
-  const remainingW = usableWidth - fixedTotalW;
-  const colStyles: any = {};
+  // 3. Ajustar a l'ample de la pàgina
+  const availableForElastic = Math.max(0, usableWidth - fixedSum);
+  const finalColStyles: Record<string, any> = {};
 
-  activeKeys.forEach((key, index) => {
-    const rule = rules[key];
-    let finalW = 0;
-
-    if (rule.weight === 0 && rule.fixedW) {
-      finalW = rule.fixedW;
-    } else if (totalWeight > 0) {
-      finalW = (rule.weight / totalWeight) * remainingW;
-    }
-
-    colStyles[index] = { 
-      cellWidth: finalW, 
-      halign: rule.align 
-    };
-  });
-
-  // Ajust de seguretat per arrodoniments
-  const totalCalculated = Object.values(colStyles).reduce((s: number, c: any) => s + c.cellWidth, 0);
-  if (totalCalculated > usableWidth) {
-    const correction = (usableWidth - 0.1) / totalCalculated;
-    Object.keys(colStyles).forEach(k => colStyles[k].cellWidth *= correction);
+  if (elasticSum <= availableForElastic) {
+    // CAS A: Sobra espai! Donem l'espai restant a la columna de 'notes' (si existeix) 
+    // o el repartim per a que la taula s'eixampli fins al final.
+    const extra = availableForElastic - elasticSum;
+    activeKeys.forEach(key => {
+      const rule = rules[key];
+      let finalW = idealWidths[key];
+      if (key === 'notes' || (!activeKeys.includes('notes') && key === 'label')) {
+        finalW += extra; // Les notes es queden tot el sobrant per no deformar l'Instrument
+      }
+      finalColStyles[key] = { cellWidth: finalW, halign: rule.align };
+    });
+  } else {
+    // CAS B: Falta espai! Reduïm totes les elàstiques proporcionalment
+    const scale = availableForElastic / elasticSum;
+    activeKeys.forEach(key => {
+      const rule = rules[key];
+      let finalW = idealWidths[key];
+      if (!rule.isFixed) finalW *= scale;
+      finalColStyles[key] = { cellWidth: finalW, halign: rule.align };
+    });
   }
 
-  return colStyles;
+  return finalColStyles;
 };
 
 // --- ESTILS I DENSITAT ---
 const getPerformanceStyles = () => {
   const sane = (v: any): string => (!v || String(v).trim() === '' || String(v).trim() === '--') ? '-' : String(v);
-  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold', fontSize: 8, cellPadding: 1.5 };
-  const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 35, fontSize: 8 };
+  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold', fontSize: 8.5, cellPadding: 1.5 };
+  const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 35, fontSize: 8.5 };
   const emptySectionStyles: Partial<Styles> = { fontStyle: 'italic', textColor: hslToRgb(...themeHslColors.grayMuted) };
   return { sane, headStyles, labelStyles, emptySectionStyles };
 };
 
 const getTableDensityStyles = (orientation: 'portrait' | 'landscape') => {
-  if (orientation === 'landscape') return { fontSize: 9, cellPadding: { top: 1.5, bottom: 1.5, left: 2, right: 2 }, overflow: 'linebreak' as const, minCellHeight: 8, valign: 'middle' as const };
-  return { fontSize: 7.5, cellPadding: { top: 0.8, bottom: 0.8, left: 1.5, right: 1.5 }, overflow: 'linebreak' as const, minCellHeight: 6, valign: 'middle' as const };
+  if (orientation === 'landscape') return { fontSize: 9, cellPadding: { top: 2, bottom: 2, left: 2, right: 2 }, overflow: 'linebreak' as const, minCellHeight: 8, valign: 'middle' as const };
+  return { fontSize: 7.5, cellPadding: { top: 1, bottom: 1, left: 1.5, right: 1.5 }, overflow: 'linebreak' as const, minCellHeight: 6, valign: 'middle' as const };
 };
 
 const checkPageBreak = (pdf: jsPDF, currentY: number, requiredHeight: number = 20): number => {
-  if (currentY > 285 - requiredHeight) { pdf.addPage(); return 10; }
+  if (currentY > 282 - requiredHeight) { pdf.addPage(); return 15; }
   return currentY;
 };
 
@@ -903,96 +919,134 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
   const pdf = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
   const { sane, headStyles, labelStyles } = getPerformanceStyles();
   const densityStyles = getTableDensityStyles(orientation);
-  let y = 10;
+  let y = 15;
   const mainTitle = `${i18next.t('pdf.performance_rider_title')} - ${performance.name}`;
 
   // 1. Capçalera
   const headerBody = options.includeBasicInfo 
-    ? [[{ content: mainTitle, colSpan: 2, styles: { halign: 'center' as const, fontSize: 11, fontStyle: 'bold' as const, fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), cellPadding: 1.5 } }], [{ content: i18next.t('pdf.event_name'), styles: labelStyles }, sane(eventFrame.name)], [{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)], [{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)]]
-    : [[{ content: mainTitle, styles: { halign: 'center' as const, fontSize: 11, fontStyle: 'bold' as const, fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), cellPadding: 1.5 } }]];
+    ? [[{ content: mainTitle, colSpan: 2, styles: { halign: 'center' as const, fontSize: 12, fontStyle: 'bold' as const, fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), cellPadding: 2 } }], [{ content: i18next.t('pdf.event_name'), styles: labelStyles }, sane(eventFrame.name)], [{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)], [{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)]]
+    : [[{ content: mainTitle, styles: { halign: 'center' as const, fontSize: 12, fontStyle: 'bold' as const, fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), cellPadding: 2 } }]];
   
-  autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
-  y = (pdf as any).lastAutoTable.finalY + 3;
+  autoTable(pdf, { body: headerBody, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 8 }, tableWidth: 'wrap' });
+  y = (pdf as any).lastAutoTable.finalY + 5;
 
   // 2. Info Artista
   if (options.includeBasicInfo) {
-    y = checkPageBreak(pdf, y, 35);
-    autoTable(pdf, { body: [[{ content: i18next.t('pdf.artist_info'), colSpan: 2, styles: headStyles }], [{ content: i18next.t('pdf.artist_name'), styles: labelStyles }, sane(performance.name)], [{ content: i18next.t('pdf.artist_type'), styles: labelStyles }, sane(performance.type)], [{ content: i18next.t('pdf.contact_name'), styles: labelStyles }, sane(performance.contactName)], [{ content: i18next.t('pdf.contact_phone'), styles: labelStyles }, sane(performance.contactPhone)], [{ content: i18next.t('pdf.contact_email'), styles: labelStyles }, sane(performance.contactEmail)], [{ content: i18next.t('pdf.status'), styles: labelStyles }, sane(performance.status)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
-    y = (pdf as any).lastAutoTable.finalY + 3;
+    y = checkPageBreak(pdf, y, 40);
+    autoTable(pdf, { body: [[{ content: i18next.t('pdf.artist_info'), colSpan: 2, styles: headStyles }], [{ content: i18next.t('pdf.artist_name'), styles: labelStyles }, sane(performance.name)], [{ content: i18next.t('pdf.artist_type'), styles: labelStyles }, sane(performance.type)], [{ content: i18next.t('pdf.contact_name'), styles: labelStyles }, sane(performance.contactName)], [{ content: i18next.t('pdf.contact_phone'), styles: labelStyles }, sane(performance.contactPhone)], [{ content: i18next.t('pdf.contact_email'), styles: labelStyles }, sane(performance.contactEmail)], [{ content: i18next.t('pdf.status'), styles: labelStyles }, sane(performance.status)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 8 }, tableWidth: 'wrap' });
+    y = (pdf as any).lastAutoTable.finalY + 5;
   }
 
   // 3. Horaris
   if (options.includeBasicInfo) {
-    y = checkPageBreak(pdf, y, 25);
-    autoTable(pdf, { body: [[{ content: i18next.t('pdf.schedule'), colSpan: 2, styles: headStyles }], [{ content: i18next.t('pdf.arrival_time'), styles: labelStyles }, sane(performance.arrivalTime)], [{ content: i18next.t('pdf.soundcheck_time'), styles: labelStyles }, sane(performance.soundCheckTime)], [{ content: i18next.t('pdf.show_time'), styles: labelStyles }, sane(performance.showTime)], [{ content: i18next.t('pdf.departure_time'), styles: labelStyles }, sane(performance.departureTime)], [{ content: i18next.t('pdf.duration'), styles: labelStyles }, sane(performance.duration)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 }, tableWidth: 'wrap' });
-    y = (pdf as any).lastAutoTable.finalY + 3;
+    y = checkPageBreak(pdf, y, 30);
+    autoTable(pdf, { body: [[{ content: i18next.t('pdf.schedule'), colSpan: 2, styles: headStyles }], [{ content: i18next.t('pdf.arrival_time'), styles: labelStyles }, sane(performance.arrivalTime)], [{ content: i18next.t('pdf.soundcheck_time'), styles: labelStyles }, sane(performance.soundCheckTime)], [{ content: i18next.t('pdf.show_time'), styles: labelStyles }, sane(performance.showTime)], [{ content: i18next.t('pdf.departure_time'), styles: labelStyles }, sane(performance.departureTime)], [{ content: i18next.t('pdf.duration'), styles: labelStyles }, sane(performance.duration)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 8 }, tableWidth: 'wrap' });
+    y = (pdf as any).lastAutoTable.finalY + 5;
   }
 
   // 4. Input List
   if (options.includeInputs && performance.techData?.inputList?.length) {
-    y = checkPageBreak(pdf, y, 40);
+    y = checkPageBreak(pdf, y, 50);
     const cols = options.inputColumns || { patch: true, channel: true, label: true, rider: true, contra: true, stand: true, notes: true, exclusive: true };
     const colsWithData = { patch: cols.patch && performance.techData.inputList.some(i => i.patchNumber), channel: cols.channel && performance.techData.inputList.some(i => i.channel), label: cols.label && performance.techData.inputList.some(i => i.label), rider: cols.rider && performance.techData.inputList.some(i => i.micRider), contra: cols.contra && performance.techData.inputList.some(i => i.micContra), stand: cols.stand && performance.techData.inputList.some(i => i.stand), notes: cols.notes && performance.techData.inputList.some(i => i.extres), exclusive: cols.exclusive && performance.techData.inputList.some(i => i.exclusive) };
-    const optW = calculateOptimalColumnWidths(colsWithData, orientation);
+    const optW = calculateOptimalColumnWidths(colsWithData, performance.techData.inputList, orientation);
+    
     const head: any[] = []; const cStyles: any = {}; let cIdx = 0;
     const patchColorMap: any = { red:[239, 68, 68], blue: [59, 130, 246], green:[34, 197, 94], yellow:[250, 204, 21], orange:[249, 115, 22], purple: [168, 85, 247], brown: [180, 83, 9] };
     
-    if (colsWithData.patch) { head.push(i18next.t('pdf.patch')); cStyles[cIdx++] = optW[0]; }
-    if (colsWithData.channel) { head.push(i18next.t('pdf.channel')); cStyles[cIdx++] = optW[1]; }
-    if (colsWithData.label) { head.push(i18next.t('pdf.label')); cStyles[cIdx++] = optW[2]; }
-    if (colsWithData.rider) { head.push(i18next.t('pdf.mic_rider')); cStyles[cIdx++] = optW[3]; }
-    if (colsWithData.contra) { head.push(i18next.t('pdf.mic_contra')); cStyles[cIdx++] = optW[4]; }
-    if (colsWithData.stand) { head.push(i18next.t('pdf.stand')); cStyles[cIdx++] = optW[5]; }
-    if (colsWithData.notes) { head.push(i18next.t('pdf.notes')); cStyles[cIdx++] = optW[6]; }
-    if (colsWithData.exclusive) { head.push(i18next.t('pdf.exclusive')); cStyles[cIdx++] = optW[7]; }
+    const columnDefinitions = [
+      { key: 'patch', label: i18next.t('pdf.patch') },
+      { key: 'channel', label: i18next.t('pdf.channel') },
+      { key: 'label', label: i18next.t('pdf.label') },
+      { key: 'rider', label: i18next.t('pdf.mic_rider') },
+      { key: 'contra', label: i18next.t('pdf.mic_contra') },
+      { key: 'stand', label: i18next.t('pdf.stand') },
+      { key: 'notes', label: i18next.t('pdf.notes') },
+      { key: 'exclusive', label: i18next.t('pdf.exclusive') }
+    ];
+
+    columnDefinitions.forEach(col => {
+      if (colsWithData[col.key as keyof typeof colsWithData]) {
+        head.push(col.label);
+        cStyles[cIdx++] = optW[col.key];
+      }
+    });
 
     autoTable(pdf, {
       head: [[{ content: i18next.t('pdf.input_list'), colSpan: head.length, styles: headStyles }], head],
       body: performance.techData.inputList.map(i => {
-        const r: any[] = []; const hasC = i.patchColor && i.patchColor !== 'transparent';
-        if (colsWithData.patch) r.push({ content: sane(i.patchNumber), styles: { cellPadding: { left: hasC ? 6 : 1.5, top: 0.8, bottom: 0.8, right: 1 } }, customColor: i.patchColor });
-        if (colsWithData.channel) r.push(sane(i.channel)); if (colsWithData.label) r.push(sane(i.label)); if (colsWithData.rider) r.push(sane(i.micRider)); if (colsWithData.contra) r.push(sane(i.micContra)); if (colsWithData.stand) r.push(sane(i.stand)); if (colsWithData.notes) r.push(sane(i.extres)); if (colsWithData.exclusive) r.push(i.exclusive ? '✓' : '');
+        const r: any[] = []; 
+        if (colsWithData.patch) {
+          const hasC = i.patchColor && i.patchColor !== 'transparent';
+          r.push({ content: sane(i.patchNumber), styles: { cellPadding: { left: hasC ? 6 : 1.5, top: 0.8, bottom: 0.8, right: 1 } }, customColor: i.patchColor });
+        }
+        if (colsWithData.channel) r.push(sane(i.channel)); 
+        if (colsWithData.label) r.push(sane(i.label)); 
+        if (colsWithData.rider) r.push(sane(i.micRider)); 
+        if (colsWithData.contra) r.push(sane(i.micContra)); 
+        if (colsWithData.stand) r.push(sane(i.stand)); 
+        if (colsWithData.notes) r.push(sane(i.extres)); 
+        if (colsWithData.exclusive) r.push(i.exclusive ? '✓' : '');
         return r;
       }),
-      startY: y, theme: 'grid', headStyles, columnStyles: cStyles, margin: { left: 10, right: 10 }, tableWidth: 'wrap',
-      didDrawCell: (d) => { if (d.section === 'body' && d.column.index === 0) { const raw = d.cell.raw as any; if (raw?.customColor && patchColorMap[raw.customColor]) { pdf.setFillColor(...(patchColorMap[raw.customColor] as [number, number, number])); pdf.circle(d.cell.x + 2.5, d.cell.y + (d.cell.height / 2), 1.2, 'F'); } } },
-      styles: { ...densityStyles, cellPadding: 1 }
+      startY: y, theme: 'grid', headStyles, columnStyles: cStyles, margin: { left: 10, right: 10 },
+      didDrawCell: (d) => { if (d.section === 'body' && d.column.index === 0 && colsWithData.patch) { const raw = d.cell.raw as any; if (raw?.customColor && patchColorMap[raw.customColor]) { pdf.setFillColor(...(patchColorMap[raw.customColor] as [number, number, number])); pdf.circle(d.cell.x + 2.5, d.cell.y + (d.cell.height / 2), 1.5, 'F'); } } },
+      styles: { ...densityStyles }
     });
-    y = (pdf as any).lastAutoTable.finalY + 3;
+    y = (pdf as any).lastAutoTable.finalY + 5;
   }
 
   // 5. Monitor List
   if (options.includeMonitors && performance.techData?.monitorList?.length) {
-    y = checkPageBreak(pdf, y, 40);
+    y = checkPageBreak(pdf, y, 50);
     const mCols = options.monitorColumns || { patch: true, outputChannel: true, label: true, rider: true, contra: true, stand: true, notes: true, exclusive: true };
     const mColsWithData = { patch: mCols.patch && performance.techData.monitorList.some(i => i.patchNumber), outputChannel: mCols.outputChannel && performance.techData.monitorList.some(i => i.outputChannel), label: mCols.label && performance.techData.monitorList.some(i => i.label), rider: mCols.rider && performance.techData.monitorList.some(i => i.mixRider), contra: mCols.contra && performance.techData.monitorList.some(i => i.mixContra), stand: mCols.stand && performance.techData.monitorList.some(i => i.mixStand), notes: mCols.notes && performance.techData.monitorList.some(i => i.notes), exclusive: mCols.exclusive && performance.techData.monitorList.some(i => i.exclusive) };
-    const mOptW = calculateOptimalColumnWidths(mColsWithData, orientation);
+    const mOptW = calculateOptimalColumnWidths(mColsWithData, performance.techData.monitorList, orientation);
+    
     const mHead: any[] = []; const mcStyles: any = {}; let mcIdx = 0;
     const patchColorMap: any = { red:[239, 68, 68], blue: [59, 130, 246], green:[34, 197, 94], yellow:[250, 204, 21], orange:[249, 115, 22], purple: [168, 85, 247], brown: [180, 83, 9] };
 
-    if (mColsWithData.patch) { mHead.push(i18next.t('pdf.patch')); mcStyles[mcIdx++] = mOptW[0]; }
-    if (mColsWithData.outputChannel) { mHead.push(i18next.t('pdf.output_channel')); mcStyles[mcIdx++] = mOptW[1]; }
-    if (mColsWithData.label) { mHead.push(i18next.t('pdf.label')); mcStyles[mcIdx++] = mOptW[2]; }
-    if (mColsWithData.rider) { mHead.push(i18next.t('pdf.monitor_rider')); mcStyles[mcIdx++] = mOptW[3]; }
-    if (mColsWithData.contra) { mHead.push(i18next.t('pdf.monitor_contra')); mcStyles[mcIdx++] = mOptW[4]; }
-    if (mColsWithData.stand) { mHead.push(i18next.t('pdf.monitor_stand')); mcStyles[mcIdx++] = mOptW[5]; }
-    if (mColsWithData.notes) { mHead.push(i18next.t('pdf.notes')); mcStyles[mcIdx++] = mOptW[6]; }
-    if (mColsWithData.exclusive) { mHead.push(i18next.t('pdf.exclusive')); mcStyles[mcIdx++] = mOptW[7]; }
+    const mColumnDefinitions = [
+      { key: 'patch', label: i18next.t('pdf.patch') },
+      { key: 'outputChannel', label: i18next.t('pdf.output_channel') },
+      { key: 'label', label: i18next.t('pdf.label') },
+      { key: 'rider', label: i18next.t('pdf.monitor_rider') },
+      { key: 'contra', label: i18next.t('pdf.monitor_contra') },
+      { key: 'stand', label: i18next.t('pdf.monitor_stand') },
+      { key: 'notes', label: i18next.t('pdf.notes') },
+      { key: 'exclusive', label: i18next.t('pdf.exclusive') }
+    ];
+
+    mColumnDefinitions.forEach(col => {
+      if (mColsWithData[col.key as keyof typeof mColsWithData]) {
+        mHead.push(col.label);
+        mcStyles[mcIdx++] = mOptW[col.key];
+      }
+    });
 
     if (mHead.length) {
       autoTable(pdf, {
         head: [[{ content: i18next.t('pdf.monitor_list'), colSpan: mHead.length, styles: headStyles }], mHead],
         body: performance.techData.monitorList.map(i => {
-          const r: any[] = []; const hasC = i.patchColor && i.patchColor !== 'transparent';
-          if (mColsWithData.patch) r.push({ content: sane(i.patchNumber), styles: { cellPadding: { left: hasC ? 6 : 1.5, top: 0.8, bottom: 0.8, right: 1 } }, customColor: i.patchColor });
-          if (mColsWithData.outputChannel) r.push(sane(i.outputChannel)); if (mColsWithData.label) r.push(sane(i.label)); if (mColsWithData.rider) r.push(sane(i.mixRider)); if (mColsWithData.contra) r.push(sane(i.mixContra)); if (mColsWithData.stand) r.push(sane(i.mixStand)); if (mColsWithData.notes) r.push(sane(i.notes)); if (mColsWithData.exclusive) r.push(i.exclusive ? '✓' : '');
+          const r: any[] = []; 
+          if (mColsWithData.patch) {
+            const hasC = i.patchColor && i.patchColor !== 'transparent';
+            r.push({ content: sane(i.patchNumber), styles: { cellPadding: { left: hasC ? 6 : 1.5, top: 0.8, bottom: 0.8, right: 1 } }, customColor: i.patchColor });
+          }
+          if (mColsWithData.outputChannel) r.push(sane(i.outputChannel)); 
+          if (mColsWithData.label) r.push(sane(i.label)); 
+          if (mColsWithData.rider) r.push(sane(i.mixRider)); 
+          if (mColsWithData.contra) r.push(sane(i.mixContra)); 
+          if (mColsWithData.stand) r.push(sane(i.mixStand)); 
+          if (mColsWithData.notes) r.push(sane(i.notes)); 
+          if (mColsWithData.exclusive) r.push(i.exclusive ? '✓' : '');
           return r;
         }),
-        startY: y, theme: 'grid', headStyles, columnStyles: mcStyles, margin: { left: 10, right: 10 }, tableWidth: 'wrap',
-        didDrawCell: (d) => { if (d.section === 'body' && d.column.index === 0) { const raw = d.cell.raw as any; if (raw?.customColor && patchColorMap[raw.customColor]) { pdf.setFillColor(...(patchColorMap[raw.customColor] as [number, number, number])); pdf.circle(d.cell.x + 2.5, d.cell.y + (d.cell.height / 2), 1.2, 'F'); } } },
-        styles: { ...densityStyles, cellPadding: 1 }
+        startY: y, theme: 'grid', headStyles, columnStyles: mcStyles, margin: { left: 10, right: 10 },
+        didDrawCell: (d) => { if (d.section === 'body' && d.column.index === 0 && mColsWithData.patch) { const raw = d.cell.raw as any; if (raw?.customColor && patchColorMap[raw.customColor]) { pdf.setFillColor(...(patchColorMap[raw.customColor] as [number, number, number])); pdf.circle(d.cell.x + 2.5, d.cell.y + (d.cell.height / 2), 1.5, 'F'); } } },
+        styles: { ...densityStyles }
       });
-      y = (pdf as any).lastAutoTable.finalY + 3;
+      y = (pdf as any).lastAutoTable.finalY + 5;
     }
   }
 

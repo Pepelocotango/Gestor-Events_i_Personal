@@ -356,6 +356,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
             <input
               type="text"
               value={extresName}
+              onChange={(e) => onChange(item.id, 'extres', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'extres')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
               placeholder="Assignar..."
@@ -553,6 +554,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
             <input
               type="text"
               value={mixStandName}
+              onChange={(e) => onChange(item.id, 'mixStand', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'mixStand')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
               placeholder="Assignar..."
