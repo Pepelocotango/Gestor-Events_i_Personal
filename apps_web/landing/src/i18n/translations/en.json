@@ -17,11 +17,13 @@
         "ios": "iOS 13.0 or higher",
         "linux": "Linux (Ubuntu 18.04 or higher)",
         "linux_setup": {
+            "apparmor_note_command": "sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0",
+            "apparmor_note_prefix": "Important for Ubuntu 24.04 (AppArmor): If the app doesn't start, run: ",
             "fuse_note_command": "sudo apt-get install libfuse2",
-            "fuse_note_prefix": "Note: On systems like Ubuntu 22.04+, it may be necessary to install first: ",
+            "fuse_note_prefix": "Note: On systems like Ubuntu 22.04+ it may be necessary to install first: ",
             "step_1": "Download the .AppImage file",
             "step_2": "Make it executable with: chmod +x GestorEsdeveniments-*.AppImage",
-            "step_3": "Run it by double-clicking it or from the terminal",
+            "step_3": "Run it by double-clicking or from the terminal",
             "title": "Linux"
         },
         "macos": "macOS 10.14 or higher",

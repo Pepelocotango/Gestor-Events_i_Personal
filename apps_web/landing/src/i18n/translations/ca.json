@@ -17,6 +17,8 @@
         "ios": "iOS 13.0 o superior",
         "linux": "Linux (Ubuntu 18.04 o superior)",
         "linux_setup": {
+            "apparmor_note_command": "sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0",
+            "apparmor_note_prefix": "Important per a Ubuntu 24.04 (AppArmor): Si l'app no arrenca, executa: ",
             "fuse_note_command": "sudo apt-get install libfuse2",
             "fuse_note_prefix": "Nota: En sistemes com Ubuntu 22.04+ pot ser necessari instal·lar abans: ",
             "step_1": "Descarrega l'arxiu .AppImage",

@@ -1307,6 +1307,26 @@ La clau `build` del `package.json` conté la configuració per a `electron-build
 -   `extraResources`: Permet incloure fitxers addicionals (com exemples o la llicència) que seran accessibles des de l'aplicació instal·lada.
 -   **Configuracions per Plataforma (`linux`, `win`, `mac`):** Defineixen les opcions específiques per a cada sistema operatiu, com els formats de sortida (`AppImage`, `nsis`, `dmg`) i les icones.
 
+#### 🐧 Consideracions Especials per a Linux (Ubuntu 24.04+)
+
+A partir d'Ubuntu 24.04 (Noble Numbat), s'ha implementat una restricció de seguretat a l'AppArmor que bloqueja els *unprivileged user namespaces*. Com que les aplicacions Electron en format AppImage utilitzen aquesta tecnologia per al seu sandbox, l'aplicació fallarà en arrencar de forma silenciosa o mostrarà errors de permisos.
+
+**Solució per a Desenvolupament i Usuaris:**
+
+1.  **Desactivació Temporal:**
+    ```bash
+    sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+    ```
+
+2.  **Desactivació Permanent (Recomanat):**
+    Per a que el canvi es mantingui després de reiniciar el sistema, crea un fitxer de configuració:
+    ```bash
+    echo "kernel.apparmor_restrict_unprivileged_userns = 0" | sudo tee /etc/sysctl.d/60-apparmor-namespace.conf
+    sudo sysctl -p /etc/sysctl.d/60-apparmor-namespace.conf
+    ```
+
+Aquest ajust és necessari per a qualsevol AppImage, Chrome, Brave o aplicacions basades en Electron que no s'instal·lin via Snap a les noves versions d'Ubuntu.
+
 ### 7.1. Associació de Fitxers `.gep`
 
 Per millorar l'experiència d'usuari, l'aplicació registra l'extensió personalitzada `.gep` (Gestor Esdeveniments Personal) al sistema operatiu, permetent obrir fitxers directament amb un doble clic.

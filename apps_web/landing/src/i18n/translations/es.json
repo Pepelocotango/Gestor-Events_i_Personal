@@ -16,6 +16,8 @@
         "installation_instructions": "Instrucciones de instalación",
         "linux": "Linux (Ubuntu 18.04 o superior)",
         "linux_setup": {
+            "apparmor_note_command": "sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0",
+            "apparmor_note_prefix": "Importante para Ubuntu 24.04 (AppArmor): Si la app no arranca, ejecuta: ",
             "fuse_note_command": "sudo apt-get install libfuse2",
             "fuse_note_prefix": "Nota: En sistemas como Ubuntu 22.04+ puede ser necesario instalar antes: ",
             "step_1": "Descarga el archivo .AppImage",

@@ -145,6 +145,12 @@ Per a Linux, utilitzem el format `AppImage`, que no requereix instal·lació:
 *   Descarrega el fitxer `...-Linux-Ubuntu18.04+.AppImage`.
 *   **Dona-li permisos d'execució.** La manera més fàcil és fent clic dret sobre el fitxer > Propietats > Permisos > i marcar la casella "Permet executar el fitxer com un programa".
     *   Alternativament, des de la terminal: `chmod +x GestorEsdeveniments-*.AppImage`
+*   **Nota important per a Ubuntu 22.04/24.04+:** 
+    *   **FUSE:** Aquestes versions no inclouen `libfuse2` per defecte. Si l'app no s'obre, instal·la-la amb: `sudo apt install libfuse2t64` (o `libfuse2`).
+    *   **AppArmor (Ubuntu 24.04):** Aquesta versió restringeix els *user namespaces*. Si l'AppImage no arrenca, executa aquesta comanda per permetre-ho:
+        ```bash
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+        ```
 *   Fes doble clic sobre el fitxer per executar l'aplicació.
 ---
 
