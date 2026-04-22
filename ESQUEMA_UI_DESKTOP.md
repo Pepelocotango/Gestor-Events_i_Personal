@@ -9,7 +9,7 @@
  * - ESTRUCTURA GENERAL: Barra de menú, navegació i àrea de contingut.
  * - PANTALLA DE BENVINGUDA: WelcomeScreen amb botons de creació/obertura de documents.
  * - BARRA DE MENÚ SUPERIOR: CustomMenuBar amb menús d'Arxiu, Edita, Veure i Ajuda.
- * - SECCIÓ PRINCIPAL: MainDisplay amb calendari, llista d'esdeveniments i resums.
+ * - SECCIÓ PRINCIPAL: MainDisplay amb calendari i llista d'esdeveniments.
  * - SECCIÓ DE PERSONAL: PeopleDisplay per a la gestió de contactes.
  * - SECCIÓ DE MATERIAL: MaterialDisplay i Centre de Control de Material.
  * - SECCIÓ DE FITXES TÈCNIQUES: TechSheetsDisplay per a la gestió de fitxes de bolo.
@@ -123,12 +123,6 @@ Aquesta pantalla presenta una estructura plana (sense contenidor mestre plegable
     - Mostra el nom de la persona i el seu rol específic (`Nom - Rol`) si està definit.
     - Inclou indicadors visuals d'estat (vora lateral de color) i botons d'acció grans.
     - Suport per a vista detallada de dies (multidia).
-
-### 4.3. Resums (Secció Plegable Independent)
-- Secció plegada per defecte.
-- Genera informes basats en les dades filtrades actualment visibles a la llista.
-- Secció plegada per defecte que mostra informes basats en les dades filtrades (per Esdeveniment, Data o Persona).
-- Cada informe té opcions d'ordenació i exportació (CSV/PDF).
 
 ---
 
@@ -304,7 +298,7 @@ Nova interfície professional d'alta densitat per al disseny tècnic i logístic
   - **Exportar PDF (Document):** Genera el fitxer PDF professional segons la configuració.
 - **Panell de Configuració PDF:**
   - **Orientació:** Commutador entre Vertical (Portrait) i Horitzontal (Landscape).
-  - **Selecció de Seccions:** Checkboxes per incloure/excloure info bàsica, inputs, monitors, cablejat, spare, notes tècniques, hospitality i balanç.
+  - **Selecció de Seccions:** Checkboxes per incloure/excloure info bàsica, inputs, monitors, cablejat, spare, notes tècniques, hospitality, generalNotes i balanç.
   - **Selecció de Columnes:** Filtres granulars per triar quines columnes de la taula d'inputs/monitors han de sortir a l'exportació (Patch, CH, Label, Rider, Contra, Stand, Notes, Exc).
   - **Auto-save:** Les preferències de PDF es guarden automàticament per usuari.
 
