@@ -1454,10 +1454,6 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
 
         {/* CONTINGUT SCROLLABLE */}
         <main className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-4">
-// =============================================================================
-// SECCIONS DEL RIDER
-// =============================================================================
-
           {/* SECCIÓ DE CONTROLS PDF */}
           <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
             <div className="px-3 py-2 bg-muted/20 border-b border-border">
@@ -2174,10 +2170,6 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                   </div>
                 )}
               </section>
-
-// =============================================================================
-// BALANÇ INTEGRAT
-// =============================================================================
 
               {/* BALANÇ INTEGRAT - Aquí sota les notes */}
               <RiderBalance 
