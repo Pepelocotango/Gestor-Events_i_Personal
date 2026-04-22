@@ -18,6 +18,14 @@
  */
 
 enllaç a Gestor-Events_i_Personal/
+├── 00SCRIPTS_TEMP/               # Carpeta de scripts temporals per a desenvolupament i proves (no versionada).
+│   ├── per_ia/                   # Scripts específics per a IA.
+│   ├── TEMP/                     # Fitxers temporals.
+│   └── *.py, *.sh, *.ts         # Scripts de utilitat i concatenació.
+├── .aider.chat.history.md        # Historial de xats amb l'eina Aider (IA coding assistant).
+├── .aider.conf.yml               # Configuració de l'eina Aider.
+├── .aider.input.history          # Historial d'inputs a l'eina Aider.
+├── .aider.tags.cache.v4         # Cache de tags d'Aider.
 ├── .gemini/
 │   ├── GEMINI.md               # Context i directrius per a l'IA.
 │   └── MEMORIA_PROJECTE.md      # Historial de decisions i tasques.
@@ -28,23 +36,22 @@ enllaç a Gestor-Events_i_Personal/
 │       ├── build-win10.yml       # Script per compilar la versió per a Windows (EXE).
 │       └── mobile-build.yml      # Script per a la construcció i desplegament de l'aplicació mòbil a les stores.
 ├── build/                        # Carpeta de sortida per als fitxers de producció.
-│   └── icons/                    # Icones per a la compilació.
-│       └── icon.png              # Icona principal.
+│   └── icons/                    # Icones per a la compilació (múltiples mides i formats).
 ├── dist/                         # Carpeta de sortida de la compilació (build).
-│   ├── linux-unpacked/           # Carpeta amb els fitxers desempaquetats per a Linux.
-│   └── *.AppImage, *.yml, etc.   # Binaris i fitxers de configuració generats per electron-builder.
+│   ├── assets/                  # Actius compilats (JS, CSS, fonts).
+│   ├── index.html               # Punt d'entrada HTML de l'aplicació compilada.
+│   └── linux-unpacked/           # Carpeta amb els fitxers desempaquetats per a Linux.
 ├── examples json/                # Exemples de fitxers JSON per a proves.
 │   ├── example_all.json          # JSON amb dades completes.
 │   ├── example_material.json     # JSON amb dades de material.
 │   ├── example_person.json       # JSON amb dades de contactes.
 │   └── exampleAll.gep           # Exemple de fitxer complet amb extensió .gep (v1.6.4+).
 ├── imatges/                      # Conté imatges i captures de pantalla per a la documentació.
-│   └── en_construcció_GV.png     # Captura de pantalla de l'aplicació.
+│   └── en_construccio_GV.png     # Captura de pantalla de l'aplicació.
 ├── captures_pantalla/            # Carpeta per emmagatzemar captures de pantalla útils per a la documentació.
 │                                  # Inclou imatges per al README, informes d'errors i documentació visual.
 │                                  # Aquesta carpeta s'hauria d'organitzar per versions o funcionalitats.
-├── imatges/                      # Conté imatges i gràfics per a la documentació.
-│   └── en_construcció_GV.png     # Imatges d'exemple i recursos gràfics.
+├── XTEMP/                        # Carpeta temporal per a desenvolupament i proves (no versionada).
 ├── apps_web/                     # Aplicacions web del projecte
 │   ├── landing/                  # Pàgina web de presentació (Astro/HTML) desplegada a Vercel
 │   │   ├── .astro/               # Directori generat per Astro (no versionat).
@@ -59,8 +66,10 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── components/       # Components reutilitzables d'Astro i React
 │   │   │   │   ├── Download.astro        # Secció de descàrregues per a diferents plataformes
 │   │   │   │   ├── Features.astro        # Secció de funcionalitats amb targetes il·lustrades
+│   │   │   │   ├── Features.astro.bak    # Còpia de seguretat de Features.astro
 │   │   │   │   ├── Gallery.astro         # Galeria d'imatges de l'aplicació
 │   │   │   │   ├── Hero.astro            # Secció hero amb títol, subtítol i CTA principal
+│   │   │   │   ├── Hero.astro.bak        # Còpia de seguretat de Hero.astro
 │   │   │   │   ├── Nav.astro             # Barra de navegació superior amb mode fosc/il·luminat
 │   │   │   │   ├── GithubReleases.tsx    # Component React que obté i mostra els releases de GitHub per a les descàrregues.
 │   │   │   │   ├── ProductTour.tsx       # Tour guiat interactiu del producte per als visitants de la web.
@@ -69,6 +78,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   │   ├── AnimatedSplash.tsx    # Animació de splash per a la pàgina web.
 │   │   │   │   ├── LanguageSelector.astro # Selector d'idioma en format Astro per a la navegació web.
 │   │   │   │   ├── LanguageSelector.tsx  # Selector d'idioma en format React per a la web (v1.6.4+).
+│   │   │   │   ├── GithubReleasesMailer.tsx # Component React per obtenir releases de GitHub Mailer.
 │   │   │   │   └── I18nProvider.tsx    # Proveïdor de context d'internacionalització per a la web.
 │   │   │   ├── env.d.ts            # Definicions de tipus per a variables d'entorn (v1.6.4+).
 │   │   │   ├── i18n/               # Configuració d'internacionalització per a la web.
@@ -81,14 +91,19 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   │   └── tourSections.ts # Seccions del tour guiat interactiu del producte.
 │   │   │   ├── layouts/          # Plantilles de disseny
 │   │   │   │   └── Layout.astro   # Plantilla base de la pàgina amb metaetiquetes i estils globals
+│   │   │   └── Layout.astro.bak   # Còpia de seguretat de Layout.astro
 │   │   │   ├── pages/            # Pàgines de l'aplicació (genera rutes automàtiques)
 │   │   │   │   ├── index.astro        # Pàgina arrel
 │   │   │   │   ├── ca/           # Pàgines en català
+│   │   │   │   │   ├── gep-mailer.astro # Pàgina de Mailer (català)
 │   │   │   │   │   └── index.astro   # Pàgina d'inici
 │   │   │   │   ├── en/           # Pàgines en anglès
+│   │   │   │   │   ├── gep-mailer.astro # Pàgina de Mailer (anglès)
 │   │   │   │   │   └── index.astro   # Pàgina d'inici
-│   │   │   │   └── es/           # Pàgines en castellà
-│   │   │   │       └── index.astro   # Pàgina d'inici
+│   │   │   │   ├── gep-mailer.astro # Pàgina de Mailer (arrel)
+│   │   │   │   ├── es/           # Pàgines en castellà
+│   │   │   │   │   ├── gep-mailer.astro # Pàgina de Mailer (castellà)
+│   │   │   │   │   └── index.astro   # Pàgina d'inici
 │   │   │   └── styles/           # Estils globals
 │   │   │       └── global.css    # Estils CSS globals i variables personalitzades
 │   │   ├── astro.config.mjs     # Configuració principal d'Astro
@@ -99,47 +114,26 @@ enllaç a Gestor-Events_i_Personal/
 │   │   └── tailwind.config.mjs  # Configuració de Tailwind CSS amb plugins i personalitzacions
 │   │   
 │   └── documentation/          # Documentació tècnica (Docusaurus) desplegada a GitHub Pages
-│       # (Estructura pendent d'implementar)
+│       └── new.txt             # Fitxer de text per a la documentació web.
 │
-│   # Nota: Els directoris .astro/ i node_modules/ són generats automàticament i no s'inclouen
-│   │   └── vercel.json          # Configuració de desplegament a Vercel
-│   │   └── node_modules/        # Dependències instal·lades (generada automàticament, no versionada)
-│   │
-│   └── documentation/          # Documentació tècnica (Docusaurus) desplegada a GitHub Pages
-│       ├── docs/               # Arxius de documentació en format Markdown
-│       ├── src/                # Codi font personalitzat
-│       └── docusaurus.config.js # Configuració de Docusaurus
-│
-│   # Nota: node_modules/ conté totes les dependències del projecte instal·lades
-│   # mitjançant npm install. Inclou totes les llibreries i eines necessàries
-│   # com Astro, React, Tailwind CSS, i els seus respectius plugins i dependències.
 │
 ├── mobile_app/                   # Projecte de l'aplicació mòbil (React Native amb Expo).
-│   ├── .expo/                    # Fitxers temporals generats per Expo (ignorats per `mobile_app/.gitignore`).
-│   ├── .idea/                    # (Opcional) Configuració d'IDE (normalment ignorada).
-│   │   └── .gitignore             # Fitxer de configuració de l'IDE.
+│   ├── .expo/                    # Fitxers temporals generats per Expo.
 │   ├── android/                  # Codi font específic d'Android (generat per Expo)
 │   │   ├── app/                 # Codi font de l'aplicació Android
 │   │   └── build.gradle         # Configuració de construcció d'Android
 │   ├── ios/                     # Codi font específic d'iOS (generat per Expo)
 │   │   ├── Podfile              # Configuració de dependències d'iOS
-│   │   └── [NomProjecte].xcodeproj # Projecte Xcode
+│   │   └── gestoreventsmobile.xcodeproj # Projecte Xcode
 │   ├── assets/                   # Actius estàtics (imatges, icones, splash).
 │   │   ├── icon.png              # Icona app mòbil (Splash / launcher)
 │   │   └── splash.png            # Imagen de splash per a l'inici
 │   ├── app.json                 # Configuració principal de l'aplicació Expo
 │   ├── babel.config.js          # Configuració de Babel
-│   ├── eas.json                 # Configuració per a Expo Application Services
-│   ├── eas.json                  # Configuració per a Expo Application Services (EAS).
+│   ├── eas.json                 # Configuració per a Expo Application Services (EAS).
 │   ├── package-lock.json         # Fitxer lock de dependències generat per npm.
 │   ├── index.js                  # Punt de registre inicial de l'aplicació per a Expo.
-│   ├── app.json                  # Fitxer de configuració d'Expo.
-│   ├── babel.config.js           # Fitxer de configuració de Babel.
-│   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòbil (ex. `.expo/`, `/android`, `/ios`, `/builds`, `node_modules/`).
-│   ├── node_modules/             # Dependències locals del mòbil (ignorades per `mobile_app/.gitignore`).
-│   ├── android/                  # Projecte Android (generat / normalment ignorat si es genera localment).
-│   ├── ios/                      # Projecte iOS (generat / normalment ignorat si es genera localment).
-│   ├── builds/                   # Artefactes nadius i builds locals (ignorats).
+│   ├── .gitignore                # Fitxers ignorats per a l'aplicació mòvil (ex. `.expo/`, `/android`, `/ios`, `/builds`, `node_modules/`).
 │   ├── src/                      # Codi font de l'aplicació mòbil.
 │   │   ├── components/           # Components reutilitzables de la UI mòbil.
 │   │   │   ├── ui/               # Components d'UI genèrics.
@@ -164,6 +158,11 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   ├── SummarySection.tsx        # Component per mostrar seccions de resums (v1.6.4+).
 │   │   │   ├── TechSheetListItem.tsx     # Item de llista per a fitxes de bolo.
 │   │   │   └── PersonListItem.tsx        # Component per a un element individual a la llista de persones.
+│   │   ├── i18n.ts                 # Configuració d'i18n per a l'app mòbil (v1.6.4+).
+│   │   ├── locales/               # Traduccions per a l'app mòbil (v1.6.4+).
+│   │   │   ├── ca.json          # Traduccions en català per a l'app mòbil.
+│   │   │   ├── en.json          # Traduccions en anglès per a l'app mòbil.
+│   │   │   └── es.json          # Traduccions en castellà per a l'app mòbil.
 │   │   ├── navigation.ts         # Defineix els tipus per a la pila de navegació (React Navigation).
 │   │   ├── screens/              # Pantalles principals de l'aplicació.
 │   │   │   ├── EventsScreen.tsx          # Pantalla principal per a la gestió d'esdeveniments.
@@ -186,31 +185,25 @@ enllaç a Gestor-Events_i_Personal/
 │   │   │   └── dataStore.ts      # Store per a l'estat de les dades de l'aplicació.
 │   │   ├── types/                # Definicions de tipus de TypeScript compartides.
 │   │   │   └── index.ts          # Tipus de dades (AppData, EventFrame, etc.).
-│   │   ├── utils/                # Utilitats generals per a l'aplicació mòbil.
-│   │   │   ├── dateFormat.ts     # Utilitats per al format de dates (mòbil).
-│   │   │   ├── dates.ts          # Funcions auxiliars per a dates.
-│   │   │   ├── statusUtils.ts    # Funcions per gestionar estats i mapatge de colors/labels.
-│   │   │   ├── themeConfig.ts    # Configuració central de colors (semàntica).
-│   │   │   └── themes.ts         # Defineix els colors per als temes clar i fosc.
+│   │   └── utils/                # Utilitats generals per a l'aplicació mòbil.
+│   │       ├── dateFormat.ts     # Utilitats per al format de dates (mòbil).
+│   │       ├── dateRangeFormatter.ts # Utilitat per crear rangs de dates compactes (mòbil).
+│   │       ├── dates.ts          # Funcions auxiliars per a dates.
+│   │       ├── statusUtils.ts    # Funcions per gestionar estats i mapatge de colors/labels.
+│   │       ├── themeConfig.ts    # Configuració central de colors (semàntica).
+│   │       └── themes.ts         # Defineix els colors per als temes clar i fosc.
 │   ├── App.tsx                   # Punt d'entrada principal que carrega les pantalles.
 │   ├── ESQUEMA_UI_MOBIL.md       # Documentació de l'estructura i flux de la interfície d'usuari mòbil (v1.6.0).
 │   ├── package.json              # Dependències i scripts de l'aplicació mòbil.
-│   ├── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil.
-│   ├── src/                      # Codi font de l'aplicació mòbil.
-│   │   ├── locales/               # Traduccions per a l'app mòbil (v1.6.4+).
-│   │   │   ├── ca.json          # Traduccions en català per a l'app mòbil.
-│   │   │   ├── en.json          # Traduccions en anglès per a l'app mòbil.
-│   │   │   └── es.json          # Traduccions en castellà per a l'app mòbil.
-│   │   └── i18n.ts                 # Configuració d'i18n per a l'app mòbil (v1.6.4+).
-│   │   ├── utils/                # Utilitats generals per a l'aplicació mòbil.
-│   │   │   ├── dateFormat.ts     # Utilitats per al format de dates (mòbil).
-│   │   │   ├── dates.ts          # Funcions auxiliars per a dates.
-│   │   │   ├── dateRangeFormatter.ts # Utilitat per crear rangs de dates compactes (mòbil).
-│   │   │   ├── statusUtils.ts    # Funcions per gestionar estats i mapatge de colors/labels.
-│   │   │   ├── themeConfig.ts    # Configuració central de colors (semàntica).
-│   │   │   └── themes.ts         # Defineix els colors per als temes clar i fosc.
+│   └── tsconfig.json             # Fitxer de configuració de TypeScript per al projecte mòbil."
 ├── public/                       # Conté els actius públics que es copiaran a la carpeta de compilació.
-│   └── *.png, *.ico, *.icns      # Diferents mides i formats de la icona de l'aplicació.
+│   ├── black_icon_*.png          # Icones negres en múltiples mides (16, 24, 32, 48, 64, 128, 256, 512, 1024).
+│   ├── black_icon.icns           # Icona negra macOS.
+│   ├── black_icon.ico            # Icona negra Windows.
+│   ├── icon_*.png                # Icones normals en múltiples mides (16, 24, 32, 48, 64, 128, 256, 512, 1024).
+│   ├── icon.icns                 # Icona macOS.
+│   ├── icon.ico                  # Icona Windows.
+│   └── favicon.ico              # Favicon del navegador.
 ├── scripts/                      # Scripts d'utilitat per al procés de desenvolupament i compilació.
 │   ├── templates/                # Plantilles utilitzades pels scripts.
 │   │   └── index.css.template    # Plantilla per a l'arxiu index.css, amb marcadors per a les variables de tema.
@@ -219,7 +212,7 @@ enllaç a Gestor-Events_i_Personal/
 ├── src/
 │   ├── assets/                   # Actius (imatges, etc.) que són importats directament pel codi font.
 │   │   └── splash/               # Imatges per a l'animació de la pantalla de benvinguda.
-│   │       ├── frame_*.png       # Seqüència d'imatges per a l'animació.
+│   │       ├── frame_*.png       # Seqüència d'imatges per a l'animació (frame_1.png a frame_9.png).
 │   │       ├── ALL_TRANSPARENCIA 100%/ # Versions 100% transparent de les imatges.
 │   │       └── png_amb_transparencia    # Versions PNG amb transparencia.
 │   ├── components/               # Carpeta principal dels components de React que formen la UI.
@@ -325,11 +318,7 @@ enllaç a Gestor-Events_i_Personal/
 │   ├── index.tsx                 # Punt d'entrada de React que renderitza l'App al DOM.
 │   └── vite-env.d.ts            # Fitxer de definicions de TypeScript per a Vite (v1.6.2+). Declara la variable __APP_VERSION__.
 ├── ARBRE_DIRECTORIS.txt          # Documentació visual de l'estructura del projecte.
-├── apps_web/                  # Aplicacions web del projecte
-│   └── documentation/          # Documentació tècnica (Docusaurus) desplegada a GitHub Pages
-│       ├── docs/               # Arxius de documentació en format Markdown
-│       ├── src/                # Codi font personalitzat
-│       └── new.txt             # Fitxer de text per a la documentació web.
+├── .git/                        # Repositori Git (historial de commits, branques, configuració).
 ├── .gitattributes                # Fitxer per definir atributs per a rutes de git.
 ├── .gitignore                    # Especifica quins fitxers i carpetes ignorar en el control de versions (Git).
 ├── DEVELOPING.md                 # Documentació tècnica detallada de l'arquitectura i funcionalitats per a desenvolupadors.
@@ -343,12 +332,9 @@ enllaç a Gestor-Events_i_Personal/
 ├── metadata.json                 # Metadades del projecte.
 ├── package.json                  # Fitxer de configuració del projecte: dependències, scripts i metadades.
 ├── package-lock.json             # Fitxer generat automàticament que bloqueja les versions de les dependències.
-├── node_modules/                 # Dependències del projecte (ignorades via `.gitignore`).
-├── .env                          # Fitxers d'entorn locals amb secrets (ignorats via `.gitignore`).
-├── google-credentials.json       # Credencials/API keys (ignorades via `.gitignore`).
-├── service-account.json          # Credencials de servei (ignorades via `.gitignore`).
-├── logs/                         # Carpeta de logs i fitxers `*.log` (ignorats via `.gitignore`).
-├── .vscode/                      # Configuració d'Editor/IDE (ignorada via `.gitignore`).
+├── node_modules/                 # Dependències del projecte instal·lades (506+ directoris, milers de fitxers).
+├── google-credentials.json       # Credencials/API keys.
+├── service-account.json          # Credencials de servei.
 ├── postcss.config.cjs            # Fitxer de configuració per a PostCSS (usat per Tailwind).
 ├── preload.cjs                   # Pont de seguretat d'Electron que exposa funcions del backend al frontend de manera segura (v1.6.2+).
 ├── tailwind.config.cjs           # Fitxer de configuració per al framework de CSS Tailwind.
@@ -357,4 +343,9 @@ enllaç a Gestor-Events_i_Personal/
 ├── i18next-parser.config.cjs     # Configuració de i18next-parser per a l'app d'escriptori (escaneig de claus i18n a src/).
 ├── i18next-parser.mobile.config.cjs  # Configuració de i18next-parser per a l'app mòbil (escaneig de claus i18n a mobile_app/).
 ├── i18next-parser.web.config.cjs # Configuració de i18next-parser per a la web/landing (escaneig de claus i18n a apps_web/landing/).
+├── output.log                    # Fitxer de log temporal.
+├── releases/                     # Carpeta de builds generats per electron-builder.
+│   ├── builder-debug.yml         # Configuració de build debug.
+│   ├── latest-linux.yml          # Metadades de l'última versió Linux.
+│   └── linux-unpacked/           # Fitxers desempaquetats per a Linux (chrome_*.pak, lib*.so, recursos).
 ├── vite.config.ts                # Fitxer de configuració de Vite, l'eina de compilació del frontend.
