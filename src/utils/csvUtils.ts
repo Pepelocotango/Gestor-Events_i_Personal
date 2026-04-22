@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * CSV UTILS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Funcions per a l'exportació de dades a format CSV (esdeveniments, material, performances).
+ *
+ * ÍNDEX:
+ * - IMPORTS I TIPUS: Llibreries i definicions de tipus per a l'exportació CSV.
+ * - FUNCIONS D'EXPORTACIÓ CSV: exportPerformanceRiderToCsv, exportEventListToCsv, exportMaterialControlCsv.
+ * =============================================================================
+ */
+
 import { EventFrame, PersonGroup, Assignment, ShowToastFunction, MaterialControlRow, Performance } from '../types';
 import { TFunction } from 'i18next';
 import { getStatusSummaryText } from './statusUtils';

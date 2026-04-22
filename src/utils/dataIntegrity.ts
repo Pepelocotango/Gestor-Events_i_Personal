@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * DATA INTEGRITY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Validació i reparació de la integritat de dades de l'aplicació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I TIPUS: Llibreries i definicions de tipus per a la validació.
+ * - VALIDACIÓ DE DADES: Funció validateData per detectar referències trencades.
+ * - REPARACIÓ DE DADES: Funció repairData per corregir errors detectats.
+ * =============================================================================
+ */
+
 import i18next from 'i18next';
 import { AppData } from '../types';
 

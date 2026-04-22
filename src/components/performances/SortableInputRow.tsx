@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * SORTABLE INPUT ROW
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de fila reordenable per a llistes d'inputs amb drag & drop.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: SortableInputRow amb inputs reordenables.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';

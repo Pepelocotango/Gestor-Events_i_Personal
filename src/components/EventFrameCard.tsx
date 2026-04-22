@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * EVENT FRAME CARD
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de targeta per mostrar esdeveniments amb assignacions i controls.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i icones.
+ * - COMPONENT PRINCIPAL: EventFrameCard amb visualització d'assignacions.
+ * =============================================================================
+ */
+
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModalStore } from '@/stores/modalStore';

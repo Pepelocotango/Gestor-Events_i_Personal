@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * GOOGLE CONFIG STORE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Store de Zustand per a la configuració i gestió de Google Calendar.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries Zustand, immer i tipus de Google Calendar.
+ * - ESTAT I TIPUS: GoogleConfigState, ActionResult, GoogleConfigActions.
+ * - STORE PRINCIPAL: Configuració del store amb middleware immer.
+ * - ACCIONS: toggleExternalCalendar, setActiveCalendarId, resetGoogleConfig.
+ * =============================================================================
+ */
+
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { GoogleCalendar, ManagedAppCalendar, GoogleConfig } from '../types';

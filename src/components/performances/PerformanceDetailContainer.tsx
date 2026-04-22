@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * PERFORMANCE DETAIL CONTAINER
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component contenidor per als detalls d'una actuació amb pestanyes.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components.
+ * - COMPONENT PRINCIPAL: PerformanceDetailContainer amb pestanyes de detalls.
+ * - ESTAT I HANDLERS: Estat de pestanya activa i funcions de gestió.
+ * - RENDERITZAT: Estructura amb pestanyes i formularis.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance, ShowToastFunction, PerformancePdfOptions } from '../../types';

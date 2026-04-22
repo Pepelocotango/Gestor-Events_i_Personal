@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * COLLAPSIBLE SECTION
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de secció plegable amb estat controlat o no controlat.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: CollapsibleSection amb estat intern i props externs.
+ * - HANDLERS: handleToggle per plegar/desplegar.
+ * - SINCRONITZACIÓ: useEffect per sincronitzar estat intern amb props.
+ * =============================================================================
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronUpIcon, ChevronDownIcon } from '../../constants';

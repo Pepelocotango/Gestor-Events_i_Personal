@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * PERFORMANCE ADVANCING
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per mostrar i gestionar l'estat d'avançament d'una actuació.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: PerformanceAdvancing amb checkboxes d'estats i percentatge.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance, PerformanceAdvancing as PerformanceAdvancingType } from '../../types';

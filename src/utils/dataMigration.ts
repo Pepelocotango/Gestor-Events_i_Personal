@@ -1,3 +1,13 @@
+/**
+ * =============================================================================
+ * DATA MIGRATION - ÍNDEX
+ * =============================================================================
+ * IMPORTS I INTERFÍCIES
+ * MIGRACIÓ DE DADES
+ * VALIDACIÓ DE DADES MIGRADES
+ * =============================================================================
+ */
+
 import { AppData, PersonGroup, EventFrameForExport, Assignment, AssignmentStatus } from '../types';
 
 interface OldPeopleData {

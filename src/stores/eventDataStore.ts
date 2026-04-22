@@ -1,3 +1,27 @@
+/**
+ * =============================================================================
+ * EVENT DATA STORE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Store principal de Zustand per a la gestió de dades d'esdeveniments, persones, assignacions, tech sheets, material i performances.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries Zustand, immer, zundo i utilitats.
+ * - FUNCIONS AUXILIARS: generateId, createDefaultTechSheet.
+ * - ESTAT INICIAL: Estat inicial de l'aplicació amb dades buides.
+ * - STORE PRINCIPAL: Configuració del store amb middleware immer i temporal.
+ * - ACCIONS D'ESDEVENIMENTS: addEventFrame, updateEventFrame, deleteEventFrame.
+ * - ACCIONS DE PERSONES: addPersonGroup, updatePersonGroup, deletePersonGroup.
+ * - ACCIONS D'ASSIGNACIONS: addAssignment, updateAssignment, deleteAssignment.
+ * - ACCIONS DE TECH SHEETS: addOrUpdateTechSheet.
+ * - ACCIONS DE MATERIAL: addMaterialItem, updateMaterialItem, deleteMaterialItem.
+ * - ACCIONS DE PERFORMANCES: addPerformance, updatePerformance, deletePerformance.
+ * - ACCIONS DE SINCRONITZACIÓ: executeSync amb Google Calendar.
+ * - VALIDACIÓ I REPARACIÓ: validateData, repairData.
+ * - SELECTORS: Selectors per obtenir dades filtrades i derivades.
+ * =============================================================================
+ */
+
 import { create } from 'zustand';
 // import eliminat: useStoreWithEqualityFn
 import { useStore } from 'zustand';

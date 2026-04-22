@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * RIDER WORKSHOP - ÍNDEX
+ * =============================================================================
+ * IMPORTS I DEFINICIONS
+ * SUB-COMPONENTS
+ * COMPONENT PRINCIPAL RIDERWORKSHOP
+ * RENDERITZAT DE LA UI
+ * SECCIONS DEL RIDER
+ * BALANÇ INTEGRAT
+ * UTILS AUXILIARS
+ * =============================================================================
+ */
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -62,6 +76,10 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // --- Sub-components ---
+
+// =============================================================================
+// SUB-COMPONENTS
+// =============================================================================
 
 interface InventoryItemProps {
   item: MaterialItem;
@@ -853,6 +871,10 @@ const TechnicalNote: React.FC<TechnicalNoteProps> = ({ label, value, field, colo
 
 // --- Pantalla Principal ---
 
+// =============================================================================
+// COMPONENT PRINCIPAL RIDERWORKSHOP
+// =============================================================================
+
 const RiderWorkshop: React.FC = () => {
   // 1. Hooks de Router y Traducción
   const { eventFrameId: urlEventFrameId } = useParams<{ eventFrameId: string }>();
@@ -1338,6 +1360,10 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
     return count;
   };
 
+// =============================================================================
+// RENDERITZAT DE LA UI
+// =============================================================================
+
   if (!selectedEventFrameId) {
     return (
       <div className="p-6 h-full flex flex-col items-center justify-center">
@@ -1428,6 +1454,10 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
 
         {/* CONTINGUT SCROLLABLE */}
         <main className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-4">
+// =============================================================================
+// SECCIONS DEL RIDER
+// =============================================================================
+
           {/* SECCIÓ DE CONTROLS PDF */}
           <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
             <div className="px-3 py-2 bg-muted/20 border-b border-border">
@@ -2145,6 +2175,10 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                 )}
               </section>
 
+// =============================================================================
+// BALANÇ INTEGRAT
+// =============================================================================
+
               {/* BALANÇ INTEGRAT - Aquí sota les notes */}
               <RiderBalance 
                 performances={eventFrame?.performances || []} 
@@ -2169,6 +2203,10 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
     </div>
   );
 };
+
+// =============================================================================
+// UTILS AUXILIARS
+// =============================================================================
 
 const EditIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>

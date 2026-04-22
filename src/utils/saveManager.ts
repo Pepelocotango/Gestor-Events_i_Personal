@@ -1,4 +1,17 @@
 /**
+ * =============================================================================
+ * SAVE MANAGER
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Gestió centralitzada de callbacks de guardat per a components amb desat en memòria intermèdia.
+ *
+ * ÍNDEX:
+ * - REGISTRE DE CALLBACKS: registerSaveListener per registrar funcions de guardat.
+ * - EXECUCIÓ DE GUARDAT: triggerAllSaves per executar tots els callbacks registrats.
+ * =============================================================================
+ */
+
+/**
  * Utilitat de gestió de guardat global.
  * Permet registrar callbacks de guardat de components individuals (com els que usen useBufferedSave)
  * i forçar el seu buidatge (flush) abans d'un guardat global de l'aplicació.

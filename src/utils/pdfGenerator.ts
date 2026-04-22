@@ -1,3 +1,28 @@
+/**
+ * =============================================================================
+ * PDF GENERATOR
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Mòdul centralitzat per a la generació de documents PDF de l'aplicació.
+ *
+ * ÍNDEX:
+ * - HELPERS & COMUNS: Funcions base per a la creació, paginació i desat de fitxers PDF.
+ * - EXPORTACIÓ RESUMS: Generació d'informes resumits d'assignacions de personal.
+ * - EXPORTACIÓ DE LLISTA DE MATERIAL: Informes detallats de l'estoc d'inventari.
+ * - EXPORTACIÓ DE CONTROL DE MATERIAL: Llistats de control i balanços de material per esdeveniment.
+ * - EXPORTACIÓ DE LLIBRETA D'ADRECES: Documents amb informació de contacte del personal.
+ * - FITXA TÈCNICA: Generació del document principal (Fitxa de Bolo).
+ * - EXPORTACIÓ DE LLISTA D'ESDEVENIMENTS: Llistat general d'esdeveniments registrats.
+ * - EXPORTACIÓ D'ACTUACIONS: Escaleta artística i horaris de les actuacions.
+ * - FULL DE RUTA DEL REGIDOR: Full de ruta combinat amb horaris i notes de regidoria.
+ * - VALIDACIÓ DE DADES: Verificació d'errors en la informació de les actuacions.
+ * - CÀLCUL D'AMPLES ÒPTIMS: Ajustament dinàmic de columnes segons contingut (autofit).
+ * - ESTILS I DENSITAT: Gestió de l'estètica, colors, fonts i densitat de les taules.
+ * - GENERACIÓ DEFINITIVA RIDER: Construcció dinàmica de fitxes tècniques amb opcions personalitzables.
+ * - VALIDACIÓ: Procés de control abans de l'exportació final de riders.
+ * =============================================================================
+ */
+
 import i18next from 'i18next';
 import jsPDF from 'jspdf';
 import autoTable, { Styles } from 'jspdf-autotable';
@@ -18,6 +43,9 @@ type ActiveFilters = {
   filterUIEventFrame?: string | null;
 };
 
+// =============================================================================
+// HELPERS & COMUNS
+// =============================================================================
 const createPdfHeader = (pdf: jsPDF, title: string): number => {
   pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
@@ -63,7 +91,9 @@ async function savePdfWithDialog(
   }
 }
 
-// --- EXPORTACIÓ DE RESUMS ---
+// =============================================================================
+// EXPORTACIÓ RESUMS
+// =============================================================================
 export const exportSummariesToPdf = async (
   title: string,
   data: Map<string, SummaryRow[]>,
@@ -154,7 +184,9 @@ export const exportSummariesToPdf = async (
   }
 };
 
-// --- EXPORTACIÓ DE LLISTA DE MATERIAL ---
+// =============================================================================
+// EXPORTACIÓ DE LLISTA DE MATERIAL
+// =============================================================================
 export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToast: ShowToastFunction) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -217,7 +249,9 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
   }
 };
 
-// --- EXPORTACIÓ DE CONTROL DE MATERIAL ---
+// =============================================================================
+// EXPORTACIÓ DE CONTROL DE MATERIAL
+// =============================================================================
 export const exportMaterialControlSummaryPdf = async (
   data: MaterialControlRow[],
   showToast: ShowToastFunction
@@ -393,7 +427,9 @@ export const exportMaterialControlDetailedPdf = async (
   }
 };
 
-// --- EXPORTACIÓ DE LLIBRETA D'ADRECES ---
+// =============================================================================
+// EXPORTACIÓ DE LLIBRETA D'ADRECES
+// =============================================================================
 export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: ShowToastFunction) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -439,7 +475,9 @@ export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: 
   }
 };
 
-// --- FITXA TÈCNICA ---
+// =============================================================================
+// FITXA TÈCNICA
+// =============================================================================
 export const generateTechSheetPdfObject = (
   formData: TechSheetData,
   getPersonGroupById: (id: string) => PersonGroup | undefined,
@@ -720,7 +758,9 @@ export const exportTechSheetToPdf = async (formData: TechSheetData, eventName: s
   } catch (error) { showToast(`Error generant PDF: ${(error as Error).message}`, 'error'); }
 };
 
-// --- EXPORTACIÓ DE LLISTA D'ESDEVENIMENTS ---
+// =============================================================================
+// EXPORTACIÓ DE LLISTA D'ESDEVENIMENTS
+// =============================================================================
 export const exportEventListToPdf = async (eventFrames: EventFrame[], peopleGroups: PersonGroup[], showToast: ShowToastFunction, activeFilters: ActiveFilters) => {
   try {
     const pdf = new jsPDF('l', 'mm', 'a4');
@@ -738,7 +778,9 @@ export const exportEventListToPdf = async (eventFrames: EventFrame[], peopleGrou
   } catch (error) { showToast(`${i18next.t('common.error')}: ${(error as Error).message}`, 'error'); }
 };
 
-// --- EXPORTACIÓ D'ACTUACIONS ---
+// =============================================================================
+// EXPORTACIÓ D'ACTUACIONS
+// =============================================================================
 export const generateEventPerformancesPdfObject = (eventFrame: EventFrame, performances: Performance[]): jsPDF => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
@@ -760,7 +802,9 @@ export const exportEventPerformancesSummaryPdf = async (eventFrame: EventFrame, 
   try { const pdf = generateEventPerformancesPdfObject(eventFrame, performances); const fileName = `Escaleta_${eventFrame.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`; await savePdfWithDialog(pdf, fileName, showToast); } catch (error) { showToast(`Error generant PDF: ${(error as Error).message}`, 'error'); }
 };
 
-// --- FULL DE RUTA DEL REGIDOR ---
+// =============================================================================
+// FULL DE RUTA DEL REGIDOR
+// =============================================================================
 export const exportRegidoriaSummaryPdf = async (eventFrame: EventFrame, performances: Performance[], techSheetData: TechSheetData | undefined, showToast: ShowToastFunction) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -795,7 +839,9 @@ const extractRegidoriaNotes = (p: Performance): string => {
   return notes.join(' | ');
 };
 
-// --- VALIDACIÓ DE DADES ---
+// =============================================================================
+// VALIDACIÓ DE DADES
+// =============================================================================
 export const validatePerformanceData = (p: Performance): ValidationResult => {
   const errors: string[] = [], warnings: string[] = [];
   if (!p.name?.trim()) errors.push(i18next.t('performances.pdf_validation_error', { message: "El nom de l'actuació és obligatori" }));
@@ -805,7 +851,9 @@ export const validatePerformanceData = (p: Performance): ValidationResult => {
   return { errors, warnings, isValid: errors.length === 0 };
 };
 
-// --- CÀLCUL D'AMPLES ÒPTIMS TIPUS FULLA DE CÀLCUL (AUTOFIT) ---
+// =============================================================================
+// CÀLCUL D'AMPLES ÒPTIMS TIPUS FULLA DE CÀLCUL (AUTOFIT)
+// =============================================================================
 const calculateOptimalColumnWidths = (columnConfig: any, data: any[], orientation: 'portrait' | 'landscape' = 'portrait') => {
   // Ample útil amb marge de seguretat (188 en portrait, 275 en landscape)
   const usableWidth = orientation === 'landscape' ? 275 : 188;
@@ -889,7 +937,9 @@ const calculateOptimalColumnWidths = (columnConfig: any, data: any[], orientatio
   return finalColStyles;
 };
 
-// --- ESTILS I DENSITAT ---
+// =============================================================================
+// ESTILS I DENSITAT
+// =============================================================================
 const getPerformanceStyles = () => {
   const sane = (v: any): string => (!v || String(v).trim() === '' || String(v).trim() === '--') ? '-' : String(v);
   const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold', fontSize: 8.5, cellPadding: 1.5 };
@@ -913,7 +963,9 @@ export const exportPerformanceToPdf = async (performance: Performance, eventFram
   return generatePerformancePdfObjectWithOptions(performance, eventFrame, defaultOptions);
 };
 
-// --- GENERACIÓ DEFINITIVA RIDER ---
+// =============================================================================
+// GENERACIÓ DEFINITIVA RIDER
+// =============================================================================
 export const generatePerformancePdfObjectWithOptions = (performance: Performance, eventFrame: EventFrame, options: PerformancePdfOptions): jsPDF => {
   const orientation = options.pdfOrientation || 'portrait';
   const pdf = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
@@ -1112,7 +1164,9 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
   return pdf;
 };
 
-// --- VALIDACIÓ ---
+// =============================================================================
+// VALIDACIÓ
+// =============================================================================
 export const exportPerformanceToPdfWithOptions = async (performance: Performance, eventFrame: EventFrame, options: PerformancePdfOptions, showToast: ShowToastFunction) => {
   try {
     const validation = validatePerformanceData(performance);

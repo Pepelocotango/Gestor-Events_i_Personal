@@ -1,4 +1,16 @@
 /**
+ * =============================================================================
+ * THEME DEFINITION
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Definició de colors del tema en format HSL per a PDFs (auto-generat).
+ *
+ * ÍNDEX:
+ * - COLORS DEL TEMA: themeHslColors amb valors HSL per primary, success, warning, destructive, etc.
+ * =============================================================================
+ */
+
+/**
  * ATENCIÓ: AQUEST FITXER ÉS AUTO-GENERAT.
  * NO EDITAR MANUALMENT.
  *

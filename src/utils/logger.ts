@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * LOGGER
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Servei de logging unificat per a consola i Electron main process.
+ *
+ * ÍNDEX:
+ * - MÈTODES DE LOGGING: debug, info, warn, error amb sortida doble.
+ * =============================================================================
+ */
+
 const logger = {
   debug: (...args: any[]) => {
     console.debug(...args);

@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * PERFORMANCE HOSPITALITY FORM
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de formulari per editar la informació d'hospitalitat d'una actuació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i hooks.
+ * - COMPONENT PRINCIPAL: PerformanceHospitalityForm amb camps d'hospitalitat.
+ * - ESTAT I HANDLERS: Gestió d'estat amb useBufferedSave.
+ * - RENDERITZAT: Estructura de formulari amb camps d'hospitalitat.
+ * =============================================================================
+ */
+
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance, PerformanceHospitalityData, ShowToastFunction } from '../../types';

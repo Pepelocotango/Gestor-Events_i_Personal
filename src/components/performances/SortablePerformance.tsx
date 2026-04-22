@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * SORTABLE PERFORMANCE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de targeta reordenable per actuacions amb drag & drop.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: SortablePerformance amb targeta reordenable.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';

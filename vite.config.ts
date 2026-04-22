@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * VITE CONFIG
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Configuració de Vite per a l'aplicació React amb suport per a Electron.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries Vite, path, module i React plugin.
+ * - CONFIGURACIÓ: Plugins, base, define, build i resolve.
+ * =============================================================================
+ */
+
 import path from 'path';
 import { defineConfig } from 'vite';
 import { builtinModules } from 'module';

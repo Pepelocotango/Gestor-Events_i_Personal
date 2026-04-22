@@ -1,3 +1,23 @@
+/**
+ * =============================================================================
+ * TYPES
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Definicions de tipus TypeScript per a tota l'aplicació.
+ *
+ * ÍNDEX:
+ * - ENUMS D'ESTAT: AssignmentStatus per als estats d'assignació.
+ * - INTERFÍCIES DE PERSONES: PersonGroup per a grups de persones.
+ * - INTERFÍCIES D'ASSIGNACIONS: Assignment per a assignacions d'esdeveniments.
+ * - INTERFÍCIES DE TECH SHEETS: TechSheetData, TechSheetProvider, ConditionalSection, etc.
+ * - INTERFÍCIES D'ESDEVENIMENTS: EventFrame per a esdeveniments.
+ * - INTERFÍCIES DE MATERIAL: MaterialItem per a material.
+ * - INTERFÍCIES DE PERFORMANCES: Performance, PerformanceTechData, PerformanceHospitalityData, etc.
+ * - INTERFÍCIES DE MODALS: Modal props i configuracions.
+ * - TIPUS AUXILIARS: ShowToastFunction i altres tipus d'utilitat.
+ * =============================================================================
+ */
+
 export enum AssignmentStatus {
   Pending = 'Pendent',
   Yes = 'Sí',

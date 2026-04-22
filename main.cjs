@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * MAIN PROCESS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Procés principal d'Electron per a l'aplicació de gestió d'esdeveniments.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries Electron, fs, os, googleapis, etc.
+ * - CONSTANTS: ERROR_CODES per a codis d'error.
+ * - CONFIGURACIÓ DE LOGS: electron-log amb arxiu i màxim de mida.
+ * - GESTIÓ DE FINESTRES: BrowserWindow i IPC handlers.
+ * - GOOGLE INTEGRATION: Autenticació i sincronització amb Google Calendar.
+ * =============================================================================
+ */
+
 const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');

@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * CONSTANTS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Fitxer de constants i icones de l'aplicació amb components React per icones SVG.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, i18n i heroicons.
+ * - CONSTANTS: APP_TITLE, THEME_STORAGE_KEY, ASSIGNMENT_STATUS_OPTIONS.
+ * - COMPONENTS D'ICONES: SaveIcon, LoadIcon, PlusIcon, i moltes altres.
+ * - FUNCIONS AUXILIARS: useRoleSuggestions per suggestions de rols.
+ * =============================================================================
+ */
+
 // @ts-ignore - React is used in JSX
 import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';

@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * GOOGLE EVENT DETAILS MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per mostrar detalls d'un esdeveniment de Google Calendar.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: GoogleEventDetailsModal amb informació de l'esdeveniment.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModalStore } from '../../stores/modalStore';

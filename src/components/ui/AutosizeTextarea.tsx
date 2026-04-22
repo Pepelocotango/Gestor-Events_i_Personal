@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * AUTOSIZE TEXTAREA
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de textarea que ajusta automàticament la seva alçada al contingut.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: AutosizeTextarea amb forwardRef i useImperativeHandle.
+ * - AUTO-RESIZE: useLayoutEffect per ajustar alçada basat en scrollHeight.
+ * =============================================================================
+ */
+
 import React, { useLayoutEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 
 type AutosizeTextAreaProps = React.DetailedHTMLProps<

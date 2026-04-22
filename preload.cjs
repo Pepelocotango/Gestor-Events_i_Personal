@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * PRELOAD SCRIPT
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Script de preload d'Electron per exposar API segura al procés renderer.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries Electron contextBridge i ipcRenderer.
+ * - EXPOSICIÓ API: electronAPI amb funcions IPC.
+ * - GESTIÓ DE DOCUMENTS: openFileDialog, readFile, saveFile.
+ * - GOOGLE INTEGRATION: Funcions d'autenticació i sincronització.
+ * =============================================================================
+ */
+
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {

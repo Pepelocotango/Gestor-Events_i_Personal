@@ -1,3 +1,20 @@
+/**
+ * =============================================================================
+ * MAIN DISPLAY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component principal de visualització amb FullCalendar i gestió d'esdeveniments.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, FullCalendar i stores.
+ * - COMPONENT PRINCIPAL: MainDisplay amb calendar i llistes d'esdeveniments.
+ * - ESTAT I REFS: Estat de filtres, vista seleccionada i refs de calendari.
+ * - FILTRATGE I ORDENACIÓ: Lògica de filtratge i ordenació d'esdeveniments.
+ * - HANDLERS: Gestió de clics, drag&drop i accions d'esdeveniments.
+ * - RENDERITZAT: Estructura de vista amb calendar i llistes.
+ * =============================================================================
+ */
+
 import React, { useState, useRef, useEffect, useMemo, useImperativeHandle, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../types';

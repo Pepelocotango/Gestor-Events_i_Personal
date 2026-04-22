@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * MERGE OR REPLACE MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per elegir entre fusionar o reemplaçar elements.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: MergeOrReplaceModal amb botons d'acció.
+ * =============================================================================
+ */
+
 import Modal from '../ui/Modal';
 import Tooltip from '../ui/Tooltip';
 import { useTranslation } from 'react-i18next';

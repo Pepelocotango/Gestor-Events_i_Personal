@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * ERROR BOUNDARY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component ErrorBoundary per capturar errors i mostrar UI d'error.
+ *
+ * ÍNDEX:
+ * - COMPONENT INTERNE: ErrorBoundaryInner classe component.
+ * - WRAPPER FUNCIONAL: ErrorBoundary wrapper amb fallback UI.
+ * =============================================================================
+ */
+
 import { Component, ErrorInfo, ReactNode } from 'react';
 import logger from '../utils/logger';
 

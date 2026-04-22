@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * ASSIGNMENT CARD
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de targeta per mostrar assignacions amb estats i gestió d'estats diaris.
+ *
+ * ÍNDEX:
+ * - IMPORTS I FUNCIONS AUXILIARS: Llibreries React i helpers de dates.
+ * - COMPONENT PRINCIPAL: AssignmentCard amb visualització d'estats i gestió.
+ * =============================================================================
+ */
+
 import React, { useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EventFrame, Assignment, AssignmentStatus } from '../types';

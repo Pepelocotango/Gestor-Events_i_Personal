@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * TECH SHEET MIGRATION
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Migració de dades de fitxes tècniques des de formats antics al nou format.
+ *
+ * ÍNDEX:
+ * - IMPORTS I FUNCIONS AUXILIARS: Llibreries i helpers per a la migració.
+ * - CREACIÓ DE FITXA PER DEFECTE: createDefaultTechSheetForMigration.
+ * - MIGRACIÓ DE DADES: migrateTechSheetData per convertir formats antics.
+ * =============================================================================
+ */
+
 import { TechSheetData, EventFrame, ConditionalStatus, NeedItem } from '../types';
 import { formatDateDMY } from './dateFormat';
 import logger from './logger';

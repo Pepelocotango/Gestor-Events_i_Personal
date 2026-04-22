@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * LANGUAGE SELECTOR
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component selector d'idioma per canviar entre català, castellà i anglès.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: LanguageSelector amb menú desplegable d'idiomes.
+ * - HANDLERS: changeLanguage per canviar idioma i persistir-lo.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';

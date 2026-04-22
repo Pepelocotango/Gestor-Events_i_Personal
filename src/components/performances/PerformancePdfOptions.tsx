@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * PERFORMANCE PDF OPTIONS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per configurar opcions d'exportació PDF d'actuacions.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: PerformancePdfOptionsComponent amb checkboxes i botó.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PerformancePdfOptions } from '../../types';

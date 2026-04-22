@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * PERFORMANCES DISPLAY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per mostrar i gestionar les actuacions amb lazy loading.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components lazy.
+ * - COMPONENT PRINCIPAL: PerformancesDisplay amb llista i detalls.
+ * - ESTAT I FILTRATGE: Estat de selecció i filtres.
+ * - HANDLERS: Gestió d'edició, esborrat i exportació.
+ * - RENDERITZAT: Estructura amb Suspense per lazy loading.
+ * =============================================================================
+ */
+
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';

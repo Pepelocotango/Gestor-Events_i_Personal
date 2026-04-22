@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * MATERIAL CONTROL FILTERS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de filtres per al control de material amb checkboxes.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React i components UI.
+ * - SUB-COMPONENTS: CheckboxList per llistes de checkboxes.
+ * - COMPONENT PRINCIPAL: MaterialControlFilters amb filtres.
+ * - HANDLERS: Gestió de canvis de filtres.
+ * - RENDERITZAT: Estructura de filtres amb CollapsibleSection.
+ * =============================================================================
+ */
+
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EventFrame } from '../types';

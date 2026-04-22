@@ -1,3 +1,23 @@
+/**
+ * =============================================================================
+ * ESQUEMA UI DESKTOP
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Documentació de l'estructura visual, funcionalitats i interaccions de la UI de l'aplicació d'escriptori.
+ *
+ * ÍNDEX:
+ * - ESTRUCTURA GENERAL: Barra de menú, navegació i àrea de contingut.
+ * - PANTALLA DE BENVINGUDA: WelcomeScreen amb botons de creació/obertura de documents.
+ * - BARRA DE MENÚ SUPERIOR: CustomMenuBar amb menús d'Arxiu, Edita, Veure i Ajuda.
+ * - SECCIÓ PRINCIPAL: MainDisplay amb calendari, llista d'esdeveniments i resums.
+ * - SECCIÓ DE PERSONAL: PeopleDisplay per a la gestió de contactes.
+ * - SECCIÓ DE MATERIAL: MaterialDisplay i Centre de Control de Material.
+ * - SECCIÓ DE FITXES TÈCNIQUES: TechSheetsDisplay per a la gestió de fitxes de bolo.
+ * - SECCIÓ D'ACTUACIONS: PerformancesDisplay amb gestió d'actuacions artístiques.
+ * - WORKSHOP DE RIDERS: RiderWorkshop per al disseny tècnic i logística de material.
+ * =============================================================================
+ */
+
 # Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v1.6.4)
 
 Aquest document detalla l'estructura visual, les funcionalitats i les interaccions de l'usuari a l'aplicació d'escriptori.

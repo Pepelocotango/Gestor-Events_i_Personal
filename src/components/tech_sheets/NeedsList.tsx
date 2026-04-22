@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * NEEDS LIST
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de llista d'ítems de necessitat de material amb ordenació.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: NeedsList amb llista de NeedItem.
+ * =============================================================================
+ */
+
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MaterialItem } from '../../types';

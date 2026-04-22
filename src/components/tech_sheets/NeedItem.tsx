@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * NEED ITEM
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per mostrar i editar un ítem de necessitat de material.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: NeedItem amb camps de material i disponibilitat.
+ * =============================================================================
+ */
+
 import React, { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import TechSheetField from './TechSheetField';

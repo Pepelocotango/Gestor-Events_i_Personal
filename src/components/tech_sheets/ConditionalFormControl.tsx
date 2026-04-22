@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * CONDITIONAL FORM CONTROL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de control de formulari condicional amb estats yes/no/unset.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: ConditionalFormControl amb estat i contingut condicional.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ConditionalStatus } from '../../types';

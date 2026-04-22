@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * PERFORMANCE TECH FORM
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de formulari per editar la informació tècnica d'una actuació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components.
+ * - COMPONENT PRINCIPAL: PerformanceTechForm amb RiderBalance.
+ * - ESTAT I HANDLERS: Gestió d'estat amb useBufferedSave.
+ * - RENDERITZAT: Estructura de formulari amb RiderBalance.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';

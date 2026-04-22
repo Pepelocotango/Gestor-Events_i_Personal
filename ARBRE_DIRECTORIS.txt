@@ -1,3 +1,22 @@
+/**
+ * =============================================================================
+ * ARBRE DE DIRECTORIS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Documentació visual de l'estructura de directoris del projecte Gestor-Events_i_Personal.
+ * Inclou descripcions detallades de cada carpeta i fitxer important.
+ *
+ * ÍNDEX:
+ * - DIRECTORIS PRINCIPALS: .gemini, .github, build, dist, examples json, imatges, captures_pantalla.
+ * - APPS_WEB: Aplicacions web (landing i documentation) amb estructura Astro i Docusaurus.
+ * - MOBILE_APP: Aplicació mòbil React Native amb Expo, estructura de components i pantalles.
+ * - PUBLIC: Actius públics per a la compilació.
+ * - SCRIPTS: Scripts d'utilitat per a desenvolupament i compilació.
+ * - SRC: Codi font principal amb components, stores, hooks, utils i tipus.
+ * - FITXERS DE CONFIGURACIÓ: package.json, vite.config.ts, tailwind.config.cjs, etc.
+ * =============================================================================
+ */
+
 enllaç a Gestor-Events_i_Personal/
 ├── .gemini/
 │   ├── GEMINI.md               # Context i directrius per a l'IA.

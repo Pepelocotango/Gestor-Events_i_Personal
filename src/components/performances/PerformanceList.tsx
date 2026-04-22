@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * PERFORMANCE LIST
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de llista d'actuacions amb drag & drop per reordenar.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, dnd-kit i components.
+ * - COMPONENT PRINCIPAL: PerformanceList amb llista reordenable.
+ * - ESTAT I HANDLERS: Estat de drag & drop i funcions de gestió.
+ * - RENDERITZAT: Estructura de llista amb SortablePerformance.
+ * =============================================================================
+ */
+
 import React, { useCallback, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {

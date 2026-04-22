@@ -1,3 +1,20 @@
+/**
+ * =============================================================================
+ * RIDER PDF CONFIG STORE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Store de Zustand per a la configuració de PDF de riders amb auto-save.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries Zustand, immer i tipus de configuració.
+ * - ESTAT I TIPUS: RiderPdfConfigState, RiderPdfConfigActions.
+ * - CONFIGURACIÓ PER DEFECTE: defaultConfig amb valors predeterminats.
+ * - STORE PRINCIPAL: Configuració del store amb middleware immer.
+ * - AUTO-SAVE: autoSaveRiderPdfConfig amb retard de 1 segon.
+ * - FUNCIONS AUXILIARS: getPdfOptionsFromConfig per convertir configuració a opcions.
+ * =============================================================================
+ */
+
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { RiderPdfConfig } from '../types';

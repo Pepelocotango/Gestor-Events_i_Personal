@@ -1,3 +1,21 @@
+/**
+ * =============================================================================
+ * BUFFERED SAVE HOOK
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Hook React per gestionar el desat en memòria intermèdia de formularis amb auto-save.
+ *
+ * ÍNDEX:
+ * - IMPORTS I TIPUS: Llibreries React i definicions de tipus.
+ * - HOOK PRINCIPAL: useBufferedSave amb estat local i refs.
+ * - AUTO-SAVE: Timeout de 2 segons després de l'últim canvi.
+ * - SINCRONITZACIÓ I CLEANUP: Sincronització amb dades inicials i cleanup on unmount.
+ * - FUNCIONS D'ACTUALITZACIÓ: updateLocal, updateFullObject, saveNow.
+ * - LISTENERS DE GUARDAT GLOBAL: Registre al saveManager per Ctrl+S.
+ * - EVENTS DE FINESTRA: beforeunload i visibilitychange per evitar pèrdua de dades.
+ * =============================================================================
+ */
+
 import { useState, useEffect, useRef, useCallback, MutableRefObject } from 'react';
 import { useEventDataStore } from '../stores/eventDataStore';
 import { registerSaveListener } from '../utils/saveManager';

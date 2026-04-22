@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * NAVIGATION
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de navegació principal amb enllaços a les diferents vistes.
+ *
+ * ÍNDEX:
+ * - ICONS: DocumentTextIcon i altres icones SVG.
+ * - COMPONENT PRINCIPAL: Navigation amb NavLink i tooltips.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

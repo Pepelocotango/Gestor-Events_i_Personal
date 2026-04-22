@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * RIDER BALANCE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per calcular i mostrar el balanç de rider d'una actuació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, lucide i components.
+ * - COMPONENT PRINCIPAL: RiderBalance amb càlculs de balanç.
+ * - ESTAT I CÀLCULS: Estat de filtres i càlculs de totals.
+ * - HANDLERS: Gestió de canvis de filtres i exportació.
+ * - RENDERITZAT: Estructura de taula amb balanç de rider.
+ * =============================================================================
+ */
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   ChartBarIcon, 

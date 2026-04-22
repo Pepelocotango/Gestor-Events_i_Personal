@@ -1,3 +1,21 @@
+/**
+ * =============================================================================
+ * TECH SHEET FORM
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Formulari principal per a la gestió i edició de les fitxes tècniques d'esdeveniments.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEFINICIONS: Llibreries, tipus i dependències necessàries.
+ * - SUB-COMPONENTS: Components auxiliars per a seccions específiques del formulari (ex: NeedsSection).
+ * - COMPONENT PRINCIPAL TECHSHEETFORM: Nucli del formulari d'edició.
+ * - LÒGICA D'ESTAT I SAVE: Gestió de dades locals, persistència (save) i detecció de canvis.
+ * - MÈTODES DE GESTIÓ DEL FORMULARI: Funcions per actualitzar, validar i gestionar els camps.
+ * - RENDERITZAT PRINCIPAL DEL FORMULARI: Estructura visual de totes les seccions tècniques.
+ * - UTILS I HANDLERS D'ESDEVENIMENTS: Funcions per a l'ordenació i manipulació de llistes.
+ * =============================================================================
+ */
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../../stores/eventDataStore';
@@ -22,6 +40,10 @@ interface TechSheetFormProps {
 }
 
 type TechSheetNeedsKey = 'lighting' | 'sound' | 'video' | 'machinery' | 'rentals' | 'otherEquipment' | 'electrical' | 'structures' | 'platforms' | 'consumables' | 'curtains' | 'transport';
+
+// =============================================================================
+// SUB-COMPONENTS
+// =============================================================================
 
 interface NeedsSectionProps {
   fieldName: TechSheetNeedsKey;
@@ -95,6 +117,10 @@ const NeedsSection = React.memo<NeedsSectionProps>(({
     </ConditionalFormControl>
   );
 });
+
+// =============================================================================
+// COMPONENT PRINCIPAL TECHSHEETFORM
+// =============================================================================
 
 const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) => {
   const { t } = useTranslation();

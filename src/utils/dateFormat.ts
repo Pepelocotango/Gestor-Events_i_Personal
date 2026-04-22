@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * DATE FORMAT
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Funcions per al formatat de dates, hores i generació de noms de fitxer.
+ *
+ * ÍNDEX:
+ * - FUNCIONS DE FORMAT DE DATA: formatDateDMY, formatDateRangeDMY, addDaysISO.
+ * - FUNCIONS DE FORMAT D'HORA: formatTimeHHMM per normalitzar formats d'hora.
+ * - GENERACIÓ DE NOMS DE FITXER: generateDefaultFileName per a còpies de seguretat.
+ * =============================================================================
+ */
+
 export function formatDateDMY(dateStr?: string | null): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);

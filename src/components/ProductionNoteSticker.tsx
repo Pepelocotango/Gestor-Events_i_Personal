@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * PRODUCTION NOTE STICKER
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component d'etiqueta per mostrar i editar notes de producció.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: ProductionNoteSticker amb mode visualització i edició.
+ * - HANDLERS: handleDoubleClick per activar mode edició.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Tooltip from './ui/Tooltip';

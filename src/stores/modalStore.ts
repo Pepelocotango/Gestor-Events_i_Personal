@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * MODAL STORE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Store de Zustand per a la gestió de modals de l'aplicació.
+ *
+ * ÍNDEX:
+ * - ESTAT I TIPUS: ModalState i ModalActions per a la gestió de modals.
+ * - STORE PRINCIPAL: Configuració del store amb middleware devtools.
+ * =============================================================================
+ */
+
 import { create } from 'zustand';
 import { ModalType, ModalData } from '../types';
 import { devtools } from 'zustand/middleware';

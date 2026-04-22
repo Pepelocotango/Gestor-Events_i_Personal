@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * CUSTOM MENU BAR
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Barra de menú personalitzada per a l'aplicació amb suport per a tema, undo/redo i fitxers recents.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, i18n i icones.
+ * - COMPONENT PRINCIPAL: CustomMenuBar amb menús desplegables.
+ * - HANDLERS: Gestió de menús, tema i accions.
+ * =============================================================================
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SunIcon, MoonIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ClockIcon } from '../../constants';

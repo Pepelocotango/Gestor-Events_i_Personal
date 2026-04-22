@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * SUMMARIES DISPLAY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per mostrar informes i resums estadístics de l'aplicació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i selectors.
+ * - COMPONENT PRINCIPAL: SummariesDisplay amb informes.
+ * - ESTAT I FILTRATGE: Estat de filtres aplicats.
+ * - RENDERITZAT: Estructura amb SummaryReports.
+ * =============================================================================
+ */
+
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';

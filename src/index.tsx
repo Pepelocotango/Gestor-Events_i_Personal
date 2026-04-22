@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * INDEX
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Punt d'entrada de l'aplicació React amb interceptor de consola per a logs.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, ReactDOM i App.
+ * - INTERCEPTOR DE CONSOLA: Captura de logs i enviament al procés principal.
+ * - RENDERITZAT: Muntatge de l'aplicació React al DOM.
+ * =============================================================================
+ */
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';

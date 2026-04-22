@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * TECH SHEET FIELD
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de camp de formulari per a fitxes tècniques amb suport per suggestions.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: TechSheetField amb input/textarea i suggestions.
+ * =============================================================================
+ */
+
 import React, { memo, useRef, useState, useEffect, useCallback } from 'react';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';

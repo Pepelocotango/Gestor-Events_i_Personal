@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * WELCOME SCREEN
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Pantalla de benvinguda amb opcions per crear, obrir o obrir fitxers recents.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React i i18n.
+ * - COMPONENT PRINCIPAL: WelcomeScreen amb botons d'acció i fitxers recents.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 

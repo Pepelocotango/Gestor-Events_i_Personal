@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * PERFORMANCE BASIC FORM
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de formulari per editar la informació bàsica d'una actuació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i hooks.
+ * - COMPONENT PRINCIPAL: PerformanceBasicForm amb camps bàsics.
+ * - ESTAT I HANDLERS: Gestió d'estat amb useBufferedSave.
+ * - RENDERITZAT: Estructura de formulari amb camps bàsics.
+ * =============================================================================
+ */
+
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Performance } from '../../types';

@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * GOOGLE SETTINGS MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal de configuració per a Google Calendar amb gestió de calendari.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components UI.
+ * - COMPONENT PRINCIPAL: GoogleSettingsModal amb configuració de Google.
+ * - ESTAT I HANDLERS: Estat de configuració i funcions de gestió.
+ * - RENDERITZAT: Estructura de formulari amb configuració.
+ * =============================================================================
+ */
+
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShowToastFunction, GoogleCalendar, ManagedAppCalendar } from '@/types';

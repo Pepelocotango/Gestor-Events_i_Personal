@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * MATERIAL FORM
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de formulari per afegir/editar material amb validació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React i components UI.
+ * - COMPONENT PRINCIPAL: MaterialForm amb camps de material.
+ * - ESTAT I VALIDACIÓ: Estat de formulari i validació.
+ * - HANDLERS: Gestió de canvis i enviament.
+ * - RENDERITZAT: Estructura de formulari amb camps.
+ * =============================================================================
+ */
+
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MaterialItem } from '../../types';

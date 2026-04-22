@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * SELECTORS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Selectors per obtenir dades filtrades i derivades de l'estat global.
+ *
+ * ÍNDEX:
+ * - IMPORTS: Llibreries i tipus necessaris.
+ * - SELECTORS DE FILTRATGE: selectFilteredEventFrames per filtrar esdeveniments.
+ * =============================================================================
+ */
+
 import { EventFrame, Assignment, AssignmentStatus } from '../types';
 
 /**

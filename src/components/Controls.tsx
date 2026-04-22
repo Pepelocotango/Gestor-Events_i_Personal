@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * CONTROLS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de controls principals amb botons per guardar, sincronitzar i configuració.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: Controls amb botons d'acció i menú desplegable.
+ * - HANDLERS: Gestió de sincronització i obertura de modals.
+ * =============================================================================
+ */
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';

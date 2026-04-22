@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * TECHNICAL PERSONNEL SECTION
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per gestionar el personal tècnic amb drag & drop i sincronització.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, dnd-kit, stores i components.
+ * - COMPONENT PRINCIPAL: TechnicalPersonnelSection amb llista de proveïdors.
+ * - HANDLERS: Gestió de drag & drop i sincronització amb assignacions.
+ * =============================================================================
+ */
+
 import React, { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {

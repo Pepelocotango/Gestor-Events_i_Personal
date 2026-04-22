@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * LOGGING MIDDLEWARE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Middleware de Zustand per a registrar accions i canvis d'estat al logger.
+ *
+ * ÍNDEX:
+ * - MIDDLEWARE DE LOGGING: loggingMiddleware per registrar accions de Zustand.
+ * =============================================================================
+ */
+
 import { StateCreator } from 'zustand';
 import logger from '../utils/logger';
 

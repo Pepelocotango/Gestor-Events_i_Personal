@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * PDF PREVIEW MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per previsualitzar PDFs amb iframe i opcions de desament.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: PdfPreviewModal amb previsualització PDF.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 

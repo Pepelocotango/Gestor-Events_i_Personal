@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * HISTORY MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per mostrar l'historial d'undo/redo amb botons d'acció.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: HistoryModal amb llista d'estats passats.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTemporalStore, useEventDataStore } from '../../stores/eventDataStore';

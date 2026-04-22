@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * SELECT SYNC CALENDAR MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per seleccionar un calendari per a la sincronització.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: SelectSyncCalendarModal amb selecció de calendari.
+ * =============================================================================
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ManagedAppCalendar } from '@/types';

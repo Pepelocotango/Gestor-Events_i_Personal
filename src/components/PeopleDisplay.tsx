@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * PEOPLE DISPLAY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per mostrar i gestionar els grups de persones amb filtres i exportació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components UI.
+ * - COMPONENT PRINCIPAL: PeopleDisplay amb llista de persones.
+ * - ESTAT I FILTRATGE: Estat de filtres i cerca.
+ * - HANDLERS: Gestió d'edició, esborrat i exportació.
+ * - RENDERITZAT: Estructura de taula amb persones.
+ * =============================================================================
+ */
+
 import React, { useState, FormEvent, useMemo } from 'react';
 import { saveAs } from 'file-saver';
 import { useTranslation } from 'react-i18next';

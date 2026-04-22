@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * APP
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component principal de l'aplicació amb rutes, modals i gestió d'estat global.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, router, stores i components.
+ * - COMPONENTS PRINCIPALS: MainDisplay, PeopleDisplay, MaterialDisplay, etc.
+ * - MODALS: Components de modals per diferents accions.
+ * - COMPONENT APP: Component App amb rutes i gestió de tema.
+ * =============================================================================
+ */
+
 import { generateDefaultFileName } from './utils/dateFormat';
 import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
