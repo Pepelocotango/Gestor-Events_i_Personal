@@ -53,7 +53,7 @@ jobs:
           mkdir -p GEP_Artifact
           
           # Busquem el DMG i el copiem
-          DMG_FILE=$(find dist -name "*.dmg" -type f -maxdepth 1 | head -n 1)
+          DMG_FILE=$(find releases -name "*.dmg" -type f -maxdepth 1 | head -n 1)
           cp "$DMG_FILE" GEP_Artifact/
           
           # Copiem la documentació

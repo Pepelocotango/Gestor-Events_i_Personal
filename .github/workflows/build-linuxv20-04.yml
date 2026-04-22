@@ -90,8 +90,8 @@ jobs:
           mkdir -p GEP_Artifact
           
           # Busquem i copiem l'AppImage
-          APPIMAGE_FILE=$(find dist -name "*.AppImage" -type f -printf "%f\n" | head -n 1)
-          cp "dist/${APPIMAGE_FILE}" GEP_Artifact/
+          APPIMAGE_FILE=$(find releases -name "*.AppImage" -type f -printf "%f\n" | head -n 1)
+          cp "releases/${APPIMAGE_FILE}" GEP_Artifact/
           
           # Copiem la documentació i exemples
           cp LICENSE README.md DEVELOPING.md GEP_Artifact/
