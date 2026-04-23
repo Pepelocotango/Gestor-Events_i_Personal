@@ -49,12 +49,12 @@ type ActiveFilters = {
 const createPdfHeader = (pdf: jsPDF, title: string): number => {
   pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(title, 14, 20);
+  pdf.text(title, 14, 10); // Reduït de 20 a 10
   const dateStr = i18next.t('pdf.export_date', { date: formatDateDMY(new Date().toISOString()) });
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(dateStr, pdf.internal.pageSize.getWidth() - 14, 20, { align: 'right' });
-  return 30; // Retorna la posició Y inicial per al contingut
+  pdf.text(dateStr, pdf.internal.pageSize.getWidth() - 14, 10, { align: 'right' }); // Reduït de 20 a 10
+  return 15; // Reduït de 30 a 15 - Retorna la posició Y inicial per al contingut
 };
 
 // Funció genèrica per gestionar el peu de pàgina
@@ -233,7 +233,8 @@ export const exportMaterialToPdf = async (materialItems: MaterialItem[], showToa
           createPdfHeader(pdf, 'Llista de Material');
         }
       },
-      margin: { top: 30, bottom: 15 }
+      // Eliminats marges superior/inferior per maximitzar espai - original: margin: { top: 30, bottom: 15 }
+      margin: { left: 10, right: 10 }
     });
 
     const totalPages = (pdf.internal as any).getNumberOfPages();
@@ -325,7 +326,8 @@ export const exportMaterialControlSummaryPdf = async (
           createPdfHeader(pdf, 'Resum de Control de Material');
         }
       },
-      margin: { top: 30, bottom: 15 }
+      // Eliminats marges superior/inferior per maximitzar espai - original: margin: { top: 30, bottom: 15 }
+      margin: { left: 10, right: 10 }
     });
 
     const totalPages = (pdf.internal as any).getNumberOfPages();
@@ -459,7 +461,8 @@ export const exportPeopleToPdf = async (peopleGroups: PersonGroup[], showToast: 
           createPdfHeader(pdf, "Llibreta d'Adreces");
         }
       },
-      margin: { top: 30, bottom: 15 }
+      // Eliminats marges superior/inferior per maximitzar espai - original: margin: { top: 30, bottom: 15 }
+      margin: { left: 10, right: 10 }
     });
 
     const totalPages = (pdf.internal as any).getNumberOfPages();
@@ -486,7 +489,7 @@ export const generateTechSheetPdfObject = (
   let y = 10;
   const VERTICAL_SPACING = 3;
 
-  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '' : String(value);
   const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
   const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
   const subHeadStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.graySubtle), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold' };
@@ -770,7 +773,8 @@ export const exportEventListToPdf = async (eventFrames: EventFrame[], peopleGrou
       const personnelText = ef.assignments.length > 0 ? ef.assignments.map((a: any) => { const person = peopleGroups.find(p => p.id === a.personGroupId); return `${person ? person.name : 'N/A'} ${getStatusSummaryText(a)}${a.notes ? `  └ Nota: ${a.notes}` : ''}`; }).join('\n\n') : i18next.t('pdf.no_assignments');
       return [ef.name, ef.place || '-', formatDateRangeDMY(ef.startDate, ef.endDate), personnelText, ef.personnelComplete ? i18next.t('pdf.complete_status') : i18next.t('pdf.incomplete_status'), ef.generalNotes || '-'];
     });
-    autoTable(pdf, { head, body, startY: y, theme: 'grid', styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' }, columnStyles: { 3: { cellWidth: 85 }, 5: { cellWidth: 60 } }, didDrawPage: (data: any) => { if (data.pageNumber > 1) createPdfHeader(pdf, i18next.t('pdf.event_list_title')); }, margin: { top: 30, bottom: 15 } });
+    autoTable(pdf, { head, body, startY: y, theme: 'grid', styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' }, columnStyles: { 3: { cellWidth: 85 }, 5: { cellWidth: 60 } }, didDrawPage: (data: any) => { if (data.pageNumber > 1) createPdfHeader(pdf, i18next.t('pdf.event_list_title')); }, // Eliminats marges superior/inferior per maximitzar espai - original: margin: { top: 30, bottom: 15 }
+    margin: { left: 10, right: 10 } });
     const totalPages = (pdf.internal as any).getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) { pdf.setPage(i); addFooter(pdf, i); }
     const fileName = generateFileName('Llista_Esdeveniments', activeFilters, eventFrames, 'pdf');
@@ -783,7 +787,7 @@ export const exportEventListToPdf = async (eventFrames: EventFrame[], peopleGrou
 // =============================================================================
 export const generateEventPerformancesPdfObject = (eventFrame: EventFrame, performances: Performance[]): jsPDF => {
   const pdf = new jsPDF('p', 'mm', 'a4');
-  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '' : String(value);
   const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
   const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
   let y = 10;
@@ -808,7 +812,7 @@ export const exportEventPerformancesSummaryPdf = async (eventFrame: EventFrame, 
 export const exportRegidoriaSummaryPdf = async (eventFrame: EventFrame, performances: Performance[], techSheetData: TechSheetData | undefined, showToast: ShowToastFunction) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '-' : String(value);
+    const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '' : String(value);
     const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
     const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
     let y = 10;
@@ -854,7 +858,7 @@ export const validatePerformanceData = (p: Performance): ValidationResult => {
 // =============================================================================
 // CÀLCUL D'AMPLES ÒPTIMS TIPUS FULLA DE CÀLCUL (AUTOFIT)
 // =============================================================================
-const calculateOptimalColumnWidths = (columnConfig: any, data: any[], orientation: 'portrait' | 'landscape' = 'portrait') => {
+const calculateOptimalColumnWidths = (columnConfig: any, data: any[], orientation: 'portrait' | 'landscape' = 'portrait', headerLabels: Record<string, string> = {}) => {
   // Ample útil amb marge de seguretat (188 en portrait, 275 en landscape)
   const usableWidth = orientation === 'landscape' ? 275 : 188;
   const fontSize = orientation === 'landscape' ? 8.5 : 7;
@@ -896,13 +900,18 @@ const calculateOptimalColumnWidths = (columnConfig: any, data: any[], orientatio
   activeKeys.forEach(key => {
     const rule = rules[key];
     if (rule.isFixed) {
-      idealWidths[key] = rule.width || rule.minW;
+      // Per a columnes fixes, assegurar que l'amplada sigui almenys l'amplada de la capçalera
+      const headerLabel = headerLabels[key] || '';
+      const headerWidth = headerLabel ? (headerLabel.length * mmPerChar) + paddingW : 0;
+      idealWidths[key] = Math.max(rule.width || rule.minW, headerWidth);
       fixedSum += idealWidths[key];
     } else {
       const field = fieldMapping[key];
       const maxLen = field ? Math.max(...data.map(item => String(item[field] || '').trim().length), 0) : 0;
-      // Amplada segons text + padding
-      idealWidths[key] = Math.max(rule.minW, (maxLen * mmPerChar) + paddingW);
+      // Amplada segons text + padding, però com a mínim l'amplada de la capçalera
+      const headerLabel = headerLabels[key] || '';
+      const headerWidth = headerLabel ? (headerLabel.length * mmPerChar) + paddingW : 0;
+      idealWidths[key] = Math.max(rule.minW, (maxLen * mmPerChar) + paddingW, headerWidth);
       elasticSum += idealWidths[key];
     }
   });
@@ -941,7 +950,7 @@ const calculateOptimalColumnWidths = (columnConfig: any, data: any[], orientatio
 // ESTILS I DENSITAT
 // =============================================================================
 const getPerformanceStyles = () => {
-  const sane = (v: any): string => (!v || String(v).trim() === '' || String(v).trim() === '--') ? '-' : String(v);
+  const sane = (v: any): string => (!v || String(v).trim() === '' || String(v).trim() === '--') ? '' : String(v);
   const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold', fontSize: 8.5, cellPadding: 1.5 };
   const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 35, fontSize: 8.5 };
   const emptySectionStyles: Partial<Styles> = { fontStyle: 'italic', textColor: hslToRgb(...themeHslColors.grayMuted) };
@@ -955,9 +964,27 @@ const getTableDensityStyles = (orientation: 'portrait' | 'landscape') => {
 
 const checkPageBreak = (pdf: jsPDF, currentY: number, requiredHeight: number = 20): number => {
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const limit = pageHeight - 15; // 15mm margin from bottom
+  // Eliminat marge inferior de 15mm per maximitzar espai - original: const limit = pageHeight - 15;
+  const limit = pageHeight; // No margin from bottom
   if (currentY > limit - requiredHeight) { pdf.addPage(); return 15; }
   return currentY;
+};
+
+// Funció per assegurar que una secció sencera cap a la pàgina actual
+const ensureSectionFitsOnPage = (pdf: jsPDF, currentY: number, estimatedHeight: number): number => {
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const limit = pageHeight;
+  // Si la secció no cap sencera a la pàgina actual, fer salt de pàgina
+  if (currentY + estimatedHeight > limit) {
+    pdf.addPage();
+    return 15;
+  }
+  return currentY;
+};
+
+// Funció per estimar alçada d'una taula
+const estimateTableHeight = (rowCount: number, headerRowCount: number, cellHeight: number, headerHeight: number): number => {
+  return (headerRowCount * headerHeight) + (rowCount * cellHeight) + 5; // +5mm de marge extra
 };
 
 export const exportPerformanceToPdf = async (performance: Performance, eventFrame: EventFrame) => {
@@ -973,7 +1000,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
   const pdf = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
   const { sane, headStyles, labelStyles } = getPerformanceStyles();
   const densityStyles = getTableDensityStyles(orientation);
-  let y = 15;
+  let y = 5; // Reduït de 15 a 5 - Eliminat marge superior per maximitzar espai
   const mainTitle = `${i18next.t('pdf.performance_rider_title')} - ${performance.name}`;
 
   // 1. Capçalera
@@ -1000,13 +1027,21 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
 
   // 4. Input List
   if (options.includeInputs && performance.techData?.inputList?.length) {
-    y = checkPageBreak(pdf, y, 50);
     const cols = options.inputColumns || { patch: true, channel: true, label: true, rider: true, contra: true, stand: true, notes: true, exclusive: true };
     const colsWithData = { patch: cols.patch, channel: cols.channel, label: cols.label, rider: cols.rider, contra: cols.contra, stand: cols.stand, notes: cols.notes, exclusive: cols.exclusive };
-    const optW = calculateOptimalColumnWidths(colsWithData, performance.techData.inputList, orientation);
+    const headerLabels = { patch: i18next.t('pdf.patch'), channel: i18next.t('pdf.channel'), label: i18next.t('pdf.label'), rider: i18next.t('pdf.mic_rider'), contra: i18next.t('pdf.mic_contra'), stand: i18next.t('pdf.stand'), notes: i18next.t('pdf.notes'), exclusive: i18next.t('pdf.exclusive') };
+    const optW = calculateOptimalColumnWidths(colsWithData, performance.techData.inputList, orientation, headerLabels);
+    
+    // Estimar alçada de la taula Input List
+    const rowCount = performance.techData.inputList.length;
+    const headerRowCount = 2; // Títol + capçalera de columnes
+    const cellHeight = densityStyles.minCellHeight || 6;
+    const headerHeight = 8; // Alçada aproximada de la capçalera
+    const estimatedHeight = estimateTableHeight(rowCount, headerRowCount, cellHeight, headerHeight);
+    y = ensureSectionFitsOnPage(pdf, y, estimatedHeight);
     
     const head: any[] = []; const cStyles: any = {}; let cIdx = 0;
-    const patchColorMap: any = { red:[239, 68, 68], blue: [59, 130, 246], green:[34, 197, 94], yellow:[250, 204, 21], orange:[249, 115, 22], purple: [168, 85, 247], brown: [180, 83, 9] };
+    const patchColorMap: any = { yellow:[255, 255, 0], magenta:[255, 20, 147], green:[0, 255, 0], orange:[255, 140, 0], blue:[0, 191, 255] };
     
     const columnDefinitions = [
       { key: 'patch', label: i18next.t('pdf.patch') },
@@ -1052,13 +1087,19 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
 
   // 5. Monitor List
   if (options.includeMonitors && performance.techData?.monitorList?.length) {
-    y = checkPageBreak(pdf, y, 50);
     const mCols = options.monitorColumns || { patch: true, outputChannel: true, label: true, rider: true, contra: true, stand: true, notes: true, exclusive: true };
     const mColsWithData = { patch: mCols.patch, outputChannel: mCols.outputChannel, label: mCols.label, rider: mCols.rider, contra: mCols.contra, stand: mCols.stand, notes: mCols.notes, exclusive: mCols.exclusive };
-    const mOptW = calculateOptimalColumnWidths(mColsWithData, performance.techData.monitorList, orientation);
+    const mHeaderLabels = { patch: i18next.t('pdf.patch'), outputChannel: i18next.t('pdf.output_channel'), label: i18next.t('pdf.label'), rider: i18next.t('pdf.monitor_rider'), contra: i18next.t('pdf.monitor_contra'), stand: i18next.t('pdf.monitor_stand'), notes: i18next.t('pdf.notes'), exclusive: i18next.t('pdf.exclusive') };
+    const mOptW = calculateOptimalColumnWidths(mColsWithData, performance.techData.monitorList, orientation, mHeaderLabels);
+    
+    // Estimar alçada de la taula Monitor List
+    const mRowCount = performance.techData.monitorList.length;
+    const mHeaderRowCount = 2; // Títol + capçalera de columnes
+    const mEstimatedHeight = estimateTableHeight(mRowCount, mHeaderRowCount, densityStyles.minCellHeight || 6, 8);
+    y = ensureSectionFitsOnPage(pdf, y, mEstimatedHeight);
     
     const mHead: any[] = []; const mcStyles: any = {}; let mcIdx = 0;
-    const patchColorMap: any = { red:[239, 68, 68], blue: [59, 130, 246], green:[34, 197, 94], yellow:[250, 204, 21], orange:[249, 115, 22], purple: [168, 85, 247], brown: [180, 83, 9] };
+    const patchColorMap: any = { yellow:[255, 255, 0], magenta:[255, 20, 147], green:[0, 255, 0], orange:[255, 140, 0], blue:[0, 191, 255] };
 
     const mColumnDefinitions = [
       { key: 'patch', label: i18next.t('pdf.patch') },
@@ -1106,12 +1147,16 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
 
   // 6. Cablejat i Spare
   if (options.includeCable && performance.techData?.cableList?.length) {
-    y = checkPageBreak(pdf, y, 25);
+    const cableRowCount = performance.techData.cableList.length;
+    const cableEstimatedHeight = estimateTableHeight(cableRowCount, 2, 5, 8);
+    y = ensureSectionFitsOnPage(pdf, y, cableEstimatedHeight);
     autoTable(pdf, { head: [[{ content: i18next.t('pdf.cable_list'), colSpan: 3, styles: headStyles }], [i18next.t('pdf.qty'), i18next.t('pdf.material'), i18next.t('pdf.notes')]], body: performance.techData.cableList.map(i => [(i.qty || 1).toString(), sane(i.itemName), sane(i.notes)]), startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: 15, halign: 'center' } }, margin: { left: 10, right: 10 } });
     y = (pdf as any).lastAutoTable.finalY + 3;
   }
   if (options.includeSpare && performance.techData?.spareList?.length) {
-    y = checkPageBreak(pdf, y, 25);
+    const spareRowCount = performance.techData.spareList.length;
+    const spareEstimatedHeight = estimateTableHeight(spareRowCount, 2, 5, 8);
+    y = ensureSectionFitsOnPage(pdf, y, spareEstimatedHeight);
     autoTable(pdf, { head: [[{ content: i18next.t('pdf.spare_list'), colSpan: 3, styles: headStyles }], [i18next.t('pdf.qty'), i18next.t('pdf.material'), i18next.t('pdf.notes')]], body: performance.techData.spareList.map(i => [(i.qty || 1).toString(), sane(i.itemName), sane(i.notes)]), startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: 15, halign: 'center' } }, margin: { left: 10, right: 10 } });
     y = (pdf as any).lastAutoTable.finalY + 3;
   }
@@ -1123,7 +1168,9 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
     if (performance.techData?.videoNotes) tN.push([{ content: i18next.t('pdf.video_notes'), styles: labelStyles }, sane(performance.techData.videoNotes)]);
     if (performance.techData?.stageRequirements) tN.push([{ content: i18next.t('pdf.stage_requirements'), styles: labelStyles }, sane(performance.techData.stageRequirements)]);
     if (tN.length) {
-      y = checkPageBreak(pdf, y, 30); tN.unshift([{ content: i18next.t('pdf.technical_notes'), colSpan: 2, styles: headStyles }]);
+      const techEstimatedHeight = estimateTableHeight(tN.length, 1, 5, 8);
+      y = ensureSectionFitsOnPage(pdf, y, techEstimatedHeight);
+      tN.unshift([{ content: i18next.t('pdf.technical_notes'), colSpan: 2, styles: headStyles }]);
       autoTable(pdf, { body: tN, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 } });
       y = (pdf as any).lastAutoTable.finalY + 3;
     }
@@ -1136,7 +1183,9 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
     if (performance.hospitalityData?.travelLogistics) hN.push([{ content: i18next.t('pdf.travel_logistics'), styles: labelStyles }, sane(performance.hospitalityData.travelLogistics)]);
     if (performance.hospitalityData?.parkingNotes) hN.push([{ content: i18next.t('pdf.parking'), styles: labelStyles }, sane(performance.hospitalityData.parkingNotes)]);
     if (hN.length) {
-      y = checkPageBreak(pdf, y, 30); hN.unshift([{ content: i18next.t('pdf.hospitality'), colSpan: 2, styles: headStyles }]);
+      const hospEstimatedHeight = estimateTableHeight(hN.length, 1, 5, 8);
+      y = ensureSectionFitsOnPage(pdf, y, hospEstimatedHeight);
+      hN.unshift([{ content: i18next.t('pdf.hospitality'), colSpan: 2, styles: headStyles }]);
       autoTable(pdf, { body: hN, theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 } });
       y = (pdf as any).lastAutoTable.finalY + 3;
     }
@@ -1144,7 +1193,8 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
 
   // 8. Notes Generals
   if (options.includeGeneralNotes && performance.notes) {
-    y = checkPageBreak(pdf, y, 20);
+    const genEstimatedHeight = estimateTableHeight(1, 1, 5, 8);
+    y = ensureSectionFitsOnPage(pdf, y, genEstimatedHeight);
     autoTable(pdf, { head: [[{ content: i18next.t('pdf.general_notes'), styles: headStyles }]], body: [[sane(performance.notes)]], startY: y, theme: 'grid', margin: { left: 10, right: 10 }, styles: { cellPadding: 1, fontSize: 7.5 } });
     y = (pdf as any).lastAutoTable.finalY + 3;
   }
@@ -1157,7 +1207,8 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
       if (i.section !== curS) { bData.push([{ content: translateSection(i.section), colSpan: 4, styles: { ...headStyles, fillColor: hslToRgb(...themeHslColors.primary) } }]); curS = i.section; }
       bData.push([sane(i.name), sane(i.location), i.qty.toString(), `${i.available} / ${i.total}`]);
     });
-    y = checkPageBreak(pdf, y, 30);
+    const balanceEstimatedHeight = estimateTableHeight(bData.length, 2, 5, 8);
+    y = ensureSectionFitsOnPage(pdf, y, balanceEstimatedHeight);
     autoTable(pdf, { head: [[{ content: i18next.t('pdf.balance_title'), colSpan: 4, styles: headStyles }], [i18next.t('pdf.material'), i18next.t('pdf.location'), i18next.t('pdf.quantity'), i18next.t('pdf.stock_balance')]], body: bData, startY: y, theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1 }, headStyles, columnStyles: { 0: { cellWidth: orientation === 'landscape' ? 120 : 80 }, 1: { cellWidth: orientation === 'landscape' ? 80 : 60 }, 2: { cellWidth: 20, halign: 'center' }, 3: { cellWidth: 30, halign: 'center' } }, margin: { left: 10, right: 10 } });
   }
 

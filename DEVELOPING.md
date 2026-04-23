@@ -16,12 +16,14 @@ Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, l
 **Resum de canvis tècnics recents:**
 - **PDF Color Patches:** Implementació de visualització de colors a la Input List dels PDFs d'actuacions. Els colors (red, blue, green, yellow, orange, purple, brown) es mostren com a cercles omplerts a la primera columna de la taula, amb el text desplaçat per evitar solapaments.
 - **Sistema de Persistència de Dades Robust:** Implementació completa d'auto-save a tots els formularis (Tech Sheets, Performances) amb protecció contra pèrdua de dades en canvi de pestanya, finestra o focus.
-- **Correccions Crítiques de Bugs:** Solucionat fals "guardat" que permetia tancar l'aplicació amb dades perdudes, i condicions de cursa a la Input List que sobreescribien canals en clics ràpids.
+- **Correccions Crítiques de Bugs:** Solucionat fals "guardat" que permetia tancar l'aplicació amb dades perdudes, i condicions de cursa a la Input List que sobreescriuien canals en clics ràpids.
 - **Optimitzacions de Re-renderitzat:** Extret NeedsSection fora de TechSheetForm per evitar unmount/remount massiu, i afegit funcionalitat de col·lapsar seccions tècniques.
+- **PDF Riders - Millora de Columnes i Colors:** Canvi de noms de columnes del rider PDF (IN, Mic_Rider, Mic_Contra, X, Mix_Rider, Mix_Contra) amb traduccions actualitzades. Canvi de colors del patch a paleta fluorescents (Groc, Magenta, Verd, Taronja, Blau). Regla d'amplada mínima basada en capçalera per garantir llegibilitat.
+- **PDF Riders - Prevenció de Divisions de Pàgina:** Implementació de lògica per assegurar que cap secció del PDF de riders quedi dividida entre pàgines. S'han afegit funcions `ensureSectionFitsOnPage` i `estimateTableHeight` per estimar l'alçada de cada secció abans de generar-la.
 
 **Característiques Noves Detallades:**
 
-### 🎨 PDF Color Visualization
+### PDF Color Visualization
 - **Implementació:** `generatePerformancePdfObjectWithOptions` ara genera cercles de color RGB per cada item de la Input List
 - **Mapa de Colors:** Implementat `patchColorMap` amb valors RGB per a colors semàntics (red: [239, 68, 68], blue: [59, 130, 246], etc.)
 - **Renderitzat:** Utilitzat `didDrawCell` hook de jspdf-autotable per dibuixar cercles i `cellPadding` per desplaçar text
