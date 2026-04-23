@@ -1002,7 +1002,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
   if (options.includeInputs && performance.techData?.inputList?.length) {
     y = checkPageBreak(pdf, y, 50);
     const cols = options.inputColumns || { patch: true, channel: true, label: true, rider: true, contra: true, stand: true, notes: true, exclusive: true };
-    const colsWithData = { patch: cols.patch && performance.techData.inputList.some(i => i.patchNumber), channel: cols.channel && performance.techData.inputList.some(i => i.channel), label: cols.label && performance.techData.inputList.some(i => i.label), rider: cols.rider && performance.techData.inputList.some(i => i.micRider), contra: cols.contra && performance.techData.inputList.some(i => i.micContra), stand: cols.stand && performance.techData.inputList.some(i => i.stand), notes: cols.notes && performance.techData.inputList.some(i => i.extres), exclusive: cols.exclusive && performance.techData.inputList.some(i => i.exclusive) };
+    const colsWithData = { patch: cols.patch, channel: cols.channel, label: cols.label, rider: cols.rider, contra: cols.contra, stand: cols.stand, notes: cols.notes, exclusive: cols.exclusive };
     const optW = calculateOptimalColumnWidths(colsWithData, performance.techData.inputList, orientation);
     
     const head: any[] = []; const cStyles: any = {}; let cIdx = 0;
@@ -1054,7 +1054,7 @@ export const generatePerformancePdfObjectWithOptions = (performance: Performance
   if (options.includeMonitors && performance.techData?.monitorList?.length) {
     y = checkPageBreak(pdf, y, 50);
     const mCols = options.monitorColumns || { patch: true, outputChannel: true, label: true, rider: true, contra: true, stand: true, notes: true, exclusive: true };
-    const mColsWithData = { patch: mCols.patch && performance.techData.monitorList.some(i => i.patchNumber), outputChannel: mCols.outputChannel && performance.techData.monitorList.some(i => i.outputChannel), label: mCols.label && performance.techData.monitorList.some(i => i.label), rider: mCols.rider && performance.techData.monitorList.some(i => i.mixRider), contra: mCols.contra && performance.techData.monitorList.some(i => i.mixContra), stand: mCols.stand && performance.techData.monitorList.some(i => i.mixStand), notes: mCols.notes && performance.techData.monitorList.some(i => i.notes), exclusive: mCols.exclusive && performance.techData.monitorList.some(i => i.exclusive) };
+    const mColsWithData = { patch: mCols.patch, outputChannel: mCols.outputChannel, label: mCols.label, rider: mCols.rider, contra: mCols.contra, stand: mCols.stand, notes: mCols.notes, exclusive: mCols.exclusive };
     const mOptW = calculateOptimalColumnWidths(mColsWithData, performance.techData.monitorList, orientation);
     
     const mHead: any[] = []; const mcStyles: any = {}; let mcIdx = 0;
