@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   ChartBarIcon, 
   ChevronDown, 
@@ -58,6 +59,7 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
   setBalanceConfig,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   
   // Utilitzar directament els valors del store, no estats locals

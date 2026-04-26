@@ -343,7 +343,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${micStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={micContraName || (micStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
+        <Tooltip text={micContraName || (micStatus.isError ? t('rider_workshop.no_stock_available') : t('rider_workshop.placeholder_assign'))}> 
           <div className={`relative flex items-center rounded border transition-all ${isMicActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -359,7 +359,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${standStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={standName || (standStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
+        <Tooltip text={standName || (standStatus.isError ? t('rider_workshop.no_stock_available') : t('rider_workshop.placeholder_assign'))}> 
           <div className={`relative flex items-center rounded border transition-all ${isStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -375,7 +375,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${extresStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={extresName || (extresStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
+        <Tooltip text={extresName || (extresStatus.isError ? t('rider_workshop.no_stock_available') : t('rider_workshop.placeholder_assign'))}> 
           <div className={`relative flex items-center rounded border transition-all ${isExtresActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -551,7 +551,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixContraStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={mixContraName || (mixContraStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
+        <Tooltip text={mixContraName || (mixContraStatus.isError ? t('rider_workshop.no_stock_available') : t('rider_workshop.placeholder_assign'))}> 
           <div className={`relative flex items-center rounded border transition-all ${isMixContraActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -578,7 +578,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixStandStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={mixStandName || (mixStandStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
+        <Tooltip text={mixStandName || (mixStandStatus.isError ? t('rider_workshop.no_stock_available') : t('rider_workshop.placeholder_assign'))}> 
           <div className={`relative flex items-center rounded border transition-all ${isMixStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -681,7 +681,7 @@ const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRem
       </td>
       {/* Item (point and shoot) */}
       <td className={`py-1 px-1.5 min-w-[200px] transition-colors ${itemStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={itemName || (itemStatus.isError ? t('rider_workshop.no_stock_available') : '')}>
+        <Tooltip text={itemName || (itemStatus.isError ? t('rider_workshop.no_stock_available') : t('rider_workshop.placeholder_assign'))}>
           <div className={`relative flex items-center rounded border transition-all ${isItemActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
