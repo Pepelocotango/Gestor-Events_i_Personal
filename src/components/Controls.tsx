@@ -29,6 +29,7 @@ const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
   const { t } = useTranslation();
   const { syncWithGoogle } = useEventDataStore.getState();
   const isSyncing = useEventDataStore(state => state.isSyncing);
+  const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
   const { openModal } = useModalStore.getState();
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -55,6 +56,7 @@ const Controls: React.FC<ControlsProps> = ({ currentFilePath }) => {
             <Tooltip text={currentFilePath || t('controls.no_file_loaded')}>
               <div className="text-xs text-muted-foreground truncate">
                 {t('controls.data_file_label')} <strong>{currentFilePath || t('controls.new_document_unsaved')}</strong>
+                {hasUnsavedChanges && <span className="text-warning ml-1">{t('controls.unsaved_indicator')}</span>}
               </div>
             </Tooltip>
           </div>

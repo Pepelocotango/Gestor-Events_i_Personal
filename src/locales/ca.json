@@ -117,7 +117,8 @@
         "no_file_loaded": "Cap fitxer carregat",
         "sync_button": "Sincronitzar",
         "sync_google_tooltip": "Sincronitzar manualment amb Google Calendar",
-        "syncing": "Sincronitzant..."
+        "syncing": "Sincronitzant...",
+        "unsaved_indicator": "* (canvis sense desar)"
     },
     "csv": {
         "filename_prefix": "Llista_Esdeveniments",
@@ -576,13 +577,18 @@
             "title": "Historial de Canvis"
         },
         "merge_replace": {
+            "action_hint": "Tria una opció per gestionar les dades importades:",
             "cancel_tooltip": "Cancel·lar la càrrega de dades.",
+            "import_notice_text": "Les dades importades s'afegiran a l'espai de treball. El document actiu no es modificarà fins que desados.",
+            "import_notice_title": "⚠️ Aquesta és una importació temporal",
             "merge_button": "Fusionar",
+            "merge_description": "Combina amb les dades existents. Si hi ha conflictes, mantén les existents.",
             "merge_tooltip": "Afegir les noves dades mantenint les existents. Si hi ha conflictes (mateix ID), es mantenen les dades antigues.",
             "question": "Vols fusionar les noves dades de {{itemType}} amb les existents o vols reemplaçar totes les dades actuals?",
             "replace_button": "Reemplaçar",
+            "replace_description": "Esborra totes les dades actuals i carrega només les noves. No es pot desfer fàcilment.",
             "replace_tooltip": "Esborrar totes les dades actuals d'aquest tipus i carregar només les noves.",
-            "title": "Carregar dades de {{itemType}}"
+            "title": "Importar {{itemType}}"
         },
         "pdf_preview": {
             "iframe_title": "Vista Prèvia PDF",

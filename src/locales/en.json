@@ -117,7 +117,8 @@
         "no_file_loaded": "No file loaded",
         "sync_button": "Sync",
         "sync_google_tooltip": "Manually sync with Google Calendar",
-        "syncing": "Syncing..."
+        "syncing": "Syncing...",
+        "unsaved_indicator": "* (unsaved changes)"
     },
     "csv": {
         "filename_prefix": "Event_List",
