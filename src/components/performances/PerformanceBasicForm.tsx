@@ -94,13 +94,15 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                 {t('performances.name')} *
               </label>
             </Tooltip>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleFieldChange('name', e.target.value)}
-              className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-              placeholder={t('performances.name_placeholder')}
-            />
+            <Tooltip text={t('performances.name_tooltip')}>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleFieldChange('name', e.target.value)}
+                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+                placeholder={t('performances.name_placeholder')}
+              />
+            </Tooltip>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -110,16 +112,18 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                   {t('performances.type')}
                 </label>
               </Tooltip>
-              <select
-                value={formData.type}
-                onChange={(e) => handleFieldChange('type', e.target.value)}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-              >
-                <option value="">{t('performances.select_type')}</option>
-                {PERFORMANCE_TYPES.map(type => (
-                  <option key={type.key} value={type.key}>{type.label}</option>
-                ))}
-              </select>
+              <Tooltip text={t('performances.type_tooltip')}>
+                <select
+                  value={formData.type}
+                  onChange={(e) => handleFieldChange('type', e.target.value)}
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+                >
+                  <option value="">{t('performances.select_type')}</option>
+                  {PERFORMANCE_TYPES.map(type => (
+                    <option key={type.key} value={type.key}>{type.label}</option>
+                  ))}
+                </select>
+              </Tooltip>
             </div>
 
             <div>
@@ -128,15 +132,17 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                   {t('performances.performance_status')}
                 </label>
               </Tooltip>
-              <select
-                value={formData.status}
-                onChange={(e) => handleFieldChange('status', e.target.value as 'pending' | 'confirmed' | 'cancelled')}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-              >
-                <option value="pending">{t('performances.status.pending')}</option>
-                <option value="confirmed">{t('performances.status.confirmed')}</option>
-                <option value="cancelled">{t('performances.status.cancelled')}</option>
-              </select>
+              <Tooltip text={t('performances.performance_status_tooltip')}>
+                <select
+                  value={formData.status}
+                  onChange={(e) => handleFieldChange('status', e.target.value as 'pending' | 'confirmed' | 'cancelled')}
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+                >
+                  <option value="pending">{t('performances.status.pending')}</option>
+                  <option value="confirmed">{t('performances.status.confirmed')}</option>
+                  <option value="cancelled">{t('performances.status.cancelled')}</option>
+                </select>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -155,12 +161,14 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                   {t('performances.arrival_time')}
                 </label>
               </Tooltip>
-              <input
-                type="time"
-                value={formatTimeHHMM(formData.arrivalTime || '')}
-                onChange={(e) => handleFieldChange('arrivalTime', e.target.value)}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-              />
+              <Tooltip text={t('performances.arrival_time_tooltip')}>
+                <input
+                  type="time"
+                  value={formatTimeHHMM(formData.arrivalTime || '')}
+                  onChange={(e) => handleFieldChange('arrivalTime', e.target.value)}
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+                />
+              </Tooltip>
             </div>
 
             <div>
@@ -169,12 +177,14 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                   {t('performances.sound_check_time')}
                 </label>
               </Tooltip>
-              <input
-                type="time"
-                value={formatTimeHHMM(formData.soundCheckTime || '')}
-                onChange={(e) => handleFieldChange('soundCheckTime', e.target.value)}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-              />
+              <Tooltip text={t('performances.sound_check_time_tooltip')}>
+                <input
+                  type="time"
+                  value={formatTimeHHMM(formData.soundCheckTime || '')}
+                  onChange={(e) => handleFieldChange('soundCheckTime', e.target.value)}
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+                />
+              </Tooltip>
             </div>
 
             <div>
@@ -183,12 +193,14 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
                   {t('performances.show_time')}
                 </label>
               </Tooltip>
-              <input
-                type="time"
-                value={formatTimeHHMM(formData.showTime || '')}
-                onChange={(e) => handleFieldChange('showTime', e.target.value)}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-              />
+              <Tooltip text={t('performances.show_time_tooltip')}>
+                <input
+                  type="time"
+                  value={formatTimeHHMM(formData.showTime || '')}
+                  onChange={(e) => handleFieldChange('showTime', e.target.value)}
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+                />
+              </Tooltip>
             </div>
 
             <div>
@@ -229,50 +241,39 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
           {t('performances.contact_title')}
         </h3>
         <div className="space-y-4">
-          <div>
-            <Tooltip text={t('performances.contact_name_tooltip')}>
-              <label className="block text-sm font-medium mb-2">
-                {t('performances.contact_name')}
-              </label>
-            </Tooltip>
-            <input
-              type="text"
-              value={formData.contactName}
-              onChange={(e) => handleFieldChange('contactName', e.target.value)}
-              className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-              placeholder={t('performances.contact_name_placeholder')}
-            />
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Tooltip text={t('performances.contact_name_tooltip')}>
+                <label className="block text-sm font-medium mb-2">
+                  {t('performances.contact_name')}
+                </label>
+              </Tooltip>
+              <Tooltip text={t('performances.contact_name_tooltip')}>
+                <input
+                  type="text"
+                  value={formData.contactName}
+                  onChange={(e) => handleFieldChange('contactName', e.target.value)}
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+                  placeholder={t('performances.contact_name_placeholder')}
+                />
+              </Tooltip>
+            </div>
+
             <div>
               <Tooltip text={t('performances.contact_phone_tooltip')}>
                 <label className="block text-sm font-medium mb-2">
                   {t('performances.contact_phone')}
                 </label>
               </Tooltip>
-              <input
-                type="tel"
-                value={formData.contactPhone}
-                onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-                placeholder={t('performances.contact_phone_placeholder')}
-              />
-            </div>
-
-            <div>
-              <Tooltip text={t('performances.contact_email_tooltip')}>
-                <label className="block text-sm font-medium mb-2">
-                  {t('performances.contact_email')}
-                </label>
+              <Tooltip text={t('performances.contact_phone_tooltip')}>
+                <input
+                  type="tel"
+                  value={formData.contactPhone}
+                  onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
+                  placeholder={t('performances.contact_phone_placeholder')}
+                />
               </Tooltip>
-              <input
-                type="email"
-                value={formData.contactEmail}
-                onChange={(e) => handleFieldChange('contactEmail', e.target.value)}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary"
-                placeholder={t('performances.contact_email_placeholder')}
-              />
             </div>
           </div>
         </div>
@@ -301,22 +302,24 @@ const PerformanceBasicForm: React.FC<PerformanceBasicFormProps> = ({
 
       {/* Save Button */}
       <div className="flex justify-end pt-6 border-t border-border">
-        <button
-          onClick={saveNow}
-          disabled={!isDirty}
-          className={`px-6 py-2 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
-            isDirty
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-              : 'bg-secondary text-secondary-foreground/50 cursor-not-allowed'
-          }`}
-        >
-          {isDirty ? t('performances.save_changes') : (
-            <>
-              <span className="text-lg">✓</span>
-              {t('performances.saved')}
-            </>
-          )}
-        </button>
+        <Tooltip text={isDirty ? t('performances.save_tooltip') : t('performances.saved_tooltip')}>
+          <button
+            onClick={saveNow}
+            disabled={!isDirty}
+            className={`px-6 py-2 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
+              isDirty
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                : 'bg-secondary text-secondary-foreground/50 cursor-not-allowed'
+            }`}
+          >
+            {isDirty ? t('performances.save_changes') : (
+              <>
+                <span className="text-lg">✓</span>
+                {t('performances.saved')}
+              </>
+            )}
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

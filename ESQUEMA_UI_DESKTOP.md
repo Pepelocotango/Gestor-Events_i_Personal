@@ -314,3 +314,4 @@ Nova interfície professional d'alta densitat per al disseny tècnic i logístic
 ### 9.4. Tooltips i UX Tècnica
 - **Visualització:** Totes les cel·les amb text llarg mostren el contingut sencer en passar el ratolí.
 - **Edició Concurrent:** Sistema de buffering (`useBufferedSave`) que permet una edició ultra-ràpida sense latència de disc, sincronitzant els canvis en segon pla.
+- **Hotkeys de Teclat:** Prem **Ctrl+Enter** (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors quan tens el focus en la secció corresponent. El sistema detecta automàticament on està el focus i executa l'acció adequada.

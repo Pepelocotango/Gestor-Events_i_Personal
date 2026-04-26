@@ -20,6 +20,7 @@ import { Performance } from '../../types';
 import { LayoutGridIcon } from '../../constants';
 import { useEventDataStore } from '../../stores/eventDataStore';
 import RiderBalance from './RiderBalance';
+import Tooltip from '../ui/Tooltip';
 
 interface PerformanceTechFormProps {
   eventFrameId: string;
@@ -71,18 +72,20 @@ const PerformanceTechForm: React.FC<PerformanceTechFormProps> = ({
     <div className="space-y-8">
       {/* Avís i Botó Rider */}
       <div className="flex justify-between items-center p-3 bg-primary/5 border border-primary/20 rounded-lg">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-md">
           <LayoutGridIcon className="w-5 h-5 text-primary" />
           <p className="text-sm font-medium text-primary">
             {t('performances.tech_read_only_msg', { defaultValue: "L'edició tècnica s'ha mogut al nou mòdul de Riders." })}
           </p>
         </div>
-        <button
-          onClick={() => navigate(`/riders/${eventFrameId}`)}
-          className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm"
-        >
-          {t('rider_workshop.title')}
-        </button>
+        <Tooltip text={t('performances.open_rider_workshop_tooltip')}>
+          <button
+            onClick={() => navigate(`/riders/${eventFrameId}`)}
+            className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            {t('rider_workshop.title')}
+          </button>
+        </Tooltip>
       </div>
 
       {/* LLISTA D'INPUTS (CH IN) */}

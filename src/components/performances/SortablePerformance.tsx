@@ -130,15 +130,17 @@ const SortablePerformance: React.FC<SortablePerformanceProps> = ({
         onClick={onSelect}
       >
         {/* Drag handle */}
-        <button
-          {...attributes}
-          {...listeners}
-          className="absolute top-1/2 -left-6 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md cursor-grab focus:outline-none focus:ring-2 focus:ring-ring"
-          aria-label={t('performances.drag_tooltip')}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <GripVertical size={20} />
-        </button>
+        <Tooltip text={t('performances.drag_tooltip')}>
+          <button
+            {...attributes}
+            {...listeners}
+            className="absolute top-1/2 -left-6 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md cursor-grab focus:outline-none focus:ring-2 focus:ring-ring"
+            aria-label={t('performances.drag_tooltip')}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical size={20} />
+          </button>
+        </Tooltip>
 
         <div className="flex justify-between items-start">
           <div className="flex-1 min-w-0">

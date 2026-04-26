@@ -16,6 +16,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
 import { InputListItem } from '../../types';
 import { TrashIcon } from '../../constants';
+import Tooltip from '../ui/Tooltip';
 
 interface SortableInputRowProps {
   item: InputListItem;
@@ -73,117 +74,137 @@ const SortableInputRow: React.FC<SortableInputRowProps> = ({
     >
       {/* Drag Handle */}
       <td className="w-10 text-center">
-        <button
-          {...attributes}
-          {...listeners}
-          className="p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded cursor-grab focus:outline-none focus:ring-2 focus:ring-ring"
-          aria-label={t('performances.drag_tooltip')}
-        >
-          <GripVertical size={16} />
-        </button>
+        <Tooltip text={t('performances.drag_tooltip')}>
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded cursor-grab focus:outline-none focus:ring-2 focus:ring-ring"
+            aria-label={t('performances.drag_tooltip')}
+          >
+            <GripVertical size={16} />
+          </button>
+        </Tooltip>
       </td>
 
       {/* Patch */}
       <td className="py-2 px-2">
         <div className="flex items-center gap-1">
-          <button
-            onClick={handlePatchColorClick}
-            className={`w-6 h-6 rounded-full border-2 border-gray-400 transition-colors ${
-              patchColors.find(color => color.name === item.patchColor)?.class || patchColors[0].class
-            }`}
-            aria-label={t('performances.patch_header')}
-          />
-          <input
-            type="text"
-            value={item.patchNumber || ''}
-            onChange={(e) => onChange(item.id, 'patchNumber', e.target.value)}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="w-8 px-1 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            placeholder="#"
-          />
+          <Tooltip text={t('performances.patch_header')}>
+            <button
+              onClick={handlePatchColorClick}
+              className={`w-6 h-6 rounded-full border-2 border-gray-400 transition-colors ${
+                patchColors.find(color => color.name === item.patchColor)?.class || patchColors[0].class
+              }`}
+              aria-label={t('performances.patch_header')}
+            />
+          </Tooltip>
+          <Tooltip text={t('performances.patch_number_tooltip')}>
+            <input
+              type="text"
+              value={item.patchNumber || ''}
+              onChange={(e) => onChange(item.id, 'patchNumber', e.target.value)}
+              placeholder={t('performances.patch_placeholder')}
+              className="w-16 px-2 py-1 text-xs bg-input border border-border rounded focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </Tooltip>
         </div>
       </td>
 
       {/* Channel */}
       <td className="py-2 px-2">
-        <input
-          type="text"
-          value={item.channel || ''}
-          onChange={(e) => onChange(item.id, 'channel', e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-10 px-1 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          placeholder={t('performances.channel_placeholder')}
-        />
+        <Tooltip text={t('performances.channel_tooltip')}>
+          <input
+            type="text"
+            value={item.channel || ''}
+            onChange={(e) => onChange(item.id, 'channel', e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-10 px-1 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder={t('performances.channel_placeholder')}
+          />
+        </Tooltip>
       </td>
 
       {/* Label */}
       <td className="py-2 px-2">
-        <input
-          type="text"
-          value={item.label}
-          onChange={(e) => onChange(item.id, 'label', e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          placeholder={t('performances.label_placeholder')}
-        />
+        <Tooltip text={t('performances.label_tooltip')}>
+          <input
+            type="text"
+            value={item.label}
+            onChange={(e) => onChange(item.id, 'label', e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder={t('performances.label_placeholder')}
+          />
+        </Tooltip>
       </td>
 
-      {/* Mic (Rider) */}
+      {/* Rider */}
       <td className="py-2 px-2">
-        <input
-          type="text"
-          value={item.micRider}
-          onChange={(e) => onChange(item.id, 'micRider', e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          placeholder={t('performances.mic_di_placeholder')}
-        />
+        <Tooltip text={t('performances.rider_tooltip')}>
+          <input
+            type="text"
+            value={item.micRider}
+            onChange={(e) => onChange(item.id, 'micRider', e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder={t('performances.rider_placeholder')}
+          />
+        </Tooltip>
       </td>
 
-      {/* Mic (Contra) */}
+      {/* Contra */}
       <td className="py-2 px-2">
-        <input
-          type="text"
-          value={item.micContra}
-          onChange={(e) => onChange(item.id, 'micContra', e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          placeholder={t('performances.mic_di_placeholder')}
-        />
+        <Tooltip text={t('performances.contra_tooltip')}>
+          <input
+            type="text"
+            value={item.micContra}
+            onChange={(e) => onChange(item.id, 'micContra', e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-12 px-1 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder={t('performances.contra_placeholder')}
+          />
+        </Tooltip>
       </td>
 
       {/* Stand */}
       <td className="py-2 px-2">
-        <input
-          type="text"
-          value={item.stand}
-          onChange={(e) => onChange(item.id, 'stand', e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          placeholder={t('performances.stand_placeholder')}
-        />
+        <Tooltip text={t('performances.stand_tooltip')}>
+          <input
+            type="text"
+            value={item.stand}
+            onChange={(e) => onChange(item.id, 'stand', e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-12 px-1 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder={t('performances.stand_placeholder')}
+          />
+        </Tooltip>
       </td>
 
       {/* Notes */}
       <td className="py-2 px-2">
-        <input
-          type="text"
-          value={item.notes}
-          onChange={(e) => onChange(item.id, 'notes', e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          placeholder={t('performances.notes_placeholder')}
-        />
+        <Tooltip text={t('performances.notes_tooltip')}>
+          <input
+            type="text"
+            value={item.notes}
+            onChange={(e) => onChange(item.id, 'notes', e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-full px-2 py-1 bg-input border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder={t('performances.notes_placeholder')}
+          />
+        </Tooltip>
       </td>
 
       {/* Delete Button */}
       <td className="py-2 px-2 text-center">
-        <button
-          onClick={() => onRemove(item.id)}
-          className="text-destructive hover:bg-destructive/10 rounded p-1 focus:outline-none focus:ring-2 focus:ring-destructive"
-        >
-          <TrashIcon className="w-4 h-4" />
-        </button>
+        <Tooltip text={t('performances.delete_tooltip')}>
+          <button
+            onClick={() => onRemove(item.id)}
+            className="text-destructive hover:bg-destructive/10 rounded p-1 focus:outline-none focus:ring-2 focus:ring-destructive"
+            aria-label={t('performances.delete_tooltip')}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        </Tooltip>
       </td>
     </tr>
   );

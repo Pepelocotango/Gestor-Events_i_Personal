@@ -260,6 +260,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │       ├── AutosizeTextarea.tsx            # Textarea que s'ajusta automàticament a l'alçada del contingut.
 │   │       ├── CollapsibleSection.tsx          # Component de secció genèrica que es pot expandir/col·lapsar.
 │   │       ├── CustomMenuBar.tsx               # Barra de menú personalitzada en React que substitueix la nativa. Inclou opcions d'accés ràpid a carpetes de logs i backups.
+│   │       ├── HotkeyProvider.tsx              # Component proveïdor per envoltar l'aplicació i gestionar hotkeys globals (v1.6.4+).
 │   │       ├── Modal.tsx                       # Component base per a tots els diàlegs modals.
 │   │       ├── SplashScreen.tsx                # Component que mostra una animació en iniciar l'app.
 │   │       ├── SyncProgressOverlay.tsx         # Overlay amb la barra de progrés per a la sincronització.
@@ -284,7 +285,8 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── TechSheetsDisplay.tsx   # Vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]
 │   ├── i18n.ts                     # Configuració d'i18n per a l'aplicació d'escriptori.
 │   ├── hooks/                  # Hooks de React reutilitzables.
-│   │   └── useBufferedSave.ts  # Hook per a edició local d'alt rendiment amb integració al sistema de guardat global.
+│   │   ├── useBufferedSave.ts # Hook per a edició local d'alt rendiment amb integració al sistema de guardat global.
+│   │   └── useHotkey.ts       # Hook per gestionar hotkeys globals basats en el focus (v1.6.4+).
 │   ├── stores/                 # Gestors d'estat global (Zustand).
 │   │   ├── eventDataStore.ts   # Store que centralitza tot l'estat i la lògica de negoci.
 │   │   ├── googleConfigStore.ts# Store per a la configuració i estat de la integració amb Google Calendar.

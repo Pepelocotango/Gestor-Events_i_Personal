@@ -20,6 +20,7 @@ Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, l
 - **Optimitzacions de Re-renderitzat:** Extret NeedsSection fora de TechSheetForm per evitar unmount/remount massiu, i afegit funcionalitat de col·lapsar seccions tècniques.
 - **PDF Riders - Millora de Columnes i Colors:** Canvi de noms de columnes del rider PDF (IN, Mic_Rider, Mic_Contra, X, Mix_Rider, Mix_Contra) amb traduccions actualitzades. Canvi de colors del patch a paleta fluorescents (Groc, Magenta, Verd, Taronja, Blau). Regla d'amplada mínima basada en capçalera per garantir llegibilitat.
 - **PDF Riders - Prevenció de Divisions de Pàgina:** Implementació de lògica per assegurar que cap secció del PDF de riders quedi dividida entre pàgines. S'han afegit funcions `ensureSectionFitsOnPage` i `estimateTableHeight` per estimar l'alçada de cada secció abans de generar-la.
+- **Sistema de Hotkeys Context-Aware:** Implementació d'un sistema de dreceres de teclat escalable basat en selectors CSS. Prem **Ctrl+Enter** (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors quan tens el focus en la secció corresponent del Workshop. El sistema utilitza el hook `useHotkey` que detecta on està el focus i executa l'acció corresponent.
 
 **Característiques Noves Detallades:**
 

@@ -261,46 +261,52 @@ const RiderBalance: React.FC<RiderBalanceProps> = ({
           </h3>
           {!readOnly && (
             <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => {
-                  const newValue = !balanceConfig?.sortByCategory;
-                  setBalanceConfig?.({ sortByCategory: newValue });
-                  autoSaveRiderPdfConfig();
-                }}
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                  balanceConfig?.sortByCategory 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
-                }`}
-              >
-                Categoria
-                <ChevronUp className={`w-2.5 h-2.5 transition-transform ${balanceConfig?.sortByCategory ? 'rotate-180' : ''}`} />
-              </button>
-              <button
-                onClick={() => {
-                  const newValue = !balanceConfig?.sortByLocation;
-                  setBalanceConfig?.({ sortByLocation: newValue });
-                  autoSaveRiderPdfConfig();
-                }}
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                  balanceConfig?.sortByLocation 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
-                }`}
-              >
-                Ubicació
-                <ChevronUp className={`w-2.5 h-2.5 transition-transform ${balanceConfig?.sortByLocation ? 'rotate-180' : ''}`} />
-              </button>
+              <Tooltip text={t('rider_workshop.sort_by_category_tooltip')}>
+                <button
+                  onClick={() => {
+                    const newValue = !balanceConfig?.sortByCategory;
+                    setBalanceConfig?.({ sortByCategory: newValue });
+                    autoSaveRiderPdfConfig();
+                  }}
+                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                    balanceConfig?.sortByCategory 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
+                  }`}
+                >
+                  Categoria
+                  <ChevronUp className={`w-2.5 h-2.5 transition-transform ${balanceConfig?.sortByCategory ? 'rotate-180' : ''}`} />
+                </button>
+              </Tooltip>
+              <Tooltip text={t('rider_workshop.sort_by_location_tooltip')}>
+                <button
+                  onClick={() => {
+                    const newValue = !balanceConfig?.sortByLocation;
+                    setBalanceConfig?.({ sortByLocation: newValue });
+                    autoSaveRiderPdfConfig();
+                  }}
+                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                    balanceConfig?.sortByLocation 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
+                  }`}
+                >
+                  Ubicació
+                  <ChevronUp className={`w-2.5 h-2.5 transition-transform ${balanceConfig?.sortByLocation ? 'rotate-180' : ''}`} />
+                </button>
+              </Tooltip>
             </div>
           )}
           {!readOnly && onTogglePdf && (
             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-              <input
-                type="checkbox"
-                checked={showInPdf}
-                onChange={onTogglePdf}
-                className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
-              />
+              <Tooltip text={t('rider_workshop.show_in_pdf_tooltip')}>
+                <input
+                  type="checkbox"
+                  checked={showInPdf}
+                  onChange={onTogglePdf}
+                  className="h-3 w-3 rounded border-border accent-primary focus:ring-primary"
+                />
+              </Tooltip>
               <label className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
             </div>
           )}

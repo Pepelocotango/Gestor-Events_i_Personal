@@ -187,6 +187,7 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
   * **Assignació "Point & Shoot":** Clica una cel·la de la taula (micròfon o peu) i selecciona directament el material de l'inventari per assignar-lo, evitant errors d'escriptura.
   * **Balanç Consolidat Integrat:** Una secció detallada (col·lapsable) que resumeix tot el material necessari per al conjunt del festival o esdeveniment, amb alertes visuals si se supera l'estoc disponible.
   * **Disseny Industrial Compacte:** Interfície d'alta densitat d'informació amb seccions col·lapsables (Inputs, Monitors, Notes, Balanç) i tooltips intel·ligents a cada cel·la.
+  * **Hotkeys de Teclat:** Sistema de dreceres de teclat context-aware. Prem **Ctrl+Enter** (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors quan tens el focus en la secció corresponent del Workshop.
 
 * **Mòdul d'Actuacions (FASE 4):**
   * **Gestió d'actuacions artístiques** per esdeveniment: llista ordenable (drag-and-drop), formularis bàsic, tècnic i d'hospitalitat.

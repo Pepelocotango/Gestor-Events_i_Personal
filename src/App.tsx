@@ -29,6 +29,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import { notificationService } from './utils/notificationService';
 import { triggerAllSaves } from './utils/saveManager';
+import { HotkeyProvider } from './components/ui/HotkeyProvider';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const SummariesDisplay = lazy(() => import('./components/SummariesDisplay'));
@@ -1097,9 +1098,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <HashRouter>
-      <ErrorBoundary>
-        <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
+    <HotkeyProvider>
+      <HashRouter>
+        <ErrorBoundary>
+          <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
           {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
           <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
             <CustomMenuBar
@@ -1217,6 +1219,7 @@ const App: React.FC = () => {
         </div>
       </ErrorBoundary>
     </HashRouter>
+    </HotkeyProvider>
   );
 };
 

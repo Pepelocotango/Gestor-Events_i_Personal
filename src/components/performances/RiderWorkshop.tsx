@@ -15,6 +15,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useHotkey } from '../../hooks/useHotkey';
 import { TFunction } from 'i18next';
 import i18next from 'i18next';
 import { 
@@ -280,19 +281,23 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       className={`hover:bg-muted/30 transition-colors group ${isDragging ? 'bg-accent/50 shadow-lg' : ''}`}
     >
       <td className="w-8 text-center border-r border-border/50">
-        <div {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-1 opacity-20 group-hover:opacity-100 transition-opacity">
-          <GripVertical className="w-3.5 h-3.5 text-muted-foreground mx-auto" />
-        </div>
+        <Tooltip text={t('rider_workshop.drag_handle_tooltip')}>
+          <div {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-1 opacity-20 group-hover:opacity-100 transition-opacity">
+            <GripVertical className="w-3.5 h-3.5 text-muted-foreground mx-auto" />
+          </div>
+        </Tooltip>
       </td>
       
       <td className="py-1 px-1.5 w-20">
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => onChange(item.id, 'patchColor', nextColor.name)}
-            className={`w-4 h-4 rounded-full border border-border shrink-0 transition-transform hover:scale-110 active:scale-95 ${
-              patchColors.find(c => c.name === item.patchColor)?.class || 'bg-transparent'
-            }`}
-          />
+          <Tooltip text={t('rider_workshop.change_patch_color_tooltip')}>
+            <button
+              onClick={() => onChange(item.id, 'patchColor', nextColor.name)}
+              className={`w-4 h-4 rounded-full border border-border shrink-0 transition-transform hover:scale-110 active:scale-95 ${
+                patchColors.find(c => c.name === item.patchColor)?.class || 'bg-transparent'
+              }`}
+            />
+          </Tooltip>
           <input
             type="text"
             value={item.patchNumber || ''}
@@ -309,7 +314,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
           value={item.channel || ''}
           onChange={(e) => onChange(item.id, 'channel', e.target.value)}
           className="w-full px-1 py-0.5 bg-transparent border-none text-[11px] font-mono text-center focus:ring-0 outline-none font-black text-primary"
-          placeholder="CH"
+          placeholder={t('rider_workshop.placeholder_channel')}
         />
       </td>
 
@@ -338,7 +343,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${micStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={micContraName || (micStatus.isError ? "Sense estoc disponible!" : "")}> 
+        <Tooltip text={micContraName || (micStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isMicActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -346,7 +351,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
               onChange={(e) => onChange(item.id, 'micContra', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'micContra')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-              placeholder="Assignar..."
+              placeholder={t('rider_workshop.placeholder_assign')}
             />
             {micStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
           </div>
@@ -354,7 +359,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${standStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={standName || (standStatus.isError ? "Sense estoc disponible!" : "")}> 
+        <Tooltip text={standName || (standStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -362,7 +367,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
               onChange={(e) => onChange(item.id, 'stand', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'stand')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-              placeholder="Assignar..."
+              placeholder={t('rider_workshop.placeholder_assign')}
             />
             {standStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
           </div>
@@ -370,7 +375,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${extresStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={extresName || (extresStatus.isError ? "Sense estoc disponible!" : "")}> 
+        <Tooltip text={extresName || (extresStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isExtresActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -378,7 +383,7 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
               onChange={(e) => onChange(item.id, 'extres', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'extres')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-              placeholder="Assignar..."
+              placeholder={t('rider_workshop.placeholder_assign')}
             />
             {extresStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
           </div>
@@ -395,12 +400,14 @@ const WorkshopRow: React.FC<WorkshopRowProps> = ({ item, t, onChange, onRemove, 
       </td>
 
       <td className="py-1 px-1 text-center w-10 border-l border-border/50">
-        <button
-          onClick={() => onRemove(item.id)}
-          className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all opacity-0 group-hover:opacity-100"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <Tooltip text={t('rider_workshop.delete_row_tooltip')}>
+          <button
+            onClick={() => onRemove(item.id)}
+            className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all opacity-0 group-hover:opacity-100"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </Tooltip>
       </td>
     </tr>
   );
@@ -414,9 +421,10 @@ interface MonitorRowProps {
   onRemove: (id: string) => void;
   activeCell: { id: string; field: 'mixContra' | 'mixStand' } | null;
   onCellFocus: (id: string, field: 'mixContra' | 'mixStand') => void;
+  t: TFunction;
 }
 
-const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus }) => {
+const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus, t }) => {
   const { getMaterialAvailability, eventFrames, materialItems } = useEventDataStore();
   const { eventFrameId } = useParams<{ eventFrameId: string }>();
   
@@ -479,12 +487,14 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       
       <td className="py-1 px-1.5 w-20">
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => onChange(item.id, 'patchColor', nextColor.name)}
-            className={`w-4 h-4 rounded-full border border-border shrink-0 transition-transform hover:scale-110 active:scale-95 ${
-              patchColors.find(c => c.name === item.patchColor)?.class || 'bg-transparent'
-            }`}
-          />
+          <Tooltip text={t('rider_workshop.change_patch_color_tooltip')}>
+            <button
+              onClick={() => onChange(item.id, 'patchColor', nextColor.name)}
+              className={`w-4 h-4 rounded-full border border-border shrink-0 transition-transform hover:scale-110 active:scale-95 ${
+                patchColors.find(c => c.name === item.patchColor)?.class || 'bg-transparent'
+              }`}
+            />
+          </Tooltip>
           <input
             type="text"
             value={item.patchNumber || ''}
@@ -524,7 +534,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
             value={item.mixRider}
             onChange={(e) => onChange(item.id, 'mixRider', e.target.value)}
             className="w-full px-1.5 py-1 bg-transparent border-none text-[10px] italic focus:ring-0 outline-none"
-            placeholder="Demanat..."
+            placeholder={t('rider_workshop.placeholder_requested')}
           />
         </Tooltip>
       </td>
@@ -541,7 +551,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixContraStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={mixContraName || (mixContraStatus.isError ? "Sense estoc disponible!" : "")}> 
+        <Tooltip text={mixContraName || (mixContraStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isMixContraActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -549,7 +559,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
               onChange={(e) => onChange(item.id, 'mixContra', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'mixContra')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-              placeholder="Assignar..."
+              placeholder={t('rider_workshop.placeholder_assign')}
             />
             {mixContraStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
           </div>
@@ -568,7 +578,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       </td>
 
       <td className={`py-1 px-1.5 min-w-[140px] transition-colors ${mixStandStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={mixStandName || (mixStandStatus.isError ? "Sense estoc disponible!" : "")}> 
+        <Tooltip text={mixStandName || (mixStandStatus.isError ? t('rider_workshop.no_stock_available') : "")}> 
           <div className={`relative flex items-center rounded border transition-all ${isMixStandActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -576,7 +586,7 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
               onChange={(e) => onChange(item.id, 'mixStand', e.target.value)}
               onFocus={() => onCellFocus(item.id, 'mixStand')}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-              placeholder="Assignar..."
+              placeholder={t('rider_workshop.placeholder_assign')}
             />
             {mixStandStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
           </div>
@@ -605,12 +615,14 @@ const MonitorRow: React.FC<MonitorRowProps> = ({ item, onChange, onRemove, activ
       </td>
 
       <td className="py-1 px-1 text-center w-10 border-l border-border/50">
-        <button
-          onClick={() => onRemove(item.id)}
-          className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all opacity-0 group-hover:opacity-100"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <Tooltip text={t('rider_workshop.delete_row_tooltip')}>
+          <button
+            onClick={() => onRemove(item.id)}
+            className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all opacity-0 group-hover:opacity-100"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </Tooltip>
       </td>
     </tr>
   );
@@ -624,9 +636,10 @@ interface GenericRiderRowProps {
   onRemove: (id: string) => void;
   activeCell: { id: string; field: 'item' } | null;
   onCellFocus: (id: string) => void;
+  t: TFunction;
 }
 
-const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus }) => {
+const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRemove, activeCell, onCellFocus, t }) => {
   const { getMaterialAvailability, eventFrames, materialItems } = useEventDataStore();
   const { eventFrameId } = useParams<{ eventFrameId: string }>();
   const eventFrame = useMemo(() => eventFrameId ? eventFrames.find(ef => ef.id === eventFrameId) : null, [eventFrameId, eventFrames]);
@@ -650,9 +663,11 @@ const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRem
   return (
     <tr ref={setNodeRef} style={style} className={`hover:bg-muted/30 transition-colors group ${isDragging ? 'bg-accent/50 shadow-lg' : ''}`}>
       <td className="w-8 text-center border-r border-border/50">
-        <div {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-1 opacity-20 group-hover:opacity-100 transition-opacity">
-          <GripVertical className="w-3.5 h-3.5 text-muted-foreground mx-auto" />
-        </div>
+        <Tooltip text={t('rider_workshop.drag_handle_tooltip')}>
+          <div {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-1 opacity-20 group-hover:opacity-100 transition-opacity">
+            <GripVertical className="w-3.5 h-3.5 text-muted-foreground mx-auto" />
+          </div>
+        </Tooltip>
       </td>
       {/* Quantitat */}
       <td className="py-1 px-1 w-12">
@@ -666,7 +681,7 @@ const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRem
       </td>
       {/* Item (point and shoot) */}
       <td className={`py-1 px-1.5 min-w-[200px] transition-colors ${itemStatus.isError ? 'bg-destructive/10' : 'bg-primary/5'}`}>
-        <Tooltip text={itemName || (itemStatus.isError ? 'Sense estoc disponible!' : '')}>
+        <Tooltip text={itemName || (itemStatus.isError ? t('rider_workshop.no_stock_available') : '')}>
           <div className={`relative flex items-center rounded border transition-all ${isItemActive ? 'ring-1 ring-primary border-primary bg-background' : 'border-transparent'}`}>
             <input
               type="text"
@@ -674,7 +689,7 @@ const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRem
               onChange={(e) => onChange(item.id, 'itemName', e.target.value)}
               onFocus={() => onCellFocus(item.id)}
               className="w-full px-2 py-1 bg-transparent border-none text-[11px] focus:outline-none placeholder:text-muted-foreground/30 font-medium"
-              placeholder="Assignar..."
+              placeholder={t('rider_workshop.placeholder_assign')}
             />
             {itemStatus.isError && <Package className="absolute right-1.5 w-3 h-3 text-destructive animate-pulse" />}
           </div>
@@ -692,12 +707,14 @@ const GenericRiderRow: React.FC<GenericRiderRowProps> = ({ item, onChange, onRem
       </td>
       {/* Eliminar */}
       <td className="py-1 px-1 text-center w-10 border-l border-border/50">
-        <button
-          onClick={() => onRemove(item.id)}
-          className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all opacity-0 group-hover:opacity-100"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <Tooltip text={t('rider_workshop.delete_row_tooltip')}>
+          <button
+            onClick={() => onRemove(item.id)}
+            className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all opacity-0 group-hover:opacity-100"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </Tooltip>
       </td>
     </tr>
   );
@@ -712,10 +729,11 @@ interface SearchableCategorySelectorProps {
   placeholder: string;
   favoriteCategories?: string[];
   onToggleFavorite?: (category: string) => void;
+  t: TFunction;
 }
 
 const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({ 
-  categories, activeCategory, onSelect, placeholder, favoriteCategories = [], onToggleFavorite 
+  categories, activeCategory, onSelect, placeholder, favoriteCategories = [], onToggleFavorite, t 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -759,7 +777,7 @@ const SearchableCategorySelector: React.FC<SearchableCategorySelectorProps> = ({
             <input
               autoFocus
               type="text"
-              placeholder="Filtrar..."
+              placeholder={t('rider_workshop.placeholder_filter')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-2 py-1 bg-background border border-border rounded text-[9px] focus:outline-none focus:ring-1 focus:ring-primary/30"
@@ -1341,6 +1359,20 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
     if (!isMonitorsExpanded) setIsMonitorsExpanded(true); 
   };
 
+  // Hotkey: Ctrl+Enter per afegir items a la secció d'inputs
+  useHotkey(addInputItem, {
+    key: 'Enter',
+    requireCtrl: true,
+    selector: '[data-section="inputs"]',
+  });
+
+  // Hotkey: Ctrl+Enter per afegir items a la secció de monitors
+  useHotkey(addMonitorItem, {
+    key: 'Enter',
+    requireCtrl: true,
+    selector: '[data-section="monitors"]',
+  });
+
   // --- RENDERITZAT CONDICIONAL (DESPRÉS DE TOTS ELS HOOKS) ---
 
 // Helper per calcular l'ús en temps real tenint en compte les quantitats
@@ -1408,15 +1440,18 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
           <div className="space-y-1">
             <div className="relative">
               <Search className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
-              <input type="text" placeholder={t('rider_workshop.search_placeholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-7 pr-2 py-1 bg-muted/30 border border-border rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-primary/50 font-medium" />
+              <Tooltip text={t('rider_workshop.search_tooltip')}>
+                <input type="text" placeholder={t('rider_workshop.search_placeholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-7 pr-2 py-1 bg-muted/30 border border-border rounded text-[10px] focus:outline-none focus:ring-1 focus:ring-primary/50 font-medium" />
+              </Tooltip>
             </div>
             <SearchableCategorySelector 
               categories={materialCategories} 
               activeCategory={activeCategory} 
               onSelect={setActiveCategory} 
-              placeholder="Categories"
+              placeholder={t('rider_workshop.placeholder_categories')}
               favoriteCategories={favoriteCategories}
               onToggleFavorite={handleToggleFavoriteCategory}
+              t={t}
             />
           </div>
         </div>
@@ -1469,7 +1504,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       <Eye className="w-3.5 h-3.5" />
                     </button>
                   </Tooltip>
-                  <Tooltip text="Exportar a CSV">
+                  <Tooltip text={t('rider_workshop.export_csv_tooltip')}>
                     <button onClick={handleExportCsv} className="p-1.5 hover:bg-success/10 text-muted-foreground hover:text-success rounded-md transition-all active:scale-95">
                       <FileSpreadsheet className="w-3.5 h-3.5" />
                     </button>
@@ -1654,7 +1689,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div className="space-y-4">
               {/* SECCIÓ INPUTS */}
-              <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+              <section data-section="inputs" className="rounded border border-border bg-card shadow-sm overflow-hidden">
                 <div onClick={() => setIsInputsExpanded(!isInputsExpanded)} className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
@@ -1691,9 +1726,13 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                         </button>
                       </Tooltip>
                     </div>
-                    <button onClick={addInputItem} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
-                      <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_input')}
-                    </button>
+                    <Tooltip text={t('rider_workshop.add_input_tooltip')}>
+                      <button onClick={addInputItem} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
+                        <span className="flex items-center gap-1">
+                          <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_input')}
+                        </span>
+                      </button>
+                    </Tooltip>
                     {isInputsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
                 </div>
@@ -1705,114 +1744,130 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                           <th className="w-8"></th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_patch_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.inputColumns.patch}
+                                  onChange={() => {
+                                    setInputColumn('patch', !pdfConfig.inputColumns.patch);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Patch
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.inputColumns.patch}
-                                onChange={() => {
-                                  setInputColumn('patch', !pdfConfig.inputColumns.patch);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
                             <div className="flex items-center justify-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_channel_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.inputColumns.channel}
+                                  onChange={() => {
+                                    setInputColumn('channel', !pdfConfig.inputColumns.channel);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               CH
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.inputColumns.channel}
-                                onChange={() => {
-                                  setInputColumn('channel', !pdfConfig.inputColumns.channel);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_label_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.inputColumns.label}
+                                  onChange={() => {
+                                    setInputColumn('label', !pdfConfig.inputColumns.label);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Etiqueta
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.inputColumns.label}
-                                onChange={() => {
-                                  setInputColumn('label', !pdfConfig.inputColumns.label);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_rider_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.inputColumns.rider}
+                                  onChange={() => {
+                                    setInputColumn('rider', !pdfConfig.inputColumns.rider);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Rider
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.inputColumns.rider}
-                                onChange={() => {
-                                  setInputColumn('rider', !pdfConfig.inputColumns.rider);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_contra_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.inputColumns.contra}
+                                  onChange={() => {
+                                    setInputColumn('contra', !pdfConfig.inputColumns.contra);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Contra
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.inputColumns.contra}
-                                onChange={() => {
-                                  setInputColumn('contra', !pdfConfig.inputColumns.contra);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_stand_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.inputColumns.stand}
+                                  onChange={() => {
+                                    setInputColumn('stand', !pdfConfig.inputColumns.stand);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Peu
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.inputColumns.stand}
-                                onChange={() => {
-                                  setInputColumn('stand', !pdfConfig.inputColumns.stand);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_notes_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.inputColumns.notes}
+                                  onChange={() => {
+                                    setInputColumn('notes', !pdfConfig.inputColumns.notes);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               NOTES/EXTRES
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.inputColumns.notes}
-                                onChange={() => {
-                                  setInputColumn('notes', !pdfConfig.inputColumns.notes);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
                             <div className="flex items-center justify-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_exclusive_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.inputColumns.exclusive}
+                                  onChange={() => {
+                                    setInputColumn('exclusive', !pdfConfig.inputColumns.exclusive);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Exc.
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.inputColumns.exclusive}
-                                onChange={() => {
-                                  setInputColumn('exclusive', !pdfConfig.inputColumns.exclusive);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="w-10"></th>
@@ -1825,14 +1880,18 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       </tbody>
                     </table>
                     <button onClick={addInputItem} className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
-                      <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_input_row')}
+                      <Tooltip text={t('rider_workshop.add_input_tooltip')}>
+                        <span className="flex items-center gap-2">
+                          <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_input_row')}
+                        </span>
+                      </Tooltip>
                     </button>
                   </div>
                 )}
               </section>
 
               {/* SECCIÓ MONITORS */}
-              <section className="rounded border border-border bg-card shadow-sm overflow-hidden">
+              <section data-section="monitors" className="rounded border border-border bg-card shadow-sm overflow-hidden">
                 <div onClick={() => setIsMonitorsExpanded(!isMonitorsExpanded)} className="px-3 py-1.5 bg-muted/20 border-b border-border flex justify-between items-center cursor-pointer hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
@@ -1857,7 +1916,13 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={(e) => { e.stopPropagation(); addMonitorItem(); }} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1"><Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_monitor')}</button>
+                    <button onClick={(e) => { e.stopPropagation(); addMonitorItem(); }} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
+                      <Tooltip text={t('rider_workshop.add_monitor_tooltip')}>
+                        <span className="flex items-center gap-1">
+                          <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_monitor')}
+                        </span>
+                      </Tooltip>
+                    </button>
                     {isMonitorsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
                 </div>
@@ -1869,116 +1934,132 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                           <th className="w-8"></th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_patch_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.monitorColumns.patch}
+                                  onChange={() => {
+                                    setMonitorColumn('patch', !pdfConfig.monitorColumns.patch);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Patch
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.monitorColumns.patch}
-                                onChange={() => {
-                                  setMonitorColumn('patch', !pdfConfig.monitorColumns.patch);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
                             <div className="flex items-center justify-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_channel_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.monitorColumns.outputChannel}
+                                  onChange={() => {
+                                    setMonitorColumn('outputChannel', !pdfConfig.monitorColumns.outputChannel);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               MIX
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.monitorColumns.outputChannel}
-                                onChange={() => {
-                                  setMonitorColumn('outputChannel', !pdfConfig.monitorColumns.outputChannel);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_label_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.monitorColumns.label}
+                                  onChange={() => {
+                                    setMonitorColumn('label', !pdfConfig.monitorColumns.label);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Etiqueta
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.monitorColumns.label}
-                                onChange={() => {
-                                  setMonitorColumn('label', !pdfConfig.monitorColumns.label);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_rider_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.monitorColumns.rider}
+                                  onChange={() => {
+                                    setMonitorColumn('rider', !pdfConfig.monitorColumns.rider);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Rider
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.monitorColumns.rider}
-                                onChange={() => {
-                                  setMonitorColumn('rider', !pdfConfig.monitorColumns.rider);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center w-10">Qttat</th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_contra_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.monitorColumns.contra}
+                                  onChange={() => {
+                                    setMonitorColumn('contra', !pdfConfig.monitorColumns.contra);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Contra
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.monitorColumns.contra}
-                                onChange={() => {
-                                  setMonitorColumn('contra', !pdfConfig.monitorColumns.contra);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center w-10">Qttat</th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_stand_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.monitorColumns.stand}
+                                  onChange={() => {
+                                    setMonitorColumn('stand', !pdfConfig.monitorColumns.stand);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Peu
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.monitorColumns.stand}
-                                onChange={() => {
-                                  setMonitorColumn('stand', !pdfConfig.monitorColumns.stand);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             <div className="flex items-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_notes_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.monitorColumns.notes}
+                                  onChange={() => {
+                                    setMonitorColumn('notes', !pdfConfig.monitorColumns.notes);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Notes
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.monitorColumns.notes}
-                                onChange={() => {
-                                  setMonitorColumn('notes', !pdfConfig.monitorColumns.notes);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="py-1.5 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
                             <div className="flex items-center justify-center gap-1">
+                              <Tooltip text={t('rider_workshop.show_exclusive_tooltip')}>
+                                <input
+                                  type="checkbox"
+                                  checked={pdfConfig.monitorColumns.exclusive}
+                                  onChange={() => {
+                                    setMonitorColumn('exclusive', !pdfConfig.monitorColumns.exclusive);
+                                    autoSaveRiderPdfConfig();
+                                  }}
+                                  className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
+                                />
+                              </Tooltip>
                               Exc.
-                              <input
-                                type="checkbox"
-                                checked={pdfConfig.monitorColumns.exclusive}
-                                onChange={() => {
-                                  setMonitorColumn('exclusive', !pdfConfig.monitorColumns.exclusive);
-                                  autoSaveRiderPdfConfig();
-                                }}
-                                className="h-2 w-2 rounded border-border accent-primary focus:ring-primary"
-                              />
                             </div>
                           </th>
                           <th className="w-10"></th>
@@ -1986,12 +2067,16 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       </thead>
                       <tbody className="divide-y divide-border/50">
                         <SortableContext items={(techData.monitorList || []).map(p => p.id)} strategy={verticalListSortingStrategy}>
-                          {(techData.monitorList || []).map(item => <MonitorRow key={item.id} item={item} onChange={handleMonitorChange} onRemove={(id) => updateLocal({ monitorList: (techDataRef.current.monitorList || []).filter(i => i.id !== id) })} activeCell={activeCell?.field === 'mixContra' || activeCell?.field === 'mixStand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} />)}
+                          {(techData.monitorList || []).map(item => <MonitorRow key={item.id} item={item} onChange={handleMonitorChange} onRemove={(id) => updateLocal({ monitorList: (techDataRef.current.monitorList || []).filter(i => i.id !== id) })} activeCell={activeCell?.field === 'mixContra' || activeCell?.field === 'mixStand' ? activeCell as any : null} onCellFocus={(id, field) => setActiveCell({ id, field })} t={t} />)}
                         </SortableContext>
                       </tbody>
                     </table>
                     <button onClick={addMonitorItem} className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
-                      <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_monitor')}
+                      <Tooltip text={t('rider_workshop.add_monitor_tooltip')}>
+                        <span className="flex items-center gap-2">
+                          <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_monitor')}
+                        </span>
+                      </Tooltip>
                     </button>
                   </div>
                 )}
@@ -2008,17 +2093,22 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       <span className="text-muted-foreground ml-2">({techData.cableList?.length || 0})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <input type="checkbox" checked={showCableInPdf}
-                        onChange={(e) => setShowCableInPdf(e.target.checked)}
-                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary" />
+                      <Tooltip text={t('rider_workshop.show_cable_in_pdf_tooltip')}>
+                        <input type="checkbox" checked={showCableInPdf}
+                          onChange={(e) => setShowCableInPdf(e.target.checked)}
+                          className="h-3 w-3 rounded border-border accent-primary focus:ring-primary" />
+                      </Tooltip>
                       <label className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => addGenericItem('cableList')}
-                      className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
-                      <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_cable')}
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <Tooltip text={t('rider_workshop.add_cable_tooltip')}>
+                      <button onClick={(e) => { e.stopPropagation(); addGenericItem('cableList'); }} className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
+                        <span className="flex items-center gap-1">
+                          <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_cable')}
+                        </span>
+                      </button>
+                    </Tooltip>
                     {isCableExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
                 </div>
@@ -2042,6 +2132,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                               onRemove={(id) => updateLocal({ cableList: (techDataRef.current.cableList || []).filter(i => i.id !== id) })}
                               activeCell={activeCell?.field === 'cable' ? activeCell as any : null}
                               onCellFocus={(id) => setActiveCell({ id, field: 'cable' })}
+                              t={t}
                             />
                           )}
                         </SortableContext>
@@ -2049,7 +2140,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                     </table>
                     <button onClick={() => addGenericItem('cableList')}
                       className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
-                      <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_cable')}
+                      <Tooltip text={t('rider_workshop.add_cable_tooltip')}>
+                        <span className="flex items-center gap-2">
+                          <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_cable')}
+                        </span>
+                      </Tooltip>
                     </button>
                   </div>
                 )}
@@ -2066,23 +2161,29 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                       <span className="text-muted-foreground ml-2">({techData.spareList?.length || 0})</span>
                     </h3>
                     <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
-                      <input 
-                        type="checkbox" 
-                        checked={pdfConfig.sections.spare}
-                        onChange={(e) => {
-                          setSection('spare', e.target.checked);
-                          autoSaveRiderPdfConfig();
-                        }}
-                        className="h-3 w-3 rounded border-border accent-primary focus:ring-primary" 
-                      />
+                      <Tooltip text={t('rider_workshop.show_spare_in_pdf_tooltip')}>
+                        <input 
+                          type="checkbox" 
+                          checked={pdfConfig.sections.spare}
+                          onChange={(e) => {
+                            setSection('spare', e.target.checked);
+                            autoSaveRiderPdfConfig();
+                          }}
+                          className="h-3 w-3 rounded border-border accent-primary focus:ring-primary" 
+                        />
+                      </Tooltip>
                       <label className="text-[8px] font-medium text-muted-foreground cursor-pointer">PDF</label>
                     </div>
                   </div>
                   <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => addGenericItem('spareList')}
-                      className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
-                      <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_spare')}
-                    </button>
+                    <Tooltip text={t('rider_workshop.add_spare_tooltip')}>
+                      <button onClick={() => addGenericItem('spareList')}
+                        className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
+                        <span className="flex items-center gap-1">
+                          <Plus className="w-2.5 h-2.5" /> {t('rider_workshop.add_spare')}
+                        </span>
+                      </button>
+                    </Tooltip>
                     {isSpareExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
                   </div>
                 </div>
@@ -2106,6 +2207,7 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                               onRemove={(id) => updateLocal({ spareList: (techDataRef.current.spareList || []).filter(i => i.id !== id) })}
                               activeCell={activeCell?.field === 'spare' ? activeCell as any : null}
                               onCellFocus={(id) => setActiveCell({ id, field: 'spare' })}
+                              t={t}
                             />
                           )}
                         </SortableContext>
@@ -2113,7 +2215,11 @@ const [showCableInPdf, setShowCableInPdf]   = useState(true);
                     </table>
                     <button onClick={() => addGenericItem('spareList')}
                       className="w-full py-2 bg-muted/5 hover:bg-muted/20 text-[9px] font-black text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 border-t border-border/30">
-                      <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_spare')}
+                      <Tooltip text={t('rider_workshop.add_spare_tooltip')}>
+                        <span className="flex items-center gap-2">
+                          <Plus className="w-3.5 h-3.5" /> {t('rider_workshop.add_new_spare')}
+                        </span>
+                      </Tooltip>
                     </button>
                   </div>
                 )}

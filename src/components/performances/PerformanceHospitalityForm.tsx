@@ -148,22 +148,24 @@ const PerformanceHospitalityForm: React.FC<PerformanceHospitalityFormProps> = ({
 
       {/* Save Button */}
       <div className="flex justify-end pt-6 border-t border-border">
-        <button
-          onClick={saveNow}
-          disabled={!isDirty}
-          className={`px-6 py-2 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
-            isDirty
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-              : 'bg-secondary text-secondary-foreground/50 cursor-not-allowed'
-          }`}
-        >
-          {isDirty ? t('performances.save_changes') : (
-            <>
-              <span className="text-lg">✓</span>
-              {t('performances.saved')}
-            </>
-          )}
-        </button>
+        <Tooltip text={isDirty ? t('performances.save_tooltip') : t('performances.saved_tooltip')}>
+          <button
+            onClick={saveNow}
+            disabled={!isDirty}
+            className={`px-6 py-2 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
+              isDirty
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                : 'bg-secondary text-secondary-foreground/50 cursor-not-allowed'
+            }`}
+          >
+            {isDirty ? t('performances.save_changes') : (
+              <>
+                <span className="text-lg">✓</span>
+                {t('performances.saved')}
+              </>
+            )}
+          </button>
+        </Tooltip>
       </div>
     </div>
   );
