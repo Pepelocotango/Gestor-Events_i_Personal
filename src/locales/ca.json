@@ -214,6 +214,15 @@
         "nav_performances_tooltip": "Gestió d'actuacions i horaris",
         "nav_riders": "Riders",
         "nav_riders_tooltip": "Disseny i gestió de contra-riders",
+        "nav_regidoria": "Regidoria",
+        "nav_regidoria_tooltip": "Full de ruta del regidor/a",
+        "regidoria": {
+            "title": "Full de Ruta del Regidor/a",
+            "description": "Exporta el full de ruta combinat amb horaris generals i actuacions",
+            "no_events": "No hi ha esdeveniments",
+            "performances_count": "Actuacions",
+            "export_pdf": "Exportar PDF"
+        },
         "nav_summaries": "Resums",
         "nav_summaries_tooltip": "Resums i estadístiques",
         "nav_tech_sheets": "Fitxes Tècniques",

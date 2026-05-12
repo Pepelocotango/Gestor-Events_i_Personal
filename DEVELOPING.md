@@ -2599,5 +2599,5 @@ Aquesta secció documenta funcionalitats que existeixen parcialment al codi per�
   - Horaris d'actuacions amb prefixos [ARRIVADA], [PROVES], [SHOW]
   - Notes crítiques de regidoria extretes automàticament
   - Ordenació cronològica per prioritat i hora
-- **Per implementar:** Cal afegir un botó a `PerformancesDisplay` que passi `techSheetData` i cridi `exportRegidoriaSummaryPdf(eventFrame, performances, techSheetData, showToast)`
+- **✅ Implementat:** S'ha creat una nova pestanya independent "Regidoria" amb el component `RegidoriaDisplay.tsx` que permet exportar el Full de Ruta del Regidor per a cada esdeveniment. La pestanya apareix després de "Riders" i abans de "Resums" a la barra de navegació. PER REVISAR!
 

@@ -45,6 +45,7 @@ const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
 const PerformancesDisplay = lazy(() => import('./components/PerformancesDisplay'));
 const RiderWorkshop = lazy(() => import('./components/performances/RiderWorkshop'));
+const RegidoriaDisplay = lazy(() => import('./components/RegidoriaDisplay'));
 
 const AboutModal = lazy(() => import('./components/modals/AboutModal'));
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
@@ -1161,6 +1162,7 @@ const App: React.FC = () => {
                   <Route path="/performances" element={<PerformancesDisplay showToast={showToast} />} />
                   <Route path="/riders" element={<RiderWorkshop />} />
                   <Route path="/riders/:eventFrameId" element={<RiderWorkshop />} />
+                  <Route path="/regidoria" element={<RegidoriaDisplay showToast={showToast} />} />
                 </Routes>
               </Suspense>
             )}

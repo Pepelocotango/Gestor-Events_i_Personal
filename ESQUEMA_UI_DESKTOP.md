@@ -15,6 +15,7 @@
  * - SECCIÓ DE FITXES TÈCNIQUES: TechSheetsDisplay per a la gestió de fitxes de bolo.
  * - SECCIÓ D'ACTUACIONS: PerformancesDisplay amb gestió d'actuacions artístiques.
  * - WORKSHOP DE RIDERS: RiderWorkshop per al disseny tècnic i logística de material.
+ * - SECCIÓ DE REGIDORIA: RegidoriaDisplay per a l'exportació del Full de Ruta del Regidor.
  * =============================================================================
  */
 
@@ -315,3 +316,28 @@ Nova interfície professional d'alta densitat per al disseny tècnic i logístic
 - **Visualització:** Totes les cel·les amb text llarg mostren el contingut sencer en passar el ratolí.
 - **Edició Concurrent:** Sistema de buffering (`useBufferedSave`) que permet una edició ultra-ràpida sense latència de disc, sincronitzant els canvis en segon pla.
 - **Hotkeys de Teclat:** Prem **Ctrl+Enter** (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors quan tens el focus en la secció corresponent. El sistema detecta automàticament on està el focus i executa l'acció adequada.
+
+---
+
+## 10. Regidoria (`RegidoriaDisplay`) - **FULL DE RUTA DEL REGIDOR**
+
+Nova secció independent per a l'exportació del Full de Ruta del Regidor, que combina horaris generals de la fitxa de bolo amb horaris d'actuacions.
+
+### 10.1. Funcionalitat Principal
+- **Llista d'Esdeveniments:** Mostra tots els esdeveniments ordenats cronològicament per data.
+- **Informació per Esdeveniment:**
+  - Nom de l'esdeveniment
+  - Lloc i data
+  - Nombre d'actuacions associades
+- **Botó d'Exportació PDF:** Per a cada esdeveniment, permet exportar el Full de Ruta del Regidor.
+  - Només actiu si l'esdeveniment té actuacions associades.
+  - Genera un PDF amb:
+    - Horaris generals de la fitxa de bolo (`techSheetData.schedule`)
+    - Horaris d'actuacions amb prefixos [ARRIVADA], [PROVES], [SHOW]
+    - Notes crítiques de regidoria extretes automàticament (escenari, dietes, viatge, general)
+    - Ordenació cronològica per prioritat (general primer, després actuacions)
+
+### 10.2. Integració amb el Sistema
+- **Funció Backend:** Utilitza `exportRegidoriaSummaryPdf()` de `src/utils/pdfGenerator.ts`.
+- **Dades Requerides:** Passa `eventFrame`, `performances`, `techSheetData` i `showToast` a la funció d'exportació.
+- **Navegació:** Pestanya independent accessible directament des de la barra de navegació, situada després de "Riders" i abans de "Resums".

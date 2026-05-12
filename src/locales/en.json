@@ -208,6 +208,15 @@
         "nav_people": "People",
         "nav_people_tooltip": "Go to people and groups management",
         "nav_performances_tooltip": "Performance and rider management",
+        "nav_regidoria": "Stage Management",
+        "nav_regidoria_tooltip": "Stage manager's route summary",
+        "regidoria": {
+            "title": "Stage Manager's Route Summary",
+            "description": "Export combined route summary with general schedule and performances",
+            "no_events": "No events found",
+            "performances_count": "Performances",
+            "export_pdf": "Export PDF"
+        },
         "nav_summaries": "Summaries",
         "nav_summaries_tooltip": "Go to summaries and reports",
         "nav_tech_sheets": "Gig Sheets",

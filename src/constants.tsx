@@ -215,6 +215,12 @@ export const GoogleIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
+export const ClipboardListIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75h4.5a.75.75 0 00.75-.75v-3c0-.414-.336-.75-.75-.75h-4.5a.75.75 0 00-.75.75zm-1.25-6.875a.75.75 0 00-.75.75v3c0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75v-3a.75.75 0 00-.75-.75h-4.5z" />
+  </svg>
+);
+
 // Hook to get translated role suggestions
 export const useRoleSuggestions = (): string[] => {
   const { t } = useTranslation();

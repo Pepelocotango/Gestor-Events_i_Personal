@@ -14,7 +14,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CalendarIcon, BoxIcon, UsersIcon, ChartBarIcon, MicrophoneIcon, LayoutGridIcon } from '../constants';
+import { CalendarIcon, BoxIcon, UsersIcon, ChartBarIcon, MicrophoneIcon, LayoutGridIcon, ClipboardListIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 
 const DocumentTextIcon = ({ className = "w-5 h-5" }) => (
@@ -80,6 +80,13 @@ const Navigation: React.FC = () => {
           <NavLink to="/riders" className={getLinkClassName}>
             <LayoutGridIcon className="h-5 w-5" />
             <span>{t('main.nav_riders')}</span>
+          </NavLink>
+        </Tooltip>
+
+        <Tooltip text={t('main.nav_regidoria_tooltip')}>
+          <NavLink to="/regidoria" className={getLinkClassName}>
+            <ClipboardListIcon className="h-5 w-5" />
+            <span>{t('main.nav_regidoria')}</span>
           </NavLink>
         </Tooltip>
 

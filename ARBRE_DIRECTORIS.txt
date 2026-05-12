@@ -280,6 +280,7 @@ enllaç a Gestor-Events_i_Personal/
 │   │   ├── PeopleDisplay.tsx       # Vista per a la gestió de la llibreta d'adreces. Accedeix a peopleGroups via selector reactiu i usa getState() per a les accions. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── ProductionNoteSticker.tsx # Component per mostrar i editar notes ràpides de producció a les capçaleres dels esdeveniments.
 │   │   ├── PerformancesDisplay.tsx # Gestor d'actuacions artístiques amb control d'avançament, formularis tècnics/hospitalitat, i exportació PDF (FASE 4).
+│   │   ├── RegidoriaDisplay.tsx    # Vista per a l'exportació del Full de Ruta del Regidor (v1.6.5+).
 │   │   ├── SummariesDisplay.tsx    # Vista contenidora de la secció Resums (ruta /summaries). Envolta SummaryReports amb el layout de la vista.
 │   │   ├── SummaryReports.tsx      # Component que genera els resums de dades. [REFACTORITZAT: usa eventDataStore]
 │   │   ├── TechSheetsDisplay.tsx   # Vista per a la gestió de les Fitxes de Bolo. [REFACTORITZAT: usa eventDataStore]

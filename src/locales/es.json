@@ -210,6 +210,15 @@
         "nav_people": "Personas",
         "nav_people_tooltip": "Ir a la gestión de personas y grupos",
         "nav_performances_tooltip": "Gestión de actuaciones y riders",
+        "nav_regidoria": "Regiduría",
+        "nav_regidoria_tooltip": "Resumen de ruta del regidor/a",
+        "regidoria": {
+            "title": "Resumen de Ruta del Regidor/a",
+            "description": "Exporta el resumen de ruta combinado con horarios generales y actuaciones",
+            "no_events": "No hay eventos",
+            "performances_count": "Actuaciones",
+            "export_pdf": "Exportar PDF"
+        },
         "nav_summaries": "Resúmenes",
         "nav_summaries_tooltip": "Ir a los resúmenes e informes",
         "nav_tech_sheets": "Fichas de Bolo",

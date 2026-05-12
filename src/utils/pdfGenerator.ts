@@ -809,26 +809,56 @@ export const exportEventPerformancesSummaryPdf = async (eventFrame: EventFrame, 
 // =============================================================================
 // FULL DE RUTA DEL REGIDOR
 // =============================================================================
+export const generateRegidoriaPdfObject = (eventFrame: EventFrame, performances: Performance[], techSheetData: TechSheetData | undefined) => {
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '' : String(value);
+  const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
+  const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
+  let y = 10;
+  autoTable(pdf, { body: [[{ content: `${i18next.t('pdf.regidoria_summary_title')} - ${eventFrame.name}`, colSpan: 2, styles: { halign: 'center' as const, fontSize: 16, fontStyle: 'bold' as const } }],[{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],[{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 2 } });
+  y = (pdf as any).lastAutoTable.finalY + 10;
+  const allScheduleItems: any[] = [];
+  if (techSheetData?.schedule?.status === 'yes' && techSheetData.schedule.data) techSheetData.schedule.data.forEach(item => allScheduleItems.push({ time: sane(item.time), endTime: sane(item.timeEnd), description: sane(item.description), type: i18next.t('pdf.general_schedule'), notes: '', priority: 1 }));
+  performances.forEach(p => {
+    if (p.arrivalTime) allScheduleItems.push({ time: p.arrivalTime, endTime: p.soundCheckTime || '', description: `[ARRIBADA] ${sane(p.name)}`, type: i18next.t('pdf.arrival'), notes: extractRegidoriaNotes(p), priority: 2 });
+    if (p.soundCheckTime) allScheduleItems.push({ time: p.soundCheckTime, endTime: p.showTime || '', description: `[PROVES] ${sane(p.name)}`, type: i18next.t('pdf.soundcheck'), notes: extractRegidoriaNotes(p), priority: 2 });
+    if (p.showTime) allScheduleItems.push({ time: p.showTime, endTime: p.departureTime || '', description: `[SHOW] ${sane(p.name)}`, type: i18next.t('pdf.show'), notes: extractRegidoriaNotes(p), priority: 2 });
+  });
+  allScheduleItems.sort((a, b) => a.priority !== b.priority ? a.priority - b.priority : (a.time || '23:59').localeCompare(b.time || '23:59'));
+  if (allScheduleItems.length > 0) {
+    const tableBody: any[] = [];
+    allScheduleItems.forEach(item => {
+      tableBody.push([
+        formatDateDMY(eventFrame.startDate),
+        item.endTime && item.endTime !== item.time ? `${item.time} - ${item.endTime}` : item.time,
+        item.description,
+        item.type
+      ]);
+      if (item.notes) {
+        const textWidth = 170; // Amplada disponible en mm (190 - 20 margins)
+        const splitText = pdf.splitTextToSize(item.notes, textWidth);
+        const estimatedHeight = splitText.length * 4 + 6; // 4mm per línia + padding
+        tableBody.push([{ content: item.notes, colSpan: 4, styles: { fontStyle: 'italic', fontSize: 9, minCellHeight: estimatedHeight } }]);
+      }
+    });
+    autoTable(pdf, {
+      head: [[{ content: i18next.t('pdf.combined_schedule'), colSpan: 4, styles: headStyles }], [i18next.t('pdf.date'), i18next.t('pdf.time'), i18next.t('pdf.description'), i18next.t('pdf.type')]],
+      body: tableBody,
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' },
+      margin: { left: 10, right: 10 }
+    });
+  }
+  const totalPages = (pdf.internal as any).getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) { pdf.setPage(i); addFooter(pdf, i); }
+  return pdf;
+};
+
 export const exportRegidoriaSummaryPdf = async (eventFrame: EventFrame, performances: Performance[], techSheetData: TechSheetData | undefined, showToast: ShowToastFunction) => {
   try {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const sane = (value: any): string => (value === null || value === undefined || String(value).trim() === '' || String(value).trim() === '--') ? '' : String(value);
-    const headStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' };
-    const labelStyles: Partial<Styles> = { fillColor: hslToRgb(...themeHslColors.grayMuted), textColor: hslToRgb(...themeHslColors.foreground), fontStyle: 'bold', cellWidth: 50 };
-    let y = 10;
-    autoTable(pdf, { body: [[{ content: `${i18next.t('pdf.regidoria_summary_title')} - ${eventFrame.name}`, colSpan: 2, styles: { halign: 'center' as const, fontSize: 16, fontStyle: 'bold' as const } }],[{ content: i18next.t('pdf.location'), styles: labelStyles }, sane(eventFrame.place)],[{ content: i18next.t('pdf.date'), styles: labelStyles }, formatDateRangeDMY(eventFrame.startDate, eventFrame.endDate)]], theme: 'grid', startY: y, margin: { left: 10, right: 10 }, styles: { cellPadding: 2 } });
-    y = (pdf as any).lastAutoTable.finalY + 10;
-    const allScheduleItems: any[] = [];
-    if (techSheetData?.schedule?.status === 'yes' && techSheetData.schedule.data) techSheetData.schedule.data.forEach(item => allScheduleItems.push({ time: sane(item.time), endTime: sane(item.timeEnd), description: sane(item.description), type: i18next.t('pdf.general_schedule'), notes: '', priority: 1 }));
-    performances.forEach(p => {
-      if (p.arrivalTime) allScheduleItems.push({ time: p.arrivalTime, endTime: p.soundCheckTime || '', description: `[ARRIBADA] ${sane(p.name)}`, type: i18next.t('pdf.arrival'), notes: extractRegidoriaNotes(p), priority: 2 });
-      if (p.soundCheckTime) allScheduleItems.push({ time: p.soundCheckTime, endTime: p.showTime || '', description: `[PROVES] ${sane(p.name)}`, type: i18next.t('pdf.soundcheck'), notes: extractRegidoriaNotes(p), priority: 2 });
-      if (p.showTime) allScheduleItems.push({ time: p.showTime, endTime: p.departureTime || '', description: `[SHOW] ${sane(p.name)}`, type: i18next.t('pdf.show'), notes: extractRegidoriaNotes(p), priority: 2 });
-    });
-    allScheduleItems.sort((a, b) => a.priority !== b.priority ? a.priority - b.priority : (a.time || '23:59').localeCompare(b.time || '23:59'));
-    if (allScheduleItems.length > 0) autoTable(pdf, { head: [[{ content: i18next.t('pdf.combined_schedule'), colSpan: 4, styles: headStyles }], [i18next.t('pdf.time'), i18next.t('pdf.description'), i18next.t('pdf.type'), i18next.t('pdf.regidoria_notes')]], body: allScheduleItems.map(item => [item.endTime && item.endTime !== item.time ? `${item.time} - ${item.endTime}` : item.time, item.description, item.type, item.notes]), startY: y, theme: 'grid', styles: { fontSize: 10, cellPadding: 2 }, headStyles: { fillColor: hslToRgb(...themeHslColors.grayDark), textColor: hslToRgb(...themeHslColors.foregroundWhite), fontStyle: 'bold' }, columnStyles: { 0: { cellWidth: 40 }, 2: { cellWidth: 35 } }, margin: { left: 10, right: 10 } });
-    const totalPages = (pdf.internal as any).getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) { pdf.setPage(i); addFooter(pdf, i); }
+    const pdf = generateRegidoriaPdfObject(eventFrame, performances, techSheetData);
     const fileName = `Full_Ruta_Regidoria_${eventFrame.name.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDateDMY(eventFrame.startDate)}.pdf`;
     await savePdfWithDialog(pdf, fileName, showToast);
   } catch (error) { showToast(`Error generant PDF: ${(error as Error).message}`, 'error'); }
@@ -836,10 +866,10 @@ export const exportRegidoriaSummaryPdf = async (eventFrame: EventFrame, performa
 
 const extractRegidoriaNotes = (p: Performance): string => {
   const notes: string[] = [];
-  if (p.techData?.stageRequirements) notes.push(`Escenari: ${p.techData.stageRequirements.substring(0, 50)}...`);
-  if (p.hospitalityData?.dietaryRequirements) notes.push(`Dietes: ${p.hospitalityData.dietaryRequirements.substring(0, 50)}...`);
-  if (p.hospitalityData?.travelLogistics) notes.push(`Viatge: ${p.hospitalityData.travelLogistics.substring(0, 50)}...`);
-  if (p.notes) notes.push(`General: ${p.notes.substring(0, 50)}...`);
+  if (p.techData?.stageRequirements) notes.push(`Escenari: ${p.techData.stageRequirements}`);
+  if (p.hospitalityData?.dietaryRequirements) notes.push(`Dietes: ${p.hospitalityData.dietaryRequirements}`);
+  if (p.hospitalityData?.travelLogistics) notes.push(`Viatge: ${p.hospitalityData.travelLogistics}`);
+  if (p.notes) notes.push(`General: ${p.notes}`);
   return notes.join(' | ');
 };
 
