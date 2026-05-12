@@ -4,6 +4,7 @@ gestor-d'esdeveniments_react_vite_gemini BUILD.code-workspace
 chekpoints/
 releases/
 00SCRIPTS_TEMP/
+XTEMP/
 
 # Dependències de Node.js
 # Aquesta carpeta es regenera amb 'npm install'
@@ -54,8 +55,16 @@ concurrently
 wait-on
 gestor-esdeveniments-personal@*
 
-# Configuració i context de Gemini (permetem que es pugi al repo)
-!.gemini/
+# Configuració i context de Gemini 
+.gemini/
+
+# Fitxers generats per l'aplicació (a la carpeta userData del sistema, no del projecte)
+# session.json, backups/, google-tokens.json, google-config.json
+# Aquests fitxers es generen a app.getPath('userData') i no cal ignorar-los aquí
+
+# Cache i build d'Astro (apps_web/landing)
+apps_web/landing/.astro/
+apps_web/landing/dist/
 
 ### FINAL FITXER: .gitignore ###
 .aider*

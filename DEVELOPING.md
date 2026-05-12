@@ -395,7 +395,65 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu.
     -   `show-unsaved-changes-dialog`: Mostra el diàleg personalitzat de canvis no desats en sortir.
 
-    ---
+### 3.5. API Exposada al Frontend (`window.electronAPI`)
+
+El script `preload.cjs` actua com a pont de seguretat entre el backend de Node.js i el frontend de React, exposant selectivament funcions a través de `contextBridge`. Tota la comunicació amb el backend es realitza a través de l'objecte `window.electronAPI`.
+
+#### Gestió de Documents
+- **openFileDialog()**: Obre un diàleg natiu per seleccionar un fitxer.
+- **readFile(filePath)**: Llegeix el contingut d'un fitxer donada una ruta.
+- **saveFile(options)**: Desa un contingut a una ruta de fitxer específica.
+- **showSaveDialog(options)**: Obre un diàleg de desat natiu i desa el contingut si l'usuari confirma.
+- **showUnsavedChangesDialog(options)**: Mostra el diàleg de confirmació de canvis no desats.
+
+#### Sessió i Cicle de Vida
+- **onConfirmQuit(callback)**: Listener per al senyal de confirmació de sortida. Retorna una funció de neteja.
+- **quitApplication()**: Inicia el procés de tancament definitiu de l'aplicació.
+- **getSessionData()**: Retorna les dades de sessió des de `session.json`.
+- **saveSessionData(key, value)**: Desa una dada de sessió amb una clau específica.
+- **getRecentFiles()**: Retorna la llista de fitxers recents.
+- **addRecentFile(filePath)**: Afegeix una ruta a la llista de fitxers recents.
+- **getAppMetadata()**: Retorna metadades de l'aplicació (nom, versió, descripció).
+- **getPlatformSync()**: Retorna la plataforma actual (`process.platform`).
+
+#### Obertura de Fitxers des de l'OS
+- **onOpenFileTrigger(callback)**: Listener per quan l'OS obre un fitxer amb l'aplicació. Retorna una funció de neteja.
+
+#### Integració amb Google Calendar
+- **loadGoogleConfig()**: Carrega la configuració de Google des de `google-config.json`.
+- **startGoogleAuth()**: Inicia el flux d'autenticació OAuth 2.0.
+- **onGoogleAuthSuccess(callback)**: Listener per quan l'autenticació Google té èxit.
+- **onGoogleAuthError(callback)**: Listener per quan l'autenticació Google falla.
+- **getCalendarList()**: Obté la llista de calendaris del compte de l'usuari.
+- **saveGoogleConfig(config)**: Desa la configuració de Google a `google-config.json`.
+- **getGoogleEvents()**: Recupera esdeveniments dels calendaris seleccionats.
+- **getEventDetails(calendarId, eventId)**: Obté detalls d'un esdeveniment específic.
+- **syncWithGoogle(payload)**: Orquestra la sincronització unidireccional.
+- **syncSingleEventWithGoogle(payload)**: Sincronitza un sol esdeveniment.
+- **onSyncProgress(callback)**: Listener per al progrés de sincronització.
+- **googleDisconnect()**: Desconnecta el compte de Google i elimina calendaris gestionats.
+- **deleteAppCalendar(calendarId)**: Elimina un calendari gestionat específic.
+- **createNewAppCalendar(suffix)**: Crea un nou calendari gestionat per l'app.
+
+#### Menú i Notificacions
+- **onMenuAction(callback)**: Listener per accions del menú des del backend.
+- **triggerMenuAction(action)**: Envia una acció al backend per ser executada.
+
+#### Miscel·lània
+- **factoryReset()**: Realitza una restauració de fàbrica.
+- **loadAppData()**: Carrega dades de l'aplicació (obsolet, retorna null).
+- **openLogsFolder()**: Obre la carpeta de logs del sistema.
+- **openBackupsFolder()**: Obre la carpeta de còpies de seguretat.
+- **logToMain(level, ...args)**: Envia logs al backend per ser escrits al fitxer de log.
+
+#### Nota Important sobre Logging
+Degut a les restriccions del mode sandbox d'Electron, `electron-log` no està directament exposat al frontend. El logging funciona de la següent manera:
+1. El logger utility (`src/utils/logger.ts`) comprova si `window.electronLog` està disponible.
+2. Si no està disponible, fa fallback a `console.log/error/warn/debug`.
+3. `electron-log` al backend (`main.cjs`) captura automàticament les crides de `console` del renderer via IPC.
+4. En desenvolupament, els logs apareixen a DevTools. En producció, es capturen al fitxer de log.
+
+---
 
 ### 3.5. Integració amb Serveis Externs: Google Calendar API
 
@@ -436,20 +494,25 @@ L'estat global del frontend es gestiona a través de *stores* de Zustand, la qua
         -   **`isOpen`**: Controla si el modal està obert o tancat.
     -   **Nota:** La gestió de notificacions s'ha centralitzat al servei `notificationService.ts`, que utilitza directament `react-hot-toast` i s'importa directament allà on es necessiti.
 
+4.  **`riderPdfConfigStore.ts`**:
+    -   **Descripció:** Store per a la configuració de PDF de riders amb auto-save automàtic.
+    -   **Contingut:**
+        -   **Estat:** `config` (orientació, seccions, columnes), `loading`, `error`.
+        -   **Accions:** `setOrientation`, `setSection`, `setInputColumn`, `setMonitorColumn`, `setBalanceConfig`, `loadConfig`, `saveConfig`, `resetConfig`.
+    -   **Auto-save:** La funció `autoSaveRiderPdfConfig()` desa la configuració amb un retard de 1 segon després de l'últim canvi.
+    -   **Helper:** `getPdfOptionsFromConfig()` converteix la configuració de l'store a opcions compatibles amb el generador de PDF.
+    -   **Configuració per defecte:** Inclou seccions activades (inputs, monitors, cable, spare, balance) i desactivades (basicInfo, technicalNotes, hospitality, generalNotes).
+
     #### Optimització de Rendiment: Selectors (`src/utils/selectors.ts`)
     Per evitar re-renderitzats innecessaris i bucles infinits, la lògica complexa de filtratge s'ha extret dels components i dels stores principals:
          - **`selectFilteredEventFrames`**: Aquesta funció pura rep l'estat complet i retorna la llista filtrada. S'utilitza dins dels components amb `useMemo` o directament en accions d'exportació, garantint que els càlculs pesats només es facin quan canvien les dependències rellevants.
-
- #### Middleware de Depuració (`loggingMiddleware.ts`)
- 
- El projecte inclou un middleware de Zustand personalitzat a `src/stores/loggingMiddleware.ts` dissenyat per a la depuració.
-
 
 #### Middleware de Depuració (`loggingMiddleware.ts`)
 
 El projecte inclou un middleware de Zustand personalitzat a `src/stores/loggingMiddleware.ts` dissenyat per a la depuració.
 
 - **Funcionalitat:** Quan s'aplica a un store, aquest middleware registra automàticament cada acció que es crida, l'estat *abans* del canvi, i l'estat *després* del canvi. Això és extremadament útil durant el desenvolupament per traçar com i per què canvia l'estat.
+- **Optimització:** Si l'estat resultant supera els 50KB, el middleware omet l'estat complet del log per evitar saturar la consola.
 - **Ús:** Actualment, aquest middleware **no està actiu** a cap dels stores de producció per evitar sobrecarregar la consola. No obstant això, un desenvolupador pot activar-lo fàcilment per depurar un store específic.
 
 Per exemple, per activar-lo a `eventDataStore.ts`, s'hauria d'importar i embolcallar la definició de l'store:
@@ -471,6 +534,10 @@ export const useEventDataStore = create<...>()(
   )
 );
 ```
+
+#### Optimització de Rendiment: Selectors (`src/utils/selectors.ts`)
+Per evitar re-renderitzats innecessaris i bucles infinits, la lògica complexa de filtratge s'ha extret dels components i dels stores principals:
+     - **`selectFilteredEventFrames`**: Aquesta funció pura rep l'estat complet i retorna la llista filtrada. S'utilitza dins dels components amb `useMemo` o directament en accions d'exportació, garantint que els càlculs pesats només es facin quan canvien les dependències rellevants.
 
 #### Patró d'Ús de Zustand als Components
 
@@ -2371,4 +2438,166 @@ const TechSheetForm = ({ eventFrame }) => {
 #### 12.2. Gestió d'Icones
 - **Repositori:** `build/icons/` conté les versions mestres per a cada plataforma.
 - **Formats:** `.icns` (Mac), `.ico` (Windows) i una graella de `.png` (Linux/Web) per garantir la consistència visual del logo de GEP.
+
+#### 12.3. Configuració de Build per Plataformes
+
+El projecte utilitza GitHub Actions per automatitzar la compilació per a diferents plataformes.
+
+**Linux (build-linuxv20-04.yml)**
+- **Runner:** ubuntu-22.04
+- **Dependències del sistema:** libfuse2, libgtk-3-dev, libnss3, libasound2, libxtst-dev, libxss1, libappindicator3-1
+- **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
+- **Validació:** Comprova que google-credentials.json existeix, no està buit, és JSON vàlid i conté la clau 'installed'
+- **Comanda:** `npm run build:electron -- --linux --x64 --publish never`
+- **Artefacte:** Genera un AppImage amb documentació (LICENSE, README.md, DEVELOPING.md) i exemples (examples json)
+- **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-Linux`
+
+**macOS (build-macos12.yml)**
+- **Runner:** macos-latest
+- **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
+- **Comanda:** `npm run build:mac`
+- **Artefacte:** Genera un DMG amb documentació i exemples
+- **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-macOS`
+
+**Windows (build-win10.yml)**
+- **Runner:** windows-latest
+- **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
+- **Comanda:** `npm run build:electron -- --win --x64 --publish never`
+- **Artefacte:** Genera un EXE amb documentació i exemples
+- **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-Windows`
+
+**Android (mobile-build.yml)**
+- **Runner:** ubuntu-latest
+- **Java:** JDK 17 (temurin distribution)
+- **Working directory:** mobile_app/
+- **Dependències:** `npm install --legacy-peer-deps` + `npx expo install --fix`
+- **Prebuild:** `npx expo prebuild --platform android --no-install`
+- **Fix Gradle:** Canvia versió de Gradle a 8.6
+- **Signatura:** Configura signatura de release amb clau de debug
+- **Comanda:** `./gradlew assembleRelease`
+- **Artefacte:** Renombra APK amb GEP, branca i número de build
+- **Nom de l'artefacte:** `GEP-Android-Release-{BRANCH}-build{BUILD_NUMBER}.apk`
+
+---
+
+## 13. Scripts de Desenvolupament
+
+El projecte inclou scripts d'utilitat per automatitzar tasques comunes de desenvolupament.
+
+### 13.1. build-theme.cjs
+
+Script per generar automàticament els fitxers de tema CSS i TypeScript a partir de la configuració centralitzada.
+
+- **Execució:** `npm run build:theme`
+- **Fitxer de configuració:** `theme.config.cjs`
+- **Fitxers generats:**
+  - `src/index.css`: Fitxer CSS principal amb variables CSS per a temes clar i fosc
+  - `src/utils/themeDefinition.ts`: Fitxer TypeScript amb colors HSL per a generació de PDFs
+- **Plantilla:** `scripts/templates/index.css.template` amb marcadors `/*__LIGHT_THEME_VARIABLES__*/` i `/*__DARK_THEME_VARIABLES__*/`
+- **Funcionament:**
+  1. Llegeix la configuració de `theme.config.cjs`
+  2. Genera variables CSS per a cada tema (light/dark)
+  3. Reemplaça els marcadors a la plantilla CSS
+  4. Genera `themeDefinition.ts` amb colors mapejats per a PDF (pdfMapping) i colors extra (pdfExtras)
+- **Nota:** El fitxer `src/index.css` està marcat com AUTO-GENERAT i no s'ha d'editar manualment.
+
+### 13.2. update-version.cjs
+
+Script d'actualització automàtica de versions que s'executa després de `npm version`.
+
+- **Execució automàtica:** S'executa després de `npm version patch/minor/major`
+- **Fitxers actualitzats:**
+  - `README.md`: Actualitza títol amb versió i mes/any
+  - `DEVELOPING.md`: Actualitza capçalera de versió i secció de novetats
+  - `ESQUEMA_UI_DESKTOP.md`: Actualitza títol amb versió
+  - `index.html`: Actualitza títol amb versió
+  - `ARBRE_DIRECTORIS.txt`: Actualitat marcador de versió
+  - `apps_web/landing/src/layouts/Layout.astro`: Actualitza banner de nova versió
+  - `apps_web/landing/src/i18n/translations/ca.json`: Actualitza versió en català
+  - `apps_web/landing/src/i18n/translations/en.json`: Actualitza versió en anglès
+  - `apps_web/landing/src/i18n/translations/es.json`: Actualitza versió en castellà
+- **Format de data:** Català (GENER, FEBRER, MARÇ, etc.) per documents, títol (Gener, Febrer, Març, etc.) per web
+- **Git:** Prepara fitxers per commit amb `git add -A` si està en un repositori git
+- **Resum:** Mostra quantitat de fitxers actualitzats al final
+
+---
+
+## 14. Sistema de Migració de Dades
+
+El projecte inclou mecanismes per migrar dades des de formats antics a formats nous, garantint la compatibilitat amb versions anteriors.
+
+### 14.1. Migració General (dataMigration.ts)
+
+Script per migrar dades des de formats antics (amb IDs numèrics i estatus de text) al format actual.
+
+- **Funció principal:** `migrateData(peopleData?, eventData?, assignmentData?)`
+- **Conversions realitzades:**
+  - **IDs numèrics a strings:** Converteix `id: number` a `id: string`
+  - **Estatus de text a enum:** Converteix 'Sí'/'No'/'Pendent' a `AssignmentStatus.Yes/No/Pending`
+  - **Tech sheets inicials:** Crea fitxes tècniques buides amb estructura per defecte per esdeveniments antics
+- **Interfícies antigues:**
+  - `OldPeopleData`: amb camps `people: { id, name, role?, tel1?, tel2?, email?, web?, notes? }[]`
+  - `OldEventData`: amb camps `eventFrames: { id, eventName, location?, generalStartDate, generalEndDate?, notesGeneral?, isPersonnelComplete? }[]`
+  - `OldAssignmentData`: amb camps `assignments: { id, eventFrameId, personId, assignmentStartDate, assignmentEndDate?, status?, notesAssignment? }[]`
+- **Validació:** `validateMigratedData(data)` retorna `{ isValid: boolean; errors: string[] }`
+
+### 14.2. Migració de Fitxes Tècniques (techSheetMigration.ts)
+
+Script específic per migrar dades de fitxes tècniques des de formats antics al nou format condicional.
+
+- **Funció principal:** `migrateTechSheetData(data, eventFrame)`
+- **Detecció automàtica:** Comprova si les dades ja estan en format nou (comprova si `data.lighting` i `data.sound` són objectes amb status)
+- **Conversions realitzades:**
+  - **Strings a ConditionalStatus:** Converteix strings "SI"/"NO"/"--" a 'yes'/'no'/'unset'
+  - **Extracció de detalls:** Extre detalls des de strings com "SI: Detalls aquí" -> status='yes', details='Detalls aquí'
+  - **Migració de necessitats:** Converteix arrays de necessitats antics al nou format `{ status, details, data: { needs: [] } }`
+  - **Horaris:** Converteix `showTime` (string) a `showTimes: [{ id, time }]`
+  - **Proveïdors tècnics:** Afegeix `printNotes: true` per defecte a rols de proveïdors
+- **Fallback:** Si hi ha error, retorna una fitxa tècnica per defecte generada amb `createDefaultTechSheetForMigration(eventFrame)`
+- **Logging:** Registra errors al logger centralitzat
+
+---
+
+## 15. Sistema de Hotkeys Context-Aware
+
+El projecte inclou un sistema de dreceres de teclat basat en selectors CSS per permetre hotkeys que només s'activen quan el focus està en elements específics.
+
+### 15.1. Hook useHotkey
+
+Hook React per gestionar hotkeys globals basats en el focus.
+
+- **Fitxer:** `src/hooks/useHotkey.ts`
+- **Paràmetres:**
+  - `callback`: Funció a executar quan s'activa la hotkey
+  - `key`: Tecla principal (default: 'Enter')
+  - `requireCtrl`: Requereix Ctrl/Cmd (default: true)
+  - `selector`: Selector CSS per determinar on el focus activa la hotkey (opcional)
+- **Funcionament:**
+  1. Detecta si els modificadors coincideixen (Ctrl/Cmd segons plataforma)
+  2. Si hi ha selector, comprova si el focus està dins de l'element amb `document.activeElement.closest(selector)`
+  3. Si tot coincideix, prevé el comportament per defecte i executa el callback
+- **Ús actual:** Ctrl+Enter (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors al Rider Workshop quan el focus està en la secció corresponent
+
+### 15.2. Selectors CSS Definits
+
+Els selectors CSS específics utilitzats al projecte es defineixen als components que utilitzen `useHotkey`. Per exemple, al Rider Workshop:
+- Selector per input list: detecta quan el focus està en una cel·la de la taula d'inputs
+- Selector per monitors: detecta quan el focus està en una cel·la de la taula de monitors
+
+---
+
+## 16. Funcionalitats en Fase de Desenvolupament
+
+Aquesta secció documenta funcionalitats que existeixen parcialment al codi però encara no estan completament exposades a la interfície d'usuari.
+
+### 16.1. Full de Ruta del Regidor
+
+- **Estat:** La funció `exportRegidoriaSummaryPdf()` existeix a `src/utils/pdfGenerator.ts` però **NO està exposada a la UI**
+- **Contingut previst:** Escaleta combinada amb horaris generals de la fitxa de bolo + horaris d'actuacions
+- **Característiques previstes:**
+  - Horaris generals de la fitxa de bolo (`techSheetData.schedule`)
+  - Horaris d'actuacions amb prefixos [ARRIVADA], [PROVES], [SHOW]
+  - Notes crítiques de regidoria extretes automàticament
+  - Ordenació cronològica per prioritat i hora
+- **Per implementar:** Cal afegir un botó a `PerformancesDisplay` que passi `techSheetData` i cridi `exportRegidoriaSummaryPdf(eventFrame, performances, techSheetData, showToast)`
 
