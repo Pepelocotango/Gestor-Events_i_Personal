@@ -21,7 +21,7 @@ jobs:
       - name: 2. Configuració de Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
           cache-dependency-path: mobile_app/pnpm-lock.yaml
 
@@ -34,7 +34,7 @@ jobs:
 
       - name: 4. Instal·lació de dependències del projecte mòbil
         working-directory: ./mobile_app
-        run: rm -rf node_modules && pnpm install --legacy-peer-deps && pnpm exec expo install --fix
+        run: rm -rf node_modules && pnpm install --frozen-lockfile && pnpm exec expo install --fix
 
       - name: 5. Clean Native Directories
         working-directory: ./mobile_app

@@ -21,7 +21,7 @@ jobs:
       - name: 2. Configuració de Node.js
         uses: actions/setup-node@v4
         with: 
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: 3. Instal·lació de dependències del projecte (pnpm)
@@ -54,7 +54,7 @@ jobs:
 
       - name: 7. Compilació de l'aplicació per a macOS
         env:
-          GH_TOKEN: ""
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm run build:mac
 
       - name: 8. Preparar fitxers per a l'artefacte

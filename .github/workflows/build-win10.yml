@@ -58,8 +58,8 @@ jobs:
     # (El pas 4 de compilació es manté igual, agafarà les variables automàticament)
     - name: Compilació i empaquetat de l'aplicació
       env:
-        GH_TOKEN: ""
-      run: pnpm run build:electron -- --win --x64 --publish never
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: pnpm run build:electron --win --x64 --publish never
 
     # 5. Preparar carpeta d'artefactes
     - name: Preparar carpeta d'artefactes
