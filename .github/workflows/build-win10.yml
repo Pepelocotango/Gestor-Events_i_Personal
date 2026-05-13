@@ -20,7 +20,7 @@ jobs:
 
     # 3. Instal·la totes les dependències del package.json
     - name: Instal·lació de dependències del projecte
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
       
     - name: 4.5 Create google-credentials.json from secret
       env:
@@ -75,6 +75,13 @@ jobs:
         # Definim el nom de l'artefacte (sense .zip)
         $artifactName = "GEP_v${{ env.APP_VERSION }}-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Windows"
         echo "artifact_name=$artifactName" >> $env:GITHUB_OUTPUT
+
+    # 6. Pujada de l'artefacte
+    - name: Pujada de la carpeta com a artefacte
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.prep_windows.outputs.artifact_name }}
+        path: GEP_Artifact/=$artifactName" >> $env:GITHUB_OUTPUT
 
     # 6. Pujada de l'artefacte
     - name: Pujada de la carpeta com a artefacte
