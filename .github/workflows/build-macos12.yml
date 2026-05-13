@@ -18,12 +18,12 @@ jobs:
 
       - name: 2. Configuració de Node.js
         uses: actions/setup-node@v4
-        with: --frozen-lockfile
+        with: 
           node-version: '20'
           cache: 'pnpm'
 
       - name: 3. Instal·lació de dependències del projecte (pnpm)
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: 4. Create google-credentials.json from secret
         env:
