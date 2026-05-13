@@ -7,28 +7,29 @@
   "license": "GPL-3.0-or-later",
   "main": "main.cjs",
   "type": "module",
+  "packageManager": "pnpm@11.1.1",
   "scripts": {
     "dev": "vite --force --clearScreen false",
     "build:theme": "node scripts/build-theme.cjs",
     "wait": "node -e \"setTimeout(() => process.exit(0), 500)\"",
-    "build": "npm run build:theme && tsc && vite build",
+    "build": "pnpm run build:theme && tsc && vite build",
     "preview": "vite preview",
     "electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
-    "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
-    "start": "npm run build:theme && npm run wait && npm run electron-dev",
+    "electron-dev": "concurrently \"pnpm run dev\" \"pnpm run electron\"",
+    "start": "pnpm run build:theme && pnpm run wait && pnpm run electron-dev",
     "clean": "rm -rf dist node_modules/.vite",
-    "fresh-start": "npm run clean && npm start",
+    "fresh-start": "pnpm run clean && pnpm start",
     "postversion": "node scripts/update-version.cjs",
-    "build:electron": "npm run build && electron-builder",
+    "build:electron": "pnpm run build && electron-builder",
     "dist": "electron-builder",
     "// COMMENT": "--- SCRIPTS DE COMPILACIÓ LOCAL (Amb valors per defecte) ---",
-    "build:mac": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && npm run build && electron-builder --mac --x64 --publish never",
-    "build:linux": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && npm run build && electron-builder --linux --x64 --publish never",
-    "build:win": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && npm run build && electron-builder --win --x64 --publish never",
-    "i18n:extract:desktop": "npx i18next-parser --config i18next-parser.config.cjs",
-    "i18n:extract:mobile": "npx i18next-parser --config i18next-parser.mobile.config.cjs",
-    "i18n:extract:web": "npx i18next-parser --config i18next-parser.web.config.cjs",
-    "i18n:extract:all": "npm run i18n:extract:desktop && npm run i18n:extract:mobile && npm run i18n:extract:web"
+    "build:mac": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && pnpm run build && electron-builder --mac --x64 --publish never",
+    "build:linux": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && pnpm run build && electron-builder --linux --x64 --publish never",
+    "build:win": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && pnpm run build && electron-builder --win --x64 --publish never",
+    "i18n:extract:desktop": "pnpm exec i18next-parser --config i18next-parser.config.cjs",
+    "i18n:extract:mobile": "pnpm exec i18next-parser --config i18next-parser.mobile.config.cjs",
+    "i18n:extract:web": "pnpm exec i18next-parser --config i18next-parser.web.config.cjs",
+    "i18n:extract:all": "pnpm run i18n:extract:desktop && pnpm run i18n:extract:mobile && pnpm run i18n:extract:web"
   },
   "dependencies": {
     "@dnd-kit/core": "6.1.0",
@@ -57,7 +58,7 @@
     "react-dom": "18.3.1",
     "react-hot-toast": "2.6.0",
     "react-i18next": "^16.5.3",
-    "react-router-dom": "7.6.3",
+    "react-router-dom": "7.12.0",
     "use-sync-external-store": "^1.5.0",
     "zundo": "2.3.0",
     "zustand": "5.0.8"
@@ -71,8 +72,8 @@
     "autoprefixer": "10.4.21",
     "concurrently": "8.2.2",
     "cross-env": "^10.1.0",
-    "electron": "38.8.6",
-    "electron-builder": "24.13.3",
+    "electron": "39.8.5",
+    "electron-builder": "26.8.1",
     "i18next-parser": "9.3.0",
     "postcss": "8.5.14",
     "tailwindcss": "3.4.17",
@@ -81,6 +82,7 @@
     "wait-on": "7.2.0"
   },
   "build": {
+    "asar": false,
     "appId": "com.gestorevents.app",
     "productName": "GestorEsdevenimentsPersonal",
     "directories": {
@@ -95,6 +97,7 @@
     ],
     "files": [
       "dist/**/*",
+      "node_modules/**/*",
       "main.cjs",
       "preload.cjs",
       "metadata.json",
@@ -122,7 +125,8 @@
     "linux": {
       "target": "AppImage",
       "category": "Office",
-      "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-Linux-Ubuntu18.04+.${ext}"
+      "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-Linux-Ubuntu18.04+.${ext}",
+      "asarUnpack": ["node_modules/**/*"]
     },
     "win": {
       "target": [

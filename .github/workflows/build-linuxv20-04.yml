@@ -14,7 +14,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: 3. Instal·lació de dependències del sistema per a Ubuntu 22.04
         run: |
@@ -28,8 +28,8 @@ jobs:
             libxss1 \
             libappindicator3-1
 
-      - name: 4. Instal·lació de dependències del projecte (npm)
-        run: npm install
+      - name: 4. Instal·lació de dependències del projecte (pnpm)
+        run: pnpm install
 
       - name: 4.5 Create google-credentials.json from secret
         env:
@@ -81,7 +81,7 @@ jobs:
 
       - name: 5. Compilació de l'aplicació per a Linux
         # Les variables ja estan a l'entorn pel pas anterior
-        run: npm run build:electron -- --linux --x64 --publish never
+        run: pnpm run build:electron -- --linux --x64 --publish never
 
       - name: 6. Preparar fitxers per a l'artefacte
         id: prep_artifact

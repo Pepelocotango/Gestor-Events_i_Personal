@@ -1363,9 +1363,9 @@ Tots els workflows s'activen manualment (`workflow_dispatch`) i segueixen un pat
 
 1.  **Checkout:** Descarreguen el codi font del repositori.
 2.  **Setup Node.js:** Configuren l'entorn amb la versió de Node.js especificada.
-3.  **Install Dependencies:** Executen `npm install` per instal·lar totes les dependències.
+3.  **Install Dependencies:** Executen `pnpm install` per instal·lar totes les dependències.
 4.  **Create `google-credentials.json`:** Aquest és un pas crucial. El contingut del fitxer de credencials s'emmagatzema com un **Secret de GitHub** (`GOOGLE_CREDENTIALS_JSON`). L'acció llegeix aquest secret i crea el fitxer `google-credentials.json` a l'entorn de compilació. Això permet que les credencials s'incloguin de manera segura a l'aplicació empaquetada sense que estiguin exposades al codi font.
-5.  **Build Application:** Executen l'script `npm run build:electron` amb les banderes corresponents a cada sistema operatiu (`--linux`, `--win`, `--mac`).
+5.  **Build Application:** Executen l'script `pnpm run build:electron` amb les banderes corresponents a cada sistema operatiu (`--linux`, `--win`, `--mac`).
 6.  **Upload Artifact:** Empaqueten els binaris generats (`.AppImage`, `.dmg`, `.exe`) com a artefactes de la build, que es poden descarregar des de la pàgina de l'acció a GitHub.
 
 ### Configuració d'Electron Builder (`package.json`)
@@ -1433,37 +1433,37 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
     ```
 
 2.  **Instal·la les dependències (Mètode Recomanat):**
-    Per a assegurar una instal·lació neta i 100% reproduïble, es recomana fer servir `npm ci`. Aquesta comanda instal·la les versions exactes definides al `package-lock.json` i és ideal per a entorns de producció i integració contínua.
+    Per a assegurar una instal·lació neta i 100% reproduïble, es recomana fer servir `pnpm install --frozen-lockfile`. Aquesta comanda instal·la les versions exactes definides al `pnpm-lock.yaml` i és ideal per a entorns de producció i integració contínua.
     ```bash
-    npm ci
+    pnpm install --frozen-lockfile
     ```
-    Alternativament, durant el desenvolupament actiu, pots fer servir `npm install`.
+    Alternativament, durant el desenvolupament actiu, pots fer servir `pnpm install`.
 
 3.  **Configura les Credencials de Google (Opcional, per a desenvolupament):**
     -   Crea un fitxer anomenat `google-credentials.json` a l'arrel del projecte.
     -   Enganxa-hi el contingut JSON de les teves credencials d'OAuth 2.0 per a "Aplicació d'escriptori" obtingudes des de Google Cloud Console.
 
-### Scripts `npm` Disponibles
+### Scripts `pnpm` Disponibles
 
--   `npm run dev`: Inicia el servidor de desenvolupament de Vite. (Normalment no s'utilitza sol).
--   `npm run electron`: Inicia l'aplicació Electron esperant que el servidor de Vite estigui actiu. (Normalment no s'utilitza sol).
--   `npm run electron-dev`: El comandament principal per al desenvolupament. Llança Vite i Electron simultàniament amb recàrrega en calent (`hot-reloading`).
--   `npm run build`: Compila el codi TypeScript i el frontend amb Vite a la carpeta `dist`.
--   `npm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron.
--   `npm run build:linux`, `npm run build:win`, `npm run build:mac`: Scripts específics per compilar l'aplicació per a cada sistema operatiu.
-`npm start` : Aquesta única comanda s'encarregarà de tot:
+-   `pnpm run dev`: Inicia el servidor de desenvolupament de Vite. (Normalment no s'utilitza sol).
+-   `pnpm run electron`: Inicia l'aplicació Electron esperant que el servidor de Vite estigui actiu. (Normalment no s'utilitza sol).
+-   `pnpm run electron-dev`: El comandament principal per al desenvolupament. Llança Vite i Electron simultàniament amb recàrrega en calent (`hot-reloading`).
+-   `pnpm run build`: Compila el codi TypeScript i el frontend amb Vite a la carpeta `dist`.
+-   `pnpm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron.
+-   `pnpm run build:linux`, `pnpm run build:win`, `pnpm run build:mac`: Scripts específics per compilar l'aplicació per a cada sistema operatiu.
+`pnpm start` : Aquesta única comanda s'encarregarà de tot:
 Reconstruirà els teus colors a partir de theme.config.cjs.
 Llançarà Vite sense memòria cau (--force).
 Obrirà Electron.
 
-- ultim script `npm run fresh-start` : Aquesta única comanda s'encarregarà de tot:
+- ultim script `pnpm run fresh-start` : Aquesta única comanda s'encarregarà de tot:
 Reconstruirà els teus colors a partir de theme.config.cjs.
 Llançarà Vite sense memòria cau (--force).
 Obrirà Electron.
 
 ### Depuració (Debugging)
 
--   **Procés Principal (Backend):** Els logs es mostren a la terminal on has executat `npm run electron-dev` i es guarden als fitxers de log a la carpeta de dades de l'usuari.
+-   **Procés Principal (Backend):** Els logs es mostren a la terminal on has executat `pnpm run electron-dev` i es guarden als fitxers de log a la carpeta de dades de l'usuari.
 -   **Procés de Renderitzat (Frontend):** Pots obrir les "Developer Tools" de Chromium des del menú `Veure -> Forçar Recàrrega` i `Veure -> Obrir Eines de Desenvolupament` (o amb el corresponent drecera de teclat). Això et dona accés a la consola, inspector d'elements, etc., com en un navegador web normal.
 
 ## Pràctiques de Qualitat i Seguretat del Codi
@@ -1600,7 +1600,7 @@ Per garantir la consistència visual i facilitar el manteniment, l'aplicació ut
 ### 2. Generació Automàtica de Fitxers de Tema
 
 - **Script:** `scripts/build-theme.cjs`
-- **Comanda:** `npm run build:theme`
+- **Comanda:** `pnpm run build:theme`
 
 Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
 
@@ -1614,9 +1614,9 @@ Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
 3.  Desa el fitxer.
 4.  Executa la següent comanda a la terminal:
     ```bash
-    npm run build:theme
+    pnpm run build:theme
     ```
-5.  Això és tot. L'script actualitzarà automàticament tots els fitxers necessaris. El comando `npm run build` també executa aquest script, de manera que els canvis sempre estaran sincronitzats en fer una nova compilació.
+5.  Això és tot. L'script actualitzarà automàticament tots els fitxers necessaris. El comando `pnpm run build` també executa aquest script, de manera que els canvis sempre estaran sincronitzats en fer una nova compilació.
 
 ---
 
@@ -1822,19 +1822,19 @@ Si afegeixes nous selectores en pantalles mòbils, utilitza `CustomSelect` per g
     cd mobile_app
     ```
 2.  **Instal·la les dependències:**
-    L'ecosistema de React Native té un arbre de dependències complex. Per evitar conflictes, és **obligatori** utilitzar el flag `--legacy-peer-deps`.
+    L'ecosistema de React Native té un arbre de dependències complex. Per evitar conflictes, es recomana utilitzar `pnpm install`.
     ```bash
-    npm install --legacy-peer-deps
+    pnpm install
     ```
-    > **Nota sobre instal·lacions netes:** Si trobes problemes de dependències, la millor solució és fer una instal·lació completament neta. Això implica esborrar `node_modules` i `package-lock.json` abans de tornar a executar la comanda d'instal·lació.
+    > **Nota sobre instal·lacions netes:** Si trobes problemes de dependències, la millor solució és fer una instal·lació completament neta. Això implica esborrar `node_modules` i tornar a executar la comanda d'instal·lació.
     > ```bash
-    > rm -rf node_modules package-lock.json
-    > npm install --legacy-peer-deps
+    > rm -rf node_modules
+    > pnpm install
     > ```
-    > **Nota important:** Per afegir noves dependències, especialment aquelles que contenen codi natiu (com les llibreries d'Expo), es recomana utilitzar `npx expo install <nom-del-paquet>`. Aquesta eina s'assegura d'instal·lar una versió de la llibreria que sigui totalment compatible amb l'SDK d'Expo del projecte, evitant problemes d'enllaç natiu.
+    > **Nota important:** Per afegir noves dependències, especialment aquelles que contenen codi natiu (com les llibreries d'Expo), es recomana utilitzar `pnpm exec expo install <nom-del-paquet>`. Aquesta eina s'assegura d'instal·lar una versió de la llibreria que sigui totalment compatible amb l'SDK d'Expo del projecte, evitant problemes d'enllaç natiu.
 3.  **Inicia el servidor de desenvolupament d'Expo:**
     ```bash
-    npm start
+    pnpm start
     ```
 Això obrirà el Metro Bundler al teu navegador. Pots executar l'aplicació en un dispositiu físic escanejant el codi QR amb l'aplicació Expo Go, o en un emulador/simulador d'Android o iOS.
 
@@ -1885,9 +1885,9 @@ Aquestes comandes combinades garanteixen un entorn de treball net i previsible, 
 Utilitza aquesta comanda si trobes errors de resolució de paquets o si l'aplicació no reflecteix els canvis recents.
 
 ```bash
-cd mobile_app && rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && npm start -- --clear
+cd mobile_app && rm -rf node_modules && pnpm install && pnpm start -- --clear
 ```
-*   **Què fa:** Elimina dependències locals, les reinstal·la ignorant conflictes estrictes de versions (necessari per a l'ecosistema React Native actual) i inicia el Metro Bundler forçant la neteja de la memòria cau.
+*   **Què fa:** Elimina dependències locals, les reinstal·la i inicia el Metro Bundler forçant la neteja de la memòria cau.
 
 ### 🖥️ Desenvolupament Escriptori
 
@@ -1896,28 +1896,28 @@ Tens dues opcions segons la necessitat del moment:
 **Opció A: Restauració i Actualització (Flexible)**
 Ideal quan vols actualitzar dependències o l'entorn sembla corrupte.
 ```bash
-rm -rf node_modules package-lock.json dist && npm install && npm run fresh-start
+rm -rf node_modules dist && pnpm install && pnpm run fresh-start
 ```
-*   **Què fa:** Elimina tot rastre de l'entorn anterior, regenera el `package-lock.json` amb les últimes versions compatibles i inicia l'aplicació regenerant els temes.
+*   **Què fa:** Elimina tot rastre de l'entorn anterior i torna a instal·lar les dependències abans d'iniciar l'aplicació regenerant els temes.
 
 **Opció B: Entorn Estricte (Reproduïble)**
 Ideal per treballar amb la certesa que tens exactament les mateixes versions que al repositori.
 ```bash
-npm ci && npm run fresh-start
+pnpm install --frozen-lockfile && pnpm run fresh-start
 ```
-*   **Què fa:** Esborra `node_modules` i instal·la **exactament** les versions definides al `package-lock.json` existent, sense modificar-lo.
+*   **Què fa:** Instala exactament les versions definides al `pnpm-lock.yaml` existent, sense modificar-lo.
 
 ### 📦 Compilació per a Producció (Linux)
 Genera l'executable final per a distribució.
 
 ```bash
-npm ci && npm run build:linux
+pnpm install --frozen-lockfile && pnpm run build:linux
 ```
 *   **Resultat:** Un cop finalitzat el procés, trobaràs l'arxiu executable a:
     `dist/GestorEsdevenimentsPersonal_vXX-Linux-Ubuntu18.04+.AppImage`
 
 > **⚠️ AVÍS CRÍTIC: Fitxers de Secrets**
-> `npm ci` i el procés de build no toquen els fitxers locals no versionats. Perquè la integració amb Google funcioni a l'aplicació compilada, has d'assegurar-te que els fitxers **`google-credentials.json`** i **`service-account.json`** estan presents a l'arrel del projecte **ABANS** d'executar la comanda de compilació. Si falten, `electron-builder` no els inclourà al paquet final.
+> `pnpm install --frozen-lockfile` i el procés de build no toquen els fitxers locals no versionats. Perquè la integració amb Google funcioni a l'aplicació compilada, has d'assegurar-te que els fitxers **`google-credentials.json`** i **`service-account.json`** estan presents a l'arrel del projecte **ABANS** d'executar la comanda de compilació. Si falten, `electron-builder` no els inclourà al paquet final.
 
 ## 9.7. Arquitectura UI: Escala XL i Lògica de Focus Únic
 
@@ -2448,21 +2448,21 @@ El projecte utilitza GitHub Actions per automatitzar la compilació per a difere
 - **Dependències del sistema:** libfuse2, libgtk-3-dev, libnss3, libasound2, libxtst-dev, libxss1, libappindicator3-1
 - **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
 - **Validació:** Comprova que google-credentials.json existeix, no està buit, és JSON vàlid i conté la clau 'installed'
-- **Comanda:** `npm run build:electron -- --linux --x64 --publish never`
+- **Comanda:** `pnpm run build:electron -- --linux --x64 --publish never`
 - **Artefacte:** Genera un AppImage amb documentació (LICENSE, README.md, DEVELOPING.md) i exemples (examples json)
 - **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-Linux`
 
 **macOS (build-macos12.yml)**
 - **Runner:** macos-latest
 - **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
-- **Comanda:** `npm run build:mac`
+- **Comanda:** `pnpm run build:mac`
 - **Artefacte:** Genera un DMG amb documentació i exemples
 - **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-macOS`
 
 **Windows (build-win10.yml)**
 - **Runner:** windows-latest
 - **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
-- **Comanda:** `npm run build:electron -- --win --x64 --publish never`
+- **Comanda:** `pnpm run build:electron -- --win --x64 --publish never`
 - **Artefacte:** Genera un EXE amb documentació i exemples
 - **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-Windows`
 
@@ -2470,8 +2470,8 @@ El projecte utilitza GitHub Actions per automatitzar la compilació per a difere
 - **Runner:** ubuntu-latest
 - **Java:** JDK 17 (temurin distribution)
 - **Working directory:** mobile_app/
-- **Dependències:** `npm install --legacy-peer-deps` + `npx expo install --fix`
-- **Prebuild:** `npx expo prebuild --platform android --no-install`
+- **Dependències:** `pnpm install` + `pnpm exec expo install --fix`
+- **Prebuild:** `pnpm exec expo prebuild --platform android --no-install`
 - **Fix Gradle:** Canvia versió de Gradle a 8.6
 - **Signatura:** Configura signatura de release amb clau de debug
 - **Comanda:** `./gradlew assembleRelease`
@@ -2488,7 +2488,7 @@ El projecte inclou scripts d'utilitat per automatitzar tasques comunes de desenv
 
 Script per generar automàticament els fitxers de tema CSS i TypeScript a partir de la configuració centralitzada.
 
-- **Execució:** `npm run build:theme`
+- **Execució:** `pnpm run build:theme`
 - **Fitxer de configuració:** `theme.config.cjs`
 - **Fitxers generats:**
   - `src/index.css`: Fitxer CSS principal amb variables CSS per a temes clar i fosc
@@ -2503,9 +2503,9 @@ Script per generar automàticament els fitxers de tema CSS i TypeScript a partir
 
 ### 13.2. update-version.cjs
 
-Script d'actualització automàtica de versions que s'executa després de `npm version`.
+Script d'actualització automàtica de versions que s'executa després de `pnpm version`.
 
-- **Execució automàtica:** S'executa després de `npm version patch/minor/major`
+- **Execució automàtica:** S'executa després de `pnpm version patch/minor/major`
 - **Fitxers actualitzats:**
   - `README.md`: Actualitza títol amb versió i mes/any
   - `DEVELOPING.md`: Actualitza capçalera de versió i secció de novetats

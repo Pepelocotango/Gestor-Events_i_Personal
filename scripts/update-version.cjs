@@ -3,13 +3,13 @@
 /**
  * Script d'actualització automàtica de versions
  * 
- * Aquest script s'executa automàticament després de `npm version` 
+ * Aquest script s'executa automàticament després de `pnpm version` 
  * i actualitza tots els llocs on apareix la versió hardcoded.
  * 
  * Ús:
- * - npm version patch   (actualitza 1.6.0 → 1.6.1)
- * - npm version minor   (actualitza 1.6.0 → 1.7.0) 
- * - npm version major   (actualitza 1.6.0 → 2.0.0)
+ * - pnpm version patch   (actualitza 1.6.0 → 1.6.1)
+ * - pnpm version minor   (actualitza 1.6.0 → 1.7.0) 
+ * - pnpm version major   (actualitza 1.6.0 → 2.0.0)
  */
 
 const fs = require('fs');
