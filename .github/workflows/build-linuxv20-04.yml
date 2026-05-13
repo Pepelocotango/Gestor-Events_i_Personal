@@ -20,7 +20,7 @@ jobs:
       - name: 2. Configuració de Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: 3. Instal·lació de dependències del sistema per a Ubuntu 22.04
@@ -89,8 +89,8 @@ jobs:
       - name: 5. Compilació de l'aplicació per a Linux
         # Les variables ja estan a l'entorn pel pas anterior
         env:
-          GH_TOKEN: ""
-        run: pnpm run build:electron -- --linux --x64 --publish never
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build:electron --linux --x64 --publish never
 
       - name: 6. Preparar fitxers per a l'artefacte
         id: prep_artifact
