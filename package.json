@@ -82,7 +82,7 @@
     "wait-on": "7.2.0"
   },
   "build": {
-    "asar": false,
+    "asar": true,
     "appId": "com.gestorevents.app",
     "productName": "GestorEsdevenimentsPersonal",
     "directories": {
@@ -97,7 +97,6 @@
     ],
     "files": [
       "dist/**/*",
-      "node_modules/**/*",
       "main.cjs",
       "preload.cjs",
       "metadata.json",
