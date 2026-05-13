@@ -23,7 +23,6 @@ jobs:
         with:
           node-version: '24'
           cache: 'pnpm'
-          cache-dependency-path: mobile_app/pnpm-lock.yaml
 
       - name: 3. Configuració de Java (JDK)
         id: setup-java
