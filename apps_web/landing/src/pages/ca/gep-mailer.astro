@@ -152,7 +152,7 @@ const description = t.gep_mailer.subtitle;
 
           <!-- GitHub Releases Component -->
           <I18nProvider client:load initialLang="ca">
-            <GithubReleasesMailer client:visible />
+            <GithubReleasesMailer client:only="react" />
           </I18nProvider>
         </div>
       </div>
