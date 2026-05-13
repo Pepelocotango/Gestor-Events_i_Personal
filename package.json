@@ -7,7 +7,7 @@
   "license": "GPL-3.0-or-later",
   "main": "main.cjs",
   "type": "module",
-  "packageManager": "pnpm@8.15.8",
+  "packageManager": "pnpm@8.15.9",
   "scripts": {
     "dev": "vite --force --clearScreen false",
     "build:theme": "node scripts/build-theme.cjs",
