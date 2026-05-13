@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: 1. Checkout del codi
@@ -51,6 +53,8 @@ jobs:
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
       - name: 7. Compilació de l'aplicació per a macOS
+        env:
+          GH_TOKEN: ""
         run: pnpm run build:mac
 
       - name: 8. Preparar fitxers per a l'artefacte
