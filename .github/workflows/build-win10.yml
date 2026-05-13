@@ -13,12 +13,18 @@ jobs:
     # 1. Descarrega el codi del teu repositori
     - name: Checkout del codi
       uses: actions/checkout@v4
-
-    # 2. Configura l'entorn de Node.js per poder utilitzar pnpm
+   
+      #1.2 instal#lar pnpm
+    - name: Instal·lar pnpm
+      uses: pnpm/action-setup@v4
+      with:
+          version: 8.15.9
+   
+     # 2. Configura l'entorn de Node.js per poder utilitzar pnpm
     - name: Configuració de Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20' # Utilitzem una versió recent de Node.js
+        node-version: '24' # Utilitzem una versió recent de Node.js
 
     # 3. Instal·la totes les dependències del package.json
     - name: Instal·lació de dependències del projecte
@@ -80,14 +86,7 @@ jobs:
         $artifactName = "GEP_v${{ env.APP_VERSION }}-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Windows"
         echo "artifact_name=$artifactName" >> $env:GITHUB_OUTPUT
 
-    # 6. Pujada de l'artefacte
-    - name: Pujada de la carpeta com a artefacte
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ steps.prep_windows.outputs.artifact_name }}
-        path: GEP_Artifact/=$artifactName" >> $env:GITHUB_OUTPUT
-
-    # 6. Pujada de l'artefacte
+      # 6. Pujada de l'artefacte
     - name: Pujada de la carpeta com a artefacte
       uses: actions/upload-artifact@v4
       with:

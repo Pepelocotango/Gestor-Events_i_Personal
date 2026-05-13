@@ -1,7 +1,7 @@
 {
   "name": "gestor-events-mobile",
   "version": "1.6.0",
-  "packageManager": "pnpm@11.1.1",
+  "packageManager": "pnpm@8.15.9",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
