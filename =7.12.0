@@ -1,0 +1,9 @@
+Progress: resolved 1, reused 0, downloaded 0, added 0
+[WARN] deprecated i18next-parser@9.3.0: Project is deprecated, use i18next-cli instead
+Progress: resolved 239, reused 223, downloaded 0, added 0
+Progress: resolved 644, reused 592, downloaded 0, added 0
+[WARN] 8 deprecated subdependencies found: boolean@3.2.0, glob@10.5.0, glob@7.2.3, inflight@1.0.6, node-domexception@1.0.0, rimraf@3.0.2, tar@6.2.1, whatwg-encoding@3.1.1
+Already up to date
+Progress: resolved 647, reused 595, downloaded 0, added 0, done
+
+Done in 4.2s using pnpm v11.1.1
