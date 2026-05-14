@@ -8,6 +8,6 @@ Aquest és un gestor d'esdeveniments i personal desenvolupat amb React, Vite, Ta
 - **Control de Versions:** No facis commits sense instrucció directa de l'usuari.
 
 ## Objectius de Context
-- Ajudar en el desenvolupament de noves funcionalitats tant a la web com a l'app mòbil.
-- Mantenir la coherència entre la versió d'escriptori i la versió mòbil.
+- Ajudar en el desenvolupament de noves funcionalitats a la app escriptori (win, mac, linux) a la web i a l'app mòbil.
+- Mantenir la coherència entre la versió d'escriptori i la versió mòbil. Actualitzar documentació quant sigui necessari. actualitzar web quant sigui necessari.
 - Documentar decisions importants a `.gemini/MEMORIA_PROJECTE.md`.

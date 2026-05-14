@@ -42,7 +42,7 @@ const tsHeader = `/**
  *
  * Aquest fitxer defineix els colors del tema en format HSL per ser utilitzats
  * en contextos on les variables CSS no són accessibles, com la generació de PDFs.
- * Es genera a partir de 'theme.config.js' executant 'npm run build:theme'.
+ * Es genera a partir de 'theme.config.js' executant 'pnpm run build:theme'.
  * Per fer canvis, modifica 'theme.config.js' i torna a executar l'script.
  */
 `;
