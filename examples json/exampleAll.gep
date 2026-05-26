@@ -21,6 +21,16 @@
       "web": ""
     },
     {
+      "id": "mpd3d58cv97tscurpse",
+      "name": "Hands SL",
+      "role": "personal C/D",
+      "tel1": "6541xx252",
+      "tel2": "",
+      "email": "handstumail@mail.com",
+      "web": "",
+      "notes": "empresa proveïdora personal càrrega/descàrrega"
+    },
+    {
       "id": "p-04",
       "name": "Laura Vídeo",
       "role": "Tècnic de Vídeo",
@@ -1956,51 +1966,49 @@
         "observations": "L'orquestra necessita 45 cadires sense braços (model negre). Aigua a l'escenari (ampolles petites sense tap).",
         "technicalProviders": [
           {
-            "id": "tp1",
+            "id": "local_mpd3f4k6njga7iwjgg",
+            "personGroupId": "mpd3d58cv97tscurpse",
+            "roles": [
+              {
+                "id": "local_mpd3f4k6wy6krgu296r",
+                "assignmentId": "mpd3e7y6lg4nayaqvpo",
+                "role": "Auxiliar de Càrrega i Descàrrega",
+                "quantity": 1,
+                "notes": "Dies: 30/12/2025, 02/01/2026",
+                "printNotes": true
+              }
+            ],
+            "isManual": false
+          },
+          {
+            "id": "local_mpd3f4k6lhswhg88pcs",
             "personGroupId": "p-01",
             "roles": [
               {
-                "id": "r1",
-                "role": "Direcció Tècnica",
+                "id": "local_mpd3f4k6rwloyqnpou",
+                "assignmentId": "as-01",
+                "role": "Il·luminació",
                 "quantity": 1,
-                "notes": "Supervisió general"
+                "notes": "Responsable del muntatge.",
+                "printNotes": true
               }
-            ]
+            ],
+            "isManual": false
           },
           {
-            "id": "tp2",
+            "id": "local_mpd3f4k6igdmomk1vuc",
             "personGroupId": "p-02",
             "roles": [
               {
-                "id": "r2",
-                "role": "Tècnic de Llums",
+                "id": "local_mpd3f4k6ob6igs1fgbg",
+                "assignmentId": "as-02",
+                "role": "Operadora de Llums",
                 "quantity": 1,
-                "notes": "Muntatge i assistència operador"
+                "notes": "",
+                "printNotes": true
               }
-            ]
-          },
-          {
-            "id": "tp3",
-            "personGroupId": "p-03",
-            "roles": [
-              {
-                "id": "r3",
-                "role": "Tècnic de So (PA)",
-                "quantity": 1
-              }
-            ]
-          },
-          {
-            "id": "tp4",
-            "personGroupId": "p-05",
-            "roles": [
-              {
-                "id": "r4",
-                "role": "Auxiliar Escenari",
-                "quantity": 2,
-                "notes": "Càrrega i descàrrega"
-              }
-            ]
+            ],
+            "isManual": false
           }
         ],
         "technicalPersonnelNotes": "Tot el personal ha de portar calçat de seguretat durant el muntatge. Roba negra rigorosa durant el bolo.",
@@ -2393,6 +2401,22 @@
       "notes": "QSC K12."
     },
     {
+      "id": "mat-14",
+      "name": "Cable Speakon 10m",
+      "category": "So",
+      "stock": 20,
+      "location": "Cablejat",
+      "notes": "Cable Speakon NL4 10m."
+    },
+    {
+      "id": "mat-13",
+      "name": "Cable XLR 10m",
+      "category": "So",
+      "stock": 30,
+      "location": "Cablejat",
+      "notes": "Cable XLR mascle-femella 10m."
+    },
+    {
       "id": "mat-10",
       "name": "Cinta Americana Negra",
       "category": "Consumibles",
@@ -2417,6 +2441,14 @@
       "notes": "ETC Source Four."
     },
     {
+      "id": "mat-11",
+      "name": "Micròfon Diadema DPA 4066",
+      "category": "So",
+      "stock": 3,
+      "location": "Calaix de micros B",
+      "notes": "Diadema omnidireccional."
+    },
+    {
       "id": "mat-04",
       "name": "Micròfon Shure SM58",
       "category": "So",
@@ -2425,12 +2457,36 @@
       "notes": "Dinàmic vocal."
     },
     {
+      "id": "mat-15",
+      "name": "Monitor Actiu 12\"",
+      "category": "So",
+      "stock": 6,
+      "location": "Magatzem Monitors",
+      "notes": "Monitor actiu de 12 polzades."
+    },
+    {
       "id": "mat-08",
       "name": "Pantalla Projecció 4x3m",
       "category": "Vídeo",
       "stock": 1,
       "location": "Magatzem Fons",
       "notes": "Frontal i Retro."
+    },
+    {
+      "id": "mat-12",
+      "name": "Peu Mic Recte",
+      "category": "So",
+      "stock": 15,
+      "location": "Calaix Peus",
+      "notes": "Peu recte estàndard."
+    },
+    {
+      "id": "mat-16",
+      "name": "Piano de Cua",
+      "category": "Estructures",
+      "stock": 1,
+      "location": "Magatzem Fons",
+      "notes": "Piano de cua Steinway (lloguer extern)."
     },
     {
       "id": "mat-07",
@@ -2463,54 +2519,6 @@
       "stock": 1,
       "location": "Control 2",
       "notes": "Inclou Rio 3224."
-    },
-    {
-      "id": "mat-11",
-      "name": "Micròfon Diadema DPA 4066",
-      "category": "So",
-      "stock": 3,
-      "location": "Calaix de micros B",
-      "notes": "Diadema omnidireccional."
-    },
-    {
-      "id": "mat-12",
-      "name": "Peu Mic Recte",
-      "category": "So",
-      "stock": 15,
-      "location": "Calaix Peus",
-      "notes": "Peu recte estàndard."
-    },
-    {
-      "id": "mat-13",
-      "name": "Cable XLR 10m",
-      "category": "So",
-      "stock": 30,
-      "location": "Cablejat",
-      "notes": "Cable XLR mascle-femella 10m."
-    },
-    {
-      "id": "mat-14",
-      "name": "Cable Speakon 10m",
-      "category": "So",
-      "stock": 20,
-      "location": "Cablejat",
-      "notes": "Cable Speakon NL4 10m."
-    },
-    {
-      "id": "mat-15",
-      "name": "Monitor Actiu 12\"",
-      "category": "So",
-      "stock": 6,
-      "location": "Magatzem Monitors",
-      "notes": "Monitor actiu de 12 polzades."
-    },
-    {
-      "id": "mat-16",
-      "name": "Piano de Cua",
-      "category": "Estructures",
-      "stock": 1,
-      "location": "Magatzem Fons",
-      "notes": "Piano de cua Steinway (lloguer extern)."
     }
   ],
   "assignments": [
@@ -2576,13 +2584,30 @@
       "notes": "Cobreix al Pere el dissabte."
     },
     {
+      "personGroupId": "mpd3d58cv97tscurpse",
+      "startDate": "2025-12-30",
+      "endDate": "2026-01-02",
+      "status": "Mixt",
+      "notes": "",
+      "role": "Muntatge: Auxiliar de Càrrega i Descàrrega",
+      "id": "mpd3e7y6lg4nayaqvpo",
+      "eventFrameId": "evt-01",
+      "dailyStatuses": {
+        "2025-12-30": "Sí",
+        "2025-12-31": "No",
+        "2026-01-01": "No",
+        "2026-01-02": "Sí"
+      }
+    },
+    {
       "id": "as-01",
       "eventFrameId": "evt-01",
       "personGroupId": "p-01",
       "startDate": "2026-01-01",
       "endDate": "2026-01-02",
       "status": "Sí",
-      "notes": "Responsable del muntatge."
+      "notes": "Responsable del muntatge.",
+      "role": "Tècnic/a: Il·luminació"
     },
     {
       "id": "as-02",
