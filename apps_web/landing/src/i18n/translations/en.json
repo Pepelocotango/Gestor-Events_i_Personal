@@ -1,312 +1,337 @@
 {
-  "navigation": {
-    "home": "Home",
-    "features": "Features",
-    "product_tour": "Product Tour",
-    "gallery": "Gallery",
-    "download": "Downloads",
-    "contact": "Contact",
-    "menu": "Menu",
-    "logo_text": "Event Manager"
-  },
-  "hero": {
-    "title": "Event and Personnel Manager",
-    "subtitle": "Comprehensive tool for personnel and material management in events",
-    "description": "The definitive tool for professional event, personnel, and material management. Manage all your gigs from an intuitive and powerful interface.",
-    "cta_primary": "Free Download",
-    "cta_secondary": "More Info",
-    "scroll_down": "Scroll down",
-    "open_source_free": "Open source and free",
-    "platform_support": "For Windows, macOS, and Linux. Adapted version for Android.",
-    "discover_more": "Discover more",
-    "loading_animation": "Loading animation"
-  },
-  "site": {
-    "title": "Event and Personnel Manager",
-    "description": "The definitive tool for professional event and personnel management"
-  },
-  "features": {
-    "title": "Key Features",
-    "calendar_management": {
-      "title": "Calendar Management",
-      "description": "Interactive calendar view with complete event and assignment management."
+    "carousel": {
+        "dark_mode": "Dark theme",
+        "go_to_image": "Go to image {{index}}",
+        "light_mode": "Light theme",
+        "loading_images": "Loading images...",
+        "next_image": "Next image",
+        "previous_image": "Previous image"
     },
-    "personnel_management": {
-      "title": "Personnel Management",
-      "description": "Contact database with roles, phone numbers, and contact information."
+    "download": {
+        "android": "Android 8.0 or higher",
+        "desktop_description": "Full version with all features for Windows, macOS, and Linux.",
+        "desktop_title": "Desktop Application",
+        "download_desktop": "Download for Desktop",
+        "download_mobile": "Download for Mobile",
+        "installation_instructions": "Installation Instructions",
+        "ios": "iOS 13.0 or higher",
+        "linux": "Linux (Ubuntu 18.04 or higher)",
+        "linux_setup": {
+            "apparmor_note_command": "sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0",
+            "apparmor_note_prefix": "Ubuntu 24.04 (Noble Numbat) and later versions have introduced a security restriction that prevents AppImage applications from starting. If the app doesn't open, you can fix it by enabling kernel permissions with this command in the terminal:",
+            "details_desc": "AppImages are 'all-in-one' portable applications. You can move the file anywhere (even on a USB) and the app will run without installation or administrator privileges.",
+            "details_title": "Portable Format",
+            "fuse_note_command": "sudo apt-get install libfuse2",
+            "fuse_note_prefix": "Note: On systems like Ubuntu 22.04+ it may be necessary to install first: ",
+            "integration_desc": "For a better experience (start menu icon, file association), we recommend using 'AppImageLauncher' to integrate the application into your system.",
+            "integration_title": "Integration Tip",
+            "step_1": "Download the .AppImage file",
+            "step_2": "Give it execution permissions (Right click > Properties > Permissions > 'Allow executing file as program' or use 'chmod +x')",
+            "step_3": "Double-click to open the application or run it from the terminal",
+            "title": "Linux"
+        },
+        "macos": "macOS 10.14 or higher",
+        "macos_setup": {
+            "advanced_method": "If the above method does not work (macOS Sequoia 15+ or 'Is damaged' error):",
+            "available_versions": "Available in .dmg format for modern versions of macOS:",
+            "first_time_only": "You will only have to do this the first time you open the application. From then on, you can open it normally with a double-click.",
+            "option_a": "Option A (Settings): Go to System Settings > Privacy & Security, scroll to the bottom and press 'Open Anyway'.",
+            "option_b": "Option B (Terminal): If it says the app is damaged, open the Terminal and run:",
+            "security_description": "Since the application is not signed with an Apple developer certificate, you might see a message saying it cannot be opened. Here is how to resolve it:",
+            "security_title": "Important about security on macOS:",
+            "standard_method": "Standard method (works in most cases):",
+            "standard_step_1": "Right-click (or Control+click) on the application",
+            "standard_step_2": "Select 'Open' from the context menu",
+            "standard_step_3": "In the dialog box, click 'Open'",
+            "step_1": "Download the .dmg file of the latest version",
+            "step_2": "Double-click the downloaded file to mount the disk image",
+            "step_3": "Drag the application to the Applications folder",
+            "step_4": "To open the application for the first time, right-click on the application and select 'Open' from the context menu",
+            "step_5": "Confirm that you want to open the application when the warning window appears",
+            "terminal_command_desc": "xattr -cr /Applications/GestorEsdevenimentsPersonal.app",
+            "title": "macOS"
+        },
+        "mobile_description": "Mobile version for Android and iOS with basic event management.",
+        "mobile_title": "Mobile Application",
+        "other_versions": {
+            "button": "See all versions",
+            "description": "Visit our versions page to download previous versions or other variants of the platform.",
+            "title": "Need another version?"
+        },
+        "requirements": "Requirements",
+        "requirements_section": {
+            "cpu_min": "Dual-core processor at 2 GHz or higher",
+            "cpu_rec": "4-core processor at 2.5 GHz or higher",
+            "disk_min": "200 MB of free disk space",
+            "disk_rec": "SSD with 500 MB of free space",
+            "minimum": "Minimum",
+            "ram_min": "4 GB of RAM",
+            "ram_rec": "8 GB of RAM or more",
+            "recommended": "Recommended",
+            "title": "System Requirements"
+        },
+        "source_code_github": "Source code on GitHub",
+        "title": "Downloads",
+        "windows": "Windows 10 or higher",
+        "windows_setup": {
+            "available_versions": "Available in two versions:",
+            "installer_desc": "Recommended for most users. Run the installation file and follow the instructions.",
+            "installer_title": "Installer (.exe):",
+            "portable_desc": "Does not require installation. Run directly from a USB drive or folder.",
+            "portable_title": "Portable (.exe):",
+            "security_note": "Note: The application is not digitally signed. If Windows shows a warning, click 'More information' and then 'Run anyway'.",
+            "title": "Windows"
+        }
     },
-    "material_inventory": {
-      "title": "Material Inventory",
-      "description": "Complete inventory control with categories, locations, and stock management."
+    "download_section": {
+        "description": "Choose your platform and start managing your events today. Fast, secure and easy to use.",
+        "label": "Download now",
+        "limitation_1": "Does not include all advanced features of the desktop version",
+        "limitation_2": "Optimized for mobile use with a simplified interface",
+        "limitations_title": "Main limitations of the Android version:",
+        "recommendation": "For professional use with all features, we recommend using the desktop version (Windows, macOS or Linux).",
+        "title": "Available on all platforms",
+        "version_info_description": "The Android version is a reduced version of the desktop application, designed for quick consultation and basic event management.",
+        "version_info_title": "Important information about versions"
     },
-    "technical_sheets": {
-      "title": "Technical Sheets",
-      "description": "Detailed technical sheets for each event with all necessary information."
+    "features": {
+        "calendar_management": {
+            "description": "Interactive calendar view with complete event and assignment management.",
+            "title": "Calendar Management"
+        },
+        "cta": {
+            "button_github": "View on GitHub",
+            "button_start": "Start now",
+            "description": "Discover how the Event and Personnel Manager can simplify your workflow and save you hours of work.",
+            "title": "Ready to improve your event management?"
+        },
+        "export_import": {
+            "description": "Import and export data in multiple formats (JSON, PDF, CSV).",
+            "title": "Import/Export"
+        },
+        "google_sync": {
+            "description": "Automatic synchronization with Google Calendar for integrated management.",
+            "title": "Google Sync"
+        },
+        "material_inventory": {
+            "description": "Complete inventory control with categories, locations, and stock management.",
+            "title": "Material Inventory"
+        },
+        "open_source": {
+            "description": "GPLv3 license. No subscriptions, no ads, and no hidden costs. Includes desktop application and complementary mobile version.",
+            "title": "Open Source and Free"
+        },
+        "personnel_management": {
+            "description": "Contact database with roles, phone numbers, and contact information.",
+            "title": "Personnel Management"
+        },
+        "technical_sheets": {
+            "description": "Detailed technical sheets for each event with all necessary information.",
+            "title": "Technical Sheets"
+        },
+        "title": "Key Features"
     },
-    "export_import": {
-      "title": "Import/Export",
-      "description": "Import and export data in multiple formats (JSON, PDF, CSV)."
+    "features_section": {
+        "beta_tag": "BETA",
+        "description": "Discover how our software can simplify your daily management and improve your team's productivity.",
+        "google_integration_description": "Manage dedicated calendars for the app and view your personal agenda. Note: This feature requires manual authorization. Contact the developer to enable your Google account.",
+        "google_integration_title": "Hybrid Integration with Google",
+        "inventory_description": "Analyze the real availability of your material. The system calculates the daily demand peak to ensure you have enough stock for all simultaneous events.",
+        "inventory_title": "Stock and Demand Control",
+        "label": "Key features",
+        "privacy_description": "Your data is yours. Everything is stored locally in .gep files. Work without internet connection and without relying on cloud servers.",
+        "privacy_title": "Total Privacy (Local-First)",
+        "team_management_description": "Assign technical and artistic staff safely. The system automatically alerts you if you try to assign someone who is already busy at another event.",
+        "team_management_title": "Conflict-Free Team Management",
+        "tech_sheets_description": "Generate professional technical documentation (PDF) in seconds. Includes schedules, technical needs (sound, lights), logistics and contacts automatically.",
+        "tech_sheets_title": "Automatic Technical Sheets",
+        "title": "Everything you need to manage your events"
     },
-    "google_sync": {
-      "title": "Google Sync",
-      "description": "Automatic synchronization with Google Calendar for integrated management."
+    "footer": {
+        "collaborate_description": "This is an open source project under GPL v3.0 license. We encourage you to contribute or send us your suggestions.",
+        "collaborate_title": "Want to collaborate on the project?",
+        "copyright": "© 2024 Event and Personnel Manager. All rights reserved.",
+        "documentation": "Documentation",
+        "source_code": "Source Code",
+        "title": "Event and Personnel Manager",
+        "version": "Version 1.6.4 - Under GPL v3.0 license",
+        "view_features": "View Features",
+        "view_github": "View on GitHub"
     },
-    "open_source": {
-      "title": "Open Source and Free",
-      "description": "GPLv3 license. No subscriptions, no ads, and no hidden costs. Includes desktop application and complementary mobile version."
+    "gallery": {
+        "label": "Image gallery",
+        "subtitle": "Explore the different screens and functionalities",
+        "title": "Discover the application"
     },
-    "cta": {
-      "title": "Ready to improve your event management?",
-      "description": "Discover how the Event and Personnel Manager can simplify your workflow and save you hours of work.",
-      "button_start": "Start now",
-      "button_github": "View on GitHub"
+    "hero": {
+        "cta_primary": "Free Download",
+        "cta_secondary": "More Info",
+        "description": "The definitive tool for professional event, personnel, and material management. Manage all your gigs from an intuitive and powerful interface.",
+        "discover_more": "Discover more",
+        "loading_animation": "Loading animation",
+        "open_source_free": "Open source and free",
+        "platform_support": "For Windows, macOS, and Linux. Adapted version for Android.",
+        "scroll_down": "Scroll down",
+        "subtitle": "Comprehensive tool for personnel and material management in events",
+        "title": "Event and Personnel Manager"
+    },
+    "navigation": {
+        "contact": "Contact",
+        "download": "Downloads",
+        "features": "Features",
+        "gallery": "Gallery",
+        "home": "Home",
+        "logo_text": "Event Manager",
+        "menu": "Menu",
+        "product_tour": "Product Tour",
+        "gep_mailer": "GEP-Mailer"
+    },
+    "releases": {
+        "at_github": "On GitHub Releases",
+        "contains_apk": "⚠️ Contains the APK inside the ZIP",
+        "download_apk": "Download APK (ZIP)",
+        "download_for": "Download for {{platform}}",
+        "error_description": "There was a problem consulting the GitHub API. Access the versions page to download.",
+        "error_title": "We could not get the latest versions",
+        "go_to_github": "Go to GitHub Releases",
+        "manual_installation": "Manual installation (Sideloading)",
+        "not_on_play_store": "Not available on Play Store",
+        "recommended": "Recommended for you",
+        "view_releases": "View releases"
+    },
+    "site": {
+        "description": "The definitive tool for professional event and personnel management",
+        "title": "Event and Personnel Manager"
+    },
+    "tour": {
+        "description": "Discover the main functions of our application and how it can transform your event management.",
+        "features": "Key features",
+        "loading": "Loading...",
+        "loading_description": "Please wait...",
+        "title": "Interactive Feature Tour"
+    },
+    "tour_sections": [
+        {
+            "description": "Start your project from scratch or open an existing document with just one click.",
+            "features": [
+                "Create new blank documents",
+                "Open existing .gep or .json files",
+                "Quick access to recent files",
+                "Intuitive and simple interface"
+            ],
+            "icon": "HomeIcon",
+            "id": "welcome-screen",
+            "image": "01_PantallaInici_fosc.png",
+            "title": "Welcome Screen"
+        },
+        {
+            "description": "View all your events in an integrated calendar, with Google Calendar synchronization.",
+            "features": [
+                "Multi-view calendar (Month, Week, Agenda, 2, 4 or 6 Months)",
+                "Google Calendar synchronization (beta)",
+                "Create events with a simple click",
+                "Navigate quickly between dates"
+            ],
+            "icon": "CalendarIcon",
+            "id": "calendar-view",
+            "image": "02_vistaCalendari_fosc.png",
+            "title": "Calendar View"
+        },
+        {
+            "description": "Manage all your gigs in a comprehensive view with advanced filtering and sorting controls.",
+            "features": [
+                "Advanced filters (place, person, status, date)",
+                "Dynamic sorting and global search",
+                "Assignment cards with visual status",
+                "Instantly export to PDF and CSV"
+            ],
+            "icon": "ListIcon",
+            "id": "events-list",
+            "image": "03_llistaEvents_fosc.png",
+            "title": "Events List"
+        },
+        {
+            "description": "Generate intelligent reports based on entered data.",
+            "features": [
+                "Reports by event, date or person",
+                "Flexible sorting options",
+                "Export to CSV and PDF",
+                "Instant data analysis"
+            ],
+            "icon": "ChartIcon",
+            "id": "summaries",
+            "image": "04_resums_fosc.png",
+            "title": "Summaries and Reports"
+        },
+        {
+            "description": "Create technical sheets with schedules, contacts, materials, specific needs, among others.",
+            "features": [
+                "Automatic generation of technical sheets",
+                "Schedule and Technical Personnel details",
+                "Available stock visualization",
+                "Direct export to PDF"
+            ],
+            "icon": "DocumentIcon",
+            "id": "technical-sheets",
+            "image": "21_fitxesdebolo_fosc.png",
+            "title": "Technical Sheets"
+        },
+        {
+            "description": "Maintain a personnel database with all contact information and specializations.",
+            "features": [
+                "Add, edit and delete contacts",
+                "Associate specialized roles (technical, artistic, etc)",
+                "Searches and filters by role",
+                "Import / Export your contact network"
+            ],
+            "icon": "UsersIcon",
+            "id": "people-management",
+            "image": "31_persones_fosc.png",
+            "title": "Personnel Management"
+        },
+        {
+            "description": "Control inventory and material demand for each event with precision.",
+            "features": [
+                "Inventory by categories or by name",
+                "Real-time stock and demand detection",
+                "Advanced control center",
+                "Import / Export inventory and export reports"
+            ],
+            "icon": "BoxIcon",
+            "id": "material-management",
+            "image": "41_material_fosc.png",
+            "title": "Material Manager"
+        },
+        {
+            "description": "Complete access to all application functions with quick and integrated actions.",
+            "features": [
+                "File Menu: Save, Import, Export, Google Calendar Configuration",
+                "Edit Menu: Undo, Redo, Cut, Copy, Paste",
+                "Quick actions: Zoom, Full screen, Themes",
+                "Access to backups and application logs."
+            ],
+            "icon": "MenuIcon",
+            "id": "menu-bar",
+            "image": "desktop-dashboard.png",
+            "title": "Top Menu Bar"
+        }
+    ],
+    "gep_mailer": {
+        "title": "GEP-Mailer: Efficient Communications",
+        "subtitle": "Specialized tool for personnel availability requests",
+        "description": "Auxiliary application of the GEP ecosystem designed to streamline communication with technical staff. With 100% data parity with the main GEP application.",
+        "features": {
+            "nested_mailto": "'Nested Mailto' emails with integrated response buttons (Yes/No/Partial/Pending)",
+            "contact_management": "Complete contact management (CRUD) with 100% GEP parity",
+            "import_formats": "Multi-format import: GEP, JSON, CSV, VCF",
+            "duplicate_detection": "Intelligent duplicate detection with merge/replace option",
+            "history": "Automatic history of events and recent contacts"
+        },
+        "download_section": {
+            "title": "Download GEP-Mailer v1.0.0",
+            "description": "Choose your platform and start improving your communications with technical staff today.",
+            "label": "Download GEP-Mailer",
+            "requirements": "Minimum requirements: 4GB RAM, 500MB disk space, internet connection"
+        }
     }
-  },
-  "download": {
-    "title": "Downloads",
-    "desktop_title": "Desktop Application",
-    "desktop_description": "Full version with all features for Windows, macOS, and Linux.",
-    "mobile_title": "Mobile Application",
-    "mobile_description": "Mobile version for Android and iOS with basic event management.",
-    "download_desktop": "Download for Desktop",
-    "download_mobile": "Download for Mobile",
-    "requirements": "Requirements",
-    "windows": "Windows 10 or higher",
-    "macos": "macOS 10.14 or higher",
-    "linux": "Linux (Ubuntu 18.04 or higher)",
-    "android": "Android 8.0 or higher",
-    "ios": "iOS 13.0 or higher",
-    "installation_instructions": "Installation Instructions",
-    "windows_setup": {
-      "title": "Windows",
-      "available_versions": "Available in two versions:",
-      "installer_title": "Installer (.exe):",
-      "installer_desc": "Recommended for most users. Run the installation file and follow the instructions.",
-      "portable_title": "Portable (.exe):",
-      "portable_desc": "Does not require installation. Run directly from a USB drive or folder.",
-      "security_note": "Note: The application is not digitally signed. If Windows shows a warning, click 'More information' and then 'Run anyway'."
-    },
-    "macos_setup": {
-      "title": "macOS",
-      "available_versions": "Available in .dmg format for modern versions of macOS:",
-      "step_1": "Download the .dmg file of the latest version",
-      "step_2": "Double-click the downloaded file to mount the disk image",
-      "step_3": "Drag the application to the Applications folder",
-      "step_4": "To open the application for the first time, right-click on the application and select 'Open' from the context menu",
-      "step_5": "Confirm that you want to open the application when the warning window appears",
-      "security_title": "Important about security on macOS:",
-      "security_description": "Since the application is not signed with an Apple developer certificate, you might see a message saying it cannot be opened. Here is how to resolve it:",
-      "standard_method": "Standard method (works in most cases):",
-      "standard_step_1": "Right-click (or Control+click) on the application",
-      "standard_step_2": "Select 'Open' from the context menu",
-      "standard_step_3": "In the dialog box, click 'Open'",
-      "advanced_method": "If the above method does not work (macOS Sequoia 15+ or 'Is damaged' error):",
-      "option_a": "Option A (Settings): Go to System Settings > Privacy & Security, scroll to the bottom and press 'Open Anyway'.",
-      "option_b": "Option B (Terminal): If it says the app is damaged, open the Terminal and run:",
-      "terminal_command_desc": "xattr -cr /Applications/GestorEsdevenimentsPersonal.app",
-      "first_time_only": "You will only have to do this the first time you open the application. From then on, you can open it normally with a double-click."
-    },
-    "linux_setup": {
-      "title": "Linux",
-      "step_1": "Download the .AppImage file",
-      "step_2": "Make it executable with: chmod +x GestorEsdeveniments-*.AppImage",
-      "step_3": "Run it by double-clicking it or from the terminal",
-      "fuse_note_prefix": "Note: On systems like Ubuntu 22.04+, it may be necessary to install first: ",
-      "fuse_note_command": "sudo apt-get install libfuse2"
-    },
-    "other_versions": {
-      "title": "Need another version?",
-      "description": "Visit our versions page to download previous versions or other variants of the platform.",
-      "button": "See all versions"
-    },
-    "requirements_section": {
-      "title": "System Requirements",
-      "minimum": "Minimum",
-      "recommended": "Recommended",
-      "cpu_min": "Dual-core processor at 2 GHz or higher",
-      "ram_min": "4 GB of RAM",
-      "disk_min": "200 MB of free disk space",
-      "cpu_rec": "4-core processor at 2.5 GHz or higher",
-      "ram_rec": "8 GB of RAM or more",
-      "disk_rec": "SSD with 500 MB of free space"
-    },
-    "source_code_github": "Source code on GitHub"
-  },
-  "footer": {
-    "title": "Event and Personnel Manager",
-    "version": "Version 1.6.0 - Under GPL v3.0 license",
-    "source_code": "Source Code",
-    "documentation": "Documentation",
-    "collaborate_title": "Want to collaborate on the project?",
-    "collaborate_description": "This is an open source project under GPL v3.0 license. We encourage you to contribute or send us your suggestions.",
-    "view_github": "View on GitHub",
-    "view_features": "View Features",
-    "copyright": "© 2024 Event and Personnel Manager. All rights reserved."
-  },
-  "tour_sections": [
-    {
-      "id": "welcome-screen",
-      "title": "Welcome Screen",
-      "description": "Start your project from scratch or open an existing document with just one click.",
-      "features": [
-        "Create new blank documents",
-        "Open existing .gep or .json files",
-        "Quick access to recent files",
-        "Intuitive and simple interface"
-      ],
-      "icon": "HomeIcon",
-      "image": "01_PantallaInici_fosc.png"
-    },
-    {
-      "id": "calendar-view",
-      "title": "Calendar View",
-      "description": "View all your events in an integrated calendar, with Google Calendar synchronization.",
-      "features": [
-        "Multi-view calendar (Month, Week, Agenda, 2, 4 or 6 Months)",
-        "Google Calendar synchronization (beta)",
-        "Create events with a simple click",
-        "Navigate quickly between dates"
-      ],
-      "icon": "CalendarIcon",
-      "image": "02_vistaCalendari_fosc.png"
-    },
-    {
-      "id": "events-list",
-      "title": "Events List",
-      "description": "Manage all your gigs in a comprehensive view with advanced filtering and sorting controls.",
-      "features": [
-        "Advanced filters (place, person, status, date)",
-        "Dynamic sorting and global search",
-        "Assignment cards with visual status",
-        "Instantly export to PDF and CSV"
-      ],
-      "icon": "ListIcon",
-      "image": "03_llistaEvents_fosc.png"
-    },
-    {
-      "id": "summaries",
-      "title": "Summaries and Reports",
-      "description": "Generate intelligent reports based on entered data.",
-      "features": [
-        "Reports by event, date or person",
-        "Flexible sorting options",
-        "Export to CSV and PDF",
-        "Instant data analysis"
-      ],
-      "icon": "ChartIcon",
-      "image": "04_resums_fosc.png"
-    },
-    {
-      "id": "technical-sheets",
-      "title": "Technical Sheets",
-      "description": "Create technical sheets with schedules, contacts, materials, specific needs, among others.",
-      "features": [
-        "Automatic generation of technical sheets",
-        "Schedule and Technical Personnel details",
-        "Available stock visualization",
-        "Direct export to PDF"
-      ],
-      "icon": "DocumentIcon",
-      "image": "21_fitxesdebolo_fosc.png"
-    },
-    {
-      "id": "people-management",
-      "title": "Personnel Management",
-      "description": "Maintain a personnel database with all contact information and specializations.",
-      "features": [
-        "Add, edit and delete contacts",
-        "Associate specialized roles (technical, artistic, etc)",
-        "Searches and filters by role",
-        "Import / Export your contact network"
-      ],
-      "icon": "UsersIcon",
-      "image": "31_persones_fosc.png"
-    },
-    {
-      "id": "material-management",
-      "title": "Material Manager",
-      "description": "Control inventory and material demand for each event with precision.",
-      "features": [
-        "Inventory by categories or by name",
-        "Real-time stock and demand detection",
-        "Advanced control center",
-        "Import / Export inventory and export reports"
-      ],
-      "icon": "BoxIcon",
-      "image": "41_material_fosc.png"
-    },
-    {
-      "id": "menu-bar",
-      "title": "Top Menu Bar",
-      "description": "Complete access to all application functions with quick and integrated actions.",
-      "features": [
-        "File Menu: Save, Import, Export, Google Calendar Configuration",
-        "Edit Menu: Undo, Redo, Cut, Copy, Paste",
-        "Quick actions: Zoom, Full screen, Themes",
-        "Access to backups and application logs."
-      ],
-      "icon": "MenuIcon",
-      "image": "desktop-dashboard.png"
-    }
-  ],
-  "gallery": {
-    "label": "Image gallery",
-    "title": "Discover the application",
-    "subtitle": "Explore the different screens and functionalities"
-  },
-  "carousel": {
-    "light_mode": "Light theme",
-    "dark_mode": "Dark theme",
-    "previous_image": "Previous image",
-    "next_image": "Next image",
-    "go_to_image": "Go to image {{index}}",
-    "loading_images": "Loading images..."
-  },
-  "tour": {
-    "title": "Interactive Feature Tour",
-    "description": "Discover the main functions of our application and how it can transform your event management.",
-    "features": "Key features",
-    "loading": "Loading...",
-    "loading_description": "Please wait..."
-  },
-  "features_section": {
-    "label": "Key features",
-    "title": "Everything you need to manage your events",
-    "description": "Discover how our software can simplify your daily management and improve your team's productivity.",
-    "privacy_title": "Total Privacy (Local-First)",
-    "privacy_description": "Your data is yours. Everything is stored locally in .gep files. Work without internet connection and without relying on cloud servers.",
-    "team_management_title": "Conflict-Free Team Management",
-    "team_management_description": "Assign technical and artistic staff safely. The system automatically alerts you if you try to assign someone who is already busy at another event.",
-    "tech_sheets_title": "Automatic Technical Sheets",
-    "tech_sheets_description": "Generate professional technical documentation (PDF) in seconds. Includes schedules, technical needs (sound, lights), logistics and contacts automatically.",
-    "inventory_title": "Stock and Demand Control",
-    "inventory_description": "Analyze the real availability of your material. The system calculates the daily demand peak to ensure you have enough stock for all simultaneous events.",
-    "google_integration_title": "Hybrid Integration with Google",
-    "google_integration_description": "Manage dedicated calendars for the app and view your personal agenda. Note: This feature requires manual authorization. Contact the developer to enable your Google account.",
-    "beta_tag": "BETA"
-  },
-  "download_section": {
-    "label": "Download now",
-    "title": "Available on all platforms",
-    "description": "Choose your platform and start managing your events today. Fast, secure and easy to use.",
-    "version_info_title": "Important information about versions",
-    "version_info_description": "The Android version is a reduced version of the desktop application, designed for quick consultation and basic event management.",
-    "limitations_title": "Main limitations of the Android version:",
-    "limitation_1": "Does not include all advanced features of the desktop version",
-    "limitation_2": "Optimized for mobile use with a simplified interface",
-    "recommendation": "For professional use with all features, we recommend using the desktop version (Windows, macOS or Linux)."
-  },
-  "releases": {
-    "error_title": "We could not get the latest versions",
-    "error_description": "There was a problem consulting the GitHub API. Access the versions page to download.",
-    "go_to_github": "Go to GitHub Releases",
-    "recommended": "Recommended for you",
-    "download_apk": "Download APK (ZIP)",
-    "download_for": "Download for {{platform}}",
-    "view_releases": "View releases",
-    "at_github": "On GitHub Releases",
-    "manual_installation": "Manual installation (Sideloading)",
-    "not_on_play_store": "Not available on Play Store",
-    "contains_apk": "⚠️ Contains the APK inside the ZIP"
-  }
 }

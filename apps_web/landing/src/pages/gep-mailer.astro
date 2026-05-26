@@ -1,0 +1,185 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Download from '../components/Download.astro';
+import GithubReleasesMailer from '../components/GithubReleasesMailer';
+import LanguageSelector from '../components/LanguageSelector.astro';
+import I18nProvider from '../components/I18nProvider.tsx';
+import { getTranslations } from '../i18n';
+
+// Get translations for Catalan (default)
+const t = await getTranslations({ ...Astro, locale: 'ca' });
+
+// Page metadata
+const title = t.gep_mailer.title;
+const description = t.gep_mailer.subtitle;
+---
+
+<Layout title={title} description={description} currentLocale="ca" currentPath="/gep-mailer" translations={{
+  navigation: t.navigation,
+  footer: t.footer,
+  site: t.site
+}}>
+  <div class="relative">
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div class="container mx-auto px-4 text-center">
+        <span class="inline-block bg-blue-500/10 text-blue-400 text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-blue-500/20">
+          Eina Auxiliar GEP
+        </span>
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 text-white">
+          {t.gep_mailer.title}
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          {t.gep_mailer.subtitle}
+        </p>
+        <p class="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
+          {t.gep_mailer.description}
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="#download" 
+            class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+          >
+            Descarregar ara
+          </a>
+          <a 
+            href="https://github.com/Pepelocotango/gep-mailer-proto" 
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
+            Veure a GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-gray-800">
+      <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">Funcionalitats Principals</h2>
+          <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+            Descobreix com GEP-Mailer pot millorar les teves comunicacions amb el personal tècnic
+          </p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <!-- Feature 1 -->
+          <div class="bg-gray-900 p-8 rounded-xl border border-gray-700 hover:border-blue-500/50 transition-colors">
+            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-white">Correus Intel·ligents</h3>
+            <p class="text-gray-400">{t.gep_mailer.features.nested_mailto}</p>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="bg-gray-900 p-8 rounded-xl border border-gray-700 hover:border-blue-500/50 transition-colors">
+            <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-white">Gestió de Contactes</h3>
+            <p class="text-gray-400">{t.gep_mailer.features.contact_management}</p>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="bg-gray-900 p-8 rounded-xl border border-gray-700 hover:border-blue-500/50 transition-colors">
+            <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-white">Importació Multi-format</h3>
+            <p class="text-gray-400">{t.gep_mailer.features.import_formats}</p>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="bg-gray-900 p-8 rounded-xl border border-gray-700 hover:border-blue-500/50 transition-colors">
+            <div class="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-white">Detecció de Duplicats</h3>
+            <p class="text-gray-400">{t.gep_mailer.features.duplicate_detection}</p>
+          </div>
+
+          <!-- Feature 5 -->
+          <div class="bg-gray-900 p-8 rounded-xl border border-gray-700 hover:border-blue-500/50 transition-colors">
+            <div class="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-white">Historial Automàtic</h3>
+            <p class="text-gray-400">{t.gep_mailer.features.history}</p>
+          </div>
+
+          <!-- Feature 6 -->
+          <div class="bg-gray-900 p-8 rounded-xl border border-gray-700 hover:border-blue-500/50 transition-colors">
+            <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-white">Paritat de Dades</h3>
+            <p class="text-gray-400">100% compatible amb l'aplicació GEP principal</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="py-20 bg-gray-900 border-t border-gray-800">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto text-center">
+          <span class="inline-block bg-blue-500/10 text-blue-400 text-sm font-medium px-4 py-1.5 rounded-full mb-4 border border-blue-500/20">
+            {t.gep_mailer.download_section.label}
+          </span>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">{t.gep_mailer.download_section.title}</h2>
+          <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-6">
+            {t.gep_mailer.download_section.description}
+          </p>
+          <p class="text-gray-500 text-sm mb-8">{t.gep_mailer.download_section.requirements}</p>
+
+          <!-- GitHub Releases Component -->
+          <I18nProvider client:load initialLang="ca">
+            <GithubReleasesMailer client:only="react" />
+          </I18nProvider>
+        </div>
+      </div>
+    </section>
+
+    <!-- GitHub Link -->
+    <section class="py-12 bg-gray-800">
+      <div class="container mx-auto px-4 text-center">
+        <a 
+          href="https://github.com/Pepelocotango/gep-mailer-proto" 
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center px-6 py-3 border border-gray-600 text-gray-300 font-medium rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+          </svg>
+          Codi font a GitHub
+        </a>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  /* Smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+</style>

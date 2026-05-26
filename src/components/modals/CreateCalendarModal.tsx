@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * CREATE CALENDAR MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per crear un nou calendari a Google Calendar.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: CreateCalendarModal amb formulari de creació.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShowToastFunction } from '@/types';

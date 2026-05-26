@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * ASSIGNMENT FORM MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal de formulari per afegir/editar assignacions d'esdeveniments.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components UI.
+ * - COMPONENT PRINCIPAL: AssignmentFormModal amb formulari d'assignació.
+ * - ESTAT I VALIDACIÓ: Estat de formulari i validació.
+ * - HANDLERS: Gestió de canvis i enviament.
+ * - RENDERITZAT: Estructura de formulari amb camps.
+ * =============================================================================
+ */
+
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../../stores/eventDataStore';

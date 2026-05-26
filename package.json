@@ -1,28 +1,35 @@
 {
   "name": "gestor-esdeveniments-personal",
   "productName": "GestorEsdevenimentsPersonal",
-  "version": "1.6.0",
+  "version": "1.6.4",
   "description": "Una aplicació per gestionar esdeveniments i personal",
   "author": "Pep",
   "license": "GPL-3.0-or-later",
   "main": "main.cjs",
   "type": "module",
+  "packageManager": "pnpm@8.15.9",
   "scripts": {
     "dev": "vite --force --clearScreen false",
     "build:theme": "node scripts/build-theme.cjs",
     "wait": "node -e \"setTimeout(() => process.exit(0), 500)\"",
-    "build": "npm run build:theme && tsc && vite build",
+    "build": "pnpm run build:theme && tsc && vite build",
     "preview": "vite preview",
     "electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
-    "electron-dev": "concurrently \"npm run dev\" \"npm run electron\"",
-    "start": "npm run build:theme && npm run wait && npm run electron-dev",
+    "electron-dev": "concurrently \"pnpm run dev\" \"pnpm run electron\"",
+    "start": "pnpm run build:theme && pnpm run wait && pnpm run electron-dev",
     "clean": "rm -rf dist node_modules/.vite",
-    "fresh-start": "npm run clean && npm start",
-    "build:electron": "npm run build && electron-builder",
+    "fresh-start": "pnpm run clean && pnpm start",
+    "postversion": "node scripts/update-version.cjs",
+    "build:electron": "pnpm run build && electron-builder",
     "dist": "electron-builder",
-    "build:mac": "npm run build && electron-builder --mac --x64 --publish never",
-    "build:linux": "npm run build && electron-builder --linux --x64 --publish never",
-    "build:win": "npm run build && electron-builder --win --x64 --publish never"
+    "// COMMENT": "--- SCRIPTS DE COMPILACIÓ LOCAL (Amb valors per defecte) ---",
+    "build:mac": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && pnpm run build && electron-builder --mac --x64 --publish never",
+    "build:linux": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && pnpm run build && electron-builder --linux --x64 --publish never",
+    "build:win": "export BRANCH_NAME=${BRANCH_NAME:-local} && export BUILD_NUMBER=${BUILD_NUMBER:-dev} && pnpm run build && electron-builder --win --x64 --publish never",
+    "i18n:extract:desktop": "pnpm exec i18next-parser --config i18next-parser.config.cjs",
+    "i18n:extract:mobile": "pnpm exec i18next-parser --config i18next-parser.mobile.config.cjs",
+    "i18n:extract:web": "pnpm exec i18next-parser --config i18next-parser.web.config.cjs",
+    "i18n:extract:all": "pnpm run i18n:extract:desktop && pnpm run i18n:extract:mobile && pnpm run i18n:extract:web"
   },
   "dependencies": {
     "@dnd-kit/core": "6.1.0",
@@ -44,14 +51,14 @@
     "i18next": "^25.8.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "immer": "10.1.3",
-    "jspdf": "3.0.2",
-    "jspdf-autotable": "5.0.2",
+    "jspdf": "4.2.1",
+    "jspdf-autotable": "5.0.7",
     "lucide-react": "0.417.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-hot-toast": "2.6.0",
     "react-i18next": "^16.5.3",
-    "react-router-dom": "7.6.3",
+    "react-router-dom": "7.12.0",
     "use-sync-external-store": "^1.5.0",
     "zundo": "2.3.0",
     "zustand": "5.0.8"
@@ -65,19 +72,21 @@
     "autoprefixer": "10.4.21",
     "concurrently": "8.2.2",
     "cross-env": "^10.1.0",
-    "electron": "38.1.1",
-    "electron-builder": "24.13.3",
-    "postcss": "8.5.4",
+    "electron": "39.8.5",
+    "electron-builder": "26.8.1",
+    "i18next-parser": "9.3.0",
+    "postcss": "8.5.14",
     "tailwindcss": "3.4.17",
     "typescript": "^5.5.3",
-    "vite": "6.4.1",
+    "vite": "6.4.2",
     "wait-on": "7.2.0"
   },
   "build": {
+    "asar": true,
     "appId": "com.gestorevents.app",
     "productName": "GestorEsdevenimentsPersonal",
     "directories": {
-      "output": "dist"
+      "output": "releases"
     },
     "fileAssociations": [
       {
@@ -115,14 +124,16 @@
     "linux": {
       "target": "AppImage",
       "category": "Office",
-      "artifactName": "${productName}_v${version}-Linux-Ubuntu18.04+.${ext}"
+      "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-Linux-Ubuntu18.04+.${ext}",
+      "asarUnpack": ["node_modules/**/*"]
     },
     "win": {
       "target": [
         "nsis",
         "portable"
       ],
-      "icon": "public/icon.ico"
+      "icon": "public/icon.ico",
+      "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-Windows-Setup.${ext}"
     },
     "mac": {
       "target": [
@@ -132,7 +143,7 @@
       "category": "public.app-category.productivity",
       "icon": "public/icon.icns",
       "identity": null,
-      "artifactName": "${productName}_v${version}-macOS-10.15+.${ext}"
+      "artifactName": "GEP_v${version}-${env.BRANCH_NAME}-build${env.BUILD_NUMBER}-macOS-10.15+.${ext}"
     }
   }
 }

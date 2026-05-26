@@ -1,7 +1,20 @@
-import React from 'react';
+/**
+ * =============================================================================
+ * CONDITIONAL FORM CONTROL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de control de formulari condicional amb estats yes/no/unset.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: ConditionalFormControl amb estat i contingut condicional.
+ * =============================================================================
+ */
+
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ConditionalStatus } from '../../types';
 import Tooltip from '../ui/Tooltip';
+import { ChevronDownIcon, ChevronUpIcon } from '../../constants';
 
 interface ConditionalFormControlProps {
   label: string;
@@ -10,6 +23,8 @@ interface ConditionalFormControlProps {
   children: React.ReactNode;
   className?: string;
   tooltipText?: string;
+  isCollapsible?: boolean;
+  defaultExpanded?: boolean;
 }
 
 const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
@@ -19,8 +34,11 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
   children,
   className = '',
   tooltipText,
+  isCollapsible = false,
+  defaultExpanded = true,
 }) => {
   const { t } = useTranslation();
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   const selectElement = (
     <select
@@ -45,8 +63,17 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
         ) : (
           selectElement
         )}
+        {status === 'yes' && isCollapsible && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-1 rounded-md hover:bg-accent text-muted-foreground transition-colors ml-auto"
+          >
+            {isExpanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
+          </button>
+        )}
       </div>
-      {status === 'yes' && (
+      {status === 'yes' && (!isCollapsible || isExpanded) && (
         <div className="mt-3 ml-1 space-y-3 p-4 rounded-lg bg-muted/50 border border-border dark:bg-transparent dark:border-0 dark:p-0 dark:pl-4 dark:border-l-2 dark:border-primary/50">
           {children}
         </div>
@@ -55,5 +82,5 @@ const ConditionalFormControl: React.FC<ConditionalFormControlProps> = ({
   );
 };
 
-export default ConditionalFormControl;
+export default React.memo(ConditionalFormControl);
 

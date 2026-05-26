@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * SYNC PROGRESS OVERLAY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Overlay de progrés per a la sincronització amb Google Calendar.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React i stores.
+ * - COMPONENT PRINCIPAL: SyncProgressOverlay amb barra de progrés i logs.
+ * - RENDERITZAT: Visualització de progrés i logs de sincronització.
+ * =============================================================================
+ */
+
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../../stores/eventDataStore';
@@ -96,7 +110,7 @@ const SyncProgressOverlay: React.FC<SyncProgressOverlayProps> = ({ progress: pro
               onClick={closeSyncProgress}
               className="px-6 py-2 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
-              Tancar
+              {t('sync.close')}
             </button>
           </div>
         )}

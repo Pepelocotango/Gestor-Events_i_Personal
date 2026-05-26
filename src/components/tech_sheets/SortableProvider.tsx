@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * SORTABLE PROVIDER
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de proveïdor reordenable amb drag & drop.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: SortableProvider amb drag handle.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';

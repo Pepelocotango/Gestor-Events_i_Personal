@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * APP
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component principal de l'aplicació amb rutes, modals i gestió d'estat global.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, router, stores i components.
+ * - COMPONENTS PRINCIPALS: MainDisplay, PeopleDisplay, MaterialDisplay, etc.
+ * - MODALS: Components de modals per diferents accions.
+ * - COMPONENT APP: Component App amb rutes i gestió de tema.
+ * =============================================================================
+ */
+
 import { generateDefaultFileName } from './utils/dateFormat';
 import { initializeGoogleAuthListeners } from './stores/googleConfigStore';
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
@@ -13,6 +28,8 @@ import { useStore } from 'zustand';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import { notificationService } from './utils/notificationService';
+import { triggerAllSaves } from './utils/saveManager';
+import { HotkeyProvider } from './components/ui/HotkeyProvider';
 
 const MainDisplay = lazy(() => import('./components/MainDisplay'));
 const SummariesDisplay = lazy(() => import('./components/SummariesDisplay'));
@@ -26,6 +43,9 @@ import WelcomeScreen from './components/ui/WelcomeScreen';
 
 const PeopleDisplay = lazy(() => import('./components/PeopleDisplay'));
 const MaterialDisplay = lazy(() => import('./components/MaterialDisplay'));
+const PerformancesDisplay = lazy(() => import('./components/PerformancesDisplay'));
+const RiderWorkshop = lazy(() => import('./components/performances/RiderWorkshop'));
+const RegidoriaDisplay = lazy(() => import('./components/RegidoriaDisplay'));
 
 const AboutModal = lazy(() => import('./components/modals/AboutModal'));
 const EventFrameFormModal = lazy(() => import('./components/modals/EventFrameFormModal'));
@@ -75,7 +95,8 @@ const App: React.FC = () => {
   // Subscribe to only the pieces of state that cause re-renders.
   const hasUnsavedChanges = useEventDataStore(state => state.hasUnsavedChanges);
 
-  // Ref to track the latest state of hasUnsavedChanges to avoid stale state in listeners.
+  // Ref to track the latest state of hasUnsavedChanges to avoid stale state in listeners (Electron quit).
+  // S'actualitza a cada canvi de hasUnsavedChanges per garantir que quitLogicRef tingui el valor real.
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   useEffect(() => {
     hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -220,6 +241,9 @@ const App: React.FC = () => {
       return false;
     }
     try {
+      // Forcem el buidatge de tots els buffers locals (useBufferedSave) a la store global
+      triggerAllSaves();
+
       const dataToSave = await exportDataFromManager();
       const jsonString = JSON.stringify(dataToSave, null, 2);
       const fileName = (currentFilePath ? currentFilePath.split(/[/\\]/).pop() : undefined) || generateDefaultFileName();
@@ -254,29 +278,51 @@ const App: React.FC = () => {
   };
 
   const handleSaveDocument = async (): Promise<boolean> => {
+    logger.info('[App.tsx] handleSaveDocument: Iniciant procés de desat...');
     if (!currentFilePath) {
+      logger.info('[App.tsx] handleSaveDocument: No hi ha filePath, cridant handleSaveAsDocument');
       return handleSaveAsDocument();
     }
     if (!window.electronAPI) {
+      logger.warn('[App.tsx] handleSaveDocument: electronAPI no disponible');
       showToast(t('app.desktop_only_warning'), 'warning');
       return false;
     }
     try {
+      // Forcem el buidatge de tots els buffers locals (useBufferedSave) a la store global
+      triggerAllSaves();
+
+      logger.info('[App.tsx] handleSaveDocument: Exportant dades de la store...');
       const dataToSave = await exportDataFromManager();
+      
+      logger.info('[App.tsx] handleSaveDocument: Serialitzant JSON...');
       const jsonString = JSON.stringify(dataToSave, null, 2);
+      
+      logger.info(`[App.tsx] handleSaveDocument: Enviant al backend (mida: ${jsonString.length} caràcters)...`);
       const result = await window.electronAPI.saveFile({
         filePath: currentFilePath,
         data: jsonString,
       });
 
       if (result.success) {
+        logger.info('[App.tsx] handleSaveDocument: ÈXIT. Fitxer desat correctament.');
         setHasUnsavedChanges(false);
         showToast(t('app.save.success'), 'success');
         return true;
       } else {
+        logger.error(`[App.tsx] handleSaveDocument: ERROR del backend: ${result.message}`);
         showToast(`${t('app.save.error_prefix')}${result.message}`, 'error');
       }
     } catch (error) {
+      logger.error('[App.tsx] handleSaveDocument: EXCEPCIÓ CRÍTICA:', error);
+      
+      // NOU: Diàleg natiu d'error per assegurar que l'usuari ho veu
+      if (window.electronAPI?.showUnsavedChangesDialog) {
+         await window.electronAPI.showUnsavedChangesDialog({
+            message: `ERROR CRÍTIC AL DESAR: ${(error as Error).message}. L'aplicació no es tancarà per protegir les dades.`,
+            buttons: ['D\'acord']
+         });
+      }
       showToast(`${t('app.save.error_prefix')}${(error as Error).message}`, 'error');
     }
     return false;
@@ -393,11 +439,11 @@ const App: React.FC = () => {
       switch (type) {
         case 'people':
           dataToSave = { peopleGroups: fullData.peopleGroups };
-          filename = 'persones_grups_dades.json';
+          filename = 'persones_grups_dades.gep';
           break;
         case 'material':
           dataToSave = { materialItems: fullData.materialItems };
-          filename = 'material_dades.json';
+          filename = 'material_dades.gep';
           break;
       }
       const jsonString = JSON.stringify(dataToSave, null, 2);
@@ -550,6 +596,8 @@ const App: React.FC = () => {
 
   // Lògica de sortida refactoritzada per eliminar el backup de sessió.
   // El tancament ara és gestionat per un IPC handler simple que no crea backups.
+  // Lògica de sortida refactoritzada. S'encapsula en una Ref per ser accessible des del listener d'Electron.
+  // Es verifica que hasUnsavedChangesRef.current s'utilitza per evitar tancaments sense avís.
   const quitLogicRef = useRef<() => Promise<void>>();
   useEffect(() => {
     quitLogicRef.current = async () => {
@@ -571,12 +619,17 @@ const App: React.FC = () => {
           const message = `Vols desar els canvis fets a '${fileName}'?`;
           const buttons = ['Desa', 'Tanca sense desar', 'Cancel·la'];
           const { response } = await window.electronAPI.showUnsavedChangesDialog({ message, buttons });
+          
+          logger.info(`[App.tsx] quitLogic: Usuari ha triat l'opció ${response}`);
 
           switch (response) {
             case 0: // Desa
+              logger.info('[App.tsx] quitLogic: Intentant desar abans de sortir...');
               if (await handleSaveDocument()) {
+                logger.info('[App.tsx] quitLogic: Desat correcte. Sortint.');
                 quitApp();
               } else {
+                logger.warn('[App.tsx] quitLogic: El desat ha fallat. Cancel·lant sortida.');
                 showToast("El desat ha fallat o ha estat cancel·lat. La sortida s'ha avortat.", "warning");
               }
               break;
@@ -610,8 +663,26 @@ const App: React.FC = () => {
   // Crida a la versió més recent de la lògica de sortida a través de la ref.
   useEffect(() => {
     if (window.electronAPI?.onConfirmQuit) {
-      const cleanup = window.electronAPI.onConfirmQuit(() => {
-        quitLogicRef.current?.();
+      const cleanup = window.electronAPI.onConfirmQuit(async () => { // Fer-ho async
+        try {
+          // Executem la lògica
+          if (quitLogicRef.current) {
+            await quitLogicRef.current();
+          }
+        } catch (err) {
+          // Si alguna cosa peta aquí, ho registrem i avisem
+          console.error("CRITICAL ERROR IN QUIT LOGIC:", err);
+          window.electronAPI?.logToMain?.('error', "CRITICAL ERROR IN QUIT LOGIC:", (err as Error).message);
+          
+          // Opcional: Mostrar avís d'emergència
+          window.electronAPI?.showUnsavedChangesDialog({
+             message: `Error crític en tancar: ${(err as Error).message}. Es forçarà la sortida per seguretat.`,
+             buttons: ['OK']
+          });
+          
+          // En cas d'error irrecuperable, permetre sortir per no bloquejar l'usuari eternament
+          window.electronAPI?.quitApplication();
+        }
       });
 
       // Neteja el listener quan el component es desmunta, per higiene.
@@ -944,7 +1015,7 @@ const App: React.FC = () => {
         return (
           <AboutModal
             name={appMetadata?.name || 'Gestor d\'Esdeveniments'}
-            version={appMetadata?.version || '1.0.0'}
+            version={appMetadata?.version || __APP_VERSION__}
             description={appMetadata?.description || 'Aplicació per a la gestió d\'esdeveniments'}
             onClose={closeModal}
           />
@@ -1028,9 +1099,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <HashRouter>
-      <ErrorBoundary>
-        <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
+    <HotkeyProvider>
+      <HashRouter>
+        <ErrorBoundary>
+          <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
           {splashConfigLoaded && splashScreenEnabled && showSplash && <SplashScreen />}
           <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border border-border">
             <CustomMenuBar
@@ -1087,6 +1159,10 @@ const App: React.FC = () => {
                   <Route path="/tech-sheets" element={<TechSheetsDisplay showToast={showToast} />} />
                   <Route path="/people" element={<PeopleDisplay showToast={showToast} />} />
                   <Route path="/material" element={<MaterialDisplay showToast={showToast} />} />
+                  <Route path="/performances" element={<PerformancesDisplay showToast={showToast} />} />
+                  <Route path="/riders" element={<RiderWorkshop />} />
+                  <Route path="/riders/:eventFrameId" element={<RiderWorkshop />} />
+                  <Route path="/regidoria" element={<RegidoriaDisplay showToast={showToast} />} />
                 </Routes>
               </Suspense>
             )}
@@ -1145,6 +1221,7 @@ const App: React.FC = () => {
         </div>
       </ErrorBoundary>
     </HashRouter>
+    </HotkeyProvider>
   );
 };
 

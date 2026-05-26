@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * EVENT FRAME FORM MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal de formulari per afegir/editar esdeveniments.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components UI.
+ * - COMPONENT PRINCIPAL: EventFrameFormModal amb formulari d'esdeveniment.
+ * - ESTAT I VALIDACIÓ: Estat de formulari i validació.
+ * - HANDLERS: Gestió de canvis i enviament.
+ * - RENDERITZAT: Estructura de formulari amb camps.
+ * =============================================================================
+ */
+
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../../stores/eventDataStore';

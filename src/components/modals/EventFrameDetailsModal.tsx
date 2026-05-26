@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * EVENT FRAME DETAILS MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per mostrar detalls d'un esdeveniment amb informació completa.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i utilitats.
+ * - COMPONENT PRINCIPAL: EventFrameDetailsModal amb detalls de l'esdeveniment.
+ * - HANDLERS: Gestió d'acció d'esborrat.
+ * - RENDERITZAT: Estructura de detalls amb informació de l'esdeveniment.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import logger from '../../utils/logger';

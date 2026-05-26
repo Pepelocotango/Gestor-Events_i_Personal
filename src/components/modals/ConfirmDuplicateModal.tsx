@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * CONFIRM DUPLICATE MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal de confirmació per accions de duplicació amb botons de confirmació.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: ConfirmDuplicateModal amb botons de confirmació.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Tooltip from '../ui/Tooltip';

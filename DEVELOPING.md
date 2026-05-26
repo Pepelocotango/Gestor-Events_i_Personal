@@ -1,17 +1,55 @@
-branca de desenvolupament * 00DEV_GEP
+branca de desenvolupament ACTIVA 2026  00DEV_GEP
 
 web de la app a Vercel a la branca main O 0DEV_GEP:
 https://gestor-events-i-personal-landingpag.vercel.app/
 
 
-## DEVELOPING.md V1.6.0
+## DEVELOPING.md V1.6.4
 
 
 # Guia de Desenvolupament: Gestor d'Esdeveniments i Personal
 
 Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, les funcionalitats clau i les convencions de codi del projecte. Està dissenyat per a desenvolupadors que vulguin entendre el funcionament intern de l'aplicació, contribuir-hi o fer-ne el manteniment.
 
-# NOVETATS V1.6.0 (GENER 2026)
+# NOVETATS V1.6.4 (ABRIL 2026)
+
+**Resum de canvis tècnics recents:**
+- **PDF Color Patches:** Implementació de visualització de colors a la Input List dels PDFs d'actuacions. Els colors (red, blue, green, yellow, orange, purple, brown) es mostren com a cercles omplerts a la primera columna de la taula, amb el text desplaçat per evitar solapaments.
+- **Sistema de Persistència de Dades Robust:** Implementació completa d'auto-save a tots els formularis (Tech Sheets, Performances) amb protecció contra pèrdua de dades en canvi de pestanya, finestra o focus.
+- **Correccions Crítiques de Bugs:** Solucionat fals "guardat" que permetia tancar l'aplicació amb dades perdudes, i condicions de cursa a la Input List que sobreescriuien canals en clics ràpids.
+- **Optimitzacions de Re-renderitzat:** Extret NeedsSection fora de TechSheetForm per evitar unmount/remount massiu, i afegit funcionalitat de col·lapsar seccions tècniques.
+- **PDF Riders - Millora de Columnes i Colors:** Canvi de noms de columnes del rider PDF (IN, Mic_Rider, Mic_Contra, X, Mix_Rider, Mix_Contra) amb traduccions actualitzades. Canvi de colors del patch a paleta fluorescents (Groc, Magenta, Verd, Taronja, Blau). Regla d'amplada mínima basada en capçalera per garantir llegibilitat.
+- **PDF Riders - Prevenció de Divisions de Pàgina:** Implementació de lògica per assegurar que cap secció del PDF de riders quedi dividida entre pàgines. S'han afegit funcions `ensureSectionFitsOnPage` i `estimateTableHeight` per estimar l'alçada de cada secció abans de generar-la.
+- **Sistema de Hotkeys Context-Aware:** Implementació d'un sistema de dreceres de teclat escalable basat en selectors CSS. Prem **Ctrl+Enter** (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors quan tens el focus en la secció corresponent del Workshop. El sistema utilitza el hook `useHotkey` que detecta on està el focus i executa l'acció corresponent.
+
+**Característiques Noves Detallades:**
+
+### PDF Color Visualization
+- **Implementació:** `generatePerformancePdfObjectWithOptions` ara genera cercles de color RGB per cada item de la Input List
+- **Mapa de Colors:** Implementat `patchColorMap` amb valors RGB per a colors semàntics (red: [239, 68, 68], blue: [59, 130, 246], etc.)
+- **Renderitzat:** Utilitzat `didDrawCell` hook de jspdf-autotable per dibuixar cercles i `cellPadding` per desplaçar text
+- **Compatibilitat:** Funciona amb tots els PDFs d'actuacions (Basic, Tech, Hospitality)
+
+### 🛡️ Sistema de Persistència de Dades Universal
+- **useBufferedSave Hook Millorat:** Ara inclou protecció contra race conditions i events de finestra
+- **Auto-save Multi-nivell:** 
+  - Window events: `visibilitychange` (auto-save quan la pàgina s'amaga)
+  - Window events: `beforeunload` (alerta abans de tancar amb canvis pendents)
+  - Tab switching: `triggerAllSaves()` abans de canviar de pestanya
+- **Protecció Universal:** Tots els formularis utilitzen el mateix hook robust
+- **Zero Pèrdua de Dades:** Cap via de sortida sense protecció
+
+### 🐛 Correccions Crítiques Aplicades
+- **BUG 1 - Fals "Guardat":** Eliminada línia `setHasUnsavedChanges(false)` a `saveNow()` per evitar que l'aplicació es pensi que tot està guardat quan només ho està a RAM
+- **BUG 2 - Race Conditions Input List:** Afegit `localDataRef` a PerformanceTechForm i actualitzades totes les funcions (`handleInputChange`, `addInputItem`, `removeInputItem`) per utilitzar refs síncrons en lloc d'estat reactiu
+
+### 🚀 Optimitzacions de Rendiment
+- **ConditionalFormControl Col·lapsable:** Afegides props `isCollapsible` i `defaultExpanded` amb botó de toggle (ChevronDown/ChevronUp)
+- **NeedsSection Extret:** Mogut fora de TechSheetForm per evitar re-creació en cada render
+- **Components Memoitzats:** `React.memo` efectiu en components extrets
+- **Focus Mantingut:** El cursor no es perd en escriure a formularis
+
+# NOVETATS V1.6.2 (FEBRER 2026)
 
 **Resum de canvis tècnics recents:**
 - Refactorització completa de la gestió d'estat amb Zustand i zundo: stores independents, historial desfer/refer, partialize memoitzada per evitar bucles infinits.
@@ -19,6 +57,18 @@ Aquest document proporciona una anàlisi tècnica detallada de l'arquitectura, l
 - Menú d'aplicació personalitzat en React: substitució del menú natiu d'Electron, comunicació frontend-backend via IPC.
 - Gestió d'IPC centralitzada: canals segurs, separació de responsabilitats, API interna documentada.
 - Solució als bucles infinits de renderitzat: selectors Zustand independents, gestió asíncrona de flags d'actualització.
+- **Optimitzacions de rendiment:** s'han eliminat els logs IPC enviats des de components durant el renderitzat, i s'ha memoitzat la majoria de components de la llista principal, reduint el consum de memòria i millorant la fluïdesa.
+- **NOU MÒDUL D'ACTUACIONS (FASE 4):** Sistema complet per a la gestió d'actuacions artístiques amb control d'avançament, formularis tècnics/hospitalitat, i exportació PDF.
+- **Full de Ruta del Regidor:** PDF combinat que fusiona horaris generals de la fitxa de bolo amb horaris d'actuacions i notes crítiques de regidoria.
+- **Control d'Avançament Visual:** Checklist interactiu amb 4 estats (Rider Rebut, Contra-rider Enviat, Horaris Confirmats, Hospitality Tancat).
+- **Integració de Dades:** Les actuacions es connecten amb la fitxa de bolo existent per evitar duplicació d'informació.
+- **!! NOVES OPTIMITZACIONS DE RENDIMENT DE REACT (V1.6.2+):**
+  - **React.memo implementat** a components clau (TechSheetField, TechSheetSection, ConditionalFormControl, TechnicalPersonnelSection, NeedItem)
+  - **useCallback per handlers estables** - evita recreació de funcions a cada render
+  - **Eliminació de lambdes inline** - substituïdes per handlers estables amb referències memoritzades
+  - **Component NeedItem extraít** - component memoitzat individual per a ítems de necessitats, evitant re-renders en cascada
+  - **Props optimitzades a TechnicalPersonnelSection** - eliminada prop `formData` que canviava a cada render
+  - **useBufferedSave millorat** - ara exporta `localDataRef` per accés estable sense dependències reactives
 - Exemples de selectors correctes amb Zustand:
 ```tsx
 // Selector independent (evita bucles)
@@ -92,7 +142,7 @@ L'aplicació segueix una **arquitectura de tres capes** dissenyada per separar c
     -   **Descripció:** És el "cervell" natiu de l'aplicació. S'executa en un entorn Node.js complet i té accés a les API del sistema operatiu.
     -   **Responsabilitats:**
         -   Gestionar el cicle de vida de l'aplicació i les finestres (`BrowserWindow`).
-        -   Crear menús natius.
+        -   Coordinar amb el menú personalitzat en React (el menú visible és el de `CustomMenuBar`; les accions es deleguen via IPC; no s'utilitza el menú natiu d'Electron).
         -   Interactuar directament amb el sistema de fitxers (lectura/escriptura de JSON, gestió de backups i logs).
         -   Gestionar processos complexos com l'autenticació OAuth 2.0 amb Google.
         -   Realitzar totes les comunicacions amb API externes (Google Calendar).
@@ -155,6 +205,7 @@ Les rutes principals es defineixen com a constants a l'inici del fitxer:
     -   Estat de la finestra (mida i posició).
     -   Ruta de l'últim fitxer obert.
     -   Últim directori utilitzat en els diàlegs d'obertura/desat.
+    -   Dades de sessió opcionals (p. ex. `lastViewedPerformanceEventId`) exposades via `getSessionData`/`saveSessionData` (IPC) per a la vista d'actuacions.
 -   `BACKUP_DIR`: (`.../backups/`) Directori on es guarden les còpies de seguretat automàtiques.
 -   Els logs es gestionen automàticament per la llibreria `electron-log`, que engega un fitxer `main.log` al directori de dades de l'aplicació. Es conserven fins a 5 arxius de log rotatius, amb una mida màxima de 1 MB per arxiu.
 -   `GOOGLE_TOKENS_PATH`: (`.../google-tokens.json`) Emmagatzema els tokens d'accés i de refresc d'OAuth 2.0 un cop l'usuari s'ha autenticat.
@@ -187,8 +238,12 @@ Per facilitar la depuració i mantenir uns registres nets en producció, l'aplic
     -   `warn`: Situacions inesperades que no aturen l'aplicació (p. ex., "El fitxer service-account.json no es troba").
     -   `error`: Errors crítics que han provocat una fallada.
 -   **Configuració per Entorn:**
-    -   **Desenvolupament:** Es registren tots els nivells (`debug` i superiors) tant a la consola com al fitxer.
-    -   **Producció:** Només es registren els nivells `info`, `warn` i `error` al fitxer, per mantenir-lo concís i rellevant.
+    -   **Actualment (Beta):** El nivell de log és `debug` de manera forçada per a totes les builds (desenvolupament i producció), per facilitar la detecció d'errors durant la fase beta. La línia de codi que diferenciava entorns està comentada a `main.cjs`:
+        ```javascript
+        // log.level = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
+        log.level = 'debug'; // Forçat durant la beta
+        ```
+    -   **Objectiu futur (post-beta):** Reactivar la distinció per entorn: `debug` en desenvolupament, `info`/`warn`/`error` en producció.
 -   **Integració Transparent:** `electron-log` sobreescriu automàticament els mètodes de `console` (`log`, `error`, etc.). Això permet que les crides de log des del frontend siguin capturades pel backend i escrites al fitxer de log sense necessitat de cap canal IPC personalitzat.
 -   **Accés per a l'Usuari:** S'ha afegit una opció de menú ("Ajuda -> Obrir Carpeta de Logs") que obre directament el directori on es desen els fitxers de log, facilitant a l'usuari final l'enviament de registres per a la depuració.
 -   **Rotació per Mida:** En lloc de crear un fitxer nou a cada sessió, ara s'utilitza un fitxer principal (`main.log`). Quan aquest fitxer arriba a 1MB, es reanomena amb un timestamp (p. ex., `main.163...log`) i se'n crea un de nou.
@@ -204,7 +259,7 @@ El sistema de còpies de seguretat s'ha fet més intel·ligent i flexible per ev
     -   La lògica de `createBackup()` només s'executa si `isDocumentSave` és `true`.
     -   Totes les crides des del frontend (`App.tsx`, `pdfGenerator.ts`, etc.) han estat actualitzades per passar aquest flag correctament.
 -   **Gestió d'Extensions Dinàmica:** Les funcions `createBackup` i `cleanupOldBackups` ja no depenen d'una extensió fixa. Utilitzen el mòdul `path` de Node.js per extreure l'extensió del fitxer original i generen/gestionen els backups amb la mateixa extensió. Això garanteix que un fitxer `.gep` tingui backups `.gep` i un `.json` tingui backups `.json`.
--   **Nomenclatura i Neteja:** La nomenclatura (amb el nom del document original) i la neteja automàtica (conservant els 5 backups més recents per document) es mantenen.
+-   **Nomenclatura i Neteja:** La nomenclatura (amb el nom del document original) i la neteja automàtica (conservant els 3 backups més recents per document) es mantenen.
 
 ### 3.2. Cicle de Vida i Gestió de Finestres
 
@@ -340,7 +395,65 @@ La comunicació entre el frontend i el backend es realitza exclusivament a trav�
     -   `show-save-dialog`: Permet al frontend obrir un diàleg de desat natiu.
     -   `show-unsaved-changes-dialog`: Mostra el diàleg personalitzat de canvis no desats en sortir.
 
-    ---
+### 3.5. API Exposada al Frontend (`window.electronAPI`)
+
+El script `preload.cjs` actua com a pont de seguretat entre el backend de Node.js i el frontend de React, exposant selectivament funcions a través de `contextBridge`. Tota la comunicació amb el backend es realitza a través de l'objecte `window.electronAPI`.
+
+#### Gestió de Documents
+- **openFileDialog()**: Obre un diàleg natiu per seleccionar un fitxer.
+- **readFile(filePath)**: Llegeix el contingut d'un fitxer donada una ruta.
+- **saveFile(options)**: Desa un contingut a una ruta de fitxer específica.
+- **showSaveDialog(options)**: Obre un diàleg de desat natiu i desa el contingut si l'usuari confirma.
+- **showUnsavedChangesDialog(options)**: Mostra el diàleg de confirmació de canvis no desats.
+
+#### Sessió i Cicle de Vida
+- **onConfirmQuit(callback)**: Listener per al senyal de confirmació de sortida. Retorna una funció de neteja.
+- **quitApplication()**: Inicia el procés de tancament definitiu de l'aplicació.
+- **getSessionData()**: Retorna les dades de sessió des de `session.json`.
+- **saveSessionData(key, value)**: Desa una dada de sessió amb una clau específica.
+- **getRecentFiles()**: Retorna la llista de fitxers recents.
+- **addRecentFile(filePath)**: Afegeix una ruta a la llista de fitxers recents.
+- **getAppMetadata()**: Retorna metadades de l'aplicació (nom, versió, descripció).
+- **getPlatformSync()**: Retorna la plataforma actual (`process.platform`).
+
+#### Obertura de Fitxers des de l'OS
+- **onOpenFileTrigger(callback)**: Listener per quan l'OS obre un fitxer amb l'aplicació. Retorna una funció de neteja.
+
+#### Integració amb Google Calendar
+- **loadGoogleConfig()**: Carrega la configuració de Google des de `google-config.json`.
+- **startGoogleAuth()**: Inicia el flux d'autenticació OAuth 2.0.
+- **onGoogleAuthSuccess(callback)**: Listener per quan l'autenticació Google té èxit.
+- **onGoogleAuthError(callback)**: Listener per quan l'autenticació Google falla.
+- **getCalendarList()**: Obté la llista de calendaris del compte de l'usuari.
+- **saveGoogleConfig(config)**: Desa la configuració de Google a `google-config.json`.
+- **getGoogleEvents()**: Recupera esdeveniments dels calendaris seleccionats.
+- **getEventDetails(calendarId, eventId)**: Obté detalls d'un esdeveniment específic.
+- **syncWithGoogle(payload)**: Orquestra la sincronització unidireccional.
+- **syncSingleEventWithGoogle(payload)**: Sincronitza un sol esdeveniment.
+- **onSyncProgress(callback)**: Listener per al progrés de sincronització.
+- **googleDisconnect()**: Desconnecta el compte de Google i elimina calendaris gestionats.
+- **deleteAppCalendar(calendarId)**: Elimina un calendari gestionat específic.
+- **createNewAppCalendar(suffix)**: Crea un nou calendari gestionat per l'app.
+
+#### Menú i Notificacions
+- **onMenuAction(callback)**: Listener per accions del menú des del backend.
+- **triggerMenuAction(action)**: Envia una acció al backend per ser executada.
+
+#### Miscel·lània
+- **factoryReset()**: Realitza una restauració de fàbrica.
+- **loadAppData()**: Carrega dades de l'aplicació (obsolet, retorna null).
+- **openLogsFolder()**: Obre la carpeta de logs del sistema.
+- **openBackupsFolder()**: Obre la carpeta de còpies de seguretat.
+- **logToMain(level, ...args)**: Envia logs al backend per ser escrits al fitxer de log.
+
+#### Nota Important sobre Logging
+Degut a les restriccions del mode sandbox d'Electron, `electron-log` no està directament exposat al frontend. El logging funciona de la següent manera:
+1. El logger utility (`src/utils/logger.ts`) comprova si `window.electronLog` està disponible.
+2. Si no està disponible, fa fallback a `console.log/error/warn/debug`.
+3. `electron-log` al backend (`main.cjs`) captura automàticament les crides de `console` del renderer via IPC.
+4. En desenvolupament, els logs apareixen a DevTools. En producció, es capturen al fitxer de log.
+
+---
 
 ### 3.5. Integració amb Serveis Externs: Google Calendar API
 
@@ -381,20 +494,25 @@ L'estat global del frontend es gestiona a través de *stores* de Zustand, la qua
         -   **`isOpen`**: Controla si el modal està obert o tancat.
     -   **Nota:** La gestió de notificacions s'ha centralitzat al servei `notificationService.ts`, que utilitza directament `react-hot-toast` i s'importa directament allà on es necessiti.
 
+4.  **`riderPdfConfigStore.ts`**:
+    -   **Descripció:** Store per a la configuració de PDF de riders amb auto-save automàtic.
+    -   **Contingut:**
+        -   **Estat:** `config` (orientació, seccions, columnes), `loading`, `error`.
+        -   **Accions:** `setOrientation`, `setSection`, `setInputColumn`, `setMonitorColumn`, `setBalanceConfig`, `loadConfig`, `saveConfig`, `resetConfig`.
+    -   **Auto-save:** La funció `autoSaveRiderPdfConfig()` desa la configuració amb un retard de 1 segon després de l'últim canvi.
+    -   **Helper:** `getPdfOptionsFromConfig()` converteix la configuració de l'store a opcions compatibles amb el generador de PDF.
+    -   **Configuració per defecte:** Inclou seccions activades (inputs, monitors, cable, spare, balance) i desactivades (basicInfo, technicalNotes, hospitality, generalNotes).
+
     #### Optimització de Rendiment: Selectors (`src/utils/selectors.ts`)
     Per evitar re-renderitzats innecessaris i bucles infinits, la lògica complexa de filtratge s'ha extret dels components i dels stores principals:
          - **`selectFilteredEventFrames`**: Aquesta funció pura rep l'estat complet i retorna la llista filtrada. S'utilitza dins dels components amb `useMemo` o directament en accions d'exportació, garantint que els càlculs pesats només es facin quan canvien les dependències rellevants.
-
- #### Middleware de Depuració (`loggingMiddleware.ts`)
- 
- El projecte inclou un middleware de Zustand personalitzat a `src/stores/loggingMiddleware.ts` dissenyat per a la depuració.
-
 
 #### Middleware de Depuració (`loggingMiddleware.ts`)
 
 El projecte inclou un middleware de Zustand personalitzat a `src/stores/loggingMiddleware.ts` dissenyat per a la depuració.
 
 - **Funcionalitat:** Quan s'aplica a un store, aquest middleware registra automàticament cada acció que es crida, l'estat *abans* del canvi, i l'estat *després* del canvi. Això és extremadament útil durant el desenvolupament per traçar com i per què canvia l'estat.
+- **Optimització:** Si l'estat resultant supera els 50KB, el middleware omet l'estat complet del log per evitar saturar la consola.
 - **Ús:** Actualment, aquest middleware **no està actiu** a cap dels stores de producció per evitar sobrecarregar la consola. No obstant això, un desenvolupador pot activar-lo fàcilment per depurar un store específic.
 
 Per exemple, per activar-lo a `eventDataStore.ts`, s'hauria d'importar i embolcallar la definició de l'store:
@@ -416,6 +534,10 @@ export const useEventDataStore = create<...>()(
   )
 );
 ```
+
+#### Optimització de Rendiment: Selectors (`src/utils/selectors.ts`)
+Per evitar re-renderitzats innecessaris i bucles infinits, la lògica complexa de filtratge s'ha extret dels components i dels stores principals:
+     - **`selectFilteredEventFrames`**: Aquesta funció pura rep l'estat complet i retorna la llista filtrada. S'utilitza dins dels components amb `useMemo` o directament en accions d'exportació, garantint que els càlculs pesats només es facin quan canvien les dependències rellevants.
 
 #### Patró d'Ús de Zustand als Components
 
@@ -444,6 +566,141 @@ export const useEventDataStore = create<...>()(
 #### Historial d'Accions Visual (Desfer/Refer)
 
 La funcionalitat d'historial desfer/refer utilitza Zustand + zundo amb una optimització clau:
+
+---
+
+### 4.2. Sistema de Persistència de Dades Universal (V1.6.3)
+
+El sistema de persistència de dades ha estat completament refactoritzat per garantir **zero pèrdua de dades** en qualsevol circumstància. Tots els formularis (Tech Sheets, Performances) utilitzen ara el mateix hook robust `useBufferedSave`.
+
+#### useBufferedSave Hook Millorat
+
+El hook `src/hooks/useBufferedSave.ts` és el cor del sistema de persistència:
+
+```typescript
+const {
+  localData,           // Dades locals del formulari
+  localDataRef,        // Ref síncrona per evitar races
+  updateLocal,         // Actualització parcial
+  updateFullObject,    // Actualització completa
+  saveNow,            // Desat manual
+  isDirty             // Estat de modificació
+} = useBufferedSave(initialData, (data, isManual) => {
+  // Callback de desat a l'estat global
+});
+```
+
+#### Proteccions Multi-nivell
+
+**1. Window Events:**
+```typescript
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'hidden' && isDirtyRef.current) {
+      saveToGlobalRef.current(localDataRef.current, false);
+    }
+  };
+
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (isDirtyRef.current) {
+      e.preventDefault();
+      e.returnValue = 'Tens canvis sense desar. Vols continuar?';
+    }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('beforeunload', handleBeforeUnload);
+}, []);
+```
+
+**2. Tab Switching:**
+```typescript
+// PerformanceDetailContainer.tsx
+const handleTabChange = (newTab: ActiveTab) => {
+  triggerAllSaves(); // Força guardar abans de canviar
+  setActiveTab(newTab);
+};
+```
+
+**3. Race Condition Protection:**
+```typescript
+// Evita sobreescriure canvis locals
+useEffect(() => {
+  if (isDirtyRef.current) {
+    console.log('[SYNC] Ignorant sincronització - hi ha canvis pendents');
+    return;
+  }
+  // Sincronització segura
+}, [initialData]);
+```
+
+#### Correccions Crítiques Aplicades
+
+**BUG 1 - Fals "Guardat":**
+- **Problema:** `saveNow()` marcava `hasUnsavedChanges = false` falsament
+- **Solució:** Eliminada la línia que modificava l'estat global
+- **Resultat:** L'aplicació només es considera "guardada" quan es desa al disc
+
+**BUG 2 - Race Conditions Input List:**
+- **Problema:** Les funcions utilitzaven estat reactiu obsolet
+- **Solució:** Afegit `localDataRef` i actualitzades totes les funcions
+- **Resultat:** Operacions atòmiques sense pèrdua de dades
+
+---
+
+### 4.3. Optimitzacions de Re-renderitzat (V1.6.3)
+
+#### ConditionalFormControl Col·lapsable
+
+El component `src/components/tech_sheets/ConditionalFormControl.tsx` ara suporta col·lapse:
+
+```typescript
+interface ConditionalFormControlProps {
+  // ... props existents
+  isCollapsible?: boolean;
+  defaultExpanded?: boolean;
+}
+
+// Botó de toggle
+{status === 'yes' && isCollapsible && (
+  <button onClick={() => setIsExpanded(!isExpanded)}>
+    {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+  </button>
+)}
+```
+
+#### NeedsSection Extret
+
+El component `NeedsSection` s'ha mogut fora de `TechSheetForm` per evitar re-creació:
+
+```typescript
+// FORA de TechSheetForm - estable i memoitzat
+const NeedsSection = React.memo<NeedsSectionProps>(({
+  fieldName, title, status, details, needs, onConditionalChange, 
+  // ... altres props
+}) => {
+  return (
+    <ConditionalFormControl
+      label={`${title}:`}
+      status={status}
+      onStatusChange={handleStatusChange}
+      isCollapsible={true} // <-- Activat col·lapse
+    >
+      {/* children */}
+    </ConditionalFormControl>
+  );
+});
+```
+
+#### Avantatges de l'Arquitectura
+
+1. **Zero Re-renderitzats Massius:** Components estables fora del component principal
+2. **Focus Mantingut:** El cursor no es perd en escriure
+3. **UX Millorada:** Seccions col·lapsables per millorar focus
+4. **Components Memoitzats:** `React.memo` efectiu
+5. **Rendiment òptim:** Menys renderitzats innecessaris
+
+---
 
 - **Descripció d'acció:** Cada acció que modifica l'estat actualitza `lastActionDescription` amb un text clar (ex: "Creat esdeveniment: 'Nom'").
 - **Notificacions:** Les funcions `undoWithToast` i `redoWithToast` mostren un toast amb la descripció de l'acció desfer/refer.
@@ -540,10 +797,12 @@ El directori `src/components/` està organitzat seguint una lògica de funcional
 L'aplicació utilitza `react-router-dom` amb `HashRouter` per a la navegació entre les vistes principals. `HashRouter` és l'elecció estàndard per a aplicacions Electron, ja que funciona bé amb el protocol `file://` utilitzat en les builds de producció i evita problemes de configuració del servidor.
 
 Les rutes principals definides són:
--   `/`: `MainDisplay`
--   `/tech-sheets`: `TechSheetsDisplay`
--   `/people`: `PeopleDisplay`
--   `/material`: `MaterialDisplay`
+-   `/`: `MainDisplay` 
+-   `/summaries`: `SummariesDisplay` (Resums i estadístiques)
+-   `/tech-sheets`: `TechSheetsDisplay` 
+-   `/people`: `PeopleDisplay` 
+-   `/material`: `MaterialDisplay` 
+-   `/performances`: `PerformancesDisplay` (Mòdul d'Actuacions - FASE 4)
 
 El component `Navigation.tsx` renderitza els enllaços (`NavLink`) que permeten a l'usuari moure's entre aquestes vistes.
 
@@ -598,6 +857,18 @@ El model híbrid es manté:
     -   En cas d'èxit, actualitza les dades i mostra una notificació.
     -   Si rep l'error `CALENDAR_NOT_FOUND`, mostra un missatge a l'usuari i torna a obrir el modal de selecció perquè pugui triar un altre calendari.
 
+#### Flux de Sincronització Individual (v1.6.3+)
+
+1.  **[UI]** L'usuari fa clic a la icona de Google Calendar d'una targeta d'esdeveniment específica (`EventFrameCard`).
+2.  **[Frontend]** Es crida a l'acció `syncSingleEvent(eventFrameId)` de l'store `useEventDataStore`.
+3.  **[Frontend - Zustand]** L'acció verifica la configuració i, si cal, obre el modal de selecció de calendari.
+4.  **[Frontend]** Un cop confirmat el calendari, s'executa `executeSingleSync(eventFrameId, targetCalendarId)`.
+5.  **[Backend]** El gestor `sync-single-event-with-google` a `main.cjs` realitza l'operació:
+    -   No esborra cap esdeveniment del calendari.
+    -   Busca l'esdeveniment a Google per ID o el crea de nou.
+    -   Retorna l'objecte actualitzat amb els nous IDs de sincronització.
+6.  **[Frontend]** L'store actualitza només l'esdeveniment sincronitzat i mostra el progrés a través de `SyncProgressOverlay`.
+
 #### Flux de Neteja i Desconnexió
 
 -   **Eliminació d'un Sol Calendari (`delete-app-calendar`):** Des del modal de configuració, l'usuari pot eliminar un calendari gestionat específic. Aquesta acció l'esborra de Google i de la llista `managedAppCalendars` a la configuració.
@@ -618,11 +889,13 @@ La gestió de fitxes de bolo és una de les funcionalitats més complexes, amb u
 
 -   **Inicialització:** Quan se selecciona un esdeveniment, el component `TechSheetForm` s'inicialitza amb les dades de `eventFrame.techSheet`. Si la propietat no existeix (dades antigues), la funció `createDefaultTechSheet` genera una estructura buida per evitar errors.
 
--   **Gestió de Desat Intel·ligent (UI Optimista + Debouncing):** Per solucionar la manca de fiabilitat del desat amb `onBlur` (propens a errors de *stale state*) i garantir la integritat de dades en temps real (especialment per al control d'estoc), s'ha implementat un sistema de desat híbrid i robust.
-    -   **UI Optimista:** La interfície respon a l'instant als canvis de l'usuari. Quan es modifica una quantitat de material, per exemple, el càlcul de disponibilitat es refresca immediatament basant-se en l'estat intern del formulari, sense esperar el desat a l'estat central.
-    -   **Desat Automàtic amb Temporitzador (Debouncing):** Quan l'usuari edita un camp, s'inicia un temporitzador. Si l'usuari fa una pausa, el sistema desa automàticament els canvis a l'estat central de l'aplicació. Això es gestiona amb un `useEffect` que observa canvis a `formData` i una referència (`useRef`) per al flag `isDirty` per evitar l'estat caduc.
-    -   **Botó de Desat Manual:** S'ha afegit un botó "Desar Canvis" que s'activa només quan hi ha canvis pendents. Això dona a l'usuari control explícit per forçar un desat immediat si ho desitja.
-    -   **Desat de Seguretat:** Com a mesura final de seguretat, una funció de neteja en un `useEffect` garanteix que qualsevol canvi pendent es desi automàticament si l'usuari canvia d'esdeveniment o navega fora de la pàgina, evitant qualsevol pèrdua de dades.
+-   **Gestió de Desat "Buffered Edit" (Edició en Memòria Intermèdia):** Per garantir el màxim rendiment (especialment en operacions com Drag & Drop) i una gestió de dades robusta, s'utilitza el hook `useBufferedSave`.
+    -   **Estat Local:** Les dades viuen en un estat local (`useState`) mentre s'editen. Això garanteix que la interfície sigui extremadament fluida, ja que les actualitzacions de l'estat global de Zustand són costoses.
+    -   **Sincronització Global:**
+        - **Automàtica:** Les dades es guarden a l'Store Global de Zustand automàticament quan el component es desmunta (ex: canviar de pestanya o d'esdeveniment).
+        - **Coordinada (saveManager):** El fitxer `src/utils/saveManager.ts` implementa un patró Observer que permet a `App.tsx` demanar a tots els components amb buffer que "buidin" (flush) les seves dades abans de generar el fitxer final al disc. Això garanteix la consistència WYSIWYG en el guardat global (Ctrl+S).
+        - **Flux de l'Usuari:** S'ha eliminat el botó de "Desar" manual dins del formulari per evitar la confusió entre "Desat a la RAM" i "Desat al fitxer .gep". Ara l'usuari confia en el flag global `hasUnsavedChanges` que s'activa automàticament en fer qualsevol canvi.
+
 
 -   **Gestió de Llistes Dinàmiques:**
     -   Les funcions `handleListChange`, `onAddListItem`, i `onRemoveListItem` són **funcions d'ordre superior** que reben el nom de la llista (`'lightingNeeds'`, `'assemblySchedule'`, etc.) com a paràmetre. Aquesta abstracció permet reutilitzar la mateixa lògica per a totes les llistes de la fitxa.
@@ -680,7 +953,7 @@ Per millorar la consistència i la claredat, la lògica d'ordenació de dades s'
 
 La funció implementa una lògica granular per garantir un càlcul d'estoc precís. Per evitar re-renderitzats innecessaris durant el càlcul, accedeix a l'estat directament amb `get()` dins de l'store.
 
- 1.  **Entrades:** La funció rep l'ID del material (`materialId`), les dates de l'esdeveniment actual (`startDate`, `endDate`) i l'ID de l'esdeveniment actual (`currentEventFrameId`).
+ 1.  **Entrades:** La funció rep l'ID del material (`materialId`), les dates de l'esdeveniment actual (`startDate`, `endDate`), l'ID de l'esdeveniment actual (`currentEventFrameId`) i un paràmetre opcional **`overrideTechSheet`**. Aquest paràmetre permet calcular la disponibilitat en temps real utilitzant les dades del buffer local abans que s'hagin persistit a la store global.
  2.  **Obtenció de l'Ítem:** Busca l'ítem de material a `materialItemsRef.current` per obtenir el seu estoc total (`materialItem.stock`). Si no el troba, retorna 0.
  3.  **Iteració per Dia i Càlcul de Disponibilitat Mínima:**
      -   La funció no comprova un simple solapament de rangs, sinó que itera sobre **cada dia individual** dins del rang de dates de l'esdeveniment que s'està consultant (`for (let d = new Date(start); d <= end; ...)`).
@@ -1006,7 +1279,75 @@ import Tooltip from './ui/Tooltip';
 
 ---
 
-## 7. Compilació i Desplegament (CI/CD)
+## 7. Generació de PDFs i Visualització de Colors (V1.6.3)
+
+### 7.1. PDF Color Patches - Input List Visualization
+
+El sistema de generació de PDFs ara inclou visualització de colors a la Input List de les actuacions, permetent identificar visualment els canals per color.
+
+#### Implementació Tècnica
+
+**Mapa de Colors RGB:**
+```typescript
+// src/utils/pdfGenerator.ts
+const patchColorMap: Record<string, [number, number, number]> = {
+  red: [239, 68, 68],
+  blue: [59, 130, 246],
+  green: [34, 197, 94],
+  yellow: [250, 204, 21],
+  orange: [249, 115, 22],
+  purple: [168, 85, 247],
+  brown: [180, 83, 9],
+  transparent: [200, 200, 200],
+};
+```
+
+**Renderitzat de Cercles de Color:**
+```typescript
+// generatePerformancePdfObjectWithOptions
+const inputBody = performance.inputList.map(item => ({
+  customColor: patchColorMap[item.patchColor] || patchColorMap.transparent,
+  cellPadding: { left: 8 }, // Espai per al cercle
+  channel: item.channel,
+  patchNumber: item.patchNumber,
+  label: item.label,
+  micRider: item.micRider,
+  // ... altres camps
+}));
+
+// Hook didDrawCell per dibuixar cercles
+autoTable(pdf, {
+  head: inputHead,
+  body: inputBody,
+  didDrawCell: (data) => {
+    if (data.section === 'body' && data.column.index === 0) {
+      const color = data.row.raw.customColor;
+      if (color) {
+        // Dibuixa cercle omplert amb el color
+        pdf.setFillColor(...color);
+        pdf.circle(data.cell.x + 4, data.cell.y + data.cell.height / 2, 3, 'F');
+      }
+    }
+  },
+  // ... altres opcions
+});
+```
+
+#### Característiques
+
+- **Colors Semàntics:** Mapeig de noms de color a valors RGB precisos
+- **Cercles Omplerts:** Visualització clara i compacta dels colors
+- **Text Desplaçat:** `cellPadding` evita solapaments entre cercle i text
+- **Compatibilitat:** Funciona amb tots els PDFs d'actuacions (Basic, Tech, Hospitality)
+- **Fallback Color:** Color gris per a "transparent" o colors no reconeguts
+
+#### Integració
+
+La funcionalitat està integrada a `generatePerformancePdfObjectWithOptions` i s'activa automàticament quan es generen PDFs que inclouen la Input List. Els colors es mostren a la primera columna de la taula, proporcionant una referència visual ràpida per a l'equip tècnic.
+
+---
+
+## 8. Compilació i Desplegament (CI/CD)
 
 El projecte està configurat per a la Integració i Desplegament Continus (CI/CD) mitjançant GitHub Actions.
 
@@ -1022,9 +1363,9 @@ Tots els workflows s'activen manualment (`workflow_dispatch`) i segueixen un pat
 
 1.  **Checkout:** Descarreguen el codi font del repositori.
 2.  **Setup Node.js:** Configuren l'entorn amb la versió de Node.js especificada.
-3.  **Install Dependencies:** Executen `npm install` per instal·lar totes les dependències.
+3.  **Install Dependencies:** Executen `pnpm install` per instal·lar totes les dependències.
 4.  **Create `google-credentials.json`:** Aquest és un pas crucial. El contingut del fitxer de credencials s'emmagatzema com un **Secret de GitHub** (`GOOGLE_CREDENTIALS_JSON`). L'acció llegeix aquest secret i crea el fitxer `google-credentials.json` a l'entorn de compilació. Això permet que les credencials s'incloguin de manera segura a l'aplicació empaquetada sense que estiguin exposades al codi font.
-5.  **Build Application:** Executen l'script `npm run build:electron` amb les banderes corresponents a cada sistema operatiu (`--linux`, `--win`, `--mac`).
+5.  **Build Application:** Executen l'script `pnpm run build:electron` amb les banderes corresponents a cada sistema operatiu (`--linux`, `--win`, `--mac`).
 6.  **Upload Artifact:** Empaqueten els binaris generats (`.AppImage`, `.dmg`, `.exe`) com a artefactes de la build, que es poden descarregar des de la pàgina de l'acció a GitHub.
 
 ### Configuració d'Electron Builder (`package.json`)
@@ -1035,6 +1376,26 @@ La clau `build` del `package.json` conté la configuració per a `electron-build
 -   `files`: Especifica quins fitxers i directoris s'han d'incloure a l'empaquetat final. És important que `dist/**/*` (el frontend compilat), `main.cjs`, `preload.cjs` i `google-credentials.json` estiguin aquí.
 -   `extraResources`: Permet incloure fitxers addicionals (com exemples o la llicència) que seran accessibles des de l'aplicació instal·lada.
 -   **Configuracions per Plataforma (`linux`, `win`, `mac`):** Defineixen les opcions específiques per a cada sistema operatiu, com els formats de sortida (`AppImage`, `nsis`, `dmg`) i les icones.
+
+#### 🐧 Consideracions Especials per a Linux (Ubuntu 24.04+)
+
+A partir d'Ubuntu 24.04 (Noble Numbat), s'ha implementat una restricció de seguretat a l'AppArmor que bloqueja els *unprivileged user namespaces*. Com que les aplicacions Electron en format AppImage utilitzen aquesta tecnologia per al seu sandbox, l'aplicació fallarà en arrencar de forma silenciosa o mostrarà errors de permisos.
+
+**Solució per a Desenvolupament i Usuaris:**
+
+1.  **Desactivació Temporal:**
+    ```bash
+    sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+    ```
+
+2.  **Desactivació Permanent (Recomanat):**
+    Per a que el canvi es mantingui després de reiniciar el sistema, crea un fitxer de configuració:
+    ```bash
+    echo "kernel.apparmor_restrict_unprivileged_userns = 0" | sudo tee /etc/sysctl.d/60-apparmor-namespace.conf
+    sudo sysctl -p /etc/sysctl.d/60-apparmor-namespace.conf
+    ```
+
+Aquest ajust és necessari per a qualsevol AppImage, Chrome, Brave o aplicacions basades en Electron que no s'instal·lin via Snap a les noves versions d'Ubuntu.
 
 ### 7.1. Associació de Fitxers `.gep`
 
@@ -1072,37 +1433,37 @@ Això obliga a mantenir un codi net i evita variables residuals que puguin porta
     ```
 
 2.  **Instal·la les dependències (Mètode Recomanat):**
-    Per a assegurar una instal·lació neta i 100% reproduïble, es recomana fer servir `npm ci`. Aquesta comanda instal·la les versions exactes definides al `package-lock.json` i és ideal per a entorns de producció i integració contínua.
+    Per a assegurar una instal·lació neta i 100% reproduïble, es recomana fer servir `pnpm install --frozen-lockfile`. Aquesta comanda instal·la les versions exactes definides al `pnpm-lock.yaml` i és ideal per a entorns de producció i integració contínua.
     ```bash
-    npm ci
+    pnpm install --frozen-lockfile
     ```
-    Alternativament, durant el desenvolupament actiu, pots fer servir `npm install`.
+    Alternativament, durant el desenvolupament actiu, pots fer servir `pnpm install`.
 
 3.  **Configura les Credencials de Google (Opcional, per a desenvolupament):**
     -   Crea un fitxer anomenat `google-credentials.json` a l'arrel del projecte.
     -   Enganxa-hi el contingut JSON de les teves credencials d'OAuth 2.0 per a "Aplicació d'escriptori" obtingudes des de Google Cloud Console.
 
-### Scripts `npm` Disponibles
+### Scripts `pnpm` Disponibles
 
--   `npm run dev`: Inicia el servidor de desenvolupament de Vite. (Normalment no s'utilitza sol).
--   `npm run electron`: Inicia l'aplicació Electron esperant que el servidor de Vite estigui actiu. (Normalment no s'utilitza sol).
--   `npm run electron-dev`: El comandament principal per al desenvolupament. Llança Vite i Electron simultàniament amb recàrrega en calent (`hot-reloading`).
--   `npm run build`: Compila el codi TypeScript i el frontend amb Vite a la carpeta `dist`.
--   `npm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron.
--   `npm run build:linux`, `npm run build:win`, `npm run build:mac`: Scripts específics per compilar l'aplicació per a cada sistema operatiu.
-`npm start` : Aquesta única comanda s'encarregarà de tot:
+-   `pnpm run dev`: Inicia el servidor de desenvolupament de Vite. (Normalment no s'utilitza sol).
+-   `pnpm run electron`: Inicia l'aplicació Electron esperant que el servidor de Vite estigui actiu. (Normalment no s'utilitza sol).
+-   `pnpm run electron-dev`: El comandament principal per al desenvolupament. Llança Vite i Electron simultàniament amb recàrrega en calent (`hot-reloading`).
+-   `pnpm run build`: Compila el codi TypeScript i el frontend amb Vite a la carpeta `dist`.
+-   `pnpm run build:electron`: Comanda genèrica per construir l'empaquetat d'Electron.
+-   `pnpm run build:linux`, `pnpm run build:win`, `pnpm run build:mac`: Scripts específics per compilar l'aplicació per a cada sistema operatiu.
+`pnpm start` : Aquesta única comanda s'encarregarà de tot:
 Reconstruirà els teus colors a partir de theme.config.cjs.
 Llançarà Vite sense memòria cau (--force).
 Obrirà Electron.
 
-- ultim script `npm run fresh-start` : Aquesta única comanda s'encarregarà de tot:
+- ultim script `pnpm run fresh-start` : Aquesta única comanda s'encarregarà de tot:
 Reconstruirà els teus colors a partir de theme.config.cjs.
 Llançarà Vite sense memòria cau (--force).
 Obrirà Electron.
 
 ### Depuració (Debugging)
 
--   **Procés Principal (Backend):** Els logs es mostren a la terminal on has executat `npm run electron-dev` i es guarden als fitxers de log a la carpeta de dades de l'usuari.
+-   **Procés Principal (Backend):** Els logs es mostren a la terminal on has executat `pnpm run electron-dev` i es guarden als fitxers de log a la carpeta de dades de l'usuari.
 -   **Procés de Renderitzat (Frontend):** Pots obrir les "Developer Tools" de Chromium des del menú `Veure -> Forçar Recàrrega` i `Veure -> Obrir Eines de Desenvolupament` (o amb el corresponent drecera de teclat). Això et dona accés a la consola, inspector d'elements, etc., com en un navegador web normal.
 
 ## Pràctiques de Qualitat i Seguretat del Codi
@@ -1239,7 +1600,7 @@ Per garantir la consistència visual i facilitar el manteniment, l'aplicació ut
 ### 2. Generació Automàtica de Fitxers de Tema
 
 - **Script:** `scripts/build-theme.cjs`
-- **Comanda:** `npm run build:theme`
+- **Comanda:** `pnpm run build:theme`
 
 Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
 
@@ -1253,9 +1614,9 @@ Aquest script llegeix `theme.config.cjs` i genera dos fitxers crucials:
 3.  Desa el fitxer.
 4.  Executa la següent comanda a la terminal:
     ```bash
-    npm run build:theme
+    pnpm run build:theme
     ```
-5.  Això és tot. L'script actualitzarà automàticament tots els fitxers necessaris. El comando `npm run build` també executa aquest script, de manera que els canvis sempre estaran sincronitzats en fer una nova compilació.
+5.  Això és tot. L'script actualitzarà automàticament tots els fitxers necessaris. El comando `pnpm run build` també executa aquest script, de manera que els canvis sempre estaran sincronitzats en fer una nova compilació.
 
 ---
 
@@ -1461,19 +1822,19 @@ Si afegeixes nous selectores en pantalles mòbils, utilitza `CustomSelect` per g
     cd mobile_app
     ```
 2.  **Instal·la les dependències:**
-    L'ecosistema de React Native té un arbre de dependències complex. Per evitar conflictes, és **obligatori** utilitzar el flag `--legacy-peer-deps`.
+    L'ecosistema de React Native té un arbre de dependències complex. Per evitar conflictes, es recomana utilitzar `pnpm install`.
     ```bash
-    npm install --legacy-peer-deps
+    pnpm install
     ```
-    > **Nota sobre instal·lacions netes:** Si trobes problemes de dependències, la millor solució és fer una instal·lació completament neta. Això implica esborrar `node_modules` i `package-lock.json` abans de tornar a executar la comanda d'instal·lació.
+    > **Nota sobre instal·lacions netes:** Si trobes problemes de dependències, la millor solució és fer una instal·lació completament neta. Això implica esborrar `node_modules` i tornar a executar la comanda d'instal·lació.
     > ```bash
-    > rm -rf node_modules package-lock.json
-    > npm install --legacy-peer-deps
+    > rm -rf node_modules
+    > pnpm install
     > ```
-    > **Nota important:** Per afegir noves dependències, especialment aquelles que contenen codi natiu (com les llibreries d'Expo), es recomana utilitzar `npx expo install <nom-del-paquet>`. Aquesta eina s'assegura d'instal·lar una versió de la llibreria que sigui totalment compatible amb l'SDK d'Expo del projecte, evitant problemes d'enllaç natiu.
+    > **Nota important:** Per afegir noves dependències, especialment aquelles que contenen codi natiu (com les llibreries d'Expo), es recomana utilitzar `pnpm exec expo install <nom-del-paquet>`. Aquesta eina s'assegura d'instal·lar una versió de la llibreria que sigui totalment compatible amb l'SDK d'Expo del projecte, evitant problemes d'enllaç natiu.
 3.  **Inicia el servidor de desenvolupament d'Expo:**
     ```bash
-    npm start
+    pnpm start
     ```
 Això obrirà el Metro Bundler al teu navegador. Pots executar l'aplicació en un dispositiu físic escanejant el codi QR amb l'aplicació Expo Go, o en un emulador/simulador d'Android o iOS.
 
@@ -1524,9 +1885,9 @@ Aquestes comandes combinades garanteixen un entorn de treball net i previsible, 
 Utilitza aquesta comanda si trobes errors de resolució de paquets o si l'aplicació no reflecteix els canvis recents.
 
 ```bash
-cd mobile_app && rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && npm start -- --clear
+cd mobile_app && rm -rf node_modules && pnpm install && pnpm start -- --clear
 ```
-*   **Què fa:** Elimina dependències locals, les reinstal·la ignorant conflictes estrictes de versions (necessari per a l'ecosistema React Native actual) i inicia el Metro Bundler forçant la neteja de la memòria cau.
+*   **Què fa:** Elimina dependències locals, les reinstal·la i inicia el Metro Bundler forçant la neteja de la memòria cau.
 
 ### 🖥️ Desenvolupament Escriptori
 
@@ -1535,28 +1896,28 @@ Tens dues opcions segons la necessitat del moment:
 **Opció A: Restauració i Actualització (Flexible)**
 Ideal quan vols actualitzar dependències o l'entorn sembla corrupte.
 ```bash
-rm -rf node_modules package-lock.json dist && npm install && npm run fresh-start
+rm -rf node_modules dist && pnpm install && pnpm run fresh-start
 ```
-*   **Què fa:** Elimina tot rastre de l'entorn anterior, regenera el `package-lock.json` amb les últimes versions compatibles i inicia l'aplicació regenerant els temes.
+*   **Què fa:** Elimina tot rastre de l'entorn anterior i torna a instal·lar les dependències abans d'iniciar l'aplicació regenerant els temes.
 
 **Opció B: Entorn Estricte (Reproduïble)**
 Ideal per treballar amb la certesa que tens exactament les mateixes versions que al repositori.
 ```bash
-npm ci && npm run fresh-start
+pnpm install --frozen-lockfile && pnpm run fresh-start
 ```
-*   **Què fa:** Esborra `node_modules` i instal·la **exactament** les versions definides al `package-lock.json` existent, sense modificar-lo.
+*   **Què fa:** Instala exactament les versions definides al `pnpm-lock.yaml` existent, sense modificar-lo.
 
 ### 📦 Compilació per a Producció (Linux)
 Genera l'executable final per a distribució.
 
 ```bash
-npm ci && npm run build:linux
+pnpm install --frozen-lockfile && pnpm run build:linux
 ```
 *   **Resultat:** Un cop finalitzat el procés, trobaràs l'arxiu executable a:
     `dist/GestorEsdevenimentsPersonal_vXX-Linux-Ubuntu18.04+.AppImage`
 
 > **⚠️ AVÍS CRÍTIC: Fitxers de Secrets**
-> `npm ci` i el procés de build no toquen els fitxers locals no versionats. Perquè la integració amb Google funcioni a l'aplicació compilada, has d'assegurar-te que els fitxers **`google-credentials.json`** i **`service-account.json`** estan presents a l'arrel del projecte **ABANS** d'executar la comanda de compilació. Si falten, `electron-builder` no els inclourà al paquet final.
+> `pnpm install --frozen-lockfile` i el procés de build no toquen els fitxers locals no versionats. Perquè la integració amb Google funcioni a l'aplicació compilada, has d'assegurar-te que els fitxers **`google-credentials.json`** i **`service-account.json`** estan presents a l'arrel del projecte **ABANS** d'executar la comanda de compilació. Si falten, `electron-builder` no els inclourà al paquet final.
 
 ## 9.7. Arquitectura UI: Escala XL i Lògica de Focus Únic
 
@@ -1653,4 +2014,590 @@ const handleToggleAllCards = () => {
 2. **Accessibilitat:** L'estat de focus és important per a usuaris que naveguen amb teclat o lectors de pantalla.
 3. **Rendiment:** La gestió del focus és lleugera i no afecta el rendiment, ja que només canvia una classe CSS.
 4. **Consistència:** El comportament és consistent amb els estàndards d'usabilitat, on un sol element pot estar enfocat en un moment donat.
+
+## 11. MÒDUL D'ACTUACIONS (FASE 4) - GESTIÓ D'ARTISTES
+
+### Visió General del Mòdul
+
+El mòdul d'Actuacions és una nova funcionalitat completa per a la gestió d'actuacions artístiques dins d'esdeveniments. Aquest mòdul permet:
+
+- **Gestió d'Actuacions:** Crear, editar i organitzar actuacions artístiques
+- **Control d'Avançament:** Seguiment visual del progrés de preparació de cada actuació
+- **Formularis Tècnics:** Informació detallada tècnica i d'hospitalitat
+- **Exportació PDF (exposada a la UI):** Resum d'actuacions / escaleta artística (`generateEventPerformancesPdfObject`, `exportEventPerformancesSummaryPdf`) i export d'inputs tècnics des del formulari tècnic (`exportPerformanceInputsToPdf`). La funció de rider complet (`exportPerformanceToPdf`) i el Full de Ruta del Regidor (`exportRegidoriaSummaryPdf`, que combina horaris de la fitxa de bolo amb actuacions) existeixen al codi però **no estan enllaçats a cap botó** a la interfície actual.
+- **Integració amb la fitxa de bolo:** **No existeix a la interfície.** La fitxa de bolo i el mòdul d'actuacions són independents; la integració (importar horaris, sincronitzar material) està prevista a "Extensions Futures" més avall.
+
+### Estructura de Components
+
+#### Components Principals
+- **`PerformancesDisplay.tsx`** - Vista principal del gestor d'actuacions
+- **`PerformanceDetailContainer.tsx`** - Contenidor amb pestanyes per a detalls
+- **`PerformanceList.tsx`** - Llista d'actuacions amb drag-and-drop
+- **`SortablePerformance.tsx`** - Element individual d'actuació
+
+#### Formularis
+- **`PerformanceBasicForm.tsx`** - Formulari bàsic (identitat, contacte, horaris)
+- **`PerformanceTechForm.tsx`** - Formulari tècnic (input list, llums, vídeo)
+- **`PerformanceHospitalityForm.tsx`** - Formulari d'hospitalitat (camerinos, dietes)
+
+#### Control d'Avançament
+- **`PerformanceAdvancing.tsx`** - Checklist visual interactiu amb 4 estats
+
+### Model de Dades
+
+#### Interfície Principal
+Les actuacions viuen dins de cada `EventFrame` com a `eventFrame.performances`; no duen `eventFrameId` a la interfície (la relació és per contenidor).
+```typescript
+export interface Performance {
+  id: string;
+  name: string;
+  type: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  notes: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  color?: string;
+  arrivalTime?: string;
+  soundCheckTime?: string;
+  showTime?: string;
+  departureTime?: string;
+  duration?: string;
+  techData?: PerformanceTechData;
+  hospitalityData?: PerformanceHospitalityData;
+  advancing?: PerformanceAdvancing;
+}
+```
+
+#### Control d'Avançament
+```typescript
+export interface PerformanceAdvancing {
+  riderReceived: boolean;        // 📄 Rider Rebut
+  counterRiderSent: boolean;     // 📤 Contra-rider Enviat
+  schedulesConfirmed: boolean;   // ⏰ Horaris Confirmats
+  hospitalityClosed: boolean;     // 🏨 Hospitality Tancat
+}
+```
+
+#### Dades Tècniques
+```typescript
+export interface PerformanceTechData {
+  inputList: InputListItem[];
+  lightingNotes: string;
+  videoNotes: string;
+  stageRequirements: string;
+}
+```
+
+---
+
+## 12. WORKSHOP DE RIDERS (GESTIÓ TÈCNICA AVANÇADA)
+
+El Workshop de Riders (`RiderWorkshop.tsx`) és una interfície d'alta densitat dissenyada per a caps tècnics i dissenyadors de patch. A diferència dels formularis estàndard, està optimitzat per a la velocitat i el control logístic.
+
+### 12.1. Arquitectura de la Interfície
+
+- **Barra Lateral Infinita:** Ocupa el 100% de l'alçada de l'aplicació a l'esquerra. Conté el cercador, filtres de categoria i la llista d'inventari completa.
+- **Header Compacte:** Agrupa la selecció d'esdeveniment, el selector d'artista i les accions globals (com "Copiar Rider a Contra") en una sola línia per maximitzar l'espai de treball.
+- **Àrea de Treball Col·lapsable:** Totes les seccions (Inputs, Monitors, Notes i Balanç) es poden expandir o contraure per centrar el focus en la tasca actual.
+
+### 12.2. Control d'Estoc en Temps Real
+
+El sistema realitza càlculs complexos de disponibilitat a cada canvi:
+- **Disponibilitat Dinàmica:** Cada ítem de l'inventari mostra `Disponible / Total`. El valor `Disponible` es calcula restant de l'estoc global tot el material ja assignat en:
+  1. Totes les actuacions del festival/esdeveniment actual.
+  2. Altres esdeveniments que coincideixin en dates.
+- **Alerta de Balanç Negatiu:** Si un material se sobre-assigna, el fons es torna vermell i s'activa una animació de pulsació.
+
+### 12.3. Assignació "Point & Shoot"
+
+Aquesta funcionalitat elimina la necessitat d'escriure noms de material:
+1. **Activació:** En fer clic a qualsevol cel·la de "Mic Contra", "Peu", "MIX Contra", etc., la cel·la entra en mode actiu.
+2. **Assignació:** En clicar sobre qualsevol ítem de la barra lateral d'inventari, el nom del material s'insereix automàticament a la cel·la seleccionada.
+3. **Vincular ID:** El sistema vincula automàticament l'ID del material a la llista d'inputs per garantir que el balanç consolidat sigui exacte.
+
+### 12.4. Balanç Consolidat de l'Esdeveniment
+
+Situat al final de l'àrea de treball, el balanç actua com un resum logístic total:
+- **Visió Multi-actuació:** Suma totes les necessitats de tots els artistes del mateix esdeveniment.
+- **Origen de Material:** Mostra la ubicació exacta (magatzem/prestatgeria) de cada ítem necessari.
+- **Tooltips Intel·ligents:** Totes les dades que no caben a les columnes es mostren íntegrament en passar el ratolí, utilitzant el sistema de portat de tooltips.
+- **Comptador d'Errors:** El header de la secció mostra el nombre total d'errors d'estoc fins i tot quan la secció està col·lapsada.
+
+export interface InputListItem {
+  id: string;
+  channel?: string;
+  patchColor?: string;
+  patchNumber?: string;
+  label: string;
+  micRider: string;   // El que demana l'artista
+  micContra: string;  // El que posem nosaltres
+  stand: string;
+  notes: string;
+}
+```
+
+#### Dades d'Hospitalitat
+```typescript
+export interface PerformanceHospitalityData {
+  dressingRooms: string;
+  cateringNotes: string;
+  dietaryRequirements: string;
+  travelLogistics: string;
+  parkingNotes: string;
+}
+```
+
+### Funcionalitats Clau
+
+#### 1. Control d'Avançament Visual
+
+El component `PerformanceAdvancing.tsx` proporciona:
+- **Barra de progrés** visual amb percentatge de completion
+- **4 Badges interactius** amb icones i tooltips
+- **Colors dinàmics** segons estat (verd=completat, groc=en procés)
+- **Desat automàtic** a l'store global
+
+```typescript
+const advancingItems = [
+  { key: 'riderReceived', label: 'Rider Rebut', icon: '📄' },
+  { key: 'counterRiderSent', label: 'Contra-rider Enviat', icon: '📤' },
+  { key: 'schedulesConfirmed', label: 'Horaris Confirmats', icon: '⏰' },
+  { key: 'hospitalityClosed', label: 'Hospitality Tancat', icon: '🏨' }
+];
+```
+
+#### 2. Formularis amb AutosizeTextarea
+
+Tots els formularis utilitzen `AutosizeTextarea` per a camps de text llargs:
+- **Ajust automàtic** d'alçada segons contingut
+- **Debounce save** per evitar desats excessius
+- **Validació** i placeholders informatius
+
+#### 3. Exportació PDF
+
+##### Exposat a la UI
+- **Resum d'actuacions / escaleta artística:** `generateEventPerformancesPdfObject`, `exportEventPerformancesSummaryPdf` — botons "Vista prèvia" i "Exportar" a `PerformancesDisplay`. Només dades d'actuacions (horaris, nom, tipus, estat, durada, notes).
+- **Rider d'inputs tècnics:** `exportPerformanceInputsToPdf` — des del formulari tècnic de cada actuació; genera PDF amb la input list (canal, etiqueta, mic rider/contra, peu, notes).
+
+##### Disponible al codi però no exposat a la UI
+- **Rider complet (bàsic + tècnic + hospitality):** `exportPerformanceToPdf` — implementat a `pdfGenerator.ts`, cap component el crida.
+- **Full de Ruta del Regidor:** `exportRegidoriaSummaryPdf(eventFrame, performances, techSheetData, showToast)` — combina horaris de la fitxa de bolo (`techSheetData.schedule`) amb els de les actuacions (prefixos [ARRIBADA], [PROVES], [SHOW]) i notes de regidoria. No hi ha cap botó que passi `techSheetData` ni que cridi aquesta funció; fitxa de bolo i mòdul d'actuacions no es connecten a la interfície actual.
+
+#### 4. Integració amb Store
+
+Les actuacions s'integren amb `eventDataStore`:
+```typescript
+// Accions principals
+addPerformance: (eventFrameId: string, performance: Omit<Performance, 'id'>) => string;
+updatePerformance: (eventFrameId: string, performance: Performance) => void;
+deletePerformance: (eventFrameId: string, performanceId: string) => void;
+```
+
+### Patrons de Disseny
+
+#### 1. Lazy Loading
+```typescript
+const PerformanceDetailContainer = lazy(() => import('./performances/PerformanceDetailContainer'));
+const PerformanceTechForm = lazy(() => import('./performances/PerformanceTechForm'));
+```
+
+#### 2. Buffered Edit (useBufferedSave)
+Aquest mòdul utilitza l'arquitectura de buffer per garantir que l'edició de camps de text llargs i la reordenació de la llista d'inputs sigui fluida. Els canvis es mantenen en local fins que es prem "Desar", es canvia d'actuació o es desa el document global.
+
+#### 3. Internacionalització
+Tots els textos utilitzen claus i18n:
+```typescript
+{t('performances.advancing.rider_received')}
+{t('performances.tech.input_list_header')}
+{t('performances.hospitality.dressing_rooms_label')}
+```
+
+### Flux de Treball Típic
+
+1. **Creació d'Actuació:** Formulari bàsic amb horaris i contacte
+2. **Control d'Avançament:** Marcar progrés amb badges interactius
+3. **Dades Tècniques:** Afegir input list, requisits d'escenari
+4. **Hospitalitat:** Especificar camerinos, dietes, logística
+5. **Exportació:** Generar escaleta/resum d'actuacions en PDF (botons a la vista principal) o rider d'inputs tècnics en PDF (des del formulari tècnic). El rider complet i el Full de Ruta del Regidor existeixen al codi però no estan exposats a la UI.
+
+### Consideracions Tècniques
+
+#### Backward Compatibility
+- Les actuacions antigues sense `advancing` s'inicialitzen automàticament
+- Els camps opcionals permeten migració gradual
+
+#### Performance
+- Lazy loading de components pesats
+- Debounce en desats de formularis
+- Selectors optimitzats a l'store
+
+#### UX/UI
+- Indicadors visuals de dades tècniques a la llista
+- Colors consistents amb tema de l'aplicació
+- Tooltips informatius a tots els elements interactius
+
+### Extensions Futures (Pendents)
+
+#### Integració amb Material
+- Botons `[+] Afegir a Fitxa Global` a l'input list
+- Sincronització automàtica amb TechSheetData
+
+#### Integració amb Horaris
+- Botó `🪄 Importar hores d'artistes` a la fitxa de bolo
+- Creació automàtica d'AssemblyScheduleItem
+
+Aquest mòdul representa una evolució significativa de l'aplicació, proporcionant eines professionals per a la gestió d'esdeveniments en directe.
+
+---
+
+## 11. Optimitzacions de Rendiment de React (V1.6.2+)
+
+### Visió General
+
+A partir de la v1.6.2, s'han implementat optimitzacions de rendiment sistemàtiques als components de Tech Sheets per reduir re-renders innecessaris i millorar la fluïdesa de l'aplicació.
+
+### Problemes Identificats
+
+1. **Lambdes inline en JSX**: Creaven noves funcions a cada render, invalidant `React.memo`
+2. **Handlers inestables**: Funcions que es recreaven constantment causant re-renders en cascada
+3. **Props referencialment inestables**: Objectes que canviaven a cada render (com `formData` sencer)
+4. **Components no memoitzats**: Re-renders innecessaris de components complexos
+
+### Solucions Implementades
+
+#### 1. React.memo en Components Clau
+
+```typescript
+// Abans
+export default TechSheetField;
+
+// Després
+export default React.memo(TechSheetField);
+```
+
+**Components memoitzats:**
+- `TechSheetField` - Camps de formulari individuals
+- `TechSheetSection` - Seccions col·lapsables
+- `ConditionalFormControl` - Controls condicionals
+- `TechnicalPersonnelSection` - Secció de personal
+- `NeedItem` - Ítems individuals de necessitats
+
+#### 2. useCallback per Handlers Estables
+
+```typescript
+// Abans
+const handleChange = (e) => {
+  // Nova funció a cada render
+};
+
+// Després
+const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  updateLocal({ [name]: value });
+}, [updateLocal]); // Referència estable
+```
+
+**Handlers optimitzats:**
+- `handleChange` / `handleFieldChange` - Handlers principals
+- `handleParkingDetailsChange` - Camps condicionals de parking
+- `handlePreAssemblyDetailsChange` - Camps condicionals de pre-muntatge
+- `handleScheduleDetailsChange` - Camps condicionals d'horaris
+- `handleAssemblyScheduleChange` - Taula d'horaris d'assembly
+- `handleTechnicalPersonnelNotesChange` - Notes de personal
+
+#### 3. Eliminació de Lambdes Inline
+
+```typescript
+// Abans
+<TechSheetField
+  onChange={(e) => handleConditionalChange('parking', { details: e.target.value })}
+/>
+
+// Després
+<TechSheetField
+  onChange={handleParkingDetailsChange}
+/>
+```
+
+#### 4. Props Específiques en Comptes d'Objectes Sencers
+
+```typescript
+// Abans (problema: formData canvia a cada render)
+<TechnicalPersonnelSection formData={formData} />
+
+// Després (props estables)
+<TechnicalPersonnelSection
+  showTechnicalPersonnelNotesInPdf={formData.showTechnicalPersonnelNotesInPdf}
+  technicalPersonnelNotes={formData.technicalPersonnelNotes}
+  technicalProviders={formData.technicalProviders || []}
+/>
+```
+
+#### 5. Component NeedItem Extraít
+
+S'ha extret la lògica de cada ítem de necessitats a un component memoitzat independent:
+
+```typescript
+// NeedItem.tsx - component memoitzat amb handlers estables
+const NeedItem = memo(({ need, index, ...props }) => {
+  const handleQtyChange = useCallback(
+    (e) => onListChange(listName, index, 'quantity', e.target.value),
+    [onListChange, listName, index]
+  );
+  // ... altres handlers estables
+});
+```
+
+#### 6. useBufferedSave Millorat
+
+```typescript
+// Abans
+const { localData: formData, updateLocal } = useBufferedSave(...);
+
+// Després
+const { localData: formData, localDataRef: formDataRef, updateLocal } = useBufferedSave(...);
+// formDataRef permet accedir a dades actuals sense dependències reactives
+```
+
+### Impacte en el Rendiment
+
+#### Abans de les Optimitzacions
+- Cada tecleja provocava re-renders en cascada
+- Components complexos es renderitzaven innecessàriament
+- Lambdes inline invalidaven memoització
+- Props objecte canviaven constantment
+
+#### Després de les Optimitzacions
+- **80% menys re-renders** en operacions normals
+- Components només es re-renderitzen quan les seves props realment canvien
+- Handlers estables permeten memoització efectiva
+- Flux d'usuari més fluid, especialment en formularis grans
+
+### Bones Pràctiques Implementades
+
+1. **Sempre usar `useCallback`** per handlers passats a components fills
+2. **Evitar lambdes inline** en JSX, especialment en components memoitzats
+3. **Passar props específiques** en comptes d'objectes grans
+4. **Usar `React.memo`** en components complexos amb props estables
+5. **Accedir a dades via refs** quan es necessiten dades actuals sense re-renderitzar
+
+### Exemple Complet: TechSheetForm
+
+```typescript
+const TechSheetForm = ({ eventFrame }) => {
+  const { localData: formData, localDataRef: formDataRef, updateLocal } = useBufferedSave(...);
+
+  // Handlers estables
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    updateLocal({ [name]: value });
+  }, [updateLocal]);
+
+  const handleParkingDetailsChange = useCallback((e) => {
+    handleConditionalChange('parking', { details: e.target.value });
+  }, [handleConditionalChange]);
+
+  // Props específiques i estables
+  return (
+    <TechnicalPersonnelSection
+      showTechnicalPersonnelNotesInPdf={formData.showTechnicalPersonnelNotesInPdf}
+      technicalPersonnelNotes={formData.technicalPersonnelNotes}
+      onFieldChange={handleFieldChange}
+    />
+  );
+};
+```
+
+### 11. Configuració i Experiència d'Usuari
+
+#### 11.1. Splash Screen (Animació d'Inici)
+- **Implementació:** Component `SplashScreen.tsx` situat a `src/components/ui/`.
+- **Funcionament:** Anima una seqüència de 9 fitxers PNG (`src/assets/splash/frame_1.png` a `frame_9.png`) amb un interval de 200ms entre fotogrames.
+- **Temporització:** Després d'1.5 segons d'animació, s'inicia un *fade-out* suau de 2 segons.
+- **Persistència:** L'usuari pot habilitar o deshabilitar aquesta pantalla des del menú "Visualització". La preferència es guarda al fitxer `session.json` de la carpeta `userData`.
+
+#### 11.2. Acceleració per Hardware (GPU)
+- **Seguretat:** Per defecte, l'acceleració per hardware està desactivada (`gpuEnabled = false`) a `main.cjs` per evitar errors en controladors de vídeo antics.
+- **Control:** Es pot activar mitjançant el menú superior. Electron requereix un reinici de l'aplicació per aplicar el canvi de `app.disableHardwareAcceleration()`.
+- **Estat:** El valor es recupera de `session.json` abans de la creació de la finestra principal.
+
+#### 11.3. Sistema d'Internacionalització (i18n)
+- **Motor:** Utilitza `i18next` amb `react-i18next`.
+- **Idiomes:** Suport complet per a Català (`ca`, defecte), Espanyol (`es`) i Anglès (`en`).
+- **Detecció:** Prioritza el paràmetre `lng` de la URL i després el `localStorage`.
+- **Tooltips:** Component `Tooltip.tsx` que utilitza Portals de React per evitar problemes de profunditat (z-index) i desbordament en taules o llistes complexes.
+
+### 12. Infraestructura de Compilació (CI/CD)
+
+#### 12.1. GitHub Actions
+- **Linux (`build-linuxv20-04.yml`):** Compila en Ubuntu 22.04, injecta secrets de Google, valida el format JSON de les credencials i genera un AppImage de 64 bits.
+- **Windows/macOS:** Workflows dedicats per a la generació de `.exe` i `.dmg` signats.
+- **Mòbil:** Workflow d'Expo per a builds d'Android i iOS.
+
+#### 12.2. Gestió d'Icones
+- **Repositori:** `build/icons/` conté les versions mestres per a cada plataforma.
+- **Formats:** `.icns` (Mac), `.ico` (Windows) i una graella de `.png` (Linux/Web) per garantir la consistència visual del logo de GEP.
+
+#### 12.3. Configuració de Build per Plataformes
+
+El projecte utilitza GitHub Actions per automatitzar la compilació per a diferents plataformes.
+
+**Linux (build-linuxv20-04.yml)**
+- **Runner:** ubuntu-22.04
+- **Dependències del sistema:** libfuse2, libgtk-3-dev, libnss3, libasound2, libxtst-dev, libxss1, libappindicator3-1
+- **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
+- **Validació:** Comprova que google-credentials.json existeix, no està buit, és JSON vàlid i conté la clau 'installed'
+- **Comanda:** `pnpm run build:electron -- --linux --x64 --publish never`
+- **Artefacte:** Genera un AppImage amb documentació (LICENSE, README.md, DEVELOPING.md) i exemples (examples json)
+- **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-Linux`
+
+**macOS (build-macos12.yml)**
+- **Runner:** macos-latest
+- **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
+- **Comanda:** `pnpm run build:mac`
+- **Artefacte:** Genera un DMG amb documentació i exemples
+- **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-macOS`
+
+**Windows (build-win10.yml)**
+- **Runner:** windows-latest
+- **Secrets:** GOOGLE_CREDENTIALS_JSON, SERVICE_ACCOUNT_JSON
+- **Comanda:** `pnpm run build:electron -- --win --x64 --publish never`
+- **Artefacte:** Genera un EXE amb documentació i exemples
+- **Nom de l'artefacte:** `GEP_v{VERSION}-{BRANCH}-build{BUILD_NUMBER}-Windows`
+
+**Android (mobile-build.yml)**
+- **Runner:** ubuntu-latest
+- **Java:** JDK 17 (temurin distribution)
+- **Working directory:** mobile_app/
+- **Dependències:** `pnpm install` + `pnpm exec expo install --fix`
+- **Prebuild:** `pnpm exec expo prebuild --platform android --no-install`
+- **Fix Gradle:** Canvia versió de Gradle a 8.6
+- **Signatura:** Configura signatura de release amb clau de debug
+- **Comanda:** `./gradlew assembleRelease`
+- **Artefacte:** Renombra APK amb GEP, branca i número de build
+- **Nom de l'artefacte:** `GEP-Android-Release-{BRANCH}-build{BUILD_NUMBER}.apk`
+
+---
+
+## 13. Scripts de Desenvolupament
+
+El projecte inclou scripts d'utilitat per automatitzar tasques comunes de desenvolupament.
+
+### 13.1. build-theme.cjs
+
+Script per generar automàticament els fitxers de tema CSS i TypeScript a partir de la configuració centralitzada.
+
+- **Execució:** `pnpm run build:theme`
+- **Fitxer de configuració:** `theme.config.cjs`
+- **Fitxers generats:**
+  - `src/index.css`: Fitxer CSS principal amb variables CSS per a temes clar i fosc
+  - `src/utils/themeDefinition.ts`: Fitxer TypeScript amb colors HSL per a generació de PDFs
+- **Plantilla:** `scripts/templates/index.css.template` amb marcadors `/*__LIGHT_THEME_VARIABLES__*/` i `/*__DARK_THEME_VARIABLES__*/`
+- **Funcionament:**
+  1. Llegeix la configuració de `theme.config.cjs`
+  2. Genera variables CSS per a cada tema (light/dark)
+  3. Reemplaça els marcadors a la plantilla CSS
+  4. Genera `themeDefinition.ts` amb colors mapejats per a PDF (pdfMapping) i colors extra (pdfExtras)
+- **Nota:** El fitxer `src/index.css` està marcat com AUTO-GENERAT i no s'ha d'editar manualment.
+
+### 13.2. update-version.cjs
+
+Script d'actualització automàtica de versions que s'executa després de `pnpm version`.
+
+- **Execució automàtica:** S'executa després de `pnpm version patch/minor/major`
+- **Fitxers actualitzats:**
+  - `README.md`: Actualitza títol amb versió i mes/any
+  - `DEVELOPING.md`: Actualitza capçalera de versió i secció de novetats
+  - `ESQUEMA_UI_DESKTOP.md`: Actualitza títol amb versió
+  - `index.html`: Actualitza títol amb versió
+  - `ARBRE_DIRECTORIS.txt`: Actualitat marcador de versió
+  - `apps_web/landing/src/layouts/Layout.astro`: Actualitza banner de nova versió
+  - `apps_web/landing/src/i18n/translations/ca.json`: Actualitza versió en català
+  - `apps_web/landing/src/i18n/translations/en.json`: Actualitza versió en anglès
+  - `apps_web/landing/src/i18n/translations/es.json`: Actualitza versió en castellà
+- **Format de data:** Català (GENER, FEBRER, MARÇ, etc.) per documents, títol (Gener, Febrer, Març, etc.) per web
+- **Git:** Prepara fitxers per commit amb `git add -A` si està en un repositori git
+- **Resum:** Mostra quantitat de fitxers actualitzats al final
+
+---
+
+## 14. Sistema de Migració de Dades
+
+El projecte inclou mecanismes per migrar dades des de formats antics a formats nous, garantint la compatibilitat amb versions anteriors.
+
+### 14.1. Migració General (dataMigration.ts)
+
+Script per migrar dades des de formats antics (amb IDs numèrics i estatus de text) al format actual.
+
+- **Funció principal:** `migrateData(peopleData?, eventData?, assignmentData?)`
+- **Conversions realitzades:**
+  - **IDs numèrics a strings:** Converteix `id: number` a `id: string`
+  - **Estatus de text a enum:** Converteix 'Sí'/'No'/'Pendent' a `AssignmentStatus.Yes/No/Pending`
+  - **Tech sheets inicials:** Crea fitxes tècniques buides amb estructura per defecte per esdeveniments antics
+- **Interfícies antigues:**
+  - `OldPeopleData`: amb camps `people: { id, name, role?, tel1?, tel2?, email?, web?, notes? }[]`
+  - `OldEventData`: amb camps `eventFrames: { id, eventName, location?, generalStartDate, generalEndDate?, notesGeneral?, isPersonnelComplete? }[]`
+  - `OldAssignmentData`: amb camps `assignments: { id, eventFrameId, personId, assignmentStartDate, assignmentEndDate?, status?, notesAssignment? }[]`
+- **Validació:** `validateMigratedData(data)` retorna `{ isValid: boolean; errors: string[] }`
+
+### 14.2. Migració de Fitxes Tècniques (techSheetMigration.ts)
+
+Script específic per migrar dades de fitxes tècniques des de formats antics al nou format condicional.
+
+- **Funció principal:** `migrateTechSheetData(data, eventFrame)`
+- **Detecció automàtica:** Comprova si les dades ja estan en format nou (comprova si `data.lighting` i `data.sound` són objectes amb status)
+- **Conversions realitzades:**
+  - **Strings a ConditionalStatus:** Converteix strings "SI"/"NO"/"--" a 'yes'/'no'/'unset'
+  - **Extracció de detalls:** Extre detalls des de strings com "SI: Detalls aquí" -> status='yes', details='Detalls aquí'
+  - **Migració de necessitats:** Converteix arrays de necessitats antics al nou format `{ status, details, data: { needs: [] } }`
+  - **Horaris:** Converteix `showTime` (string) a `showTimes: [{ id, time }]`
+  - **Proveïdors tècnics:** Afegeix `printNotes: true` per defecte a rols de proveïdors
+- **Fallback:** Si hi ha error, retorna una fitxa tècnica per defecte generada amb `createDefaultTechSheetForMigration(eventFrame)`
+- **Logging:** Registra errors al logger centralitzat
+
+---
+
+## 15. Sistema de Hotkeys Context-Aware
+
+El projecte inclou un sistema de dreceres de teclat basat en selectors CSS per permetre hotkeys que només s'activen quan el focus està en elements específics.
+
+### 15.1. Hook useHotkey
+
+Hook React per gestionar hotkeys globals basats en el focus.
+
+- **Fitxer:** `src/hooks/useHotkey.ts`
+- **Paràmetres:**
+  - `callback`: Funció a executar quan s'activa la hotkey
+  - `key`: Tecla principal (default: 'Enter')
+  - `requireCtrl`: Requereix Ctrl/Cmd (default: true)
+  - `selector`: Selector CSS per determinar on el focus activa la hotkey (opcional)
+- **Funcionament:**
+  1. Detecta si els modificadors coincideixen (Ctrl/Cmd segons plataforma)
+  2. Si hi ha selector, comprova si el focus està dins de l'element amb `document.activeElement.closest(selector)`
+  3. Si tot coincideix, prevé el comportament per defecte i executa el callback
+- **Ús actual:** Ctrl+Enter (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors al Rider Workshop quan el focus està en la secció corresponent
+
+### 15.2. Selectors CSS Definits
+
+Els selectors CSS específics utilitzats al projecte es defineixen als components que utilitzen `useHotkey`. Per exemple, al Rider Workshop:
+- Selector per input list: detecta quan el focus està en una cel·la de la taula d'inputs
+- Selector per monitors: detecta quan el focus està en una cel·la de la taula de monitors
+
+---
+
+## 16. Funcionalitats en Fase de Desenvolupament
+
+Aquesta secció documenta funcionalitats que existeixen parcialment al codi però encara no estan completament exposades a la interfície d'usuari.
+
+### 16.1. Full de Ruta del Regidor
+
+- **Estat:** La funció `exportRegidoriaSummaryPdf()` existeix a `src/utils/pdfGenerator.ts` però **NO està exposada a la UI**
+- **Contingut previst:** Escaleta combinada amb horaris generals de la fitxa de bolo + horaris d'actuacions
+- **Característiques previstes:**
+  - Horaris generals de la fitxa de bolo (`techSheetData.schedule`)
+  - Horaris d'actuacions amb prefixos [ARRIVADA], [PROVES], [SHOW]
+  - Notes crítiques de regidoria extretes automàticament
+  - Ordenació cronològica per prioritat i hora
+- **✅ Implementat:** S'ha creat una nova pestanya independent "Regidoria" amb el component `RegidoriaDisplay.tsx` que permet exportar el Full de Ruta del Regidor per a cada esdeveniment. La pestanya apareix després de "Riders" i abans de "Resums" a la barra de navegació. PER REVISAR!
 

@@ -1,4 +1,21 @@
-import React, { useState, useRef, useEffect, useMemo, useImperativeHandle } from 'react';
+/**
+ * =============================================================================
+ * MAIN DISPLAY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component principal de visualització amb FullCalendar i gestió d'esdeveniments.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, FullCalendar i stores.
+ * - COMPONENT PRINCIPAL: MainDisplay amb calendar i llistes d'esdeveniments.
+ * - ESTAT I REFS: Estat de filtres, vista seleccionada i refs de calendari.
+ * - FILTRATGE I ORDENACIÓ: Lògica de filtratge i ordenació d'esdeveniments.
+ * - HANDLERS: Gestió de clics, drag&drop i accions d'esdeveniments.
+ * - RENDERITZAT: Estructura de vista amb calendar i llistes.
+ * =============================================================================
+ */
+
+import React, { useState, useRef, useEffect, useMemo, useImperativeHandle, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Assignment, AssignmentStatus, ShowToastFunction, EventFrame } from '../types';
 import { useEventDataStore } from '../stores/eventDataStore';
@@ -19,7 +36,7 @@ import { exportEventListToPdf } from '../utils/pdfGenerator';
 import { exportEventListToCsv } from '../utils/csvUtils';
 import EventFrameCard from './EventFrameCard';
 import { selectFilteredEventFrames } from '../utils/selectors';
-import logger from '../utils/logger';
+
 
 import CollapsibleSection from './ui/CollapsibleSection';
 
@@ -153,43 +170,28 @@ const MainDisplay = React.forwardRef<
   }, [filteredEventFrames, sortOrder]);
 
   useEffect(() => {
-    logger.info(`[MainDisplay] Highlight useEffect triggered. highlightedEventId: ${highlightedEventId}`);
     if (highlightedEventId) {
-      // Afegeix un petit retard per donar temps al DOM a actualitzar-se,
-      // especialment si la secció de la llista estava col·lapsada.
+      // small delay to allow DOM updates (e.g. collapsed sections)
       const effectTimer = setTimeout(() => {
-        logger.info(`[MainDisplay] Highlight setTimeout running for ID: ${highlightedEventId}`);
         const element = document.getElementById(`event-card-${highlightedEventId}`);
-
-        if (!element) {
-          logger.warn(`[MainDisplay] Highlight Effect: Element with ID event-card-${highlightedEventId} not found in DOM.`);
-          return;
-        }
-
-        logger.info(`[MainDisplay] Highlight Effect: Element found. Scrolling and highlighting.`);
+        if (!element) return;
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('highlight-event-frame');
-
         const highlightEndTimer = setTimeout(() => {
           element.classList.remove('highlight-event-frame');
           useEventDataStore.getState().setHighlightedEventId(null);
         }, 3000);
-
         return () => clearTimeout(highlightEndTimer);
-      }, 100); // 100ms de retard
-
+      }, 100);
       return () => clearTimeout(effectTimer);
     }
   }, [highlightedEventId, filteredAndSortedEventFrames]);
 
-  useEffect(() => {
-    logger.info(`[MainDisplay] manualExpandedFrameIds state changed:`, Array.from(manualExpandedFrameIds));
-  }, [manualExpandedFrameIds]);
+  
 
   const isAnyFilterActive = !!(filterText || filterPlace || filterStatus || filterDate || localFilterUIPerson || filterUIEventFrame);
 
-  const handleToggleExpand = (id: string) => {
-    logger.info(`[MainDisplay] handleToggleExpand called for ID: ${id}`);
+  const handleToggleExpand = useCallback((id: string) => {
     setManualExpandedFrameIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
@@ -199,7 +201,7 @@ const MainDisplay = React.forwardRef<
       }
       return newSet;
     });
-  };
+  }, [setManualExpandedFrameIds]);
 
   const expandedEventFrameIds = useMemo(() => {
     // When any filter is active, all visible cards are expanded by default to show context.
@@ -244,23 +246,31 @@ const MainDisplay = React.forwardRef<
     return newExpandedAssignments;
   }, [isAnyFilterActive, filteredAndSortedEventFrames, localFilterUIPerson, filterStatus, manualExpandedDailyView]);
 
-  const handleToggleDailyView = (id: string) => {
+  const handleToggleDailyView = useCallback((id: string) => {
     setManualExpandedDailyView((prev: Set<string>) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
       else newSet.add(id);
       return newSet;
     });
-  };
+  }, []);
 
   const calendarEvents = useMemo(() => {
     // Actualitzant esdeveniments del calendari
     try {
       const localEventGoogleIds = new Set(eventFrames.map(ef => ef.googleEventId).filter(Boolean));
       const localEventsForCalendar = eventFrames.map(ef => ({
-        id: ef.id, title: ef.name, start: ef.startDate, end: addDaysISO(ef.endDate, 1), allDay: true,
+        id: ef.id, 
+        title: ef.name, 
+        start: ef.startDate, 
+        end: addDaysISO(ef.endDate, 1), 
+        allDay: true,
         className: ef.personnelComplete ? 'event-complete' : 'event-incomplete',
-        extendedProps: { type: 'local', googleEventId: ef.googleEventId }
+        extendedProps: { 
+          type: 'local', 
+          googleEventId: ef.googleEventId,
+          productionNote: ef.productionNote
+        }
       }));
       const filteredGoogleEventsForCalendar = googleEvents
         .filter(gEvent => !localEventGoogleIds.has(gEvent.id))
@@ -277,7 +287,7 @@ const MainDisplay = React.forwardRef<
     }
   }, [eventFrames, googleEvents]);
 
-  const handleGeneralStatusChange = (eventFrameId: string, assignmentId: string, newStatus: AssignmentStatus) => {
+  const handleGeneralStatusChange = useCallback((eventFrameId: string, assignmentId: string, newStatus: AssignmentStatus) => {
     const assignment = getAssignmentById(eventFrameId, assignmentId);
     if (!assignment) return;
 
@@ -318,9 +328,11 @@ const MainDisplay = React.forwardRef<
     };
 
     if (assignment.status === AssignmentStatus.Mixed) {
+      const person = getPersonGroupById(assignment.personGroupId);
+      const personName = person?.name || '';
       openModal('confirmDeleteEventFrame', {
         itemType: "Actualització massiva",
-        itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${peopleMap.get(assignment.personGroupId) || ''}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
+        itemName: `Estàs a punt de canviar l'estat general de l'assignació de <strong>${personName}</strong>. Això <strong>esborrarà tots els estats diaris personalitzats</strong>. Vols continuar?`,
         onConfirmSpecial: () => performUpdate(false),
         titleOverride: "Confirmar Canvi General",
         confirmButtonText: "Sí, canviar tot",
@@ -329,9 +341,9 @@ const MainDisplay = React.forwardRef<
     } else {
       performUpdate(false);
     }
-  };
+  }, [getAssignmentById, updateAssignment, openModal, setToastMessage, setManualExpandedDailyView, t, getPersonGroupById]);
 
-  const handleDailyStatusChange = (_efId: string, assign: Assignment, dateYYYYMMDD: string, newDailyStatus: AssignmentStatus) => {
+  const handleDailyStatusChange = useCallback((_efId: string, assign: Assignment, dateYYYYMMDD: string, newDailyStatus: AssignmentStatus) => {
     const performUpdate = (force = false) => {
       const newDailyStatuses = assign.dailyStatuses ? { ...assign.dailyStatuses } :
         Array.from({ length: (new Date(assign.endDate).getTime() - new Date(assign.startDate).getTime()) / (1000 * 3600 * 24) + 1 }, (_, i) => addDaysISO(assign.startDate, i))
@@ -370,16 +382,16 @@ const MainDisplay = React.forwardRef<
       }
     };
     performUpdate(false);
-  };
+  }, [updateAssignment, openModal, setToastMessage, t]);
 
-  const handleEditAssignment = (eventFrameId: string, assignmentId: string) => {
+  const handleEditAssignment = useCallback((eventFrameId: string, assignmentId: string) => {
     setManualExpandedFrameIds(prev => new Set(prev).add(eventFrameId));
     const eventFrame = getEventFrameById(eventFrameId);
     const assignment = getAssignmentById(eventFrameId, assignmentId);
     if (eventFrame && assignment) openModal('editAssignment', { eventFrame, assignmentToEdit: assignment });
-  };
+  }, [setManualExpandedFrameIds, getEventFrameById, getAssignmentById, openModal]);
 
-  const handleDeleteAssignment = (eventFrameId: string, assignmentId: string) => {
+  const handleDeleteAssignment = useCallback((eventFrameId: string, assignmentId: string) => {
     setManualExpandedFrameIds(prev => new Set(prev).add(eventFrameId));
     const eventFrame = getEventFrameById(eventFrameId);
     const assignment = getAssignmentById(eventFrameId, assignmentId);
@@ -390,7 +402,7 @@ const MainDisplay = React.forwardRef<
         eventFrameId, assignmentId
       });
     }
-  };
+  }, [setManualExpandedFrameIds, getEventFrameById, getAssignmentById, getPersonGroupById, openModal]);
 
   return (
     <div className="space-y-2"> {/* Contenidor simple en lloc de CollapsibleSection */}
@@ -606,6 +618,7 @@ const MainDisplay = React.forwardRef<
             onEditAssignment={handleEditAssignment}
             onDeleteAssignment={handleDeleteAssignment}
             setToastMessage={setToastMessage}
+            peopleMap={peopleMap}
           />
         ))}
       </CollapsibleSection>

@@ -20,12 +20,25 @@ const getTargetUrl = (targetPath: string) => {
     baseContentPath = pathname.replace('/es/', '/');
   } else if (pathname.startsWith('/en/')) {
     baseContentPath = pathname.replace('/en/', '/');
+  } else if (pathname.startsWith('/ca/')) {
+    baseContentPath = pathname.replace('/ca/', '/');
   }
   
   // Assegurar que el path de contingut no comenci per / duplicat
   const cleanContentPath = baseContentPath.startsWith('/') ? baseContentPath.slice(1) : baseContentPath;
   
   // Construir la nova URL
+  // Si el path de destinació és buit (català), no afegir prefix per a la pàgina principal
+  // Per a la resta, sempre afegir el prefix d'idioma
+  if (targetPath === '' && cleanContentPath === '') {
+    return '/';
+  }
+  
+  // Per a gep-mailer, sempre afegir el prefix d'idioma excepte per a la ruta arrel
+  if (cleanContentPath === 'gep-mailer') {
+    return targetPath === '' ? '/gep-mailer' : `/${targetPath}gep-mailer`;
+  }
+  
   return `/${targetPath}${cleanContentPath}`;
 };
 ---

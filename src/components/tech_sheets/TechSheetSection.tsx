@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * TECH SHEET SECTION
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de secció plegable per a fitxes tècniques amb diferents layouts.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: TechSheetSection amb plegar/desplegar i layouts.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon, ChevronUpIcon } from '../../constants';

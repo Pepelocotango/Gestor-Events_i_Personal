@@ -10,6 +10,7 @@ interface Props {
     download: string;
     menu: string;
     logo_text: string;
+    gep_mailer: string;
   };
 }
 
@@ -22,6 +23,7 @@ const navLinks = [
   { key: 'product_tour', path: '#product-tour' },
   { key: 'gallery', path: '#gallery' },
   { key: 'download', path: '#download' },
+  { key: 'gep_mailer', path: '/gep-mailer' },
 ];
 ---
 
@@ -52,7 +54,7 @@ const navLinks = [
               : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
             aria-current={currentPath === link.path ? 'page' : undefined}
           >
-            {translations[link.key as keyof typeof translations] || link.key}
+            {(translations as any)[link.key] || link.key}
           </a>
         ))}
         <a 
@@ -92,7 +94,7 @@ const navLinks = [
             : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
           aria-current={currentPath === link.path ? 'page' : undefined}
         >
-          {translations[link.key as keyof typeof translations] || link.key}
+          {(translations as any)[link.key] || link.key}
         </a>
       ))}
       <a 

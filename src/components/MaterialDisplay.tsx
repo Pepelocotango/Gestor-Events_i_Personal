@@ -1,3 +1,20 @@
+/**
+ * =============================================================================
+ * MATERIAL DISPLAY
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per mostrar i gestionar el material amb filtres i exportació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components UI.
+ * - SUB-COMPONENTS: SortArrow per indicar direcció d'ordenació.
+ * - COMPONENT PRINCIPAL: MaterialDisplay amb llista de material.
+ * - ESTAT I FILTRATGE: Estat de filtres i ordenació.
+ * - HANDLERS: Gestió d'edició, esborrat i exportació.
+ * - RENDERITZAT: Estructura de taula amb material.
+ * =============================================================================
+ */
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModalStore } from '../stores/modalStore';

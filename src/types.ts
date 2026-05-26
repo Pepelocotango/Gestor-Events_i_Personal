@@ -1,3 +1,23 @@
+/**
+ * =============================================================================
+ * TYPES
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Definicions de tipus TypeScript per a tota l'aplicació.
+ *
+ * ÍNDEX:
+ * - ENUMS D'ESTAT: AssignmentStatus per als estats d'assignació.
+ * - INTERFÍCIES DE PERSONES: PersonGroup per a grups de persones.
+ * - INTERFÍCIES D'ASSIGNACIONS: Assignment per a assignacions d'esdeveniments.
+ * - INTERFÍCIES DE TECH SHEETS: TechSheetData, TechSheetProvider, ConditionalSection, etc.
+ * - INTERFÍCIES D'ESDEVENIMENTS: EventFrame per a esdeveniments.
+ * - INTERFÍCIES DE MATERIAL: MaterialItem per a material.
+ * - INTERFÍCIES DE PERFORMANCES: Performance, PerformanceTechData, PerformanceHospitalityData, etc.
+ * - INTERFÍCIES DE MODALS: Modal props i configuracions.
+ * - TIPUS AUXILIARS: ShowToastFunction i altres tipus d'utilitat.
+ * =============================================================================
+ */
+
 export enum AssignmentStatus {
   Pending = 'Pendent',
   Yes = 'Sí',
@@ -149,6 +169,177 @@ export interface TechSheetData {
 }
 
 
+export interface PerformanceAdvancing {
+  riderReceived: boolean;
+  counterRiderSent: boolean;
+  schedulesConfirmed: boolean;
+  hospitalityClosed: boolean;
+}
+
+export interface InputListItem {
+  id: string;
+  channel?: string; // Canal de la taula (1, 2, 3...)
+  patchColor?: string; // Color de la mànega (red, blue, etc.)
+  patchNumber?: string; // Número a la mànega
+  label: string; // Instrument
+  micRider: string; // El que demana l'artista (abans micDi)
+  micContra: string; // El que posem nosaltres (text lliure o nom de l'item)
+  micContraId?: string; // ID de l'item de l'inventari (NOU)
+  stand: string; // Tipus de peu (text lliure o nom de l'item)
+  standId?: string; // ID de l'item de l'inventari (NOU)
+  notes: string; // Notes de text lliure
+  extres?: string; // Materials extres (point and shoot o text lliure)
+  extresId?: string; // ID del material extres de l'inventari
+  exclusive?: boolean; // Si és exclusiu per aquesta actuació
+}
+
+export interface MonitorListItem {
+  id: string;
+  outputChannel?: string; // Canal de sortida MIX (A1, A2, B1, B2, etc.)
+  patchColor?: string; // Color de la mànega (red, blue, etc.)
+  patchNumber?: string; // Número a la mànega
+  label: string; // Nom del monitor/MIX
+  mixRider: string; // El que demana l'artista per aquest MIX
+  mixContra: string; // El que posem nosaltres (text lliure o nom de l'item)
+  mixContraId?: string; // ID del material de l'inventari
+  monitorQty?: number;   // Quantitat de monitors físics. Default: 1
+  mixStand?: string; // Peu del monitor (text lliure o nom de l'item)
+  mixStandId?: string; // ID del peu de monitor de l'inventari
+  standQty?: number;     // Quantitat de peus de monitor. Default: 1
+  notes: string;
+  exclusive?: boolean; // Si és exclusiu per aquesta actuació
+}
+
+export interface RiderGenericItem {
+  id: string;
+  qty: number;           // Quantitat, default 1
+  itemName: string;      // Text lliure o nom assignat des de l'inventari
+  itemId?: string;       // ID de l'item de l'inventari (si s'ha assignat via sidebar)
+  notes: string;         // Notes lliures
+  exclusive?: boolean;    // Si és exclusiu per aquesta actuació
+}
+
+export interface PerformanceTechData {
+  inputList: InputListItem[];
+  monitorList: MonitorListItem[];
+  cableList: RiderGenericItem[];    // NOU
+  spareList: RiderGenericItem[];    // NOU
+  lightingNotes: string;
+  videoNotes: string;
+  stageRequirements: string;
+}
+
+export interface PerformanceHospitalityData {
+  dressingRooms: string;
+  cateringNotes: string;
+  dietaryRequirements: string;
+  travelLogistics: string;
+  parkingNotes: string;
+}
+
+export interface Performance {
+  id: string;
+  name: string; // Nom de l'artista/acte
+  type: string; // Música, Teatre, etc.
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  notes: string;
+  color?: string; // Color identificatiu per a l'escaleta (opcional)
+  status: 'pending' | 'confirmed' | 'cancelled';
+  arrivalTime?: string; // Hora d'arribada
+  soundCheckTime?: string; // Hora de soundcheck
+  showTime?: string; // Hora d'actuació
+  departureTime?: string; // Hora de sortida
+  duration?: string; // Durada prevista
+  techData?: PerformanceTechData;
+  hospitalityData?: PerformanceHospitalityData;
+  advancing?: PerformanceAdvancing;
+}
+
+export interface PerformancePdfOptions {
+  includeBasicInfo: boolean;        // Info artista, horaris, contacte
+  includeInputs: boolean;          // Llista d'inputs tècnics
+  includeMonitors: boolean;         // Llista de monitors tècnics
+  includeCable: boolean;           // NOU
+  includeSpare: boolean;           // NOU
+  includeTechnicalNotes: boolean;  // Notes de llums, vídeo, escenari
+  includeHospitality: boolean;     // Hospitality complet
+  includeGeneralNotes: boolean;    // Notes generals de l'actuació
+  showEmptySections: boolean;      // Mostrar seccions buides com "-"
+  showBalance?: boolean;           // Mostrar balanç consolidat
+  pdfOrientation?: 'portrait' | 'landscape'; // Orientació del PDF
+  balanceData?: any[];             // Dades del balanç directes (WYSIWYG)
+  inputColumns?: {                 // Columnes individuals per inputs
+    patch: boolean;
+    channel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+  monitorColumns?: {               // Columnes individuals per monitors
+    patch: boolean;
+    outputChannel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+}
+
+export interface RiderBalanceConfig {
+  sortByCategory: boolean;
+  sortByLocation: boolean;
+  printBalance: boolean;
+}
+
+export interface RiderPdfConfig {
+  orientation: 'portrait' | 'landscape';
+  sections: {
+    basicInfo: boolean;
+    inputs: boolean;
+    monitors: boolean;
+    cable: boolean;
+    spare: boolean;
+    technicalNotes: boolean;
+    hospitality: boolean;
+    generalNotes: boolean;
+    balance: boolean;
+  };
+  inputColumns: {
+    patch: boolean;
+    channel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+  monitorColumns: {
+    patch: boolean;
+    outputChannel: boolean;
+    label: boolean;
+    rider: boolean;
+    contra: boolean;
+    stand: boolean;
+    notes: boolean;
+    exclusive: boolean;
+  };
+  balanceConfig: RiderBalanceConfig;
+}
+
+export interface ValidationResult {
+  errors: string[];
+  warnings: string[];
+  isValid: boolean;
+}
+
 export interface EventFrame {
   id: string;
   name: string;
@@ -156,6 +347,7 @@ export interface EventFrame {
   startDate: string;
   endDate: string;
   generalNotes?: string;
+  productionNote?: string;
   personnelComplete?: boolean;
   assignments: Assignment[];
   googleEventId?: string;
@@ -164,6 +356,7 @@ export interface EventFrame {
   lastSync?: string;
   techSheet?: TechSheetData;
   isArchived?: boolean;
+  performances?: Performance[];
 }
 
 export type EventFrameForExport = Omit<EventFrame, 'assignments'>;
@@ -355,7 +548,7 @@ export interface EventDataConteImplicits {
   updateMaterialItem: (updatedItem: MaterialItem) => void;
   deleteMaterialItem: (itemId: string) => void;
   addMaterialItemsFromFile: (newItems: MaterialItem[]) => void;
-  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
+  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData, currentPerformanceId?: string) => { available: number, total: number };
   mergePeopleGroups: (newPeople: PersonGroup[]) => void;
   replacePeopleGroups: (newPeople: PersonGroup[]) => void;
   replaceMaterialItems: (newItems: MaterialItem[]) => void;
@@ -473,6 +666,7 @@ export interface ElectronAPI {
   getGoogleEvents: () => Promise<{ success: boolean, events?: any[], message?: string }>;
   getEventDetails: (calendarId: string, eventId: string) => Promise<{ success: boolean, event?: any, message?: string }>;
   syncWithGoogle: (payload: { localData: AppData, targetCalendarId: string }) => Promise<any>;
+  syncSingleEventWithGoogle: (payload: { localData: AppData, eventFrameId: string, targetCalendarId: string }) => Promise<any>;
   onSyncProgress: (callback: (progress: Omit<SyncProgressState, 'visible'>) => void) => () => void;
   googleDisconnect: () => Promise<{ success: boolean; message?: string }>;
   deleteAppCalendar: (calendarId: string) => Promise<{ success: boolean; message?: string; data?: { managedAppCalendars: ManagedAppCalendar[], activeAppCalendarId: string | null } }>;
@@ -487,6 +681,9 @@ export interface ElectronAPI {
   factoryReset: () => Promise<{ success: boolean; message?: string }>;
   openLogsFolder: () => Promise<{ success: boolean; message?: string }>;
   openBackupsFolder: () => Promise<{ success: boolean; message?: string }>;
+  
+  // NOU
+  logToMain: (level: string, ...args: any[]) => void;
   // Obsolete - kept for safety, should be removed later
   loadAppData: () => Promise<any>;
   saveAppData: (data: AppData) => Promise<{ success: boolean; message?: string }>;

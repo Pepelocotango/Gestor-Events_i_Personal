@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * FILE NAME UTILS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Generació intel·ligent de noms de fitxer basada en filtres i dades.
+ *
+ * ÍNDEX:
+ * - IMPORTS I TIPUS: Llibreries i definicions de tipus.
+ * - FUNCIONS AUXILIARS: formatDateRangeFromData, generateSmartDescriptor.
+ * - GENERACIÓ DE NOMS DE FITXER: generateFileName, generateTechSheetFileName.
+ * =============================================================================
+ */
+
 import { useEventDataStore } from '../stores/eventDataStore';
 import { EventFrame } from '../types';
 import { formatDateDMY } from './dateFormat';

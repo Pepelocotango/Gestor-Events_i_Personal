@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * I18N
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Configuració d'internacionalització (i18n) per a l'aplicació amb suport multiidioma.
+ *
+ * ÍNDEX:
+ * - CONFIGURACIÓ DE I18NEXT: Inicialització amb detecció d'idioma i recursos de traducció.
+ * =============================================================================
+ */
+
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';

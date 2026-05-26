@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * TAILWIND CONFIG
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Configuració de Tailwind CSS amb tema personalitzat i plugins.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Plugin de Tailwind.
+ * - CONTENT: Rutes per escanejar classes CSS.
+ * - THEME: Paleta de colors i estils personalitzats.
+ * - PLUGINS: Plugin per estils de FullCalendar i esdeveniments.
+ * =============================================================================
+ */
+
 const plugin = require('tailwindcss/plugin');
 
 /** @type {import('tailwindcss').Config} */

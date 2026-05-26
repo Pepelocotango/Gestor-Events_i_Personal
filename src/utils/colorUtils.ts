@@ -1,4 +1,16 @@
 /**
+ * =============================================================================
+ * COLOR UTILS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Utilitats per a la conversió i manipulació de colors, especialment per a la generació de PDF.
+ *
+ * ÍNDEX:
+ * - CONVERSIÓ HSL A RGB: Funció per convertir colors del tema HSL al format RGB necessari per PDF.
+ * =============================================================================
+ */
+
+/**
  * Converteix un color HSL a un format RGB.
  * Aquesta funció és crucial per traduir els colors del tema (definits en HSL)
  * al format RGB que requereix la llibreria de generació de PDF (jspdf-autotable).

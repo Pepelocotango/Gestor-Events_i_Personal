@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de modal genèric amb diferents mides i tancament manual.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React i icones.
+ * - COMPONENT PRINCIPAL: Modal amb overlay i contingut.
+ * - RENDERITZAT: Estructura de modal amb capçalera i contingut.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '../../constants';

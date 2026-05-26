@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * CONFIRM DELETE MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal de confirmació per esborrar elements amb opció de confirmació.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: ConfirmDeleteModal amb botons de confirmació.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShowToastFunction } from '../../types';

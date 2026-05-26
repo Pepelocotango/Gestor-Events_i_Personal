@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * UPDATE FROM ASSIGNMENTS MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per actualitzar la fitxa tècnica des de les assignacions.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React i components UI.
+ * - COMPONENT PRINCIPAL: UpdateFromAssignmentsModal amb llista de canvis.
+ * - ESTAT I HANDLERS: Estat de selecció de canvis i funcions de gestió.
+ * - RENDERITZAT: Estructura de llista amb canvis proposats.
+ * =============================================================================
+ */
+
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TechSheetRoleItem, Assignment, PersonGroup } from '../../types';

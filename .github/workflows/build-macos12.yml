@@ -6,19 +6,26 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: 1. Checkout del codi
         uses: actions/checkout@v4
 
+      - name: 1.5. Instal·lar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.9
+
       - name: 2. Configuració de Node.js
         uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+        with: 
+          node-version: '24'
+          cache: 'pnpm'
 
-      - name: 3. Instal·lació de dependències del projecte (npm)
-        run: npm install
+      - name: 3. Instal·lació de dependències del projecte (pnpm)
+        run: pnpm install --frozen-lockfile
 
       - name: 4. Create google-credentials.json from secret
         env:
@@ -37,18 +44,37 @@ jobs:
             exit 1
           fi
 
-      - name: 7. Compilació de l'aplicació per a macOS
-        run: npm run build:mac
-
-      - name: 8. Creació del paquet ZIP per a macOS
+      - name: 6.5 Preparar variables de nom
         run: |
-          DMG_NAME="GestorEsdevenimentsPersonal_V1.6.0-macOS-10.15+.dmg"
-          ZIP_NAME="GestorEsdevenimentsPersonal_V1.6.0-macOS.zip"
-          mv "dist/${DMG_NAME}" .
-          zip -r "${ZIP_NAME}" "${DMG_NAME}" LICENSE README.md DEVELOPING.md "examples json"
+          SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '_')
+          echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+          APP_VERSION=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
-      - name: 9. Pujada del ZIP de macOS com a artefacte
+      - name: 7. Compilació de l'aplicació per a macOS
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build:mac
+
+      - name: 8. Preparar fitxers per a l'artefacte
+        run: |
+          mkdir -p GEP_Artifact
+          
+          # Busquem el DMG i el copiem
+          DMG_FILE=$(find releases -name "*.dmg" -type f -maxdepth 1 | head -n 1)
+          cp "$DMG_FILE" GEP_Artifact/
+          
+          # Copiem la documentació
+          cp LICENSE README.md DEVELOPING.md GEP_Artifact/
+          cp -r "examples json" GEP_Artifact/
+          
+          # Nom de l'artefacte (sense .zip)
+          ARTIFACT_NAME="GEP_v${{ env.APP_VERSION }}-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-macOS"
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+
+      - name: 9. Pujada de la carpeta com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdevenimentsPersonal_V1.6.0-macOS.zip
-          path: GestorEsdevenimentsPersonal_V1.6.0-macOS.zip
+          name: ${{ env.ARTIFACT_NAME }}
+          path: GEP_Artifact/

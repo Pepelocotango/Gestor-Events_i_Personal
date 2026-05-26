@@ -6,15 +6,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: 1. Checkout del codi
         uses: actions/checkout@v4
 
+      - name: 1.5. Instal·lar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.9
+      
       - name: 2. Configuració de Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '24'
+          cache: 'pnpm'
 
       - name: 3. Instal·lació de dependències del sistema per a Ubuntu 22.04
         run: |
@@ -28,8 +35,8 @@ jobs:
             libxss1 \
             libappindicator3-1
 
-      - name: 4. Instal·lació de dependències del projecte (npm)
-        run: npm install
+      - name: 4. Instal·lació de dependències del projecte (pnpm)
+        run: pnpm install --frozen-lockfile
 
       - name: 4.5 Create google-credentials.json from secret
         env:
@@ -70,25 +77,41 @@ jobs:
           fi
         shell: bash
 
-      - name: 5. Compilació de l'aplicació per a Linux
-        run: npm run build:electron -- --linux --x64 --publish never
-
-      - name: 6. Creació del paquet ZIP per a Linux
-        id: zip_creation
+      - name: 4.9 Preparar variables de nom (Branca i Build)
         run: |
-          APPIMAGE_FILE=$(find dist -name "*.AppImage" -type f -printf "%f\n")
-          echo "Found AppImage: ${APPIMAGE_FILE}"
+          # Sanejar el nom de la branca (substituir / per _)
+          SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '_')
+          echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+          APP_VERSION=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
-          ZIP_NAME="GestorEsdevenimentsPersonal_V1.6.0-Linux.zip"
-          echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
+      - name: 5. Compilació de l'aplicació per a Linux
+        # Les variables ja estan a l'entorn pel pas anterior
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build:electron --linux --x64 --publish never
 
-          cd dist
-          zip -r "../${ZIP_NAME}" "${APPIMAGE_FILE}"
-          cd ..
-          zip -r "${ZIP_NAME}" LICENSE README.md DEVELOPING.md "examples json"
+      - name: 6. Preparar fitxers per a l'artefacte
+        id: prep_artifact
+        run: |
+          # Creem una carpeta temporal
+          mkdir -p GEP_Artifact
+          
+          # Busquem i copiem l'AppImage
+          APPIMAGE_FILE=$(find releases -name "*.AppImage" -type f -printf "%f\n" | head -n 1)
+          cp "releases/${APPIMAGE_FILE}" GEP_Artifact/
+          
+          # Copiem la documentació i exemples
+          cp LICENSE README.md DEVELOPING.md GEP_Artifact/
+          cp -r "examples json" GEP_Artifact/
+          
+          # Nom del ZIP final (sense l'extensió .zip)
+          ARTIFACT_NAME="GEP_v${{ env.APP_VERSION }}-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Linux"
+          echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
-      - name: 7. Pujada del ZIP de Linux com a artefacte
+      - name: 7. Pujada de la carpeta com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.zip_creation.outputs.zip_name }}
-          path: ${{ steps.zip_creation.outputs.zip_name }}
+          name: ${{ steps.prep_artifact.outputs.artifact_name }}
+          path: GEP_Artifact/

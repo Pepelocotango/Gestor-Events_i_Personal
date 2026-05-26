@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * SPLASH SCREEN
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Pantalla de càrrega amb animació de frames per a l'inici de l'aplicació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React i assets d'animació.
+ * - COMPONENT PRINCIPAL: SplashScreen amb animació i fade-out.
+ * =============================================================================
+ */
+
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 

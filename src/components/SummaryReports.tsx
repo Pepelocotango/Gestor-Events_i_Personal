@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * SUMMARY REPORTS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per generar i mostrar informes de resum amb exportació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i utilitats.
+ * - COMPONENT PRINCIPAL: SummaryReports amb taula de resum.
+ * - ESTAT I FILTRATGE: Estat d'ordenació i filtres.
+ * - HANDLERS: Gestió d'ordenació i exportació.
+ * - RENDERITZAT: Estructura de taula amb dades de resum.
+ * =============================================================================
+ */
+
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';

@@ -1,4 +1,18 @@
-import React, { useMemo } from 'react';
+/**
+ * =============================================================================
+ * TECHNICAL PERSONNEL SECTION
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component per gestionar el personal tècnic amb drag & drop i sincronització.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, dnd-kit, stores i components.
+ * - COMPONENT PRINCIPAL: TechnicalPersonnelSection amb llista de proveïdors.
+ * - HANDLERS: Gestió de drag & drop i sincronització amb assignacions.
+ * =============================================================================
+ */
+
+import React, { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -25,7 +39,8 @@ import { formatDateDMY } from '../../utils/dateFormat';
 import SortableProvider from './SortableProvider';
 
 interface TechnicalPersonnelSectionProps {
-  formData: TechSheetData;
+  showTechnicalPersonnelNotesInPdf?: boolean;
+  technicalPersonnelNotes?: string;
   technicalProviders: TechSheetProvider[];
   peopleGroups: PersonGroup[];
   eventFrame: any;
@@ -44,7 +59,8 @@ interface TechnicalPersonnelSectionProps {
 }
 
 const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
-  formData,
+  showTechnicalPersonnelNotesInPdf,
+  technicalPersonnelNotes,
   technicalProviders,
   peopleGroups,
   eventFrame,
@@ -62,6 +78,11 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
   const { t } = useTranslation();
   const roleSuggestions = useRoleSuggestions();
   const openModal = useModalStore(state => state.openModal);
+
+  // Stable handler for technical personnel notes
+  const handleTechnicalPersonnelNotesChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    onFieldChange('technicalPersonnelNotes', e.target.value);
+  }, [onFieldChange]);
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
     peopleGroups.forEach(p => m.set(p.id, p.name));
@@ -218,7 +239,7 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
                 type="checkbox"
                 id="showTechnicalPersonnelNotesInPdf"
                 name="showTechnicalPersonnelNotesInPdf"
-                checked={formData.showTechnicalPersonnelNotesInPdf ?? true}
+                checked={showTechnicalPersonnelNotesInPdf ?? true}
                 onChange={(e) => onFieldChange('showTechnicalPersonnelNotesInPdf', e.target.checked)}
                 className="h-4 w-4 rounded border-border accent-primary focus:ring-ring"
               />
@@ -229,8 +250,8 @@ const TechnicalPersonnelSection: React.FC<TechnicalPersonnelSectionProps> = ({
         <TechSheetField
           id="technicalPersonnelNotes"
           label=""
-          value={formData.technicalPersonnelNotes || ''}
-          onChange={(e) => onFieldChange('technicalPersonnelNotes', e.target.value)}
+          value={technicalPersonnelNotes || ''}
+          onChange={handleTechnicalPersonnelNotesChange}
           as="textarea"
           rows={3}
           placeholder={t('tech_sheets.personnel.notes_placeholder')}
@@ -406,5 +427,5 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   );
 };
 
-export default TechnicalPersonnelSection;
+export default React.memo(TechnicalPersonnelSection);
 

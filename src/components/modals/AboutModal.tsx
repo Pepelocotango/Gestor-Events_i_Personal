@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * ABOUT MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per mostrar informació sobre l'aplicació (nom, versió, enllaços).
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: AboutModal amb informació de l'aplicació.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ExternalLink } from 'lucide-react';

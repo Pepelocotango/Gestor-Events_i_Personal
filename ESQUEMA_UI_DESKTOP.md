@@ -1,4 +1,25 @@
-# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v1.6.0)
+/**
+ * =============================================================================
+ * ESQUEMA UI DESKTOP
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Documentació de l'estructura visual, funcionalitats i interaccions de la UI de l'aplicació d'escriptori.
+ *
+ * ÍNDEX:
+ * - ESTRUCTURA GENERAL: Barra de menú, navegació i àrea de contingut.
+ * - PANTALLA DE BENVINGUDA: WelcomeScreen amb botons de creació/obertura de documents.
+ * - BARRA DE MENÚ SUPERIOR: CustomMenuBar amb menús d'Arxiu, Edita, Veure i Ajuda.
+ * - SECCIÓ PRINCIPAL: MainDisplay amb calendari i llista d'esdeveniments.
+ * - SECCIÓ DE PERSONAL: PeopleDisplay per a la gestió de contactes.
+ * - SECCIÓ DE MATERIAL: MaterialDisplay i Centre de Control de Material.
+ * - SECCIÓ DE FITXES TÈCNIQUES: TechSheetsDisplay per a la gestió de fitxes de bolo.
+ * - SECCIÓ D'ACTUACIONS: PerformancesDisplay amb gestió d'actuacions artístiques.
+ * - WORKSHOP DE RIDERS: RiderWorkshop per al disseny tècnic i logística de material.
+ * - SECCIÓ DE REGIDORIA: RegidoriaDisplay per a l'exportació del Full de Ruta del Regidor.
+ * =============================================================================
+ */
+
+# Esquema de la Interfície d'Usuari (UI) - Aplicació d'Escriptori (v1.6.4)
 
 Aquest document detalla l'estructura visual, les funcionalitats i les interaccions de l'usuari a l'aplicació d'escriptori.
 
@@ -104,12 +125,6 @@ Aquesta pantalla presenta una estructura plana (sense contenidor mestre plegable
     - Inclou indicadors visuals d'estat (vora lateral de color) i botons d'acció grans.
     - Suport per a vista detallada de dies (multidia).
 
-### 4.3. Resums (Secció Plegable Independent)
-- Secció plegada per defecte.
-- Genera informes basats en les dades filtrades actualment visibles a la llista.
-- Secció plegada per defecte que mostra informes basats en les dades filtrades (per Esdeveniment, Data o Persona).
-- Cada informe té opcions d'ordenació i exportació (CSV/PDF).
-
 ---
 
 ## 5. Secció de Personal (`PeopleDisplay`)
@@ -139,3 +154,190 @@ Aquesta pantalla presenta una estructura plana (sense contenidor mestre plegable
 - **Formulari de Fitxa Tècnica (`TechSheetForm`)**:
   - Mostra tots els camps de la fitxa (horaris, contactes, material, etc.).
   - Mostra l'estoc disponible en temps real en afegir material.
+
+---
+
+## 8. Secció d'Actuacions (`PerformancesDisplay`) - **NOVA FUNCIONALITAT FASE 4**
+
+### 8.1. Vista Principal del Gestor d'Actuacions
+
+- **Selector d'Esdeveniment**: Desplegable per seleccionar l'esdeveniment marc on gestionar les actuacions.
+- **Botó "Exportar Resum d'Actuacions (PDF)"**: Genera un PDF amb la llista completa d'actuacions de l'esdeveniment.
+- **Missatge si no hi ha esdeveniment seleccionat**: Indicador visual quan no s'ha seleccionat cap esdeveniment.
+
+### 8.2. Layout de Dues Columnes
+
+#### Columna 1: Llista d'Actuacions (`PerformanceList`)
+- **Llista ordenable**: Drag-and-drop per reorganitzar l'ordre de les actuacions.
+- **Botó "Afegir Actuació"**: Crea una nova actuació amb dades per defecte.
+- **Indicadors visuals**: Icones especials quan una actuació té dades tècniques (input list).
+- **Element d'actuació (`SortablePerformance`)**:
+  - **Nom de l'actuació** amb horaris principals (show time)
+  - **Botons d'acció**: Editar, Eliminar
+  - **Indicador de dades tècniques**: Icona 📋 si té input list o dades tècniques
+
+#### Columna 2: Detall de l'Actuació (`PerformanceDetailContainer`)
+- **Pestanyes horitzontals**: Bàsic | Tècnic | Hospitality
+- **Contingut condicional**: Només es mostra si hi ha una actuació seleccionada
+
+### 8.3. Control d'Avançament (`PerformanceAdvancing`)
+
+Situat a la part superior del detall de l'actuació, proporciona:
+
+- **Barra de progrés visual**: Percentatge de completion amb colors dinàmics
+- **4 Badges interactius** amb icones i tooltips:
+  - 📄 **Rider Rebut**: El rider tècnic ha estat rebut
+  - 📤 **Contra-rider Enviat**: El contra-rider ha estat enviat
+  - ⏰ **Horaris Confirmats**: Els horaris han estat confirmats
+  - 🏨 **Hospitality Tancat**: Els requeriments d'hospitalitat estan tancats
+- **Colors segons estat**: Verd (completat), Groc (en procés), Gris (pendent)
+- **Desat automàtic**: Cada canvi es desa immediatament a l'store
+
+### 8.4. Pestanya "Bàsic" (`PerformanceBasicForm`)
+
+Formulari amb informació essencial de l'actuació:
+
+#### Secció d'Identitat
+- **Nom de l'Actuació**: Camp de text obligatori
+- **Persona de Contacte**: Nom del contacte principal
+- **Email de Contacte**: Correu electrònic del contacte
+- **Telèfon de Contacte**: Telèfon del contacte
+
+#### Secció d'Horaris
+- **Hora d'Arribada**: Quan arriba l'artista
+- **Hora de Proves (Soundcheck)**: Quan comencen les proves
+- **Hora del Show**: Quan comença l'actuació
+- **Hora de Sortida**: Quan se'n va l'artista
+
+#### Secció d'Notes
+- **Notes Generals**: Camp de text llarg per observacions addicionals
+
+### 8.5. Pestanya "Tècnic" (`PerformanceTechForm`)
+
+Aquesta pestanya ara actua com un mirall de visualització completa del **Rider Workshop**, en mode de **només lectura** per evitar errors accidentals.
+
+#### Visualització de Riders
+- **Avís d'Edició:** Inclou un enllaç directe al **Rider Workshop** per realitzar modificacions.
+- **Llista d'Inputs (CH IN):** Taula completa amb colors de patch, rider, contra, peus i notes.
+- **Llista de Monitors (CH OUT):** Detall dels enviaments (MIX) amb les quantitats de material assignades.
+- **Cablejat i Material Spare:** Taules compactes amb el material addicional necessari per a l'artista.
+- **Notes Tècniques:** Blocs de text per a Llums, Vídeo i Escenari.
+- **Balanç Consolidat (Read-Only):** Vista del balanç global de tot l'esdeveniment al final de la pestanya.
+
+### 8.6. Pestanya "Hospitality" (`PerformanceHospitalityForm`)
+
+#### Camerinos i Catering
+- **Camerinos**: Descripció dels espais necessaris
+- **Càtering i Dietes**: Requeriments de menjar i begudes
+- **Requeriments Dietètics**: Restriccions i preferències alimentàries
+
+#### Logística
+- **Logística de Viatge**: Informació de transport i horaris
+- **Pàrquing**: Requeriments d'aparcament
+
+### 8.7. Funcionalitats d'Exportació PDF
+
+#### Rider Individual
+- **Botó "Exportar Rider PDF"**: Disponible al detall de cada actuació
+- **Contingut**: Tota la informació de l'actuació (bàsic, tècnic, hospitality)
+- **Format**: PDF professional amb capçaleres i taules formatades
+
+#### Full de Ruta del Regidor ⚠️ PENDENT D'IMPLEMENTACIÓ A LA UI
+- **Estat**: La funció `exportRegidoriaSummaryPdf()` **existeix a `pdfGenerator.ts`** però **no està accessible des de la interfície** (no hi ha cap botó que la cridi).
+- **Contingut previst**: Escaleta combinada amb horaris generals de la fitxa de bolo + horaris d'actuacions
+- **Característiques previstes**:
+  - Horaris generals de la fitxa de bolo (`techSheetData.schedule`)
+  - Horaris d'actuacions amb prefixos [ARRIBADA], [PROVES], [SHOW]
+  - Notes crítiques de regidoria extretes automàticament
+  - Ordenació cronològica per prioritat i hora
+- **Per implementar**: Cal afegir un botó a `PerformancesDisplay` que passi `techSheetData` i cridi `exportRegidoriaSummaryPdf(eventFrame, performances, techSheetData, showToast)`.
+
+### 8.8. Interaccions i UX
+
+#### Estat Visual
+- **Colors consistents**: Utilitza el tema de colors de l'aplicació
+- **Tooltips informatius**: Tots els elements interactius tenen ajuda contextual
+- **Indicadors de progrés**: Feedback visual constant sobre l'estat d'avançament
+
+#### Rendiment
+- **Lazy loading**: Els components pesats es carreguen sota demanda
+- **Debounce save**: Evita desats excessius als formularis
+- **Optimització de renderitzat**: Selectors eficients a l'store
+
+#### Accessibilitat
+- **Navegació per teclat**: Tot l'interfície és accessible via teclat
+- **Contrastes adequats**: Cumpleix amb estàndars d'accessibilitat
+- **Textos descriptius**: Tots els elements tenen etiquetes clares
+
+### 8.9. Flux de Treball Típic
+
+1. **Selecció d'Esdeveniment**: Triar l'esdeveniment marc
+2. **Creació d'Actuacions**: Afegir actuacions amb informació bàsica
+3. **Control d'Avançament**: Marcar progrés amb els badges interactius
+4. **Compleció de Dades**: Omplir formularis tècnics i d'hospitalitat
+5. **Exportació**: Generar riders individuals o resum d'actuacions en PDF. *(El Full de Ruta del Regidor és pendent d'exposar a la UI)*
+
+Aquesta nova secció proporciona eines professionals per a la gestió completa d'actuacions artístiques, integrant-se perfectament amb la resta de funcionalitats de l'aplicació.
+
+---
+
+## 9. Workshop de Riders (`RiderWorkshop`) - **GESTIÓ INDUSTRIAL**
+
+Nova interfície professional d'alta densitat per al disseny tècnic i logística de material.
+
+### 9.1. Barra Lateral d'Inventari (Sidebar)
+- **Alçada Total:** Ocupa el 100% vertical esquerre.
+- **Cercador i Filtres:** Per nom, ubicació o categoria de material.
+- **Llista d'Ítems:** Mostra estoc real `Disponible / Total`. Inclou indicadors de sobre-assignació (vermell/pulsació) i materials ja usats en l'actuació (verd).
+- **Point & Shoot:** Al clicar un ítem, s'assigna automàticament a la cel·la activa de la taula.
+
+### 9.2. Header i Controls PDF / CSV
+- **Navegació:** Selectors ràpids d'Esdeveniment i d'Artista.
+- **Accions d'Exportació:**
+  - **Previsualització (Ull):** Obre un modal amb el PDF generat en temps real.
+  - **Exportar CSV (Full de càlcul):** Descarrega les dades tècniques (Inputs, Monitors, Material) en format CSV.
+  - **Exportar PDF (Document):** Genera el fitxer PDF professional segons la configuració.
+- **Panell de Configuració PDF:**
+  - **Orientació:** Commutador entre Vertical (Portrait) i Horitzontal (Landscape).
+  - **Selecció de Seccions:** Checkboxes per incloure/excloure info bàsica, inputs, monitors, cablejat, spare, notes tècniques, hospitality, generalNotes i balanç.
+  - **Selecció de Columnes:** Filtres granulars per triar quines columnes de la taula d'inputs/monitors han de sortir a l'exportació (Patch, CH, Label, Rider, Contra, Stand, Notes, Exc).
+  - **Auto-save:** Les preferències de PDF es guarden automàticament per usuari.
+
+### 9.3. Àrea de Treball (Seccions Col·lapsables)
+- **Llista d'Inputs (CH IN):** Taula amb Drag & Drop per a patch (colors), canals, etiquetes (INSTRUMENT) i comparativa Rider/Contra.
+- **Monitors / Auxiliars (CH OUT):** Secció dedicada per a enviaments (MIX) amb generació automàtica de sortides i càlcul de quantitats de monitors i peus.
+- **Cablejat i Spare:** Seccions dedicades per afegir material genèric des de l'inventari.
+- **Notes Tècniques:** Tres blocs compactes per a Llums, Vídeo i Escenari.
+- **Balanç Consolidat:** Taula que suma tot el material de totes les actuacions de l'esdeveniment.
+  - **Ordenació:** Per categoria o per ubicació d'origen del material.
+  - **Validació d'Estoc:** Marca en vermell i amb pulsació els ítems on la demanda total de l'esdeveniment supera l'estoc disponible.
+
+### 9.4. Tooltips i UX Tècnica
+- **Visualització:** Totes les cel·les amb text llarg mostren el contingut sencer en passar el ratolí.
+- **Edició Concurrent:** Sistema de buffering (`useBufferedSave`) que permet una edició ultra-ràpida sense latència de disc, sincronitzant els canvis en segon pla.
+- **Hotkeys de Teclat:** Prem **Ctrl+Enter** (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors quan tens el focus en la secció corresponent. El sistema detecta automàticament on està el focus i executa l'acció adequada.
+
+---
+
+## 10. Regidoria (`RegidoriaDisplay`) - **FULL DE RUTA DEL REGIDOR**
+
+Nova secció independent per a l'exportació del Full de Ruta del Regidor, que combina horaris generals de la fitxa de bolo amb horaris d'actuacions.
+
+### 10.1. Funcionalitat Principal
+- **Llista d'Esdeveniments:** Mostra tots els esdeveniments ordenats cronològicament per data.
+- **Informació per Esdeveniment:**
+  - Nom de l'esdeveniment
+  - Lloc i data
+  - Nombre d'actuacions associades
+- **Botó d'Exportació PDF:** Per a cada esdeveniment, permet exportar el Full de Ruta del Regidor.
+  - Només actiu si l'esdeveniment té actuacions associades.
+  - Genera un PDF amb:
+    - Horaris generals de la fitxa de bolo (`techSheetData.schedule`)
+    - Horaris d'actuacions amb prefixos [ARRIVADA], [PROVES], [SHOW]
+    - Notes crítiques de regidoria extretes automàticament (escenari, dietes, viatge, general)
+    - Ordenació cronològica per prioritat (general primer, després actuacions)
+
+### 10.2. Integració amb el Sistema
+- **Funció Backend:** Utilitza `exportRegidoriaSummaryPdf()` de `src/utils/pdfGenerator.ts`.
+- **Dades Requerides:** Passa `eventFrame`, `performances`, `techSheetData` i `showToast` a la funció d'exportació.
+- **Navegació:** Pestanya independent accessible directament des de la barra de navegació, situada després de "Riders" i abans de "Resums".

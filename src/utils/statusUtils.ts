@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * STATUS UTILS
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Utilitats per formatar i mostrar estats d'assignació, incloent estats mixts.
+ *
+ * ÍNDEX:
+ * - FUNCIÓ D'ESTAT: getStatusSummaryText per generar text descriptiu d'estats.
+ * =============================================================================
+ */
+
 import { Assignment, AssignmentStatus } from '../types';
 import { formatDateRanges } from './dateRangeFormatter';
 

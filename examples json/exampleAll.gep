@@ -220,7 +220,185 @@
         "technicalNeedsNotes": "",
         "showTechnicalNeedsNotesInPdf": true,
         "showScheduleNotesInPdf": true
-      }
+      },
+      "performances": [
+        {
+          "id": "perf-03",
+          "name": "Banda Jazz Local",
+          "type": "Música Jazz",
+          "contactName": "Marc Bateria",
+          "contactPhone": "600 55 44 33",
+          "contactEmail": "marc@jazz.cat",
+          "notes": "Banda de jazz de 6 músics. Repertori de standards de jazz.",
+          "color": "#f59e0b",
+          "status": "confirmed",
+          "arrivalTime": "18:00",
+          "soundCheckTime": "19:00",
+          "showTime": "21:00",
+          "departureTime": "23:00",
+          "duration": "90 min",
+          "techData": {
+            "inputList": [
+              {
+                "id": "in-11",
+                "channel": "1",
+                "patchColor": "red",
+                "patchNumber": "1",
+                "label": "Bateria",
+                "micRider": "Mic dinàmic per a bateria",
+                "micContra": "Shure SM57",
+                "stand": "Peu curt",
+                "notes": "Kick, Snare, Toms",
+                "exclusive": false
+              },
+              {
+                "id": "in-12",
+                "channel": "2",
+                "patchColor": "red",
+                "patchNumber": "2",
+                "label": "Baix",
+                "micRider": "Mic dinàmic per a baix",
+                "micContra": "AKG D112",
+                "stand": "Peu curt",
+                "notes": "Baix elèctric",
+                "exclusive": false
+              },
+              {
+                "id": "in-13",
+                "channel": "3",
+                "patchColor": "blue",
+                "patchNumber": "3",
+                "label": "Piano",
+                "micRider": "Mic condensador per a piano",
+                "micContra": "Neumann KM184",
+                "stand": "Peu mitjà",
+                "notes": "Piano elèctric",
+                "exclusive": false
+              },
+              {
+                "id": "in-14",
+                "channel": "4",
+                "patchColor": "blue",
+                "patchNumber": "4",
+                "label": "Saxo",
+                "micRider": "Mic condensador per a saxo",
+                "micContra": "Neumann KM184",
+                "stand": "Peu mitjà",
+                "notes": "Saxo tenor",
+                "exclusive": false
+              },
+              {
+                "id": "in-15",
+                "channel": "5",
+                "patchColor": "yellow",
+                "patchNumber": "5",
+                "label": "Trompeta",
+                "micRider": "Mic dinàmic per a trompeta",
+                "micContra": "Shure SM57",
+                "stand": "Peu curt",
+                "notes": "Trompeta",
+                "exclusive": false
+              }
+            ],
+            "monitorList": [
+              {
+                "id": "mon-06",
+                "outputChannel": "A1",
+                "patchColor": "red",
+                "patchNumber": "1",
+                "label": "MIX Banda",
+                "mixRider": "Mix complet de la banda",
+                "mixContra": "Monitor Actiu 12\"",
+                "monitorQty": 3,
+                "mixStand": "Peu monitor",
+                "standQty": 3,
+                "notes": "Per a la banda completa",
+                "exclusive": false
+              },
+              {
+                "id": "mon-07",
+                "outputChannel": "A2",
+                "patchColor": "blue",
+                "patchNumber": "2",
+                "label": "MIX Solistes",
+                "mixRider": "Mix solistes destacats",
+                "mixContra": "Monitor Actiu 12\"",
+                "monitorQty": 2,
+                "mixStand": "Peu monitor",
+                "standQty": 2,
+                "notes": "Per a solistes",
+                "exclusive": false
+              }
+            ],
+            "cableList": [
+              {
+                "id": "cab-09",
+                "qty": 5,
+                "itemName": "Cable XLR 10m",
+                "itemId": "mat-13",
+                "notes": "Per a mics de la banda",
+                "exclusive": false
+              },
+              {
+                "id": "cab-10",
+                "qty": 5,
+                "itemName": "Cable Speakon 10m",
+                "itemId": "mat-14",
+                "notes": "Per a monitors",
+                "exclusive": false
+              },
+              {
+                "id": "cab-11",
+                "qty": 6,
+                "itemName": "Cable Power 10m",
+                "notes": "Per a monitors i equips",
+                "exclusive": false
+              },
+              {
+                "id": "cab-12",
+                "qty": 2,
+                "itemName": "Cable DMX 5m",
+                "notes": "Per a llums",
+                "exclusive": false
+              }
+            ],
+            "spareList": [
+              {
+                "id": "sp-06",
+                "qty": 2,
+                "itemName": "Micròfon Shure SM58",
+                "itemId": "mat-04",
+                "notes": "Spare per a vocals",
+                "exclusive": false
+              },
+              {
+                "id": "sp-07",
+                "qty": 2,
+                "itemName": "Cable XLR 10m",
+                "itemId": "mat-13",
+                "notes": "Spare cables XLR",
+                "exclusive": false
+              }
+            ],
+            "lightingNotes": "Lums calents i colors jazz. Efectes de fons suaus.",
+            "videoNotes": "Projecció de logos patrocinadors.",
+            "stageRequirements": "Escenari lliure, sense tarimes. Piano elèctric propi."
+          },
+          "hospitalityData": {
+            "dressingRooms": "Camerino col·lectiu per a 6 músics.",
+            "cateringNotes": "Sopar per a 6 músics. Aigua, fruita, entrepàs.",
+            "dietaryRequirements": "Cap",
+            "travelLogistics": "Transport propi",
+            "parkingNotes": "1 furgoneta"
+          },
+          "advancing": {
+            "riderReceived": true,
+            "counterRiderSent": false,
+            "schedulesConfirmed": true,
+            "hospitalityClosed": false
+          }
+        }
+      ]
     },
     {
       "id": "evt-09",
@@ -1426,14 +1604,14 @@
       "id": "evt-01",
       "name": "Concert d'any nou (exemple complert fitxa de bolo)",
       "place": "Gran Teatre Principal",
-      "startDate": "2026-01-01",
+      "startDate": "2025-12-30",
       "endDate": "2026-01-02",
-      "generalNotes": "Esdeveniment VIP. Requereix etiqueta per al personal de sala. Atenció: L'accés de càrrega és pel carrer posterior (C/ Unió).",
+      "generalNotes": "Esdeveniment VIP de 4 dies. Requereix etiqueta per al personal de sala. Atenció: L'accés de càrrega és pel carrer posterior (C/ Unió).",
       "personnelComplete": true,
       "techSheet": {
         "eventName": "Concert d'any nou (exemple complert fitxa de bolo)",
         "location": "Gran Teatre Principal",
-        "date": "01/01/2026 - 02/01/2026",
+        "date": "30/12/2025 - 02/01/2026",
         "showDuration": "120 min + 20 min pausa",
         "showTimes": [
           {
@@ -1453,7 +1631,7 @@
         },
         "preAssembly": {
           "status": "yes",
-          "details": "Dia 31/12/2025: Implantació de motors i truss de 08:00 a 14:00. Només maquinària."
+          "details": "Dia 30/12/2025: Implantació de motors i truss de 08:00 a 14:00. Dia 31/12/2025: Muntatge escenari i equipament de 08:00 a 18:00. Assaig tècnic de 18:00 a 22:00."
         },
         "schedule": {
           "status": "yes",
@@ -1461,48 +1639,119 @@
           "data": [
             {
               "id": "s1",
-              "date": "2026-01-01",
+              "date": "2025-12-30",
               "time": "08:00",
               "timeEnd": "14:00",
-              "description": "Descàrrega material SO i LLUMS + Muntatge Escenari"
+              "description": "Implantació de motors i truss (Dia 1 de muntatge)"
             },
             {
               "id": "s2",
-              "date": "2026-01-01",
+              "date": "2025-12-30",
               "time": "14:00",
               "timeEnd": "15:30",
               "description": "Dinar Equip Tècnic"
             },
             {
               "id": "s3",
+              "date": "2025-12-30",
+              "time": "15:30",
+              "timeEnd": "18:00",
+              "description": "Continuació muntatge truss i cabling"
+            },
+            {
+              "id": "s4",
+              "date": "2025-12-31",
+              "time": "08:00",
+              "timeEnd": "18:00",
+              "description": "Muntatge escenari i equipament SO/LLUMS (Dia 2 de muntatge)"
+            },
+            {
+              "id": "s5",
+              "date": "2025-12-31",
+              "time": "14:00",
+              "timeEnd": "15:30",
+              "description": "Dinar Equip Tècnic"
+            },
+            {
+              "id": "s6",
+              "date": "2025-12-31",
+              "time": "18:00",
+              "timeEnd": "22:00",
+              "description": "Assaig tècnic (sense públic)"
+            },
+            {
+              "id": "s7",
+              "date": "2026-01-01",
+              "time": "08:00",
+              "timeEnd": "14:00",
+              "description": "Descàrrega material addicional + Preparació final"
+            },
+            {
+              "id": "s8",
+              "date": "2026-01-01",
+              "time": "14:00",
+              "timeEnd": "15:30",
+              "description": "Dinar Equip Tècnic"
+            },
+            {
+              "id": "s9",
+              "date": "2026-01-01",
+              "time": "15:00",
+              "timeEnd": "15:30",
+              "description": "Arribada Orquestra Simfònica del Vallès"
+            },
+            {
+              "id": "s10",
               "date": "2026-01-01",
               "time": "15:30",
               "timeEnd": "17:00",
               "description": "Enfocament i Line Check"
             },
             {
-              "id": "s4",
+              "id": "s11",
+              "date": "2026-01-01",
+              "time": "16:00",
+              "timeEnd": "16:30",
+              "description": "Arribada Solista Piano"
+            },
+            {
+              "id": "s12",
               "date": "2026-01-01",
               "time": "17:00",
               "timeEnd": "19:00",
               "description": "Proves de so Orquestra (Tutti)"
             },
             {
-              "id": "s5",
+              "id": "s13",
+              "date": "2026-01-01",
+              "time": "18:00",
+              "timeEnd": "18:30",
+              "description": "Probes Piano (Solista)"
+            },
+            {
+              "id": "s14",
               "date": "2026-01-01",
               "time": "19:30",
               "description": "Obertura de Portes"
             },
             {
-              "id": "s6",
+              "id": "s15",
               "date": "2026-01-01",
               "time": "20:00",
-              "description": "INICI CONCERT"
+              "description": "INICI CONCERT (Actuació Orquestra)"
             },
             {
-              "id": "s7",
+              "id": "s16",
+              "date": "2026-01-01",
+              "time": "22:30",
+              "timeEnd": "23:00",
+              "description": "Actuació Piano (Sessió Golfa)"
+            },
+            {
+              "id": "s17",
               "date": "2026-01-02",
-              "time": "00:30",
+              "time": "08:00",
+              "timeEnd": "14:00",
               "description": "Desmuntatge i Càrrega"
             }
           ]
@@ -1756,7 +2005,382 @@
         ],
         "technicalPersonnelNotes": "Tot el personal ha de portar calçat de seguretat durant el muntatge. Roba negra rigorosa durant el bolo.",
         "showTechnicalPersonnelNotesInPdf": true
-      }
+      },
+      "performances": [
+        {
+          "id": "perf-01",
+          "name": "Orquestra Simfònica del Vallès",
+          "type": "Música Clàssica",
+          "contactName": "Roger Regidor",
+          "contactPhone": "600 00 00 02",
+          "contactEmail": "pep@orquestra.cat",
+          "notes": "Orquestra completa amb 45 músics. Requereix 45 cadires sense braços.",
+          "color": "#3b82f6",
+          "status": "confirmed",
+          "arrivalTime": "15:00",
+          "soundCheckTime": "17:00",
+          "showTime": "20:00",
+          "departureTime": "23:30",
+          "duration": "120 min",
+          "techData": {
+            "inputList": [
+              {
+                "id": "in-01",
+                "channel": "1",
+                "patchColor": "red",
+                "patchNumber": "1",
+                "label": "Violí 1",
+                "micRider": "Mic condensador petit",
+                "micContra": "DPA 4099",
+                "stand": "Peu curt",
+                "notes": "Violins principals",
+                "exclusive": false
+              },
+              {
+                "id": "in-02",
+                "channel": "2",
+                "patchColor": "red",
+                "patchNumber": "2",
+                "label": "Violí 2",
+                "micRider": "Mic condensador petit",
+                "micContra": "DPA 4099",
+                "stand": "Peu curt",
+                "notes": "Segons violins",
+                "exclusive": false
+              },
+              {
+                "id": "in-03",
+                "channel": "3",
+                "patchColor": "blue",
+                "patchNumber": "3",
+                "label": "Violoncel",
+                "micRider": "Mic condensador gran",
+                "micContra": "DPA 4011",
+                "stand": "Peu alt",
+                "notes": "Secció de violoncels",
+                "exclusive": false
+              },
+              {
+                "id": "in-04",
+                "channel": "4",
+                "patchColor": "blue",
+                "patchNumber": "4",
+                "label": "Contrabaix",
+                "micRider": "Mic dinàmic",
+                "micContra": "AKG D112",
+                "stand": "Peu curt",
+                "notes": "Secció de contrabaixos",
+                "exclusive": false
+              },
+              {
+                "id": "in-05",
+                "channel": "5",
+                "patchColor": "yellow",
+                "patchNumber": "5",
+                "label": "Flauta",
+                "micRider": "Mic condensador",
+                "micContra": "Neumann KM184",
+                "stand": "Peu mitjà",
+                "notes": "Solista flauta",
+                "exclusive": false
+              },
+              {
+                "id": "in-06",
+                "channel": "6",
+                "patchColor": "yellow",
+                "patchNumber": "6",
+                "label": "Clarinet",
+                "micRider": "Mic condensador",
+                "micContra": "Neumann KM184",
+                "stand": "Peu mitjà",
+                "notes": "Solista clarinet",
+                "exclusive": false
+              },
+              {
+                "id": "in-07",
+                "channel": "7",
+                "patchColor": "green",
+                "patchNumber": "7",
+                "label": "Percussió",
+                "micRider": "Mic dinàmic",
+                "micContra": "Shure SM57",
+                "stand": "Peu curt",
+                "notes": "Bateria i percussió",
+                "exclusive": false
+              },
+              {
+                "id": "in-08",
+                "channel": "8",
+                "patchColor": "green",
+                "patchNumber": "8",
+                "label": "Director",
+                "micRider": "Mic diadema",
+                "micContra": "DPA 4066",
+                "stand": "",
+                "notes": "Director d'orquestra",
+                "exclusive": false
+              }
+            ],
+            "monitorList": [
+              {
+                "id": "mon-01",
+                "outputChannel": "A1",
+                "patchColor": "red",
+                "patchNumber": "1",
+                "label": "MIX Orquestra",
+                "mixRider": "Mix estèreo complet",
+                "mixContra": "Monitor Actiu 12\"",
+                "monitorQty": 4,
+                "mixStand": "Peu monitor",
+                "standQty": 4,
+                "notes": "Per a la secció de corda",
+                "exclusive": false
+              },
+              {
+                "id": "mon-02",
+                "outputChannel": "A2",
+                "patchColor": "blue",
+                "patchNumber": "2",
+                "label": "MIX Solistes",
+                "mixRider": "Mix solistes destacats",
+                "mixContra": "Monitor Actiu 12\"",
+                "monitorQty": 2,
+                "mixStand": "Peu monitor",
+                "standQty": 2,
+                "notes": "Per a solistes de vent",
+                "exclusive": false
+              },
+              {
+                "id": "mon-03",
+                "outputChannel": "B1",
+                "patchColor": "yellow",
+                "patchNumber": "3",
+                "label": "MIX Director",
+                "mixRider": "Mix director",
+                "mixContra": "Monitor Actiu 8\"",
+                "monitorQty": 1,
+                "mixStand": "Peu curt",
+                "standQty": 1,
+                "notes": "Per al director",
+                "exclusive": false
+              },
+              {
+                "id": "mon-04",
+                "outputChannel": "B2",
+                "patchColor": "green",
+                "patchNumber": "4",
+                "label": "MIX Percussió",
+                "mixRider": "Mix percussió",
+                "mixContra": "Monitor Actiu 12\"",
+                "monitorQty": 2,
+                "mixStand": "Peu monitor",
+                "standQty": 2,
+                "notes": "Per a la secció de percussió",
+                "exclusive": false
+              }
+            ],
+            "cableList": [
+              {
+                "id": "cab-01",
+                "qty": 10,
+                "itemName": "Cable XLR 10m",
+                "itemId": "mat-13",
+                "notes": "Per a mics de corda",
+                "exclusive": false
+              },
+              {
+                "id": "cab-02",
+                "qty": 4,
+                "itemName": "Cable Speakon 10m",
+                "itemId": "mat-14",
+                "notes": "Per a monitors",
+                "exclusive": false
+              },
+              {
+                "id": "cab-03",
+                "qty": 8,
+                "itemName": "Cable Power 10m",
+                "notes": "Per a monitors i equips",
+                "exclusive": false
+              },
+              {
+                "id": "cab-04",
+                "qty": 2,
+                "itemName": "Cable DMX 5m",
+                "notes": "Per a llums",
+                "exclusive": false
+              },
+              {
+                "id": "cab-05",
+                "qty": 3,
+                "itemName": "Cable CAT5 10m",
+                "notes": "Per a xarxa i digital",
+                "exclusive": false
+              }
+            ],
+            "spareList": [
+              {
+                "id": "sp-01",
+                "qty": 2,
+                "itemName": "Micròfon Shure SM58",
+                "itemId": "mat-04",
+                "notes": "Spare per a vocals",
+                "exclusive": false
+              },
+              {
+                "id": "sp-02",
+                "qty": 3,
+                "itemName": "Cable XLR 10m",
+                "itemId": "mat-13",
+                "notes": "Spare cables XLR",
+                "exclusive": false
+              },
+              {
+                "id": "sp-03",
+                "qty": 2,
+                "itemName": "Peu Mic Recte",
+                "itemId": "mat-12",
+                "notes": "Spare peus de mic",
+                "exclusive": false
+              }
+            ],
+            "lightingNotes": "Llum càlida 3200K per a l'orquestra. Contra-llums suaus. Evitar llums directes als músics.",
+            "videoNotes": "Projecció de compte enrere i logos patrocinadors al fons de l'escenari.",
+            "stageRequirements": "Tarimes per a percussió (40cm d'alçada). 45 cadires sense braços (model negre). Aigua a l'escenari."
+          },
+          "hospitalityData": {
+            "dressingRooms": "1 Camerino Triple (Director + Solistes) amb catering (fruita, aigua, cafè). 2 Camerinos col·lectius per a l'orquestra (homes/dones).",
+            "cateringNotes": "Fruita, aigua, cafè, entrepàs variat. Sopar per a 45 músics.",
+            "dietaryRequirements": "Opcions veganes per a 2 solistes. Sense gluten per a 1 músic.",
+            "travelLogistics": "Transport propi. Pàrquing necessari per a 2 camions.",
+            "parkingNotes": "2 places de pàrquing reservades al C/ Unió."
+          },
+          "advancing": {
+            "riderReceived": true,
+            "counterRiderSent": true,
+            "schedulesConfirmed": true,
+            "hospitalityClosed": true
+          }
+        },
+        {
+          "id": "perf-02",
+          "name": "Maria Solista Piano",
+          "type": "Música Clàssica",
+          "contactName": "Maria Pianista",
+          "contactPhone": "600 99 88 77",
+          "contactEmail": "maria@piano.cat",
+          "notes": "Solista de piano de cua. Actuació a la sessió golfa.",
+          "color": "#10b981",
+          "status": "confirmed",
+          "arrivalTime": "16:00",
+          "soundCheckTime": "18:00",
+          "showTime": "22:30",
+          "departureTime": "00:00",
+          "duration": "30 min",
+          "techData": {
+            "inputList": [
+              {
+                "id": "in-09",
+                "channel": "9",
+                "patchColor": "purple",
+                "patchNumber": "9",
+                "label": "Piano Stereo L",
+                "micRider": "Mic condensador gran",
+                "micContra": "Neumann U87",
+                "stand": "Peu alt",
+                "notes": "Canal esquerre piano",
+                "exclusive": false
+              },
+              {
+                "id": "in-10",
+                "channel": "10",
+                "patchColor": "purple",
+                "patchNumber": "10",
+                "label": "Piano Stereo R",
+                "micRider": "Mic condensador gran",
+                "micContra": "Neumann U87",
+                "stand": "Peu alt",
+                "notes": "Canal dret piano",
+                "exclusive": false
+              }
+            ],
+            "monitorList": [
+              {
+                "id": "mon-05",
+                "outputChannel": "A3",
+                "patchColor": "purple",
+                "patchNumber": "5",
+                "label": "MIX Piano",
+                "mixRider": "Mix piano estèreo",
+                "mixContra": "Monitor Actiu 8\"",
+                "monitorQty": 1,
+                "mixStand": "Peu curt",
+                "standQty": 1,
+                "notes": "Per a la pianista",
+                "exclusive": false
+              }
+            ],
+            "cableList": [
+              {
+                "id": "cab-06",
+                "qty": 2,
+                "itemName": "Cable XLR 10m",
+                "itemId": "mat-13",
+                "notes": "Per a mics de piano",
+                "exclusive": false
+              },
+              {
+                "id": "cab-07",
+                "qty": 1,
+                "itemName": "Cable Speakon 10m",
+                "itemId": "mat-14",
+                "notes": "Per a monitor",
+                "exclusive": false
+              },
+              {
+                "id": "cab-08",
+                "qty": 2,
+                "itemName": "Cable Power 10m",
+                "notes": "Per a monitor i piano",
+                "exclusive": false
+              }
+            ],
+            "spareList": [
+              {
+                "id": "sp-04",
+                "qty": 1,
+                "itemName": "Cable XLR 10m",
+                "itemId": "mat-13",
+                "notes": "Spare cable XLR",
+                "exclusive": false
+              },
+              {
+                "id": "sp-05",
+                "qty": 1,
+                "itemName": "Peu Piano",
+                "notes": "Spare peu de piano",
+                "exclusive": false
+              }
+            ],
+            "lightingNotes": "Focus puntual sobre el piano. Llum càlida 3200K.",
+            "videoNotes": "No necessita vídeo",
+            "stageRequirements": "Piano de cua (lloguer extern). Espai lliure al centre de l'escenari."
+          },
+          "hospitalityData": {
+            "dressingRooms": "Camerino individual amb mirall i llum.",
+            "cateringNotes": "Aigua mineral, fruita seca, xocolata.",
+            "dietaryRequirements": "Sense gluten. Sense lactis.",
+            "travelLogistics": "Viatge en tren. Recollida a estació a les 15:30.",
+            "parkingNotes": "No necessita pàrquing."
+          },
+          "advancing": {
+            "riderReceived": true,
+            "counterRiderSent": true,
+            "schedulesConfirmed": true,
+            "hospitalityClosed": true
+          }
+        }
+      ]
     }
   ],
   "materialItems": [
@@ -1839,6 +2463,54 @@
       "stock": 1,
       "location": "Control 2",
       "notes": "Inclou Rio 3224."
+    },
+    {
+      "id": "mat-11",
+      "name": "Micròfon Diadema DPA 4066",
+      "category": "So",
+      "stock": 3,
+      "location": "Calaix de micros B",
+      "notes": "Diadema omnidireccional."
+    },
+    {
+      "id": "mat-12",
+      "name": "Peu Mic Recte",
+      "category": "So",
+      "stock": 15,
+      "location": "Calaix Peus",
+      "notes": "Peu recte estàndard."
+    },
+    {
+      "id": "mat-13",
+      "name": "Cable XLR 10m",
+      "category": "So",
+      "stock": 30,
+      "location": "Cablejat",
+      "notes": "Cable XLR mascle-femella 10m."
+    },
+    {
+      "id": "mat-14",
+      "name": "Cable Speakon 10m",
+      "category": "So",
+      "stock": 20,
+      "location": "Cablejat",
+      "notes": "Cable Speakon NL4 10m."
+    },
+    {
+      "id": "mat-15",
+      "name": "Monitor Actiu 12\"",
+      "category": "So",
+      "stock": 6,
+      "location": "Magatzem Monitors",
+      "notes": "Monitor actiu de 12 polzades."
+    },
+    {
+      "id": "mat-16",
+      "name": "Piano de Cua",
+      "category": "Estructures",
+      "stock": 1,
+      "location": "Magatzem Fons",
+      "notes": "Piano de cua Steinway (lloguer extern)."
     }
   ],
   "assignments": [

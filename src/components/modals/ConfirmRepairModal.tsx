@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * CONFIRM REPAIR MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal de confirmació per reparar dades amb llista de correccions.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: ConfirmRepairModal amb llista de correccions.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../ui/Modal';

@@ -1,7 +1,25 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+/**
+ * =============================================================================
+ * TECH SHEET FORM
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Formulari principal per a la gestió i edició de les fitxes tècniques d'esdeveniments.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEFINICIONS: Llibreries, tipus i dependències necessàries.
+ * - SUB-COMPONENTS: Components auxiliars per a seccions específiques del formulari (ex: NeedsSection).
+ * - COMPONENT PRINCIPAL TECHSHEETFORM: Nucli del formulari d'edició.
+ * - LÒGICA D'ESTAT I SAVE: Gestió de dades locals, persistència (save) i detecció de canvis.
+ * - MÈTODES DE GESTIÓ DEL FORMULARI: Funcions per actualitzar, validar i gestionar els camps.
+ * - RENDERITZAT PRINCIPAL DEL FORMULARI: Estructura visual de totes les seccions tècniques.
+ * - UTILS I HANDLERS D'ESDEVENIMENTS: Funcions per a l'ordenació i manipulació de llistes.
+ * =============================================================================
+ */
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../../stores/eventDataStore';
-import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction } from '../../types';
+import { EventFrame, TechSheetData, TechSheetProvider, TechSheetRoleItem, ContactPerson, ConditionalSection, AssemblyScheduleItem, NeedItem, ConditionalStatus, AssignmentStatus, ShowToastFunction, MaterialItem } from '../../types';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import TechSheetSection from './TechSheetSection';
@@ -14,45 +32,148 @@ import Tooltip from '../ui/Tooltip';
 import ConditionalFormControl from './ConditionalFormControl';
 import { EyeIcon } from '../../constants';
 import { useModalStore } from '../../stores/modalStore';
+import { useBufferedSave } from '../../hooks/useBufferedSave';
 
 interface TechSheetFormProps {
   eventFrame: EventFrame;
   showToast: ShowToastFunction;
+}
+
+type TechSheetNeedsKey = 'lighting' | 'sound' | 'video' | 'machinery' | 'rentals' | 'otherEquipment' | 'electrical' | 'structures' | 'platforms' | 'consumables' | 'curtains' | 'transport';
+
+// =============================================================================
+// SUB-COMPONENTS
+// =============================================================================
+
+interface NeedsSectionProps {
+  fieldName: TechSheetNeedsKey;
+  title: string;
+  status: ConditionalStatus;
+  details: string;
+  needs: NeedItem[];
+  onConditionalChange: (fieldName: keyof TechSheetData, value: any) => void;
+  onListChange: (listName: string, index: number, field: string, value: any) => void;
+  onRemoveListItem: (listName: string, index: number) => void;
+  onAddListItem: (listName: string) => void;
+  onMoveItemUp: (listName: string, index: number) => void;
+  onMoveItemDown: (listName: string, index: number) => void;
+  onSortByOrigin: (listName: string) => void;
+  sortDirection: 'asc' | 'desc';
+  originSuggestions: string[];
+  materialItems: MaterialItem[];
+  eventFrame: any;
+  getMaterialAvailability: (materialId: string, startDate: string, endDate: string, eventFrameId: string, currentItemId?: string) => { available: number; total: number };
   availabilityMap: Map<string, { available: number; total: number }>;
 }
 
-const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, availabilityMap }) => {
+const NeedsSection = React.memo<NeedsSectionProps>(({
+  fieldName, title, status, details, needs, onConditionalChange, 
+  onListChange, onRemoveListItem, onAddListItem, onMoveItemUp, onMoveItemDown,
+  onSortByOrigin, sortDirection, originSuggestions, materialItems, eventFrame,
+  getMaterialAvailability, availabilityMap
+}) => {
+  const { t } = useTranslation();
+
+  const handleStatusChange = useCallback((s: ConditionalStatus) => {
+    onConditionalChange(fieldName, { status: s });
+  }, [onConditionalChange, fieldName]);
+
+  const handleDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    onConditionalChange(fieldName, { details: e.target.value });
+  }, [onConditionalChange, fieldName]);
+
+  return (
+    <ConditionalFormControl
+      label={`${title}:`}
+      status={status}
+      onStatusChange={handleStatusChange}
+      isCollapsible={true} // <-- NOU: Activem el col·lapse
+    >
+      <TechSheetField
+        id={`${fieldName}Details`}
+        label={t('tech_sheets.needs.field_labels.details_prefix', { title: title.toLowerCase() })}
+        value={details}
+        onChange={handleDetailsChange}
+        as="textarea"
+        rows={2}
+      />
+      <NeedsList
+        needs={needs}
+        listName={fieldName}
+        title={t('tech_sheets.needs.field_labels.material_prefix', { title: title.toLowerCase() })}
+        onListChange={onListChange}
+        onRemoveListItem={onRemoveListItem}
+        onAddListItem={onAddListItem}
+        onMoveItemUp={onMoveItemUp}
+        onMoveItemDown={onMoveItemDown}
+        onSortByOrigin={onSortByOrigin}
+        sortDirection={sortDirection}
+        originSuggestions={originSuggestions}
+        materialItems={materialItems}
+        eventFrame={eventFrame}
+        getMaterialAvailability={getMaterialAvailability}
+        availabilityMap={availabilityMap}
+      />
+    </ConditionalFormControl>
+  );
+});
+
+// =============================================================================
+// COMPONENT PRINCIPAL TECHSHEETFORM
+// =============================================================================
+
+const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast }) => {
   const { t } = useTranslation();
   const { peopleGroups, materialItems, addOrUpdateTechSheet, getMaterialAvailability } = useEventDataStore.getState();
+
+  const { localData: formData, localDataRef: formDataRef, updateLocal, updateFullObject, saveNow, isDirty } = useBufferedSave<TechSheetData>(
+    eventFrame.techSheet!,
+    (data) => {
+      addOrUpdateTechSheet(eventFrame.id, data);
+    }
+  );
+
   const peopleMap = useMemo(() => {
     const m = new Map<string, string>();
     peopleGroups.forEach(p => m.set(p.id, p.name));
     return m;
   }, [peopleGroups]);
 
-  const getInitialFormData = (): TechSheetData => {
-    return eventFrame.techSheet!;
-  };
-
-  const [formData, setFormData] = useState<TechSheetData>(getInitialFormData());
+  // NOU: derived memo granular — recalcula NOMÉS quan canvien les seccions de material
+  const needsSectionsData = useMemo(() => ({
+    lighting: formData.lighting,
+    sound: formData.sound,
+    video: formData.video,
+    machinery: formData.machinery,
+    rentals: formData.rentals,
+    otherEquipment: formData.otherEquipment,
+    electrical: formData.electrical,
+    structures: formData.structures,
+    platforms: formData.platforms,
+    consumables: formData.consumables,
+    curtains: formData.curtains,
+    transport: formData.transport,
+  }), [
+    formData.lighting, formData.sound, formData.video, formData.machinery,
+    formData.rentals, formData.otherEquipment, formData.electrical,
+    formData.structures, formData.platforms, formData.consumables,
+    formData.curtains, formData.transport,
+  ]);
 
   const originSuggestions = useMemo(() => {
     const suggestions = new Set<string>();
     materialItems.forEach(item => {
       if (item.location) suggestions.add(item.location);
     });
-    const needsSections: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
-    needsSections.forEach(sectionName => {
-      const section = formData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const NEEDS_KEYS: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
+    NEEDS_KEYS.forEach(sectionName => {
+      const section = needsSectionsData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
       section?.data?.needs?.forEach(need => {
         if (need.origin) suggestions.add(need.origin);
       });
     });
     return Array.from(suggestions).sort();
-  }, [materialItems, formData]);
-  const formDataRef = useRef(formData);
-  const isDirtyRef = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  }, [materialItems, needsSectionsData]); // ✅ Sense formData sencer
 
   const sectionKeys = useMemo(() => [
     'general', 'personnel', 'preAssembly', 'schedule', 'logistics',
@@ -100,527 +221,421 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
   };
 
   useEffect(() => {
-    formDataRef.current = formData;
-  }, [formData]);
-
-  useEffect(() => {
     const newEventName = eventFrame.name;
     const newLocation = eventFrame.place || '';
     const newDate = eventFrame.startDate === eventFrame.endDate ? formatDateDMY(eventFrame.startDate) : `${formatDateDMY(eventFrame.startDate)} - ${formatDateDMY(eventFrame.endDate)}`;
 
-    setFormData(currentData => {
-      if (
-        currentData.eventName !== newEventName ||
-        currentData.location !== newLocation ||
-        currentData.date !== newDate
-      ) {
-        isDirtyRef.current = true;
-        return { ...currentData, eventName: newEventName, location: newLocation, date: newDate };
-      }
-      return currentData;
-    });
-  }, [eventFrame.name, eventFrame.place, eventFrame.startDate, eventFrame.endDate]);
-
-  const saveData = useCallback((isManualSave = false) => {
-    if (isDirtyRef.current) {
-      addOrUpdateTechSheet(eventFrame.id, formDataRef.current);
-      if (isManualSave) {
-        showToast(t('tech_sheets.form.manual_save_success'), 'success');
-      }
-      isDirtyRef.current = false;
+    if (
+      formData.eventName !== newEventName ||
+      formData.location !== newLocation ||
+      formData.date !== newDate
+    ) {
+      updateLocal({ eventName: newEventName, location: newLocation, date: newDate });
     }
-  }, [addOrUpdateTechSheet, eventFrame.id, showToast, t]);
+  }, [eventFrame.name, eventFrame.place, eventFrame.startDate, eventFrame.endDate, formData.eventName, formData.location, formData.date, updateLocal]);
 
-  useEffect(() => {
-    if (isDirtyRef.current) {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => saveData(), 2000);
-    }
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [formData, saveData]);
-
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (isDirtyRef.current) saveData();
-    };
-  }, [saveData]);
-
-  // Aquest useEffect és clau per sincronitzar l'estat local amb el global
-  useEffect(() => {
-    // Protecció: no sobreescriure si hi ha canvis pendents (evitar race condition)
-    if (isDirtyRef.current) {
-      console.log('[SYNC] Ignorant sincronització - hi ha canvis pendents de desar');
-      return;
-    }
+  const availabilityMap = useMemo(() => {
+    const map = new Map<string, { available: number; total: number }>();
+    const materialIds = new Set<string>();
+    const NEEDS_KEYS: TechSheetNeedsKey[] = ['lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment', 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'];
     
-    const newProviders = eventFrame.techSheet?.technicalProviders || [];
-    // Comprovem si l'array de proveïdors a l'estat local és diferent del de l'estat global.
-    // Això passa després que l'acció de reordenació actualitzi la store.
-    if (JSON.stringify(formData.technicalProviders) !== JSON.stringify(newProviders)) {
-      console.log('[SYNC] Sincronitzant proveïdors des de l\'estat global');
-      setFormData(prev => ({ ...prev, technicalProviders: newProviders }));
-    }
-  }, [eventFrame.techSheet?.technicalProviders]); // Només s'executa quan canvien les dades globals, no les locals
+    NEEDS_KEYS.forEach(sectionName => {
+      const section = needsSectionsData[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+      section?.data?.needs?.forEach(need => {
+        if (need.materialItemId) materialIds.add(need.materialItemId);
+      });
+    });
+
+    materialIds.forEach(id => {
+      // Usar formDataRef.current per accedir al buffer actual sense crear dependència
+      const avail = getMaterialAvailability(id, eventFrame.startDate, eventFrame.endDate, eventFrame.id, undefined, formDataRef.current || undefined);
+      map.set(id, avail);
+    });
+
+    return map;
+  }, [needsSectionsData, eventFrame.startDate, eventFrame.endDate, eventFrame.id, getMaterialAvailability, formDataRef]); // formDataRef és estable (és un ref), no causa recàlculs
+
+  const getLocalMaterialAvailability = useCallback((materialId: string, startDate: string, endDate: string, eventFrameId: string, currentItemId?: string) => {
+    return getMaterialAvailability(materialId, startDate, endDate, eventFrameId, currentItemId, formDataRef.current || undefined);
+  }, [getMaterialAvailability, formDataRef]); // ✅ formDataRef és estable
 
   if (!formData) {
     return <div>{t('tech_sheets.form.loading_data')}</div>;
   }
 
-  const markAsDirty = () => {
-    isDirtyRef.current = true;
-  };
-
   const generateLocalId = () => `local_${Date.now().toString(36) + Math.random().toString(36).substring(2)}`;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
 
     if (type === 'checkbox') {
       const { checked } = e.target as HTMLInputElement;
-      setFormData(prev => ({ ...prev, [name]: checked }));
+      updateLocal({ [name]: checked });
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      updateLocal({ [name]: value });
     }
-    markAsDirty();
-  };
+  }, [updateLocal]);
 
-  const handleFieldChange = (field: keyof TechSheetData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    markAsDirty();
-  };
+  const handleFieldChange = useCallback((field: keyof TechSheetData, value: any) => {
+    updateLocal({ [field]: value });
+  }, [updateLocal]);
 
-  const handleSortNeedsByOrigin = (listName: TechSheetNeedsKey) => {
+  const handleSortNeedsByOrigin = useCallback((listName: TechSheetNeedsKey) => {
     const currentDirection = sortDirections[listName] || 'asc';
     const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
     
     setSortDirections(prev => ({ ...prev, [listName]: newDirection }));
     
-    setFormData(prev => {
-      const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
-      if (!section || !section.data || !section.data.needs) return prev;
+    const section = formDataRef.current?.[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+    if (!section || !section.data || !section.data.needs) return;
 
-      const sortedNeeds = [...section.data.needs].sort((a, b) => {
-        const comparison = a.origin.localeCompare(b.origin, undefined, { sensitivity: 'base' });
-        return newDirection === 'asc' ? comparison : -comparison;
-      });
-
-      const updatedSection = { ...section, data: { ...section.data, needs: sortedNeeds } };
-      return { ...prev, [listName]: updatedSection };
+    const sortedNeeds = [...section.data.needs].sort((a, b) => {
+      const comparison = a.origin.localeCompare(b.origin, undefined, { sensitivity: 'base' });
+      return newDirection === 'asc' ? comparison : -comparison;
     });
-    markAsDirty();
-  };
+
+    const updatedSection = { ...section, data: { ...section.data, needs: sortedNeeds } };
+    updateLocal({ [listName]: updatedSection });
+  }, [sortDirections, updateLocal, formDataRef]);
 
   const handleSortScheduleByDate = () => {
-    setFormData(prev => {
-      const scheduleData = prev.schedule?.data || [];
-      const groupedByDate = scheduleData.reduce((acc, item) => {
-        const date = item.date || 'Sense data';
-        if (!acc[date]) {
-          acc[date] = [];
-        }
-        acc[date].push(item);
-        return acc;
-      }, {} as Record<string, AssemblyScheduleItem[]>);
-
-      const sortedDates = Object.keys(groupedByDate)
-        .filter(date => date !== 'Sense data')
-        .sort((a, b) => {
-          if (scheduleSortOrder === 'asc') {
-            return a.localeCompare(b);
-          } else {
-            return b.localeCompare(a);
-          }
-        });
-
-      const newSchedule = sortedDates.flatMap(date => groupedByDate[date]);
-
-      // Keep 'Sense data' items at the end
-      if (groupedByDate['Sense data']) {
-        newSchedule.push(...groupedByDate['Sense data']);
+    const scheduleData = formData.schedule?.data || [];
+    const groupedByDate = scheduleData.reduce((acc, item) => {
+      const date = item.date || 'Sense data';
+      if (!acc[date]) {
+        acc[date] = [];
       }
+      acc[date].push(item);
+      return acc;
+    }, {} as Record<string, AssemblyScheduleItem[]>);
 
-      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
-    });
+    const sortedDates = Object.keys(groupedByDate)
+      .filter(date => date !== 'Sense data')
+      .sort((a, b) => {
+        if (scheduleSortOrder === 'asc') {
+          return a.localeCompare(b);
+        } else {
+          return b.localeCompare(a);
+        }
+      });
+
+    const newSchedule = sortedDates.flatMap(date => groupedByDate[date]);
+
+    // Keep 'Sense data' items at the end
+    if (groupedByDate['Sense data']) {
+      newSchedule.push(...groupedByDate['Sense data']);
+    }
+
+    updateLocal({ schedule: { ...(formData.schedule || { status: 'unset', details: '' }), data: newSchedule } });
     setScheduleSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-    markAsDirty();
   };
 
   const handleSortScheduleByTime = (date: string) => {
-    setFormData(prev => {
-      const scheduleData = prev.schedule?.data || [];
-      const newSchedule = [...scheduleData];
+    const scheduleData = formData.schedule?.data || [];
+    const newSchedule = [...scheduleData];
 
-      // Find the indices of the items for the given date
-      const startIndex = newSchedule.findIndex(item => item.date === date);
-      if (startIndex === -1) return prev; // No items for this date
+    // Find the indices of the items for the given date
+    const startIndex = newSchedule.findIndex(item => item.date === date);
+    if (startIndex === -1) return; // No items for this date
 
-      let endIndex = startIndex;
-      for (let i = startIndex + 1; i < newSchedule.length; i++) {
-        if (newSchedule[i].date === date) {
-          endIndex = i;
-        } else {
-          break;
-        }
+    let endIndex = startIndex;
+    for (let i = startIndex + 1; i < newSchedule.length; i++) {
+      if (newSchedule[i].date === date) {
+        endIndex = i;
+      } else {
+        break;
       }
+    }
 
-      // Extract the day's items, sort them by time, and splice them back in
-      const dayItems = newSchedule.slice(startIndex, endIndex + 1);
-      dayItems.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-      newSchedule.splice(startIndex, dayItems.length, ...dayItems);
+    // Extract the day's items, sort them by time, and splice them back in
+    const dayItems = newSchedule.slice(startIndex, endIndex + 1);
+    dayItems.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    newSchedule.splice(startIndex, dayItems.length, ...dayItems);
 
-      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
-    });
-    markAsDirty();
+    updateLocal({ schedule: { ...(formData.schedule || { status: 'unset', details: '' }), data: newSchedule } });
   };
 
   const handleMoveAssemblyScheduleItemUp = (id: string) => {
-    setFormData(prev => {
-      const scheduleData = prev.schedule?.data;
-      if (!scheduleData) return prev;
+    const scheduleData = formData.schedule?.data;
+    if (!scheduleData) return;
 
-      const index = scheduleData.findIndex(item => item.id === id);
-      if (index === 0) return prev;
+    const index = scheduleData.findIndex(item => item.id === id);
+    if (index === 0) return;
 
-      const currentItem = scheduleData[index];
-      const previousItem = scheduleData[index - 1];
+    const currentItem = scheduleData[index];
+    const previousItem = scheduleData[index - 1];
 
-      if (previousItem && previousItem.date === currentItem.date) {
-        const newSchedule = [...scheduleData];
-        [newSchedule[index - 1], newSchedule[index]] = [newSchedule[index], newSchedule[index - 1]];
-        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
-      }
-      return prev;
-    });
-    markAsDirty();
+    if (previousItem && previousItem.date === currentItem.date) {
+      const newSchedule = [...scheduleData];
+      [newSchedule[index - 1], newSchedule[index]] = [newSchedule[index], newSchedule[index - 1]];
+      updateLocal({ schedule: { ...(formData.schedule || { status: 'unset', details: '' }), data: newSchedule } });
+    }
   };
 
   const handleMoveAssemblyScheduleItemDown = (id: string) => {
-    setFormData(prev => {
-      const scheduleData = prev.schedule?.data;
-      if (!scheduleData) return prev;
+    const scheduleData = formData.schedule?.data;
+    if (!scheduleData) return;
 
-      const index = scheduleData.findIndex(item => item.id === id);
-      if (index === -1 || index === scheduleData.length - 1) return prev;
+    const index = scheduleData.findIndex(item => item.id === id);
+    if (index === -1 || index === scheduleData.length - 1) return;
 
-      const currentItem = scheduleData[index];
-      // Since the array is sorted, the next item's date determines if we can move down.
-      const nextItem = scheduleData[index + 1];
+    const currentItem = scheduleData[index];
+    // Since the array is sorted, the next item's date determines if we can move down.
+    const nextItem = scheduleData[index + 1];
 
-      if (nextItem && nextItem.date === currentItem.date) {
-        const newSchedule = [...scheduleData];
-        [newSchedule[index + 1], newSchedule[index]] = [newSchedule[index], newSchedule[index + 1]];
-        return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
-      }
-
-      return prev;
-    });
-    markAsDirty();
+    if (nextItem && nextItem.date === currentItem.date) {
+      const newSchedule = [...scheduleData];
+      [newSchedule[index + 1], newSchedule[index]] = [newSchedule[index], newSchedule[index + 1]];
+      updateLocal({ schedule: { ...(formData.schedule || { status: 'unset', details: '' }), data: newSchedule } });
+    }
   };
 
-  const handleConditionalChange = (
+  const handleConditionalChange = useCallback((
     fieldName: keyof TechSheetData,
     fieldValue: Partial<ConditionalSection<any> | { status: ConditionalStatus }>
   ) => {
-    setFormData(prev => {
-      const currentField = prev[fieldName] as ConditionalSection<any> || { status: 'unset', details: '' };
-      const updatedField = { ...currentField, ...fieldValue };
+    const currentField = (formDataRef.current?.[fieldName] as ConditionalSection<any>) || { status: 'unset', details: '' };
+    const updatedField = { ...currentField, ...fieldValue };
 
-      // INICI DE LA CORRECCIÓ
-      if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
-        if (updatedField.data) {
-          // CORRECCIÓ: Creem un nou objecte 'data' en lloc de mutar l'existent.
-          // Això soluciona l'error amb la propietat 'needs'.
-          updatedField.data = { ...updatedField.data, needs: [] };
-        }
-        // La lògica per a 'schedule' ja era correcta, però la mantenim per consistència.
-        if (fieldName === 'schedule' && updatedField.data) {
-          updatedField.data = [];
-        }
+    // INICI DE LA CORRECCIÓ
+    if ('status' in fieldValue && (fieldValue.status === 'no' || fieldValue.status === 'unset')) {
+      if (updatedField.data) {
+        // CORRECCIÓ: Creem un nou objecte 'data' en lloc de mutar l'existent.
+        // Això soluciona l'error amb la propietat 'needs'.
+        updatedField.data = { ...updatedField.data, needs: [] };
       }
-      // FI DE LA CORRECCIÓ
+      // La lògica per a 'schedule' ja era correcta, però la mantenim per consistència.
+      if (fieldName === 'schedule' && updatedField.data) {
+        updatedField.data = [];
+      }
+    }
+    // FI DE LA CORRECCIÓ
 
-      return { ...prev, [fieldName]: updatedField };
-    });
-    markAsDirty();
-  };
+    updateLocal({ [fieldName]: updatedField });
+  }, [updateLocal, formDataRef]); // ✅
 
-  type TechSheetNeedsKey = 'lighting' | 'sound' | 'video' | 'machinery' | 'rentals' | 'otherEquipment' | 'electrical' | 'structures' | 'platforms' | 'consumables' | 'curtains' | 'transport';
+  // Stable handlers for conditional fields to prevent inline lambdas
+  const handleParkingDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    handleConditionalChange('parking', { details: e.target.value });
+  }, [handleConditionalChange]);
+
+  const handlePreAssemblyDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    handleConditionalChange('preAssembly', { details: e.target.value });
+  }, [handleConditionalChange]);
+
+  const handleScheduleDetailsChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    handleConditionalChange('schedule', { details: e.target.value });
+  }, [handleConditionalChange]);
 
   const handleNeedsListChange = useCallback((sectionName: TechSheetNeedsKey, index: number, field: string, value: any) => {
-    setFormData(prev => {
-      const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
-      const newNeeds = [...(section?.data?.needs || [])];
-      const currentItem = { ...newNeeds[index] };
-      (currentItem as any)[field] = value;
+    const section = formDataRef.current?.[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const newNeeds = [...(section?.data?.needs || [])];
+    const currentItem = { ...newNeeds[index] };
+    (currentItem as any)[field] = value;
 
-      if (field === 'description') {
-        const cleanValue = value.split(' [')[0];
-        (currentItem as any)[field] = cleanValue;
-        const matchedItem = materialItems.find(item => item.name === cleanValue);
-        currentItem.materialItemId = matchedItem ? matchedItem.id : null;
-        currentItem.origin = matchedItem ? matchedItem.location : '';
-      }
+    if (field === 'description') {
+      const cleanValue = value.split(' [')[0];
+      (currentItem as any)[field] = cleanValue;
+      const matchedItem = materialItems.find(item => item.name === cleanValue);
+      currentItem.materialItemId = matchedItem ? matchedItem.id : null;
+      currentItem.origin = matchedItem ? matchedItem.location : '';
+    }
 
-      newNeeds[index] = currentItem;
-      const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+    newNeeds[index] = currentItem;
+    const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
 
-      return { ...prev, [sectionName]: updatedSection };
-    });
-    markAsDirty();
-  }, [materialItems]);
+    updateLocal({ [sectionName]: updatedSection });
+  }, [materialItems, updateLocal, formDataRef]); // ✅ Sense formData
 
   const handleRemoveNeedsListItem = useCallback((sectionName: TechSheetNeedsKey, index: number) => {
-    setFormData(prev => {
-      const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
-      const newNeeds = (section?.data?.needs || []).filter((_, i) => i !== index);
-      const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
-      return { ...prev, [sectionName]: updatedSection };
-    });
-    markAsDirty();
-  }, []);
+    const section = formDataRef.current?.[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const newNeeds = (section?.data?.needs || []).filter((_, i) => i !== index);
+    const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+    updateLocal({ [sectionName]: updatedSection });
+  }, [updateLocal, formDataRef]); // ✅
 
-  const handleMoveNeedItemUp = (listName: TechSheetNeedsKey, index: number) => {
+  const handleMoveNeedItemUp = useCallback((listName: TechSheetNeedsKey, index: number) => {
     if (index === 0) return;
-    setFormData(prev => {
-      const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
-      if (!section || !section.data || !section.data.needs) return prev;
+    const section = formDataRef.current?.[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+    if (!section || !section.data || !section.data.needs) return;
 
-      const newNeeds = [...section.data.needs];
-      [newNeeds[index - 1], newNeeds[index]] = [newNeeds[index], newNeeds[index - 1]];
+    const newNeeds = [...section.data.needs];
+    [newNeeds[index - 1], newNeeds[index]] = [newNeeds[index], newNeeds[index - 1]];
 
-      const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
-      return { ...prev, [listName]: updatedSection };
-    });
-    markAsDirty();
-  };
+    const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+    updateLocal({ [listName]: updatedSection });
+  }, [updateLocal, formDataRef]); // ✅
 
-  const handleMoveNeedItemDown = (listName: TechSheetNeedsKey, index: number) => {
-    setFormData(prev => {
-      const section = prev[listName] as ConditionalSection<{ needs: NeedItem[] }>;
-      if (!section || !section.data || !section.data.needs) return prev;
+  const handleMoveNeedItemDown = useCallback((listName: TechSheetNeedsKey, index: number) => {
+    const section = formDataRef.current?.[listName] as ConditionalSection<{ needs: NeedItem[] }>;
+    if (!section || !section.data || !section.data.needs) return;
 
-      const newNeeds = [...section.data.needs];
-      if (index >= newNeeds.length - 1) return prev;
+    const newNeeds = [...section.data.needs];
+    if (index >= newNeeds.length - 1) return;
 
-      [newNeeds[index + 1], newNeeds[index]] = [newNeeds[index], newNeeds[index + 1]];
+    [newNeeds[index + 1], newNeeds[index]] = [newNeeds[index], newNeeds[index + 1]];
 
-      const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
-      return { ...prev, [listName]: updatedSection };
-    });
-    markAsDirty();
-  };
+    const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+    updateLocal({ [listName]: updatedSection });
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleAddNeedsListItem = useCallback((sectionName: TechSheetNeedsKey) => {
     const newItem: NeedItem = { id: generateLocalId(), quantity: 1, description: '', origin: '' };
-    setFormData(prev => {
-      const section = prev[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
-      const newNeeds = [...(section?.data?.needs || []), newItem];
-      const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
-      return { ...prev, [sectionName]: updatedSection };
-    });
-    markAsDirty();
-  }, []);
+    const section = formDataRef.current?.[sectionName] as ConditionalSection<{ needs: NeedItem[] }>;
+    const newNeeds = [...(section?.data?.needs || []), newItem];
+    const updatedSection = { ...section, data: { ...section.data, needs: newNeeds } };
+    updateLocal({ [sectionName]: updatedSection });
+  }, [updateLocal, formDataRef]); // 
 
-  const handleAssemblyScheduleChange = (id: string, field: keyof AssemblyScheduleItem, value: string) => {
-    setFormData(prev => {
-      const newSchedule = [...(prev.schedule?.data || [])];
-      const index = newSchedule.findIndex(item => item.id === id);
-      if (index === -1) return prev;
+  const handleAssemblyScheduleChange = useCallback((id: string, field: keyof AssemblyScheduleItem, value: string) => {
+    const scheduleData = formDataRef.current?.schedule;
+    const newSchedule = [...(scheduleData?.data || [])];
+    const index = newSchedule.findIndex(item => item.id === id);
+    if (index === -1) return;
 
-      const updatedItem = { ...newSchedule[index], [field]: value };
-      newSchedule[index] = updatedItem;
-
-      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
-    });
-    markAsDirty();
-  };
+    newSchedule[index] = { ...newSchedule[index], [field]: value };
+    updateLocal({ schedule: { ...(scheduleData || { status: 'unset', details: '' }), data: newSchedule } });
+  }, [updateLocal, formDataRef]);
 
   const handleAddAssemblyScheduleItem = (date?: string) => {
     const newDate = date !== undefined ? date : eventFrame.startDate;
     const newItem: AssemblyScheduleItem = { id: generateLocalId(), date: newDate, time: '', timeEnd: '', description: '' };
 
-    setFormData(prev => {
-      const scheduleData = prev.schedule?.data || [];
-      let newSchedule = [...scheduleData];
+    const scheduleData = formData.schedule?.data || [];
+    let newSchedule = [...scheduleData];
 
-      if (date) {
-        // If a date is provided, add the new item to the end of that day's group
-        let lastIndexForDate = -1;
-        for (let i = newSchedule.length - 1; i >= 0; i--) {
-          if (newSchedule[i].date === date) {
-            lastIndexForDate = i;
-            break;
-          }
+    if (date) {
+      // If a date is provided, add the new item to the end of that day's group
+      let lastIndexForDate = -1;
+      for (let i = newSchedule.length - 1; i >= 0; i--) {
+        if (newSchedule[i].date === date) {
+          lastIndexForDate = i;
+          break;
         }
-
-        if (lastIndexForDate !== -1) {
-          newSchedule.splice(lastIndexForDate + 1, 0, newItem);
-        } else {
-          // This case should not happen if the button is only shown for existing dates, but as a fallback:
-          newSchedule.push(newItem);
-        }
-      } else {
-        // If no date is provided, add it to the end (it will be in the "Sense data" group)
-        newSchedule.push(newItem);
       }
 
-      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
-    });
-    markAsDirty();
+      if (lastIndexForDate !== -1) {
+        newSchedule.splice(lastIndexForDate + 1, 0, newItem);
+      } else {
+        // This case should not happen if the button is only shown for existing dates, but as a fallback:
+        newSchedule.push(newItem);
+      }
+    } else {
+      // If no date is provided, add it to the end (it will be in the "Sense data" group)
+      newSchedule.push(newItem);
+    }
+
+    updateLocal({ schedule: { ...(formData.schedule || { status: 'unset', details: '' }), data: newSchedule } });
   };
 
   const handleRemoveAssemblyScheduleItem = (id: string) => {
-    setFormData(prev => {
-      const newSchedule = (prev.schedule?.data || []).filter(item => item.id !== id);
-      return { ...prev, schedule: { ...(prev.schedule || { status: 'unset', details: '' }), data: newSchedule } };
-    });
-    markAsDirty();
+    const newSchedule = (formData.schedule?.data || []).filter(item => item.id !== id);
+    updateLocal({ schedule: { ...(formData.schedule || { status: 'unset', details: '' }), data: newSchedule } });
   };
 
   const handleContactChange = (index: number, field: keyof ContactPerson, value: string) => {
-    setFormData(prev => {
-      const newContacts = [...(prev.contacts || [])];
-      newContacts[index] = { ...newContacts[index], [field]: value };
-      return { ...prev, contacts: newContacts };
-    });
-    markAsDirty();
+    const newContacts = [...(formData.contacts || [])];
+    newContacts[index] = { ...newContacts[index], [field]: value };
+    updateLocal({ contacts: newContacts });
   };
 
   const handleAddContact = () => {
     const newContact: ContactPerson = { id: generateLocalId(), name: '', role: '', email: '', phone: '' };
-    setFormData(prev => ({ ...prev, contacts: [...(prev.contacts || []), newContact] }));
-    markAsDirty();
+    updateLocal({ contacts: [...(formData.contacts || []), newContact] });
   };
 
   const handleRemoveContact = (index: number) => {
-    setFormData(prev => ({ ...prev, contacts: (prev.contacts || []).filter((_, i) => i !== index) }));
-    markAsDirty();
+    updateLocal({ contacts: (formData.contacts || []).filter((_, i) => i !== index) });
   };
 
   const handleShowTimeChange = (index: number, value: string) => {
-    setFormData(prev => {
-      const newShowTimes = [...(prev.showTimes || [])];
-      // Si l'array és buit i l'usuari escriu, es crea el primer element.
-      if (newShowTimes.length === 0 && index === 0) {
-        newShowTimes.push({ id: generateLocalId(), time: value });
-      } else if (newShowTimes[index]) {
-        newShowTimes[index] = { ...newShowTimes[index], time: value };
-      }
-      return { ...prev, showTimes: newShowTimes };
-    });
-    markAsDirty();
+    const newShowTimes = [...(formData.showTimes || [])];
+    // Si l'array és buit i l'usuari escriu, es crea el primer element.
+    if (newShowTimes.length === 0 && index === 0) {
+      newShowTimes.push({ id: generateLocalId(), time: value });
+    } else if (newShowTimes[index]) {
+      newShowTimes[index] = { ...newShowTimes[index], time: value };
+    }
+    updateLocal({ showTimes: newShowTimes });
   };
 
   const addShowTime = () => {
     const newItem = { id: generateLocalId(), time: '' };
-    setFormData(prev => ({
-      ...prev,
-      showTimes: [...(prev.showTimes || []), newItem],
-    }));
-    markAsDirty();
+    updateLocal({
+      showTimes: [...(formData.showTimes || []), newItem],
+    });
   };
 
   const removeShowTime = (id: string) => {
-    setFormData(prev => ({
-      ...prev,
-      showTimes: (prev.showTimes || []).filter(item => item.id !== id),
-    }));
-    markAsDirty();
+    updateLocal({
+      showTimes: (formData.showTimes || []).filter(item => item.id !== id),
+    });
   };
 
   const handleProviderChange = useCallback((providerIndex: number, personGroupId: string) => {
-    setFormData(prev => {
-      const newProviders = (prev.technicalProviders || []).map((provider, index) => {
-        if (index === providerIndex) {
-          return { ...provider, personGroupId: personGroupId };
-        }
-        return provider;
-      });
-      return { ...prev, technicalProviders: newProviders };
+    const newProviders = (formDataRef.current?.technicalProviders || []).map((provider, index) => {
+      if (index === providerIndex) {
+        return { ...provider, personGroupId: personGroupId };
+      }
+      return provider;
     });
-    markAsDirty();
-  }, []);
+    updateLocal({ technicalProviders: newProviders });
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleRoleChange = useCallback((providerIndex: number, roleIndex: number, field: keyof TechSheetRoleItem, value: any) => {
     const finalValue = (field === 'role' && typeof value === 'string' && value.includes(': '))
       ? value.split(': ')[1]
       : value;
-    setFormData(prev => {
-      const newProviders = (prev.technicalProviders || []).map((provider, pIndex) => {
-        if (pIndex === providerIndex) {
-          const newRoles = provider.roles.map((role, rIndex) => {
-            if (rIndex === roleIndex) {
-              return { ...role, [field]: finalValue };
-            }
-            return role;
-          });
-          return { ...provider, roles: newRoles };
-        }
-        return provider;
-      });
-      return { ...prev, technicalProviders: newProviders };
+    const newProviders = (formDataRef.current?.technicalProviders || []).map((provider, pIndex) => {
+      if (pIndex === providerIndex) {
+        const newRoles = provider.roles.map((role, rIndex) => {
+          if (rIndex === roleIndex) {
+            return { ...role, [field]: finalValue };
+          }
+          return role;
+        });
+        return { ...provider, roles: newRoles };
+      }
+      return provider;
     });
-    markAsDirty();
-  }, []);
+    updateLocal({ technicalProviders: newProviders });
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleAddProvider = useCallback(() => {
     const newProvider: TechSheetProvider = { id: generateLocalId(), personGroupId: '', roles: [], isManual: true };
-    setFormData(prev => ({ ...prev, technicalProviders: [...(prev.technicalProviders || []), newProvider] }));
-    markAsDirty();
-  }, []);
+    updateLocal({ technicalProviders: [...(formDataRef.current?.technicalProviders || []), newProvider] });
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleRemoveProvider = useCallback((providerIndex: number) => {
-    setFormData(prev => ({ ...prev, technicalProviders: (prev.technicalProviders || []).filter((_, i) => i !== providerIndex) }));
-    markAsDirty();
-  }, []);
+    updateLocal({ technicalProviders: (formDataRef.current?.technicalProviders || []).filter((_, i) => i !== providerIndex) });
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleAddRole = useCallback((providerIndex: number) => {
     const newRole: TechSheetRoleItem = { id: generateLocalId(), role: '', quantity: 1, notes: '', printNotes: true };
-    setFormData(prev => {
-      const newProviders = (prev.technicalProviders || []).map((provider, index) => {
-        if (index === providerIndex) {
-          return {
-            ...provider,
-            roles: [...provider.roles, newRole]
-          };
-        }
-        return provider;
-      });
-      return { ...prev, technicalProviders: newProviders };
+    const newProviders = (formDataRef.current?.technicalProviders || []).map((provider, index) => {
+      if (index === providerIndex) {
+        return {
+          ...provider,
+          roles: [...provider.roles, newRole]
+        };
+      }
+      return provider;
     });
-    markAsDirty();
-  }, []);
+    updateLocal({ technicalProviders: newProviders });
+  }, [updateLocal, formDataRef]); // ✅
 
   const handleRemoveRole = useCallback((providerIndex: number, roleIndex: number) => {
-    setFormData(prev => {
-      const newProviders = (prev.technicalProviders || []).map((provider, index) => {
-        if (index === providerIndex) {
-          return {
-            ...provider,
-            roles: provider.roles.filter((_, i) => i !== roleIndex)
-          };
-        }
-        return provider;
-      });
-      return { ...prev, technicalProviders: newProviders };
+    const newProviders = (formDataRef.current?.technicalProviders || []).map((provider, index) => {
+      if (index === providerIndex) {
+        return {
+          ...provider,
+          roles: provider.roles.filter((_, i) => i !== roleIndex)
+        };
+      }
+      return provider;
     });
-    markAsDirty();
-  }, []);
-
-  const handleManualSave = () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-    if (isDirtyRef.current) {
-      saveData(true);
-    } else {
-      showToast(t('tech_sheets.form.manual_save_info'), 'info');
-    }
-  };
+    updateLocal({ technicalProviders: newProviders });
+  }, [updateLocal, formDataRef]); // ✅
 
   const openModal = useModalStore(state => state.openModal);
 
@@ -637,9 +652,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
   };
 
   const handleExportToPdf = () => {
-    if (isDirtyRef.current) {
+    if (isDirty) {
       showToast(t('tech_sheets.form.saving_pending_before_export'), 'info');
-      saveData(true);
+      saveNow();
     }
     exportTechSheetToPdf(formData, eventFrame.name, (id: string) => ({ id, name: peopleMap.get(id) || t('tech_sheets.personnel.unknown') }), showToast);
   };
@@ -659,124 +674,75 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
     const toRemoveIds = new Set(selectedChanges.filter(c => c.type === 'remove').map(c => c.data.id));
     
     console.log('[DEBUG_UPDATE] Processant canvis:');
-    console.log('  toAdd:', toAdd);
-    console.log('  toUpdate:', toUpdate);
-    console.log('  toRemoveIds:', Array.from(toRemoveIds));
-    console.log('[DEBUG_UPDATE] Aplicant canvis...');
+    const initialProviders = formData.technicalProviders || [];
 
-    setFormData(prev => {
-      console.log('[DEBUG_UPDATE] Estat anterior dels proveïdors:', prev.technicalProviders);
-      const initialProviders = prev.technicalProviders || [];
+    // 1. Process removals immutably
+    const providersAfterRemoval = initialProviders
+      .map(p => ({
+        ...p,
+        roles: p.roles.filter(r => !toRemoveIds.has(r.id)),
+      }))
+      .filter(p => p.roles.length > 0 || p.isManual);
 
-      // 1. Process removals immutably
-      const providersAfterRemoval = initialProviders
-        .map(p => {
-          const originalRoles = p.roles;
-          const filteredRoles = p.roles.filter(r => !toRemoveIds.has(r.id));
-          console.log(`[DEBUG_UPDATE] Proveïdor ${p.id}: roles originals=${originalRoles.length}, roles després d\'esborrar=${filteredRoles.length}`);
-          return {
-            ...p,
-            roles: filteredRoles,
-          };
-        })
-        .filter(p => {
-          const shouldKeep = p.roles.length > 0 || p.isManual;
-          console.log(`[DEBUG_UPDATE] Proveïdor ${p.id}: es manté? ${shouldKeep} (roles: ${p.roles.length}, isManual: ${p.isManual})`);
-          return shouldKeep;
-        });
-
-      // 2. Process updates immutably
-      const providersAfterUpdate = providersAfterRemoval.map(p => {
-        const updatesForProvider = toUpdate.filter(update => p.roles.some(r => r.id === update.currentRole.id));
-        if (updatesForProvider.length === 0) {
-          return p;
-        }
-        console.log(`[DEBUG_UPDATE] Actualitzant proveïdor ${p.id} amb ${updatesForProvider.length} canvis`);
-        return {
-          ...p,
-          roles: p.roles.map(r => {
-            const relevantUpdate = toUpdate.find(u => u.currentRole.id === r.id);
-            if (relevantUpdate) {
-              console.log(`[DEBUG_UPDATE] Actualitzant rol ${r.id}: "${r.notes}" -> "${relevantUpdate.newNotes}"`);
-              return { ...r, notes: relevantUpdate.newNotes };
-            }
-            return r;
-          }),
-        };
-      });
-
-      // 3. Process additions immutably
-      let providersAfterAddition = [...providersAfterUpdate];
-      const newProvidersToAdd: TechSheetProvider[] = [];
-
-      toAdd.forEach(assignment => {
-        const personGroupId = assignment.personGroupId;
-        console.log(`[DEBUG_UPDATE] Processant assignació a afegir: ${assignment.id} (personGroupId: ${personGroupId})`);
-
-        let notes = assignment.notes || '';
-        if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
-          const confirmedDays = Object.entries(assignment.dailyStatuses)
-            .filter(([, status]) => status === AssignmentStatus.Yes)
-            .map(([date]) => formatDateDMY(date));
-          if (confirmedDays.length > 0) {
-            const daysString = `${t('common.days')}: ${confirmedDays.join(', ')}`;
-            notes = notes ? `${notes}\n${daysString}` : daysString;
-          }
-        }
-
-        const newRole: TechSheetRoleItem = {
-          id: generateLocalId(),
-          assignmentId: assignment.id,
-          role: '',
-          quantity: 1,
-          notes: notes,
-          printNotes: true,
-        };
-
-        const existingProviderIndex = providersAfterAddition.findIndex(p => p.personGroupId === personGroupId);
-
-        if (existingProviderIndex !== -1) {
-          console.log(`[DEBUG_UPDATE] Afegint rol a proveïdor existent ${personGroupId}`);
-          // Update existing provider immutably
-          providersAfterAddition = providersAfterAddition.map((p, index) => {
-            if (index === existingProviderIndex) {
-              return { ...p, roles: [...p.roles, newRole] };
-            }
-            return p;
-          });
-        } else {
-          console.log(`[DEBUG_UPDATE] Creant nou proveïdor per ${personGroupId}`);
-          // Check if it's already staged to be added
-          const stagedProviderIndex = newProvidersToAdd.findIndex(p => p.personGroupId === personGroupId);
-          if (stagedProviderIndex !== -1) {
-            newProvidersToAdd[stagedProviderIndex] = {
-              ...newProvidersToAdd[stagedProviderIndex],
-              roles: [...newProvidersToAdd[stagedProviderIndex].roles, newRole],
-            };
-          } else {
-            newProvidersToAdd.push({
-              id: generateLocalId(),
-              personGroupId,
-              roles: [newRole],
-              isManual: false,
-            });
-          }
-        }
-      });
-
-      const finalProviders = [...providersAfterAddition, ...newProvidersToAdd];
-      console.log('[DEBUG_UPDATE] Estat final dels proveïdors:', finalProviders);
-      console.log(`[DEBUG_UPDATE] Resum: ${finalProviders.length} proveïdors totals`);
-
-      return { ...prev, technicalProviders: finalProviders };
+    // 2. Process updates immutably
+    const providersAfterUpdate = providersAfterRemoval.map(p => {
+      const updatesForProvider = toUpdate.filter(update => p.roles.some(r => r.id === update.currentRole.id));
+      if (updatesForProvider.length === 0) return p;
+      return {
+        ...p,
+        roles: p.roles.map(r => {
+          const relevantUpdate = toUpdate.find(u => u.currentRole.id === r.id);
+          return relevantUpdate ? { ...r, notes: relevantUpdate.newNotes } : r;
+        }),
+      };
     });
 
-    markAsDirty();
-    showToast(t('tech_sheets.personnel.changes_applied_toast', { count: selectedChanges.length }), 'success');
-    console.log('[DEBUG_UPDATE] Canvis aplicats amb èxit');
-  };
+    // 3. Process additions immutably
+    let providersAfterAddition = [...providersAfterUpdate];
+    const newProvidersToAdd: TechSheetProvider[] = [];
 
-  const { reorderTechnicalProviders } = useEventDataStore.getState();
+    toAdd.forEach(assignment => {
+      const personGroupId = assignment.personGroupId;
+      let notes = assignment.notes || '';
+      if (assignment.status === AssignmentStatus.Mixed && assignment.dailyStatuses) {
+        const confirmedDays = Object.entries(assignment.dailyStatuses)
+          .filter(([, status]) => status === AssignmentStatus.Yes)
+          .map(([date]) => formatDateDMY(date));
+        if (confirmedDays.length > 0) {
+          notes = notes ? `${notes}\n${t('common.days')}: ${confirmedDays.join(', ')}` : `${t('common.days')}: ${confirmedDays.join(', ')}`;
+        }
+      }
+
+      const newRole: TechSheetRoleItem = {
+        id: generateLocalId(),
+        assignmentId: assignment.id,
+        role: '',
+        quantity: 1,
+        notes: notes,
+        printNotes: true,
+      };
+
+      const existingProviderIndex = providersAfterAddition.findIndex(p => p.personGroupId === personGroupId);
+      if (existingProviderIndex !== -1) {
+        providersAfterAddition = providersAfterAddition.map((p, index) =>
+          index === existingProviderIndex ? { ...p, roles: [...p.roles, newRole] } : p
+        );
+      } else {
+        const stagedProviderIndex = newProvidersToAdd.findIndex(p => p.personGroupId === personGroupId);
+        if (stagedProviderIndex !== -1) {
+          newProvidersToAdd[stagedProviderIndex] = {
+            ...newProvidersToAdd[stagedProviderIndex],
+            roles: [...newProvidersToAdd[stagedProviderIndex].roles, newRole],
+          };
+        } else {
+          newProvidersToAdd.push({ id: generateLocalId(), personGroupId, roles: [newRole], isManual: false });
+        }
+      }
+    });
+
+    updateLocal({ technicalProviders: [...providersAfterAddition, ...newProvidersToAdd] });
+    showToast(t('tech_sheets.personnel.changes_applied_toast', { count: selectedChanges.length }), 'success');
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -785,47 +751,9 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
       const newIndex = formData.technicalProviders.findIndex(p => p.id === over.id);
       const reorderedProviders = arrayMove(formData.technicalProviders, oldIndex, newIndex);
 
-      // Actualitzem l'estat local per a una resposta visual immediata
-      setFormData(prev => ({ ...prev, technicalProviders: reorderedProviders }));
-
-      // Cridem l'acció de la store per persistir el canvi a l'estat global
-      reorderTechnicalProviders(eventFrame.id, reorderedProviders);
+      updateFullObject({ ...formData, technicalProviders: reorderedProviders });
     }
   };
-
-  const renderNeedsSection = (title: string, fieldName: TechSheetNeedsKey) => (
-    <ConditionalFormControl
-      label={`${title}:`}
-      status={formData[fieldName]?.status || 'unset'}
-      onStatusChange={(status) => handleConditionalChange(fieldName, { status })}
-    >
-      <TechSheetField
-        id={`${fieldName}Details`}
-        label={t('tech_sheets.needs.field_labels.details_prefix', { title: title.toLowerCase() })}
-        value={formData[fieldName]?.details || ''}
-        onChange={(e) => handleConditionalChange(fieldName, { details: e.target.value })}
-        as="textarea"
-        rows={2}
-      />
-      <NeedsList
-        needs={formData[fieldName]?.data?.needs || []}
-        title={t('tech_sheets.needs.field_labels.material_prefix', { title: title.toLowerCase() })}
-        listName={fieldName}
-        onListChange={handleNeedsListChange as any}
-        onRemoveListItem={handleRemoveNeedsListItem as any}
-        onAddListItem={handleAddNeedsListItem as any}
-        onMoveItemUp={handleMoveNeedItemUp as any}
-        onMoveItemDown={handleMoveNeedItemDown as any}
-        onSortByOrigin={handleSortNeedsByOrigin as any}
-        sortDirection={sortDirections[fieldName] || 'asc'}
-        originSuggestions={originSuggestions}
-        materialItems={materialItems}
-        eventFrame={eventFrame}
-        getMaterialAvailability={getMaterialAvailability}
-        availabilityMap={availabilityMap}
-      />
-    </ConditionalFormControl>
-  );
 
   return (
     <div className="p-2 bg-background rounded-lg shadow space-y-4 tech-sheet-form-container">
@@ -846,9 +774,6 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
           </Tooltip>
           <Tooltip text={t('tech_sheets.form.tooltip_collapse_all')}>
             <button onClick={collapseAll} className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md hover:bg-accent no-print">{t('tech_sheets.form.collapse_all')}</button>
-          </Tooltip>
-          <Tooltip text={t('tech_sheets.form.tooltip_save')}>
-            <button onClick={handleManualSave} className="save-changes-button px-3 py-1 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-semibold no-print">{t('tech_sheets.form.save_changes')}</button>
           </Tooltip>
           <Tooltip text={t('tech_sheets.form.tooltip_preview')}>
             <button onClick={handlePreview} className="preview-pdf-button px-3 py-1 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 font-semibold no-print flex items-center gap-2">
@@ -959,7 +884,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
               id="parkingDetails"
               label={t('tech_sheets.form.general.parking_details')}
               value={formData.parking?.details || ''}
-              onChange={(e) => handleConditionalChange('parking', { details: e.target.value })}
+              onChange={handleParkingDetailsChange}
               as="textarea"
               rows={2}
               placeholder={t('tech_sheets.form.general.parking_details_placeholder')}
@@ -977,7 +902,8 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
         onToggle={() => handleToggleSection('personnel')}
       >
         <TechnicalPersonnelSection
-          formData={formData}
+          showTechnicalPersonnelNotesInPdf={formData.showTechnicalPersonnelNotesInPdf}
+          technicalPersonnelNotes={formData.technicalPersonnelNotes}
           technicalProviders={formData.technicalProviders || []}
           peopleGroups={peopleGroups}
           eventFrame={eventFrame}
@@ -1011,7 +937,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
             id="preAssemblyDetails"
             label={t('tech_sheets.form.pre_assembly.details_label')}
             value={formData.preAssembly?.details || ''}
-            onChange={(e) => handleConditionalChange('preAssembly', { details: e.target.value })}
+            onChange={handlePreAssemblyDetailsChange}
             as="textarea"
             rows={2}
             placeholder={t('tech_sheets.form.pre_assembly.details_placeholder')}
@@ -1054,7 +980,7 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
                 id="scheduleDetails"
                 label=""
                 value={formData.schedule?.details || ''}
-                onChange={(e) => handleConditionalChange('schedule', { details: e.target.value })}
+                onChange={handleScheduleDetailsChange}
                 as="textarea"
                 rows={2}
                 placeholder={t('tech_sheets.form.schedule.notes_placeholder')}
@@ -1286,18 +1212,246 @@ const TechSheetForm: React.FC<TechSheetFormProps> = ({ eventFrame, showToast, av
             tooltipText={t('tech_sheets.form.technical_needs.notes_tooltip')}
           />
         </div>
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.lighting'), 'lighting')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.sound'), 'sound')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.video'), 'video')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.machinery'), 'machinery')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.rentals'), 'rentals')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.other_equipment'), 'otherEquipment')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.electrical'), 'electrical')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.structures'), 'structures')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.platforms'), 'platforms')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.consumables'), 'consumables')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.curtains'), 'curtains')}
-        {renderNeedsSection(t('tech_sheets.needs.category_labels.transport'), 'transport')}
+        <NeedsSection
+          fieldName="lighting"
+          title={t('tech_sheets.needs.category_labels.lighting')}
+          status={formData.lighting?.status || 'unset'}
+          details={formData.lighting?.details || ''}
+          needs={formData.lighting?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['lighting'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="sound"
+          title={t('tech_sheets.needs.category_labels.sound')}
+          status={formData.sound?.status || 'unset'}
+          details={formData.sound?.details || ''}
+          needs={formData.sound?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['sound'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="video"
+          title={t('tech_sheets.needs.category_labels.video')}
+          status={formData.video?.status || 'unset'}
+          details={formData.video?.details || ''}
+          needs={formData.video?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['video'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="machinery"
+          title={t('tech_sheets.needs.category_labels.machinery')}
+          status={formData.machinery?.status || 'unset'}
+          details={formData.machinery?.details || ''}
+          needs={formData.machinery?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['machinery'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="rentals"
+          title={t('tech_sheets.needs.category_labels.rentals')}
+          status={formData.rentals?.status || 'unset'}
+          details={formData.rentals?.details || ''}
+          needs={formData.rentals?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['rentals'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="otherEquipment"
+          title={t('tech_sheets.needs.category_labels.other_equipment')}
+          status={formData.otherEquipment?.status || 'unset'}
+          details={formData.otherEquipment?.details || ''}
+          needs={formData.otherEquipment?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['otherEquipment'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="electrical"
+          title={t('tech_sheets.needs.category_labels.electrical')}
+          status={formData.electrical?.status || 'unset'}
+          details={formData.electrical?.details || ''}
+          needs={formData.electrical?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['electrical'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="structures"
+          title={t('tech_sheets.needs.category_labels.structures')}
+          status={formData.structures?.status || 'unset'}
+          details={formData.structures?.details || ''}
+          needs={formData.structures?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['structures'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="platforms"
+          title={t('tech_sheets.needs.category_labels.platforms')}
+          status={formData.platforms?.status || 'unset'}
+          details={formData.platforms?.details || ''}
+          needs={formData.platforms?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['platforms'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="consumables"
+          title={t('tech_sheets.needs.category_labels.consumables')}
+          status={formData.consumables?.status || 'unset'}
+          details={formData.consumables?.details || ''}
+          needs={formData.consumables?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['consumables'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="curtains"
+          title={t('tech_sheets.needs.category_labels.curtains')}
+          status={formData.curtains?.status || 'unset'}
+          details={formData.curtains?.details || ''}
+          needs={formData.curtains?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['curtains'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
+        <NeedsSection
+          fieldName="transport"
+          title={t('tech_sheets.needs.category_labels.transport')}
+          status={formData.transport?.status || 'unset'}
+          details={formData.transport?.details || ''}
+          needs={formData.transport?.data?.needs || []}
+          onConditionalChange={handleConditionalChange}
+          onListChange={handleNeedsListChange as any}
+          onRemoveListItem={handleRemoveNeedsListItem as any}
+          onAddListItem={handleAddNeedsListItem as any}
+          onMoveItemUp={handleMoveNeedItemUp as any}
+          onMoveItemDown={handleMoveNeedItemDown as any}
+          onSortByOrigin={handleSortNeedsByOrigin as any}
+          sortDirection={sortDirections['transport'] || 'asc'}
+          originSuggestions={originSuggestions}
+          materialItems={materialItems}
+          eventFrame={eventFrame}
+          getMaterialAvailability={getLocalMaterialAvailability as any}
+          availabilityMap={availabilityMap}
+        />
       </TechSheetSection>
 
       {/* Other Details */}

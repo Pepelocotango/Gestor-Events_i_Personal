@@ -6,17 +6,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: 1. Checkout del codi
         uses: actions/checkout@v4
 
+      - name: 1.5. Instal·lar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.9
+
       - name: 2. Configuració de Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: mobile_app/package-lock.json
+          node-version: '24'
+          cache: 'pnpm'
 
       - name: 3. Configuració de Java (JDK)
         id: setup-java
@@ -27,7 +33,7 @@ jobs:
 
       - name: 4. Instal·lació de dependències del projecte mòbil
         working-directory: ./mobile_app
-        run: rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && npx expo install --fix
+        run: rm -rf node_modules && pnpm install --frozen-lockfile && pnpm exec expo install --fix
 
       - name: 5. Clean Native Directories
         working-directory: ./mobile_app
@@ -35,7 +41,7 @@ jobs:
 
       - name: 6. Generar el projecte natiu Android
         working-directory: ./mobile_app
-        run: npx expo prebuild --platform android --no-install
+        run: pnpm exec expo prebuild --platform android --no-install
 
       - name: 7. Fix Gradle Version to 8.6
         working-directory: ./mobile_app
@@ -72,8 +78,20 @@ jobs:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: ./gradlew assembleRelease
 
+      - name: 11.5 Renombrar APK amb GEP, branca i build
+        run: |
+          SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '_')
+          
+          # Nou nom GEP
+          NEW_NAME="GEP-Android-Release-${SAFE_BRANCH}-build${{ github.run_number }}.apk"
+          
+          # Renombrar l'arxiu original
+          mv mobile_app/android/app/build/outputs/apk/release/app-release.apk "$NEW_NAME"
+          
+          echo "APK_NAME=$NEW_NAME" >> $GITHUB_ENV
+
       - name: 12. Pujada de l'APK com a artefacte
         uses: actions/upload-artifact@v4
         with:
-          name: GestorEsdevenimentsPersonal-Android-Release.apk
-          path: mobile_app/android/app/build/outputs/apk/release/app-release.apk
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_NAME }}

@@ -1,10 +1,34 @@
+/**
+ * =============================================================================
+ * EVENT DATA STORE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Store principal de Zustand per a la gestió de dades d'esdeveniments, persones, assignacions, tech sheets, material i performances.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries Zustand, immer, zundo i utilitats.
+ * - FUNCIONS AUXILIARS: generateId, createDefaultTechSheet.
+ * - ESTAT INICIAL: Estat inicial de l'aplicació amb dades buides.
+ * - STORE PRINCIPAL: Configuració del store amb middleware immer i temporal.
+ * - ACCIONS D'ESDEVENIMENTS: addEventFrame, updateEventFrame, deleteEventFrame.
+ * - ACCIONS DE PERSONES: addPersonGroup, updatePersonGroup, deletePersonGroup.
+ * - ACCIONS D'ASSIGNACIONS: addAssignment, updateAssignment, deleteAssignment.
+ * - ACCIONS DE TECH SHEETS: addOrUpdateTechSheet.
+ * - ACCIONS DE MATERIAL: addMaterialItem, updateMaterialItem, deleteMaterialItem.
+ * - ACCIONS DE PERFORMANCES: addPerformance, updatePerformance, deletePerformance.
+ * - ACCIONS DE SINCRONITZACIÓ: executeSync amb Google Calendar.
+ * - VALIDACIÓ I REPARACIÓ: validateData, repairData.
+ * - SELECTORS: Selectors per obtenir dades filtrades i derivades.
+ * =============================================================================
+ */
+
 import { create } from 'zustand';
 // import eliminat: useStoreWithEqualityFn
 import { useStore } from 'zustand';
 import { temporal, TemporalState } from 'zundo';
 import { useModalStore } from './modalStore';
 import { useGoogleConfigStore } from './googleConfigStore';
-import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider } from '../types';
+import { EventFrame, PersonGroup, Assignment, AppData, EventFrameForExport, AssignmentStatus, TechSheetData, MaterialItem, SyncProgressState, NeedItem, AssignmentOperationResult, MaterialControlRow, TechSheetProvider, Performance } from '../types';
 import { formatDateDMY } from '../utils/dateFormat';
 import { migrateTechSheetData } from '../utils/techSheetMigration';
 import { validateData, repairData } from '../utils/dataIntegrity';
@@ -122,13 +146,15 @@ interface EventDataActions {
     refreshGoogleEvents: () => Promise<{ success: boolean, message?: string, type?: 'success' | 'error' | 'info' | 'warning' }>;
     syncWithGoogle: () => Promise<void>;
     executeSync: (targetCalendarId: string) => Promise<any>;
+    syncSingleEvent: (eventFrameId: string) => Promise<void>;
+    executeSingleSync: (eventFrameId: string, targetCalendarId: string) => Promise<any>;
     addOrUpdateTechSheet: (eventFrameId: string, fitxaData: TechSheetData) => void;
     reorderTechnicalProviders: (eventFrameId: string, reorderedProviders: TechSheetProvider[]) => void;
     addMaterialItem: (newItemData: Omit<MaterialItem, 'id'>) => MaterialItem;
     updateMaterialItem: (updatedItem: MaterialItem) => void;
     deleteMaterialItem: (itemId: string) => void;
     addMaterialItemsFromFile: (newItems: MaterialItem[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
-    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string) => { available: number, total: number };
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData, currentPerformanceId?: string) => { available: number, total: number };
     mergePeopleGroups: (newPeople: PersonGroup[]) => { success: boolean, message: string, type: 'success' | 'error' | 'info' | 'warning' };
     replacePeopleGroups: (newPeople: PersonGroup[]) => void;
     replaceMaterialItems: (newItems: MaterialItem[]) => void;
@@ -140,6 +166,10 @@ interface EventDataActions {
     archiveOldEventFrames: () => EventFrame[];
     confirmArchiveEventFrames: (eventFrameIds: string[]) => void;
     restoreEventFrame: (eventFrameId: string) => void;
+    addPerformance: (eventFrameId: string, performance: Omit<Performance, 'id'>) => string | null;
+    updatePerformance: (eventFrameId: string, performance: Performance) => void;
+    deletePerformance: (eventFrameId: string, performanceId: string) => void;
+    reorderPerformances: (eventFrameId: string, newPerformances: Performance[]) => void;
 }
 
 const initialState: EventDataState = {
@@ -338,19 +368,33 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         return { success: true, message: 'No hi havia configuració de Google per carregar.', type: 'info' };
     },
     exportData: async () => {
-        const { eventFrames, peopleGroups, materialItems } = get();
-        const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);
-        const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }: EventFrame) => restOfFrame);
-        let googleConfigForExport: AppData['googleConfig'] = undefined;
-        if (window.electronAPI) {
-            const fullConfig = await window.electronAPI.loadGoogleConfig();
-            if (fullConfig) {
-                googleConfigForExport = { userEmail: fullConfig.userEmail, activeAppCalendarId: fullConfig.activeAppCalendarId, managedAppCalendars: fullConfig.managedAppCalendars };
+        try {
+            const { eventFrames, peopleGroups, materialItems } = get();
+            const allAssignmentsList: Assignment[] = eventFrames.flatMap((ef: EventFrame) => ef.assignments);
+            const eventFramesForExport: EventFrameForExport[] = eventFrames.map(({ assignments, ...restOfFrame }: EventFrame) => restOfFrame);
+            let googleConfigForExport: AppData['googleConfig'] = undefined;
+            if (window.electronAPI) {
+                const fullConfig = await window.electronAPI.loadGoogleConfig();
+                if (fullConfig) {
+                    googleConfigForExport = { userEmail: fullConfig.userEmail, activeAppCalendarId: fullConfig.activeAppCalendarId, managedAppCalendars: fullConfig.managedAppCalendars };
+                }
             }
+            
+            // Log per veure si arriba aquí
+            logger.info('[eventDataStore] exportData: Preparant objecte per exportar...');
+            
+            const dataToExport = { peopleGroups, eventFrames: eventFramesForExport, materialItems, assignments: allAssignmentsList, googleConfig: googleConfigForExport };
+            
+            // Això pot ser lent/pesat
+            logger.info(`[eventDataStore] exportData: Objecte preparat, iniciant serialització...`);
+            const serializedData = JSON.parse(JSON.stringify(dataToExport));
+            logger.info(`[eventDataStore] exportData: Serialització completada. Mida estimada: ${JSON.stringify(serializedData).length} caràcters`);
+            
+            return serializedData;
+        } catch (e) {
+            logger.error('[eventDataStore] exportData: ERROR CRÍTIC preparant dades:', e);
+            throw e;
         }
-        const dataToExport = { peopleGroups, eventFrames: eventFramesForExport, materialItems, assignments: allAssignmentsList, googleConfig: googleConfigForExport };
-        // Assegurem que l'objecte és totalment serialitzable abans de passar-lo per IPC
-        return JSON.parse(JSON.stringify(dataToExport));
     },
 
     // EVENT FRAMES
@@ -616,6 +660,97 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         });
     },
     getPersonGroupById: (personGroupId: string) => get().peopleGroups.find((pg: PersonGroup) => pg.id === personGroupId),
+
+    // PERFORMANCES
+    addPerformance: (eventFrameId: string, performanceData: Omit<Performance, 'id'>) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
+        if (!eventFrame) return null;
+
+        // Assegurar que tota performance tingui techData per defecte
+        const newPerformance: Performance = { 
+            ...performanceData, 
+            id: generateId(),
+            techData: performanceData.techData || {
+                inputList: [],
+                monitorList: [],
+                cableList: [],
+                spareList: [],
+                lightingNotes: '',
+                videoNotes: '',
+                stageRequirements: '',
+            }
+        };
+        console.log('[EventDataStore] Creant nova performance:', { name: newPerformance.name, hasTechData: !!newPerformance.techData });
+        
+        set((state: EventDataState) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame) {
+                if (!targetFrame.performances) {
+                    targetFrame.performances = [];
+                }
+                targetFrame.performances.push(newPerformance);
+            }
+            state.hasUnsavedChanges = true;
+            state.lastAction = { type: 'actions.add_performance', params: { name: newPerformance.name, event: eventFrame?.name ?? 'desconegut' } };
+            state.lastActionDescription = `Has afegit l'actuació «${newPerformance.name}» a l'esdeveniment «${eventFrame?.name ?? 'desconegut'}»`;
+        });
+        return newPerformance.id;
+    },
+    updatePerformance: (eventFrameId: string, updatedPerformance: Performance) => {
+        console.log('[EventDataStore] updatePerformance cridat:', { eventFrameId, performanceName: updatedPerformance.name, techData: updatedPerformance.techData });
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
+        if (!eventFrame) {
+            console.warn('[EventDataStore] No es troba eventFrame:', eventFrameId);
+            return;
+        }
+
+        set((state: EventDataState) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame && targetFrame.performances) {
+                const performanceIndex = targetFrame.performances.findIndex(p => p.id === updatedPerformance.id);
+                if (performanceIndex !== -1) {
+                    console.log('[EventDataStore] Actualitzant performance a l\'índex:', performanceIndex);
+                    targetFrame.performances[performanceIndex] = updatedPerformance;
+                    console.log('[EventDataStore] Performance actualitzada correctament');
+                } else {
+                    console.warn('[EventDataStore] No es troba la performance amb ID:', updatedPerformance.id);
+                }
+            }
+            state.hasUnsavedChanges = true;
+            state.lastAction = { type: 'actions.update_performance', params: { name: updatedPerformance.name, event: eventFrame?.name ?? 'desconegut' } };
+            state.lastActionDescription = `Has modificat l'actuació «${updatedPerformance.name}» de l'esdeveniment «${eventFrame?.name ?? 'desconegut'}»`;
+        });
+    },
+    deletePerformance: (eventFrameId: string, performanceId: string) => {
+        const { eventFrames } = get();
+        const eventFrame = eventFrames.find((ef: EventFrame) => ef.id === eventFrameId);
+        const performance = eventFrame?.performances?.find(p => p.id === performanceId);
+        const performanceName = performance?.name || 'desconegut';
+        
+        set((state: EventDataState) => {
+            const targetFrame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (targetFrame && targetFrame.performances) {
+                targetFrame.performances = targetFrame.performances.filter((p: Performance) => p.id !== performanceId);
+            }
+            state.hasUnsavedChanges = true;
+            state.lastAction = { type: 'actions.delete_performance', params: { name: performanceName, event: eventFrame?.name ?? 'desconegut' } };
+            state.lastActionDescription = `Has suprimit l'actuació «${performanceName}» de l'esdeveniment «${eventFrame?.name ?? 'desconegut'}»`;
+        });
+    },
+    reorderPerformances: (eventFrameId: string, newPerformances: Performance[]) => {
+        const eventFrameName = get().eventFrames.find(ef => ef.id === eventFrameId)?.name || 'desconegut';
+        set((state: EventDataState) => {
+            const frame = state.eventFrames.find(ef => ef.id === eventFrameId);
+            if (frame && frame.performances) {
+                frame.performances = newPerformances;
+            }
+            state.hasUnsavedChanges = true;
+            state.lastAction = { type: 'actions.reorder_performances', params: { name: eventFrameName } };
+            state.lastActionDescription = `Has reordenat les actuacions de l'esdeveniment «${eventFrameName}»`;
+        });
+    },
     mergePeopleGroups: (newPeople: PersonGroup[]) => {
         const existingNames = new Set(get().peopleGroups.map((p: PersonGroup) => p.name.toLowerCase()));
         const peopleToAdd = newPeople.filter((p: PersonGroup) => !existingNames.has(p.name.toLowerCase()));
@@ -723,20 +858,23 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             state.lastActionDescription = 'Reemplaçat l\'inventari de material';
         });
     },
-    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string) => {
+    getMaterialAvailability: (materialId: string, startDate: string, endDate: string, currentEventFrameId: string, currentItemId?: string, overrideTechSheet?: TechSheetData, currentPerformanceId?: string) => {
         const { materialItems, eventFrames } = get();
         const materialItem = materialItems.find(item => item.id === materialId);
         if (!materialItem) return { available: 0, total: 0 };
 
         let committedInCurrentEvent = 0;
-        const currentEventFrame = eventFrames.find(ef => ef.id === currentEventFrameId);
-        if (currentEventFrame?.techSheet) {
+        const currentEvent = eventFrames.find(ef => ef.id === currentEventFrameId);
+        const techSheetToUse = overrideTechSheet || currentEvent?.techSheet;
+
+        // 1. Demanda en la Fitxa Tècnica de l'esdeveniment actual
+        if (techSheetToUse) {
             const needsKeys: (keyof TechSheetData)[] = [
                 'lighting', 'sound', 'video', 'machinery', 'rentals', 'otherEquipment',
                 'electrical', 'structures', 'platforms', 'consumables', 'curtains', 'transport'
             ];
             needsKeys.forEach(key => {
-                const section = currentEventFrame.techSheet![key];
+                const section = techSheetToUse[key];
                 if (section && section.status === 'yes' && Array.isArray((section as any).data?.needs)) {
                     (section as any).data.needs.forEach((need: NeedItem) => {
                         if (need.materialItemId === materialId && need.id !== currentItemId) {
@@ -747,13 +885,89 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
             });
         }
 
+        // 2. Demanda en els Riders (performances) de l'esdeveniment actual
+        if (currentEvent?.performances) {
+            currentEvent.performances.forEach(perf => {
+                perf.techData?.inputList?.forEach(input => {
+                    if (input.micContraId === materialId && input.id !== currentItemId) {
+                        if (!input.exclusive && perf.id !== currentPerformanceId) {
+                            // No sumem per no duplicar
+                        } else {
+                            committedInCurrentEvent += 1;
+                        }
+                    }
+                    if (input.standId === materialId && input.id !== currentItemId) {
+                        if (!input.exclusive && perf.id !== currentPerformanceId) {
+                            // No sumem per no duplicar
+                        } else {
+                            committedInCurrentEvent += 1;
+                        }
+                    }
+                    if (input.extresId === materialId && input.id !== currentItemId) {
+                        if (!input.exclusive && perf.id !== currentPerformanceId) {
+                            // No sumem per no duplicar
+                        } else {
+                            committedInCurrentEvent += 1;
+                        }
+                    }
+                });
+                perf.techData?.monitorList?.forEach(monitor => {
+                    const monQty = monitor.monitorQty ?? 1;
+                    const stQty  = monitor.standQty   ?? 1;
+                    if (monitor.mixContraId === materialId && monitor.id !== currentItemId) {
+                        if (!monitor.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar duplicat
+                        } else {
+                            committedInCurrentEvent += monQty;
+                        }
+                    }
+                    if (monitor.mixStandId === materialId && monitor.id !== currentItemId) {
+                        if (!monitor.exclusive && perf.id !== currentPerformanceId) {
+                            // No comptar duplicat
+                        } else {
+                            committedInCurrentEvent += stQty;
+                        }
+                    }
+                });
+                // Spare i Cable de l'event actual
+                perf.techData?.cableList?.forEach(cable => {
+                  if (cable.itemId === materialId && cable.id !== currentItemId) {
+                    if (!cable.exclusive && perf.id !== currentPerformanceId) {
+                      // No comptar duplicat
+                    } else {
+                      committedInCurrentEvent += cable.qty ?? 1;
+                    }
+                  }
+                });
+                perf.techData?.spareList?.forEach(spare => {
+                  if (spare.itemId === materialId && spare.id !== currentItemId) {
+                    if (!spare.exclusive && perf.id !== currentPerformanceId) {
+                      // No comptar duplicat
+                    } else {
+                      committedInCurrentEvent += spare.qty ?? 1;
+                    }
+                  }
+                });
+            });
+        }
+
+        // 3. Càlcul de disponibilitat dia a dia (per a altres esdeveniments)
         let minAvailable = materialItem.stock;
-        for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
             const currentDate = new Date(d);
             let dailyCommittedStock = 0;
+
             eventFrames.forEach(ef => {
                 if (ef.id === currentEventFrameId) return;
-                if (currentDate >= new Date(ef.startDate) && currentDate <= new Date(ef.endDate)) {
+                
+                const efStart = new Date(ef.startDate);
+                const efEnd = new Date(ef.endDate);
+
+                if (currentDate >= efStart && currentDate <= efEnd) {
+                    // Demanda en Fitxes Tècniques d'altres esdeveniments
                     Object.values(ef.techSheet || {}).forEach(section => {
                         if (section && section.status === 'yes' && Array.isArray((section as any).data?.needs)) {
                             (section as any).data.needs.forEach((need: NeedItem) => {
@@ -763,10 +977,32 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
                             });
                         }
                     });
+
+                    // Demanda en Riders d'altres esdeveniments
+                    if (ef.performances) {
+                        ef.performances.forEach(perf => {
+                            perf.techData?.inputList?.forEach(input => {
+                                if (input.micContraId === materialId) dailyCommittedStock += 1;
+                                if (input.standId === materialId) dailyCommittedStock += 1;
+                                if (input.extresId === materialId) dailyCommittedStock += 1;
+                            });
+                            perf.techData?.monitorList?.forEach(monitor => {
+                                if (monitor.mixContraId === materialId) dailyCommittedStock += monitor.monitorQty ?? 1;
+                                if (monitor.mixStandId  === materialId) dailyCommittedStock += monitor.standQty   ?? 1;
+                            });
+                            perf.techData?.cableList?.forEach(cable => {
+                                if (cable.itemId === materialId) dailyCommittedStock += cable.qty ?? 1;
+                            });
+                            perf.techData?.spareList?.forEach(spare => {
+                                if (spare.itemId === materialId) dailyCommittedStock += spare.qty ?? 1;
+                            });
+                        });
+                    }
                 }
             });
             minAvailable = Math.min(minAvailable, materialItem.stock - dailyCommittedStock);
         }
+
         return { total: materialItem.stock, available: minAvailable - committedInCurrentEvent };
     },
 
@@ -826,6 +1062,11 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
 
           if (result.success && result.data) {
             await loadData(result.data);
+            
+            // CORRECCIÓ CRÍTICA: Després de carregar les dades sincronitzades (amb nous Google IDs),
+            // hem de marcar l'estat com a "brut" perquè aquests IDs nous encara no estan al disc.
+            set({ hasUnsavedChanges: true }); 
+            
             await refreshGoogleEvents();
             finalResult = { success: true, message: result.message || 'Sincronització completada.', type: 'success' };
           } else {
@@ -837,6 +1078,98 @@ export const useEventDataStore = create<EventDataState & EventDataActions>()(
         set({ isSyncing: false });
         return finalResult;
       },
+    syncSingleEvent: async (eventFrameId: string) => {
+        const { openModal, closeModal } = useModalStore.getState();
+        const { executeSingleSync } = get();
+
+        if (window.electronAPI?.loadGoogleConfig) {
+            const config = await window.electronAPI.loadGoogleConfig();
+            if (!config || !config.managedAppCalendars || config.managedAppCalendars.length === 0) {
+                openModal('googleSettings');
+                return;
+            }
+
+            // Si només n'hi ha un, sincronitzem directament sense preguntar
+            if (config.managedAppCalendars.length === 1) {
+                executeSingleSync(eventFrameId, config.managedAppCalendars[0].id);
+                return;
+            }
+
+            // Si n'hi ha diversos, deixem que l'usuari triï el calendari de destí
+            openModal('selectSyncCalendar', {
+                managedCalendars: config.managedAppCalendars,
+                activeCalendarId: config.activeAppCalendarId,
+                onConfirmSync: (targetCalendarId: string) => {
+                    closeModal();
+                    executeSingleSync(eventFrameId, targetCalendarId);
+                }
+            });
+        }
+    },
+    executeSingleSync: async (eventFrameId, targetCalendarId) => {
+        const { exportData, refreshGoogleEvents } = get();
+        let finalResult: any = { success: false, message: 'La sincronització no es va completar.', type: 'error' };
+
+        set({ 
+          isSyncing: true, 
+          syncProgress: { 
+            current: 0, 
+            total: 1, 
+            message: 'Iniciant...', 
+            visible: true, 
+            logs: [`[INFO] Iniciant sincronització d'esdeveniment individual...`] 
+          } 
+        });
+
+        try {
+            if (window.electronAPI) {
+                const localData = await exportData();
+                const result = await window.electronAPI.syncSingleEventWithGoogle({ localData, eventFrameId, targetCalendarId });
+
+                if (result.success && result.data) {
+                    set(state => {
+                        const frameIndex = state.eventFrames.findIndex(f => f.id === eventFrameId);
+                        if (frameIndex !== -1) {
+                            state.eventFrames[frameIndex] = {
+                                ...state.eventFrames[frameIndex],
+                                googleEventId: result.data.googleEventId,
+                                googleCalendarId: result.data.googleCalendarId,
+                                lastSync: result.data.lastSync
+                            };
+                        }
+                        state.hasUnsavedChanges = true;
+                        state.syncProgress.current = 1;
+                        state.syncProgress.message = 'Sincronització completada amb èxit.';
+                        state.syncProgress.logs.push('[INFO] Procés finalitzat correctament.');
+                    });
+                    
+                    await refreshGoogleEvents();
+                    finalResult = { success: true, message: result.message || 'Sincronització completada.', type: 'success' };
+                    notificationService.success(finalResult.message);
+                } else {
+                    set(state => {
+                        state.syncProgress.message = result.message || 'Error durant la sincronització.';
+                        state.syncProgress.logs.push(`[ERROR] ${result.message}`);
+                    });
+                    await refreshGoogleEvents();
+                    finalResult = { success: false, message: result.message || 'Error durant la sincronització.', type: 'error' };
+                    notificationService.error(finalResult.message);
+                }
+            }
+        } catch (error: any) {
+            const errorMsg = error.message || 'Error inesperat.';
+            set(state => {
+                state.syncProgress.message = errorMsg;
+                state.syncProgress.logs.push(`[ERROR CRÍTIC] ${errorMsg}`);
+            });
+            finalResult = { success: false, message: errorMsg, type: 'error' };
+            notificationService.error(errorMsg);
+        } finally {
+            set({ isSyncing: false });
+        }
+
+        return finalResult;
+    },
 
     // ARCHIVING
     archiveOldEventFrames: () => {

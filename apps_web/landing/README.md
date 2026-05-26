@@ -6,18 +6,18 @@ Aquest és el codi font de la pàgina web de Gestor d'Esdeveniments i Personal, 
 
 1. **Instal·la les dependències**
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Inicia el servidor de desenvolupament**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
    Obrir [http://localhost:4321](http://localhost:4321) al navegador.
 
 3. **Compila per a producció**
    ```bash
-   npm run build
+   pnpm run build
    ```
    Això generarà els arxius estàtics a la carpeta `dist/`.
 

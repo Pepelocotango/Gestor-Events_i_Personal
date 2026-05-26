@@ -1,0 +1,196 @@
+/**
+ * =============================================================================
+ * SORTABLE PERFORMANCE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de targeta reordenable per actuacions amb drag & drop.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: SortablePerformance amb targeta reordenable.
+ * =============================================================================
+ */
+
+import React from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Performance } from '../../types';
+import Tooltip from '../ui/Tooltip';
+import { TrashIcon, AdjustmentsHorizontalIconComponent, CheckCircleIconComponent, ExclamationCircleIconComponent, MinusCircleIconComponent } from '../../constants';
+
+interface SortablePerformanceProps {
+  performance: Performance;
+  isSelected: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+}
+
+const SortablePerformance: React.FC<SortablePerformanceProps> = ({
+  performance,
+  isSelected,
+  onSelect,
+  onDelete,
+}) => {
+  const { t } = useTranslation();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: performance.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  // Function to calculate advancement status
+  const getAdvancingStatus = () => {
+    if (!performance.advancing) return 'none';
+    
+    const { riderReceived, counterRiderSent, schedulesConfirmed, hospitalityClosed } = performance.advancing;
+    const completedCount = [riderReceived, counterRiderSent, schedulesConfirmed, hospitalityClosed].filter(Boolean).length;
+    
+    if (completedCount === 4) return 'complete';
+    if (completedCount === 0) return 'none';
+    return 'partial';
+  };
+
+  const getAdvancingIcon = () => {
+    const status = getAdvancingStatus();
+    switch (status) {
+      case 'complete':
+        return <CheckCircleIconComponent className="w-4 h-4 text-success" />;
+      case 'partial':
+        return <ExclamationCircleIconComponent className="w-4 h-4 text-warning" />;
+      default:
+        return <MinusCircleIconComponent className="w-4 h-4 text-muted" />;
+    }
+  };
+
+  const getAdvancingTooltip = () => {
+    const status = getAdvancingStatus();
+    switch (status) {
+      case 'complete':
+        return t('performances.advancing.all_complete');
+      case 'partial':
+        return t('performances.advancing.partial_complete');
+      default:
+        return t('performances.advancing.not_started');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'bg-success text-success-foreground';
+      case 'cancelled':
+        return 'bg-destructive text-destructive-foreground';
+      default:
+        return 'bg-warning text-warning-foreground';
+    }
+  };
+
+  const getStatusBorder = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'border-l-success';
+      case 'cancelled':
+        return 'border-l-destructive';
+      default:
+        return 'border-l-warning';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return t('performances.status.confirmed');
+      case 'cancelled':
+        return t('performances.status.cancelled');
+      default:
+        return t('performances.status.pending');
+    }
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div
+        className={`
+          relative p-4 border rounded-lg cursor-pointer transition-all duration-200
+          ${isDragging ? 'opacity-30 border-dashed border-2 bg-muted/50' : ''}
+          ${!isDragging && isSelected 
+            ? 'border-primary bg-primary/5 shadow-sm' 
+            : !isDragging ? `border-border hover:border-primary/50 hover:bg-accent/50 ${getStatusBorder(performance.status)} border-l-4` : ''
+          }
+        `}
+        onClick={onSelect}
+      >
+        {/* Drag handle */}
+        <Tooltip text={t('performances.drag_tooltip')}>
+          <button
+            {...attributes}
+            {...listeners}
+            className="absolute top-1/2 -left-6 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md cursor-grab focus:outline-none focus:ring-2 focus:ring-ring"
+            aria-label={t('performances.drag_tooltip')}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical size={20} />
+          </button>
+        </Tooltip>
+
+        <div className="flex justify-between items-start">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <h4 className="font-medium truncate">
+                {performance.name || t('performances.unnamed')}
+              </h4>
+              <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(performance.status)}`}>
+                {getStatusText(performance.status)}
+              </span>
+              {performance.techData && performance.techData.inputList.length > 0 && (
+                <Tooltip text={t('performances.has_tech_data')}>
+                  <AdjustmentsHorizontalIconComponent className="w-4 h-4 text-primary" />
+                </Tooltip>
+              )}
+              <Tooltip text={getAdvancingTooltip()}>
+                <span className="text-sm">{getAdvancingIcon()}</span>
+              </Tooltip>
+            </div>
+            
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              {performance.type && (
+                <span>{performance.type}</span>
+              )}
+              {performance.showTime && (
+                <span>{t('performances.show_time')}: {performance.showTime}</span>
+              )}
+              {performance.contactName && (
+                <span>{t('performances.contact')}: {performance.contactName}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 ml-4">
+            <Tooltip text={t('performances.delete_tooltip')}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default React.memo(SortablePerformance);

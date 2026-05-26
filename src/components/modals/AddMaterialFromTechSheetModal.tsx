@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * ADD MATERIAL FROM TECH SHEET MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per afegir material des de la fitxa tècnica d'un esdeveniment.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: AddMaterialFromTechSheetModal amb formulari de material.
+ * =============================================================================
+ */
+
 import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../../stores/eventDataStore';

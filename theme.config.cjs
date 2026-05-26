@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * THEME CONFIG
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Configuració de paleta de colors per a l'aplicació amb temes clar i fosc.
+ *
+ * ÍNDEX:
+ * - LIGHT: Paleta de colors per al tema clar.
+ * - DARK: Paleta de colors per al tema fosc.
+ * - PDF EXTRAS: Colors addicionals per a PDFs.
+ * - PDF MAPPING: Mapeig de colors per a PDFs.
+ * =============================================================================
+ */
+
 // theme.config.js
 // Aquesta és l'única font de veritat per a la paleta de colors de l'aplicació.
 // Aquest fitxer és utilitzat per l'script 'scripts/build-theme.js' per generar automàticament:

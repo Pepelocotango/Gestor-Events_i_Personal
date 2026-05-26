@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * MATERIAL CONTROL TABLE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de taula per mostrar dades de control de material amb expand/collapse.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: MaterialControlTable amb files expandibles.
+ * - HANDLERS: toggleRow per expandir/contraure files.
+ * - RENDERITZAT: Estructura de taula amb icones d'expand.
+ * =============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MaterialControlRow } from '../types';

@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * GOOGLE EVENT DETAILS MODAL
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Modal per mostrar detalls d'un esdeveniment de Google Calendar.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: GoogleEventDetailsModal amb informació de l'esdeveniment.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModalStore } from '../../stores/modalStore';
@@ -10,6 +22,9 @@ const GoogleEventDetailsModal: React.FC = () => {
   const closeModal = useModalStore(state => state.closeModal);
 
   const event = data?.eventData;
+
+  // Extreure la nota de producció de les propietats privades de Google
+  const productionNote = event?.extendedProperties?.private?.productionNote;
 
   if (!event) {
     return (
@@ -130,6 +145,16 @@ const GoogleEventDetailsModal: React.FC = () => {
             {renderDescription(event.description)}
           </div>
         </div>
+
+        {/* Nota de Producció */}
+        {productionNote && (
+          <div>
+            <h3 className="font-semibold text-foreground mb-1">{t('production_note.title')}</h3>
+            <div className="p-2 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-foreground">{productionNote}</p>
+            </div>
+          </div>
+        )}
 
         {/* Assistents */}
         <div className="flex items-start space-x-3">

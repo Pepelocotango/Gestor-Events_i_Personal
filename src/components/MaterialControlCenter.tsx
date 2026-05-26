@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * MATERIAL CONTROL CENTER
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component principal de control de material amb filtres i exportació.
+ *
+ * ÍNDEX:
+ * - IMPORTS I DEPENDÈNCIES: Llibreries React, stores i components.
+ * - COMPONENT PRINCIPAL: MaterialControlCenter amb filtres i taula.
+ * - ESTAT I FILTRATGE: Estat de filtres de material.
+ * - HANDLERS: Gestió de filtres i exportació.
+ * - RENDERITZAT: Estructura amb MaterialControlFilters i MaterialControlTable.
+ * =============================================================================
+ */
+
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEventDataStore } from '../stores/eventDataStore';

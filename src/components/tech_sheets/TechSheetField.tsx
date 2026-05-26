@@ -1,4 +1,16 @@
-import React, { memo, useRef } from 'react';
+/**
+ * =============================================================================
+ * TECH SHEET FIELD
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de camp de formulari per a fitxes tècniques amb suport per suggestions.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: TechSheetField amb input/textarea i suggestions.
+ * =============================================================================
+ */
+
+import React, { memo, useRef, useState, useEffect, useCallback } from 'react';
 import Tooltip from '../ui/Tooltip';
 import AutosizeTextarea from '../ui/AutosizeTextarea';
 
@@ -39,6 +51,53 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
   className = '',
   tooltipText,
 }) => {
+  // LOCAL STATE — el camp gestiona el seu propi valor
+  const [localValue, setLocalValue] = useState<string | number>(value);
+
+  // Guard anti-focus per evitar sobre-escriptura durant edició
+  const isFocused = useRef(false);
+
+  // Sincronització externa (canvi de fitxa, reset): només si no està enfocat
+  useEffect(() => {
+    if (!isFocused.current) {
+      setLocalValue(value);
+    }
+  }, [value]);
+
+  // onChange local: actualitza l'estat intern sense cridar el pare
+  const handleLocalChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setLocalValue(e.target.value);
+    },
+    []
+  );
+
+  // onFocus: marca que el camp està actiu per evitar sobre-escriptura
+  const handleFocus = useCallback(
+    () => {
+      isFocused.current = true;
+    },
+    []
+  );
+
+  // onBlur: propaga el valor al pare (TechSheetForm re-renderitza aquí, no a cada tecla)
+  const handleBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      // Notificar al pare NOMÉS en sortir del camp
+      // Creem un event sintètic per compatibilitat amb el tipat d'onChange
+      const syntheticEvent = {
+        ...e,
+        target: { ...e.target, name: id, value: String(localValue) },
+        currentTarget: { ...e.currentTarget, name: id, value: String(localValue) },
+      } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
+      
+      // Marcar que ja no està enfocat abans de notificar al pare
+      isFocused.current = false;
+      onChange(syntheticEvent);
+      onBlur?.(e);
+    },
+    [onChange, onBlur, id, localValue]
+  );
   const baseClasses = "mt-1 block w-full px-3 py-2 bg-input border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring focus:border-primary sm:text-sm resize-none overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed read-only:bg-muted/50";
 
   const finalClassName = `${baseClasses} ${className}`.trim();
@@ -53,9 +112,10 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
           ref={textareaRef}
           id={id}
           name={id}
-          value={value}
-          onChange={onChange}
-          onBlur={onBlur}
+          value={localValue}
+          onChange={handleLocalChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder={placeholder}
           rows={rows}
           className={finalClassName}
@@ -68,9 +128,10 @@ const TechSheetField: React.FC<TechSheetFieldProps> = ({
           type={type}
           id={id}
           name={id}
-          value={value}
-          onChange={onChange}
-          onBlur={onBlur}
+          value={localValue}
+          onChange={handleLocalChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder={placeholder}
           className={finalClassName}
           required={required}

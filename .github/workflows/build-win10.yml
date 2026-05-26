@@ -6,21 +6,29 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
     # 1. Descarrega el codi del teu repositori
     - name: Checkout del codi
       uses: actions/checkout@v4
-
-    # 2. Configura l'entorn de Node.js per poder utilitzar npm
+   
+      #1.2 instal#lar pnpm
+    - name: Instal·lar pnpm
+      uses: pnpm/action-setup@v4
+      with:
+          version: 8.15.9
+   
+     # 2. Configura l'entorn de Node.js per poder utilitzar pnpm
     - name: Configuració de Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20' # Utilitzem una versió recent de Node.js
+        node-version: '24' # Utilitzem una versió recent de Node.js
 
     # 3. Instal·la totes les dependències del package.json
     - name: Instal·lació de dependències del projecte
-      run: npm install
+      run: pnpm install --frozen-lockfile
       
     - name: 4.5 Create google-credentials.json from secret
       env:
@@ -44,29 +52,43 @@ jobs:
             echo "El fitxer google-credentials.json està buit o massa petit!" && exit 1
           )
 
-    # 4. PAS CLAU: Executa el teu script "build:electron"
-    # Aquesta única comanda s'encarrega de compilar el teu codi React i empaquetar-lo amb Electron.
-    # Els paràmetres --win --x64 asseguren que es construeixi per a Windows 64-bit.
-    - name: Compilació i empaquetat de l'aplicació
-      run: npm run build:electron -- --win --x64 --publish never
-
-    # 5. Creació del paquet ZIP per a Windows
-    - name: Crear paquet ZIP de Windows
-      id: zip_windows
+    - name: Preparar variables de nom
       shell: pwsh
       run: |
-        $filesToZip = Get-ChildItem -Path "dist" -Filter "*.exe" | ForEach-Object { $_.FullName }
-        $filesToZip += @("LICENSE", "README.md", "DEVELOPING.md")
-        $filesToZip += Get-ChildItem -Path "examples json" -Recurse | ForEach-Object { $_.FullName }
+        $safeBranch = "${{ github.ref_name }}" -replace '/', '_'
+        echo "BRANCH_NAME=$safeBranch" >> $env:GITHUB_ENV
+        echo "BUILD_NUMBER=${{ github.run_number }}" >> $env:GITHUB_ENV
+        $appVersion = node -p "require('./package.json').version"
+        echo "APP_VERSION=$appVersion" >> $env:GITHUB_ENV
 
-        $zipName = "GestorEsdevenimentsPersonal_V1.6.0-Windows.zip"
-        echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
+    # (El pas 4 de compilació es manté igual, agafarà les variables automàticament)
+    - name: Compilació i empaquetat de l'aplicació
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: pnpm run build:electron --win --x64 --publish never
 
-        Compress-Archive -Path $filesToZip -DestinationPath $zipName
+    # 5. Preparar carpeta d'artefactes
+    - name: Preparar carpeta d'artefactes
+      id: prep_windows
+      shell: pwsh
+      run: |
+        # Creem carpeta temporal
+        New-Item -ItemType Directory -Force -Path "GEP_Artifact"
+        
+        # Copiem els executables
+        Get-ChildItem -Path "releases" -Filter "*.exe" | Copy-Item -Destination "GEP_Artifact"
+        
+        # Copiem documentació i exemples
+        Copy-Item -Path "LICENSE", "README.md", "DEVELOPING.md" -Destination "GEP_Artifact"
+        Copy-Item -Path "examples json" -Destination "GEP_Artifact" -Recurse
+        
+        # Definim el nom de l'artefacte (sense .zip)
+        $artifactName = "GEP_v${{ env.APP_VERSION }}-${{ env.BRANCH_NAME }}-build${{ env.BUILD_NUMBER }}-Windows"
+        echo "artifact_name=$artifactName" >> $env:GITHUB_OUTPUT
 
-    # 6. Pujada de l'artefacte ZIP de Windows
-    - name: Pujada del ZIP de Windows
+      # 6. Pujada de l'artefacte
+    - name: Pujada de la carpeta com a artefacte
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ steps.zip_windows.outputs.zip_name }}
-        path: ${{ steps.zip_windows.outputs.zip_name }}
+        name: ${{ steps.prep_windows.outputs.artifact_name }}
+        path: GEP_Artifact/

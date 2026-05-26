@@ -1,3 +1,17 @@
+/**
+ * =============================================================================
+ * TOOLTIP
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de tooltip React amb retard configurable i posicionament intel·ligent.
+ *
+ * ÍNDEX:
+ * - COMPONENT PRINCIPAL: Tooltip amb estat de visibilitat i posicionament.
+ * - HANDLERS: handleMouseEnter, handleMouseLeave amb retard.
+ * - POSICIONAMENT: useLayoutEffect per ajustar posició i evitar overflow.
+ * =============================================================================
+ */
+
 import React, { useState, useRef, ReactElement, useLayoutEffect, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 

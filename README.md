@@ -2,9 +2,11 @@
 
 ### `README.md`**
 
-# Gestor d'Esdeveniments i Personal V1.6.0 (GENER 2026)
+# Gestor d'Esdeveniments i Personal V1.6.4 (ABRIL 2026)
 
 Aplicació d'escriptori multiplataforma (Electron, React, Vite) per a la gestió integral d'esdeveniments, personal, fitxes de bolo i material, complementada amb una **aplicació mòbil** (React Native, Expo) que permet la **gestió i edició** de dades en mobilitat.
+
+**🌐 Pàgina Web oficial: [https://gestor-events.vercel.app](https://gestor-events.vercel.app)**
 
 El projecte està actualment en fase de desenvolupament actiu.
 
@@ -27,6 +29,12 @@ L'aplicació ofereix les següents eines:
     *   Genera fitxes tècniques completes ("Fitxes de Bolo") per a cada esdeveniment.
     *   Gestiona el personal per proveïdors i rols, i les necessitats de material (il·luminació, so, vídeo, etc.).
     *   **Reordena els proveïdors de personal amb drag-and-drop** per a una organització visual.
+
+*   **Gestió d'Actuacions Artístiques (Escriptori, ):**
+    *   **Mòdul d'Actuacions:** Crea i edita actuacions per a cada esdeveniment (contacte, horaris d'arribada/soundcheck/show/sortida, notes tècniques i d'hospitalitat).
+    *   **Control d'Avançament:** Seguiment visual amb 4 estats (Rider Rebut, Contra-rider Enviat, Horaris Confirmats, Hospitality Tancat).
+    *   **Formularis Tècnics i Hospitality:** Input list, notes de llums/vídeo/escenari, camerinos, càtering, dietes, logística i pàrquing.
+    *   **Exportació PDF:** Riders individuals per actuació i resum d'actuacions (escaleta artística amb horaris i dades de les actuacions). La fitxa de bolo i el mòdul d'actuacions són independents; no hi ha export que combini ambdues fonts a la interfície actual.
 
 *   **Inventari de Material (Escriptori):**
     *   Manté una base de dades centralitzada de material amb control d'estoc.
@@ -139,6 +147,12 @@ Per a Linux, utilitzem el format `AppImage`, que no requereix instal·lació:
 *   Descarrega el fitxer `...-Linux-Ubuntu18.04+.AppImage`.
 *   **Dona-li permisos d'execució.** La manera més fàcil és fent clic dret sobre el fitxer > Propietats > Permisos > i marcar la casella "Permet executar el fitxer com un programa".
     *   Alternativament, des de la terminal: `chmod +x GestorEsdeveniments-*.AppImage`
+*   **Nota important per a Ubuntu 22.04/24.04+:** 
+    *   **FUSE:** Aquestes versions no inclouen `libfuse2` per defecte. Si l'app no s'obre, instal·la-la amb: `sudo apt install libfuse2t64` (o `libfuse2`).
+    *   **AppArmor (Ubuntu 24.04):** Aquesta versió restringeix els *user namespaces*. Si l'AppImage no arrenca, executa aquesta comanda per permetre-ho:
+        ```bash
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+        ```
 *   Fes doble clic sobre el fitxer per executar l'aplicació.
 ---
 
@@ -166,6 +180,20 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
 
 ---
 ## 🚀 Novetats i Funcionalitats Clau
+
+* **Workshop de Riders (NOU):**
+  * **Taller Tècnic Avançat:** Una nova interfície professional ("Workshop") dedicada exclusivament al disseny tècnic de patch i monitors.
+  * **Control d'Estoc en Temps Real:** L'inventari lateral mostra la disponibilitat real restant, tenint en compte les assignacions de totes les actuacions de l'esdeveniment i d'altres produccions simultànies.
+  * **Assignació "Point & Shoot":** Clica una cel·la de la taula (micròfon o peu) i selecciona directament el material de l'inventari per assignar-lo, evitant errors d'escriptura.
+  * **Balanç Consolidat Integrat:** Una secció detallada (col·lapsable) que resumeix tot el material necessari per al conjunt del festival o esdeveniment, amb alertes visuals si se supera l'estoc disponible.
+  * **Disseny Industrial Compacte:** Interfície d'alta densitat d'informació amb seccions col·lapsables (Inputs, Monitors, Notes, Balanç) i tooltips intel·ligents a cada cel·la.
+  * **Hotkeys de Teclat:** Sistema de dreceres de teclat context-aware. Prem **Ctrl+Enter** (o Cmd+Enter en Mac) per afegir ràpidament canals o monitors quan tens el focus en la secció corresponent del Workshop.
+
+* **Mòdul d'Actuacions (FASE 4):**
+  * **Gestió d'actuacions artístiques** per esdeveniment: llista ordenable (drag-and-drop), formularis bàsic, tècnic i d'hospitalitat.
+  * **Control d'avançament visual** amb 4 passos (Rider Rebut, Contra-rider Enviat, Horaris Confirmats, Hospitality Tancat).
+  * **Exportació PDF:** riders individuals per actuació i resum d'actuacions (escaleta artística).
+  * L'últim esdeveniment de actuacions visualitzat es recorda entre sessions.
 
 * **Centre de Control de Material (Redissenyat):**
   * **Càlcul de Pic de Demanda Concurrent:** La nova lògica calcula la demanda màxima d'un ítem en un sol dia dins d'un període, oferint una previsió d'estoc molt més realista.
@@ -212,7 +240,7 @@ Per ajudar-te a començar, hem inclòs una carpeta anomenada `examples json` amb
     * **Traduccions Completes:** Totes les cadenes de text, menús, missatges d'error i documentació estan traduïdes als tres idiomes.
 
 * **Altres millores:**
-  * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`npm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).
+  * **Sistema de Temes Automatitzat:** S'ha implementat un sistema de gestió de colors centralitzat. Tota la paleta de colors es defineix en un únic fitxer de configuració (`theme.config.cjs`) i un script automatitzat (`pnpm run build:theme`) genera tots els estils necessaris, garantint una consistència total entre el tema de l'aplicació (clar/fosc) i els elements externs com els PDF. Per a més detalls tècnics, consulta la [guia de desenvolupament](DEVELOPING.md).
   * **Disseny Fluid (Full-Width):** L'aplicació ara utilitza un disseny d'amplada completa que aprofita tot l'espai de la pantalla, reemplaçant l'anterior contenidor centrat per optimitzar la visualització en monitors grans.
   * Refactorització de stores, modals, tech_sheets i utils.
   * Gestió d'errors robusta amb logs de sessió i ErrorBoundary.

@@ -1,7 +1,20 @@
+/**
+ * =============================================================================
+ * NAVIGATION
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Component de navegació principal amb enllaços a les diferents vistes.
+ *
+ * ÍNDEX:
+ * - ICONS: DocumentTextIcon i altres icones SVG.
+ * - COMPONENT PRINCIPAL: Navigation amb NavLink i tooltips.
+ * =============================================================================
+ */
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CalendarIcon, BoxIcon, UsersIcon, ChartBarIcon } from '../constants';
+import { CalendarIcon, BoxIcon, UsersIcon, ChartBarIcon, MicrophoneIcon, LayoutGridIcon, ClipboardListIcon } from '../constants';
 import Tooltip from './ui/Tooltip';
 
 const DocumentTextIcon = ({ className = "w-5 h-5" }) => (
@@ -53,6 +66,27 @@ const Navigation: React.FC = () => {
           <NavLink to="/material" className={getLinkClassName}>
             <BoxIcon className="h-5 w-5" />
             <span>{t('main.nav_material')}</span>
+          </NavLink>
+        </Tooltip>
+
+        <Tooltip text={t('main.nav_performances_tooltip')}>
+          <NavLink to="/performances" className={getLinkClassName}>
+            <MicrophoneIcon className="h-5 w-5" />
+            <span>{t('performances.nav_title')}</span>
+          </NavLink>
+        </Tooltip>
+
+        <Tooltip text={t('main.nav_riders_tooltip')}>
+          <NavLink to="/riders" className={getLinkClassName}>
+            <LayoutGridIcon className="h-5 w-5" />
+            <span>{t('main.nav_riders')}</span>
+          </NavLink>
+        </Tooltip>
+
+        <Tooltip text={t('main.nav_regidoria_tooltip')}>
+          <NavLink to="/regidoria" className={getLinkClassName}>
+            <ClipboardListIcon className="h-5 w-5" />
+            <span>{t('main.nav_regidoria')}</span>
           </NavLink>
         </Tooltip>
 

@@ -1,3 +1,16 @@
+/**
+ * =============================================================================
+ * DATE RANGE FORMATTER
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Utilitats per formatar llistes de dates en rangs compactes (ex: 14/05-15/05).
+ *
+ * ÍNDEX:
+ * - FUNCIONS AUXILIARS: formatSimpleDM, areDatesConsecutive.
+ * - FORMAT DE RANGS DE DATES: formatDateRanges per convertir llistes en rangs.
+ * =============================================================================
+ */
+
 const formatSimpleDM = (dateStr: string): string => {
   const parts = dateStr.split('-');
   return `${parts[2]}/${parts[1]}`;

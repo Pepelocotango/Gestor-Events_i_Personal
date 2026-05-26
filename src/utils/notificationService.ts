@@ -1,3 +1,15 @@
+/**
+ * =============================================================================
+ * NOTIFICATION SERVICE
+ * =============================================================================
+ * DESCRIPCIÓ:
+ * Servei de notificacions utilitzant react-hot-toast per a l'aplicació.
+ *
+ * ÍNDEX:
+ * - MÈTODES DE NOTIFICACIÓ: success, error, info, warning, loading, dismiss, promise.
+ * =============================================================================
+ */
+
 import toast from 'react-hot-toast';
 
 export const notificationService = {
