@@ -1,3 +1,7 @@
+# Autor
+
+Pëp pepelocotango@gmail.com
+
 ![Captura de pantalla del gestor d'events i personal](imatges/en_construcció_GV.png)
 
 ### `README.md`**
@@ -295,3 +299,7 @@ Vull estendre aquest agraïment a tots els creadors de recursos, eines i depend�
 I finalment, gràcies a la paciència dels que m'envolten mentre estic immers en el projecte.
 
 **Visca el codi lliure!!** 🐧
+
+## Llicència
+
+Aquest projecte està llicenciat sota la llicència **GNU General Public License v3.0**. Consulta el fitxer [LICENSE](LICENSE) per obtenir més detalls.
